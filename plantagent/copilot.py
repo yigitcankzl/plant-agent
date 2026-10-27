@@ -687,6 +687,130 @@ def unit_capacities(ws, view="proposed"):
                     r.update({"capacity_mgd": round(min(lim, 60.0), 1) if lim is not None else q, "limits_target": False, "changed": a["title"]})
     return rows
 
+
+# --- field photo: nameplate or gauge read by Muse, checked against the model, applied as a revision ----------
+PHOTO_SCHEMA = {"type": "object", "additionalProperties": False, "properties": {
+    "kind": {"type": "string", "enum": ["pump nameplate", "motor nameplate", "pressure gauge", "flow meter", "other"]},
+    "maker": {"type": "string"}, "model_or_tag": {"type": "string"},
+    "flow": {"type": "object", "additionalProperties": False, "properties": {"value": {"type": ["number", "null"]}, "unit": {"type": "string"}}, "required": ["value", "unit"]},
+    "head": {"type": "object", "additionalProperties": False, "properties": {"value": {"type": ["number", "null"]}, "unit": {"type": "string"}}, "required": ["value", "unit"]},
+    "speed_rpm": {"type": ["number", "null"]},
+    "power": {"type": "object", "additionalProperties": False, "properties": {"value": {"type": ["number", "null"]}, "unit": {"type": "string"}}, "required": ["value", "unit"]},
+    "pressure": {"type": "object", "additionalProperties": False, "properties": {"value": {"type": ["number", "null"]}, "unit": {"type": "string"}}, "required": ["value", "unit"]},
+    "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+    "unreadable": {"type": "array", "items": {"type": "string"}}, "verbatim": {"type": "string"}},
+    "required": ["kind", "maker", "model_or_tag", "flow", "head", "speed_rpm", "power", "pressure", "confidence", "unreadable", "verbatim"]}
+TO_US = {"gpm": 1, "usgpm": 1, "us gpm": 1, "m3/h": 4.4029, "m³/h": 4.4029, "l/s": 15.8503, "lps": 15.8503, "m3/s": 15850.3, "l/min": 0.26417,
+         "ft": 1, "m": 3.28084, "hp": 1, "kw": 1.34102, "psi": 1, "bar": 14.5038, "kpa": 0.145038, "mpa": 145.038}
+
+
+def _us(q):
+    """Convert a reading to US units; tolerant of plate wording ('GALLONS PER MIN U.S.', 'FEET', 't/h' for water)."""
+    if not q or q.get("value") is None:
+        return None
+    k = q.get("unit", "").strip().lower().replace(" ", "").replace(".", "")
+    rules = [("gal", 1), ("gpm", 1), ("m3/h", 4.4029), ("m³/h", 4.4029), ("t/h", 4.4029), ("l/s", 15.8503), ("lps", 15.8503),
+             ("l/min", 0.26417), ("feet", 1), ("ft", 1), ("kw", 1.34102), ("hp", 1), ("psi", 1), ("bar", 14.5038), ("kpa", 0.145038),
+             ("mpa", 145.038)]
+    f = next((v for u, v in rules if u in k), 3.28084 if k in ("m", "meter", "meters", "metre", "metres") else None)
+    return round(q["value"] * f, 1) if f else None
+
+
+def plate_checks(r):
+    """Deterministic sanity checks on a nameplate reading: specific speed and digits next to a letter O."""
+    out = []
+    q, h, n = r["us"].get("flow_gpm"), r["us"].get("head_ft"), r.get("speed_rpm")
+    ns = lambda q_: n * q_ ** 0.5 / h ** 0.75  # noqa: E731  US specific speed
+    if q and h and n:
+        r["us"]["specific_speed"] = round(ns(q))
+        if not 500 <= ns(q) <= 15000:
+            alt = [x for x in (q * 10, q / 10) if 500 <= ns(x) <= 15000]
+            out.append({"check": "specific speed", "status": "suspicious",
+                        "note": f"Ns = {ns(q):.0f} is outside 500-15000 for a centrifugal pump" +
+                                (f"; {alt[0]:,.0f} gpm gives Ns = {ns(alt[0]):.0f}" if alt else ""),
+                        "suggested_flow_gpm": alt[0] if alt else None})
+        else:
+            out.append({"check": "specific speed", "status": "ok", "note": f"Ns = {ns(q):.0f}, plausible for a centrifugal pump"})
+    m = re.search(r"(\d{3,})\s*O\b", r.get("verbatim", ""))
+    if m:
+        out.append({"check": "letter O next to digits", "status": "suspicious",
+                    "note": f"plate shows '{m.group(0)}': the O may be a zero ({m.group(1)}0)"})
+    return out
+
+
+def read_photo(ws, data, model=None):
+    """Muse reads a field photo into a structured reading (vision + JSON schema); Python converts the units and finds the
+    model pump it most likely belongs to."""
+    import io
+    from PIL import Image
+    im = Image.open(io.BytesIO(data)).convert("RGB")
+    im.thumbnail((1600, 1600))
+    buf = io.BytesIO()
+    im.save(buf, "JPEG", quality=88)
+    url = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
+    llm.TAG = "photo:" + ws.case.name
+    msg = llm.complete(model or ws.model, [
+        {"role": "system", "content": "You read equipment nameplates and gauges in field photos for an engineer. Report only what is "
+                                      "legible; put anything you cannot read in `unreadable`; never guess. Copy the plate text verbatim."},
+        {"role": "user", "content": [{"type": "text", "text": "Read this field photo."}, {"type": "image_url", "image_url": {"url": url}}]}],
+        response_format={"type": "json_schema", "json_schema": {"name": "field_reading", "schema": PHOTO_SCHEMA, "strict": True}})
+    text = msg["content"] or "{}"
+    r = json.loads(text[text.index("{"): text.rindex("}") + 1])
+    r["us"] = {"flow_gpm": _us(r.get("flow")), "head_ft": _us(r.get("head")), "power_hp": _us(r.get("power")), "pressure_psi": _us(r.get("pressure"))}
+    r["checks"] = plate_checks(r)
+    sug = next((c["suggested_flow_gpm"] for c in r["checks"] if c.get("suggested_flow_gpm")), None)
+    r["candidates"] = match_pumps(ws, sug or r["us"]["flow_gpm"], r["us"]["head_ft"])
+    return r
+
+
+def station_runs(ws):
+    """EPANET station models from this and earlier studies of the project (pumps with rated points)."""
+    out = {k: v for k, v in ws.runs.items() if len(v.get("spec", {}).get("pumps", [])) >= 2}
+    for d in sorted((ROOT / "runs" / ws.case.name).glob("2*")):
+        if (d / "study.json").exists():
+            for k, v in json.loads((d / "study.json").read_text()).get("runs", {}).items():
+                if len(v.get("spec", {}).get("pumps", [])) >= 3 and "FIRM" in k.upper():
+                    out.setdefault(k, v)
+    return out
+
+
+def match_pumps(ws, gpm, head):
+    import math as _m
+    cands = []
+    for label, r in station_runs(ws).items():
+        for p in r["spec"]["pumps"]:
+            q, h = p.get("rated_gpm"), p.get("rated_head_ft")
+            if not (q and h):
+                continue
+            d = abs(_m.log(gpm / q)) + abs(_m.log(head / h)) if gpm and head else 9
+            cands.append({"run": label, "pump": p["id"], "rated_gpm": q, "rated_head_ft": h, "distance": round(d, 2)})
+    cands.sort(key=lambda c: c["distance"])
+    seen, out = set(), []
+    for c in cands:
+        if (c["rated_gpm"], c["rated_head_ft"], c["pump"]) not in seen:
+            seen.add((c["rated_gpm"], c["rated_head_ft"], c["pump"]))
+            out.append({**c, "match": "close" if c["distance"] < 0.25 else "different equipment" if c["distance"] > 0.8 else "partial"})
+    return out[:6]
+
+
+def apply_photo(ws, run, pump_id, gpm, head, note=""):
+    """Replace a pump's rated point with the field reading, re-run EPANET, and log the revision."""
+    from . import sim
+    base = station_runs(ws)[run]
+    spec = json.loads(json.dumps(base["spec"]))
+    p = next(x for x in spec["pumps"] if x["id"] == pump_id)
+    old = (p.get("rated_gpm"), p.get("rated_head_ft"))
+    p.pop("curve", None)
+    p["rated_gpm"], p["rated_head_ft"] = float(gpm), float(head)
+    before, after = sim.run(base["spec"]), sim.run(spec)
+    label = f"{run}~field{len(ws.revisions) + 1}"
+    ws.runs[label] = {"purpose": f"{run} with {pump_id} at field reading {gpm} gpm @ {head} ft {note}", "spec": spec, "result": after}
+    rev = {"n": len(ws.revisions) + 1, "time": time.strftime("%H:%M:%S"), "from": run, "to": label, "element": pump_id,
+           "field": "rated point (field photo)", "old": f"{old[0]} gpm @ {old[1]} ft", "new": f"{gpm} gpm @ {head} ft", "source": "field photo " + note}
+    ws.revisions.append(rev)
+    return {"label": label, "revision": rev, "before_mgd": before.get("total_pumped_mgd"), "after_mgd": after.get("total_pumped_mgd"),
+            "pumps_before": before["pumps"], "pumps_after": after["pumps"], "warnings": after.get("warnings", [])}
+
 if __name__ == "__main__":
     import sys
     from .docs import Case

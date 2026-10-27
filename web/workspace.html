@@ -253,6 +253,11 @@
   #pagemodal .bar { display: flex; justify-content: space-between; color: var(--muted); padding: 2px 4px 8px; }
   .kpi.flip { animation: flip .9s; } @keyframes flip { 0% { transform: rotateX(90deg); } 60% { box-shadow: 0 0 0 3px var(--warn); } }
   body.simple .ubar.na { display: none; }
+  .ph img { width: 100%; border-radius: 8px; margin: 8px 0; max-height: 220px; object-fit: cover; }
+  .rd { width: 100%; border-collapse: collapse; font-size: 12.5px; } .rd td { padding: 3px 4px; border-bottom: 1px solid var(--line); } .rd td.v { font: 600 12.5px var(--mono); text-align: right; }
+  .warnbox { margin-top: 8px; padding: 8px 10px; border-radius: 8px; background: rgba(227,163,58,.1); border: 1px solid rgba(227,163,58,.5); font-size: 12px; color: #f3cd8a; }
+  .okbox { margin-top: 8px; padding: 8px 10px; border-radius: 8px; background: rgba(63,182,122,.08); border: 1px solid rgba(63,182,122,.4); font-size: 12px; color: #9fe3bf; }
+  body.dragging main { outline: 3px dashed var(--accent); outline-offset: -8px; }
   .toast { position: fixed; bottom: 210px; right: 420px; background: var(--panel2); border: 1px solid var(--ok); color: var(--text); padding: 10px 14px; border-radius: 6px; z-index: 99; display: none; }
   .toast a { color: var(--accent); }
 </style>
@@ -314,7 +319,7 @@
   </section>
   <aside id="ovl"></aside>
   <div id="askbar"><input id="ask2" placeholder="Ask about this plant…" autocomplete="off">
-    <div class="sugg" id="sugg"></div><button class="big" id="askgo">Ask</button></div>
+    <div class="sugg" id="sugg"></div><label class="btn" title="Field photo: nameplate or gauge" style="padding:11px 13px;font-size:16px;cursor:pointer">📷<input type="file" id="photo" accept="image/*" hidden></label><button class="big" id="askgo">Ask</button></div>
   <section class="bp">
     <div class="bptabs"><div class="bpt on" data-b="problems">Problems <span class="n" id="probn"></span></div><div class="bpt" data-b="profile">Profile &amp; flow</div><div class="bpt" data-b="activity">Activity</div></div>
     <div class="bpp on" id="pb-problems"></div>
@@ -772,6 +777,50 @@ document.addEventListener("keydown", e => {
   if (e.key.toLowerCase() === "b") setView(VIEW === "existing" ? "proposed" : "existing");
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && ACCEPTED.length) { e.preventDefault(); restoreTo(ACCEPTED[ACCEPTED.length - 1].rev - 1); }
 });
+
+
+// ---- field photo: Muse reads a nameplate or gauge, checks it, applies it to the model ----------------
+async function fieldPhoto(file) {
+  if (busy) return; busy = true;
+  const url = URL.createObjectURL(file);
+  railStart("Field photo: " + file.name);
+  $("#pl-model").querySelector("span:nth-child(2)").textContent = "Match it to the model";
+  $("#pl-sim").querySelector("span:nth-child(2)").textContent = "Sanity checks (specific speed)";
+  let r;
+  try { r = await (await fetch(`/api/ws/${CASE}/photo`, {method: "POST", body: file})).json(); } catch (e) { r = {error: e.message}; }
+  railDone(); busy = false;
+  if (r.error) { $("#ovl").insertAdjacentHTML("beforeend", `<div class="warnbox">${esc(r.error)}</div>`); return; }
+  const fmt = q => q && q.value != null ? `${q.value} ${esc(q.unit)}` : "—";
+  const sug = (r.checks || []).find(c => c.status === "suspicious" && (c.suggested_flow_gpm || /zero/.test(c.note)));
+  const zero = (r.checks || []).find(c => /zero/.test(c.note || ""));
+  let gpm = r.us.flow_gpm, alt = sug && sug.suggested_flow_gpm ? sug.suggested_flow_gpm : zero ? +(zero.note.match(/\((\d+)\)/) || [])[1] : null;
+  $("#ovl").innerHTML = `<div class="q">› Field photo</div><div class="ph"><img src="${url}"></div>
+    <div class="h" style="font-size:18px">${esc(r.kind)} · ${esc(r.maker)} ${esc(r.model_or_tag || "")}</div>
+    <table class="rd"><tr><td>Flow</td><td class="v">${fmt(r.flow)}</td><td class="v">${r.us.flow_gpm ?? "—"} gpm</td></tr>
+      <tr><td>Head</td><td class="v">${fmt(r.head)}</td><td class="v">${r.us.head_ft ?? "—"} ft</td></tr>
+      <tr><td>Speed</td><td class="v">${r.speed_rpm ?? "—"} rpm</td><td></td></tr>
+      ${r.us.pressure_psi != null ? `<tr><td>Pressure</td><td class="v">${fmt(r.pressure)}</td><td class="v">${r.us.pressure_psi} psi</td></tr>` : ""}
+      <tr><td>Muse confidence</td><td class="v">${esc(r.confidence)}</td><td></td></tr></table>
+    ${(r.checks || []).map(c => `<div class="${c.status === "ok" ? "okbox" : "warnbox"}">${c.status === "ok" ? "✓" : "⚠"} <b>${esc(c.check)}</b>: ${esc(c.note)}</div>`).join("")}
+    ${alt ? `<div style="margin-top:8px"><button class="acc" id="usealt">Use ${Number(alt).toLocaleString()} gpm (engineer confirms)</button></div>` : ""}
+    <div class="gt" style="margin-top:14px"><span>Which pump in the model is this?</span></div>
+    <select id="phpump">${(r.candidates || []).map((c, i) => `<option value="${i}">${esc(c.pump)} · ${c.rated_gpm} gpm @ ${c.rated_head_ft} ft · ${esc(c.match)} (${esc(c.run)})</option>`).join("")}</select>
+    <div style="margin-top:10px"><button class="acc" id="phapply">Apply field reading & re-run EPANET</button></div><div id="phres"></div>`;
+  $("#usealt")?.addEventListener("click", () => { gpm = alt; $("#usealt").textContent = `✓ using ${Number(alt).toLocaleString()} gpm`; $("#usealt").disabled = true; });
+  $("#phapply").onclick = async () => {
+    const c = r.candidates[+$("#phpump").value];
+    const res = await api(`/api/ws/${CASE}/photoapply`, {run: c.run, pump: c.pump, gpm, head: r.us.head_ft || c.rated_head_ft, note: file.name});
+    const d = (res.after_mgd ?? 0) - (res.before_mgd ?? 0);
+    $("#phres").innerHTML = `<div class="${d < 0 ? "warnbox" : "okbox"}" style="font-size:13px"><b>${esc(c.run)}</b> station output: ${res.before_mgd} → <b>${res.after_mgd} MGD</b> (${d >= 0 ? "+" : ""}${d.toFixed(2)})
+      · rev ${res.revision.n} logged (source: field photo)${(res.warnings || []).length ? "<br>⚠ " + esc(res.warnings.join("; ")) : ""}</div>`;
+    P.revisions = P.revisions || []; P.revisions.push(res.revision);
+  };
+}
+$("#photo")?.addEventListener("change", e => e.target.files[0] && fieldPhoto(e.target.files[0]));
+document.addEventListener("dragover", e => { e.preventDefault(); document.body.classList.add("dragging"); });
+document.addEventListener("dragleave", e => { if (!e.relatedTarget) document.body.classList.remove("dragging"); });
+document.addEventListener("drop", e => { e.preventDefault(); document.body.classList.remove("dragging");
+  const f = e.dataTransfer.files[0]; if (f && f.type.startsWith("image/") && document.body.classList.contains("simple")) fieldPhoto(f); });
 
 // ---- cockpit -----------------------------------------------------------------------------------
 let UNITS = [];

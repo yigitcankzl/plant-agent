@@ -337,6 +337,10 @@ class Handler(SimpleHTTPRequestHandler):
             return self._send({**j, "events": j["events"][off:], "offset": len(j["events"])})
         if parts[:2] == ["api", "ws"] and len(parts) == 4 and parts[2] in known:
             case, what = parts[2], parts[3]
+            if what == "photo" and method == "POST":
+                from .copilot import read_photo
+                data = self.rfile.read(int(self.headers.get("Content-Length") or 0))
+                return self._send(read_photo(workspace(case), data))
             if what == "import" and method == "POST":
                 from .copilot import import_cad
                 w = workspace(case)
@@ -377,6 +381,9 @@ class Handler(SimpleHTTPRequestHandler):
                 w = workspace(case)
                 url = w.project.image(q["doc"], int(q["n"]), dpi=int(q.get("dpi", 110)))
                 return self._send(base64.b64decode(url.split(",", 1)[1]), "image/png")
+            if what == "photoapply" and method == "POST":
+                from .copilot import apply_photo
+                return self._send(apply_photo(workspace(case), body["run"], body["pump"], body["gpm"], body["head"], body.get("note", "")))
             if what == "fixall" and method == "POST":
                 return self._send(ws_fix_all(case))
             if what == "restore" and method == "POST":
