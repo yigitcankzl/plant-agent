@@ -385,6 +385,7 @@ async function load() {
   $("#plabel").innerHTML = profs.map(p => `<option value="${esc(p.label)}" ${p.label === P.preloaded.base_profile_run ? "selected" : ""}>${esc(p.label)}</option>`).join("");
   P.answers.forEach(a => addAnswer(a, false));
   drawProfile(); loadProblems(); setupSimple();
+  $("#sflow").max = Math.ceil((P.target_mgd || 18) * 1.4); $("#flow").max = $("#sflow").max;
   $("#sflow").value = P.target_mgd || 18;
   $("#sflow").oninput = () => { $("#flow").value = $("#sflow").value; drawProfile(); cockpit(); };
   shistory(); railEmpty(); readAnimation().then(() => { cockpit(); compareCtl(); });
