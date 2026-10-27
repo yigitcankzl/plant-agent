@@ -161,7 +161,7 @@ def ws_project(case):
             "datasets": [{"id": k, "title": v.get("title", k)} for k, v in w.project.datasets.items()],
             "structures": structures(case) if w.drawing else [], "preloaded": w.base,
             "profiles": [{"label": k, "purpose": v["purpose"], "flows": v.get("flows")} for k, v in w.profiles.items()],
-            "answers": w.answers, "session": w.dir.name}
+            "answers": w.answers, "session": w.dir.name, "revisions": w.revisions}
 
 
 def ws_ask(case, text, context):
@@ -270,6 +270,15 @@ class Handler(SimpleHTTPRequestHandler):
             return self._send({**j, "events": j["events"][off:], "offset": len(j["events"])})
         if parts[:2] == ["api", "ws"] and len(parts) == 4 and parts[2] in known:
             case, what = parts[2], parts[3]
+            if what == "import" and method == "POST":
+                from .copilot import import_cad
+                w = workspace(case)
+                name = Path(self.headers.get("X-Filename") or "upload.dxf").name
+                if Path(name).suffix.lower() not in (".dxf", ".dwg"):
+                    return self._send({"error": "upload a .dxf or .dwg"}, code=400)
+                f = w.dir / ("in_" + name)
+                f.write_bytes(self.rfile.read(int(self.headers.get("Content-Length") or 0)))
+                return self._send(import_cad(w, f))
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}") if method == "POST" else {}
             if what == "project":
                 return self._send(ws_project(case))
@@ -277,6 +286,22 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(ws_ask(case, body["text"], body.get("context")))
             if what == "export" and method == "POST":
                 return self._send(ws_export(case, body["kind"]))
+            if what == "elements":
+                from .copilot import elements
+                return self._send(elements(workspace(case), q["label"]))
+            if what == "edit" and method == "POST":
+                from .copilot import edit
+                return self._send(edit(workspace(case), body["label"], body["element"], body["field"], body["value"]))
+            if what == "editable" and method == "POST":
+                from .copilot import export_editable
+                w = workspace(case)
+                f = export_editable(w, body["label"])
+                base = f"/wsfiles/{case}/{w.dir.name}/"
+                return self._send({"dxf": base + f.name, "dwg": base + f.with_suffix(".dwg").name if f.with_suffix(".dwg").exists() else None})
+            if what == "capacity":
+                return self._send(profile.capacity(workspace(case).profiles[q["label"]]["spec"]))
+            if what == "revisions":
+                return self._send(workspace(case).revisions)
             if what == "history":
                 return self._send(history_series(case, q["dataset"], q["parameter"]))
             if what == "profile":

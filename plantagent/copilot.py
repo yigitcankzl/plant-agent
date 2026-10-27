@@ -113,6 +113,7 @@ class Workspace(Study):
         self.log = (self.dir / "log.jsonl").open("w")
         self.runs, self.profiles, self.surges, self.eps_runs, self.costs, self.std_checks = {}, {}, {}, {}, {}, {}
         self.steps, self.drawing, self.answers, self.listener = 0, None, [], None
+        self.revisions = []
         self.base = self._preload()
 
     def _preload(self):
@@ -225,6 +226,14 @@ if __name__ == "__main__":
     h = p.history("production", "MDD maximum day", as_of_year=2005, project_to=[2025])
     assert h["trend"]["years"] == [1992, 2005] and "projection" in h["trend"], h
     assert structures("roseburg") and all(len(s["bbox"]) == 4 for s in structures("roseburg"))
+    ws = Workspace("roseburg")
+    lab = ws.base["base_profile_run"]
+    pipe = next(e for e in ws.profiles[lab]["spec"]["elements"] if e["type"] == "pipe" and "diameter_in" in e)
+    before = ws.profiles[lab]["spec"]
+    r = edit(ws, lab, pipe["id"], "diameter_in", pipe["diameter_in"] + 6)
+    from . import profile as _p
+    b0 = {(c["id"], c["check"]): c["binds_at_mgd"] for c in _p.capacity(before)}
+    assert any((c["binds_at_mgd"] or 99) > (b0[(c["id"], c["check"])] or 99) for c in r["capacity"]), "a bigger pipe must raise a limit"
     print("ok", h["trend"], [s["name"] for s in structures("roseburg")])
     if len(sys.argv) > 1:
         ws = Workspace("roseburg")
@@ -293,3 +302,134 @@ def export(ws, kind):
                              "Hydraulic profile", f"{ws.case.cfg['title']} - {label}")
         return cad.oda_convert(d / "profile_sheet.dxf", "DWG")
     raise ValueError(f"unknown export {kind}")
+
+
+# --- edits: properties panel and the CAD round trip --------------------------------------------
+EDITABLE = {"control": ["ws_ft", "required_drop_ft"], "pipe": ["length_ft", "diameter_in", "c_factor", "minor_k"],
+            "weir": ["crest_ft", "length_ft", "notches"], "orifice": ["area_ft2", "cd"], "drop": ["loss_ft"]}
+COMMON = ["max_ws_ft", "max_flow_mgd", "share"]
+PARAM_LAYER = "PA-PARAMS"
+
+
+def elements(ws, label):
+    """Editable fields of every element of a profile run, with the drawing structure each one is anchored to."""
+    from .deliver import _anchor
+    spec = ws.profiles[label]["spec"]
+    out = []
+    for e in [{"type": "control", **spec["start"]}] + spec["elements"]:
+        fields = [f for f in EDITABLE.get(e["type"], []) + COMMON if f in e or f in EDITABLE.get(e["type"], [])]
+        a = _anchor(ws.drawing, e["drawing_ws_ft"], e["id"]) if ws.drawing and "drawing_ws_ft" in e else None
+        out.append({"id": e["id"], "type": e["type"], "structure": a["structure"] if a else None, "bbox": a["bbox"] if a else None,
+                    "calibrated": bool(e.get("calibrate")),
+                    "fields": {f: e.get(f) for f in fields}})
+    return out
+
+
+def edit(ws, label, element_id, field, value, source="properties panel"):
+    """Apply one engineering change to a copy of a profile run; logs a revision. No LLM: the solver re-runs instantly."""
+    from . import profile
+    base = ws.profiles[label]
+    spec = json.loads(json.dumps(base["spec"]))
+    els = [spec["start"]] + spec["elements"]
+    e = next(x for x in els if x["id"] == element_id)
+    old = e.get(field)
+    cal = e.get("calibrate")
+    if cal and e.get("type") == "pipe" and old and field in ("diameter_in", "length_ft", "c_factor"):
+        # keep the field calibration and scale its measured loss by Hazen-Williams: h ~ L / (C^1.852 D^4.87)
+        k = {"diameter_in": (old / float(value)) ** 4.87, "length_ft": float(value) / old,
+             "c_factor": (old / float(value)) ** 1.852}[field]
+        cal["headloss_ft"] = cal["headloss_ft"] * k
+    elif cal and e.get("type") == "pipe" and field in ("diameter_in", "length_ft", "c_factor"):
+        raise ValueError(f"{element_id} is calibrated without a stated {field}; edit its calibration loss instead")
+    e[field] = float(value)
+    root = label.split("~")[0]
+    n = sum(1 for k in ws.profiles if k.startswith(root + "~")) + 1
+    new = f"{root}~r{n}"
+    ws.profiles[new] = {"purpose": f"{label} with {element_id}.{field} {old} -> {value} ({source})", "spec": spec,
+                        "flows": base.get("flows") or [12, 18]}
+    rev = {"n": len(ws.revisions) + 1, "time": time.strftime("%H:%M:%S"), "from": label, "to": new, "element": element_id,
+           "field": field, "old": old, "new": float(value), "source": source}
+    ws.revisions.append(rev)
+    (ws.dir / "revisions.json").write_text(json.dumps(ws.revisions, indent=1))
+    return {"label": new, "revision": rev, "capacity": profile.capacity(spec)}
+
+
+def export_editable(ws, label):
+    """The real sheet as DXF + DWG with the model's design parameters as plain text on layer PA-PARAMS
+    ('settled42.diameter_in = 42'), placed at each structure. Edit any value in AutoCAD/LibreCAD and import the file back."""
+    import ezdxf
+    import pymupdf
+
+    from . import cad
+    page = pymupdf.open(ws.case.pdf)[ws.drawing["page"] - 1]
+    W, H = page.rect.width, page.rect.height
+    d = ws.dir
+    dxf = cad.pdf_page_to_dxf(ws.case.pdf, ws.drawing["page"], d / f"{label}_editable.dxf")
+    doc = ezdxf.readfile(dxf)
+    if PARAM_LAYER not in doc.layers:
+        doc.layers.add(PARAM_LAYER, color=3)
+    msp = doc.modelspace()
+    params, free_y = [], 0.06
+    for el in elements(ws, label):
+        rows = [(f, v) for f, v in el["fields"].items() if v is not None]
+        if el["bbox"]:
+            x, y = el["bbox"][0] * W, H - el["bbox"][3] * H - 9
+        else:  # unanchored elements go in a parameter table at the lower left
+            x, y = 0.05 * W, free_y * H
+            free_y += 0.012 * (len(rows) + 1)
+        for i, (f, v) in enumerate(rows):
+            txt = f"{el['id']}.{f} = {v:g}" if isinstance(v, (int, float)) else f"{el['id']}.{f} = {v}"
+            msp.add_text(txt, height=4.2, dxfattribs={"layer": PARAM_LAYER, "insert": (x, y - 6 * i)})
+            params.append({"element": el["id"], "field": f, "value": v})
+    msp.add_text(f"PLANTAGENT MODEL {label} - EDIT VALUES ON LAYER {PARAM_LAYER}, SAVE, IMPORT BACK", height=6,
+                 dxfattribs={"layer": PARAM_LAYER, "insert": (0.05 * W, 0.03 * H)})
+    doc.saveas(dxf)
+    counts = {}
+    for e in msp:
+        k = f"{e.dxf.layer}:{e.dxftype()}"
+        counts[k] = counts.get(k, 0) + 1
+    (d / f"{label}_editable.json").write_text(json.dumps({"label": label, "params": params, "counts": counts}, indent=1))
+    try:
+        cad.oda_convert(dxf, "DWG")
+    except Exception:
+        pass
+    return dxf
+
+
+def import_cad(ws, path):
+    """Read a sheet the engineer edited in CAD: changed PA-PARAMS values become model revisions (re-solved), and any
+    entities they added elsewhere (lines, notes) are listed so the copilot can be asked about them."""
+    import ezdxf
+
+    from . import cad
+    path = Path(path)
+    if path.suffix.lower() == ".dwg":
+        path = cad.oda_convert(path, "DXF")
+    msp = ezdxf.readfile(path).modelspace()
+    found, notes, counts = {}, [], {}
+    for e in msp:
+        k = f"{e.dxf.layer}:{e.dxftype()}"
+        counts[k] = counts.get(k, 0) + 1
+        if e.dxftype() in ("TEXT", "MTEXT"):
+            t = e.plain_text() if e.dxftype() == "MTEXT" else e.dxf.text
+            m = re.match(r"\s*([\w\-. ]+?)\.(\w+)\s*=\s*(-?[\d.]+)", t)
+            if e.dxf.layer == PARAM_LAYER and m:
+                found[(m.group(1), m.group(2))] = float(m.group(3))
+            elif e.dxf.layer != PARAM_LAYER and e.dxf.layer.upper() not in ("0",) and len(t) > 2:
+                notes.append({"layer": e.dxf.layer, "text": t})
+    manifests = sorted(ws.dir.glob("*_editable.json"), key=lambda p: p.stat().st_mtime)
+    if not manifests:
+        raise ValueError("export an editable sheet first")
+    man = json.loads(manifests[-1].read_text())
+    label, changes = man["label"], []
+    for p in man["params"]:
+        v = found.get((p["element"], p["field"]))
+        if v is not None and isinstance(p["value"], (int, float)) and abs(v - p["value"]) > 1e-9:
+            r = edit(ws, label, p["element"], p["field"], v, source=f"CAD import {path.name}")
+            label = r["label"]
+            changes.append(r["revision"])
+    added = {k: counts.get(k, 0) - man["counts"].get(k, 0) for k in counts if counts.get(k, 0) > man["counts"].get(k, 0)}
+    removed = {k: man["counts"][k] - counts.get(k, 0) for k in man["counts"] if counts.get(k, 0) < man["counts"][k]}
+    from . import profile
+    return {"file": path.name, "changes": changes, "label": label, "added_entities": added, "removed_entities": removed,
+            "engineer_notes": notes[:20], "capacity": profile.capacity(ws.profiles[label]["spec"])}

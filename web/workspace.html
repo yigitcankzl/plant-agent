@@ -68,6 +68,27 @@
   .ws.fail { background: rgba(200,40,30,.95); }
   aside.right { background: var(--panel); border-left: 1px solid var(--line); overflow: auto; grid-row: 2 / 4; grid-column: 3; }
   .rhead { padding: 10px 14px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; color: var(--muted); font: 600 10.5px var(--sans); letter-spacing: .8px; text-transform: uppercase; position: sticky; top: 0; background: var(--panel); z-index: 2; }
+  .rtabs { display: flex; position: sticky; top: 0; background: var(--panel); z-index: 3; border-bottom: 1px solid var(--line); }
+  .rt { flex: 1; text-align: center; padding: 10px 6px; cursor: pointer; color: var(--muted); font: 600 10.5px var(--sans); letter-spacing: .8px; text-transform: uppercase; border-bottom: 2px solid transparent; }
+  .rt.on { color: var(--text); border-bottom-color: var(--accent); }
+  .el { border: 1px solid var(--line); border-radius: 6px; margin: 10px 12px; background: var(--panel2); }
+  .el.hl { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(77,163,255,.2); }
+  .el h6 { margin: 0; padding: 7px 10px; font: 600 12px var(--mono); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px; }
+  .el h6 span { color: var(--muted); font-weight: 400; text-align: right; }
+  .fld { display: grid; grid-template-columns: 1fr 110px; gap: 6px; align-items: center; padding: 4px 10px; }
+  .fld label { color: var(--muted); font: 11.5px var(--mono); }
+  .fld input { background: var(--bg); color: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; font: 12px var(--mono); text-align: right; width: 100%; }
+  .fld input:focus { border-color: var(--accent); outline: none; }
+  .fld input.changed { border-color: var(--warn); }
+  .capbox { margin: 10px 12px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font: 11.5px var(--mono); }
+  .capbox div { display: flex; justify-content: space-between; padding: 2px 0; gap: 8px; }
+  .up { color: var(--ok); } .dn { color: var(--fail); }
+  .rev { margin: 8px 12px; padding: 8px 10px; border-left: 3px solid var(--warn); background: var(--panel2); border-radius: 4px; font-size: 12px; }
+  .rev .w { color: var(--muted); font: 11px var(--mono); }
+  .rev b { font-family: var(--mono); }
+  .revbtns { display: flex; gap: 8px; margin: 12px; flex-wrap: wrap; }
+  .drop { margin: 0 12px; border: 1.5px dashed var(--line); border-radius: 6px; padding: 14px; text-align: center; color: var(--muted); }
+  .drop.over { border-color: var(--accent); color: var(--text); }
   .ans { border-bottom: 1px solid var(--line); padding: 12px 14px; animation: in .3s; }
   .ans .rq { color: var(--muted); font-size: 12px; margin-bottom: 4px; }
   .ans .rq b { color: var(--text); font-weight: 600; }
@@ -131,8 +152,10 @@
   </main>
 
   <aside class="right">
-    <div class="rhead"><span>Calc cards</span><span id="spend"></span></div>
-    <div id="answers"><div class="empty">Click a structure on the drawing or type a request.<br><br>
+    <div class="rtabs"><div class="rt on" data-t="answers">Calc cards <span id="spend"></span></div><div class="rt" data-t="props">Properties</div><div class="rt" data-t="revs">Revisions <span id="revn"></span></div></div>
+    <div id="props" class="rpane" style="display:none"></div>
+    <div id="revs" class="rpane" style="display:none"></div>
+    <div id="answers" class="rpane"><div class="empty">Click a structure on the drawing or type a request.<br><br>
       Every answer comes back as <b>calc cards</b> — inputs with their source pages, the simulator runs behind each number,
       standards checked — and as <b>marks on the drawing</b>. Export them as calc sheets, a memo or a DWG markup.</div></div>
   </aside>
@@ -161,6 +184,7 @@ const ACTIONS = [
   ["Size it for 18 mgd", s => `Size the modification the ${s} needs to pass 18 mgd and verify it in the simulator.`, "design"],
   ["Cost it", s => `Order-of-magnitude capital cost to bring the ${s} to 18 mgd, with the AACE range.`, "cost"],
   ["Check standards", s => `Check the ${s} against the applicable Ten States Standards at 18 mgd.`, "standards"],
+  ["Properties…", null, "edit"],
 ];
 
 async function load() {
@@ -197,7 +221,9 @@ function openPop(s, el) {
   const r = el.getBoundingClientRect(), m = $("#sheet").getBoundingClientRect();
   pop.style.left = `${Math.min(r.right - m.left + 8, m.width - 280)}px`; pop.style.top = `${r.top - m.top}px`;
   $("#sheet").appendChild(pop);
-  pop.querySelectorAll(".a").forEach(a => a.onclick = ev => { ev.stopPropagation(); const [, f] = ACTIONS[+a.dataset.i]; closePop(); ask(f(s.name), {structure: s.name}); });
+    pop.querySelectorAll(".a").forEach(a => a.onclick = ev => { ev.stopPropagation(); const [, f] = ACTIONS[+a.dataset.i]; closePop();
+      if (!f) { showTab("props", s.name); return; }
+      ask(f(s.name), {structure: s.name}); });
 }
 function closePop() { $("#pop")?.remove(); selected?.classList.remove("sel"); }
 document.addEventListener("click", closePop);
@@ -240,7 +266,7 @@ function addAnswer(a, fresh) {
   if (a.flow_mgd) { $("#flow").value = a.flow_mgd; }
   drawMarks(); drawProfile();
   if (a.chart && a.chart.dataset) drawHistory(a.chart.dataset, a.chart.parameter_contains || "MDD", a.chart.as_of_year);
-  $("#spend").textContent = `${P.answers.length + (fresh ? 1 : 0)} answers`;
+  $("#spend").textContent = `(${P.answers.length + (fresh ? 1 : 0)})`;
   if (fresh) P.answers.push(a);
 }
 
@@ -294,11 +320,85 @@ async function drawHistory(ds, param, asOf) {
   $("#chartt").textContent = `${h.parameters.join(" / ")} · ${h.unit} · trend ${h.trend ? h.trend.pct_per_year + "%/yr" : ""}`;
 }
 
+// ---- properties: edit the model, re-solve instantly (no AI) -----------------------------------
+function showTab(t, focus) {
+  document.querySelectorAll(".rt").forEach(x => x.classList.toggle("on", x.dataset.t === t));
+  document.querySelectorAll(".rpane").forEach(x => x.style.display = x.id === t ? "block" : "none");
+  if (t === "revs") renderRevs();
+  if (t === "props") renderProps(focus);
+}
+document.querySelectorAll(".rt").forEach(x => x.onclick = () => showTab(x.dataset.t));
+const CAPS = {};
+async function capOf(label) { return CAPS[label] ||= await api(`/api/ws/${CASE}/capacity?label=${encodeURIComponent(label)}`); }
+
+async function renderProps(focus) {
+  const label = $("#plabel").value;
+  const els = await api(`/api/ws/${CASE}/elements?label=${encodeURIComponent(label)}`);
+  const cap = await capOf(label);
+  $("#props").innerHTML = `<div class="capbox"><div><b>Model</b><span>${esc(label)}</span></div>${cap.map(c =>
+      `<div><span>${esc(c.id)} · ${esc(c.check.slice(0, 28))}</span><b>${c.binds_at_mgd == null ? "> 60" : c.binds_at_mgd} MGD</b></div>`).join("")}</div>` +
+    els.map(e => `<div class="el ${focus && e.structure === focus ? "hl" : ""}" data-id="${esc(e.id)}"><h6>${esc(e.id)}<span>${esc(e.type)}${e.structure ? " · " + esc(e.structure) : ""}${e.calibrated ? " · calibrated" : ""}</span></h6>
+      ${Object.entries(e.fields).map(([f, v]) => `<div class="fld"><label>${esc(f)}</label><input data-f="${esc(f)}" value="${v ?? ""}" placeholder="—"></div>`).join("")}</div>`).join("");
+  document.querySelectorAll("#props .fld input").forEach(inp => inp.onchange = async () => {
+    const el = inp.closest(".el").dataset.id, before = await capOf(label);
+    inp.classList.add("changed");
+    try {
+      const r = await api(`/api/ws/${CASE}/edit`, {label, element: el, field: inp.dataset.f, value: +inp.value});
+      CAPS[r.label] = r.capacity;
+      $("#plabel").insertAdjacentHTML("beforeend", `<option value="${esc(r.label)}">${esc(r.label)}</option>`);
+      $("#plabel").value = r.label;
+      drawProfile(); renderProps(focus); toastCap(before, r.capacity, r.revision);
+      $("#revn").textContent = `(${r.revision.n})`;
+    } catch (e) { alert(e.message); }
+  });
+  if (focus) document.querySelector("#props .el.hl")?.scrollIntoView({block: "center"});
+}
+
+function toastCap(before, after, rev) {
+  const t = $("#toast");
+  const rows = after.map(a => { const b = before.find(x => x.id === a.id && x.check === a.check) || {};
+    const f = v => v == null ? "> 60" : v, d = (a.binds_at_mgd ?? 99) - (b.binds_at_mgd ?? 99);
+    return `<div>${esc(a.id)}: ${f(b.binds_at_mgd)} → <b class="${d > 0 ? "up" : d < 0 ? "dn" : ""}">${f(a.binds_at_mgd)} MGD</b></div>`; }).join("");
+  t.innerHTML = `<b>Rev ${rev.n}</b> ${esc(rev.element)}.${esc(rev.field)} ${rev.old} → ${rev.new} · re-solved<br>${rows}`;
+  t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", 9000);
+}
+
+async function renderRevs() {
+  const revs = await api(`/api/ws/${CASE}/revisions`);
+  $("#revn").textContent = revs.length ? `(${revs.length})` : "";
+  $("#revs").innerHTML = `<div class="revbtns"><button class="btn" id="exped">Export editable sheet (DXF + DWG)</button></div>
+    <div class="drop" id="drop">Drop the sheet edited in AutoCAD / LibreCAD here<br><small>or <label style="color:var(--accent);cursor:pointer">choose a file<input type="file" id="upl" accept=".dxf,.dwg" hidden></label></small></div>
+    <div id="impres"></div>` + (revs.slice().reverse().map(r => `<div class="rev"><div class="w">Rev ${r.n} · ${esc(r.time)} · ${esc(r.source)}</div>
+      <b>${esc(r.element)}.${esc(r.field)}</b> ${r.old ?? "—"} → <b>${r.new}</b><div class="w">${esc(r.from)} → ${esc(r.to)}</div></div>`).join("") || `<div class="empty">No revisions yet. Change a value in Properties or import an edited sheet.</div>`);
+  $("#exped").onclick = async () => { const r = await api(`/api/ws/${CASE}/editable`, {label: $("#plabel").value});
+    $("#impres").innerHTML = `<div class="rev" style="border-color:var(--ok)">Ready: <a style="color:var(--accent)" href="${r.dxf}">DXF</a>${r.dwg ? ` · <a style="color:var(--accent)" href="${r.dwg}">DWG</a>` : ""}<div class="w">Model parameters are text on layer PA-PARAMS — edit any value, save, drop it back here.</div></div>`; };
+  const send = async f => {
+    $("#impres").innerHTML = `<div class="rev">Reading ${esc(f.name)}…</div>`;
+    const r = await fetch(`/api/ws/${CASE}/import`, {method: "POST", headers: {"X-Filename": f.name}, body: f});
+    const j = await r.json(); if (!r.ok) { $("#impres").innerHTML = `<div class="rev" style="border-color:var(--fail)">${esc(j.error)}</div>`; return; }
+    CAPS[j.label] = j.capacity;
+    $("#plabel").insertAdjacentHTML("beforeend", `<option value="${esc(j.label)}">${esc(j.label)}</option>`); $("#plabel").value = j.label; drawProfile();
+    $("#impres").innerHTML = `<div class="rev" style="border-color:var(--ok)"><b>${esc(j.file)}</b> · ${j.changes.length} parameter change(s) applied and re-solved
+      ${j.changes.map(c => `<div>${esc(c.element)}.${esc(c.field)}: ${c.old} → <b>${c.new}</b></div>`).join("")}
+      ${Object.keys(j.added_entities).length ? `<div class="w">Added in CAD: ${Object.entries(j.added_entities).map(([k, v]) => `${v} ${esc(k)}`).join(", ")}</div>` : ""}
+      ${j.engineer_notes.map(n => `<div class="w">Note (${esc(n.layer)}): “${esc(n.text)}”</div>`).join("")}
+      <div class="w">Limits now: ${j.capacity.map(c => `${esc(c.id)} ${c.binds_at_mgd ?? "> 60"} MGD`).join(" · ")}</div>
+      ${j.engineer_notes.length || j.changes.length ? `<button class="btn" style="margin-top:6px" id="asknotes">Ask the copilot to check these edits</button>` : ""}</div>`;
+    $("#asknotes")?.addEventListener("click", () => { showTab("answers"); ask(`The engineer edited the sheet in CAD (${j.file}): parameter changes ${JSON.stringify(j.changes.map(c => [c.element, c.field, c.old, c.new]))}, notes ${JSON.stringify(j.engineer_notes.map(n => n.text))}, added ${JSON.stringify(j.added_entities)}. The edited model is profile run ${j.label}. Check these changes against the model and the standards.`); });
+    const revs2 = await api(`/api/ws/${CASE}/revisions`); $("#revn").textContent = `(${revs2.length})`;
+  };
+  const drop = $("#drop");
+  drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
+  drop.ondragleave = () => drop.classList.remove("over");
+  drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); send(e.dataTransfer.files[0]); };
+  $("#upl").onchange = e => send(e.target.files[0]);
+}
+
 document.querySelectorAll(".layer").forEach(l => l.onclick = () => {
   const k = l.dataset.l; show[k] = !show[k]; l.style.opacity = show[k] ? 1 : .4;
   $("#sheet").classList.toggle("show-hits", show.hits); drawMarks(); drawProfile();
 });
-$("#flow").oninput = drawProfile; $("#plabel").onchange = drawProfile;
+$("#flow").oninput = drawProfile; $("#plabel").onchange = () => { drawProfile(); if ($("#props").style.display !== "none") renderProps(); };
 $("#cmd").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.value.trim()) { ask(e.target.value.trim()); e.target.value = ""; } });
 document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("#cmd").focus(); } });
 $("#exports").onclick = e => { e.stopPropagation(); $("#exports").classList.toggle("open"); };
