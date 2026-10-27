@@ -164,6 +164,7 @@ def ws_project(case):
             "profiles": [{"label": k, "purpose": v["purpose"], "flows": v.get("flows")} for k, v in w.profiles.items()],
             "answers": w.answers, "session": w.dir.name, "revisions": w.revisions,
             "target_mgd": __import__("plantagent.copilot", fromlist=["x"]).target_flow(w),
+            "drawing_meta": {k: w.drawing.get(k) for k in ("read_seconds", "read_at", "model")} if w.drawing else None,
             "rated_mgd": c.get("workspace", {}).get("rated_mgd"), "model": w.model,
             "current_profile": __import__("plantagent.copilot", fromlist=["x"]).current_label(w),
             "task_type": c["task_type"], "study_run": w.study_dir.name if w.study_dir else None,
@@ -275,7 +276,7 @@ def profile_at(case, run, label, q):
             a = _anchor(drawing, n["drawing_ws_ft"], n["id"])
             n["bbox"] = a["bbox"] if a else None
         n["margin_ft"] = min((c["margin_ft"] for c in r["checks"] if c["id"] == n["id"] and "limit_ft" in c), default=None)
-        n["fails"] = any(c["id"] == n["id"] and c["margin_ft"] < 0 for c in r["checks"])
+        n["fails"] = any(c["id"] == n["id"] and c["margin"] < 0 for c in r["checks"])
     r["capacity"] = profile.capacity(p["spec"])
     return r
 
@@ -352,6 +353,8 @@ class Handler(SimpleHTTPRequestHandler):
                     pdf = Path(t) / "sheet.pdf"
                     pdf.write_bytes(data)
                     t0 = time.time()
+                    from . import llm as _llm
+                    calls0 = _llm.LEDGER.read_text().count("\n") if _llm.LEDGER.exists() else 0
                     from concurrent.futures import ThreadPoolExecutor
                     with ThreadPoolExecutor(2) as ex:  # the full-sheet read and the tiled read run at the same time
                         f1, f2 = ex.submit(cad.read_profile, pdf, page), ex.submit(cad.locate_labels, pdf, page)
@@ -359,7 +362,8 @@ class Handler(SimpleHTTPRequestHandler):
                     els, extra = cad.reconcile(reading, located)
                 return self._send({"png": "data:image/png;base64," + base64.b64encode(png).decode(), "title": reading.get("title"),
                                    "design_flow_note": reading.get("design_flow_note"), "flow_path": reading.get("flow_path"),
-                                   "elevations": els, "seconds": round(time.time() - t0)})
+                                   "elevations": els, "seconds": round(time.time() - t0),
+                                   "cached": (_llm.LEDGER.read_text().count("\n") if _llm.LEDGER.exists() else 0) == calls0})
             if what == "reveal":
                 w = workspace(case)
                 g = _json(w.study_dir / "grade.json") if w.study_dir else None
@@ -368,7 +372,11 @@ class Handler(SimpleHTTPRequestHandler):
                     g = _json(graded[-1] / "grade.json") if graded else None
                 key = w.case.answer_key or {}
                 v = {i["id"]: i for i in (g or {}).get("items", [])}
+                summ = _json((w.study_dir or Path(".")) / "summary.json") or {}
                 return self._send({"score": (g or {}).get("score"), "judge": (g or {}).get("judge"), "source": key.get("source"),
+                                   "run": w.study_dir.name if w.study_dir else None, "agent_model": summ.get("model"),
+                                   "scores_all_runs": [(_json(p / "grade.json") or {}).get("score") for p in sorted((RUNS / case).glob("2*"))
+                                                       if (p / "grade.json").exists()],
                                    "items": [{"unit": i["unit"], "engineers": i["engineers"], "verdict": v.get(i["id"], {}).get("verdict"),
                                               "note": v.get(i["id"], {}).get("note")} for i in key.get("items", [])]})
             if what == "voice" and method == "POST":
@@ -432,7 +440,10 @@ class Handler(SimpleHTTPRequestHandler):
             if what == "accept" and method == "POST":
                 from .copilot import accept, problems
                 w = workspace(case)
-                r = accept(w, body)
+                try:
+                    r = accept(w, body)
+                except ValueError as e:
+                    return self._send({"error": str(e)}, code=409)
                 return self._send({**r, "issues": problems(w)})
             if what == "units":
                 from .copilot import unit_capacities
@@ -451,7 +462,7 @@ class Handler(SimpleHTTPRequestHandler):
                     if w.drawing and "drawing_ws_ft" in n:
                         a = _anchor(w.drawing, n["drawing_ws_ft"], n["id"])
                         n["bbox"] = a["bbox"] if a else None
-                    n["fails"] = any(c["id"] == n["id"] and c["margin_ft"] < 0 for c in r["checks"])
+                    n["fails"] = any(c["id"] == n["id"] and c["margin"] < 0 for c in r["checks"])
                 return self._send(r)
         if parts[:1] == ["files"] and len(parts) == 4 and parts[1] in known and parts[3] in DELIVERABLES:
             f = RUNS / parts[1] / Path(parts[2]).name / parts[3]

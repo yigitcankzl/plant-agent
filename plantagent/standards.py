@@ -1,6 +1,7 @@
 """Design-standard checks with citations: Ten States Standards (Water Works 2022, Wastewater Facilities 2014) and an
 HI-derived operating-region rule. Rules: plantagent/data/standards.json (section and page for each)."""
 import json
+import re
 from pathlib import Path
 
 RULES = {r["id"]: r for r in json.loads((Path(__file__).parent / "data" / "standards.json").read_text())}
@@ -19,11 +20,24 @@ def _ok(op, v, lim):
     return {">=": v >= lim, "<=": v <= lim, ">": v > lim, "<": v < lim, "==": v == lim}[op]
 
 
-def check(items):
-    """items: [{rule_id, value | numerator+denominator, basis (run label or page)}] -> pass/fail with citation."""
+# Which kind of evidence each quantity needs: a firm-capacity ratio from a gravity profile is not evidence.
+NEEDS = [(re.compile(r"firm_capacity|pump|N-1|npsh|suction", re.I), "pumps"), (re.compile(r"freeboard|weir_loading|water_depth", re.I), "profile")]
+
+
+def check(items, runs=None):
+    """items: [{rule_id, value | numerator+denominator, basis (run label or page)}] -> pass/fail with citation.
+    runs: {label: run} lets the check refuse a basis of the wrong kind (e.g. a pump rule backed by a gravity profile)."""
     out = []
     for it in items:
         r = RULES[it["rule_id"]]
+        need = next((k for rx, k in NEEDS if rx.search(r["quantity"])), None)
+        run = (runs or {}).get(str(it.get("basis", "")).split()[0]) if runs else None
+        if need and run is not None:
+            kind = "pumps" if run.get("spec", {}).get("pumps") else "profile" if "elements" in run.get("spec", {}) else "other"
+            if kind != need:
+                out.append({"rule_id": r["id"], "status": "not checked", "rule": r["rule"],
+                            "reason": f"basis {it.get('basis')} is a {kind} run; this rule needs a {need} run",
+                            "citation": f"{r['edition']}, Sec. {r['section']}"}); continue
         v = it.get("value")
         if v is None and it.get("denominator"):
             v = float(it["numerator"]) / float(it["denominator"])

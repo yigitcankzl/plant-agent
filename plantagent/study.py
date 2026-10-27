@@ -27,7 +27,11 @@ DRAWING_RULES = """
 - Gravity flow between structures (channels, weirs, launders, gravity pipes, filters) goes in run_profile; pumped legs go
   in run_hydraulics. Calibrate the profile against field tests AND the drawing's water surfaces (drawing_ws_ft) at the
   drawing's design flow, and report residuals. Use profile_capacity to find the flow at which each limit binds.
-- Put each limit the documents give (spill/overflow levels, freeboard, stated unit capacities or ratings) on the element."""
+- Put each limit the documents give (spill/overflow levels, freeboard, stated unit capacities or ratings) on the element.
+- Model the whole treatment train on the drawing's flow path, one element per structure (rapid mix, flocculation, sedimentation
+  launders, settled-water channel and pipe, filter inlet, filters, filter effluent, clearwell), each with drawing_ws_ft where the
+  drawing labels it. A calibration point used to fit a coefficient cannot also validate it: validate on an independent point,
+  and report residuals in ft and as a percentage of the headloss, not of the elevation."""
 
 DOC_TOOLS = [
     {"type": "function", "function": {"name": "search_pages", "description": "Keyword search over the available pages; returns page numbers.",
@@ -42,6 +46,9 @@ SIM_TOOLS = [
      "description": "Run an EPANET steady-state simulation and log it under `label`. Spec: " + json.dumps(sim.SPEC_HELP),
      "parameters": {"type": "object", "properties": {"label": {"type": "string"}, "purpose": {"type": "string"},
                     "spec": {"type": "object"}}, "required": ["label", "spec"]}}},
+    {"type": "function", "function": {"name": "firm_capacity", "description": "Firm capacity of a logged pump-station run: EPANET "
+     "solved with each pump out of service in turn; the worst outage governs. Use this, never your own arithmetic, for firm capacity.",
+     "parameters": {"type": "object", "properties": {"label": {"type": "string"}}, "required": ["label"]}}},
     {"type": "function", "function": {"name": "velocity",
      "description": "Mean velocity. US: flow in mgd with diameter (in) or area (ft2) -> fps. SI: flow in l/s with diameter (mm) or area (m2) -> m/s. `openings` divides the flow.",
      "parameters": {"type": "object", "properties": {"flow": {"type": "number"}, "diameter": {"type": "number"}, "area": {"type": "number"},
@@ -200,11 +207,13 @@ def read_drawing(case, page):
         return json.loads(cache.read_text())
     if page not in case.pages:
         raise ValueError(f"page {page} not available")
+    t0 = time.time()
     reading, png = cad.read_profile(case.pdf, page)
     located = cad.locate_labels(case.pdf, page)
     elevations, extra = cad.reconcile(reading, located)
     out = {"page": page, **{k: reading.get(k) for k in ("title", "design_flow_note", "flow_path", "notes")},
-           "elevations": elevations, "tile_only_labels": extra}
+           "elevations": elevations, "tile_only_labels": extra, "read_seconds": round(time.time() - t0),
+           "read_at": time.strftime("%Y-%m-%d %H:%M"), "model": "muse-spark-1.3-contributor"}
     cache.parent.mkdir(parents=True, exist_ok=True)
     cache.write_text(json.dumps(out, indent=1))
     return out
@@ -314,13 +323,13 @@ class Study:
         if name == "cost_catalogue":
             return cost.catalogue()
         if name == "cost_estimate":
-            result = cost.estimate(a["lines"], int(a.get("aace_class") or 5))
+            result = cost.estimate(a["lines"], int(a.get("aace_class") or 5), label=a.get("label", ""))
             self.costs[a.get("label") or f"estimate{len(self.costs) + 1}"] = result
             return result
         if name == "standards_list":
             return standards.list_rules(a.get("standard") or "all")
         if name == "standards_check":
-            result = standards.check(a["items"])
+            result = standards.check(a["items"], {**self.runs, **self.profiles})
             for r in result:
                 self.std_checks[r["rule_id"]] = r
             return result
@@ -341,6 +350,11 @@ class Study:
             return {"label": label, **result}
         if name == "profile_capacity":
             return {"label": a["label"], "limits": profile.capacity(self.profiles[a["label"]]["spec"])}
+        if name == "firm_capacity":
+            r = self.runs[a["label"]]
+            res = sim.firm_capacity(r["spec"])
+            r["firm"] = res
+            return {"label": a["label"], **res}
         if name == "velocity":
             return sim.velocity(**{k: v for k, v in a.items() if v is not None})
         raise ValueError(f"unknown tool {name}")
@@ -468,7 +482,9 @@ class Study:
             {"role": "system", "content": "You write technical memoranda for a consulting engineering firm. Use only facts and "
              "numbers present in the JSON; keep page citations (p.N) and run labels; label assumptions. Sections: Purpose; "
              "Background; Design Criteria; Data and Assumptions; Model Calibration; Capacity Evaluation (table); Alternatives "
-             "(table with cost class); QA/QC Summary; Recommendations; Limitations. Markdown. Start with the line: "
+             "(table with cost class); QA/QC Summary; Recommendations; Limitations. Quote standards results exactly as in "
+             "standards_checks and costs exactly as in cost_estimates; where the analysis text disagrees with them, say so "
+             "explicitly instead of picking one. Markdown. Start with the line: "
              "'DRAFT - prepared by an AI agent; requires review and approval by a licensed professional engineer.'"},
             {"role": "user", "content": json.dumps({k: v for k, v in study.items() if k not in ("runs", "profiles", "drawing", "surges", "eps_runs")})}])
         summary = {"case": c.name, "model": self.model, "llm_steps": self.steps, "simulations": len(self.runs) + len(self.profiles) + len(self.surges) + len(self.eps_runs),

@@ -87,6 +87,11 @@ def run(spec):
     F, P, L = u["flow_u"], u["power_u"], u["len_u"]
 
     out = {"units": "SI" if u is SI else "US", "pumps": [], "pipes": [], "junctions": [], "warnings": []}
+    single = [p["id"] for p in spec.get("pumps", []) if "curve" not in p]
+    if single:  # EPANET derives the whole curve from one point: fine for screening, not for firm capacity sign-off
+        out["curve_basis"] = f"single rated point (EPANET 3-point curve: shutoff 133%, runout 200%) for {', '.join(single)}: screening only"
+    if any("eff_curve" not in p and "efficiency" not in p for p in spec.get("pumps", [])):
+        out["efficiency_basis"] = "assumed 0.80 where no efficiency was given: power and energy are indicative"
     total_kw = 0.0
     for p in spec.get("pumps", []):
         on = p.get("on", True)
@@ -126,6 +131,24 @@ def run(spec):
     if q_total > 0:
         out["specific_energy_kwh_per_ml"] = round(total_kw / (q_total * 3.6), 1)  # kW / (ML/h)
     return out
+
+
+def firm_capacity(spec):
+    """Firm capacity: the station output with the largest pump out of service, solved in EPANET for every
+    single-pump outage (the worst one governs)."""
+    pumps = [p for p in spec.get("pumps", []) if p.get("on", True)]
+    if len(pumps) < 2:
+        raise ValueError("firm capacity needs at least two pumps in service")
+    cases = []
+    for p in pumps:
+        variant = {**spec, "pumps": [{**x, "on": False} if x["id"] == p["id"] else x for x in spec["pumps"]]}
+        r = run(variant)
+        cases.append({"out_of_service": p["id"], "total_pumped_mgd" if _u(spec) is US else "total_pumped_lps":
+                      r.get("total_pumped_mgd", r.get("total_pumped_lps")), "warnings": r["warnings"]})
+    key = "total_pumped_mgd" if _u(spec) is US else "total_pumped_lps"
+    worst = min(cases, key=lambda c: c[key])
+    return {"firm": worst[key], "unit": key.split("_")[-1], "governing_outage": worst["out_of_service"], "cases": cases,
+            "all_pumps": run(spec).get(key)}
 
 
 def write_inp(spec, path):

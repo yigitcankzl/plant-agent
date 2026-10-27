@@ -59,7 +59,7 @@ def profile_sheet(spec, flows, out, title, subtitle, prepared="PlantAgent (AI) -
                 (cx - colw / 2, Y(c["limit_ft"]) + 0.08))
         for k, r in enumerate(results):
             w = r["nodes"][i]["ws_ft"]
-            fail = any(c["id"] == n["id"] and c["margin_ft"] < 0 for c in r["checks"])
+            fail = any(c["id"] == n["id"] and c["margin"] < 0 for c in r["checks"])
             msp.add_line((cx - colw / 2, Y(w)), (cx + colw / 2, Y(w)), dxfattribs={**L("WS"), "color": 1 if fail else 5})
             msp.add_text(f"WS {w:.2f} @ {r['flow_mgd']:g} MGD", height=0.11,
                          dxfattribs={**L("WS"), "color": 1 if fail else 5}).set_placement((cx + colw / 2 + 0.05, Y(w) - 0.05 - 0.17 * k))
@@ -84,7 +84,28 @@ def _next(sizes, x):
     return next((s for s in sizes if s >= x), sizes[-1])
 
 
-def pump_datasheet(spec, pump_id, run_result=None, centerline=None, suction_loss=0.0, temp_c=20.0):
+def _runout_power(p, u, speed=1.0):
+    """Largest shaft power over the curve (full speed, 10%-190% of rated) so the motor is non-overloading to runout."""
+    q_r = p.get("rated_gpm", p.get("rated_lps"))
+    h_r = p.get("rated_head_ft", p.get("rated_head_m"))
+    if "curve" in p:
+        pts = sorted(p["curve"])
+        H = lambda q: float(__import__("numpy").interp(q, *zip(*pts)))  # noqa: E731
+        q_r = q_r or pts[-1][0] / 1.6
+    else:  # EPANET single-point curve: H = 4/3 Hr - Hr/(3 Qr^2) Q^2
+        H = lambda q: 4 / 3 * h_r - h_r / (3 * q_r ** 2) * q ** 2  # noqa: E731
+    best = 0.0
+    for f in [x / 20 for x in range(2, 39)]:
+        q = f * q_r
+        h = H(q)
+        if h <= 0:
+            break
+        eff = float(__import__("numpy").interp(q, *zip(*sorted(p["eff_curve"])))) if "eff_curve" in p else p.get("efficiency", 0.8)
+        best = max(best, 1000 * 9.81 * q * u["flow"] * h * u["len"] / max(eff, 0.3) / u["power"])
+    return best
+
+
+def pump_datasheet(spec, pump_id, run_result=None, centerline=None, suction_loss=0.0, temp_c=20.0, site_elev=0.0):
     p0 = next(x for x in spec["pumps"] if x["id"] == pump_id)
     centerline = centerline if centerline is not None else p0.get("centerline_ft", p0.get("centerline_m"))
     """Duty point, power, motor size and NPSH available for one pump in a simulated network (document units)."""
@@ -94,10 +115,12 @@ def pump_datasheet(spec, pump_id, run_result=None, centerline=None, suction_loss
     row = next(x for x in r["pumps"] if x["id"] == pump_id)
     F, L, P = u["flow_u"], u["len_u"], u["power_u"]
     shaft = row[f"shaft_{P}"]
-    motor = _next(NEMA_HP if u["power_u"] == "hp" else IEC_KW, shaft * 1.15)  # 15% margin over the duty-point shaft power
+    runout = _runout_power(p, u)
+    motor = _next(NEMA_HP if u["power_u"] == "hp" else IEC_KW, max(shaft * 1.15, runout))  # non-overloading to runout
     sheet = {"pump": pump_id, f"duty_flow_{F}": row[f"flow_{F}"], f"duty_head_{L}": row[f"tdh_{L}"], "speed": row["speed"],
              "efficiency_at_duty": row["efficiency"], f"shaft_power_{P}": shaft, f"motor_selected_{P}": motor,
-             "motor_basis": "next standard size >= 1.15 x duty shaft power", "electric_kw": row["electric_kw"]}
+             "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+             f"max_power_to_runout_{P}": round(runout, 1), "electric_kw": row["electric_kw"]}
     if "curve" in p:
         sheet[f"shutoff_head_{L}"] = p["curve"][0][1]
     if "eff_curve" in p:
@@ -111,11 +134,22 @@ def pump_datasheet(spec, pump_id, run_result=None, centerline=None, suction_loss
         level = sim._f(src, "head", u) if "head_ft" in src or "head_m" in src else None
         if level is not None:
             m = u["len"]
-            patm = 10.33  # m of water at sea level
-            pv = {10: 0.125, 20: 0.239, 30: 0.433, 40: 0.752}[min((10, 20, 30, 40), key=lambda t: abs(t - temp_c))]
+            elev_m = site_elev * m
+            patm = 10.33 * (1 - 2.2557e-5 * elev_m) ** 5.2559  # m of water at site elevation (standard atmosphere)
+            import numpy as _np
+            pv = float(_np.interp(temp_c, [0, 10, 20, 30, 40], [0.062, 0.125, 0.239, 0.433, 0.752]))
             npsha = patm + (level - centerline) * m - suction_loss * m - pv
             sheet[f"npsh_available_{L}"] = round(npsha / m, 1)
-            sheet["npsh_basis"] = f"sea-level atmosphere, water {temp_c:g} C, suction level {level} {L}, centerline {centerline} {L}"
+            sheet["npsh_basis"] = (f"atmosphere at {site_elev:g} {L} elevation, water {temp_c:g} C, suction level {level} {L}, "
+                                   f"centerline {centerline} {L}, suction loss {suction_loss:g} {L}")
+            npshr = p.get("npshr_ft", p.get("npshr_m"))
+            if npshr:
+                ratio = (npsha / m) / npshr
+                sheet["npsh_margin_ratio"] = round(ratio, 2)
+                sheet["npsh_ok"] = ratio >= 1.3  # ANSI/HI 9.6.1 margin ratios are typically 1.1-2.0 by application; 1.3 used here
+            else:
+                sheet["npsh_ok"] = None
+                sheet["npsh_note"] = "NPSHr not given: margin not checked (request the certified curve)"
     return sheet
 
 

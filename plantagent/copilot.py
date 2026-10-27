@@ -65,6 +65,9 @@ class Project:
 
     def page(self, doc, n):
         d = self.docs[doc]
+        if d["pdf"] == self.case.cfg["pdf"] and any(a <= int(n) <= b for a, b in self.case.cfg.get("withheld_pages", [])):
+            return (f"[{doc} p.{n}] withheld: this page holds the engineers' conclusions used to score the agent, so the "
+                    f"workspace does not read it (the comparison stays blind)")
         pages = _pages(DATA / d["pdf"])
         if not 1 <= int(n) <= len(pages):
             return f"{doc} has {len(pages)} pages"
@@ -80,6 +83,8 @@ class Project:
         hits = []
         for doc, d in self.docs.items():
             for i, text in enumerate(_pages(DATA / d["pdf"])):
+                if d["pdf"] == self.case.cfg["pdf"] and any(a <= i + 1 <= b for a, b in self.case.cfg.get("withheld_pages", [])):
+                    continue
                 low = text.lower()
                 score = sum(low.count(t) for t in terms)
                 if score:
@@ -379,42 +384,58 @@ def preview(ws, p):
     """What a proposed model change does, before the engineer accepts it (no revision logged)."""
     from . import profile
     if p.get("kind") == "unit":
-        q, cap = target_flow(ws), float(p.get("capacity_mgd") or 0)
-        r = ws.runs.get(p.get("run_label") or "") or ws.profiles.get(p.get("run_label") or "")
-        proved = None
-        if r and "result" in r and isinstance(r["result"], dict):
-            proved = r["result"].get("total_pumped_mgd")
-        elif r and "spec" in r and "elements" in r["spec"]:
-            caps = [c["binds_at_mgd"] for c in profile.capacity(r["spec"]) if isinstance(c["binds_at_mgd"], (int, float))]
-            proved = min(caps) if caps else 60.0
-        ok = proved is not None and proved >= 0.97 * cap and cap >= q
+        from . import sim
+        q = target_flow(ws)
+        run_label = p.get("run_label") or ""
+        r = ws.runs.get(run_label) or station_runs(ws).get(run_label) or ws.profiles.get(run_label)
+        proved, proof = None, None
+        if r and len(r.get("spec", {}).get("pumps", [])) >= 2:  # pump station: EPANET with each pump out in turn
+            f = sim.firm_capacity(r["spec"])
+            proved, proof = f["firm"], f"EPANET N-1 firm capacity of run {run_label} (worst outage {f['governing_outage']})"
+        elif r and "elements" in r.get("spec", {}):  # gravity unit: the solver's limit for the element at this structure
+            els = [e for e in [r["spec"]["start"]] + r["spec"]["elements"] if _structure_of(ws, e["id"], e["id"]) == p.get("structure")]
+            lims = [x for x in (_profile_limit(r["spec"], e["id"]) for e in els) if x is not None]
+            if lims:
+                proved, proof = min(lims), f"gravity profile {run_label}: binding limit of {', '.join(e['id'] for e in els)}"
+        ok = proved is not None and proved >= q
+        why = ("no simulator run cited" if not r else "the cited run has no computed limit for this unit (nothing to verify)"
+               if proved is None else f"solver gives {proved:g} MGD < {q:g}" if not ok else "")
         return {"kind": "unit", "target_mgd": q, "old": next((u["capacity_mgd"] for u in unit_capacities(ws) if u["unit"] == p.get("unit")), None),
-                "value": cap, "element": p.get("unit"), "field": "capacity_mgd", "passes_after": bool(ok), "proved_mgd": proved,
-                "failing_after": [] if ok else [f"run {p.get('run_label')} shows {proved} mgd" if proved is not None else "no simulator run cited"]}
+                "value": proved, "claimed_mgd": p.get("capacity_mgd"), "element": p.get("unit"), "field": "capacity_mgd",
+                "passes_after": bool(ok), "proved_mgd": proved, "proof": proof, "failing_after": [why] if why else []}
     label = p.get("profile_label") if p.get("profile_label") in ws.profiles else current_label(ws)
     spec, old = _changed_spec(ws.profiles[label]["spec"], p["element"], p["field"], p["value"])
     q = target_flow(ws)
     before, after = profile.run(ws.profiles[label]["spec"], q), profile.run(spec, q)
     return {"profile_label": label, "old": old, "target_mgd": q, "passes_before": before["passes"], "passes_after": after["passes"],
-            "failing_after": [f"{c['id']}: {c['check']}" for c in after["checks"] if c["margin_ft"] < 0]}
+            "failing_after": [f"{c['id']}: {c['check']}" for c in after["checks"] if c["margin"] < 0]}
 
 
 def accept(ws, p):
+    check = preview(ws, p)  # recompute: the client's claim is never trusted
+    if not check["passes_after"]:
+        raise ValueError("not verified by the solver: " + "; ".join(check["failing_after"] or ["fails at target"]))
+    p = {**p, **check}
     if p.get("kind") == "unit":
-        ws.unit_overrides = {**getattr(ws, "unit_overrides", {}), p["unit"]: float(p["capacity_mgd"])}
+        ws.unit_overrides = {**getattr(ws, "unit_overrides", {}), p["unit"]: p["proved_mgd"]}
         rev = {"n": len(ws.revisions) + 1, "time": time.strftime("%H:%M:%S"), "from": current_label(ws), "to": current_label(ws),
-               "element": p["unit"], "field": "capacity_mgd", "old": p.get("old"), "new": float(p["capacity_mgd"]),
+               "element": p["unit"], "field": "capacity_mgd", "old": p.get("old"), "new": p["proved_mgd"],
                "source": "accepted proposal: " + p.get("title", "") + f" (run {p.get('run_label')})"}
         ws.revisions.append(rev)
         ws.accepted = getattr(ws, "accepted", []) + [{"element": p["unit"], "unit": p["unit"], "structure": p.get("structure"),
                                                       "title": p.get("title", ""), "label": current_label(ws), "resolves": p.get("resolves"),
-                                                      "rev": rev["n"], "capacity_mgd": float(p["capacity_mgd"])}]
+                                                      "rev": rev["n"], "capacity_mgd": p["proved_mgd"], "proved_mgd": p["proved_mgd"],
+                                                      "proof": p["proof"]}]
         if p.get("resolves"):
             ws.resolved.add(p["resolves"])
         return {"label": current_label(ws), "revision": rev, "capacity": []}
     r = edit(ws, p["profile_label"], p["element"], p["field"], p["value"], source="accepted proposal: " + p.get("title", ""))
+    lim = _profile_limit(ws.profiles[r["label"]]["spec"], p["element"])
     ws.accepted = getattr(ws, "accepted", []) + [{"element": p["element"], "structure": p.get("structure"), "title": p.get("title", ""),
-                                                  "label": r["label"], "resolves": p.get("resolves"), "rev": r["revision"]["n"]}]
+                                                  "label": r["label"], "resolves": p.get("resolves"), "rev": r["revision"]["n"],
+                                                  "proved_mgd": lim if lim is not None else target_flow(ws) if p.get("passes_after") else None,
+                                                  "proof": f"gravity profile {r['label']}: {p['element']} " +
+                                                           (f"binds at {lim:g} MGD" if lim is not None else f"passes {target_flow(ws):g} MGD with no limit reached")}]
     if p.get("resolves"):
         ws.resolved.add(p["resolves"])
     return r
@@ -600,9 +621,9 @@ def problems(ws, flow_mgd=None):
     if label in ws.profiles and flow_mgd:
         r = profile.run(ws.profiles[label]["spec"], float(flow_mgd))
         for c in r["checks"]:
-            if c["margin_ft"] < 0:
+            if c["margin"] < 0:
                 out.append({"severity": "error", "kind": "limit", "text": f"{c['id']}: {c['check']} exceeded at {flow_mgd:g} MGD "
-                            f"(margin {c['margin_ft']})", "source": f"profile run {label}", "ref": c["id"]})
+                            f"(margin {c['margin']})", "source": f"profile run {label}", "ref": c["id"]})
     for i in (st.get("review") or {}).get("issues") or []:
         resp = next((r for r in (st.get("resolution") or {}).get("responses") or [] if str(r.get("issue", ""))[:40] == str(i.get("issue", ""))[:40]), None)
         if not resp or resp.get("action") != "fixed":
@@ -653,38 +674,78 @@ def tasks(case):
     return out
 
 
-def unit_capacities(ws, view="proposed"):
-    """The capacity-by-unit chart of a capacity study: each unit's limiting flow (from the study's capacity table, or the
-    current model when the engineer accepted a change there), mapped to its structure on the drawing."""
+def _profile_limit(spec, element_id):
+    """The flow at which the solver says this element hits a limit (None when the model has no limit for it)."""
     from . import profile
+    v = [c["binds_at_mgd"] for c in profile.capacity(spec) if c["id"] == element_id and isinstance(c["binds_at_mgd"], (int, float))]
+    return min(v) if v else None
+
+
+def _station_for(ws, unit_text):
+    """EPANET station model that represents a pump-station unit (raw water / high service), by its pump id prefix."""
+    t = unit_text.lower()
+    if "pump" not in t:
+        return None
+    prefix = "RW" if "raw" in t else "HS" if ("high-service" in t or "high service" in t or "finished" in t) else None
+    if not prefix:
+        return None
+    # the existing station with every installed pump available (firm capacity then takes the largest one out)
+    runs = [(k, v) for k, v in station_runs(ws).items() if all(p["id"].upper().startswith(prefix) for p in v["spec"]["pumps"])
+            and all(p.get("on", True) for p in v["spec"]["pumps"]) and not re.search(r"ALT|UPGRADE|ADD|FIX|NEW|6PUMP", k.upper())]
+    return max(runs, key=lambda kv: (len(kv[1]["spec"]["pumps"]), "NOM" in kv[0].upper()), default=None)
+
+
+def unit_capacities(ws, view="proposed"):
+    """Capacity by unit. Each value says where it comes from: 'simulated' (EPANET N-1 firm capacity or the gravity
+    profile's binding limit) or 'documented' (the study's capacity table, quoted with its range). Accepted changes
+    replace a value only with the number the solver computed for them."""
+    from . import sim
     st = ws.study or {}
     rows = []
-    num = re.compile(r"(\d+(?:\.\d+)?)\s*(?:-\s*(\d+(?:\.\d+)?))?\s*mgd", re.I)
+    num = re.compile(r"(\d+(?:\.\d+)?)\s*(?:-|to|–)?\s*(\d+(?:\.\d+)?)?\s*mgd", re.I)
     for r in (st.get("analysis") or {}).get("capacity_table") or []:
-        m = num.search(str(r.get("binds_at", ""))) or num.search(str(r.get("limit", "")))
-        cap = float(m.group(1)) if m else None
-        short = re.split(r"\s*[+(/]\s*|\s+-\s+", str(r.get("unit", "")))[0].strip()
-        rows.append({"unit": short[:26], "full_unit": str(r.get("unit", "")), "capacity_mgd": cap, "limit": str(r.get("limit", ""))[:80],
-                     "limits_target": bool(r.get("limits_target")), "structure": _structure_of(ws, str(r.get("unit", "")) + " " + str(r.get("limit", "")))})
-    if view != "existing":
-        for name, cap in getattr(ws, "unit_overrides", {}).items():
-            for r in rows:
-                if r["unit"] == name or name.lower() in r["full_unit"].lower():
-                    r.update({"capacity_mgd": cap, "limits_target": False, "changed": "accepted"})
-    # units changed by accepted proposals take their capacity from the current model
-    label = current_label(ws)
-    if label and getattr(ws, "accepted", None) and view != "existing":
-        caps = profile.capacity(ws.profiles[label]["spec"])
-        q = target_flow(ws)
-        for a in ws.accepted:
-            if "unit" in a:
+        text = str(r.get("binds_at", "")) + " " + str(r.get("limit", ""))
+        m = num.search(text)
+        lo, hi = (float(m.group(1)), float(m.group(2)) if m.group(2) else None) if m else (None, None)
+        full = str(r.get("unit", ""))
+        row = {"unit": re.split(r"\s*[+(/]\s*|\s+-\s+", full)[0].strip()[:26], "full_unit": full, "capacity_mgd": lo,
+               "range": f"{lo:g}-{hi:g}" if hi else None, "limit": str(r.get("limit", ""))[:80], "source": "documented",
+               "limits_target": bool(r.get("limits_target")), "structure": _structure_of(ws, full + " " + str(r.get("limit", "")))}
+        stn = _station_for(ws, full)
+        if stn:
+            try:
+                f = sim.firm_capacity(stn[1]["spec"])
+                row.update({"capacity_mgd": round(f["firm"], 1), "source": f"simulated: EPANET N-1, run {stn[0]} (worst outage {f['governing_outage']})",
+                            "documented": lo})
+            except ValueError:
+                pass
+        rows.append(row)
+    label = current_label(ws) if view != "existing" else ((ws.case.cfg.get("workspace") or {}).get("existing_profile") or current_label(ws))
+    if label in ws.profiles:
+        spec = ws.profiles[label]["spec"]
+        from . import profile
+        caps = profile.capacity(spec)
+        generic = {"water", "pipeline", "basin", "basins", "nominal", "single", "plant", "limit", "check", "max", "surface"}
+        for e in [spec["start"]] + spec["elements"]:
+            mine = [c for c in caps if c["id"] == e["id"] and isinstance(c["binds_at_mgd"], (int, float))]
+            if not mine:
                 continue
-            el = [c for c in caps if c["id"] == a["element"]]
-            lim = min((c["binds_at_mgd"] for c in el if isinstance(c["binds_at_mgd"], (int, float))), default=None)
-            words = {w for w in re.findall(r"[a-z]{5,}", (a.get("title", "") + " " + (a.get("structure") or "")).lower())}
-            for r in rows:  # only the unit the change is about: same structure and a shared specific word
-                if r["structure"] == a.get("structure") and words & set(re.findall(r"[a-z]{5,}", r["full_unit"].lower())):
-                    r.update({"capacity_mgd": round(min(lim, 60.0), 1) if lim is not None else q, "limits_target": False, "changed": a["title"]})
+            gov = min(mine, key=lambda c: c["binds_at_mgd"])
+            words = set(re.findall(r"[a-z]{4,}", (e["id"] + " " + gov["check"] + " " + _structure_of(ws, e["id"], e["id"]) or "").lower())) - generic
+            words |= {"sedimentation", "flocculation"} if "basin" in gov["check"].lower() else set()
+            best = max((r for r in rows if r["source"] == "documented" and not SIDE.search(r["full_unit"])),
+                       key=lambda r: len(words & set(re.findall(r"[a-z]{4,}", r["full_unit"].lower()))), default=None)
+            if best and words & set(re.findall(r"[a-z]{4,}", best["full_unit"].lower())):
+                best.update({"capacity_mgd": round(gov["binds_at_mgd"], 1),
+                             "source": f"simulated: gravity profile {label}, {e['id']} ({gov['check']})"})
+    if view != "existing":
+        for a in getattr(ws, "accepted", []):
+            if a.get("proved_mgd") is None:
+                continue
+            for r in rows:
+                if r["unit"] == a.get("unit") or (a.get("structure") and r["structure"] == a["structure"]
+                                                  and set(re.findall(r"[a-z]{5,}", a.get("title", "").lower())) & set(re.findall(r"[a-z]{5,}", r["full_unit"].lower()))):
+                    r.update({"capacity_mgd": round(a["proved_mgd"], 1), "changed": a["title"], "source": a["proof"]})
     return rows
 
 
@@ -723,10 +784,10 @@ def plate_checks(r):
     ns = lambda q_: n * q_ ** 0.5 / h ** 0.75  # noqa: E731  US specific speed
     if q and h and n:
         r["us"]["specific_speed"] = round(ns(q))
-        if not 500 <= ns(q) <= 15000:
-            alt = [x for x in (q * 10, q / 10) if 500 <= ns(x) <= 15000]
+        if not 1000 <= ns(q) <= 10000:  # typical single-stage centrifugal / mixed-flow range
+            alt = [x for x in (q * 10, q / 10) if 1000 <= ns(x) <= 10000]
             out.append({"check": "specific speed", "status": "suspicious",
-                        "note": f"Ns = {ns(q):.0f} is outside 500-15000 for a centrifugal pump" +
+                        "note": f"Ns = {ns(q):.0f} is outside the usual 1,000-10,000 for a single-stage pump (multistage pumps: check per stage)" +
                                 (f"; {alt[0]:,.0f} gpm gives Ns = {ns(alt[0]):.0f}" if alt else ""),
                         "suggested_flow_gpm": alt[0] if alt else None})
         else:
@@ -769,7 +830,7 @@ def station_runs(ws):
     for d in sorted((ROOT / "runs" / ws.case.name).glob("2*")):
         if (d / "study.json").exists():
             for k, v in json.loads((d / "study.json").read_text()).get("runs", {}).items():
-                if len(v.get("spec", {}).get("pumps", [])) >= 3 and "FIRM" in k.upper():
+                if len(v.get("spec", {}).get("pumps", [])) >= 3:
                     out.setdefault(k, v)
     return out
 
@@ -793,16 +854,25 @@ def match_pumps(ws, gpm, head):
     return out[:6]
 
 
-def apply_photo(ws, run, pump_id, gpm, head, note=""):
-    """Replace a pump's rated point with the field reading, re-run EPANET, and log the revision."""
+def apply_photo(ws, run, pump_id, gpm, head, note="", force=False):
+    """Replace a pump's rated point with the field reading, re-run EPANET, and log the revision. Refused (nothing is
+    written) when the reading cannot be this pump: >2x off the modelled rating, or the motor would be overloaded."""
     from . import sim
     base = station_runs(ws)[run]
     spec = json.loads(json.dumps(base["spec"]))
     p = next(x for x in spec["pumps"] if x["id"] == pump_id)
     old = (p.get("rated_gpm"), p.get("rated_head_ft"))
+    blocks = []
+    for name, new, was in (("flow", float(gpm), old[0]), ("head", float(head), old[1])):
+        if was and not 0.5 <= new / was <= 2.0:
+            blocks.append(f"{name} {new:g} is {new / was:.1f}x the modelled {was:g}: probably not this pump, or a misread")
     p.pop("curve", None)
     p["rated_gpm"], p["rated_head_ft"] = float(gpm), float(head)
     before, after = sim.run(base["spec"]), sim.run(spec)
+    blocks += [w for w in after.get("warnings", []) if "exceeds" in w and pump_id in w]
+    if blocks and not force:
+        return {"blocked": True, "reasons": blocks, "before_mgd": before.get("total_pumped_mgd"),
+                "note": "Nothing was written to the model. Confirm the equipment tag in the field, or correct the reading."}
     label = f"{run}~field{len(ws.revisions) + 1}"
     ws.runs[label] = {"purpose": f"{run} with {pump_id} at field reading {gpm} gpm @ {head} ft {note}", "spec": spec, "result": after}
     rev = {"n": len(ws.revisions) + 1, "time": time.strftime("%H:%M:%S"), "from": run, "to": label, "element": pump_id,

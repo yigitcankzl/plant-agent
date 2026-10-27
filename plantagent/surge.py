@@ -69,11 +69,17 @@ def _worker(a):
             n = tm.get_node(j["id"])
             pmin, pmax, p0 = (float(n.head.min() - n.elevation), float(n.head.max() - n.elevation),
                               float(n.head[0] - n.elevation))
+            sep = pmin <= VAPOUR_GAUGE_M
             nodes.append({"id": j["id"], f"steady_{u['press_u']}": round(p0 * to_press, 2),
-                          f"max_{u['press_u']}": round(pmax * to_press, 2), f"min_{u['press_u']}": round(pmin * to_press, 2),
-                          "vapour_risk": pmin <= VAPOUR_GAUGE_M})
+                          # below vapour pressure the computed number is not physical: report the vapour limit instead
+                          f"max_{u['press_u']}": round(pmax * to_press, 2) if not sep else None,
+                          f"min_{u['press_u']}": round(max(pmin, VAPOUR_GAUGE_M) * to_press, 2),
+                          "vapour_risk": sep, "note": "column separation: min shown at vapour pressure; max after rejoin not modelled" if sep else ""})
     return {"event": ev, "protection": a["protection"], "wave_speed_mps": a["wave_speed_mps"], "time_step_s": round(tm.time_step, 4),
-            "nodes": nodes, "note": "MOC transient (TSNet). Minimum pressure at or below about -10 m head means column separation."}
+            "nodes": nodes, "screening": "PRE-SCREEN ONLY: pump trip modelled as a 1 s closure without pump inertia (WR2), "
+                          "check-valve dynamics or a column-separation model. Confirm surge protection with a full transient model "
+                          "(e.g. Bentley HAMMER, KYPipe Surge) before design.",
+            "note": "MOC transient (TSNet), sea-level vapour limit about -10 m gauge."}
 
 
 if __name__ == "__main__":

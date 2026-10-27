@@ -85,7 +85,8 @@ def run(spec, flow_mgd):
             drop = e["ws_ft"] - ws
             if "required_drop_ft" in e:
                 checks.append({"id": e["id"], "check": "driving head", "available_ft": round(drop, 2),
-                               "required_ft": e["required_drop_ft"], "margin_ft": round(drop - e["required_drop_ft"], 2)})
+                               "required_ft": e["required_drop_ft"], "margin_ft": round(drop - e["required_drop_ft"], 2),
+                               "margin": round(drop - e["required_drop_ft"], 2), "unit": "ft", "scale": e["required_drop_ft"]})
             up = e["ws_ft"]
         elif t == "pipe":
             if "k_fit" in e:
@@ -94,7 +95,7 @@ def run(spec, flow_mgd):
                 loss = _hw_loss(q, e["length_ft"], e["diameter_in"], e.get("c_factor", 120))
             area = math.pi / 4 * (e["diameter_in"] / 12) ** 2 if "diameter_in" in e else None
             v = q / area if area else None
-            if v is not None:
+            if v is not None and "k_fit" not in e:  # a field calibration already contains the fitting losses
                 loss += e.get("minor_k", 0) * v * v / (2 * G)
                 note = f"V={v:.2f} fps"
             up = ws + loss
@@ -118,10 +119,12 @@ def run(spec, flow_mgd):
             node["fitted_cd"] = round(e["cd"], 3)
         if "max_ws_ft" in e:
             checks.append({"id": e["id"], "check": e.get("limit_name", "max water surface"), "ws_ft": round(up, 2),
-                           "limit_ft": e["max_ws_ft"], "margin_ft": round(e["max_ws_ft"] - up, 2)})
+                           "limit_ft": e["max_ws_ft"], "margin_ft": round(e["max_ws_ft"] - up, 2),
+                           "margin": round(e["max_ws_ft"] - up, 2), "unit": "ft", "scale": max(abs(up - ws), 0.5)})
         if "min_ws_ft" in e:
             checks.append({"id": e["id"], "check": e.get("limit_name", "min water surface"), "ws_ft": round(up, 2),
-                           "limit_ft": e["min_ws_ft"], "margin_ft": round(up - e["min_ws_ft"], 2)})
+                           "limit_ft": e["min_ws_ft"], "margin_ft": round(up - e["min_ws_ft"], 2),
+                           "margin": round(up - e["min_ws_ft"], 2), "unit": "ft", "scale": max(abs(up - ws), 0.5)})
         if "drawing_ws_ft" in e:
             node["drawing_ws_ft"] = e["drawing_ws_ft"]
             node["residual_ft"] = round(up - e["drawing_ws_ft"], 2)
@@ -129,12 +132,13 @@ def run(spec, flow_mgd):
             per_unit = flow_mgd * e.get("share", 1)
             checks.append({"id": e["id"], "check": e.get("rating_name", "stated capacity"), "flow_mgd": round(per_unit, 2),
                            "limit_mgd": e["max_flow_mgd"], "margin_mgd": round(e["max_flow_mgd"] - per_unit, 2),
-                           "margin_ft": round(e["max_flow_mgd"] - per_unit, 2)})
+                           "margin": round(e["max_flow_mgd"] - per_unit, 2), "unit": "mgd", "scale": e["max_flow_mgd"]})
         nodes.append(node)
         ws = up
-    failing = [c for c in checks if c["margin_ft"] < 0]
+    failing = [c for c in checks if c["margin"] < 0]
     return {"flow_mgd": flow_mgd, "nodes": nodes, "checks": checks, "passes": not failing,
-            "first_limit": min(checks, key=lambda c: c["margin_ft"])["id"] if checks else None}
+            # margins are in ft (levels) or mgd (ratings): compare them relative to their own scale
+            "first_limit": min(checks, key=lambda c: c["margin"] / (c["scale"] or 1))["id"] if checks else None}
 
 
 def capacity(spec, lo=0.5, hi=60.0):
@@ -142,7 +146,7 @@ def capacity(spec, lo=0.5, hi=60.0):
     ids = [(c["id"], c["check"]) for c in run(spec, lo)["checks"]]
     out = []
     for cid, name in ids:
-        margin = lambda q: next(c["margin_ft"] for c in run(spec, q)["checks"] if (c["id"], c["check"]) == (cid, name))  # noqa: E731
+        margin = lambda q: next(c["margin"] for c in run(spec, q)["checks"] if (c["id"], c["check"]) == (cid, name))  # noqa: E731
         if margin(lo) < 0:
             out.append({"id": cid, "check": name, "binds_at_mgd": f"< {lo}"}); continue
         if margin(hi) >= 0:

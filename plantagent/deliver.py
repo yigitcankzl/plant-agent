@@ -236,7 +236,7 @@ def markup_drawing(d, study, an, p, zoom=1.6):
         a = _anchor(drawing, n["drawing_ws_ft"]) if "drawing_ws_ft" in n else None
         if not a:
             continue
-        fail = any(c["id"] == n["id"] and c["margin_ft"] < 0 for c in top["checks"])
+        fail = any(c["id"] == n["id"] and c["margin"] < 0 for c in top["checks"])
         text = f"{top['flow_mgd']:g} MGD: WS {n['ws_ft']:.2f}" + (" OVER LIMIT" if fail else "")
         x0, y0, x1, y1 = a["bbox"]
         xy = (x0 * W, y1 * H + 3)
