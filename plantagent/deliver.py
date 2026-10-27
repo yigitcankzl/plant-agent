@@ -120,7 +120,7 @@ def write_profile(d, study, an, summary):
              "|---|" + "---|" * (len(p["results"]) + 2)]
     for i, n in enumerate(p["results"][0]["nodes"]):
         lines.append(f"| {n['id']} | " + " | ".join(str(r["nodes"][i]["ws_ft"]) for r in p["results"]) +
-                     f" | {n.get('drawing_ws_ft', '')} | " + " | ".join(str(r["nodes"][i]["residual_ft"]) for r in p["results"]
+                     f" | {n.get('drawing_ws_ft', '')} | " + " / ".join(str(r["nodes"][i]["residual_ft"]) for r in p["results"]
                                                                      if "residual_ft" in r["nodes"][i])[:40] + " |")
     lines += ["\n## Flow at which each limit binds\n", _table(limits, ["id", "check", "binds_at_mgd"])]
     (d / "profile.md").write_text("\n".join(lines))
@@ -152,9 +152,15 @@ def write_profile(d, study, an, summary):
         markup_drawing(d, study, an, p)
 
 
-def _anchor(drawing, value):
+def _anchor(drawing, value, structure=""):
+    """The drawing label a result belongs to: same value, and among equal values the one whose structure name matches."""
+    words = set(structure.lower().replace("/", " ").split())
+    overlap = lambda e: len(words & set(e.get("structure", "").lower().replace("/", " ").split()))  # noqa: E731
     hits = [e for e in drawing["elevations"] if abs(float(e["value"]) - float(value)) < 0.006]
-    return hits[0] if hits else None
+    if hits:
+        return max(hits, key=overlap)
+    named = [e for e in drawing["elevations"] if overlap(e)]
+    return max(named, key=overlap) if named else None
 
 
 def markup_drawing(d, study, an, p, zoom=1.6):
@@ -185,18 +191,29 @@ def markup_drawing(d, study, an, p, zoom=1.6):
         draw.text(xy, text, fill=(200, 0, 0) if fail else (0, 90, 200), font=font)
         labels.append({"bbox": a["bbox"], "text": text})
     for ch in rows(an.get("drawing_changes")):
-        a = _anchor(drawing, ch.get("anchor_value", -1)) if ch.get("anchor_value") is not None else None
+        a = _anchor(drawing, ch.get("anchor_value") or -1, ch.get("structure", ""))
         if not a:
             continue
         x0, y0, x1, y1 = a["bbox"]
-        pad = 0.035
+        pad = 0.012
         box = [(x0 - pad) * W, (y0 - pad) * H, (x1 + pad) * W, (y1 + pad) * H]
         _png_cloud(draw, box)
-        changes.append({"bbox": [x0 - pad / 2, y0 - pad / 2, x1 + pad / 2, y1 + pad / 2], "note": ch.get("note", "")[:110]})
+        changes.append({"bbox": [x0 - pad, y0 - pad, x1 + pad, y1 + pad], "note": ch.get("note", "")[:120]})
+    try:
+        small = ImageFont.truetype("DejaVuSans.ttf", 12)
+    except OSError:
+        small = font
+    notes = [f"A{i}  {ch['note']}" for i, ch in enumerate(changes, 1)]
+    if notes:  # revision notes in a boxed panel at the top left, clear of the drawing content
+        lh = 17
+        box = [0.06 * W, 0.035 * H, 0.06 * W + max(draw.textlength(n, font=small) for n in notes) + 16, 0.035 * H + lh * len(notes) + 30]
+        draw.rectangle(box, fill=(255, 255, 255), outline=(200, 0, 0), width=2)
+        draw.text((box[0] + 8, box[1] + 5), "PROPOSED REVISIONS (AGENT, FOR ENGINEER REVIEW)", fill=(200, 0, 0), font=small)
+        for i, n in enumerate(notes):
+            draw.text((box[0] + 8, box[1] + 22 + lh * i), n, fill=(200, 0, 0), font=small)
     for i, ch in enumerate(changes, 1):
         x0, y0, x1, y1 = ch["bbox"]
-        draw.text((x1 * W + 4, (y0 - 0.03) * H), f"A{i}", fill=(200, 0, 0), font=font)
-        draw.text((0.06 * W, (0.72 + 0.022 * i) * H), f"A{i}  {ch['note']}", fill=(200, 0, 0), font=font)
+        draw.text((x1 * W + 6, y0 * H - 16), f"A{i}", fill=(200, 0, 0), font=font)
     im.save(d / "drawing_markup.png")
 
     sheet = d / "drawing.dxf"
