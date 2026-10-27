@@ -52,6 +52,8 @@ def write_deliverables(d, study, memo, summary):
     (d / "data_register.json").write_text(json.dumps(col.get("data_register", []), indent=2))
     (d / "rfi.md").write_text("# Step 2 - Requests for information and assumptions\n\n" +
                               _table(col.get("rfi", []), ["item", "issue", "resolution", "reason"]))
+    (d / "test_plan.md").write_text("# Field test plan (closes RFI items before design)\n\n" +
+                                    _table(col.get("test_plan", []), ["test", "purpose", "closes_rfi", "measurements", "procedure", "acceptance"]))
     (d / "calibration.md").write_text("# Step 3 - Calibration against field data\n\n" +
                                       _table(an.get("calibration", []), ["test", "source", "measured", "simulated", "residual_pct", "run_label", "note"]))
 
@@ -91,6 +93,8 @@ def write_deliverables(d, study, memo, summary):
                                 "nodes": json.dumps(r["nodes"]), "checks": json.dumps(r["checks"])}
                                for k, v in (study.get("profiles") or {}).items() for r in v["results"]],
               "Pump data sheets": summary.get("pump_datasheets", []),
+                        "EPS calibration": [{"label": k, "tool": v["tool"], "purpose": v["purpose"], "args": json.dumps(v["args"]),
+                                 "result": json.dumps(v["result"])} for k, v in (study.get("eps_runs") or {}).items()],
                         "Surge runs": [{"label": k, "purpose": v["purpose"], "event": json.dumps(v["args"]), "nodes": json.dumps(v["result"].get("nodes")),
                               "spec": json.dumps(v["spec"])} for k, v in (study.get("surges") or {}).items()]}
     wb.remove(wb.active)

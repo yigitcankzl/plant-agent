@@ -10,8 +10,8 @@ import json
 import time
 from pathlib import Path
 
-from . import cad, llm, profile, sim, surge
-from .docs import Case
+from . import cad, eps, llm, profile, sim, surge
+from .docs import DATA, Case
 from .deliver import write_deliverables
 
 RULES = """Engineering rules:
@@ -66,6 +66,22 @@ SURGE_TOOLS = [
      "parameters": {"type": "object", "properties": {"label": {"type": "string"}, "purpose": {"type": "string"}, "spec": {"type": "object"},
                     "event": {"type": "object"}, "protection": {"type": "array", "items": {"type": "object"}},
                     "wave_speed_mps": {"type": "number"}, "sim_time_s": {"type": "number"}}, "required": ["label", "spec", "event"]}}},
+]
+
+EPS_TOOLS = [
+    {"type": "function", "function": {"name": "eps_model_summary", "description": "Summary of the utility's existing EPANET model "
+     "(element counts, pumps, tanks, patterns, controls) and the observed SCADA series available for calibration.",
+     "parameters": {"type": "object", "properties": {}}}},
+    {"type": "function", "function": {"name": "eps_run", "description": "Extended-period run of the existing model with explicit "
+     "changes; returns fit statistics (RMSE, bias, NSE) per observed series plus sampled tank levels and pump flows. "
+     "Logged under `label`. " + eps.__doc__.split("Changes to the model")[1].strip(),
+     "parameters": {"type": "object", "properties": {"label": {"type": "string"}, "purpose": {"type": "string"},
+                    "changes": {"type": "array", "items": {"type": "object"}}, "duration_h": {"type": "number"}}, "required": ["label"]}}},
+    {"type": "function", "function": {"name": "eps_fit", "description": "Calibrate: fit scale factors on the parameter groups you "
+     "consider uncertain (each {target, attr, min, max}) against all observed series; logged under `label`.",
+     "parameters": {"type": "object", "properties": {"label": {"type": "string"}, "purpose": {"type": "string"},
+                    "params": {"type": "array", "items": {"type": "object"}}, "base_changes": {"type": "array", "items": {"type": "object"}},
+                    "duration_h": {"type": "number"}}, "required": ["label", "params"]}}},
 ]
 
 # How a consulting engineer approaches each kind of question (added to the analysis step).
@@ -129,6 +145,7 @@ SUBMIT_COLLECT = submit("submit_collection", "Steps 1-2: design criteria, data r
     "units_on_path": {"type": "array", "items": S},
     "data_register": ARR({"id": S, "item": S, "value": S, "unit": S, "source": S, "quote": S}),
     "rfi": ARR({"item": S, "issue": S, "resolution": S, "reason": S}),
+    "test_plan": ARR({"test": S, "purpose": S, "closes_rfi": S, "measurements": S, "procedure": S, "acceptance": S}),
 }, ["criteria", "data_register", "rfi"])
 
 SUBMIT_ANALYSIS = submit("submit_analysis", "Steps 3-6: calibration, model, capacity table, alternatives, findings.", {
@@ -175,6 +192,18 @@ def read_drawing(case, page):
     return out
 
 
+def eps_summary(case):
+    cfg = case.cfg["eps"]
+    wn = eps._model(str(DATA / cfg["inp"]))
+    obs = eps.load_observations(str(DATA / cfg["observations"]))
+    return {"model": cfg["inp"], "junctions": wn.num_junctions, "pipes": wn.num_pipes, "pumps": wn.pump_name_list,
+            "tanks": wn.tank_name_list, "reservoirs": wn.reservoir_name_list, "valves": wn.num_valves,
+            "patterns": wn.pattern_name_list[:20], "controls": len(wn.control_name_list),
+            "duration_h_default": cfg.get("duration_h", 24),
+            "observed_series": {k: {"n": int((~__import__("numpy").isnan(v[1])).sum()), "hours": [float(v[0][0]), float(v[0][-1])]}
+                                for k, v in obs.items()}, "notes": cfg.get("notes", "")}
+
+
 def compact(messages, keep=10, limit=600):
     """Old tool results and page images are shortened before each call; the agent can re-read any page.
     ponytail: fixed window; summarise into the data register instead if studies get much longer."""
@@ -196,6 +225,7 @@ class Study:
         self.case, self.model = Case(case), model
         self.profiles = {}  # label -> {purpose, spec, flows, results}
         self.surges = {}  # label -> {purpose, spec, args, result}
+        self.eps_runs = {}  # label -> {purpose, tool, args, result}
         self.drawing = None
         self.dir = Path("runs") / case / time.strftime("%Y%m%d-%H%M%S")
         self.dir.mkdir(parents=True)
@@ -248,6 +278,21 @@ class Study:
             kw = {k: a[k] for k in ("protection", "wave_speed_mps", "sim_time_s") if a.get(k) is not None}
             result = surge.run(a["spec"], a["event"], **kw)
             self.surges[label] = {"purpose": a.get("purpose", ""), "spec": a["spec"], "args": {"event": a["event"], **kw}, "result": result}
+            return {"label": label, **result}
+        if name == "eps_model_summary":
+            return eps_summary(c)
+        if name in ("eps_run", "eps_fit"):
+            cfg = c.cfg["eps"]
+            inp, obs = str(DATA / cfg["inp"]), str(DATA / cfg["observations"])
+            dur = float(a.get("duration_h") or cfg.get("duration_h", 24))
+            label = a.get("label") or f"{name}{len(self.eps_runs) + 1}"
+            if label in self.eps_runs:
+                label = f"{label}-{len(self.eps_runs) + 1}"
+            if name == "eps_run":
+                result = eps.run(inp, obs, a.get("changes") or [], dur)
+            else:
+                result = eps.fit(inp, obs, a["params"], dur, a.get("base_changes") or [])
+            self.eps_runs[label] = {"purpose": a.get("purpose", ""), "tool": name, "args": a, "result": result}
             return {"label": label, **result}
         if name == "profile_capacity":
             return {"label": a["label"], "limits": profile.capacity(self.profiles[a["label"]]["spec"])}
@@ -302,7 +347,8 @@ class Study:
         c, t0 = self.case, time.time()
         drawing = "profile" in c.cfg.get("simulators", [])
         rules = RULES + (DRAWING_RULES if drawing else "")
-        sim_tools = SIM_TOOLS + (PROFILE_TOOLS if drawing else []) + (SURGE_TOOLS if "tsnet" in c.cfg.get("simulators", []) else [])
+        sim_tools = SIM_TOOLS + (PROFILE_TOOLS if drawing else []) + (SURGE_TOOLS if "tsnet" in c.cfg.get("simulators", []) else []) + \
+            (EPS_TOOLS if "eps" in c.cfg else [])
         doc_tools = DOC_TOOLS + (PROFILE_TOOLS[:1] if drawing else [])
         llm.TAG = c.name
         usd0 = llm.spent(c.name)
@@ -313,7 +359,9 @@ class Study:
         collect = self.loop("collect", "You are the lead engineer starting a study. " + rules,
                             head + "\n\nRead the available pages. Define the design criteria (with sources), list every unit "
                             "on the flow path, and build the data register (every value with page and quote). List missing or "
-                            "conflicting data as RFI items; resolve each as an explicit ASSUMPTION with a reason.",
+                            "conflicting data as RFI items; resolve each as an explicit ASSUMPTION with a reason. For every RFI "
+                            "that a field measurement could close, write a test_plan entry (what to measure, where, how, and the "
+                            "acceptance criterion), as you would before a site visit.",
                             doc_tools + [SUBMIT_COLLECT], "submit_collection", 30)
 
         print(f"[{c.name}] steps 3-6: calibration, model, capacity, alternatives")
@@ -331,7 +379,7 @@ class Study:
                              DOC_TOOLS + sim_tools + [SUBMIT_ANALYSIS], "submit_analysis", 45)
 
         print(f"[{c.name}] step 7: independent QA/QC")
-        run_index = {k: v["purpose"] for k, v in {**self.runs, **self.profiles, **self.surges}.items()}
+        run_index = {k: v["purpose"] for k, v in {**self.runs, **self.profiles, **self.surges, **self.eps_runs}.items()}
         checker_tools = DOC_TOOLS + sim_tools + [
             {"type": "function", "function": {"name": "rerun", "description": "Re-execute a logged simulation by label and compare with its logged result.",
              "parameters": {"type": "object", "properties": {"label": {"type": "string"}}, "required": ["label"]}}},
@@ -363,7 +411,7 @@ class Study:
         print(f"[{c.name}] step 8: deliverables")
         study = {"case": c.name, "facility": c.cfg["title"], "source": c.cfg["source"], "url": c.cfg.get("url"),
                  "question": c.question, "model": self.model, "collection": collect, "analysis": analysis,
-                 "review": review, "resolution": resolution, "runs": self.runs, "profiles": self.profiles, "surges": self.surges,
+                 "review": review, "resolution": resolution, "runs": self.runs, "profiles": self.profiles, "surges": self.surges, "eps_runs": self.eps_runs,
                  "drawing": self.drawing}
         memo = llm.chat(self.model, [
             {"role": "system", "content": "You write technical memoranda for a consulting engineering firm. Use only facts and "
@@ -371,8 +419,8 @@ class Study:
              "Background; Design Criteria; Data and Assumptions; Model Calibration; Capacity Evaluation (table); Alternatives "
              "(table with cost class); QA/QC Summary; Recommendations; Limitations. Markdown. Start with the line: "
              "'DRAFT - prepared by an AI agent; requires review and approval by a licensed professional engineer.'"},
-            {"role": "user", "content": json.dumps({k: v for k, v in study.items() if k not in ("runs", "profiles", "drawing", "surges")})}])
-        summary = {"case": c.name, "model": self.model, "llm_steps": self.steps, "simulations": len(self.runs) + len(self.profiles) + len(self.surges),
+            {"role": "user", "content": json.dumps({k: v for k, v in study.items() if k not in ("runs", "profiles", "drawing", "surges", "eps_runs")})}])
+        summary = {"case": c.name, "model": self.model, "llm_steps": self.steps, "simulations": len(self.runs) + len(self.profiles) + len(self.surges) + len(self.eps_runs),
                    "wall_time_s": round(wall_s if wall_s is not None else time.time() - t0), "cost_usd": round(llm.spent(c.name) - usd0, 4)}
         write_deliverables(self.dir, study, memo, summary)
         print(f"[{c.name}] done: {json.dumps(summary)} -> {self.dir}")
@@ -384,7 +432,7 @@ class Study:
         run_dir = Path(run_dir)
         self = cls.__new__(cls)
         self.case, self.model, self.dir, self.runs, self.steps = Case(run_dir.parent.name), model, run_dir, {}, 0
-        self.profiles, self.drawing, self.surges = {}, None, {}
+        self.profiles, self.drawing, self.surges, self.eps_runs = {}, None, {}, {}
         subs = {}
         for line in (run_dir / "log.jsonl").read_text().splitlines():
             e = json.loads(line)
