@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlantAgent — AI plant engineer</title>
+<style>
+  :root {
+    --paper: #f4f1ea; --ink: #1d2733; --muted: #6b7682; --line: #d6d0c3; --blue: #1f4e8c;
+    --red: #c0261f; --green: #2f7d4f; --amber: #b7791f; --card: #fffdf8;
+    --mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    --sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 14px/1.45 var(--sans); }
+  header { display: flex; align-items: center; gap: 16px; padding: 12px 20px; border-bottom: 2px solid var(--ink); background: var(--card); }
+  .brand { font: 700 18px var(--mono); letter-spacing: .5px; }
+  .brand small { display: block; font: 500 11px var(--sans); color: var(--muted); letter-spacing: 0; }
+  header select, header button { font: 13px var(--sans); padding: 6px 10px; border: 1px solid var(--ink); background: var(--card); border-radius: 3px; }
+  header button { cursor: pointer; }
+  header button.primary { background: var(--ink); color: var(--paper); }
+  .spacer { flex: 1; }
+  .score-chip { font: 700 13px var(--mono); padding: 6px 10px; border: 2px solid var(--ink); border-radius: 3px; }
+  main { display: grid; grid-template-columns: 380px 1fr; height: calc(100vh - 62px); }
+  aside { border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+  .q { padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--card); }
+  .q h2 { margin: 0 0 4px; font-size: 15px; }
+  .q .tt { font: 600 11px var(--mono); color: var(--blue); text-transform: uppercase; letter-spacing: .6px; }
+  .q p { margin: 6px 0 0; color: #333; font-size: 13px; }
+  .steps { padding: 10px 16px; border-bottom: 1px solid var(--line); display: grid; gap: 4px; }
+  .step { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+  .step .dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--line); }
+  .step.active { color: var(--ink); font-weight: 600; }
+  .step.active .dot { border-color: var(--blue); background: var(--blue); animation: pulse 1s infinite alternate; }
+  .step.done { color: var(--ink); }
+  .step.done .dot { border-color: var(--green); background: var(--green); }
+  @keyframes pulse { to { opacity: .35; } }
+  .log { flex: 1; overflow-y: auto; padding: 8px 12px 40px; font-size: 12.5px; }
+  .ev { padding: 6px 8px; margin: 4px 0; border-left: 3px solid var(--line); background: var(--card); border-radius: 0 3px 3px 0; animation: in .25s ease-out; }
+  @keyframes in { from { opacity: 0; transform: translateY(4px); } }
+  .ev.say { border-color: var(--blue); }
+  .ev.tool .name { font: 600 12px var(--mono); color: var(--blue); }
+  .ev.tool.sim { border-color: var(--amber); }
+  .ev.tool.sim .name { color: var(--amber); }
+  .ev.error { border-color: var(--red); opacity: .8; }
+  .ev.submit { border-color: var(--green); font-weight: 600; color: var(--green); }
+  .ev .res { font: 11px var(--mono); color: var(--muted); word-break: break-all; margin-top: 2px; }
+  section.view { display: flex; flex-direction: column; min-height: 0; }
+  .tabs { display: flex; gap: 2px; padding: 8px 16px 0; border-bottom: 1px solid var(--line); }
+  .tab { padding: 8px 14px; cursor: pointer; border: 1px solid transparent; border-bottom: none; border-radius: 4px 4px 0 0; color: var(--muted); font-weight: 600; }
+  .tab.on { background: var(--card); border-color: var(--line); color: var(--ink); margin-bottom: -1px; }
+  .pane { display: none; overflow: auto; padding: 16px; flex: 1; }
+  .pane.on { display: block; }
+  .sheet { position: relative; background: white; border: 1px solid var(--line); box-shadow: 0 1px 6px rgba(0,0,0,.06); }
+  .sheet img { width: 100%; display: block; }
+  .tag { position: absolute; transform: translate(0, 2px); font: 700 11px var(--mono); padding: 2px 5px; border-radius: 2px; white-space: nowrap;
+         background: rgba(31,78,140,.92); color: white; transition: all .25s; pointer-events: none; }
+  .tag.fail { background: rgba(192,38,31,.95); }
+  .tag.tight { background: rgba(183,121,31,.95); }
+  .cloud { position: absolute; border: 2.5px dashed var(--red); border-radius: 12px; pointer-events: none; }
+  .cloud span { position: absolute; top: -18px; right: -6px; font: 700 12px var(--mono); color: var(--red); }
+  .controls { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; margin: 14px 0; padding: 12px 16px; background: var(--card); border: 1px solid var(--line); }
+  .flow { font: 700 28px var(--mono); min-width: 150px; }
+  .flow small { font-size: 13px; color: var(--muted); }
+  input[type=range] { width: 100%; accent-color: var(--red); }
+  .grid3 { display: grid; grid-template-columns: 1.2fr 1fr 1.2fr; gap: 14px; align-items: start; }
+  .card { background: var(--card); border: 1px solid var(--line); padding: 12px 14px; }
+  .card h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+  td.num { font-family: var(--mono); text-align: right; white-space: nowrap; }
+  .v { font: 700 11px var(--mono); padding: 2px 6px; border-radius: 2px; text-transform: uppercase; }
+  .v.found { background: #dcefe3; color: var(--green); } .v.partially { background: #f6ead2; color: var(--amber); }
+  .v.missed { background: #eee; color: var(--muted); } .v.contradicted { background: #f7dcda; color: var(--red); }
+  .files a { display: inline-block; margin: 0 8px 8px 0; padding: 8px 12px; border: 1px solid var(--ink); text-decoration: none; color: var(--ink); font: 600 12.5px var(--mono); background: var(--card); }
+  .files a:hover { background: var(--ink); color: var(--paper); }
+  .note { color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .md { background: var(--card); border: 1px solid var(--line); padding: 16px 22px; max-width: 960px; white-space: pre-wrap; font: 13px/1.55 var(--mono); }
+  .empty { color: var(--muted); padding: 30px; text-align: center; }
+  .bar { height: 8px; background: var(--line); position: relative; }
+  .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ink); }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">PlantAgent<small>AI plant engineer · Meta Muse + EPANET · profile · TSNet</small></div>
+  <select id="case"></select>
+  <select id="run"></select>
+  <button id="replay">▶ Replay study</button>
+  <select id="speed"><option value="40">fast</option><option value="150" selected>normal</option><option value="500">slow</option></select>
+  <button id="start" class="primary" title="Runs a new study (spends Muse credit)">Run new study</button>
+  <div class="spacer"></div>
+  <div class="score-chip" id="score">—</div>
+</header>
+<main>
+  <aside>
+    <div class="q"><div class="tt" id="tt"></div><h2 id="title"></h2><p id="question"></p></div>
+    <div class="steps" id="steps"></div>
+    <div class="log" id="log"></div>
+  </aside>
+  <section class="view">
+    <div class="tabs">
+      <div class="tab on" data-p="drawing">Drawing &amp; flow</div>
+      <div class="tab" data-p="compare">Agent vs. engineers</div>
+      <div class="tab" data-p="report">Report</div>
+      <div class="tab" data-p="files">Deliverables</div>
+      <div class="tab" data-p="bench">Benchmark</div>
+    </div>
+    <div class="pane on" id="p-drawing"></div>
+    <div class="pane" id="p-compare"></div>
+    <div class="pane" id="p-report"></div>
+    <div class="pane" id="p-files"></div>
+    <div class="pane" id="p-bench"></div>
+  </section>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const api = async (u, opt) => { const r = await fetch(u, opt); const j = await r.json(); if (!r.ok) throw new Error(j.error); return j; };
+const PH = [["collect", "1–2  Scope, criteria, data & RFI"], ["analyse", "3–6  Calibrate · model · capacity · alternatives"],
+            ["qaqc", "7  Independent QA/QC (second agent)"], ["resolve", "7b Lead engineer answers QA/QC"], ["deliver", "8  Deliverables"]];
+const SIM = new Set(["run_hydraulics", "run_profile", "profile_capacity", "run_surge", "rerun", "read_drawing", "velocity"]);
+let CASES = [], cur = {}, timer = null;
+const URLP = new URLSearchParams(location.search);  // ?case=&run=&tab=&q= for direct links and video takes
+
+function steps(active, doneSet) {
+  $("#steps").innerHTML = PH.map(([k, t]) =>
+    `<div class="step ${doneSet.has(k) ? "done" : k === active ? "active" : ""}"><span class="dot"></span>${t}</div>`).join("");
+}
+
+function evHtml(e) {
+  if (e.kind === "say") return `<div class="ev say">${esc(e.text)}</div>`;
+  if (e.kind === "submit") return `<div class="ev submit">✓ ${esc(e.text)}</div>`;
+  const cls = e.kind === "error" ? "error" : SIM.has(e.name) ? "tool sim" : "tool";
+  return `<div class="ev ${cls}"><span class="name">${esc(e.name)}</span> <span class="res">${esc(e.args)}</span>
+          <div class="res">→ ${esc(e.result)}</div></div>`;
+}
+
+function showEvents(evs, animate) {
+  clearInterval(timer);
+  const log = $("#log"); log.innerHTML = "";
+  const done = new Set(); let i = 0;
+  const push = () => {
+    const e = evs[i++];
+    if (e.kind === "submit") done.add(e.phase === "deliver" ? "deliver" : e.phase);
+    steps(e.phase, done);
+    log.insertAdjacentHTML("beforeend", evHtml(e));
+    log.scrollTop = log.scrollHeight;
+  };
+  if (!animate) { while (i < evs.length) push(); if (evs.length) steps(null, done); return; }
+  timer = setInterval(() => { if (i >= evs.length) { clearInterval(timer); steps(null, done); return; } push(); }, +$("#speed").value);
+}
+
+async function loadCases() {
+  CASES = await api("/api/cases");
+  const show = CASES.filter(c => c.runs.length);
+  $("#case").innerHTML = show.map(c => `<option value="${c.name}">${esc(c.title.split(",")[0])} — ${esc(c.task_type)}</option>`).join("");
+  const first = show.find(c => c.name === (URLP.get("case") || "roseburg")) || show[0];
+  $("#case").value = first.name;
+  await selectCase();
+}
+
+async function selectCase() {
+  const c = CASES.find(x => x.name === $("#case").value);
+  $("#run").innerHTML = c.runs.map(r => `<option>${r}</option>`).join("");
+  if (URLP.get("run") && c.runs.includes(URLP.get("run"))) $("#run").value = URLP.get("run");
+  $("#tt").textContent = c.task_type; $("#title").textContent = c.title; $("#question").textContent = c.question;
+  await selectRun();
+}
+
+async function selectRun() {
+  const c = $("#case").value, r = $("#run").value;
+  cur = await api(`/api/run/${c}/${r}/detail`);
+  cur.caseInfo = CASES.find(x => x.name === c);
+  $("#score").textContent = cur.score == null ? "not graded" : `${Math.round(cur.score * 100)}% vs engineers`;
+  const lg = await api(`/api/run/${c}/${r}/log`);
+  showEvents(lg.events, false);
+  if (!lg.finished) follow(c, r, lg.offset, lg.events);
+  renderDrawing(); renderCompare(); renderFiles(); renderReport(); renderBench();
+}
+
+function follow(c, r, offset, evs) {  // live study: poll the log until the deliverables are written
+  clearInterval(timer);
+  timer = setInterval(async () => {
+    const lg = await api(`/api/run/${c}/${r}/log?offset=${offset}`);
+    offset = lg.offset; evs.push(...lg.events);
+    lg.events.forEach(e => { $("#log").insertAdjacentHTML("beforeend", evHtml(e)); });
+    $("#log").scrollTop = $("#log").scrollHeight;
+    const done = new Set(evs.filter(e => e.kind === "submit").map(e => e.phase));
+    steps(evs.length ? evs[evs.length - 1].phase : "collect", done);
+    if (lg.finished) { clearInterval(timer); selectRun(); }
+  }, 2000);
+}
+
+// ---- drawing + flow slider ------------------------------------------------------------------
+async function renderDrawing() {
+  const p = $("#p-drawing"), c = cur.case;
+  if (!cur.profiles.length) {
+    p.innerHTML = `<div class="empty">This study has no hydraulic profile drawing.${cur.files.includes("profile_chart.png") ? "" : ""}
+      <br>Simulations are in the calc appendix (Deliverables).</div>`; return;
+  }
+  const base = cur.base_profile && cur.profiles.find(x => x.label === cur.base_profile) ? cur.base_profile : cur.profiles[0].label;
+  const flows = cur.profiles.find(x => x.label === base).flows.map(Number);
+  const lo = Math.max(1, Math.floor(Math.min(...flows) * 0.6)), hi = Math.ceil(Math.max(...flows) * 1.8);
+  p.innerHTML = `
+    <div class="controls">
+      <div class="flow" id="flowv">—</div>
+      <input type="range" id="flow" min="${lo}" max="${hi}" step="0.5" value="${URLP.get("q") || Math.min(...flows)}">
+      <select id="plabel">${cur.profiles.map(x => `<option value="${esc(x.label)}" ${x.label === base ? "selected" : ""}>${esc(x.label)}</option>`).join("")}</select>
+    </div>
+    <div class="note" id="ppurpose"></div>
+    <div class="sheet" id="sheet" style="margin-top:10px">${cur.has_drawing ? `<img src="/api/drawing/${c}/png" alt="hydraulic profile drawing">` : `<div class="empty">no drawing</div>`}</div>
+    <div class="grid3" style="margin-top:14px">
+      <div class="card"><h3>Water surface (true scale)</h3><svg id="chart" viewBox="0 0 520 260" width="100%"></svg></div>
+      <div class="card"><h3>Flow at which each limit binds</h3><div id="caps"></div></div>
+      <div class="card"><h3>Proposed revisions on the sheet</h3><div id="revs"></div></div>
+    </div>`;
+  $("#revs").innerHTML = cur.drawing_changes.length ? `<table>${cur.drawing_changes.map((d, i) =>
+      `<tr><td class="num" style="color:var(--red)">A${i + 1}</td><td><b>${esc(d.structure)}</b><br>${esc(d.note)}</td></tr>`).join("")}</table>`
+    : `<div class="note">none</div>`;
+  const upd = () => updateProfile();
+  $("#flow").oninput = upd; $("#plabel").onchange = upd;
+  updateProfile();
+}
+
+let pending = 0;
+async function updateProfile() {
+  const q = +$("#flow").value, label = $("#plabel").value, ticket = ++pending;
+  $("#flowv").innerHTML = `${q.toFixed(1)} <small>MGD</small>`;
+  const r = await api(`/api/run/${cur.case}/${cur.run}/profile?label=${encodeURIComponent(label)}&q=${q}`);
+  if (ticket !== pending) return;
+  $("#ppurpose").textContent = cur.profiles.find(x => x.label === label).purpose;
+  const sheet = $("#sheet");
+  sheet.querySelectorAll(".tag,.cloud").forEach(n => n.remove());
+  const clouds = new Map();
+  for (const n of r.nodes) {
+    if (!n.bbox) continue;
+    const [x0, y0, x1, y1] = n.bbox;
+    const d = (n.ws_ft - n.drawing_ws_ft);
+    const cls = n.fails ? "fail" : (n.margin_ft != null && n.margin_ft < 0.25) ? "tight" : "";
+    sheet.insertAdjacentHTML("beforeend", `<div class="tag ${cls}" style="left:${x0 * 100}%;top:${y1 * 100}%">
+      WS ${n.ws_ft.toFixed(2)} (${d >= 0 ? "+" : ""}${d.toFixed(2)})${n.fails ? " ▲ OVER" : ""}</div>`);
+    if (n.fails) clouds.set(n.id, n.bbox);
+  }
+  cur.drawing_changes.forEach((d, i) => { if (d.bbox) clouds.set("A" + (i + 1), d.bbox); });  // the agent's revision clouds
+  for (const [k, [x0, y0, x1, y1]] of clouds) {
+    if (!k.startsWith("A")) continue;
+    sheet.insertAdjacentHTML("beforeend", `<div class="cloud" style="left:${(x0 - .012) * 100}%;top:${(y0 - .015) * 100}%;
+      width:${(x1 - x0 + .024) * 100}%;height:${(y1 - y0 + .03) * 100}%"><span>${k}</span></div>`);
+  }
+  chart(r);
+  $("#caps").innerHTML = `<table>${r.capacity.map(c => {
+    const b = c.binds_at_mgd, over = typeof b === "number" && b <= q;
+    return `<tr><td>${esc(c.id)}<br><span class="note">${esc(c.check)}</span></td>
+      <td class="num" style="color:${over ? "var(--red)" : "inherit"}">${b == null ? "&gt; 60" : esc(b)} MGD</td></tr>`;
+  }).join("")}</table>`;
+}
+
+function chart(r) {
+  const svg = $("#chart"), W = 520, H = 260, L = 46, B = 46;
+  const nodes = r.nodes.slice(1);  // skip the downstream control (usually far below the rest)
+  const vals = nodes.flatMap(n => [n.ws_ft, n.drawing_ws_ft ?? n.ws_ft]).concat(r.checks.filter(c => c.limit_ft).map(c => c.limit_ft));
+  const ymin = Math.min(...vals) - 0.3, ymax = Math.max(...vals) + 0.3;
+  const X = i => L + (W - L - 10) * (nodes.length === 1 ? 0.5 : i / (nodes.length - 1));
+  const Y = v => 10 + (H - B - 10) * (1 - (v - ymin) / (ymax - ymin));
+  let s = "";
+  for (let k = 0; k <= 4; k++) { const v = ymin + (ymax - ymin) * k / 4;
+    s += `<line x1="${L}" x2="${W - 10}" y1="${Y(v)}" y2="${Y(v)}" stroke="#e4ded2"/><text x="${L - 6}" y="${Y(v) + 4}" font-size="10" text-anchor="end" font-family="monospace">${v.toFixed(1)}</text>`; }
+  nodes.forEach((n, i) => {
+    s += `<text x="${X(i)}" y="${H - B + 14}" font-size="9" text-anchor="end" transform="rotate(-28 ${X(i)} ${H - B + 14})">${esc(n.id.slice(0, 18))}</text>`;
+    r.checks.filter(c => c.id === n.id && c.limit_ft).forEach(c => {
+      s += `<line x1="${X(i) - 14}" x2="${X(i) + 14}" y1="${Y(c.limit_ft)}" y2="${Y(c.limit_ft)}" stroke="#1d2733" stroke-dasharray="3 2" stroke-width="1.5"/>`; });
+    if (n.drawing_ws_ft != null) s += `<rect x="${X(i) - 4}" y="${Y(n.drawing_ws_ft) - 4}" width="8" height="8" fill="none" stroke="#1d2733"/>`;
+  });
+  const pts = nodes.map((n, i) => `${X(i)},${Y(n.ws_ft)}`).join(" ");
+  const col = r.passes ? "#1f4e8c" : "#c0261f";
+  s += `<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.5"/>`;
+  nodes.forEach((n, i) => s += `<circle cx="${X(i)}" cy="${Y(n.ws_ft)}" r="3.5" fill="${n.fails ? "#c0261f" : col}"/>`);
+  s += `<text x="${W - 12}" y="16" font-size="10" text-anchor="end">□ drawing  ─ ─ limit  ● ${r.flow_mgd} MGD${r.passes ? "" : " (fails)"}</text>`;
+  svg.innerHTML = s;
+}
+
+// ---- other panes ----------------------------------------------------------------------------
+function renderCompare() {
+  const p = $("#p-compare");
+  if (!cur.comparison.length) { p.innerHTML = `<div class="empty">No answer key for this case.</div>`; return; }
+  p.innerHTML = `<div class="note" style="margin-bottom:8px">The engineers' conclusions were withheld from the agent (pages hidden, recommendation clauses redacted).
+    Judge: ${esc(cur.judge || "—")}, a different model from the agent's.</div>
+    <table><tr><th>Unit</th><th>Engineers concluded (withheld)</th><th>Verdict</th><th>Judge note on the agent's finding</th></tr>
+    ${cur.comparison.map(c => `<tr><td><b>${esc(c.unit)}</b></td><td>${esc(c.engineers)}</td>
+      <td><span class="v ${esc(c.verdict)}">${esc(c.verdict || "—")}</span></td><td>${esc(c.note)}</td></tr>`).join("")}</table>`;
+}
+
+function renderFiles() {
+  const s = cur.summary || {};
+  $("#p-files").innerHTML = `<div class="files">${cur.files.map(f => `<a href="/files/${cur.case}/${cur.run}/${f}" target="_blank">${f}</a>`).join("")}</div>
+    <div class="card" style="max-width:640px"><h3>Study record</h3><table>
+    <tr><td>Agent model</td><td class="num">${esc(s.model)}</td></tr><tr><td>LLM steps</td><td class="num">${esc(s.llm_steps)}</td></tr>
+    <tr><td>Simulator runs</td><td class="num">${esc(s.simulations)}</td></tr><tr><td>Wall time</td><td class="num">${s.wall_time_s ? Math.round(s.wall_time_s / 60) + " min" : "—"}</td></tr>
+    <tr><td>Muse cost</td><td class="num">${s.cost_usd != null ? "$" + s.cost_usd.toFixed(3) : "—"}</td></tr></table>
+    <div class="note">Every number in the report cites a page or is labelled ASSUMPTION. Draft for review by a licensed engineer.</div></div>`;
+}
+
+async function renderReport() {
+  const p = $("#p-report");
+  if (!cur.files.includes("report.md")) { p.innerHTML = `<div class="empty">Report not written yet.</div>`; return; }
+  p.innerHTML = `<div class="md">${esc(await (await fetch(`/files/${cur.case}/${cur.run}/report.md`)).text())}</div>`;
+}
+
+function renderBench() {
+  const rows = CASES.filter(c => c.benchmark && c.score != null).sort((a, b) => b.score - a.score);
+  const mean = rows.reduce((a, c) => a + c.score, 0) / (rows.length || 1);
+  $("#p-bench").innerHTML = `<div class="card" style="max-width:980px"><h3>Blind benchmark — ${rows.length} real plants, mean ${Math.round(mean * 100)}% of the engineers' conclusions</h3>
+    <table><tr><th>Plant / report</th><th>Task</th><th style="width:30%">Score vs. engineers</th><th>Steps</th><th>Sims</th><th>Cost</th></tr>
+    ${rows.map(c => `<tr><td>${esc(c.title)}</td><td>${esc(c.task_type)}</td>
+      <td><div class="bar"><i style="width:${c.score * 100}%"></i></div><span class="num">${Math.round(c.score * 100)}%</span></td>
+      <td class="num">${esc(c.summary?.llm_steps)}</td><td class="num">${esc(c.summary?.simulations)}</td>
+      <td class="num">${c.summary?.cost_usd ? "$" + c.summary.cost_usd.toFixed(2) : "—"}</td></tr>`).join("")}</table>
+    <div class="note">found = 1, partially = 0.5, missed / contradicted = 0. Judge: ${esc(rows[0]?.judge || "")}.</div></div>`;
+}
+
+// ---- wiring ---------------------------------------------------------------------------------
+document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+  document.querySelectorAll(".tab,.pane").forEach(x => x.classList.remove("on"));
+  t.classList.add("on"); $("#p-" + t.dataset.p).classList.add("on");
+});
+$("#case").onchange = selectCase;
+$("#run").onchange = selectRun;
+$("#replay").onclick = async () => showEvents((await api(`/api/run/${cur.case}/${cur.run}/log`)).events, true);
+$("#start").onclick = async () => {
+  if (!confirm("Run a new study for this plant? It spends Muse credit and takes 10-25 minutes.")) return;
+  try { const r = await api(`/api/start/${cur.case}`, {method: "POST"});
+        await loadCases(); $("#case").value = cur.case; await selectCase(); $("#run").value = r.run; await selectRun(); }
+  catch (e) { alert(e.message); }
+};
+loadCases().then(() => { const t = URLP.get("tab"); if (t) document.querySelector(`.tab[data-p="${t}"]`)?.click(); }).catch(e => { document.body.insertAdjacentHTML("afterbegin", `<div class="empty">${esc(e.message)}</div>`); });
+</script>
+</body>
+</html>
