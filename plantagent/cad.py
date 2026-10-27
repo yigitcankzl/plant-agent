@@ -154,16 +154,24 @@ def locate_labels(pdf, page, cols=3, rows=2, overlap=0.08, zoom=2.5, model="muse
     Returns [{value, text, bbox (sheet fractions)}]; labels seen in two overlapping tiles are merged."""
     pg = pymupdf.open(pdf)[page - 1]
     W, H = pg.rect.width, pg.rect.height
-    found = []
+    from concurrent.futures import ThreadPoolExecutor
+    tiles = []
     for r in range(rows):
         for c in range(cols):
             fx0, fy0 = max(c / cols - overlap, 0), max(r / rows - overlap, 0)
             fx1, fy1 = min((c + 1) / cols + overlap, 1), min((r + 1) / rows + overlap, 1)
             clip = pymupdf.Rect(fx0 * W, fy0 * H, fx1 * W, fy1 * H)
             png = pg.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom), clip=clip).tobytes("png")
-            url = "data:image/png;base64," + base64.b64encode(png).decode()
-            text = llm.chat(model, [{"role": "system", "content": TILE_PROMPT},
-                                    {"role": "user", "content": [{"type": "image_url", "image_url": {"url": url}}]}], temperature=0)
+            tiles.append((fx0, fy0, fx1, fy1, "data:image/png;base64," + base64.b64encode(png).decode()))
+
+    def read_tile(t):  # tiles are read in parallel: the sheet takes one tile's time, not six
+        return llm.chat(model, [{"role": "system", "content": TILE_PROMPT},
+                                {"role": "user", "content": [{"type": "image_url", "image_url": {"url": t[4]}}]}], temperature=0)
+    with ThreadPoolExecutor(len(tiles)) as ex:
+        texts = list(ex.map(read_tile, tiles))
+    found = []
+    for (fx0, fy0, fx1, fy1, _), text in zip(tiles, texts):
+        if True:
             for lab in json.loads(text[text.index("{"): text.rindex("}") + 1]).get("labels", []):
                 x0, y0, x1, y1 = lab["bbox"]
                 b = [fx0 + x0 * (fx1 - fx0), fy0 + y0 * (fy1 - fy0), fx0 + x1 * (fx1 - fx0), fy0 + y1 * (fy1 - fy0)]

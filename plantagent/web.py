@@ -337,6 +337,29 @@ class Handler(SimpleHTTPRequestHandler):
             return self._send({**j, "events": j["events"][off:], "offset": len(j["events"])})
         if parts[:2] == ["api", "ws"] and len(parts) == 4 and parts[2] in known:
             case, what = parts[2], parts[3]
+            if what == "model" and method == "POST":
+                from .llm import PRICES
+                if body["model"] not in PRICES:
+                    return self._send({"error": "unknown model"}, code=400)
+                workspace(case).model = body["model"]
+                return self._send({"model": body["model"]})
+            if what == "readsheet" and method == "POST":
+                from . import cad
+                import tempfile
+                data = self.rfile.read(int(self.headers.get("Content-Length") or 0))
+                page = int(q.get("page", 1))
+                with tempfile.TemporaryDirectory() as t:
+                    pdf = Path(t) / "sheet.pdf"
+                    pdf.write_bytes(data)
+                    t0 = time.time()
+                    from concurrent.futures import ThreadPoolExecutor
+                    with ThreadPoolExecutor(2) as ex:  # the full-sheet read and the tiled read run at the same time
+                        f1, f2 = ex.submit(cad.read_profile, pdf, page), ex.submit(cad.locate_labels, pdf, page)
+                        (reading, png), located = f1.result(), f2.result()
+                    els, extra = cad.reconcile(reading, located)
+                return self._send({"png": "data:image/png;base64," + base64.b64encode(png).decode(), "title": reading.get("title"),
+                                   "design_flow_note": reading.get("design_flow_note"), "flow_path": reading.get("flow_path"),
+                                   "elevations": els, "seconds": round(time.time() - t0)})
             if what == "reveal":
                 w = workspace(case)
                 g = _json(w.study_dir / "grade.json") if w.study_dir else None
