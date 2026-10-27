@@ -192,10 +192,15 @@ def read_drawing(case, page):
     return out
 
 
+def case_file(case, name):
+    """Prepared inputs live next to case.json; raw source files under case-data."""
+    return case.dir / name if (case.dir / name).exists() else DATA / name
+
+
 def eps_summary(case):
     cfg = case.cfg["eps"]
     wn = eps._model(str(DATA / cfg["inp"]))
-    obs = eps.load_observations(str(DATA / cfg["observations"]))
+    obs = eps.load_observations(str(case_file(case, cfg["observations"])))
     return {"model": cfg["inp"], "junctions": wn.num_junctions, "pipes": wn.num_pipes, "pumps": wn.pump_name_list,
             "tanks": wn.tank_name_list, "reservoirs": wn.reservoir_name_list, "valves": wn.num_valves,
             "patterns": wn.pattern_name_list[:20], "controls": len(wn.control_name_list),
@@ -283,7 +288,7 @@ class Study:
             return eps_summary(c)
         if name in ("eps_run", "eps_fit"):
             cfg = c.cfg["eps"]
-            inp, obs = str(DATA / cfg["inp"]), str(DATA / cfg["observations"])
+            inp, obs = str(DATA / cfg["inp"]), str(case_file(c, cfg["observations"]))
             dur = float(a.get("duration_h") or cfg.get("duration_h", 24))
             label = a.get("label") or f"{name}{len(self.eps_runs) + 1}"
             if label in self.eps_runs:

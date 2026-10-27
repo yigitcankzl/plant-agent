@@ -1,0 +1,28 @@
+{
+  "title": "L-Town water distribution network (BattLeDIM 2020 benchmark)",
+  "source": "Vrachimis et al., BattLeDIM 2020 dataset, Zenodo 4017659 (CC BY 4.0): utility EPANET model with nominal parameters and 2018 SCADA (5-min pressures, flows, tank level). The SCADA was generated from a 'real' model with demand deviations, noise and leakages unknown to the utility.",
+  "url": "https://zenodo.org/records/4017659",
+  "pdf": "raw/battledim2020/README.txt",
+  "allowed_pages": [
+    [
+      1,
+      1
+    ]
+  ],
+  "withheld_pages": [],
+  "strip": [],
+  "task_type": "model calibration against SCADA time series",
+  "question": "The utility's EPANET model of L-Town uses nominal demands and pipe roughness. Calibrate it against the first week of 2018 SCADA (5-minute data: 33 pressures, 2 inlet flows, pump flow, tank T1 level). Report the calibration quality per sensor against common calibration guidance (e.g. pressures within +/-0.5 m for most readings, flows within +/-5%), which parameter groups you adjusted and why, and where residuals remain after calibration that point to model errors or unaccounted water loss (leakage) - name the sensors and areas. Give the water balance for the week (metered inflow vs. modelled demand).",
+  "simulators": [
+    "eps"
+  ],
+  "eps": {
+    "inp": "raw/battledim2020/L-TOWN.inp",
+    "observations": "scada_2018_week1.csv",
+    "duration_h": 168,
+    "notes": "Observation flows converted from m3/h to l/s; times in hours from 2018-01-01 00:00 (a Monday). The model's weekly patterns start Monday 00:00."
+  },
+  "benchmark": false,
+  "exclude_reason": "Calibration quality is measured directly by the fit statistics; no engineers' report to score against.",
+  "redact": false
+}

@@ -23,6 +23,8 @@ CONCLUSION = re.compile(
 
 @lru_cache
 def _pages(pdf):
+    if str(pdf).endswith(".txt"):  # plain-text source (e.g. a dataset README): one page
+        return [Path(pdf).read_text()]
     out = subprocess.run(["pdftotext", "-layout", str(pdf), "-"], capture_output=True, text=True, check=True).stdout
     return out.split("\f")
 
@@ -84,6 +86,8 @@ class Case:
             tail = re.split(r"(?<=[.;])\s+", re.sub(r"\s+", " ", _pages(self.pdf)[n - 2]).strip())[-1]
             if CONCLUSION.search(tail + " " + head.group(1)):
                 text = text[head.end():]
+        if not self.cfg.get("redact", True):  # raw source documents: nothing is withheld
+            return f"[p.{n}]\n" + "\n".join(_paragraphs(text))
         body, hidden = redact(text)
         return f"[p.{n}]\n" + body + (f"\n[{hidden} recommendation clause(s) withheld]" if hidden else "")
 
