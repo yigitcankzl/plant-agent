@@ -219,26 +219,6 @@ def structures(case_name):
     return out
 
 
-if __name__ == "__main__":
-    import sys
-    from .docs import Case
-    p = Project(Case("roseburg"))
-    h = p.history("production", "MDD maximum day", as_of_year=2005, project_to=[2025])
-    assert h["trend"]["years"] == [1992, 2005] and "projection" in h["trend"], h
-    assert structures("roseburg") and all(len(s["bbox"]) == 4 for s in structures("roseburg"))
-    ws = Workspace("roseburg")
-    lab = ws.base["base_profile_run"]
-    pipe = next(e for e in ws.profiles[lab]["spec"]["elements"] if e["type"] == "pipe" and "diameter_in" in e)
-    before = ws.profiles[lab]["spec"]
-    r = edit(ws, lab, pipe["id"], "diameter_in", pipe["diameter_in"] + 6)
-    from . import profile as _p
-    b0 = {(c["id"], c["check"]): c["binds_at_mgd"] for c in _p.capacity(before)}
-    assert any((c["binds_at_mgd"] or 99) > (b0[(c["id"], c["check"])] or 99) for c in r["capacity"]), "a bigger pipe must raise a limit"
-    print("ok", h["trend"], [s["name"] for s in structures("roseburg")])
-    if len(sys.argv) > 1:
-        ws = Workspace("roseburg")
-        print(json.dumps(ws.ask(" ".join(sys.argv[1:])), indent=1)[:3000])
-
 
 # --- deliverables on demand ------------------------------------------------------------------
 def export(ws, kind):
@@ -433,3 +413,24 @@ def import_cad(ws, path):
     from . import profile
     return {"file": path.name, "changes": changes, "label": label, "added_entities": added, "removed_entities": removed,
             "engineer_notes": notes[:20], "capacity": profile.capacity(ws.profiles[label]["spec"])}
+
+
+if __name__ == "__main__":
+    import sys
+    from .docs import Case
+    p = Project(Case("roseburg"))
+    h = p.history("production", "MDD maximum day", as_of_year=2005, project_to=[2025])
+    assert h["trend"]["years"] == [1992, 2005] and "projection" in h["trend"], h
+    assert structures("roseburg") and all(len(s["bbox"]) == 4 for s in structures("roseburg"))
+    ws = Workspace("roseburg")
+    lab = ws.base["base_profile_run"]
+    pipe = next(e for e in ws.profiles[lab]["spec"]["elements"] if e["type"] == "pipe" and "diameter_in" in e)
+    before = ws.profiles[lab]["spec"]
+    r = edit(ws, lab, pipe["id"], "diameter_in", pipe["diameter_in"] + 6)
+    from . import profile as _p
+    b0 = {(c["id"], c["check"]): c["binds_at_mgd"] for c in _p.capacity(before)}
+    assert any((c["binds_at_mgd"] or 99) > (b0[(c["id"], c["check"])] or 99) for c in r["capacity"]), "a bigger pipe must raise a limit"
+    print("ok", h["trend"], [s["name"] for s in structures("roseburg")])
+    if len(sys.argv) > 1:
+        ws = Workspace("roseburg")
+        print(json.dumps(ws.ask(" ".join(sys.argv[1:])), indent=1)[:3000])
