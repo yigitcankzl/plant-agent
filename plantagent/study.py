@@ -323,8 +323,10 @@ class Study:
                              "the question; (6) for each limiting unit, verify 2-4 alternatives in the simulator and give an "
                              "order-of-magnitude cost class with its basis. Mark the recommended option.\n" +
                              task_guide(c.cfg["task_type"]) +
-                             (" (7) list drawing_changes: for each recommended modification, the drawing elevation it "
-                              "belongs to (anchor_value) and a one-line revision note." if drawing else ""),
+                             (" (7) list drawing_changes: one per recommended PHYSICAL modification (new or changed structure, "
+                              "weir, pipe, pump; not documentation remarks), with the drawing elevation of the structure it "
+                              "changes (anchor_value), the structure name, and a one-line revision note as it would appear "
+                              "on a revised sheet." if drawing else ""),
                              DOC_TOOLS + sim_tools + [SUBMIT_ANALYSIS], "submit_analysis", 45)
 
         print(f"[{c.name}] step 7: independent QA/QC")
@@ -369,7 +371,7 @@ class Study:
              "(table with cost class); QA/QC Summary; Recommendations; Limitations. Markdown. Start with the line: "
              "'DRAFT - prepared by an AI agent; requires review and approval by a licensed professional engineer.'"},
             {"role": "user", "content": json.dumps({k: v for k, v in study.items() if k not in ("runs", "profiles", "drawing", "surges")})}])
-        summary = {"case": c.name, "model": self.model, "llm_steps": self.steps, "simulations": len(self.runs),
+        summary = {"case": c.name, "model": self.model, "llm_steps": self.steps, "simulations": len(self.runs) + len(self.profiles) + len(self.surges),
                    "wall_time_s": round(wall_s if wall_s is not None else time.time() - t0), "cost_usd": round(llm.spent(c.name) - usd0, 4)}
         write_deliverables(self.dir, study, memo, summary)
         print(f"[{c.name}] done: {json.dumps(summary)} -> {self.dir}")
