@@ -714,6 +714,11 @@ def unit_capacities(ws, view="proposed"):
                "range": f"{lo:g}-{hi:g}" if hi else None, "limit": str(r.get("limit", ""))[:80], "source": "documented",
                "limits_target": bool(r.get("limits_target")), "structure": _structure_of(ws, full + " " + str(r.get("limit", "")))}
         stn = _station_for(ws, full)
+        if stn and "FIRM" in stn[0].upper():  # the run already models the station with its largest unit out
+            res = sim.run(stn[1]["spec"])
+            row.update({"capacity_mgd": round(res.get("total_pumped_mgd") or 0, 1), "documented": lo,
+                        "source": f"simulated: EPANET run {stn[0]} (firm configuration as modelled)"})
+            stn = None
         if stn:
             try:
                 f = sim.firm_capacity(stn[1]["spec"])
