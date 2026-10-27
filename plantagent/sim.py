@@ -22,7 +22,7 @@ SPEC_HELP = {
     "junctions": "[{id, elev_ft}] connection points; pressure is reported at each",
     "pipes": "[{id, from, to, length_ft, diameter_in, c_factor=120, minor_k=0, closed=false}]",
     "pumps": "[{id, from, to, rated_gpm, rated_head_ft | curve:[[gpm, ft], ...], motor_hp, speed=1.0, on=true, "
-             "efficiency=0.80 | eff_curve:[[gpm, fraction], ...], motor_eff=0.95}]. A single rated point lets EPANET "
+             "efficiency=0.80 | eff_curve:[[gpm, fraction], ...], motor_eff=0.95, centerline_ft (for NPSH available)}]. A single rated point lets EPANET "
              "derive the curve (shutoff 133% head, max 200% flow); give `curve` when the document has curve data. "
              "speed scales the curve by the affinity laws.",
 }

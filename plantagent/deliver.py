@@ -8,7 +8,7 @@ import wntr
 from openpyxl import Workbook
 from PIL import Image, ImageDraw, ImageFont
 
-from . import cad, sim
+from . import cad, design, sim
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
@@ -80,6 +80,7 @@ def write_deliverables(d, study, memo, summary):
 
     if study.get("profiles"):
         write_profile(d, study, an, summary)
+    write_design(d, study, an, summary)
 
     wb = Workbook()
     sheets = {"Data register": col.get("data_register", []), "Calibration": an.get("calibration", []),
@@ -89,7 +90,8 @@ def write_deliverables(d, study, memo, summary):
               "Profile runs": [{"label": k, "purpose": v["purpose"], "flow_mgd": r["flow_mgd"], "passes": r["passes"],
                                 "nodes": json.dumps(r["nodes"]), "checks": json.dumps(r["checks"])}
                                for k, v in (study.get("profiles") or {}).items() for r in v["results"]],
-              "Surge runs": [{"label": k, "purpose": v["purpose"], "event": json.dumps(v["args"]), "nodes": json.dumps(v["result"].get("nodes")),
+              "Pump data sheets": summary.get("pump_datasheets", []),
+                        "Surge runs": [{"label": k, "purpose": v["purpose"], "event": json.dumps(v["args"]), "nodes": json.dumps(v["result"].get("nodes")),
                               "spec": json.dumps(v["spec"])} for k, v in (study.get("surges") or {}).items()]}
     wb.remove(wb.active)
     for name, data in sheets.items():
@@ -101,6 +103,38 @@ def write_deliverables(d, study, memo, summary):
             ws.append([json.dumps(r[c]) if isinstance(r.get(c), (dict, list)) else r.get(c) for c in cols])
     wb.save(d / "calc_appendix.xlsx")
     (d / "summary.json").write_text(json.dumps(summary, indent=2))
+
+
+def write_design(d, study, an, summary):
+    """New profile sheet for the recommended design and data sheets for the pumps of recommended alternatives."""
+    profiles = study.get("profiles") or {}
+    label = an.get("design_profile_run")
+    label = label if label in profiles else (list(profiles)[-1] if profiles else None)
+    if label:
+        p = profiles[label]
+        flows = sorted({float(q) for q in p["flows"]})
+        info = design.profile_sheet(p["spec"], flows, d / "design_profile.dxf", "Proposed hydraulic profile",
+                                    f"{study['facility']} - run {label}")
+        try:
+            cad.oda_convert(d / "design_profile.dxf", "DWG")
+        except Exception as e:
+            (d / "design_profile.dwg.error").write_text(str(e))
+        summary["design_profile_sheet"] = {"run": label, **info}
+    sheets = []
+    for alt in rows(an.get("alternatives")):
+        run = study["runs"].get(alt.get("run_label") or "")
+        if not (alt.get("recommended") and run):
+            continue
+        for pump in run["spec"].get("pumps", []):
+            if pump.get("on", True):
+                try:
+                    sheets.append({"alternative": alt.get("option", ""), "run": alt["run_label"],
+                                   **design.pump_datasheet(run["spec"], pump["id"], run["result"])})
+                except Exception as e:  # a loosely specified run should not stop the deliverables
+                    sheets.append({"run": alt["run_label"], "pump": pump["id"], "error": str(e)})
+    if sheets:
+        summary["pump_datasheets"] = sheets
+        (d / "pump_datasheets.json").write_text(json.dumps(sheets, indent=2))
 
 
 def _base_profile(study, an):

@@ -141,6 +141,7 @@ SUBMIT_ANALYSIS = submit("submit_analysis", "Steps 3-6: calibration, model, capa
     "findings": ARR({"unit": S, "limits_target": B, "limiting_value": S, "evidence": S, "modification": S}),
     "assumptions": {"type": "array", "items": S},
     "base_profile_run": {"type": "string", "description": "label of the calibrated existing-conditions profile run, if any"},
+    "design_profile_run": {"type": "string", "description": "label of the profile run of the recommended design, if any (drawn as a new sheet)"},
     "drawing_changes": ARR({"anchor_value": N, "structure": S, "note": S}),
 }, ["calibration", "capacity_table", "alternatives", "findings"])
 
