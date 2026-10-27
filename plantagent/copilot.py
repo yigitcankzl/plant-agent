@@ -30,6 +30,11 @@ ANSWER = submit("answer", "Final answer for this request, shown as calc cards an
         "cost_label": S, "assumptions": {"type": "array", "items": S}, "status": {"type": "string", "enum": ["ok", "warn", "fail", "info"]}}}},
     "layers": {"type": "array", "description": "marks on the drawing", "items": {"type": "object", "properties": {
         "anchor_value": N, "structure": S, "text": S, "severity": {"type": "string", "enum": ["ok", "warn", "fail", "info"]}}}},
+    "headline": {"type": "string", "description": "the answer in at most 8 plain words, e.g. 'No - filters and basin limit 18 mgd'"},
+    "proposals": {"type": "array", "description": "model changes that fix the problem, each verified before the engineer accepts it",
+                  "items": {"type": "object", "properties": {"title": S, "element": S, "field": S, "value": N, "structure": S,
+                                                            "profile_label": S, "resolves": {"type": "string", "description": "issue id it fixes"},
+                                                            "cost_label": S}}},
     "flow_mgd": {"type": "number", "description": "plant flow the drawing view should show for this answer, if relevant"},
     "chart": {"type": "object", "description": "optional: {dataset, parameter_contains, as_of_year} to plot a history series"},
 }, ["summary", "cards"])
@@ -115,6 +120,7 @@ class Workspace(Study):
         self.steps, self.drawing, self.answers, self.listener = 0, None, [], None
         self.revisions = []
         self.study, self.study_dir = None, None
+        self.current, self.resolved = None, set()
         self.base = self._preload()
 
     def _preload(self):
@@ -176,10 +182,15 @@ class Workspace(Study):
                   "drawing layers anchored to drawing elevations (always at least one layer on the structure the request is about, "
                   "with a short label and severity). Card results are headlines; details go in inputs. Do only what was asked. "
                   "Be fast: the preloaded data register already holds the documented values, so read pages only for what it "
-                  "lacks; call independent tools together in one turn; aim for 2-4 turns before `answer`.\n" + RULES +
+                  "lacks; call independent tools together in one turn; aim for 2-4 turns before `answer`. Write for a non-specialist: "
+                  "a plain headline, no acronyms in the headline. When a fix is a change to the gravity profile model, return it in "
+                  "`proposals` (element id and field from get_spec of the current profile run, the new value, and the issue id it "
+                  "resolves); the workspace verifies it in the solver and the engineer accepts it.\n" + RULES +
                   (DRAWING_RULES if self.drawing else ""))
         brief = {"project": c.cfg["title"], "documents": docs, "datasets": {k: v.get("title", k) for k, v in self.project.datasets.items()},
-                 "preloaded": self.base, "earlier_answers": [a["summary"] for a in self.answers[-6:]]}
+                 "preloaded": self.base, "earlier_answers": [a["summary"] for a in self.answers[-6:]],
+                 "current_profile_run": current_label(self), "target_mgd": target_flow(self),
+                 "open_issues": [{k: i[k] for k in ("id", "kind", "text", "structure")} for i in problems(self)[:8]]}
         if self.drawing:
             brief["drawing_elevations"] = [{k: e[k] for k in ("value", "structure", "feature")} for e in self.drawing["elevations"]]
         user = json.dumps(brief) + "\n\nRequest: " + text + (f"\nContext: {json.dumps(context)}" if context else "")
@@ -190,6 +201,21 @@ class Workspace(Study):
         ans["seconds"] = round(time.time() - t0)
         ans["cost_usd"] = round(llm.spent() - usd0, 4)
         ans["request"] = text
+        for k in ("cards", "layers", "proposals"):  # the model sometimes returns a list as (malformed) JSON text
+            v = ans.get(k)
+            if isinstance(v, str):
+                try:
+                    ans[k] = json.loads(v)
+                except json.JSONDecodeError:
+                    ans[k] = [{"title": "Calculation notes", "result": "", "inputs": [{"name": "notes", "value": v[:1500], "source": ""}],
+                               "status": "info"}] if k == "cards" else []
+            if not isinstance(ans.get(k), list):
+                ans[k] = []
+        for p in ans.get("proposals") or []:  # verify each proposal in the solver before showing it
+            try:
+                p.update(preview(self, p))
+            except Exception as e:
+                p["error"] = f"{type(e).__name__}: {e}"
         for layer in ans.get("layers") or []:  # place layers on the sheet
             a = _anchor_of(self.drawing, layer)
             layer["bbox"] = a["bbox"] if a else None
@@ -310,13 +336,9 @@ def elements(ws, label):
     return out
 
 
-def edit(ws, label, element_id, field, value, source="properties panel"):
-    """Apply one engineering change to a copy of a profile run; logs a revision. No LLM: the solver re-runs instantly."""
-    from . import profile
-    base = ws.profiles[label]
-    spec = json.loads(json.dumps(base["spec"]))
-    els = [spec["start"]] + spec["elements"]
-    e = next(x for x in els if x["id"] == element_id)
+def _changed_spec(spec, element_id, field, value):
+    spec = json.loads(json.dumps(spec))
+    e = next(x for x in [spec["start"]] + spec["elements"] if x["id"] == element_id)
     old = e.get(field)
     cal = e.get("calibrate")
     if cal and e.get("type") == "pipe" and old and field in ("diameter_in", "length_ft", "c_factor"):
@@ -327,6 +349,14 @@ def edit(ws, label, element_id, field, value, source="properties panel"):
     elif cal and e.get("type") == "pipe" and field in ("diameter_in", "length_ft", "c_factor"):
         raise ValueError(f"{element_id} is calibrated without a stated {field}; edit its calibration loss instead")
     e[field] = float(value)
+    return spec, old
+
+
+def edit(ws, label, element_id, field, value, source="properties panel"):
+    """Apply one engineering change to a copy of a profile run; logs a revision. No LLM: the solver re-runs instantly."""
+    from . import profile
+    base = ws.profiles[label]
+    spec, old = _changed_spec(base["spec"], element_id, field, value)
     root = label.split("~")[0]
     n = sum(1 for k in ws.profiles if k.startswith(root + "~")) + 1
     new = f"{root}~r{n}"
@@ -336,7 +366,38 @@ def edit(ws, label, element_id, field, value, source="properties panel"):
            "field": field, "old": old, "new": float(value), "source": source}
     ws.revisions.append(rev)
     (ws.dir / "revisions.json").write_text(json.dumps(ws.revisions, indent=1))
+    ws.current = new
     return {"label": new, "revision": rev, "capacity": profile.capacity(spec)}
+
+
+def preview(ws, p):
+    """What a proposed model change does, before the engineer accepts it (no revision logged)."""
+    from . import profile
+    label = p.get("profile_label") if p.get("profile_label") in ws.profiles else current_label(ws)
+    spec, old = _changed_spec(ws.profiles[label]["spec"], p["element"], p["field"], p["value"])
+    q = target_flow(ws)
+    before, after = profile.run(ws.profiles[label]["spec"], q), profile.run(spec, q)
+    return {"profile_label": label, "old": old, "target_mgd": q, "passes_before": before["passes"], "passes_after": after["passes"],
+            "failing_after": [f"{c['id']}: {c['check']}" for c in after["checks"] if c["margin_ft"] < 0]}
+
+
+def accept(ws, p):
+    r = edit(ws, p["profile_label"], p["element"], p["field"], p["value"], source="accepted proposal: " + p.get("title", ""))
+    if p.get("resolves"):
+        ws.resolved.add(p["resolves"])
+    return r
+
+
+def target_flow(ws):
+    return float(ws.case.cfg.get("workspace", {}).get("target_mgd") or 18)
+
+
+def current_label(ws):
+    w = ws.case.cfg.get("workspace", {})
+    for k in (getattr(ws, "current", None), w.get("existing_profile"), (ws.base or {}).get("base_profile_run")):
+        if k in ws.profiles:
+            return k
+    return next(iter(ws.profiles), None)
 
 
 def export_editable(ws, label):
@@ -422,6 +483,27 @@ def import_cad(ws, path):
 
 
 # --- problems panel and tasks ------------------------------------------------------------------
+PLAIN = {"standard": "Design standard", "limit": "Over capacity", "QA/QC": "Checker concern", "RFI": "Missing information",
+         "calibration": "Model fit", "assumption": "Assumption"}
+
+
+def _structure_of(ws, text, element=None):
+    """Which drawing structure an issue is about: the element's drawing anchor, else a structure named in the text."""
+    from .deliver import _anchor
+    if element and ws.drawing:
+        for lab in ws.profiles:
+            e = next((x for x in [ws.profiles[lab]["spec"]["start"]] + ws.profiles[lab]["spec"]["elements"]
+                      if x["id"] == element and "drawing_ws_ft" in x), None)
+            if e:
+                a = _anchor(ws.drawing, e["drawing_ws_ft"], e["id"])
+                return a["structure"] if a else None
+    words = set(re.findall(r"[a-z]{4,}", text.lower()))
+    for s in sorted({e["structure"] for e in (ws.drawing or {}).get("elevations", [])}, key=len, reverse=True):
+        if any(w.rstrip("s") in words or w in words for w in re.findall(r"[a-z]{4,}", s.lower())):
+            return s
+    return None
+
+
 def problems(ws, flow_mgd=None):
     """Everything currently wrong or unverified in the project, like a compiler's problem list."""
     from . import profile
@@ -431,7 +513,8 @@ def problems(ws, flow_mgd=None):
         if c.get("status") == "FAIL":
             out.append({"severity": "error", "kind": "standard", "text": f"{c['rule_id']} {c['rule']} (value {c['value']}, limit {c['limit']})",
                         "source": c.get("citation", ""), "ref": c.get("basis")})
-    label = (ws.base or {}).get("base_profile_run")
+    label = current_label(ws)
+    flow_mgd = flow_mgd or (target_flow(ws) if label else None)
     if label in ws.profiles and flow_mgd:
         r = profile.run(ws.profiles[label]["spec"], float(flow_mgd))
         for c in r["checks"]:
@@ -456,7 +539,13 @@ def problems(ws, flow_mgd=None):
                             "source": f"run {k}", "ref": f["series"]})
     for a in (st.get("analysis") or {}).get("assumptions") or []:
         out.append({"severity": "info", "kind": "assumption", "text": str(a)[:200], "source": "analysis", "ref": ""})
+    import hashlib
+    for p in out:
+        p["id"] = hashlib.sha1((p["kind"] + p["text"][:80]).encode()).hexdigest()[:8]
+        p["plain_kind"] = PLAIN.get(p["kind"], p["kind"])
+        p["structure"] = _structure_of(ws, p["text"], p.get("ref") if p["kind"] == "limit" else None) if p["severity"] == "error" else None
     order = {"error": 0, "warning": 1, "info": 2}
+    out = [p for p in out if p["id"] not in ws.resolved]
     return sorted(out, key=lambda p: order[p["severity"]])
 
 

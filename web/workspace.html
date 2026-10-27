@@ -134,14 +134,58 @@
   select { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; font: 12px var(--sans); width: 100%; }
   .chart { padding: 8px 12px; }
   .chart h5 { margin: 0; font: 600 10.5px var(--sans); color: var(--muted); letter-spacing: .8px; text-transform: uppercase; }
+  /* ---- simple mode: one drawing, one question box, one answer card ---- */
+  #askbar, #issuesBtn, #ovl { display: none; }
+  body.simple .progress { display: none; }
+  body.simple .mark .tx { display: none; }
+  body.simple .mark.ok, body.simple .mark.info { display: none; }
+  body.simple .app { grid-template-columns: 0 1fr 0; grid-template-rows: 52px 1fr 84px; }
+  body.simple aside.left, body.simple aside.right, body.simple .bp, body.simple #tasks, body.simple .cmd, body.simple #projsel { display: none; }
+  body.simple #askbar { display: flex; grid-column: 2; grid-row: 3; align-items: center; gap: 10px; padding: 12px 22px; background: var(--panel); border-top: 1px solid var(--line); }
+  body.simple #issuesBtn, body.simple #ovl.show { display: block; }
+  body.simple .ptitle { display: block; }
+  .ptitle { display: none; font: 600 14px var(--sans); color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ptitle small { color: var(--muted); font-weight: 400; margin-left: 8px; }
+  #askbar input { flex: 1; background: var(--bg); border: 1px solid var(--line); color: var(--text); border-radius: 8px; padding: 13px 16px; font: 15px var(--sans); outline: none; }
+  #askbar input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(77,163,255,.15); }
+  .sugg { display: flex; gap: 6px; }
+  .sugg span { font-size: 12px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 14px; cursor: pointer; color: var(--muted); white-space: nowrap; }
+  .sugg span:hover { color: var(--text); border-color: var(--accent); }
+  .big { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 12px 18px; font: 600 14px var(--sans); cursor: pointer; }
+  #issuesBtn { position: relative; }
+  #issuesBtn > button { background: rgba(239,90,79,.15); border: 1px solid rgba(239,90,79,.5); color: #ffb4ad; border-radius: 16px; padding: 6px 14px; font: 600 12.5px var(--sans); cursor: pointer; }
+  #issuesBtn > button.clear { background: rgba(63,182,122,.15); border-color: rgba(63,182,122,.5); color: #9fe3bf; }
+  #issuelist { display: none; position: absolute; right: 0; top: 40px; width: 460px; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 6px; z-index: 60; box-shadow: 0 12px 30px rgba(0,0,0,.5); }
+  #issuesBtn.open #issuelist { display: block; }
+  .iss { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 9px 10px; border-radius: 6px; }
+  .iss:hover { background: var(--line); }
+  .iss b { display: block; font-size: 13px; } .iss small { color: var(--muted); font-size: 11.5px; }
+  #ovl { position: absolute; right: 22px; bottom: 22px; width: 430px; max-height: calc(100% - 44px); overflow: auto; background: rgba(28,33,41,.97); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; z-index: 25; box-shadow: 0 16px 40px rgba(0,0,0,.55); animation: in .3s; }
+  #ovl .q { color: var(--muted); font-size: 12px; }
+  #ovl .h { font: 700 21px var(--sans); margin: 6px 0 8px; line-height: 1.25; }
+  #ovl .h.no { color: #ff8f86; } #ovl .h.yes { color: #7fe0ad; }
+  #ovl .sm2 { font-size: 13.5px; color: #c9d2dc; }
+  .prop { border: 1px solid rgba(63,182,122,.45); background: rgba(63,182,122,.08); border-radius: 8px; padding: 10px 12px; margin-top: 12px; }
+  .prop .t { font-weight: 600; } .prop .r { font: 12px var(--mono); color: #9fe3bf; margin: 4px 0 8px; }
+  .prop .r.bad { color: #ffb4ad; }
+  .acc { background: var(--ok); color: #fff; border: none; border-radius: 6px; padding: 7px 14px; font: 600 13px var(--sans); cursor: pointer; }
+  .det { color: var(--accent); font-size: 12px; cursor: pointer; margin-top: 10px; display: inline-block; }
+  .glow { position: absolute; border-radius: 12px; pointer-events: none; border: 3px solid var(--fail); box-shadow: 0 0 18px rgba(239,90,79,.7); animation: pulse2 1.2s infinite alternate; }
+  .glow.ok { border-color: var(--ok); box-shadow: 0 0 18px rgba(63,182,122,.7); animation: none; }
+  .glow span { position: absolute; left: 0; top: -24px; white-space: nowrap; font: 700 11.5px var(--sans); color: #fff; background: var(--fail); padding: 2px 7px; border-radius: 4px; }
+  .glow.ok span { background: var(--ok); }
+  @keyframes pulse2 { from { opacity: .45; } to { opacity: 1; } }
+  .working { color: var(--muted); font-size: 13px; }
+  .working::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); margin-right: 8px; animation: blink .7s infinite alternate; }
   .toast { position: fixed; bottom: 210px; right: 420px; background: var(--panel2); border: 1px solid var(--ok); color: var(--text); padding: 10px 14px; border-radius: 6px; z-index: 99; display: none; }
   .toast a { color: var(--accent); }
 </style>
 </head>
-<body>
+<body class="simple">
 <div class="app" id="app">
   <header>
     <div class="logo">Plant<span>Agent</span></div>
+    <div class="ptitle" id="ptitle"></div>
     <select class="projsel" id="projsel" title="Switch project"></select>
     <div class="cmd"><span class="k">›_</span><input id="cmd" placeholder="Ask or command — e.g. “If raw pump 2 fails tonight, can we still make 12 mgd?”" autocomplete="off"><span class="hint">Ctrl K</span></div>
     <div class="menu" id="tasks"><button class="btn">▶ Tasks ▾</button><div class="items" id="taskitems"></div></div>
@@ -152,7 +196,10 @@
         <div data-k="dwg">Markup drawing (.dwg)<small>workspace marks on the real sheet</small></div>
         <div data-k="profile">Hydraulic profile sheet (.dwg)<small>new to-scale sheet from the latest run</small></div>
       </div></div>
-    <a class="btn" href="/" style="text-decoration:none">Studies &amp; benchmark</a>
+    <div class="spacer" style="flex:1"></div>
+    <div id="issuesBtn"><button id="issBtnLbl">…</button><div id="issuelist"></div></div>
+    <button class="btn" id="expert">Expert view</button>
+    <a class="btn" href="/" style="text-decoration:none">Benchmark</a>
   </header>
 
   <aside class="left">
@@ -168,6 +215,7 @@
 
   <main id="main">
     <div class="progress" id="progress"></div>
+    <div id="ovl"></div>
     <div class="stage"><div class="sheet show-hits" id="sheet"></div></div>
   </main>
 
@@ -180,6 +228,8 @@
       standards checked — and as <b>marks on the drawing</b>. Export them as calc sheets, a memo or a DWG markup.</div></div>
   </aside>
 
+  <div id="askbar"><input id="ask2" placeholder="Ask about this plant…" autocomplete="off">
+    <div class="sugg" id="sugg"></div><button class="big" id="askgo">Ask</button></div>
   <section class="bp">
     <div class="bptabs"><div class="bpt on" data-b="problems">Problems <span class="n" id="probn"></span></div><div class="bpt" data-b="profile">Profile &amp; flow</div><div class="bpt" data-b="activity">Activity</div></div>
     <div class="bpp on" id="pb-problems"></div>
@@ -241,7 +291,7 @@ async function load() {
   });
   $("#plabel").innerHTML = profs.map(p => `<option value="${esc(p.label)}" ${p.label === P.preloaded.base_profile_run ? "selected" : ""}>${esc(p.label)}</option>`).join("");
   P.answers.forEach(a => addAnswer(a, false));
-  drawProfile(); loadProblems();
+  drawProfile(); loadProblems(); setupSimple();
   if (!P.profiles.length) bpTab("problems");
   document.querySelectorAll("[data-ds]").forEach(e => e.onclick = () => drawHistory(e.dataset.ds, "MDD"));
   document.querySelectorAll("[data-doc]").forEach(e => e.onclick = () => { $("#cmd").value = `In ${e.dataset.doc}, `; $("#cmd").focus(); });
@@ -273,6 +323,7 @@ async function ask(text, context) {
       const j = await api(`/api/job/${job}?offset=${off}`);
       off = j.offset;
       j.events.forEach(e => {
+        if (window._onEvent) window._onEvent(e);
         if (e.kind !== "tool") return;
         const sim = /run_|profile|surge|eps|velocity|cost|standards|history|get_spec/.test(e.name);
         const arg = (e.args || "").match(/"(?:label|page|query|dataset|parameter_contains)":\s*"?([^",}]+)/);
@@ -292,7 +343,7 @@ async function ask(text, context) {
 function addAnswer(a, fresh) {
   const box = $("#answers");
   if (box.querySelector(".empty")) box.innerHTML = "";
-  const cards = (a.cards || []).map(c => `<div class="card ${esc(c.status)}"><div class="tt">${esc(c.title)}</div><div class="res">${esc(c.result)}</div>
+  const cards = (Array.isArray(a.cards) ? a.cards : []).map(c => `<div class="card ${esc(c.status)}"><div class="tt">${esc(c.title)}</div><div class="res">${esc(c.result)}</div>
       ${(c.inputs || []).length ? `<table>${c.inputs.map(i => `<tr><td>${esc(i.name)}</td><td class="v">${esc(i.value)}</td><td class="src">${esc(i.source)}</td></tr>`).join("")}</table>` : ""}
       <div class="tags">${(c.runs || []).map(r => `<span class="tag run">⚙ ${esc(r)}</span>`).join("")}${(c.standards || []).map(r => `<span class="tag std">§ ${esc(r)}</span>`).join("")}${(c.assumptions || []).map(r => `<span class="tag as" title="${esc(r)}">assumption</span>`).join("")}${c.cost_label ? `<span class="tag run">$ ${esc(c.cost_label)}</span>` : ""}</div></div>`).join("");
   box.insertAdjacentHTML("afterbegin", `<div class="ans"><div class="rq">› <b>${esc(a.request)}</b></div><div class="sm">${esc(a.summary)}</div>${cards}
@@ -308,7 +359,7 @@ function drawMarks() {
   document.querySelectorAll(".mark").forEach(n => n.remove());
   if (!show.marks) return;
   const recent = P.answers.slice(-3);
-  recent.flatMap(a => a.layers || []).forEach(l => {
+  recent.flatMap(a => Array.isArray(a.layers) ? a.layers : []).forEach(l => {
     if (!l.bbox) return;
     const [x0, y0, x1, y1] = l.bbox;
     $("#sheet").insertAdjacentHTML("beforeend", `<div class="mark ${esc(l.severity)}" style="left:${x0 * 100}%;top:${y0 * 100}%;width:${(x1 - x0) * 100}%;height:${(y1 - y0) * 100}%">
@@ -426,6 +477,89 @@ async function renderRevs() {
   drop.ondragleave = () => drop.classList.remove("over");
   drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); send(e.dataTransfer.files[0]); };
   $("#upl").onchange = e => send(e.target.files[0]);
+}
+
+
+// ---- simple mode ------------------------------------------------------------------------------
+let ISS = [], ACCEPTED = [];
+$("#expert").onclick = () => { document.body.classList.toggle("simple"); $("#expert").textContent = document.body.classList.contains("simple") ? "Expert view" : "Simple view"; };
+const SUGG = ["Can this plant make {T} mgd?", "If raw pump 2 fails tonight, can we still make 12 mgd?", "What would the fix cost?"];
+function setupSimple() {
+  $("#ptitle").innerHTML = `${esc(P.title)}<small>${esc(P.task_type)}</small>`;
+  $("#sugg").innerHTML = SUGG.map(t => `<span>${esc(t.replace("{T}", P.target_mgd))}</span>`).join("");
+  document.querySelectorAll("#sugg span").forEach(x => x.onclick = () => simpleAsk(x.textContent));
+  $("#askgo").onclick = () => $("#ask2").value.trim() && simpleAsk($("#ask2").value.trim());
+  $("#ask2").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.value.trim()) simpleAsk(e.target.value.trim()); });
+  $("#issuesBtn > button").onclick = e => { e.stopPropagation(); $("#issuesBtn").classList.toggle("open"); };
+  document.addEventListener("click", () => $("#issuesBtn").classList.remove("open"));
+  if (P.target_mgd && $("#flow")) { $("#flow").value = P.target_mgd; }
+  if (P.current_profile) { $("#plabel").value = P.current_profile; }
+  loadIssues();
+}
+
+async function loadIssues() {
+  ISS = await api(`/api/ws/${CASE}/problems`);
+  const top = ISS.filter(i => i.severity === "error").concat(ISS.filter(i => i.severity !== "error")).slice(0, 3);
+  const n = ISS.filter(i => i.severity === "error").length;
+  $("#issBtnLbl").textContent = n ? `⛔ ${n} issue${n > 1 ? "s" : ""}` : "✓ no blocking issues";
+  $("#issBtnLbl").classList.toggle("clear", !n);
+  $("#issuelist").innerHTML = top.map(i => `<div class="iss"><div><b>${esc(i.structure ? i.structure.toLowerCase().replace(/^./, c => c.toUpperCase()) + " — " : "")}${esc(i.plain_kind)}</b>
+      <small>${esc(i.text.slice(0, 150))}</small></div><button class="acc" data-id="${i.id}">Fix</button></div>`).join("") + (ISS.length > 3 ? `<div class="iss"><small>+${ISS.length - 3} more in Expert view</small></div>` : "");
+  document.querySelectorAll("#issuelist .acc").forEach(b => b.onclick = e => { e.stopPropagation(); $("#issuesBtn").classList.remove("open");
+    const i = ISS.find(x => x.id === b.dataset.id);
+    simpleAsk(`Fix this issue (id ${i.id}): ${i.text}`, {issue_id: i.id, structure: i.structure}, `Fix: ${i.structure || i.plain_kind}`); });
+  drawGlows();
+}
+
+function bboxOf(name) { const s = P.structures.find(x => x.name === name); return s && s.bbox; }
+function drawGlows() {
+  document.querySelectorAll(".glow").forEach(n => n.remove());
+  const sheet = $("#sheet");
+  const add = (b, cls, label) => { if (!b) return; const [x0, y0, x1, y1] = b, pad = .015;
+    sheet.insertAdjacentHTML("beforeend", `<div class="glow ${cls}" style="left:${(x0 - pad) * 100}%;top:${(y0 - pad) * 100}%;width:${(x1 - x0 + 2 * pad) * 100}%;height:${(y1 - y0 + 2 * pad) * 100}%"><span>${esc(label)}</span></div>`); };
+  const seen = new Set();
+  ISS.filter(i => i.severity === "error" && i.structure).forEach(i => { if (seen.has(i.structure)) return; seen.add(i.structure);
+    add(bboxOf(i.structure), "", i.plain_kind); });
+  ACCEPTED.forEach(a => add(bboxOf(a.structure), "ok", "✓ " + a.title.slice(0, 40)));
+}
+
+async function simpleAsk(text, context, label) {
+  if (busy) return;
+  $("#ask2").value = "";
+  const o = $("#ovl"); o.classList.add("show");
+  o.innerHTML = `<div class="q">${esc(label || text)}</div><div class="working" id="wk">Reading the drawing and documents…</div>`;
+  const steps = {search_docs: "Searching the documents", read_page: "Reading the report", view_page: "Looking at a drawing",
+    get_spec: "Loading the calibrated model", run_profile: "Running the hydraulic model", profile_capacity: "Finding the limits",
+    run_hydraulics: "Running EPANET", standards_check: "Checking design standards", standards_list: "Looking up design standards",
+    cost_estimate: "Estimating cost", velocity: "Checking velocities", history: "Reading the production record", run_surge: "Simulating a pump trip"};
+  const prev = window._onEvent; window._onEvent = e => { if (e.kind === "tool" && steps[e.name] && $("#wk")) $("#wk").textContent = steps[e.name] + "…"; };
+  await ask(text, context);
+  window._onEvent = prev;
+  const a = P.answers[P.answers.length - 1];
+  if (a && a.request === text) renderOverlay(a, label || text);
+}
+
+function renderOverlay(a, label) {
+  const h = a.headline || a.summary.split(/[.;]/)[0];
+  const neg = /^(no|not|cannot|fails?|over)/i.test(h), pos = /^(yes|passes|ok|✓)/i.test(h);
+  const props = (a.proposals || []).filter(p => !p.error);
+  $("#ovl").innerHTML = `<div class="q">${esc(label)}</div><div class="h ${neg ? "no" : pos ? "yes" : ""}">${esc(h)}</div>
+    <div class="sm2">${esc(a.summary)}</div>
+    ${props.map((p, i) => `<div class="prop"><div class="t">${esc(p.title)}</div>
+      <div class="r ${p.passes_after ? "" : "bad"}">${esc(p.element)}.${esc(p.field)}: ${p.old} → ${p.value} · at ${p.target_mgd} mgd ${p.passes_after ? "✓ passes in the simulator" : "✗ still fails: " + esc(p.failing_after.join(", "))}</div>
+      <button class="acc" data-i="${i}">Accept change</button></div>`).join("")}
+    <span class="det" id="det">Show the calculation (${(a.cards || []).length} calc cards) →</span>`;
+  $("#det").onclick = () => { document.body.classList.remove("simple"); $("#expert").textContent = "Simple view"; showTab("answers"); };
+  document.querySelectorAll("#ovl .acc").forEach(b => b.onclick = async () => {
+    const p = props[+b.dataset.i];
+    b.disabled = true; b.textContent = "Applying…";
+    const r = await api(`/api/ws/${CASE}/accept`, p);
+    ACCEPTED.push({title: p.title, structure: p.structure || (ISS.find(i => i.id === p.resolves) || {}).structure});
+    $("#plabel").insertAdjacentHTML("beforeend", `<option value="${esc(r.label)}">${esc(r.label)}</option>`); $("#plabel").value = r.label;
+    b.textContent = "✓ Accepted — model updated (rev " + r.revision.n + ")"; b.style.background = "#2a6b4a";
+    await loadIssues(); drawProfile(); drawMarks();
+  });
+  drawMarks();
 }
 
 // ---- bottom panel: problems (with Fix), profile, activity -------------------------------------

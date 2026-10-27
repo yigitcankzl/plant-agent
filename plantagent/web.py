@@ -163,6 +163,8 @@ def ws_project(case):
             "structures": structures(case) if w.drawing else [], "preloaded": w.base,
             "profiles": [{"label": k, "purpose": v["purpose"], "flows": v.get("flows")} for k, v in w.profiles.items()],
             "answers": w.answers, "session": w.dir.name, "revisions": w.revisions,
+            "target_mgd": __import__("plantagent.copilot", fromlist=["x"]).target_flow(w),
+            "current_profile": __import__("plantagent.copilot", fromlist=["x"]).current_label(w),
             "task_type": c["task_type"], "study_run": w.study_dir.name if w.study_dir else None,
             "eps": {"runs": [{"label": k, "score": (v.get("result") or {}).get("mean_relative_rmse")} for k, v in w.eps_runs.items()
                              if v.get("tool") == "eps_run"],
@@ -347,6 +349,11 @@ class Handler(SimpleHTTPRequestHandler):
                 w = workspace(case)
                 url = w.project.image(q["doc"], int(q["n"]), dpi=int(q.get("dpi", 110)))
                 return self._send(base64.b64decode(url.split(",", 1)[1]), "image/png")
+            if what == "accept" and method == "POST":
+                from .copilot import accept, problems
+                w = workspace(case)
+                r = accept(w, body)
+                return self._send({**r, "issues": problems(w)})
             if what == "capacity":
                 return self._send(profile.capacity(workspace(case).profiles[q["label"]]["spec"]))
             if what == "revisions":
