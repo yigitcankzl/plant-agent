@@ -257,6 +257,9 @@ class Study:
         self.runs = {}  # label -> {purpose, spec, result}
         self.steps = 0
 
+    def emit(self, event):
+        """Progress hook for live UIs; the batch study ignores it."""
+
     # --- tools -------------------------------------------------------------------------------
     def call(self, name, a):
         c = self.case
@@ -345,6 +348,8 @@ class Study:
                 messages.append({"role": "user", "content": f"Step limit near. Call {submit_name} now with what you have."})
             msg = llm.complete(self.model, compact(messages), tools=tools)
             self.log.write(json.dumps({"phase": phase, "step": step, "assistant": msg}) + "\n")
+            if msg.get("content"):
+                self.emit({"kind": "say", "text": msg["content"]})
             if not msg["tool_calls"]:
                 messages += [{"role": "assistant", "content": msg["content"] or ""},
                              {"role": "user", "content": f"Use the tools. Finish by calling {submit_name}."}]
@@ -373,6 +378,7 @@ class Study:
                     result = {"note": f"page {args.get('page')} image attached below"}
                 print(f"  {phase}> {t['name']}({json.dumps(args)[:120]}) -> {json.dumps(result)[:140]}")
                 self.log.write(json.dumps({"phase": phase, "tool": t["name"], "args": args, "result": result}) + "\n")
+                self.emit({"kind": "tool", "name": t["name"], "args": args, "result": result})
                 messages.append({"role": "tool", "tool_call_id": t["id"], "content": json.dumps(result)})
             for url in images:
                 messages.append({"role": "user", "content": [{"type": "image_url", "image_url": {"url": url}}]})

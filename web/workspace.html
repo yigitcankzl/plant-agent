@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlantAgent Workspace</title>
+<style>
+  :root {
+    --bg: #15191f; --panel: #1c2129; --panel2: #232a33; --line: #2e3742; --text: #d9e0e8; --muted: #8592a3;
+    --accent: #4da3ff; --ok: #3fb67a; --warn: #e3a33a; --fail: #ef5a4f; --info: #9aa7ff; --paper: #fbfaf6;
+    --mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace; --sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.45 var(--sans); }
+  .app { display: grid; grid-template-rows: 48px 1fr 190px; grid-template-columns: 240px 1fr 400px; height: 100vh; }
+  header { grid-column: 1 / 4; display: flex; align-items: center; gap: 14px; padding: 0 14px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  .logo { font: 700 15px var(--mono); letter-spacing: .4px; }
+  .logo span { color: var(--accent); }
+  .proj { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px; }
+  .cmd { flex: 1; position: relative; max-width: 760px; }
+  .cmd input { width: 100%; background: var(--bg); border: 1px solid var(--line); color: var(--text); border-radius: 6px; padding: 8px 12px 8px 34px; font: 13.5px var(--sans); outline: none; }
+  .cmd input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(77,163,255,.15); }
+  .cmd .k { position: absolute; left: 11px; top: 7px; color: var(--muted); font: 12px var(--mono); }
+  .cmd .hint { position: absolute; right: 10px; top: 8px; color: var(--muted); font: 11px var(--mono); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; }
+  .btn { background: var(--panel2); border: 1px solid var(--line); color: var(--text); padding: 6px 10px; border-radius: 5px; cursor: pointer; font: 12.5px var(--sans); }
+  .btn:hover { border-color: var(--accent); }
+  .menu { position: relative; }
+  .menu .items { display: none; position: absolute; right: 0; top: 34px; background: var(--panel2); border: 1px solid var(--line); border-radius: 6px; z-index: 50; min-width: 230px; padding: 4px; }
+  .menu.open .items { display: block; }
+  .menu .items div { padding: 7px 10px; border-radius: 4px; cursor: pointer; }
+  .menu .items div:hover { background: var(--line); }
+  .menu .items small { display: block; color: var(--muted); }
+  aside.left { background: var(--panel); border-right: 1px solid var(--line); overflow: auto; grid-row: 2 / 4; grid-column: 1; }
+  .sec { padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .sec h4 { margin: 0 0 6px; font: 600 10.5px var(--sans); color: var(--muted); letter-spacing: .8px; text-transform: uppercase; }
+  .item { padding: 4px 6px; border-radius: 4px; cursor: pointer; display: flex; gap: 6px; align-items: baseline; }
+  .item:hover { background: var(--panel2); }
+  .item .ic { color: var(--muted); font: 11px var(--mono); }
+  .item small { color: var(--muted); display: block; }
+  .layer { display: flex; align-items: center; gap: 8px; padding: 3px 0; cursor: pointer; }
+  .sw { width: 10px; height: 10px; border-radius: 2px; }
+  main { position: relative; overflow: auto; background: #10141a; grid-row: 2; grid-column: 2; }
+  .progress { position: sticky; top: 0; z-index: 20; display: flex; gap: 6px; flex-wrap: wrap; padding: 6px 12px; min-height: 0; background: rgba(16,20,26,.92); backdrop-filter: blur(4px); }
+  .chip { font: 11px var(--mono); padding: 2px 7px; border-radius: 10px; background: var(--panel2); border: 1px solid var(--line); color: var(--muted); animation: in .2s; white-space: nowrap; max-width: 380px; overflow: hidden; text-overflow: ellipsis; }
+  .chip.sim { color: var(--warn); border-color: #5a4a2a; } .chip.doc { color: var(--accent); border-color: #24415f; } .chip.done { color: var(--ok); border-color: #285a3e; }
+  .chip.err { color: var(--fail); }
+  .chip.live::after { content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 6px; border-radius: 50%; background: var(--warn); animation: blink .8s infinite alternate; }
+  @keyframes blink { to { opacity: .2; } } @keyframes in { from { opacity: 0; transform: translateY(-3px); } }
+  .stage { padding: 14px 18px 30px; }
+  .sheet { position: relative; background: var(--paper); border-radius: 3px; box-shadow: 0 6px 30px rgba(0,0,0,.45); }
+  .sheet img { width: 100%; display: block; border-radius: 3px; }
+  .hit { position: absolute; border: 1.5px solid transparent; border-radius: 4px; cursor: pointer; transition: all .15s; }
+  .show-hits .hit { border-color: rgba(77,163,255,.35); }
+  .hit:hover, .hit.sel { border-color: var(--accent); background: rgba(77,163,255,.10); }
+  .hit .nm { display: none; position: absolute; top: -18px; left: 0; font: 600 10.5px var(--mono); color: white; background: var(--accent); padding: 1px 5px; border-radius: 3px; white-space: nowrap; }
+  .hit:hover .nm, .hit.sel .nm { display: block; }
+  .pop { position: absolute; z-index: 30; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 6px; width: 270px; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  .pop .t { font: 600 12px var(--mono); color: var(--accent); padding: 4px 8px 6px; }
+  .pop .a { padding: 6px 8px; border-radius: 5px; cursor: pointer; display: flex; justify-content: space-between; }
+  .pop .a:hover { background: var(--line); }
+  .pop .a span { color: var(--muted); font-size: 11px; }
+  .mark { position: absolute; pointer-events: none; }
+  .mark .ring { position: absolute; inset: -6px; border: 2.5px dashed var(--fail); border-radius: 10px; }
+  .mark.warn .ring { border-color: var(--warn); } .mark.ok .ring { border-color: var(--ok); } .mark.info .ring { border-color: var(--info); }
+  .mark .tx { position: absolute; left: 0; top: calc(100% + 8px); width: max-content; max-width: 300px; font: 600 11px var(--sans); color: white; padding: 4px 7px; border-radius: 4px; background: rgba(239,90,79,.95); }
+  .mark.warn .tx { background: rgba(197,135,30,.96); } .mark.ok .tx { background: rgba(47,150,99,.95); } .mark.info .tx { background: rgba(98,112,220,.95); }
+  .ws { position: absolute; font: 700 10.5px var(--mono); padding: 1px 5px; border-radius: 3px; background: rgba(31,78,140,.92); color: white; white-space: nowrap; pointer-events: none; transform: translateY(2px); transition: all .2s; }
+  .ws.fail { background: rgba(200,40,30,.95); }
+  aside.right { background: var(--panel); border-left: 1px solid var(--line); overflow: auto; grid-row: 2 / 4; grid-column: 3; }
+  .rhead { padding: 10px 14px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; color: var(--muted); font: 600 10.5px var(--sans); letter-spacing: .8px; text-transform: uppercase; position: sticky; top: 0; background: var(--panel); z-index: 2; }
+  .ans { border-bottom: 1px solid var(--line); padding: 12px 14px; animation: in .3s; }
+  .ans .rq { color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+  .ans .rq b { color: var(--text); font-weight: 600; }
+  .ans .sm { font-size: 13px; margin: 4px 0 10px; }
+  .ans .meta { color: var(--muted); font: 11px var(--mono); }
+  .card { background: var(--panel2); border: 1px solid var(--line); border-left: 3px solid var(--info); border-radius: 6px; padding: 9px 11px; margin: 8px 0; }
+  .card.ok { border-left-color: var(--ok); } .card.warn { border-left-color: var(--warn); } .card.fail { border-left-color: var(--fail); }
+  .card .tt { font: 600 11px var(--sans); color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .card .res { font: 600 14px var(--mono); margin: 4px 0 6px; color: #fff; }
+  .card table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  .card td { padding: 2px 4px; border-top: 1px solid var(--line); vertical-align: top; }
+  .card td.v { font-family: var(--mono); color: #fff; }
+  .src { font: 10.5px var(--mono); color: var(--accent); white-space: nowrap; }
+  .tags { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag { font: 10.5px var(--mono); padding: 1px 6px; border-radius: 9px; border: 1px solid var(--line); color: var(--muted); }
+  .tag.run { color: var(--warn); } .tag.std { color: var(--ok); } .tag.as { color: var(--info); }
+  .empty { color: var(--muted); padding: 24px 16px; font-size: 12.5px; line-height: 1.6; }
+  .empty b { color: var(--text); }
+  footer { grid-column: 2 / 3; grid-row: 3; background: var(--panel); border-top: 1px solid var(--line); display: grid; grid-template-columns: 300px 1fr; }
+  .flowctl { padding: 12px 14px; border-right: 1px solid var(--line); }
+  .flowv { font: 700 30px var(--mono); }
+  .flowv small { font-size: 13px; color: var(--muted); }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  select { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; font: 12px var(--sans); width: 100%; }
+  .chart { padding: 8px 12px; }
+  .chart h5 { margin: 0; font: 600 10.5px var(--sans); color: var(--muted); letter-spacing: .8px; text-transform: uppercase; }
+  .toast { position: fixed; bottom: 210px; right: 420px; background: var(--panel2); border: 1px solid var(--ok); color: var(--text); padding: 10px 14px; border-radius: 6px; z-index: 99; display: none; }
+  .toast a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <div class="logo">Plant<span>Agent</span></div>
+    <div class="proj" id="proj"></div>
+    <div class="cmd"><span class="k">›_</span><input id="cmd" placeholder="Ask or command — e.g. “If raw pump 2 fails tonight, can we still make 12 mgd?”" autocomplete="off"><span class="hint">Ctrl K</span></div>
+    <div class="menu" id="exports"><button class="btn">Deliverables ▾</button>
+      <div class="items">
+        <div data-k="calc">Calc sheets (.xlsx)<small>every card, inputs, sources, cited runs</small></div>
+        <div data-k="memo">Technical memo (.md)<small>written from the cards, citations kept</small></div>
+        <div data-k="dwg">Markup drawing (.dwg)<small>workspace marks on the real sheet</small></div>
+        <div data-k="profile">Hydraulic profile sheet (.dwg)<small>new to-scale sheet from the latest run</small></div>
+      </div></div>
+    <a class="btn" href="/" style="text-decoration:none">Studies &amp; benchmark</a>
+  </header>
+
+  <aside class="left">
+    <div class="sec"><h4>Documents</h4><div id="docs"></div></div>
+    <div class="sec"><h4>Data</h4><div id="data"></div></div>
+    <div class="sec"><h4>Calibrated models</h4><div id="models"></div></div>
+    <div class="sec"><h4>Layers</h4>
+      <div class="layer" data-l="hits"><span class="sw" style="background:var(--accent)"></span>Structures (click to act)</div>
+      <div class="layer" data-l="ws"><span class="sw" style="background:#1f4e8c"></span>Water surface at flow</div>
+      <div class="layer" data-l="marks"><span class="sw" style="background:var(--fail)"></span>Copilot marks</div>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="progress" id="progress"></div>
+    <div class="stage"><div class="sheet show-hits" id="sheet"></div></div>
+  </main>
+
+  <aside class="right">
+    <div class="rhead"><span>Calc cards</span><span id="spend"></span></div>
+    <div id="answers"><div class="empty">Click a structure on the drawing or type a request.<br><br>
+      Every answer comes back as <b>calc cards</b> — inputs with their source pages, the simulator runs behind each number,
+      standards checked — and as <b>marks on the drawing</b>. Export them as calc sheets, a memo or a DWG markup.</div></div>
+  </aside>
+
+  <footer>
+    <div class="flowctl">
+      <div class="flowv" id="flowv">— <small>MGD</small></div>
+      <input type="range" id="flow" min="4" max="30" step="0.5" value="12">
+      <select id="plabel" style="margin-top:6px"></select>
+    </div>
+    <div class="chart"><h5 id="chartt">Plant water surface profile</h5><svg id="chart" viewBox="0 0 900 150" width="100%" height="150"></svg></div>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const api = async (u, body) => { const r = await fetch(u, body ? {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)} : {});
+  const j = await r.json(); if (!r.ok) throw new Error(j.error); return j; };
+const CASE = new URLSearchParams(location.search).get("case") || "roseburg";
+let P = null, busy = false, selected = null, show = {hits: true, ws: true, marks: true};
+const ACTIONS = [
+  ["What limits it?", s => `What flow limits the ${s}, and what is its margin at 12 and 18 mgd? Use the calibrated models.`, "capacity"],
+  ["If it is out of service…", s => `If the ${s} (or its largest unit) is out of service, what can the plant still deliver?`, "N-1"],
+  ["Size it for 18 mgd", s => `Size the modification the ${s} needs to pass 18 mgd and verify it in the simulator.`, "design"],
+  ["Cost it", s => `Order-of-magnitude capital cost to bring the ${s} to 18 mgd, with the AACE range.`, "cost"],
+  ["Check standards", s => `Check the ${s} against the applicable Ten States Standards at 18 mgd.`, "standards"],
+];
+
+async function load() {
+  P = await api(`/api/ws/${CASE}/project`);
+  $("#proj").textContent = P.title;
+  $("#docs").innerHTML = P.documents.map(d => `<div class="item" data-doc="${d.id}"><span class="ic">PDF</span><div>${esc(d.title)}</div></div>`).join("");
+  $("#data").innerHTML = P.datasets.map(d => `<div class="item" data-ds="${d.id}"><span class="ic">CSV</span><div>${esc(d.title)}</div></div>`).join("") || `<div class="item"><small>none</small></div>`;
+  const runs = Object.entries(P.preloaded.runs || {}), profs = P.profiles;
+  $("#models").innerHTML = `<div class="item"><span class="ic">EPANET</span><div>${runs.length} calibrated runs<small>${esc(P.preloaded.base_model_run || "")}</small></div></div>
+    <div class="item"><span class="ic">PROFILE</span><div>${profs.length} gravity profiles<small>${esc(P.preloaded.base_profile_run || "")}</small></div></div>
+    <div class="item"><small>from ${esc(P.preloaded.from_study || "—")}</small></div>`;
+  $("#sheet").innerHTML = P.has_drawing ? `<img src="/api/drawing/${CASE}/png">` : `<div class="empty">No drawing for this project.</div>`;
+  P.structures.forEach(s => {
+    const [x0, y0, x1, y1] = s.bbox, pad = .012;
+    const el = document.createElement("div");
+    el.className = "hit";
+    Object.assign(el.style, {left: `${(x0 - pad) * 100}%`, top: `${(y0 - pad) * 100}%`, width: `${(x1 - x0 + 2 * pad) * 100}%`, height: `${(y1 - y0 + 2 * pad) * 100}%`});
+    el.innerHTML = `<span class="nm">${esc(s.name)}</span>`;
+    el.onclick = ev => { ev.stopPropagation(); openPop(s, el); };
+    $("#sheet").appendChild(el);
+  });
+  $("#plabel").innerHTML = profs.map(p => `<option value="${esc(p.label)}" ${p.label === P.preloaded.base_profile_run ? "selected" : ""}>${esc(p.label)}</option>`).join("");
+  P.answers.forEach(a => addAnswer(a, false));
+  drawProfile();
+  document.querySelectorAll("[data-ds]").forEach(e => e.onclick = () => drawHistory(e.dataset.ds, "MDD"));
+  document.querySelectorAll("[data-doc]").forEach(e => e.onclick = () => { $("#cmd").value = `In ${e.dataset.doc}, `; $("#cmd").focus(); });
+}
+
+function openPop(s, el) {
+  closePop(); selected = el; el.classList.add("sel");
+  const pop = document.createElement("div");
+  pop.className = "pop"; pop.id = "pop";
+  pop.innerHTML = `<div class="t">${esc(s.name)}</div>` + ACTIONS.map(([t, f, k], i) => `<div class="a" data-i="${i}">${t}<span>${k}</span></div>`).join("");
+  const r = el.getBoundingClientRect(), m = $("#sheet").getBoundingClientRect();
+  pop.style.left = `${Math.min(r.right - m.left + 8, m.width - 280)}px`; pop.style.top = `${r.top - m.top}px`;
+  $("#sheet").appendChild(pop);
+  pop.querySelectorAll(".a").forEach(a => a.onclick = ev => { ev.stopPropagation(); const [, f] = ACTIONS[+a.dataset.i]; closePop(); ask(f(s.name), {structure: s.name}); });
+}
+function closePop() { $("#pop")?.remove(); selected?.classList.remove("sel"); }
+document.addEventListener("click", closePop);
+
+async function ask(text, context) {
+  if (busy) return; busy = true;
+  const prog = $("#progress"); prog.innerHTML = `<span class="chip live">${esc(text.slice(0, 90))}</span>`;
+  try {
+    const {job} = await api(`/api/ws/${CASE}/ask`, {text, context: {...(context || {}), flow_mgd: +$("#flow").value}});
+    let off = 0;
+    while (true) {
+      await new Promise(r => setTimeout(r, 900));
+      const j = await api(`/api/job/${job}?offset=${off}`);
+      off = j.offset;
+      j.events.forEach(e => {
+        if (e.kind !== "tool") return;
+        const sim = /run_|profile|surge|eps|velocity|cost|standards|history|get_spec/.test(e.name);
+        const arg = (e.args || "").match(/"(?:label|page|query|dataset|parameter_contains)":\s*"?([^",}]+)/);
+        prog.insertAdjacentHTML("beforeend", `<span class="chip ${/error/.test(e.result || "") ? "err" : sim ? "sim" : "doc"}">${esc(e.name)}${arg ? " · " + esc(arg[1]) : ""}</span>`);
+      });
+      if (j.done) {
+        if (j.error) prog.insertAdjacentHTML("beforeend", `<span class="chip err">${esc(j.error)}</span>`);
+        else { prog.insertAdjacentHTML("beforeend", `<span class="chip done">✓ ${j.answer.seconds}s · $${j.answer.cost_usd}</span>`); addAnswer(j.answer, true); }
+        break;
+      }
+    }
+  } catch (e) { prog.insertAdjacentHTML("beforeend", `<span class="chip err">${esc(e.message)}</span>`); }
+  busy = false;
+  setTimeout(() => { if (!busy) prog.innerHTML = ""; }, 12000);
+}
+
+function addAnswer(a, fresh) {
+  const box = $("#answers");
+  if (box.querySelector(".empty")) box.innerHTML = "";
+  const cards = (a.cards || []).map(c => `<div class="card ${esc(c.status)}"><div class="tt">${esc(c.title)}</div><div class="res">${esc(c.result)}</div>
+      ${(c.inputs || []).length ? `<table>${c.inputs.map(i => `<tr><td>${esc(i.name)}</td><td class="v">${esc(i.value)}</td><td class="src">${esc(i.source)}</td></tr>`).join("")}</table>` : ""}
+      <div class="tags">${(c.runs || []).map(r => `<span class="tag run">⚙ ${esc(r)}</span>`).join("")}${(c.standards || []).map(r => `<span class="tag std">§ ${esc(r)}</span>`).join("")}${(c.assumptions || []).map(r => `<span class="tag as" title="${esc(r)}">assumption</span>`).join("")}${c.cost_label ? `<span class="tag run">$ ${esc(c.cost_label)}</span>` : ""}</div></div>`).join("");
+  box.insertAdjacentHTML("afterbegin", `<div class="ans"><div class="rq">› <b>${esc(a.request)}</b></div><div class="sm">${esc(a.summary)}</div>${cards}
+    <div class="meta">${a.seconds}s · $${a.cost_usd} · Muse</div></div>`);
+  if (a.flow_mgd) { $("#flow").value = a.flow_mgd; }
+  drawMarks(); drawProfile();
+  if (a.chart && a.chart.dataset) drawHistory(a.chart.dataset, a.chart.parameter_contains || "MDD", a.chart.as_of_year);
+  $("#spend").textContent = `${P.answers.length + (fresh ? 1 : 0)} answers`;
+  if (fresh) P.answers.push(a);
+}
+
+function drawMarks() {
+  document.querySelectorAll(".mark").forEach(n => n.remove());
+  if (!show.marks) return;
+  const recent = P.answers.slice(-3);
+  recent.flatMap(a => a.layers || []).forEach(l => {
+    if (!l.bbox) return;
+    const [x0, y0, x1, y1] = l.bbox;
+    $("#sheet").insertAdjacentHTML("beforeend", `<div class="mark ${esc(l.severity)}" style="left:${x0 * 100}%;top:${y0 * 100}%;width:${(x1 - x0) * 100}%;height:${(y1 - y0) * 100}%">
+      <div class="ring"></div><div class="tx">${esc(l.text)}</div></div>`);
+  });
+}
+
+async function drawProfile() {
+  const label = $("#plabel").value, q = +$("#flow").value;
+  $("#flowv").innerHTML = `${q.toFixed(1)} <small>MGD</small>`;
+  document.querySelectorAll(".ws").forEach(n => n.remove());
+  if (!label) return;
+  const r = await api(`/api/ws/${CASE}/profile?label=${encodeURIComponent(label)}&q=${q}`);
+  if (show.ws) r.nodes.forEach(n => { if (!n.bbox) return;
+    $("#sheet").insertAdjacentHTML("beforeend", `<div class="ws ${n.fails ? "fail" : ""}" style="left:${n.bbox[0] * 100}%;top:${n.bbox[3] * 100}%">WS ${n.ws_ft.toFixed(2)}${n.fails ? " ▲" : ""}</div>`); });
+  $("#chartt").textContent = `Water surface profile · ${label} · ${q} MGD ${r.passes ? "" : "· LIMIT EXCEEDED"}`;
+  const nodes = r.nodes.slice(1), W = 900, H = 150;
+  const vals = nodes.map(n => n.ws_ft).concat(r.checks.filter(c => c.limit_ft).map(c => c.limit_ft));
+  const lo = Math.min(...vals) - .3, hi = Math.max(...vals) + .3;
+  const X = i => 40 + (W - 60) * i / Math.max(nodes.length - 1, 1), Y = v => 8 + (H - 40) * (1 - (v - lo) / (hi - lo));
+  let s = "";
+  nodes.forEach((n, i) => { s += `<text x="${X(i)}" y="${H - 6}" fill="#8592a3" font-size="10" text-anchor="middle">${esc(n.id.slice(0, 16))}</text>`;
+    r.checks.filter(c => c.id === n.id && c.limit_ft).forEach(c => s += `<line x1="${X(i) - 20}" x2="${X(i) + 20}" y1="${Y(c.limit_ft)}" y2="${Y(c.limit_ft)}" stroke="#ef5a4f" stroke-dasharray="4 3"/>`); });
+  s += `<polyline fill="none" stroke="${r.passes ? "#4da3ff" : "#ef5a4f"}" stroke-width="2.5" points="${nodes.map((n, i) => `${X(i)},${Y(n.ws_ft)}`).join(" ")}"/>`;
+  nodes.forEach((n, i) => s += `<circle cx="${X(i)}" cy="${Y(n.ws_ft)}" r="3.5" fill="${n.fails ? "#ef5a4f" : "#4da3ff"}"/><text x="${X(i) + 6}" y="${Y(n.ws_ft) - 6}" fill="#d9e0e8" font-size="10" font-family="monospace">${n.ws_ft.toFixed(2)}</text>`);
+  $("#chart").innerHTML = s;
+}
+
+async function drawHistory(ds, param, asOf) {
+  const h = await api(`/api/ws/${CASE}/history?dataset=${ds}&parameter=${encodeURIComponent(param)}`);
+  const pts = h.points, W = 900, H = 150;
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = 0, y1 = Math.max(...ys, 12) * 1.15;
+  const X = x => 40 + (W - 60) * (x - x0) / (x1 - x0), Y = v => 8 + (H - 30) * (1 - (v - y0) / (y1 - y0));
+  let s = `<line x1="40" x2="${W - 20}" y1="${Y(12)}" y2="${Y(12)}" stroke="#ef5a4f" stroke-dasharray="5 3"/><text x="${W - 22}" y="${Y(12) - 4}" fill="#ef5a4f" font-size="10" text-anchor="end">plant capacity 12 MGD</text>`;
+  if (asOf) s += `<line x1="${X(asOf)}" x2="${X(asOf)}" y1="8" y2="${H - 22}" stroke="#9aa7ff" stroke-dasharray="3 3"/><text x="${X(asOf) + 4}" y="18" fill="#9aa7ff" font-size="10">known in ${asOf}</text>`;
+  const series = {};
+  pts.forEach((p, i) => (series[h.parameters.length > 1 ? "x" : "x"] ||= []).push(p));
+  s += `<polyline fill="none" stroke="#4da3ff" stroke-width="2" points="${pts.map(p => `${X(p[0])},${Y(p[1])}`).join(" ")}"/>`;
+  pts.forEach(p => s += `<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="2.5" fill="#4da3ff"/>`);
+  for (let y = Math.ceil(x0 / 5) * 5; y <= x1; y += 5) s += `<text x="${X(y)}" y="${H - 6}" fill="#8592a3" font-size="10" text-anchor="middle">${y}</text>`;
+  $("#chart").innerHTML = s;
+  $("#chartt").textContent = `${h.parameters.join(" / ")} · ${h.unit} · trend ${h.trend ? h.trend.pct_per_year + "%/yr" : ""}`;
+}
+
+document.querySelectorAll(".layer").forEach(l => l.onclick = () => {
+  const k = l.dataset.l; show[k] = !show[k]; l.style.opacity = show[k] ? 1 : .4;
+  $("#sheet").classList.toggle("show-hits", show.hits); drawMarks(); drawProfile();
+});
+$("#flow").oninput = drawProfile; $("#plabel").onchange = drawProfile;
+$("#cmd").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.value.trim()) { ask(e.target.value.trim()); e.target.value = ""; } });
+document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("#cmd").focus(); } });
+$("#exports").onclick = e => { e.stopPropagation(); $("#exports").classList.toggle("open"); };
+document.querySelectorAll("#exports [data-k]").forEach(d => d.onclick = async e => {
+  e.stopPropagation(); $("#exports").classList.remove("open");
+  const t = $("#toast"); t.style.display = "block"; t.textContent = "Preparing " + d.dataset.k + "…";
+  try { const r = await api(`/api/ws/${CASE}/export`, {kind: d.dataset.k}); t.innerHTML = `Ready: <a href="${r.url}" target="_blank">${esc(r.file)}</a>`; }
+  catch (err) { t.textContent = err.message; }
+  setTimeout(() => t.style.display = "none", 9000);
+});
+load().catch(e => document.body.insertAdjacentHTML("afterbegin", `<div class="empty">${esc(e.message)}</div>`));
+</script>
+</body>
+</html>

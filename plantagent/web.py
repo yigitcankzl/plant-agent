@@ -138,6 +138,66 @@ def eps_series(case, run, label, key):
     return out
 
 
+# --- engineering workspace (copilot) -----------------------------------------------------------
+import threading  # noqa: E402
+import uuid  # noqa: E402
+
+WORKSPACES, JOBS = {}, {}
+
+
+def workspace(case):
+    from .copilot import Workspace
+    if case not in WORKSPACES:
+        WORKSPACES[case] = Workspace(case, os.getenv("COPILOT_MODEL", "muse-spark-1.3-contributor"))
+    return WORKSPACES[case]
+
+
+def ws_project(case):
+    from .copilot import structures
+    w = workspace(case)
+    c = w.case.cfg
+    return {"case": case, "title": c["title"], "question": c.get("question"), "has_drawing": bool(w.drawing),
+            "documents": [{"id": k, "title": d["title"]} for k, d in w.project.docs.items()],
+            "datasets": [{"id": k, "title": v.get("title", k)} for k, v in w.project.datasets.items()],
+            "structures": structures(case) if w.drawing else [], "preloaded": w.base,
+            "profiles": [{"label": k, "purpose": v["purpose"], "flows": v.get("flows")} for k, v in w.profiles.items()],
+            "answers": w.answers, "session": w.dir.name}
+
+
+def ws_ask(case, text, context):
+    w = workspace(case)
+    job = uuid.uuid4().hex[:10]
+    JOBS[job] = {"events": [], "done": False, "answer": None, "error": None}
+
+    def listen(e):
+        r = e.get("result")
+        JOBS[job]["events"].append({"kind": e["kind"], "name": e.get("name"), "text": e.get("text"),
+                                    "args": _short(e.get("args"), 140) if e.get("args") else None,
+                                    "result": _short(r, 160) if r is not None else None})
+
+    def work():
+        w.listener = listen
+        try:
+            JOBS[job]["answer"] = w.ask(text, context)
+        except Exception as ex:
+            JOBS[job]["error"] = f"{type(ex).__name__}: {ex}"
+        finally:
+            w.listener, JOBS[job]["done"] = None, True
+    threading.Thread(target=work, daemon=True).start()
+    return {"job": job}
+
+
+def ws_export(case, kind):
+    from .copilot import export
+    w = workspace(case)
+    f = export(w, kind)
+    return {"file": f.name, "url": f"/wsfiles/{case}/{w.dir.name}/{f.name}"}
+
+
+def history_series(case, dataset, parameter):
+    return workspace(case).project.history(dataset, parameter)
+
+
 def profile_at(case, run, label, q):
     study = _json(RUNS / case / run / "study.json")
     p = study["profiles"][label]
@@ -195,8 +255,40 @@ class Handler(SimpleHTTPRequestHandler):
         parts = [p for p in u.path.split("/") if p]
         q = {k: v[0] for k, v in parse_qs(u.query).items()}
         known = set(all_cases())
-        if parts[:1] not in (["api"], ["files"]):
+        if parts[:1] not in (["api"], ["files"], ["wsfiles"]):
             return None
+        if parts[:1] == ["wsfiles"] and len(parts) == 4 and parts[1] in known:
+            f = RUNS / "ws" / parts[1] / Path(parts[2]).name / Path(parts[3]).name
+            if f.exists():
+                return self._send(f.read_bytes(), mimetypes.guess_type(f.name)[0] or "application/octet-stream")
+            return self._send({"error": "not found"}, code=404)
+        if parts[:2] == ["api", "job"] and len(parts) == 3:
+            j = JOBS.get(parts[2])
+            if not j:
+                return self._send({"error": "unknown job"}, code=404)
+            off = int(q.get("offset", 0))
+            return self._send({**j, "events": j["events"][off:], "offset": len(j["events"])})
+        if parts[:2] == ["api", "ws"] and len(parts) == 4 and parts[2] in known:
+            case, what = parts[2], parts[3]
+            body = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}") if method == "POST" else {}
+            if what == "project":
+                return self._send(ws_project(case))
+            if what == "ask" and method == "POST":
+                return self._send(ws_ask(case, body["text"], body.get("context")))
+            if what == "export" and method == "POST":
+                return self._send(ws_export(case, body["kind"]))
+            if what == "history":
+                return self._send(history_series(case, q["dataset"], q["parameter"]))
+            if what == "profile":
+                w = workspace(case)
+                p = w.profiles[q["label"]]
+                r = profile.run(p["spec"], float(q["q"]))
+                for n in r["nodes"]:
+                    if w.drawing and "drawing_ws_ft" in n:
+                        a = _anchor(w.drawing, n["drawing_ws_ft"], n["id"])
+                        n["bbox"] = a["bbox"] if a else None
+                    n["fails"] = any(c["id"] == n["id"] and c["margin_ft"] < 0 for c in r["checks"])
+                return self._send(r)
         if parts[:1] == ["files"] and len(parts) == 4 and parts[1] in known and parts[3] in DELIVERABLES:
             f = RUNS / parts[1] / Path(parts[2]).name / parts[3]
             if f.exists():
