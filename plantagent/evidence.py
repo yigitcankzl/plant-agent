@@ -40,6 +40,8 @@ def collect():
         if not rs[0]["benchmark"]:
             continue
         lines.append(f"| {case} | {rs[0]['task']} | {len(rs)} | {', '.join(f'{r['score']:.0%}' for r in rs)} | {rs[-1]['judge']} | {rs[-1]['agent_model']} |")
+    lines += ["", "Roseburg runs dated 20261028 use the strict redaction (hint sentences such as '22 to 24 mgd ... settled water "
+              "pipeline' removed); earlier Roseburg runs used a looser redaction and are kept for transparency."]
     (OUT / "README.md").write_text("\n".join(lines) + "\n")
     return rows
 
