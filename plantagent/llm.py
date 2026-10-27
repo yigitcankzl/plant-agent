@@ -78,6 +78,29 @@ def complete(model, messages, **params):
     return msg
 
 
+def transcribe(wav: bytes):
+    """Muse Voice Transcribe (push-to-talk). Billed per audio hour; logged in the same ledger and budget."""
+    import urllib.request
+    if spent() >= BUDGET_USD:
+        raise RuntimeError(f"Muse budget reached (${spent():.2f} of ${BUDGET_USD}).")
+    _load_env()
+    b = "----plantagent" + hashlib.sha1(wav[:64]).hexdigest()
+    req = json.dumps({"model": "muse-voice-transcribe-1.0", "audioEncoding": "WAV", "mode": "PUSH_TO_TALK"}).encode()
+    body = (f"--{b}\r\nContent-Disposition: form-data; name=\"request\"\r\nContent-Type: application/json\r\n\r\n").encode() + req + \
+           (f"\r\n--{b}\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"speech.wav\"\r\nContent-Type: audio/wav\r\n\r\n").encode() + \
+           wav + f"\r\n--{b}--\r\n".encode()
+    r = urllib.request.Request(os.getenv("META_BASE_URL", "https://api.meta.ai/v1") + "/asr/transcribe", data=body, method="POST",
+                               headers={"Authorization": "Bearer " + os.environ["META_API_KEY"],
+                                        "Content-Type": f"multipart/form-data; boundary={b}", "Accept": "application/json"})
+    out = json.loads(urllib.request.urlopen(r, timeout=60).read())
+    usd = out.get("audioDurationMs", 0) / 3.6e6 * 0.18
+    LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    with LEDGER.open("a") as f:
+        f.write(json.dumps({"model": "muse-voice-transcribe-1.0", "tag": TAG, "in": 0, "out": 0, "usd": round(usd, 6),
+                            "audio_ms": out.get("audioDurationMs")}) + "\n")
+    return out
+
+
 def chat(model, messages, **params):
     return complete(model, messages, **params)["content"]
 

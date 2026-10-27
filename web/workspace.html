@@ -319,7 +319,7 @@
   </section>
   <aside id="ovl"></aside>
   <div id="askbar"><input id="ask2" placeholder="Ask about this plant…" autocomplete="off">
-    <div class="sugg" id="sugg"></div><label class="btn" title="Field photo: nameplate or gauge" style="padding:11px 13px;font-size:16px;cursor:pointer">📷<input type="file" id="photo" accept="image/*" hidden></label><button class="big" id="askgo">Ask</button></div>
+    <div class="sugg" id="sugg"></div><button class="btn" id="mic" title="Speak your question (Muse Voice Transcribe)" style="padding:11px 13px;font-size:16px">🎤</button><label class="btn" title="Field photo: nameplate or gauge" style="padding:11px 13px;font-size:16px;cursor:pointer">📷<input type="file" id="photo" accept="image/*" hidden></label><button class="big" id="askgo">Ask</button></div>
   <section class="bp">
     <div class="bptabs"><div class="bpt on" data-b="problems">Problems <span class="n" id="probn"></span></div><div class="bpt" data-b="profile">Profile &amp; flow</div><div class="bpt" data-b="activity">Activity</div></div>
     <div class="bpp on" id="pb-problems"></div>
@@ -821,6 +821,38 @@ document.addEventListener("dragover", e => { e.preventDefault(); document.body.c
 document.addEventListener("dragleave", e => { if (!e.relatedTarget) document.body.classList.remove("dragging"); });
 document.addEventListener("drop", e => { e.preventDefault(); document.body.classList.remove("dragging");
   const f = e.dataTransfer.files[0]; if (f && f.type.startsWith("image/") && document.body.classList.contains("simple")) fieldPhoto(f); });
+
+
+// ---- voice: push to talk, transcribed by Muse Voice Transcribe ---------------------------------------
+let REC = null;
+async function micToggle() {
+  const b = $("#mic");
+  if (REC) {  // stop: encode 16 kHz mono WAV, transcribe, ask
+    const {ctx, node, src, stream, chunks} = REC; REC = null;
+    node.disconnect(); src.disconnect(); stream.getTracks().forEach(t => t.stop());
+    const rate = ctx.sampleRate; await ctx.close();
+    const all = new Float32Array(chunks.reduce((n, c) => n + c.length, 0)); let o = 0; chunks.forEach(c => { all.set(c, o); o += c.length; });
+    const ratio = rate / 16000, n = Math.floor(all.length / ratio), pcm = new Int16Array(n);
+    for (let i = 0; i < n; i++) { const v = Math.max(-1, Math.min(1, all[Math.floor(i * ratio)])); pcm[i] = v * 32767; }
+    const buf = new ArrayBuffer(44 + pcm.length * 2), dv = new DataView(buf), w = (p, s) => [...s].forEach((c, i) => dv.setUint8(p + i, c.charCodeAt(0)));
+    w(0, "RIFF"); dv.setUint32(4, 36 + pcm.length * 2, true); w(8, "WAVE"); w(12, "fmt "); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true);
+    dv.setUint16(22, 1, true); dv.setUint32(24, 16000, true); dv.setUint32(28, 32000, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true);
+    w(36, "data"); dv.setUint32(40, pcm.length * 2, true); new Int16Array(buf, 44).set(pcm);
+    b.textContent = "…"; $("#ask2").placeholder = "Muse is transcribing…";
+    try { const r = await (await fetch(`/api/ws/${CASE}/voice`, {method: "POST", body: new Blob([buf], {type: "audio/wav"})})).json();
+      b.textContent = "🎤"; $("#ask2").placeholder = "Ask about this plant…";
+      if (r.transcript) { $("#ask2").value = r.transcript; setTimeout(() => simpleAsk(r.transcript, null, "🎤 " + r.transcript), 700); } }
+    catch (e) { b.textContent = "🎤"; alert(e.message); }
+    return;
+  }
+  const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+  const ctx = new AudioContext(), src = ctx.createMediaStreamSource(stream), node = ctx.createScriptProcessor(4096, 1, 1), chunks = [];
+  node.onaudioprocess = e => chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+  src.connect(node); node.connect(ctx.destination);
+  REC = {ctx, node, src, stream, chunks}; b.textContent = "⏺"; b.style.background = "rgba(239,90,79,.3)";
+  $("#ask2").placeholder = "Listening… press 🎤 again to stop";
+}
+$("#mic")?.addEventListener("click", () => { micToggle(); $("#mic").style.background = REC ? "rgba(239,90,79,.3)" : ""; });
 
 // ---- cockpit -----------------------------------------------------------------------------------
 let UNITS = [];

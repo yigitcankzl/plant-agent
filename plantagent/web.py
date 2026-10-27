@@ -337,6 +337,10 @@ class Handler(SimpleHTTPRequestHandler):
             return self._send({**j, "events": j["events"][off:], "offset": len(j["events"])})
         if parts[:2] == ["api", "ws"] and len(parts) == 4 and parts[2] in known:
             case, what = parts[2], parts[3]
+            if what == "voice" and method == "POST":
+                from . import llm
+                data = self.rfile.read(int(self.headers.get("Content-Length") or 0))
+                return self._send(llm.transcribe(data))
             if what == "photo" and method == "POST":
                 from .copilot import read_photo
                 data = self.rfile.read(int(self.headers.get("Content-Length") or 0))
