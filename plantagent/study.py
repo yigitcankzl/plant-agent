@@ -89,7 +89,8 @@ ENG_TOOLS = [
      "(id, item, x variable and unit, valid range, dollar basis).", "parameters": {"type": "object", "properties": {}}}},
     {"type": "function", "function": {"name": "cost_estimate", "description": "Order-of-magnitude capital cost of an alternative "
      "from the curves, escalated by ENR CCI, with the AACE class range. lines: [{id, x, qty (count, or length ft for per-foot "
-     "curves), note}]. Logged under `label` (use the alternative's name).",
+     "curves), note}]. Logged under `label` (use the alternative's name). Match the curve's scope: complete-station curves "
+     "only for a new or rebuilt station; equipment curves (pump, VFD, tank) for equipment added to an existing one.",
      "parameters": {"type": "object", "properties": {"label": {"type": "string"}, "lines": {"type": "array", "items": {"type": "object"}},
                     "aace_class": {"type": "integer", "enum": [4, 5]}}, "required": ["label", "lines"]}}},
     {"type": "function", "function": {"name": "standards_list", "description": "Design-standard rules (Ten States Standards water "

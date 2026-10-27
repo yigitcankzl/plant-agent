@@ -43,6 +43,8 @@ def estimate(lines, aace_class=5, target=TARGET):
                      "unit_cost_base": round(unit), "base_year": c["base_year"], "escalation": round(esc, 3),
                      "cost": round(cost, -3), "note": ln.get("note", ""),
                      "warnings": ([f"x outside curve range {lo}-{hi}"] if not lo <= x <= hi else []) +
+                                 (["fixed term is most of this cost: the curve prices a complete facility, not added equipment"]
+                                  if "a + b*x" in c["form"] and not c["form"].startswith("cost_per_ft") and c["a"] > 0.5 * unit else []) +
                                  ([f"not escalated: source in {c['base_year']} $ indexed by PPI"] if not c.get("enr_base") else []),
                      "source": f"{c['source']}, {c['page']}"})
     k = DATA["aace"]["classes"][str(aace_class)]

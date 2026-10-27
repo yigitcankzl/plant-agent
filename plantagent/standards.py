@@ -31,7 +31,7 @@ def check(items):
             out.append({"rule_id": r["id"], "status": "not checked", "reason": it.get("basis", "no value")}); continue
         v = v if isinstance(v, bool) else float(v)
         out.append({"rule_id": r["id"], "status": "pass" if _ok(r["op"], v, r["value"]) else "FAIL",
-                    "value": round(v, 3) if not isinstance(v, bool) else v, "limit": f"{r['op']} {r['value']} {r['unit']}",
+                    "value": round(v, 4) if not isinstance(v, bool) else v, "limit": f"{r['op']} {r['value']} {r['unit']}",
                     "rule": r["rule"], "citation": f"{r['edition']}, Sec. {r['section']} ({r['source_page']})",
                     "basis": it.get("basis", "")})
     return out
