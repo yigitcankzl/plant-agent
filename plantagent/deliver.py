@@ -88,7 +88,9 @@ def write_deliverables(d, study, memo, summary):
                                    "spec": json.dumps(v["spec"])} for k, v in runs.items()],
               "Profile runs": [{"label": k, "purpose": v["purpose"], "flow_mgd": r["flow_mgd"], "passes": r["passes"],
                                 "nodes": json.dumps(r["nodes"]), "checks": json.dumps(r["checks"])}
-                               for k, v in (study.get("profiles") or {}).items() for r in v["results"]]}
+                               for k, v in (study.get("profiles") or {}).items() for r in v["results"]],
+              "Surge runs": [{"label": k, "purpose": v["purpose"], "event": json.dumps(v["args"]), "nodes": json.dumps(v["result"].get("nodes")),
+                              "spec": json.dumps(v["spec"])} for k, v in (study.get("surges") or {}).items()]}
     wb.remove(wb.active)
     for name, data in sheets.items():
         ws = wb.create_sheet(name)

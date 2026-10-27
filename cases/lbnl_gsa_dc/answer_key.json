@@ -1,0 +1,24 @@
+{
+  "source": "LBNL 2014, Executive Summary (PDF p.7) and Section 8 Energy-Efficiency Packages and Results (PDF p.37-42). Withheld from the agent; diagnosis sentences in Section 7 are stripped.",
+  "withheld_pages": [[7, 7], [37, 42]],
+  "items": [
+    {"id": "air_management", "unit": "Data center air management / CAUs",
+     "engineers": "Overcooled with heavy bypass and recirculation (SAT ~62F, rack dT ~8F, RTI off target, BPA/RA 37-42%): seal floor and rack openings, blanking panels, contain hot aisles with ceiling return/chimneys, rearrange perforated tiles, raise supply air to ~80F, turn off some CAUs (Package 1: ~40 kW, 350,000 kWh/yr, ~$25,000/yr, cost $25,000, 1.0 yr payback).",
+     "leak_phrases": ["Turn off some CAU units to achieve airflow reduction", "Install chimneys on the CAU units"]},
+    {"id": "chw_bypass_setpoint", "unit": "Chilled water plant",
+     "engineers": "Secondary pump VFD not getting the right signal and more than 60% of secondary flow recirculates through the bypass, diluting supply temperature; control the bypass, raise CHWS setpoint from 43.6F to at least 55F (>15% chiller efficiency gain) and reduce CHW flow by increasing dT (Package 2: 14.2 kW, 125,000 kWh/yr, $8,700/yr, cost $10,000, 1.1 yr); recommission the BAS sensors.",
+     "leak_phrases": ["More than 60 percent of the secondary flow returns directly", "15 percent improvement in chiller efficiency"]},
+    {"id": "glycol_pumps", "unit": "Glycol primary and secondary pumps",
+     "engineers": "Run both glycol secondary pumps at lower speed with DP control (Package 5: 14 kW, 123,000 kWh/yr, $8,600/yr, cost $5,000, 0.6 yr); install VFDs on glycol primary pumps, run all at lower speed with DP control (Package 6: 15 kW, 263,000 kWh/yr, $18,400/yr, cost $30,000, 1.6 yr).",
+     "leak_phrases": ["Run both glycol secondary pumps, but at a lower speed", "Install VFDs on glycol primary pumps"]},
+    {"id": "eliminate_dx_economizer", "unit": "Cooling system architecture",
+     "engineers": "Convert data center cooling to chilled water only and abandon the glycol/DX system, using higher-temperature chilled water (>55F) and water-side economizer heat exchangers; building-wide water-side economizer worth ~$140,000/yr with 1.7 yr payback.",
+     "leak_phrases": ["abandon the glycol system completely", "save $140,000 in annual energy costs"]},
+    {"id": "minor_electrical_lighting", "unit": "UPS, generator, lighting",
+     "engineers": "Reset standby generator block heater setpoint (Package 4: 5 kW, 44,000 kWh/yr, $3,100, 0.8 yr); move lights over aisles, reduce lighting, occupancy sensors (Package 3: 4.2 kW, 24,000 kWh/yr, 3.0 yr); buy >96% efficient UPS when replacing (UPS now ~90% at 65-69% load).",
+     "leak_phrases": ["Reset the generator block heater setpoint", "acquire very efficient (> 96 percent) UPS"]},
+    {"id": "total", "unit": "Whole data center",
+     "engineers": "All packages: ~92 kW, ~929,000 kWh/yr (>23% of data center electricity), ~$65,000/yr, cost $77,500, 1.2 yr payback; total load 404 -> 312 kW, PUE 2.26 -> 1.74.",
+     "leak_phrases": ["The estimated saving is about 930 megawatt-hours per year", "Potential Facility Performance, PUE = 1.74"]}
+  ]
+}

@@ -10,7 +10,7 @@ import json
 import time
 from pathlib import Path
 
-from . import cad, llm, profile, sim
+from . import cad, llm, profile, sim, surge
 from .docs import Case
 from .deliver import write_deliverables
 
@@ -58,6 +58,46 @@ PROFILE_TOOLS = [
     {"type": "function", "function": {"name": "profile_capacity", "description": "For a logged profile run: the plant flow at which each limit reaches zero margin.",
      "parameters": {"type": "object", "properties": {"label": {"type": "string"}}, "required": ["label"]}}},
 ]
+
+SURGE_TOOLS = [
+    {"type": "function", "function": {"name": "run_surge",
+     "description": "Transient (water hammer) simulation of a pump trip on a run_hydraulics network spec; logs it under `label`. "
+                    "Returns steady, max and min pressure at every junction and a vapour (column separation) flag. Args: " + json.dumps(surge.SPEC_HELP),
+     "parameters": {"type": "object", "properties": {"label": {"type": "string"}, "purpose": {"type": "string"}, "spec": {"type": "object"},
+                    "event": {"type": "object"}, "protection": {"type": "array", "items": {"type": "object"}},
+                    "wave_speed_mps": {"type": "number"}, "sim_time_s": {"type": "number"}}, "required": ["label", "spec", "event"]}}},
+]
+
+# How a consulting engineer approaches each kind of question (added to the analysis step).
+TASK_GUIDES = {
+    "capacity": "Capacity study: for every unit on the flow path find the flow at which it limits (hydraulic and treatment "
+                "ratings separately), firm capacity with the largest unit out of service, then the least-cost fix per limiting unit.",
+    "troubleshoot": "Troubleshooting: list every plausible fault hypothesis from the system description (each valve, non-return "
+                    "valve, bypass, partly closed or stuck valve, worn impeller, air, blockage). Simulate each hypothesis as its own "
+                    "network variant and compare it with EVERY measured point; rank hypotheses by residual. The diagnosis is the "
+                    "hypothesis that reproduces the measurements, not the first plausible one. Then quantify the gain from fixing it.",
+    "energy": "Energy audit: establish the measured baseline (kWh per volume, duty points). Simulate where each pump runs "
+              "relative to its best efficiency point. Split losses into pump, motor, drive, throttling and control strategy. "
+              "Check whether a VFD really saves energy here (static-head-dominated systems often lose efficiency when slowed). "
+              "Give each measure with simulated savings and a simple payback basis.",
+    "surge": "Surge analysis: build the steady-state network first, then simulate pump trips with run_surge. Compare the minimum "
+             "and maximum pressures with the pipe pressure rating and with vapour pressure (column separation at high points). "
+             "Test protection options (air chamber, surge tank, slower valve closure) in the simulator and size the smallest one that works.",
+    "failure": "Failure investigation: build the timeline, identify the failure mode, check the hydraulic conditions at failure "
+               "(pressure vs. rating, transients, velocity) in the simulator where data allows, separate root cause from contributing "
+               "factors, and give recommendations that prevent recurrence.",
+    "design": "Pump station and force main design: system curves for existing and proposed mains, pump/impeller selection by "
+              "simulated operating point, maximum operating pressure vs. pipe rating, and alternatives compared on life-cycle cost.",
+}
+
+
+def task_guide(task_type):
+    t = task_type.lower()
+    keys = [k for k, words in {"capacity": ["capacity", "expansion", "uprate"], "troubleshoot": ["troubleshoot", "diagnos"],
+                               "energy": ["energy", "efficiency"], "surge": ["surge", "transient", "hammer"],
+                               "failure": ["failure", "incident", "investigation"], "design": ["design", "force main"]}.items()
+            if any(w in t for w in words)]
+    return "\n".join(TASK_GUIDES[k] for k in keys)
 
 
 def unstring(v):
@@ -154,6 +194,7 @@ class Study:
     def __init__(self, case, model):
         self.case, self.model = Case(case), model
         self.profiles = {}  # label -> {purpose, spec, flows, results}
+        self.surges = {}  # label -> {purpose, spec, args, result}
         self.drawing = None
         self.dir = Path("runs") / case / time.strftime("%Y%m%d-%H%M%S")
         self.dir.mkdir(parents=True)
@@ -199,6 +240,14 @@ class Study:
             results = [profile.run(a["spec"], float(q)) for q in flows]
             self.profiles[label] = {"purpose": a.get("purpose", ""), "spec": a["spec"], "flows": flows, "results": results}
             return {"label": label, "results": results}
+        if name == "run_surge":
+            label = a.get("label") or f"surge{len(self.surges) + 1}"
+            if label in self.surges:
+                label = f"{label}-{len(self.surges) + 1}"
+            kw = {k: a[k] for k in ("protection", "wave_speed_mps", "sim_time_s") if a.get(k) is not None}
+            result = surge.run(a["spec"], a["event"], **kw)
+            self.surges[label] = {"purpose": a.get("purpose", ""), "spec": a["spec"], "args": {"event": a["event"], **kw}, "result": result}
+            return {"label": label, **result}
         if name == "profile_capacity":
             return {"label": a["label"], "limits": profile.capacity(self.profiles[a["label"]]["spec"])}
         if name == "velocity":
@@ -252,7 +301,7 @@ class Study:
         c, t0 = self.case, time.time()
         drawing = "profile" in c.cfg.get("simulators", [])
         rules = RULES + (DRAWING_RULES if drawing else "")
-        sim_tools = SIM_TOOLS + (PROFILE_TOOLS if drawing else [])
+        sim_tools = SIM_TOOLS + (PROFILE_TOOLS if drawing else []) + (SURGE_TOOLS if "tsnet" in c.cfg.get("simulators", []) else [])
         doc_tools = DOC_TOOLS + (PROFILE_TOOLS[:1] if drawing else [])
         llm.TAG = c.name
         usd0 = llm.spent(c.name)
@@ -272,13 +321,14 @@ class Study:
                              "\n\nNow: (3) build the hydraulic model and calibrate it against every field test in the data "
                              "register, reporting residuals; (4) name the calibrated base run; (5) evaluate every unit against "
                              "the question; (6) for each limiting unit, verify 2-4 alternatives in the simulator and give an "
-                             "order-of-magnitude cost class with its basis. Mark the recommended option." +
+                             "order-of-magnitude cost class with its basis. Mark the recommended option.\n" +
+                             task_guide(c.cfg["task_type"]) +
                              (" (7) list drawing_changes: for each recommended modification, the drawing elevation it "
                               "belongs to (anchor_value) and a one-line revision note." if drawing else ""),
                              DOC_TOOLS + sim_tools + [SUBMIT_ANALYSIS], "submit_analysis", 45)
 
         print(f"[{c.name}] step 7: independent QA/QC")
-        run_index = {k: v["purpose"] for k, v in {**self.runs, **self.profiles}.items()}
+        run_index = {k: v["purpose"] for k, v in {**self.runs, **self.profiles, **self.surges}.items()}
         checker_tools = DOC_TOOLS + sim_tools + [
             {"type": "function", "function": {"name": "rerun", "description": "Re-execute a logged simulation by label and compare with its logged result.",
              "parameters": {"type": "object", "properties": {"label": {"type": "string"}}, "required": ["label"]}}},
@@ -310,7 +360,7 @@ class Study:
         print(f"[{c.name}] step 8: deliverables")
         study = {"case": c.name, "facility": c.cfg["title"], "source": c.cfg["source"], "url": c.cfg.get("url"),
                  "question": c.question, "model": self.model, "collection": collect, "analysis": analysis,
-                 "review": review, "resolution": resolution, "runs": self.runs, "profiles": self.profiles,
+                 "review": review, "resolution": resolution, "runs": self.runs, "profiles": self.profiles, "surges": self.surges,
                  "drawing": self.drawing}
         memo = llm.chat(self.model, [
             {"role": "system", "content": "You write technical memoranda for a consulting engineering firm. Use only facts and "
@@ -318,7 +368,7 @@ class Study:
              "Background; Design Criteria; Data and Assumptions; Model Calibration; Capacity Evaluation (table); Alternatives "
              "(table with cost class); QA/QC Summary; Recommendations; Limitations. Markdown. Start with the line: "
              "'DRAFT - prepared by an AI agent; requires review and approval by a licensed professional engineer.'"},
-            {"role": "user", "content": json.dumps({k: v for k, v in study.items() if k not in ("runs", "profiles", "drawing")})}])
+            {"role": "user", "content": json.dumps({k: v for k, v in study.items() if k not in ("runs", "profiles", "drawing", "surges")})}])
         summary = {"case": c.name, "model": self.model, "llm_steps": self.steps, "simulations": len(self.runs),
                    "wall_time_s": round(wall_s if wall_s is not None else time.time() - t0), "cost_usd": round(llm.spent(c.name) - usd0, 4)}
         write_deliverables(self.dir, study, memo, summary)
@@ -331,7 +381,7 @@ class Study:
         run_dir = Path(run_dir)
         self = cls.__new__(cls)
         self.case, self.model, self.dir, self.runs, self.steps = Case(run_dir.parent.name), model, run_dir, {}, 0
-        self.profiles, self.drawing = {}, None
+        self.profiles, self.drawing, self.surges = {}, None, {}
         subs = {}
         for line in (run_dir / "log.jsonl").read_text().splitlines():
             e = json.loads(line)
@@ -344,6 +394,9 @@ class Study:
                 a = unstring(e["args"])
                 self.profiles[e["result"]["label"]] = {"purpose": a.get("purpose", ""), "spec": a["spec"],
                                                        "flows": a.get("flows_mgd"), "results": e["result"]["results"]}
+            elif e.get("tool") == "run_surge" and isinstance(e["result"], dict) and "label" in e["result"]:
+                a, r = unstring(e["args"]), dict(e["result"])
+                self.surges[r.pop("label")] = {"purpose": a.get("purpose", ""), "spec": a["spec"], "args": {"event": a.get("event")}, "result": r}
             elif e.get("tool") == "read_drawing" and isinstance(e["result"], dict) and "elevations" in e["result"]:
                 self.drawing = read_drawing(self.case, e["args"]["page"])
             elif "assistant" in e:

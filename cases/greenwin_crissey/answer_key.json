@@ -1,0 +1,24 @@
+{
+  "source": "Arcadis 2020, Section 4.2 VSD energy analysis (PDF p.13), Table 4 (p.14, stripped), Sections 6-7 findings and recommendations (p.15-17). Withheld. Confirmation: Green WIN phase 2 summary p.38-39 (Xylem pump and automation installed 2021, fixed speed; specific energy 52-81 -> 42 kWh/1000 m3, -36.8%).",
+  "withheld_pages": [[13, 13], [15, 17]],
+  "items": [
+    {"id": "selection_ok", "unit": "Pump selection",
+     "engineers": "Xylem CT3400/736 (about 610 l/s, 77.5% overall, 43.5 kWh/1000 m3 at design lift; ~800 l/s at minimum lift) is well matched to the system and the range of operating levels; IE3 motor not available for this model; CT3531 alternative is only marginally different, ask Xylem to confirm lowest whole-life cost.",
+     "leak_phrases": ["is well matched to the system and range of operating levels"]},
+    {"id": "no_vsd", "unit": "Drives",
+     "engineers": "VSD reduces specific energy only at low lift (33.3 -> 25.4 kWh/1000 m3 at 40 Hz, 571 l/s) and increases it at design lift (43.5 -> 44.8) due to drive losses; high Saône levels (>175 mNGF) occur only ~5% of the time and energy costs are low, so VSD capital cost would outweigh savings: continue with fixed speed drives.",
+     "leak_phrases": ["reduction in specific energy using VSDs at reduced speed", "Continue with fixed speed drives"]},
+    {"id": "energy", "unit": "Annual energy",
+     "engineers": "At 880,000 m3/yr: old pump 52.4 kWh/1000 m3 -> 46,112 kWh/yr; new pump 43.5 -> 38,280 kWh/yr; saving ~7,832 kWh/yr (~17%), a modest saving since running costs are low.",
+     "leak_phrases": ["The new pumps provide modest energy saving"]},
+    {"id": "power_factor", "unit": "Electrical",
+     "engineers": "For fixed speed drives, power factor correction is recommended (CT3400 PF ~0.8-0.82).",
+     "leak_phrases": ["For fixed speed drives power factor correction is recommended"]},
+    {"id": "pipework", "unit": "Discharge riser and flowmeter",
+     "engineers": "Replace the DN700 riser section upstream of the DN600 flowmeter with DN600 (2.8 m/s at 800 l/s exceeds 2.2 m/s but <3 m/s is acceptable for short lengths; extra friction offset by removing the expansion taper and a reducer); move the valve down to the landing below to get 5D upstream / 2D downstream straight lengths for the flowmeter.",
+     "leak_phrases": ["600 mm diameter pipe produces a velocity of 2.8 m/s", "Replace DN700 section with"]},
+    {"id": "control", "unit": "Operation",
+     "engineers": "Install automated control based on downstream (and upstream) level monitoring, plus SCADA with performance metric reporting (pump power, flow) and possible smart control adjustment.",
+     "leak_phrases": ["Install SCADA system and introduce performance metric reporting"]}
+  ]
+}

@@ -3,6 +3,7 @@
 Usage: python -m plantagent.grade [run_dir ...]   (default: latest run of every case)
 """
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -10,7 +11,8 @@ from pathlib import Path
 from . import llm
 from .docs import Case
 
-JUDGE = "muse-spark-1.3-contributor"
+# The judge is a stronger model than the agent's study model, so the score is not self-graded. ~$0.05 per case.
+JUDGE = os.getenv("JUDGE_MODEL", "muse-wonder-1.0")
 SCORE = {"found": 1.0, "partially": 0.5, "missed": 0.0, "contradicted": 0.0}
 
 PROMPT = """You grade an AI engineering study against the answer key written by the professional engineers.
@@ -30,6 +32,7 @@ def grade(run_dir):
     key = Case(study["case"]).answer_key
     findings = study["analysis"].get("findings", [])
     alternatives = study["analysis"].get("alternatives", [])
+    llm.TAG = "grade:" + study["case"]
     out = _json(llm.chat(JUDGE, [{"role": "system", "content": PROMPT}, {"role": "user", "content": json.dumps(
         {"answer_key": [{k: i[k] for k in ("id", "unit", "engineers")} for i in key["items"]],
          "agent_findings": findings, "agent_alternatives": alternatives})}], temperature=0))
@@ -39,7 +42,7 @@ def grade(run_dir):
         v = verdicts.get(item["id"], {"verdict": "missed", "note": "not graded"})
         rows.append({"id": item["id"], "unit": item["unit"], "verdict": v["verdict"], "note": v.get("note", "")})
     score = sum(SCORE.get(r["verdict"], 0) for r in rows) / len(rows)
-    result = {"case": study["case"], "score": round(score, 3), "items": rows}
+    result = {"case": study["case"], "judge": JUDGE, "agent_model": study.get("model"), "score": round(score, 3), "items": rows}
     (run_dir / "grade.json").write_text(json.dumps(result, indent=2))
     return result
 
