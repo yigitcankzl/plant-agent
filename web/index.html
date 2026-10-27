@@ -102,12 +102,14 @@
   <section class="view">
     <div class="tabs">
       <div class="tab on" data-p="drawing">Drawing &amp; flow</div>
+      <div class="tab" data-p="calib">Calibration</div>
       <div class="tab" data-p="compare">Agent vs. engineers</div>
       <div class="tab" data-p="report">Report</div>
       <div class="tab" data-p="files">Deliverables</div>
       <div class="tab" data-p="bench">Benchmark</div>
     </div>
     <div class="pane on" id="p-drawing"></div>
+    <div class="pane" id="p-calib"></div>
     <div class="pane" id="p-compare"></div>
     <div class="pane" id="p-report"></div>
     <div class="pane" id="p-files"></div>
@@ -177,7 +179,7 @@ async function selectRun() {
   const lg = await api(`/api/run/${c}/${r}/log`);
   showEvents(lg.events, false);
   if (!lg.finished) follow(c, r, lg.offset, lg.events);
-  renderDrawing(); renderCompare(); renderFiles(); renderReport(); renderBench();
+  renderDrawing(); renderCalib(); renderCompare(); renderFiles(); renderReport(); renderBench();
 }
 
 function follow(c, r, offset, evs) {  // live study: poll the log until the deliverables are written
@@ -279,6 +281,45 @@ function chart(r) {
   nodes.forEach((n, i) => s += `<circle cx="${X(i)}" cy="${Y(n.ws_ft)}" r="3.5" fill="${n.fails ? "#c0261f" : col}"/>`);
   s += `<text x="${W - 12}" y="16" font-size="10" text-anchor="end">□ drawing  ─ ─ limit  ● ${r.flow_mgd} MGD${r.passes ? "" : " (fails)"}</text>`;
   svg.innerHTML = s;
+}
+
+// ---- time-series calibration ----------------------------------------------------------------
+function renderCalib() {
+  const p = $("#p-calib");
+  if (!cur.eps_runs || !cur.eps_runs.length) { p.innerHTML = `<div class="empty">This study has no time-series calibration.</div>`; return; }
+  const runs = cur.eps_runs.filter(r => r.tool === "eps_run");
+  const best = runs.reduce((a, r) => (r.score != null && (a == null || r.score < a.score)) ? r : a, null) || runs[runs.length - 1];
+  p.innerHTML = `<div class="controls" style="grid-template-columns:auto 1fr 1fr">
+      <div class="flow" style="font-size:16px">SCADA vs. model</div>
+      <select id="eserie">${cur.eps_series.map(k => `<option>${esc(k)}</option>`).join("")}</select>
+      <select id="elabel">${runs.map(r => `<option value="${esc(r.label)}" ${r === best ? "selected" : ""}>${esc(r.label)} — rel. RMSE ${r.score ?? "?"}</option>`).join("")}</select>
+    </div>
+    <div class="card"><svg id="echart" viewBox="0 0 1000 340" width="100%"></svg>
+      <div class="note" id="enote"></div></div>
+    <div class="card" style="margin-top:12px"><h3>Calibration log</h3><table>${cur.eps_runs.map(r =>
+      `<tr><td class="num">${esc(r.label)}</td><td>${esc(r.tool)}</td><td>${esc(r.purpose)}</td><td class="num">${esc(r.score)}</td></tr>`).join("")}</table></div>`;
+  $("#eserie").onchange = $("#elabel").onchange = drawCalib;
+  const tank = cur.eps_series.find(k => k.startsWith("tank:")); if (tank) $("#eserie").value = tank;
+  drawCalib();
+}
+
+async function drawCalib() {
+  $("#enote").textContent = "simulating…";
+  const d = await api(`/api/run/${cur.case}/${cur.run}/eps?label=${encodeURIComponent($("#elabel").value)}&series=${encodeURIComponent($("#eserie").value)}`);
+  const W = 1000, H = 340, L = 50, B = 30;
+  const all = [...d.observed, ...d.nominal, ...d.calibrated].map(x => x[1]).filter(Number.isFinite);
+  const y0 = Math.min(...all), y1 = Math.max(...all), pad = (y1 - y0) * 0.08 || 1;
+  const X = t => L + (W - L - 10) * t / d.hours, Y = v => 10 + (H - B - 10) * (1 - (v - y0 + pad) / (y1 - y0 + 2 * pad));
+  const line = (pts, col, w, dash) => `<polyline fill="none" stroke="${col}" stroke-width="${w}" ${dash ? `stroke-dasharray="${dash}"` : ""}
+     points="${pts.filter(p => Number.isFinite(p[1])).map(p => `${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join(" ")}"/>`;
+  let s = "";
+  for (let k = 0; k <= 4; k++) { const v = y0 - pad + (y1 - y0 + 2 * pad) * k / 4;
+    s += `<line x1="${L}" x2="${W - 10}" y1="${Y(v)}" y2="${Y(v)}" stroke="#e4ded2"/><text x="${L - 6}" y="${Y(v) + 4}" font-size="11" text-anchor="end" font-family="monospace">${v.toFixed(2)}</text>`; }
+  for (let h = 0; h <= d.hours; h += 24) s += `<text x="${X(h)}" y="${H - 8}" font-size="11" text-anchor="middle" font-family="monospace">day ${h / 24}</text>`;
+  s += line(d.observed, "#1d2733", 1.2) + line(d.nominal, "#b0a99a", 1.6, "5 3") + line(d.calibrated, "#c0261f", 1.8);
+  s += `<text x="${W - 14}" y="22" font-size="12" text-anchor="end">— SCADA   - - utility model (nominal)   <tspan fill="#c0261f">— agent-calibrated</tspan></text>`;
+  $("#echart").innerHTML = s;
+  $("#enote").textContent = `Changes applied: ${d.changes.map(c => `${c.target}.${c.attr} ${c.op} ${c.value}`).join("; ") || "none"}`;
 }
 
 // ---- other panes ----------------------------------------------------------------------------

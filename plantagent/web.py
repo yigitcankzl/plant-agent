@@ -17,7 +17,7 @@ from urllib.parse import parse_qs, urlparse
 
 import pymupdf
 
-from . import profile
+from . import eps, profile
 from .deliver import _anchor
 from .docs import Case, all_cases
 
@@ -100,7 +100,42 @@ def run_detail(case, run):
                                 for ch in an.get("drawing_changes") or [] if isinstance(ch, dict)] if study.get("drawing") else [],
             "profiles": [{"label": k, "purpose": v["purpose"], "flows": v["flows"]} for k, v in (study.get("profiles") or {}).items()],
             "base_profile": an.get("base_profile_run"), "has_drawing": bool(study.get("drawing")),
+            "eps_runs": [{"label": k, "tool": v["tool"], "purpose": v["purpose"],
+                          "score": v["result"].get("mean_relative_rmse", v["result"].get("after_mean_relative_rmse"))}
+                         for k, v in (study.get("eps_runs") or {}).items()],
+            "eps_series": list(eps.load_observations(str(__import__("plantagent.study", fromlist=["x"]).case_file(
+                Case(case), Case(case).cfg["eps"]["observations"]))).keys()) if "eps" in Case(case).cfg else [],
             "files": [f for f in DELIVERABLES if (d / f).exists()]}
+
+
+@lru_cache(maxsize=32)
+def _eps_sim(inp, changes_json, hours):
+    wn, res = eps.simulate(inp, json.loads(changes_json), hours)
+    return wn, res
+
+
+def eps_series(case, run, label, key):
+    """Observed vs. simulated time series for one sensor: nominal model and the run's changes."""
+    from .docs import DATA
+    from .study import case_file
+    c = Case(case)
+    cfg = c.cfg["eps"]
+    inp, obs = str(DATA / cfg["inp"]), eps.load_observations(str(case_file(c, cfg["observations"])))
+    study = _json(RUNS / case / run / "study.json") or {}
+    r = (study.get("eps_runs") or {}).get(label, {})
+    changes = r.get("args", {}).get("changes") or r.get("result", {}).get("fitted_changes") or []
+    hours = float(r.get("args", {}).get("duration_h") or cfg.get("duration_h", 24))
+    t_obs, y_obs = obs[key]
+    out = {"series": key, "label": label, "changes": changes, "hours": hours}
+    for name, ch in (("nominal", []), ("calibrated", changes)):
+        wn, res = _eps_sim(inp, json.dumps(ch, sort_keys=True), hours)
+        t, y = eps.series(wn, res, key)
+        step = max(1, len(t) // 600)
+        out[name] = [[round(float(a), 3), round(float(b), 3)] for a, b in zip(t[::step], y[::step])]
+    step = max(1, len(t_obs) // 600)
+    m = t_obs <= hours
+    out["observed"] = [[round(float(a), 3), round(float(b), 3)] for a, b in zip(t_obs[m][::step], y_obs[m][::step])]
+    return out
 
 
 def profile_at(case, run, label, q):
@@ -184,6 +219,8 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(log_events(case, run, int(q.get("offset", 0))))
             if what == "detail":
                 return self._send(run_detail(case, run))
+            if what == "eps":
+                return self._send(eps_series(case, run, q["label"], q["series"]))
             if what == "profile":
                 return self._send(profile_at(case, run, q["label"], float(q["q"])))
         return self._send({"error": "not found"}, code=404)
