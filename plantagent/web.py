@@ -337,6 +337,17 @@ class Handler(SimpleHTTPRequestHandler):
             return self._send({**j, "events": j["events"][off:], "offset": len(j["events"])})
         if parts[:2] == ["api", "ws"] and len(parts) == 4 and parts[2] in known:
             case, what = parts[2], parts[3]
+            if what == "reveal":
+                w = workspace(case)
+                g = _json(w.study_dir / "grade.json") if w.study_dir else None
+                if not g:
+                    graded = sorted(p for p in (RUNS / case).glob("2*") if (p / "grade.json").exists())
+                    g = _json(graded[-1] / "grade.json") if graded else None
+                key = w.case.answer_key or {}
+                v = {i["id"]: i for i in (g or {}).get("items", [])}
+                return self._send({"score": (g or {}).get("score"), "judge": (g or {}).get("judge"), "source": key.get("source"),
+                                   "items": [{"unit": i["unit"], "engineers": i["engineers"], "verdict": v.get(i["id"], {}).get("verdict"),
+                                              "note": v.get(i["id"], {}).get("note")} for i in key.get("items", [])]})
             if what == "voice" and method == "POST":
                 from . import llm
                 data = self.rfile.read(int(self.headers.get("Content-Length") or 0))

@@ -713,9 +713,11 @@ function railEmpty() {
     <div class="qc" data-q="If raw pump 2 fails tonight, can we still make 12 mgd?"><b>If raw pump 2 fails tonight…</b><small>→ EPANET run with the pump out, margin</small></div>
     <div class="qc" data-q="What would the fixes cost?"><b>What would the fixes cost?</b><small>→ order-of-magnitude estimate, AACE range</small></div>
     <button class="fixall" id="fixall">⚡ Get me to ${q} MGD</button>
+    <button class="fixall" id="reveal" style="background:linear-gradient(90deg,#3a4b8c,#6270dc)">⚖ Compare with the real engineers</button>
     <div class="hud"><span>one verified proposal per failing unit · you accept each</span></div></div>`;
   o.querySelectorAll(".qc").forEach(x => x.onclick = () => simpleAsk(x.dataset.q));
   $("#fixall").onclick = fixAll;
+  $("#reveal").onclick = reveal;
 }
 
 async function fixAll() {
@@ -853,6 +855,25 @@ async function micToggle() {
   $("#ask2").placeholder = "Listening… press 🎤 again to stop";
 }
 $("#mic")?.addEventListener("click", () => { micToggle(); $("#mic").style.background = REC ? "rgba(239,90,79,.3)" : ""; });
+
+
+// ---- reveal: the engineers' withheld conclusions next to the agent's ----------------------------------
+async function reveal() {
+  const r = await api(`/api/ws/${CASE}/reveal`);
+  const icon = {found: ["✓", "var(--ok)"], partially: ["½", "var(--warn)"], missed: ["–", "var(--muted)"], contradicted: ["✗", "var(--fail)"]};
+  $("#ovl").innerHTML = `<div class="q">⚖ The engineers' conclusions were withheld from the agent</div>
+    <div class="h" style="font-size:40px;color:#9ccbff">${r.score != null ? Math.round(r.score * 100) + "%" : "—"}</div>
+    <div class="sm2">of the professional engineers' conclusions reached independently · judged by ${esc(r.judge || "—")}, a different model from the agent's</div>
+    <div id="rv"></div><div class="hud"><span>${esc((r.source || "").slice(0, 120))}</span></div>`;
+  for (const [i, it] of r.items.entries()) {
+    const [ic, col] = icon[it.verdict] || ["?", "var(--muted)"];
+    await new Promise(res => setTimeout(res, 450));
+    $("#rv").insertAdjacentHTML("beforeend", `<div class="prop" style="border-color:${col};background:transparent;animation:in .4s">
+      <div class="t"><span style="color:${col};font-size:16px;margin-right:6px">${ic}</span>${esc(it.unit)}</div>
+      <div class="sm2" style="font-size:12px;margin-top:4px"><b>Engineers (2009):</b> ${esc(it.engineers)}</div>
+      <div class="sm2" style="font-size:12px;color:var(--muted);margin-top:3px"><b>Agent:</b> ${esc(it.note || "")}</div></div>`);
+  }
+}
 
 // ---- cockpit -----------------------------------------------------------------------------------
 let UNITS = [];
