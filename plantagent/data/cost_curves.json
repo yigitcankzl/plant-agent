@@ -1,0 +1,857 @@
+{
+ "enr": {
+  "1967": 1074,
+  "1978": 2776,
+  "1978-10": 2850.0,
+  "1979": 3003,
+  "1999": 6059,
+  "2023-09": 13485.67,
+  "2025-09": 13927.75
+ },
+ "enr_notes": {
+  "basis": "ENR 20-city Construction Cost Index, 1913=100. Annual averages unless a month is given.",
+  "1967-1999": "ENR 'Construction Cost Index History (1908-2005)' as hosted by US EPA: https://semspub.epa.gov/work/07/40221155.pdf (p.1 monthly 1990-2005, p.2 annual 1908-1989).",
+  "1978-10": "Converted: Gumerman report gives CCI 265.38 (1967=100) for Oct 1978 (report p.8); x 1074/100.",
+  "2023-09": "TWDB UCM User Guide 2024, cost summary example, pdf p.40: 'ENR CCI 13485.67 for September 2023'.",
+  "2025-09": "UNVERIFIED: value seen only in a search-engine snippet of ENR's Sept 22 2025 Construction Economics PDF (enr.com blocked, 403). It is consistent with ENR-reported annual changes (+0.9% 2024, +3.6% 2025 Dec-to-Dec). Confirm before use. 2021 and 2024 annual averages could not be fetched from a public source."
+ },
+ "aace": {
+  "source": "AACE RP 18R-97 (paywalled) as summarized in City of Phoenix W/WW Unit Cost Study (Carollo, Aug 2024), Table 3, pdf p.14",
+  "url": "https://www.phoenix.gov/content/dam/phoenix/pddsite/documents/impact-fees/2025-if-update/Water%20and%20Wastewater%20Unit%20Cost%20Study_08142024_v2.pdf",
+  "classes": {
+   "5": {
+    "maturity": "0-2%",
+    "use": "concept screening",
+    "method": "capacity factored, parametric, judgment, analogy",
+    "low": [
+     -0.2,
+     -0.5
+    ],
+    "high": [
+     0.3,
+     1.0
+    ]
+   },
+   "4": {
+    "maturity": "1-15%",
+    "use": "study or feasibility",
+    "method": "equipment factored or parametric",
+    "low": [
+     -0.15,
+     -0.3
+    ],
+    "high": [
+     0.2,
+     0.5
+    ]
+   },
+   "3": {
+    "maturity": "10-40%",
+    "use": "budget authorization",
+    "low": [
+     -0.1,
+     -0.2
+    ],
+    "high": [
+     0.1,
+     0.3
+    ]
+   },
+   "2": {
+    "maturity": "30-75%",
+    "use": "control or bid",
+    "low": [
+     -0.05,
+     -0.1
+    ],
+    "high": [
+     0.05,
+     0.2
+    ]
+   },
+   "1": {
+    "maturity": "65-100%",
+    "use": "check estimate or bid",
+    "low": [
+     -0.03,
+     -0.1
+    ],
+    "high": [
+     0.03,
+     0.15
+    ]
+   }
+  },
+  "note": "Ranges are typical; per AACE, accuracy range does not by itself define class. Curves here support Class 5 (and Class 4 when equipment counts/sizes come from the simulator)."
+ },
+ "items": [
+  {
+   "id": "C-PS-01",
+   "item": "Booster pump station, complete (capacity basis)",
+   "x_name": "firm_capacity",
+   "x_unit": "mgd",
+   "a": 1422540.0,
+   "b": 0.5271,
+   "form": "cost = a*x^b",
+   "base_year": "2023-01",
+   "enr_base": 13485.67,
+   "source": "TWDB Uniform Costing Model User Guide v3.0 (March 2024), Appendix: 'TWDB UCM Update: Proposed Unit Cost Updates' memo (Feb 27 2024)",
+   "url": "https://www.twdb.texas.gov/publications/reports/contracted_reports/doc/2300012714.pdf",
+   "page": "pdf p.62, memo Table 2 (Page 7 of 33)",
+   "valid_range": [
+    5,
+    50
+   ],
+   "notes": "Power fit (R2=0.99, max err 5%) to booster column of Table 2. Includes contractor mobilization, OH&P; excludes engineering, contingency, land, ROW, permits. Above 50 mgd table is linear: cost = 8.763e6 + 57,950*mgd (50-700 mgd). Tables printed in Jan-2023 $; UCM indexes them to Sep-2023 CCI 13485.67 (Jan-2023 CCI not stated in the document), so enr_base slightly overstates the base (~1-2%).",
+   "points": [
+    [
+     5,
+     3500000.0
+    ],
+    [
+     10,
+     4550000.0
+    ],
+    [
+     20,
+     6660000.0
+    ],
+    [
+     25,
+     7710000.0
+    ],
+    [
+     50,
+     11660000.0
+    ],
+    [
+     100,
+     14560000.0
+    ],
+    [
+     200,
+     20350000.0
+    ]
+   ]
+  },
+  {
+   "id": "C-PS-02",
+   "item": "Booster pump station, complete (horsepower basis)",
+   "x_name": "installed_hp",
+   "x_unit": "hp",
+   "a": 526095,
+   "b": 8171.04,
+   "form": "cost = a + b*x",
+   "base_year": "2023-01",
+   "enr_base": 13485.67,
+   "source": "TWDB Uniform Costing Model User Guide v3.0 (March 2024), Appendix: 'TWDB UCM Update: Proposed Unit Cost Updates' memo (Feb 27 2024)",
+   "url": "https://www.twdb.texas.gov/publications/reports/contracted_reports/doc/2300012714.pdf",
+   "page": "pdf p.61, memo Table 1 (Page 6 of 33)",
+   "valid_range": [
+    5,
+    5000
+   ],
+   "notes": "Linear fit (max err 0.5%) to booster column of Table 1. Intake (raw water) station column is ~3-6x higher at low hp. Same inclusions/exclusions and ENR caveat as C-PS-01.",
+   "points": [
+    [
+     5,
+     570000.0
+    ],
+    [
+     50,
+     930000.0
+    ],
+    [
+     100,
+     1340000.0
+    ],
+    [
+     500,
+     4610000.0
+    ],
+    [
+     1000,
+     8700000.0
+    ],
+    [
+     5000,
+     41380000.0
+    ]
+   ]
+  },
+  {
+   "id": "C-PS-03",
+   "item": "Water booster pump station, single phase, construction cost",
+   "x_name": "site_capacity",
+   "x_unit": "mgd",
+   "a": 2834580.0,
+   "b": 0.469,
+   "form": "cost = a*x^b",
+   "base_year": "2023-09",
+   "enr_base": 13485.67,
+   "source": "City of Phoenix Water and Wastewater Unit Cost Study, Final, Carollo, Aug 2024",
+   "url": "https://www.phoenix.gov/content/dam/phoenix/pddsite/documents/impact-fees/2025-if-update/Water%20and%20Wastewater%20Unit%20Cost%20Study_08142024_v2.pdf",
+   "page": "pdf p.23, Table 10",
+   "valid_range": [
+    5,
+    60
+   ],
+   "notes": "Fit (R2=0.98, max err 9%) to 'Construction Cost' column (direct cost + contractor OH&P, tax, general conditions; includes surge vessel and site work; excludes engineering, admin, permits, city fees). CMAR = x1.15. Costs updated to Sep 2023 with Handy-Whitman Plateau index; ENR value given for convenience.",
+   "points": [
+    [
+     5,
+     6305000
+    ],
+    [
+     10,
+     7636000
+    ],
+    [
+     15,
+     10070000
+    ],
+    [
+     20,
+     12103000
+    ],
+    [
+     30,
+     13586000
+    ],
+    [
+     40,
+     16783000
+    ],
+    [
+     60,
+     18943000
+    ]
+   ]
+  },
+  {
+   "id": "C-PS-04",
+   "item": "Sewer lift station (submersible/wet well), construction cost",
+   "x_name": "site_capacity",
+   "x_unit": "mgd",
+   "a": 1809400.0,
+   "b": 0.4944,
+   "form": "cost = a*x^b",
+   "base_year": "2023-09",
+   "enr_base": 13485.67,
+   "source": "City of Phoenix Water and Wastewater Unit Cost Study, Final, Carollo, Aug 2024",
+   "url": "https://www.phoenix.gov/content/dam/phoenix/pddsite/documents/impact-fees/2025-if-update/Water%20and%20Wastewater%20Unit%20Cost%20Study_08142024_v2.pdf",
+   "page": "pdf p.44, Table 36",
+   "valid_range": [
+    1,
+    40
+   ],
+   "notes": "Fit R2=0.94, max err 24% (40 mgd point jumps). Use points for interpolation where possible.",
+   "points": [
+    [
+     1,
+     1792000
+    ],
+    [
+     3,
+     3549000
+    ],
+    [
+     5,
+     3728000
+    ],
+    [
+     8,
+     5018000
+    ],
+    [
+     12,
+     5779000
+    ],
+    [
+     16,
+     6079000
+    ],
+    [
+     25,
+     7623000
+    ],
+    [
+     40,
+     14739000
+    ]
+   ]
+  },
+  {
+   "id": "C-PMP-01",
+   "item": "Centrifugal booster pump (equipment purchase, uninstalled)",
+   "x_name": "design_flow_per_pump",
+   "x_unit": "gpm",
+   "a": 4093.494684836,
+   "b": 14.80901498,
+   "form": "cost = a + b*x + c*x^2, c = -0.00067003",
+   "base_year": "2021",
+   "enr_base": null,
+   "source": "US EPA WBS drinking water cost models (Adsorptive Media model WBS_adsorb_031323.xlsm, sheets 'Cost Coefficients' and 'Cost Data'; output labelled 'year 2021 dollars')",
+   "url": "https://www.epa.gov/system/files/other-files/2023-04/WBS_adsorb_031323.xlsm",
+   "page": "sheet 'Cost Coefficients' row pump_eq; data 'Cost Data' bls1141 Centrifugal Pumps (Booster)",
+   "valid_range": [
+    0,
+    10000
+   ],
+   "notes": "EPA's own fitted polynomial (R2=0.958). Vendor-quote averages; WBS escalates components with BLS PPI, not ENR, so enr_base left null (ENR 2021 annual average not verified). Not cost vs hp: convert with hp = gpm*TDH_ft/(3960*eff). No public cost-vs-hp curve for pump+motor found that met the quality bar; C-PS-02 gives whole-station cost per hp.",
+   "points": [
+    [
+     10,
+     3765
+    ],
+    [
+     200,
+     12126
+    ],
+    [
+     1000,
+     18368
+    ],
+    [
+     2000,
+     33543
+    ],
+    [
+     4000,
+     44289
+    ],
+    [
+     10000,
+     89175
+    ]
+   ]
+  },
+  {
+   "id": "C-VFD-01",
+   "item": "Variable frequency drive, installed retrofit on existing pump",
+   "x_name": "motor_hp",
+   "x_unit": "hp",
+   "a": 7091.8,
+   "b": 113.279,
+   "form": "cost = a + b*x",
+   "base_year": "1999",
+   "enr_base": 6059,
+   "source": "Jones & Barrer, 'Efficiency Parameters for Variable Frequency Drives on Pumps in Open Systems', ACEEE Summer Study on Energy Efficiency in Industry, 1999, Table 2",
+   "url": "https://www.aceee.org/files/proceedings/1999/data/papers/SS99_Panel1_Paper49.pdf",
+   "page": "pdf p.4, Table 2",
+   "valid_range": [
+    10,
+    100
+   ],
+   "notes": "LOW CONFIDENCE: only 3 points ($8,200 / $12,800 / $18,400 for 10/50/100 hp), total installed incl. integration with controls, stand-alone project. Old base year; escalate x ~2.3 to 2025. Better public VFD curve not found (utility rebate sheets give rebates, not costs).",
+   "points": [
+    [
+     10,
+     8200
+    ],
+    [
+     50,
+     12800
+    ],
+    [
+     100,
+     18400
+    ]
+   ]
+  },
+  {
+   "id": "C-PIPE-01",
+   "item": "Water pipeline, open cut, rural, soil, incl. appurtenances (any material)",
+   "x_name": "diameter",
+   "x_unit": "in",
+   "a": 67.3355,
+   "b": 11.8775,
+   "form": "cost_per_ft = a + b*x",
+   "base_year": "2023-01",
+   "enr_base": 13485.67,
+   "source": "TWDB Uniform Costing Model User Guide v3.0 (March 2024), Appendix: 'TWDB UCM Update: Proposed Unit Cost Updates' memo (Feb 27 2024)",
+   "url": "https://www.twdb.texas.gov/publications/reports/contracted_reports/doc/2300012714.pdf",
+   "page": "pdf p.65, memo Table 3 (Page 10 of 33)",
+   "valid_range": [
+    6,
+    30
+   ],
+   "notes": "Linear fit exact to 0.3%. ~$11.9 per inch-diameter per LF + $67/LF. Above 30 in slope breaks (36 in $580, 48 in $893, 72 in $1,329/ft). UCM escalates pipelines with BLS PPI, not ENR. Excludes ROW, engineering, contingency.",
+   "points": [
+    [
+     6,
+     139
+    ],
+    [
+     12,
+     210
+    ],
+    [
+     18,
+     281
+    ],
+    [
+     24,
+     352
+    ],
+    [
+     30,
+     424
+    ],
+    [
+     36,
+     580
+    ],
+    [
+     48,
+     893
+    ],
+    [
+     60,
+     1110
+    ],
+    [
+     72,
+     1329
+    ]
+   ]
+  },
+  {
+   "id": "C-PIPE-02",
+   "item": "Water pipeline, open cut, urban, soil, incl. appurtenances",
+   "x_name": "diameter",
+   "x_unit": "in",
+   "a": 101.256,
+   "b": 17.8002,
+   "form": "cost_per_ft = a + b*x",
+   "base_year": "2023-01",
+   "enr_base": 13485.67,
+   "source": "TWDB Uniform Costing Model User Guide v3.0 (March 2024), Appendix: 'TWDB UCM Update: Proposed Unit Cost Updates' memo (Feb 27 2024)",
+   "url": "https://www.twdb.texas.gov/publications/reports/contracted_reports/doc/2300012714.pdf",
+   "page": "pdf p.65, memo Table 3 (Page 10 of 33)",
+   "valid_range": [
+    6,
+    30
+   ],
+   "notes": "Linear fit exact to 0.1%. Rock: 6 in $232, 12 in $381, 24 in $666/ft. 36 in jumps to $996/ft.",
+   "points": [
+    [
+     6,
+     208
+    ],
+    [
+     12,
+     315
+    ],
+    [
+     18,
+     422
+    ],
+    [
+     24,
+     529
+    ],
+    [
+     30,
+     635
+    ],
+    [
+     36,
+     996
+    ],
+    [
+     48,
+     1717
+    ]
+   ]
+  },
+  {
+   "id": "C-PIPE-03",
+   "item": "Ductile iron water main, open cut, hard digging, with pavement replacement (urban Phoenix)",
+   "x_name": "diameter",
+   "x_unit": "in",
+   "a": 45.4175,
+   "b": 1.0132,
+   "form": "cost_per_ft = a*x^b",
+   "base_year": "2023-09",
+   "enr_base": 13485.67,
+   "source": "City of Phoenix Water and Wastewater Unit Cost Study, Final, Carollo, Aug 2024",
+   "url": "https://www.phoenix.gov/content/dam/phoenix/pddsite/documents/impact-fees/2025-if-update/Water%20and%20Wastewater%20Unit%20Cost%20Study_08142024_v2.pdf",
+   "page": "pdf p.19, Table 6 (Table 7 = without pavement)",
+   "valid_range": [
+    6,
+    54
+   ],
+   "notes": "Power fit R2=0.97, max err 20%; use points. Includes trench, Class B backfill, pavement, fittings, valves, bypass, traffic control. Without pavement (Table 7): 6 in $210, 12 in $350, 24 in $780, 36 in $1,710/ft.",
+   "points": [
+    [
+     6,
+     350
+    ],
+    [
+     8,
+     410
+    ],
+    [
+     12,
+     490
+    ],
+    [
+     16,
+     670
+    ],
+    [
+     20,
+     790
+    ],
+    [
+     24,
+     950
+    ],
+    [
+     30,
+     1420
+    ],
+    [
+     36,
+     1890
+    ],
+    [
+     42,
+     2140
+    ],
+    [
+     48,
+     2530
+    ],
+    [
+     54,
+     2790
+    ]
+   ]
+  },
+  {
+   "id": "C-FM-01",
+   "item": "Ductile iron sewer force main, DUAL pipes, open cut, with pavement (Phoenix)",
+   "x_name": "diameter",
+   "x_unit": "in",
+   "a": 351.094,
+   "b": 75.8268,
+   "form": "cost_per_ft = a + b*x",
+   "base_year": "2023-09",
+   "enr_base": 13485.67,
+   "source": "City of Phoenix Water and Wastewater Unit Cost Study, Final, Carollo, Aug 2024",
+   "url": "https://www.phoenix.gov/content/dam/phoenix/pddsite/documents/impact-fees/2025-if-update/Water%20and%20Wastewater%20Unit%20Cost%20Study_08142024_v2.pdf",
+   "page": "pdf p.41, Table 32 (Table 33 without pavement)",
+   "valid_range": [
+    4,
+    30
+   ],
+   "notes": "Cost per foot of corridor for TWO parallel force mains; halve only roughly for a single main (trench/pavement not halved). Poor fit (max err 25%); prefer points. HDPE: 4 in $790, 12 in $1,070, 24 in $2,260/ft.",
+   "points": [
+    [
+     4,
+     870
+    ],
+    [
+     6,
+     930
+    ],
+    [
+     8,
+     1020
+    ],
+    [
+     10,
+     1050
+    ],
+    [
+     12,
+     1100
+    ],
+    [
+     14,
+     1270
+    ],
+    [
+     16,
+     1490
+    ],
+    [
+     20,
+     1710
+    ],
+    [
+     24,
+     2010
+    ],
+    [
+     30,
+     2980
+    ]
+   ]
+  },
+  {
+   "id": "C-TANK-01",
+   "item": "Carbon steel pressure vessel (proxy for hydropneumatic / surge tank), equipment only",
+   "x_name": "volume",
+   "x_unit": "gal",
+   "a": 1596.499332614,
+   "b": 0.459496809,
+   "form": "cost = a*x^b",
+   "base_year": "2021",
+   "enr_base": null,
+   "source": "US EPA WBS drinking water cost models (Adsorptive Media model WBS_adsorb_031323.xlsm, sheets 'Cost Coefficients' and 'Cost Data'; output labelled 'year 2021 dollars')",
+   "url": "https://www.epa.gov/system/files/other-files/2023-04/WBS_adsorb_031323.xlsm",
+   "page": "sheet 'Cost Coefficients' row cs_pv_eq; 'Cost Data' bls1072 Carbon Steel Pressure Vessels - Stainless Steel Internals",
+   "valid_range": [
+    0,
+    27100
+   ],
+   "notes": "EPA fitted equation (R2=0.98). Vessels are treatment-media pressure vessels (ASME), used here as proxy for hydropneumatic/surge tanks; excludes installation, foundation, air compressor, controls. Plastic-internals variant: 17,250 (<=180 gal) to 142,935 (27,100 gal).",
+   "points": [
+    [
+     180,
+     18904
+    ],
+    [
+     1400,
+     37307
+    ],
+    [
+     2000,
+     56179
+    ],
+    [
+     6800,
+     86885
+    ],
+    [
+     27100,
+     188661
+    ]
+   ]
+  },
+  {
+   "id": "C-FIL-01",
+   "item": "Gravity filtration structure (rapid sand/dual media), construction cost",
+   "x_name": "total_filter_area",
+   "x_unit": "sf",
+   "a": 5711.8,
+   "b": 0.6607,
+   "form": "cost = a*x^b",
+   "base_year": "1978-10",
+   "enr_base": 2850.0,
+   "source": "Gumerman, Culp & Hansen, Estimating Water Treatment Costs Vol. 2, EPA-600/2-79-162b (Aug 1979)",
+   "url": "https://nepis.epa.gov/Exe/ZyPURL.cgi?Dockey=3000093F.TXT",
+   "page": "Table 53, report p.151 (Figure 67 p.152)",
+   "valid_range": [
+    140,
+    28000
+   ],
+   "notes": "Fit R2=0.995. Table rows verified to sum to subtotal; total = subtotal x1.15 contingency. Excludes general contractor OH&P, engineering, land, special sitework. Points 140 sf=1 mgd ... 28,000 sf=200 mgd (at 5 gpm/sf). enr_base converted from report's ENR CCI 265.38 (1967=100, Oct 1978, report p.8) x 1074/100. OLD BASE: x~4.9 escalation to 2025 is a large source of error.",
+   "points": [
+    [
+     140,
+     166990
+    ],
+    [
+     700,
+     407080
+    ],
+    [
+     1400,
+     624230
+    ],
+    [
+     7000,
+     1907320
+    ],
+    [
+     14000,
+     3007480
+    ],
+    [
+     28000,
+     5602030
+    ]
+   ]
+  },
+  {
+   "id": "C-FLOC-01",
+   "item": "Flocculation basin, horizontal paddle, G=50 /s, construction cost",
+   "x_name": "total_basin_volume",
+   "x_unit": "cf",
+   "a": 316.2,
+   "b": 0.6209,
+   "form": "cost = a*x^b",
+   "base_year": "1978-10",
+   "enr_base": 2850.0,
+   "source": "Gumerman, Culp & Hansen, Estimating Water Treatment Costs Vol. 2, EPA-600/2-79-162b (Aug 1979)",
+   "url": "https://nepis.epa.gov/Exe/ZyPURL.cgi?Dockey=3000093F.TXT",
+   "page": "Table 40, report p.121",
+   "valid_range": [
+    1800,
+    1000000
+   ],
+   "notes": "Fit R2=0.985. G=20 (Table 39) slightly cheaper, G=80 (Table 41) dearer. Vertical turbine (Table 42) similar. Same old-base caveat as C-FIL-01.",
+   "points": [
+    [
+     1800,
+     34990
+    ],
+    [
+     10000,
+     114420
+    ],
+    [
+     25000,
+     150210
+    ],
+    [
+     100000,
+     304080
+    ],
+    [
+     500000,
+     1057150
+    ],
+    [
+     1000000,
+     2077750
+    ]
+   ]
+  },
+  {
+   "id": "C-SED-01",
+   "item": "Circular clarifier (sedimentation basin), construction cost",
+   "x_name": "surface_area",
+   "x_unit": "sf",
+   "a": 1119.0,
+   "b": 0.6383,
+   "form": "cost = a*x^b",
+   "base_year": "1978-10",
+   "enr_base": 2850.0,
+   "source": "Gumerman, Culp & Hansen, Estimating Water Treatment Costs Vol. 2, EPA-600/2-79-162b (Aug 1979)",
+   "url": "https://nepis.epa.gov/Exe/ZyPURL.cgi?Dockey=3000093F.TXT",
+   "page": "Table 44, report p.129",
+   "valid_range": [
+    707,
+    31416
+   ],
+   "notes": "Fit R2=0.989; diameters 30-200 ft. Per basin. Rectangular clarifier (Table 46, p.134): cost = 1021.6*A^0.6477 for 240-4,800 sf per basin.",
+   "points": [
+    [
+     707,
+     85200
+    ],
+    [
+     1590,
+     110610
+    ],
+    [
+     5027,
+     238350
+    ],
+    [
+     10387,
+     379500
+    ],
+    [
+     15394,
+     524770
+    ],
+    [
+     22698,
+     703010
+    ],
+    [
+     31416,
+     902760
+    ]
+   ]
+  },
+  {
+   "id": "C-WTP-01",
+   "item": "Conventional surface water treatment plant, complete (coag/floc/sed/filtration/chlorine; TWDB Level 3)",
+   "x_name": "rated_capacity",
+   "x_unit": "mgd",
+   "a": 17768200.0,
+   "b": 0.6858,
+   "form": "cost = a*x^b",
+   "base_year": "2023-01",
+   "enr_base": 13485.67,
+   "source": "TWDB Uniform Costing Model User Guide v3.0 (March 2024), Appendix: 'TWDB UCM Update: Proposed Unit Cost Updates' memo (Feb 27 2024)",
+   "url": "https://www.twdb.texas.gov/publications/reports/contracted_reports/doc/2300012714.pdf",
+   "page": "pdf p.74, memo Table 5 (Page 19 of 33); level definitions Table 4 p.24",
+   "valid_range": [
+    1,
+    200
+   ],
+   "notes": "Whole-plant sanity check for summed unit costs. Fit R2=0.99, max err 23%. Direct filtration (Level 2): 1 mgd $5.47M, 10 mgd $44.8M, 100 mgd $226M.",
+   "points": [
+    [
+     1,
+     20840000.0
+    ],
+    [
+     10,
+     70190000.0
+    ],
+    [
+     50,
+     225900000.0
+    ],
+    [
+     100,
+     417630000.0
+    ],
+    [
+     200,
+     788020000.0
+    ]
+   ]
+  },
+  {
+   "id": "C-GST-01",
+   "item": "Ground storage tank with roof (clearwell / reservoir proxy)",
+   "x_name": "volume",
+   "x_unit": "MG",
+   "a": 1000000.0,
+   "b": 743334,
+   "form": "cost = a + b*x",
+   "base_year": "2023-01",
+   "enr_base": 13485.67,
+   "source": "TWDB Uniform Costing Model User Guide v3.0 (March 2024), Appendix: 'TWDB UCM Update: Proposed Unit Cost Updates' memo (Feb 27 2024)",
+   "url": "https://www.twdb.texas.gov/publications/reports/contracted_reports/doc/2300012714.pdf",
+   "page": "pdf p.82, memo Table 13",
+   "valid_range": [
+    0.05,
+    5
+   ],
+   "notes": "Exact linear. Without roof: 590,557 (0.05 MG) to 3,260,097 (5 MG). Elevated tanks (Table 12): 3.5M (0.5 MG) to 9.5M (2.5 MG).",
+   "points": [
+    [
+     0.05,
+     1037167
+    ],
+    [
+     0.5,
+     1371667
+    ],
+    [
+     1,
+     1743334
+    ],
+    [
+     2,
+     2486668
+    ],
+    [
+     5,
+     4716670
+    ]
+   ]
+  }
+ ]
+}

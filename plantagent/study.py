@@ -10,7 +10,7 @@ import json
 import time
 from pathlib import Path
 
-from . import cad, eps, llm, profile, sim, surge
+from . import cad, cost, eps, llm, profile, sim, standards, surge
 from .docs import DATA, Case
 from .deliver import write_deliverables
 
@@ -82,6 +82,23 @@ EPS_TOOLS = [
      "parameters": {"type": "object", "properties": {"label": {"type": "string"}, "purpose": {"type": "string"},
                     "params": {"type": "array", "items": {"type": "object"}}, "base_changes": {"type": "array", "items": {"type": "object"}},
                     "duration_h": {"type": "number"}}, "required": ["label", "params"]}}},
+]
+
+ENG_TOOLS = [
+    {"type": "function", "function": {"name": "cost_catalogue", "description": "Published capital cost curves available "
+     "(id, item, x variable and unit, valid range, dollar basis).", "parameters": {"type": "object", "properties": {}}}},
+    {"type": "function", "function": {"name": "cost_estimate", "description": "Order-of-magnitude capital cost of an alternative "
+     "from the curves, escalated by ENR CCI, with the AACE class range. lines: [{id, x, qty (count, or length ft for per-foot "
+     "curves), note}]. Logged under `label` (use the alternative's name).",
+     "parameters": {"type": "object", "properties": {"label": {"type": "string"}, "lines": {"type": "array", "items": {"type": "object"}},
+                    "aace_class": {"type": "integer", "enum": [4, 5]}}, "required": ["label", "lines"]}}},
+    {"type": "function", "function": {"name": "standards_list", "description": "Design-standard rules (Ten States Standards water "
+     "2022 / wastewater 2014, HI operating region) with section numbers.",
+     "parameters": {"type": "object", "properties": {"standard": {"type": "string", "enum": ["water", "wastewater", "all"]}}}}},
+    {"type": "function", "function": {"name": "standards_check", "description": "Check values against rules; give each value from "
+     "a simulator run (basis = run label) or a page. items: [{rule_id, value | numerator + denominator, basis}]. Returns "
+     "pass/FAIL with the citation.", "parameters": {"type": "object", "properties": {"items": {"type": "array", "items": {"type": "object"}}},
+                                                   "required": ["items"]}}},
 ]
 
 # How a consulting engineer approaches each kind of question (added to the analysis step).
@@ -231,6 +248,7 @@ class Study:
         self.profiles = {}  # label -> {purpose, spec, flows, results}
         self.surges = {}  # label -> {purpose, spec, args, result}
         self.eps_runs = {}  # label -> {purpose, tool, args, result}
+        self.costs, self.std_checks = {}, {}  # cost estimates by label; latest standards check by rule id
         self.drawing = None
         self.dir = Path("runs") / case / time.strftime("%Y%m%d-%H%M%S")
         self.dir.mkdir(parents=True)
@@ -284,6 +302,19 @@ class Study:
             result = surge.run(a["spec"], a["event"], **kw)
             self.surges[label] = {"purpose": a.get("purpose", ""), "spec": a["spec"], "args": {"event": a["event"], **kw}, "result": result}
             return {"label": label, **result}
+        if name == "cost_catalogue":
+            return cost.catalogue()
+        if name == "cost_estimate":
+            result = cost.estimate(a["lines"], int(a.get("aace_class") or 5))
+            self.costs[a.get("label") or f"estimate{len(self.costs) + 1}"] = result
+            return result
+        if name == "standards_list":
+            return standards.list_rules(a.get("standard") or "all")
+        if name == "standards_check":
+            result = standards.check(a["items"])
+            for r in result:
+                self.std_checks[r["rule_id"]] = r
+            return result
         if name == "eps_model_summary":
             return eps_summary(c)
         if name in ("eps_run", "eps_fit"):
@@ -352,7 +383,7 @@ class Study:
         c, t0 = self.case, time.time()
         drawing = "profile" in c.cfg.get("simulators", [])
         rules = RULES + (DRAWING_RULES if drawing else "")
-        sim_tools = SIM_TOOLS + (PROFILE_TOOLS if drawing else []) + (SURGE_TOOLS if "tsnet" in c.cfg.get("simulators", []) else []) + \
+        sim_tools = SIM_TOOLS + ENG_TOOLS + (PROFILE_TOOLS if drawing else []) + (SURGE_TOOLS if "tsnet" in c.cfg.get("simulators", []) else []) + \
             (EPS_TOOLS if "eps" in c.cfg else [])
         doc_tools = DOC_TOOLS + (PROFILE_TOOLS[:1] if drawing else [])
         llm.TAG = c.name
@@ -375,7 +406,9 @@ class Study:
                              "\n\nNow: (3) build the hydraulic model and calibrate it against every field test in the data "
                              "register, reporting residuals; (4) name the calibrated base run; (5) evaluate every unit against "
                              "the question; (6) for each limiting unit, verify 2-4 alternatives in the simulator and give an "
-                             "order-of-magnitude cost class with its basis. Mark the recommended option.\n" +
+                             "order-of-magnitude cost class with its basis. Mark the recommended option. Price each "
+                             "recommended alternative with cost_estimate, and check the applicable design standards with "
+                             "standards_check (values from your simulator runs, cited by label).\n" +
                              task_guide(c.cfg["task_type"]) +
                              (" (7) list drawing_changes: one per recommended PHYSICAL modification (new or changed structure, "
                               "weir, pipe, pump; not documentation remarks), with the drawing elevation of the structure it "
@@ -417,6 +450,7 @@ class Study:
         study = {"case": c.name, "facility": c.cfg["title"], "source": c.cfg["source"], "url": c.cfg.get("url"),
                  "question": c.question, "model": self.model, "collection": collect, "analysis": analysis,
                  "review": review, "resolution": resolution, "runs": self.runs, "profiles": self.profiles, "surges": self.surges, "eps_runs": self.eps_runs,
+                 "cost_estimates": self.costs, "standards_checks": list(self.std_checks.values()),
                  "drawing": self.drawing}
         memo = llm.chat(self.model, [
             {"role": "system", "content": "You write technical memoranda for a consulting engineering firm. Use only facts and "
@@ -438,6 +472,7 @@ class Study:
         self = cls.__new__(cls)
         self.case, self.model, self.dir, self.runs, self.steps = Case(run_dir.parent.name), model, run_dir, {}, 0
         self.profiles, self.drawing, self.surges, self.eps_runs = {}, None, {}, {}
+        self.costs, self.std_checks = {}, {}
         subs = {}
         for line in (run_dir / "log.jsonl").read_text().splitlines():
             e = json.loads(line)
@@ -453,6 +488,11 @@ class Study:
             elif e.get("tool") == "run_surge" and isinstance(e["result"], dict) and "label" in e["result"]:
                 a, r = unstring(e["args"]), dict(e["result"])
                 self.surges[r.pop("label")] = {"purpose": a.get("purpose", ""), "spec": a["spec"], "args": {"event": a.get("event")}, "result": r}
+            elif e.get("tool") == "cost_estimate" and isinstance(e["result"], dict) and "total" in e["result"]:
+                self.costs[e["args"].get("label") or f"estimate{len(self.costs) + 1}"] = e["result"]
+            elif e.get("tool") == "standards_check" and isinstance(e["result"], list):
+                for r in e["result"]:
+                    self.std_checks[r["rule_id"]] = r
             elif e.get("tool") == "read_drawing" and isinstance(e["result"], dict) and "elevations" in e["result"]:
                 self.drawing = read_drawing(self.case, e["args"]["page"])
             elif "assistant" in e:

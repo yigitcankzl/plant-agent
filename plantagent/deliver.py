@@ -80,6 +80,19 @@ def write_deliverables(d, study, memo, summary):
     (d / "findings.json").write_text(json.dumps(an.get("findings", []), indent=2))
     (d / "study.json").write_text(json.dumps(study, indent=2))
 
+    if study.get("cost_estimates"):
+        parts = ["# Capital cost estimates (order of magnitude)\n"]
+        for label, e in study["cost_estimates"].items():
+            parts += [f"\n## {label}\n", f"Total **${e['total']:,.0f}** ({e['dollars']}), AACE class {e['aace_class']} range "
+                      f"${e['range'][0]:,.0f} - ${e['range'][1]:,.0f}. {e['range_basis']}.\n\n",
+                      _table(e["lines"], ["item", "x", "x_unit", "qty", "cost", "warnings", "source"]), "\n" + e["note"] + "\n"]
+        (d / "cost_estimate.md").write_text("".join(parts))
+        summary["cost_estimates"] = {k: {"total": v["total"], "range": v["range"]} for k, v in study["cost_estimates"].items()}
+    if study.get("standards_checks"):
+        (d / "standards_check.md").write_text("# Design standards check\n\n" + _table(
+            study["standards_checks"], ["rule_id", "status", "value", "limit", "rule", "citation", "basis"]))
+        summary["standards"] = {s: sum(1 for c in study["standards_checks"] if c.get("status") == s) for s in ("pass", "FAIL", "not checked")}
+
     if study.get("profiles"):
         write_profile(d, study, an, summary)
     write_design(d, study, an, summary)
@@ -95,6 +108,8 @@ def write_deliverables(d, study, memo, summary):
               "Pump data sheets": summary.get("pump_datasheets", []),
                         "EPS calibration": [{"label": k, "tool": v["tool"], "purpose": v["purpose"], "args": json.dumps(v["args"]),
                                  "result": json.dumps(v["result"])} for k, v in (study.get("eps_runs") or {}).items()],
+                        "Cost estimates": [{"estimate": k, **ln} for k, v in (study.get("cost_estimates") or {}).items() for ln in v["lines"]],
+            "Standards check": study.get("standards_checks") or [],
                         "Surge runs": [{"label": k, "purpose": v["purpose"], "event": json.dumps(v["args"]), "nodes": json.dumps(v["result"].get("nodes")),
                               "spec": json.dumps(v["spec"])} for k, v in (study.get("surges") or {}).items()]}
     wb.remove(wb.active)

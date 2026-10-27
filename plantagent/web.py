@@ -26,7 +26,8 @@ RUNS = ROOT / "runs"
 STATIC = ROOT / "web"
 PHASES = {"collect": "1-2 Scope, criteria, data & RFI", "analyse": "3-6 Calibrate, model, capacity, alternatives",
           "qaqc": "7 Independent QA/QC", "resolve": "7b Lead engineer resolves QA/QC", "deliver": "8 Deliverables"}
-DELIVERABLES = ["report.md", "drawing_markup.png", "drawing_redline.dwg", "drawing_redline.dxf", "profile_chart.png",
+DELIVERABLES = ["report.md", "design_profile.dwg", "design_profile.dxf", "pump_datasheets.json", "cost_estimate.md",
+                "standards_check.md", "test_plan.md", "drawing_markup.png", "drawing_redline.dwg", "drawing_redline.dxf", "profile_chart.png",
                 "profile.md", "calc_appendix.xlsx", "model.inp", "qaqc.md", "rfi.md", "criteria.md", "calibration.md",
                 "capacity.md", "alternatives.md", "data_register.json", "findings.json", "grade.json"]
 
