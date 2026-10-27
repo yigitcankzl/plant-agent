@@ -1,10 +1,17 @@
 """Step artifacts and deliverables written from the study record (no LLM here)."""
 import json
+import math
 
+import matplotlib
+import pymupdf
 import wntr
 from openpyxl import Workbook
+from PIL import Image, ImageDraw, ImageFont
 
-from . import sim
+from . import cad, sim
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
 
 
 def rows(x):
@@ -71,11 +78,17 @@ def write_deliverables(d, study, memo, summary):
     (d / "findings.json").write_text(json.dumps(an.get("findings", []), indent=2))
     (d / "study.json").write_text(json.dumps(study, indent=2))
 
+    if study.get("profiles"):
+        write_profile(d, study, an, summary)
+
     wb = Workbook()
     sheets = {"Data register": col.get("data_register", []), "Calibration": an.get("calibration", []),
               "Capacity": an.get("capacity_table", []), "Alternatives": an.get("alternatives", []),
               "Simulation runs": [{"label": k, "purpose": v["purpose"], "result": json.dumps(v["result"]),
-                                   "spec": json.dumps(v["spec"])} for k, v in runs.items()]}
+                                   "spec": json.dumps(v["spec"])} for k, v in runs.items()],
+              "Profile runs": [{"label": k, "purpose": v["purpose"], "flow_mgd": r["flow_mgd"], "passes": r["passes"],
+                                "nodes": json.dumps(r["nodes"]), "checks": json.dumps(r["checks"])}
+                               for k, v in (study.get("profiles") or {}).items() for r in v["results"]]}
     wb.remove(wb.active)
     for name, data in sheets.items():
         ws = wb.create_sheet(name)
@@ -86,6 +99,123 @@ def write_deliverables(d, study, memo, summary):
             ws.append([json.dumps(r[c]) if isinstance(r.get(c), (dict, list)) else r.get(c) for c in cols])
     wb.save(d / "calc_appendix.xlsx")
     (d / "summary.json").write_text(json.dumps(summary, indent=2))
+
+
+def _base_profile(study, an):
+    profiles = study["profiles"]
+    base = an.get("base_profile_run")
+    return base if base in profiles else next(iter(profiles))
+
+
+def write_profile(d, study, an, summary):
+    """Profile table, a true-scale profile chart, and the drawing marked up with results and revision clouds."""
+    base = _base_profile(study, an)
+    p = study["profiles"][base]
+    from . import profile as prof
+    limits = prof.capacity(p["spec"])
+    lines = [f"# Hydraulic profile - base run `{base}`\n", p["purpose"], "\n## Water surface by structure (ft)\n",
+             "| structure | " + " | ".join(f"{r['flow_mgd']} mgd" for r in p["results"]) + " | drawing | residual |",
+             "|---|" + "---|" * (len(p["results"]) + 2)]
+    for i, n in enumerate(p["results"][0]["nodes"]):
+        lines.append(f"| {n['id']} | " + " | ".join(str(r["nodes"][i]["ws_ft"]) for r in p["results"]) +
+                     f" | {n.get('drawing_ws_ft', '')} | " + " | ".join(str(r["nodes"][i]["residual_ft"]) for r in p["results"]
+                                                                     if "residual_ft" in r["nodes"][i])[:40] + " |")
+    lines += ["\n## Flow at which each limit binds\n", _table(limits, ["id", "check", "binds_at_mgd"])]
+    (d / "profile.md").write_text("\n".join(lines))
+    summary["profile"] = {"base_run": base, "limits": limits}
+
+    # True-scale profile chart.
+    fig, ax = plt.subplots(figsize=(11, 4.5))
+    ids = [n["id"] for n in p["results"][0]["nodes"]]
+    for r in p["results"]:
+        ax.plot(range(len(ids)), [n["ws_ft"] for n in r["nodes"]], marker="o", label=f"{r['flow_mgd']} mgd",
+                color="tab:red" if not r["passes"] else None)
+    for c in p["results"][0]["checks"]:
+        if "limit_ft" in c and c["id"] in ids:
+            i = ids.index(c["id"])
+            ax.hlines(c["limit_ft"], i - 0.35, i + 0.35, colors="k", linestyles="--")
+            ax.annotate(c["check"][:28], (i, c["limit_ft"]), fontsize=7, xytext=(2, 3), textcoords="offset points")
+    dw = [(i, n["drawing_ws_ft"]) for i, n in enumerate(p["results"][0]["nodes"]) if "drawing_ws_ft" in n]
+    if dw:
+        ax.scatter(*zip(*dw), marker="s", facecolors="none", edgecolors="k", s=60, label="drawing", zorder=5)
+    ax.set_xticks(range(len(ids)), [i[:16] for i in ids], rotation=25, fontsize=7, ha="right")
+    ax.set_ylabel("water surface (ft)")
+    ax.set_title(f"{study['facility']} - hydraulic profile ({base})")
+    ax.legend(fontsize=7)
+    fig.tight_layout()
+    fig.savefig(d / "profile_chart.png", dpi=130)
+    plt.close(fig)
+
+    if study.get("drawing"):
+        markup_drawing(d, study, an, p)
+
+
+def _anchor(drawing, value):
+    hits = [e for e in drawing["elevations"] if abs(float(e["value"]) - float(value)) < 0.006]
+    return hits[0] if hits else None
+
+
+def markup_drawing(d, study, an, p, zoom=1.6):
+    """Results and revision clouds on the real sheet: PNG for the report and UI, redlined DXF + DWG for CAD."""
+    from .docs import Case
+    case = Case(study["case"])
+    drawing = study["drawing"]
+    page = pymupdf.open(case.pdf)[drawing["page"] - 1]
+    im = Image.open(__import__("io").BytesIO(page.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom)).tobytes("png"))).convert("RGB")
+    W, H = im.size
+    draw = ImageDraw.Draw(im)
+    try:
+        font = ImageFont.truetype("DejaVuSans-Bold.ttf", 15)
+    except OSError:
+        font = ImageFont.load_default()
+
+    labels, changes = [], []
+    top = max(p["results"], key=lambda r: r["flow_mgd"])
+    for n in top["nodes"]:
+        a = _anchor(drawing, n["drawing_ws_ft"]) if "drawing_ws_ft" in n else None
+        if not a:
+            continue
+        fail = any(c["id"] == n["id"] and c["margin_ft"] < 0 for c in top["checks"])
+        text = f"{top['flow_mgd']:g} MGD: WS {n['ws_ft']:.2f}" + (" OVER LIMIT" if fail else "")
+        x0, y0, x1, y1 = a["bbox"]
+        xy = (x0 * W, y1 * H + 3)
+        draw.rectangle(draw.textbbox(xy, text, font=font), fill=(255, 255, 255))
+        draw.text(xy, text, fill=(200, 0, 0) if fail else (0, 90, 200), font=font)
+        labels.append({"bbox": a["bbox"], "text": text})
+    for ch in rows(an.get("drawing_changes")):
+        a = _anchor(drawing, ch.get("anchor_value", -1)) if ch.get("anchor_value") is not None else None
+        if not a:
+            continue
+        x0, y0, x1, y1 = a["bbox"]
+        pad = 0.035
+        box = [(x0 - pad) * W, (y0 - pad) * H, (x1 + pad) * W, (y1 + pad) * H]
+        _png_cloud(draw, box)
+        changes.append({"bbox": [x0 - pad / 2, y0 - pad / 2, x1 + pad / 2, y1 + pad / 2], "note": ch.get("note", "")[:110]})
+    for i, ch in enumerate(changes, 1):
+        x0, y0, x1, y1 = ch["bbox"]
+        draw.text((x1 * W + 4, (y0 - 0.03) * H), f"A{i}", fill=(200, 0, 0), font=font)
+        draw.text((0.06 * W, (0.72 + 0.022 * i) * H), f"A{i}  {ch['note']}", fill=(200, 0, 0), font=font)
+    im.save(d / "drawing_markup.png")
+
+    sheet = d / "drawing.dxf"
+    cad.pdf_page_to_dxf(case.pdf, drawing["page"], sheet)
+    rev = {"number": "A", "date": __import__("time").strftime("%Y-%m-%d"), "by": "AGENT",
+           "description": "PROPOSED - AGENT STUDY, FOR ENGINEER REVIEW, NOT FOR CONSTRUCTION"}
+    red = cad.redline(sheet, d / "drawing_redline.dxf", changes, rev, [0, 0, page.rect.width, page.rect.height], labels=labels)
+    try:
+        cad.oda_convert(red, "DWG")
+    except Exception as e:  # DWG is a convenience copy; the DXF is the deliverable
+        (d / "drawing_redline.dwg.error").write_text(str(e))
+    sheet.unlink()
+
+
+def _png_cloud(draw, box, r=9):
+    x0, y0, x1, y1 = box
+    for (ax, ay), (bx, by) in [((x0, y0), (x1, y0)), ((x1, y0), (x1, y1)), ((x1, y1), (x0, y1)), ((x0, y1), (x0, y0))]:
+        n = max(int(math.hypot(bx - ax, by - ay) / (2 * r)), 1)
+        for i in range(n):
+            cx, cy = ax + (bx - ax) * (i + 0.5) / n, ay + (by - ay) * (i + 0.5) / n
+            draw.arc([cx - r, cy - r, cx + r, cy + r], 0, 360, fill=(200, 0, 0), width=3)
 
 
 if __name__ == "__main__":

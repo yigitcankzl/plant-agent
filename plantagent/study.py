@@ -10,7 +10,7 @@ import json
 import time
 from pathlib import Path
 
-from . import llm, sim
+from . import cad, llm, profile, sim
 from .docs import Case
 from .deliver import write_deliverables
 
@@ -19,7 +19,15 @@ RULES = """Engineering rules:
 - Every number must cite a page (p.N) or be labelled ASSUMPTION with a reason. Never invent data silently.
 - Some recommendation clauses in the document are withheld; reach your own conclusions from the facts.
 - Use the document's units. Firm capacity = capacity with the largest unit of a station out of service.
-- Give every run_hydraulics call a short unique label; later steps refer to runs by label."""
+- Give every run_hydraulics / run_profile call a short unique label; later steps refer to runs by label."""
+
+DRAWING_RULES = """
+- A hydraulic profile drawing is available. Call read_drawing first: it returns every elevation on the sheet, read twice
+  independently; cite drawing values as (dwg p.N). Values marked "single read" need confirmation.
+- Gravity flow between structures (channels, weirs, launders, gravity pipes, filters) goes in run_profile; pumped legs go
+  in run_hydraulics. Calibrate the profile against field tests AND the drawing's water surfaces (drawing_ws_ft) at the
+  drawing's design flow, and report residuals. Use profile_capacity to find the flow at which each limit binds.
+- Put each limit the documents give (spill/overflow levels, freeboard, stated unit capacities or ratings) on the element."""
 
 DOC_TOOLS = [
     {"type": "function", "function": {"name": "search_pages", "description": "Keyword search over the available pages; returns page numbers.",
@@ -38,6 +46,17 @@ SIM_TOOLS = [
      "description": "Mean velocity. US: flow in mgd with diameter (in) or area (ft2) -> fps. SI: flow in l/s with diameter (mm) or area (m2) -> m/s. `openings` divides the flow.",
      "parameters": {"type": "object", "properties": {"flow": {"type": "number"}, "diameter": {"type": "number"}, "area": {"type": "number"},
                     "openings": {"type": "integer"}, "units": {"type": "string", "enum": ["US", "SI"]}}, "required": ["flow"]}}},
+]
+
+PROFILE_TOOLS = [
+    {"type": "function", "function": {"name": "read_drawing", "description": "Read every elevation label on a hydraulic profile drawing page (vision, two independent reads).",
+     "parameters": {"type": "object", "properties": {"page": {"type": "integer"}}, "required": ["page"]}}},
+    {"type": "function", "function": {"name": "run_profile",
+     "description": "Gravity hydraulic profile (US units) at one or more plant flows; logs it under `label`. Spec: " + json.dumps(profile.SPEC_HELP),
+     "parameters": {"type": "object", "properties": {"label": {"type": "string"}, "purpose": {"type": "string"}, "spec": {"type": "object"},
+                    "flows_mgd": {"type": "array", "items": {"type": "number"}}}, "required": ["label", "spec", "flows_mgd"]}}},
+    {"type": "function", "function": {"name": "profile_capacity", "description": "For a logged profile run: the plant flow at which each limit reaches zero margin.",
+     "parameters": {"type": "object", "properties": {"label": {"type": "string"}}, "required": ["label"]}}},
 ]
 
 
@@ -81,6 +100,8 @@ SUBMIT_ANALYSIS = submit("submit_analysis", "Steps 3-6: calibration, model, capa
                          "cost_basis": S, "recommended": B}),
     "findings": ARR({"unit": S, "limits_target": B, "limiting_value": S, "evidence": S, "modification": S}),
     "assumptions": {"type": "array", "items": S},
+    "base_profile_run": {"type": "string", "description": "label of the calibrated existing-conditions profile run, if any"},
+    "drawing_changes": ARR({"anchor_value": N, "structure": S, "note": S}),
 }, ["calibration", "capacity_table", "alternatives", "findings"])
 
 SUBMIT_REVIEW = submit("submit_review", "Step 7: QA/QC review result.", {
@@ -92,12 +113,48 @@ SUBMIT_RESOLUTION = submit("submit_resolution", "Respond to every QA/QC issue an
     "responses": ARR({"issue": S, "action": {"type": "string", "enum": ["fixed", "rejected", "noted"]}, "explanation": S}),
     "findings": SUBMIT_ANALYSIS["function"]["parameters"]["properties"]["findings"],
     "alternatives": SUBMIT_ANALYSIS["function"]["parameters"]["properties"]["alternatives"],
+    "drawing_changes": SUBMIT_ANALYSIS["function"]["parameters"]["properties"]["drawing_changes"],
 }, ["responses", "findings"])
+
+
+def read_drawing(case, page):
+    """Two independent Muse readings of a profile sheet, reconciled; cached per case and page."""
+    cache = Path("runs") / "drawings" / f"{case.name}_p{page}.json"
+    if cache.exists():
+        return json.loads(cache.read_text())
+    if page not in case.pages:
+        raise ValueError(f"page {page} not available")
+    reading, png = cad.read_profile(case.pdf, page)
+    located = cad.locate_labels(case.pdf, page)
+    elevations, extra = cad.reconcile(reading, located)
+    out = {"page": page, **{k: reading.get(k) for k in ("title", "design_flow_note", "flow_path", "notes")},
+           "elevations": elevations, "tile_only_labels": extra}
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    cache.write_text(json.dumps(out, indent=1))
+    return out
+
+
+def compact(messages, keep=10, limit=600):
+    """Old tool results and page images are shortened before each call; the agent can re-read any page.
+    ponytail: fixed window; summarise into the data register instead if studies get much longer."""
+    tool_idx = [i for i, m in enumerate(messages) if m["role"] == "tool"]
+    old = set(tool_idx[:-keep]) if len(tool_idx) > keep else set()
+    first_kept = tool_idx[-keep] if len(tool_idx) > keep else len(messages)
+    out = []
+    for i, m in enumerate(messages):
+        if i in old and len(m["content"]) > limit:
+            m = {**m, "content": m["content"][:limit] + " ...[older result shortened; call the tool again if needed]"}
+        elif m["role"] == "user" and isinstance(m["content"], list) and i < first_kept:
+            m = {**m, "content": "[page image shown earlier; call view_page again if needed]"}
+        out.append(m)
+    return out
 
 
 class Study:
     def __init__(self, case, model):
         self.case, self.model = Case(case), model
+        self.profiles = {}  # label -> {purpose, spec, flows, results}
+        self.drawing = None
         self.dir = Path("runs") / case / time.strftime("%Y%m%d-%H%M%S")
         self.dir.mkdir(parents=True)
         self.log = (self.dir / "log.jsonl").open("w")
@@ -120,10 +177,30 @@ class Study:
             result = sim.run(a["spec"])
             self.runs[label] = {"purpose": a.get("purpose", ""), "spec": a["spec"], "result": result}
             return {"label": label, **result}
+        if name == "rerun" and a["label"] in self.profiles:
+            r = self.profiles[a["label"]]
+            fresh = [profile.run(r["spec"], float(q)) for q in r["flows"]]
+            return {"label": a["label"], "matches_logged_result": fresh == r["results"], "results": fresh, "spec": r["spec"]}
         if name == "rerun":
             r = self.runs[a["label"]]
             fresh = sim.run(r["spec"])
             return {"label": a["label"], "matches_logged_result": fresh == r["result"], "result": fresh, "spec": r["spec"]}
+        if name == "read_drawing":
+            self.drawing = read_drawing(c, int(a["page"]))
+            return {"page": self.drawing["page"], "title": self.drawing["title"], "design_flow_note": self.drawing["design_flow_note"],
+                    "flow_path": self.drawing["flow_path"], "notes": self.drawing["notes"],
+                    "elevations": [{k: e[k] for k in ("value", "structure", "feature", "label_text", "confirmed")} for e in self.drawing["elevations"]]}
+        if name == "run_profile":
+            label = a.get("label") or f"profile{len(self.profiles) + 1}"
+            if label in self.profiles or label in self.runs:
+                label = f"{label}-{len(self.profiles) + 1}"
+            flows = a.get("flows_mgd") or []
+            flows = flows if isinstance(flows, list) else [flows]
+            results = [profile.run(a["spec"], float(q)) for q in flows]
+            self.profiles[label] = {"purpose": a.get("purpose", ""), "spec": a["spec"], "flows": flows, "results": results}
+            return {"label": label, "results": results}
+        if name == "profile_capacity":
+            return {"label": a["label"], "limits": profile.capacity(self.profiles[a["label"]]["spec"])}
         if name == "velocity":
             return sim.velocity(**{k: v for k, v in a.items() if v is not None})
         raise ValueError(f"unknown tool {name}")
@@ -134,7 +211,7 @@ class Study:
             self.steps += 1
             if step == max_steps - 3:
                 messages.append({"role": "user", "content": f"Step limit near. Call {submit_name} now with what you have."})
-            msg = llm.complete(self.model, messages, tools=tools)
+            msg = llm.complete(self.model, compact(messages), tools=tools)
             self.log.write(json.dumps({"phase": phase, "step": step, "assistant": msg}) + "\n")
             if not msg["tool_calls"]:
                 messages += [{"role": "assistant", "content": msg["content"] or ""},
@@ -173,33 +250,40 @@ class Study:
     # --- the eight steps -----------------------------------------------------------------------
     def run(self):
         c, t0 = self.case, time.time()
+        drawing = "profile" in c.cfg.get("simulators", [])
+        rules = RULES + (DRAWING_RULES if drawing else "")
+        sim_tools = SIM_TOOLS + (PROFILE_TOOLS if drawing else [])
+        doc_tools = DOC_TOOLS + (PROFILE_TOOLS[:1] if drawing else [])
         llm.TAG = c.name
         usd0 = llm.spent(c.name)
         head = (f"Facility: {c.cfg['title']}\nSource: {c.cfg['source']}\nTask type: {c.cfg['task_type']}\n"
-                f"Question: {c.question}\nAvailable pages: {c.pages}")
+                f"Question: {c.question}\nAvailable pages: {c.pages}" +
+                (f"\nHydraulic profile drawing: page {c.cfg['drawing_page']}" if drawing else ""))
         print(f"[{c.name}] steps 1-2: scope, criteria, data collection")
-        collect = self.loop("collect", "You are the lead engineer starting a study. " + RULES,
+        collect = self.loop("collect", "You are the lead engineer starting a study. " + rules,
                             head + "\n\nRead the available pages. Define the design criteria (with sources), list every unit "
                             "on the flow path, and build the data register (every value with page and quote). List missing or "
                             "conflicting data as RFI items; resolve each as an explicit ASSUMPTION with a reason.",
-                            DOC_TOOLS + [SUBMIT_COLLECT], "submit_collection", 30)
+                            doc_tools + [SUBMIT_COLLECT], "submit_collection", 30)
 
         print(f"[{c.name}] steps 3-6: calibration, model, capacity, alternatives")
-        analysis = self.loop("analyse", "You are the lead engineer. " + RULES,
+        analysis = self.loop("analyse", "You are the lead engineer. " + rules,
                              head + "\n\nYour steps 1-2 output:\n" + json.dumps(collect) +
                              "\n\nNow: (3) build the hydraulic model and calibrate it against every field test in the data "
                              "register, reporting residuals; (4) name the calibrated base run; (5) evaluate every unit against "
                              "the question; (6) for each limiting unit, verify 2-4 alternatives in the simulator and give an "
-                             "order-of-magnitude cost class with its basis. Mark the recommended option.",
-                             DOC_TOOLS + SIM_TOOLS + [SUBMIT_ANALYSIS], "submit_analysis", 45)
+                             "order-of-magnitude cost class with its basis. Mark the recommended option." +
+                             (" (7) list drawing_changes: for each recommended modification, the drawing elevation it "
+                              "belongs to (anchor_value) and a one-line revision note." if drawing else ""),
+                             DOC_TOOLS + sim_tools + [SUBMIT_ANALYSIS], "submit_analysis", 45)
 
         print(f"[{c.name}] step 7: independent QA/QC")
-        run_index = {k: v["purpose"] for k, v in self.runs.items()}
-        checker_tools = DOC_TOOLS + SIM_TOOLS + [
+        run_index = {k: v["purpose"] for k, v in {**self.runs, **self.profiles}.items()}
+        checker_tools = DOC_TOOLS + sim_tools + [
             {"type": "function", "function": {"name": "rerun", "description": "Re-execute a logged simulation by label and compare with its logged result.",
              "parameters": {"type": "object", "properties": {"label": {"type": "string"}}, "required": ["label"]}}},
             SUBMIT_REVIEW]
-        review = self.loop("qaqc", "You are the independent checking engineer (QA/QC). You did not do this work. " + RULES +
+        review = self.loop("qaqc", "You are the independent checking engineer (QA/QC). You did not do this work. " + rules +
                            "\nCheck: re-run at least 3 logged simulations, verify at least 5 citations against the pages, look "
                            "for unit errors, unsupported numbers, weak assumptions, missed units, and alternatives that were not "
                            "actually verified. Report issues; do not rewrite the study.",
@@ -209,14 +293,15 @@ class Study:
         resolution = {"responses": [], "findings": analysis["findings"]}
         if review.get("issues"):
             print(f"[{c.name}] step 7b: lead resolves {len(review['issues'])} QA/QC issues")
-            resolution = self.loop("resolve", "You are the lead engineer answering the checker. " + RULES,
+            resolution = self.loop("resolve", "You are the lead engineer answering the checker. " + rules,
                                    head + "\n\nYour analysis:\n" + json.dumps(analysis) + "\n\nQA/QC issues:\n" +
                                    json.dumps(review["issues"]) + "\n\nFix what is right (re-run simulations where needed), "
                                    "reject what is wrong with a reason, then submit the final findings.",
-                                   DOC_TOOLS + SIM_TOOLS + [SUBMIT_RESOLUTION], "submit_resolution", 20)
+                                   DOC_TOOLS + sim_tools + [SUBMIT_RESOLUTION], "submit_resolution", 20)
             analysis["findings"] = resolution["findings"]
-            if resolution.get("alternatives"):
-                analysis["alternatives"] = resolution["alternatives"]
+            for k in ("alternatives", "drawing_changes"):
+                if resolution.get(k):
+                    analysis[k] = resolution[k]
 
         return self.deliver(collect, analysis, review, resolution, t0, usd0)
 
@@ -225,14 +310,15 @@ class Study:
         print(f"[{c.name}] step 8: deliverables")
         study = {"case": c.name, "facility": c.cfg["title"], "source": c.cfg["source"], "url": c.cfg.get("url"),
                  "question": c.question, "model": self.model, "collection": collect, "analysis": analysis,
-                 "review": review, "resolution": resolution, "runs": self.runs}
+                 "review": review, "resolution": resolution, "runs": self.runs, "profiles": self.profiles,
+                 "drawing": self.drawing}
         memo = llm.chat(self.model, [
             {"role": "system", "content": "You write technical memoranda for a consulting engineering firm. Use only facts and "
              "numbers present in the JSON; keep page citations (p.N) and run labels; label assumptions. Sections: Purpose; "
              "Background; Design Criteria; Data and Assumptions; Model Calibration; Capacity Evaluation (table); Alternatives "
              "(table with cost class); QA/QC Summary; Recommendations; Limitations. Markdown. Start with the line: "
              "'DRAFT - prepared by an AI agent; requires review and approval by a licensed professional engineer.'"},
-            {"role": "user", "content": json.dumps({k: v for k, v in study.items() if k != "runs"})}])
+            {"role": "user", "content": json.dumps({k: v for k, v in study.items() if k not in ("runs", "profiles", "drawing")})}])
         summary = {"case": c.name, "model": self.model, "llm_steps": self.steps, "simulations": len(self.runs),
                    "wall_time_s": round(wall_s if wall_s is not None else time.time() - t0), "cost_usd": round(llm.spent(c.name) - usd0, 4)}
         write_deliverables(self.dir, study, memo, summary)
@@ -245,6 +331,7 @@ class Study:
         run_dir = Path(run_dir)
         self = cls.__new__(cls)
         self.case, self.model, self.dir, self.runs, self.steps = Case(run_dir.parent.name), model, run_dir, {}, 0
+        self.profiles, self.drawing = {}, None
         subs = {}
         for line in (run_dir / "log.jsonl").read_text().splitlines():
             e = json.loads(line)
@@ -253,13 +340,20 @@ class Study:
             elif e.get("tool") == "run_hydraulics" and isinstance(e["result"], dict) and "label" in e["result"]:
                 r = dict(e["result"])
                 self.runs[r.pop("label")] = {"purpose": e["args"].get("purpose", ""), "spec": unstring(e["args"]["spec"]), "result": r}
+            elif e.get("tool") == "run_profile" and isinstance(e["result"], dict) and "label" in e["result"]:
+                a = unstring(e["args"])
+                self.profiles[e["result"]["label"]] = {"purpose": a.get("purpose", ""), "spec": a["spec"],
+                                                       "flows": a.get("flows_mgd"), "results": e["result"]["results"]}
+            elif e.get("tool") == "read_drawing" and isinstance(e["result"], dict) and "elevations" in e["result"]:
+                self.drawing = read_drawing(self.case, e["args"]["page"])
             elif "assistant" in e:
                 self.steps += 1
         analysis, review = subs["analyse"], subs.get("qaqc", {"issues": []})
         resolution = subs.get("resolve", {"responses": [], "findings": analysis["findings"]})
         analysis["findings"] = resolution["findings"]
-        if resolution.get("alternatives"):
-            analysis["alternatives"] = resolution["alternatives"]
+        for k in ("alternatives", "drawing_changes"):
+            if resolution.get(k):
+                analysis[k] = resolution[k]
         started = time.mktime(time.strptime(run_dir.name, "%Y%m%d-%H%M%S"))
         wall = (run_dir / "log.jsonl").stat().st_mtime - started
         self.log = open(run_dir / "recover.log", "w")

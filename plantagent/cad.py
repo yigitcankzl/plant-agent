@@ -122,6 +122,81 @@ def cross_check(reading, cad):
             "note": "Tags drawn as strokes have no CAD text; those are vision-only and need human confirmation."}
 
 
+PROFILE_PROMPT = """You are reading a plant hydraulic profile drawing. Text is drawn as strokes, so read it from the image.
+List every elevation label on the sheet (numbers like 465.98 next to a diamond/arrow marker or a water-surface symbol).
+Return JSON only:
+{"title": "", "design_flow_note": "the note giving the flow the profile is drawn for, verbatim",
+ "flow_path": ["structure names in the order water flows through them"],
+ "elevations": [{"value": 0.0, "structure": "", "feature": "water surface|max water surface|weir crest|overflow weir|top of wall|invert|grade|floor|other",
+                 "label_text": "text next to the value, verbatim", "bbox": [x0, y0, x1, y1]}],
+ "notes": ["every general note, verbatim"]}
+bbox: fractions (0-1) of the image width/height, origin top-left, tight around the number. Only report what is drawn."""
+
+
+def read_profile(pdf, page, model="muse-spark-1.3-contributor", zoom=1.6):
+    """Muse reads a stroked-text hydraulic profile sheet. Returns the reading and the PNG it read."""
+    pg = pymupdf.open(pdf)[page - 1]
+    png = pg.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom)).tobytes("png")
+    url = "data:image/png;base64," + base64.b64encode(png).decode()
+    text = llm.chat(model, [{"role": "system", "content": PROFILE_PROMPT},
+                            {"role": "user", "content": [{"type": "image_url", "image_url": {"url": url}}]}], temperature=0)
+    return json.loads(text[text.index("{"): text.rindex("}") + 1]), png
+
+
+TILE_PROMPT = """This is one tile of a hydraulic profile drawing. Text is drawn as strokes. List every elevation number
+(like 465.98 or 432±) fully inside this tile. Return JSON only:
+{"labels": [{"value": 0.0, "text": "number as drawn plus any words on the same line", "bbox": [x0, y0, x1, y1]}]}
+bbox: fractions (0-1) of this tile's width/height, origin top-left, tight around the number only."""
+
+
+def locate_labels(pdf, page, cols=3, rows=2, overlap=0.08, zoom=2.5, model="muse-spark-1.3-contributor"):
+    """Second, independent reading on zoomed tiles: every elevation number with a precise sheet position.
+    Returns [{value, text, bbox (sheet fractions)}]; labels seen in two overlapping tiles are merged."""
+    pg = pymupdf.open(pdf)[page - 1]
+    W, H = pg.rect.width, pg.rect.height
+    found = []
+    for r in range(rows):
+        for c in range(cols):
+            fx0, fy0 = max(c / cols - overlap, 0), max(r / rows - overlap, 0)
+            fx1, fy1 = min((c + 1) / cols + overlap, 1), min((r + 1) / rows + overlap, 1)
+            clip = pymupdf.Rect(fx0 * W, fy0 * H, fx1 * W, fy1 * H)
+            png = pg.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom), clip=clip).tobytes("png")
+            url = "data:image/png;base64," + base64.b64encode(png).decode()
+            text = llm.chat(model, [{"role": "system", "content": TILE_PROMPT},
+                                    {"role": "user", "content": [{"type": "image_url", "image_url": {"url": url}}]}], temperature=0)
+            for lab in json.loads(text[text.index("{"): text.rindex("}") + 1]).get("labels", []):
+                x0, y0, x1, y1 = lab["bbox"]
+                b = [fx0 + x0 * (fx1 - fx0), fy0 + y0 * (fy1 - fy0), fx0 + x1 * (fx1 - fx0), fy0 + y1 * (fy1 - fy0)]
+                dup = next((f for f in found if f["value"] == lab["value"] and abs(f["bbox"][0] - b[0]) < 0.02
+                            and abs(f["bbox"][1] - b[1]) < 0.02), None)
+                if not dup:
+                    found.append({"value": lab["value"], "text": lab.get("text", ""), "bbox": [round(v, 4) for v in b]})
+    return found
+
+
+def reconcile(reading, located, tol=0.06):
+    """Match the full-sheet reading with the tile reading: same value and nearby position = confirmed by two reads."""
+    used, out = set(), []
+    for e in reading["elevations"]:
+        cx, cy = (e["bbox"][0] + e["bbox"][2]) / 2, (e["bbox"][1] + e["bbox"][3]) / 2
+        best = None
+        for i, l in enumerate(located):
+            if i in used or abs(float(l["value"]) - float(e["value"])) > 1e-6:
+                continue
+            d = math.hypot((l["bbox"][0] + l["bbox"][2]) / 2 - cx, (l["bbox"][1] + l["bbox"][3]) / 2 - cy)
+            if d < tol and (best is None or d < best[1]):
+                best = (i, d)
+        row = dict(e)
+        if best:
+            used.add(best[0])
+            row["bbox"], row["confirmed"] = located[best[0]]["bbox"], "two reads"
+        else:
+            row["confirmed"] = "single read - human confirm"
+        out.append(row)
+    extra = [l for i, l in enumerate(located) if i not in used]
+    return out, extra
+
+
 # --- writing the redline -----------------------------------------------------------------------
 def _cloud(msp, x0, y0, x1, y1, arc=None):
     """Revision cloud: a closed polyline of outward bulged arcs around a rectangle."""
@@ -133,8 +208,9 @@ def _cloud(msp, x0, y0, x1, y1, arc=None):
     msp.add_lwpolyline(pts, format="xyseb", close=True, dxfattribs={"layer": REV_LAYER, "const_width": 0.8})
 
 
-def redline(dxf_in, dxf_out, changes, rev, extents):
-    """changes: [{bbox (image fractions, top-left origin), note}]. Adds clouds, delta tags, notes and a revision table."""
+def redline(dxf_in, dxf_out, changes, rev, extents, labels=()):
+    """changes: [{bbox (image fractions, top-left origin), note}]. Adds clouds, delta tags, notes and a revision table.
+    labels: [{bbox, text}] result text written just below an existing label (e.g. the new water surface)."""
     doc = ezdxf.readfile(dxf_in)
     if REV_LAYER not in doc.layers:
         doc.layers.add(REV_LAYER, color=1)  # red
@@ -150,6 +226,9 @@ def redline(dxf_in, dxf_out, changes, rev, extents):
         msp.add_lwpolyline([(x1 + pad, y1 + pad), (x1 + pad + 18, y1 + pad + 18), (x1 + pad + 6, y1 + pad + 18)],
                            close=True, dxfattribs={"layer": REV_LAYER})  # delta triangle
         msp.add_text(f"{rev['number']}{i}", height=7, dxfattribs={"layer": REV_LAYER, "insert": (x1 + pad + 7, y1 + pad + 3)})
+    for lab in labels:
+        fx0, fy0, fx1, fy1 = lab["bbox"]
+        msp.add_text(lab["text"], height=5, dxfattribs={"layer": REV_LAYER, "insert": (ex0 + fx0 * W, ey1 - fy1 * H - 7)})
     # Revision notes and table, stacked bottom-left of the sheet, outside the title block.
     tx, ty = ex0 + 0.05 * W, ey0 + 0.12 * H
     for i, ch in enumerate(changes, 1):
