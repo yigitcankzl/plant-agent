@@ -12,10 +12,29 @@
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.45 var(--sans); }
-  .app { display: grid; grid-template-rows: 48px 1fr 190px; grid-template-columns: 240px 1fr 400px; height: 100vh; }
+  .app { display: grid; grid-template-rows: 48px 1fr 230px; grid-template-columns: 240px 1fr 400px; height: 100vh; }
   header { grid-column: 1 / 4; display: flex; align-items: center; gap: 14px; padding: 0 14px; background: var(--panel); border-bottom: 1px solid var(--line); }
   .logo { font: 700 15px var(--mono); letter-spacing: .4px; }
   .logo span { color: var(--accent); }
+  .projsel { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 5px; padding: 5px 8px; font: 600 12.5px var(--sans); max-width: 330px; width: auto; }
+  .bp { grid-column: 2 / 3; grid-row: 3; background: var(--panel); border-top: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+  .bptabs { display: flex; gap: 2px; padding: 0 10px; border-bottom: 1px solid var(--line); }
+  .bpt { padding: 7px 12px; cursor: pointer; color: var(--muted); font: 600 10.5px var(--sans); letter-spacing: .8px; text-transform: uppercase; border-bottom: 2px solid transparent; }
+  .bpt.on { color: var(--text); border-bottom-color: var(--accent); }
+  .bpt .n { color: var(--fail); }
+  .bpp { display: none; flex: 1; min-height: 0; overflow: auto; }
+  .bpp.on { display: block; }
+  #pb-profile.on { display: grid; grid-template-columns: 300px 1fr; }
+  .prob { display: grid; grid-template-columns: 18px 90px 1fr auto; gap: 8px; align-items: center; padding: 4px 12px; border-bottom: 1px solid #262d36; font-size: 12px; }
+  .prob:hover { background: var(--panel2); }
+  .prob .k { color: var(--muted); font: 11px var(--mono); }
+  .prob .s { color: var(--muted); font-size: 11px; }
+  .sev-error { color: var(--fail); } .sev-warning { color: var(--warn); } .sev-info { color: var(--info); }
+  .fix { font: 11px var(--sans); padding: 2px 8px; }
+  .act { padding: 3px 12px; font: 11.5px var(--mono); color: var(--muted); border-bottom: 1px solid #222931; }
+  .act b { color: var(--warn); font-weight: 500; } .act i { color: var(--accent); font-style: normal; }
+  .docv { display: flex; gap: 8px; align-items: center; padding: 8px 18px 0; color: var(--muted); }
+  .docv select, .docv input { width: auto; }
   .proj { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px; }
   .cmd { flex: 1; position: relative; max-width: 760px; }
   .cmd input { width: 100%; background: var(--bg); border: 1px solid var(--line); color: var(--text); border-radius: 6px; padding: 8px 12px 8px 34px; font: 13.5px var(--sans); outline: none; }
@@ -123,8 +142,9 @@
 <div class="app" id="app">
   <header>
     <div class="logo">Plant<span>Agent</span></div>
-    <div class="proj" id="proj"></div>
+    <select class="projsel" id="projsel" title="Switch project"></select>
     <div class="cmd"><span class="k">›_</span><input id="cmd" placeholder="Ask or command — e.g. “If raw pump 2 fails tonight, can we still make 12 mgd?”" autocomplete="off"><span class="hint">Ctrl K</span></div>
+    <div class="menu" id="tasks"><button class="btn">▶ Tasks ▾</button><div class="items" id="taskitems"></div></div>
     <div class="menu" id="exports"><button class="btn">Deliverables ▾</button>
       <div class="items">
         <div data-k="calc">Calc sheets (.xlsx)<small>every card, inputs, sources, cited runs</small></div>
@@ -160,14 +180,19 @@
       standards checked — and as <b>marks on the drawing</b>. Export them as calc sheets, a memo or a DWG markup.</div></div>
   </aside>
 
-  <footer>
-    <div class="flowctl">
-      <div class="flowv" id="flowv">— <small>MGD</small></div>
-      <input type="range" id="flow" min="4" max="30" step="0.5" value="12">
-      <select id="plabel" style="margin-top:6px"></select>
+  <section class="bp">
+    <div class="bptabs"><div class="bpt on" data-b="problems">Problems <span class="n" id="probn"></span></div><div class="bpt" data-b="profile">Profile &amp; flow</div><div class="bpt" data-b="activity">Activity</div></div>
+    <div class="bpp on" id="pb-problems"></div>
+    <div class="bpp" id="pb-profile">
+      <div class="flowctl">
+        <div class="flowv" id="flowv">— <small>MGD</small></div>
+        <input type="range" id="flow" min="4" max="30" step="0.5" value="12">
+        <select id="plabel" style="margin-top:6px"></select>
+      </div>
+      <div class="chart"><h5 id="chartt">Plant water surface profile</h5><svg id="chart" viewBox="0 0 900 150" width="100%" height="150"></svg></div>
     </div>
-    <div class="chart"><h5 id="chartt">Plant water surface profile</h5><svg id="chart" viewBox="0 0 900 150" width="100%" height="150"></svg></div>
-  </footer>
+    <div class="bpp" id="pb-activity"></div>
+  </section>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -189,14 +214,22 @@ const ACTIONS = [
 
 async function load() {
   P = await api(`/api/ws/${CASE}/project`);
-  $("#proj").textContent = P.title;
+  const cases = await api("/api/cases");
+  $("#projsel").innerHTML = cases.filter(c => c.runs.length).map(c => `<option value="${c.name}" ${c.name === CASE ? "selected" : ""}>${esc(c.title.split(",")[0])} · ${esc(c.task_type.split(" ")[0])}</option>`).join("");
+  $("#projsel").onchange = e => location.search = "?case=" + e.target.value;
+  document.title = "PlantAgent · " + P.title.split(",")[0];
+  const tl = await api(`/api/ws/${CASE}/tasks`);
+  $("#taskitems").innerHTML = tl.map(t => `<div data-t="${t.id}">${esc(t.title)}<small>${esc((t.detail || t.question || "").slice(0, 110))}…</small></div>`).join("");
+  document.querySelectorAll("#taskitems [data-t]").forEach(d => d.onclick = e => { e.stopPropagation(); $("#tasks").classList.remove("open"); runTask(d.dataset.t, d.firstChild.textContent); });
   $("#docs").innerHTML = P.documents.map(d => `<div class="item" data-doc="${d.id}"><span class="ic">PDF</span><div>${esc(d.title)}</div></div>`).join("");
   $("#data").innerHTML = P.datasets.map(d => `<div class="item" data-ds="${d.id}"><span class="ic">CSV</span><div>${esc(d.title)}</div></div>`).join("") || `<div class="item"><small>none</small></div>`;
   const runs = Object.entries(P.preloaded.runs || {}), profs = P.profiles;
   $("#models").innerHTML = `<div class="item"><span class="ic">EPANET</span><div>${runs.length} calibrated runs<small>${esc(P.preloaded.base_model_run || "")}</small></div></div>
     <div class="item"><span class="ic">PROFILE</span><div>${profs.length} gravity profiles<small>${esc(P.preloaded.base_profile_run || "")}</small></div></div>
+    ${P.eps ? `<div class="item"><span class="ic">EPS</span><div>${P.eps.runs.length} SCADA calibration runs<small>${P.eps.series.length} observed series</small></div></div>` : ""}
     <div class="item"><small>from ${esc(P.preloaded.from_study || "—")}</small></div>`;
-  $("#sheet").innerHTML = P.has_drawing ? `<img src="/api/drawing/${CASE}/png">` : `<div class="empty">No drawing for this project.</div>`;
+  $("#sheet").innerHTML = P.has_drawing ? `<img src="/api/drawing/${CASE}/png">` : "";
+  if (!P.has_drawing) centerAlt();
   P.structures.forEach(s => {
     const [x0, y0, x1, y1] = s.bbox, pad = .012;
     const el = document.createElement("div");
@@ -208,7 +241,8 @@ async function load() {
   });
   $("#plabel").innerHTML = profs.map(p => `<option value="${esc(p.label)}" ${p.label === P.preloaded.base_profile_run ? "selected" : ""}>${esc(p.label)}</option>`).join("");
   P.answers.forEach(a => addAnswer(a, false));
-  drawProfile();
+  drawProfile(); loadProblems();
+  if (!P.profiles.length) bpTab("problems");
   document.querySelectorAll("[data-ds]").forEach(e => e.onclick = () => drawHistory(e.dataset.ds, "MDD"));
   document.querySelectorAll("[data-doc]").forEach(e => e.onclick = () => { $("#cmd").value = `In ${e.dataset.doc}, `; $("#cmd").focus(); });
 }
@@ -394,14 +428,107 @@ async function renderRevs() {
   $("#upl").onchange = e => send(e.target.files[0]);
 }
 
+// ---- bottom panel: problems (with Fix), profile, activity -------------------------------------
+function bpTab(b) { document.querySelectorAll(".bpt").forEach(x => x.classList.toggle("on", x.dataset.b === b));
+  document.querySelectorAll(".bpp").forEach(x => x.classList.toggle("on", x.id === "pb-" + b)); }
+document.querySelectorAll(".bpt").forEach(x => x.onclick = () => bpTab(x.dataset.b));
+const ICON = {error: "⛔", warning: "⚠", info: "ℹ"};
+async function loadProblems() {
+  const pr = await api(`/api/ws/${CASE}/problems?q=${+$("#flow").value || ""}`);
+  const errs = pr.filter(p => p.severity === "error").length, warns = pr.filter(p => p.severity === "warning").length;
+  $("#probn").textContent = pr.length ? `${errs ? "⛔" + errs : ""} ${warns ? "⚠" + warns : ""}` : "";
+  $("#pb-problems").innerHTML = pr.map((p, i) => `<div class="prob"><span class="sev-${p.severity}">${ICON[p.severity]}</span><span class="k">${esc(p.kind)}</span>
+      <span>${esc(p.text)} <span class="s">— ${esc(p.source)}</span></span><button class="btn fix" data-i="${i}">Fix with AI</button></div>`).join("") || `<div class="empty">No problems.</div>`;
+  document.querySelectorAll(".fix").forEach(b => b.onclick = () => { const p = pr[+b.dataset.i];
+    showTab("answers"); ask(`Problem (${p.kind}, ${p.severity}): ${p.text}. Source: ${p.source}. Diagnose it with the tools, propose the fix, verify the fix in the simulator, and say what remains open.`); });
+}
+function activity(html) { $("#pb-activity").insertAdjacentHTML("afterbegin", `<div class="act">${new Date().toTimeString().slice(0, 8)} ${html}</div>`); }
+
+// ---- long tasks: a full study launched from the workspace ---------------------------------------
+async function runTask(id, title) {
+  if (busy) return; busy = true; bpTab("activity");
+  const prog = $("#progress"); prog.innerHTML = `<span class="chip live">Task · ${esc(title)}</span>`;
+  activity(`<i>▶ ${esc(title)}</i> started`);
+  try {
+    const {job} = await api(`/api/ws/${CASE}/task`, {id});
+    let off = 0;
+    while (true) {
+      await new Promise(r => setTimeout(r, 1500));
+      const j = await api(`/api/job/${job}?offset=${off}`); off = j.offset;
+      j.events.forEach(e => {
+        if (e.kind === "tool") { activity(`<b>${esc(e.name)}</b> ${esc((e.args || "").slice(0, 90))}`);
+          const chips = prog.querySelectorAll(".chip"); if (chips.length > 14) chips[1].remove();
+          prog.insertAdjacentHTML("beforeend", `<span class="chip ${/run_|profile|surge|eps|cost|standards/.test(e.name) ? "sim" : "doc"}">${esc(e.name)}</span>`); }
+        else if (e.text) activity(`<i>${esc(e.text.slice(0, 160))}</i>`);
+      });
+      if (j.done) {
+        if (j.error) { activity(`⛔ ${esc(j.error)}`); prog.insertAdjacentHTML("beforeend", `<span class="chip err">${esc(j.error)}</span>`); break; }
+        const a = j.answer, s = a.summary || {};
+        prog.insertAdjacentHTML("beforeend", `<span class="chip done">✓ task done · ${Math.round((s.wall_time_s || 0) / 60)} min · $${s.cost_usd}</span>`);
+        activity(`✓ ${esc(title)} → runs/${CASE}/${a.run}`);
+        const box = $("#answers"); if (box.querySelector(".empty")) box.innerHTML = "";
+        box.insertAdjacentHTML("afterbegin", `<div class="ans"><div class="rq">▶ <b>Task: ${esc(title)}</b></div>
+          <div class="sm">${s.llm_steps} agent steps, ${s.simulations} simulator runs, ${Math.round((s.wall_time_s || 0) / 60)} min, $${s.cost_usd}. The workspace now uses this study's models.</div>
+          <div class="card info"><div class="tt">Deliverables</div><div class="tags">${a.files.map(f => `<a class="tag run" style="text-decoration:none" target="_blank" href="/files/${CASE}/${a.run}/${f}">${esc(f)}</a>`).join("")}</div></div></div>`);
+        showTab("answers"); loadProblems(); break;
+      }
+    }
+  } catch (e) { prog.insertAdjacentHTML("beforeend", `<span class="chip err">${esc(e.message)}</span>`); }
+  busy = false;
+}
+
+// ---- projects without a profile drawing: document viewer or SCADA chart ----------------------------
+function centerAlt() {
+  const sheet = $("#sheet");
+  sheet.classList.remove("show-hits"); sheet.style.background = "transparent"; sheet.style.boxShadow = "none";
+  if (P.eps) {
+    const best = P.eps.runs.reduce((a, r) => (r.score != null && (!a || r.score < a.score)) ? r : a, null);
+    sheet.innerHTML = `<div class="docv">SCADA vs model <select id="cser">${P.eps.series.map(k => `<option ${k.startsWith("tank:") ? "selected" : ""}>${esc(k)}</option>`).join("")}</select>
+      <select id="clab">${P.eps.runs.map(r => `<option value="${esc(r.label)}" ${best && r.label === best.label ? "selected" : ""}>${esc(r.label)} · rel RMSE ${r.score}</option>`).join("")}</select></div>
+      <div style="background:var(--paper);border-radius:3px;margin-top:10px;padding:8px"><svg id="cchart" viewBox="0 0 1000 420" width="100%"></svg></div><div class="docv" id="cnote"></div>`;
+    $("#cser").onchange = $("#clab").onchange = drawScada; drawScada(); return;
+  }
+  const d0 = P.documents[0].id;
+  sheet.innerHTML = `<div class="docv"><select id="dsel">${P.documents.map(d => `<option value="${d.id}">${esc(d.title)}</option>`).join("")}</select>
+    page <input id="dpg" type="number" min="1" value="1" style="width:70px"> / <span id="dmax"></span>
+    <button class="btn" id="dprev">‹</button><button class="btn" id="dnext">›</button>
+    <button class="btn" id="dask">Ask about this page</button></div><img id="dimg" style="margin-top:10px;border-radius:3px;background:white">`;
+  const show = () => { const doc = $("#dsel").value, n = Math.max(1, Math.min(+$("#dpg").value, P.doc_pages[doc]));
+    $("#dpg").value = n; $("#dmax").textContent = P.doc_pages[doc]; $("#dimg").src = `/api/ws/${CASE}/page?doc=${doc}&n=${n}`; };
+  $("#dsel").onchange = () => { $("#dpg").value = 1; show(); }; $("#dpg").onchange = show;
+  $("#dprev").onclick = () => { $("#dpg").value = +$("#dpg").value - 1; show(); }; $("#dnext").onclick = () => { $("#dpg").value = +$("#dpg").value + 1; show(); };
+  $("#dask").onclick = () => { $("#cmd").value = `On ${$("#dsel").value} page ${$("#dpg").value}: `; $("#cmd").focus(); };
+  show();
+}
+
+async function drawScada() {
+  $("#cnote").textContent = "simulating…";
+  const d = await api(`/api/run/${CASE}/${P.study_run}/eps?label=${encodeURIComponent($("#clab").value)}&series=${encodeURIComponent($("#cser").value)}`);
+  const W = 1000, H = 420, L = 56, B = 30;
+  const all = [...d.observed, ...d.nominal, ...d.calibrated].map(x => x[1]).filter(Number.isFinite);
+  const y0 = Math.min(...all), y1 = Math.max(...all), pad = (y1 - y0) * .08 || 1;
+  const X = t => L + (W - L - 10) * t / d.hours, Y = v => 10 + (H - B - 10) * (1 - (v - y0 + pad) / (y1 - y0 + 2 * pad));
+  const line = (pts, col, w, dash) => `<polyline fill="none" stroke="${col}" stroke-width="${w}" ${dash ? `stroke-dasharray="${dash}"` : ""} points="${pts.filter(p => Number.isFinite(p[1])).map(p => `${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join(" ")}"/>`;
+  let s = "";
+  for (let k = 0; k <= 4; k++) { const v = y0 - pad + (y1 - y0 + 2 * pad) * k / 4;
+    s += `<line x1="${L}" x2="${W - 10}" y1="${Y(v)}" y2="${Y(v)}" stroke="#e4ded2"/><text x="${L - 6}" y="${Y(v) + 4}" font-size="12" text-anchor="end" font-family="monospace">${v.toFixed(2)}</text>`; }
+  for (let h = 0; h <= d.hours; h += 24) s += `<text x="${X(h)}" y="${H - 8}" font-size="12" text-anchor="middle" font-family="monospace">day ${h / 24}</text>`;
+  s += line(d.observed, "#1d2733", 1.2) + line(d.nominal, "#b0a99a", 1.6, "5 3") + line(d.calibrated, "#c0261f", 2);
+  s += `<text x="${W - 14}" y="22" font-size="13" text-anchor="end">— SCADA   - - utility model   <tspan fill="#c0261f">— agent-calibrated</tspan></text>`;
+  $("#cchart").innerHTML = s;
+  $("#cnote").textContent = `Changes: ${d.changes.map(c => `${c.target}.${c.attr} ${c.op} ${c.value}`).join("; ") || "none"}`;
+}
+
 document.querySelectorAll(".layer").forEach(l => l.onclick = () => {
   const k = l.dataset.l; show[k] = !show[k]; l.style.opacity = show[k] ? 1 : .4;
   $("#sheet").classList.toggle("show-hits", show.hits); drawMarks(); drawProfile();
 });
-$("#flow").oninput = drawProfile; $("#plabel").onchange = () => { drawProfile(); if ($("#props").style.display !== "none") renderProps(); };
+$("#flow").onchange = loadProblems; $("#flow").oninput = drawProfile; $("#plabel").onchange = () => { drawProfile(); if ($("#props").style.display !== "none") renderProps(); };
 $("#cmd").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.value.trim()) { ask(e.target.value.trim()); e.target.value = ""; } });
 document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("#cmd").focus(); } });
 $("#exports").onclick = e => { e.stopPropagation(); $("#exports").classList.toggle("open"); };
+$("#tasks").onclick = e => { e.stopPropagation(); $("#tasks").classList.toggle("open"); };
+document.addEventListener("click", () => { $("#tasks").classList.remove("open"); $("#exports").classList.remove("open"); });
 document.querySelectorAll("#exports [data-k]").forEach(d => d.onclick = async e => {
   e.stopPropagation(); $("#exports").classList.remove("open");
   const t = $("#toast"); t.style.display = "block"; t.textContent = "Preparing " + d.dataset.k + "…";

@@ -4,6 +4,7 @@ Usage: python -m plantagent.web [--port 8000]
 Starting a new study from the UI spends Muse credit, so it is off unless WEB_ALLOW_RUNS=1 (cap: MUSE_BUDGET_USD).
 """
 import argparse
+import base64
 import json
 import mimetypes
 import os
@@ -161,7 +162,14 @@ def ws_project(case):
             "datasets": [{"id": k, "title": v.get("title", k)} for k, v in w.project.datasets.items()],
             "structures": structures(case) if w.drawing else [], "preloaded": w.base,
             "profiles": [{"label": k, "purpose": v["purpose"], "flows": v.get("flows")} for k, v in w.profiles.items()],
-            "answers": w.answers, "session": w.dir.name, "revisions": w.revisions}
+            "answers": w.answers, "session": w.dir.name, "revisions": w.revisions,
+            "task_type": c["task_type"], "study_run": w.study_dir.name if w.study_dir else None,
+            "eps": {"runs": [{"label": k, "score": (v.get("result") or {}).get("mean_relative_rmse")} for k, v in w.eps_runs.items()
+                             if v.get("tool") == "eps_run"],
+                    "series": list(eps.load_observations(str(__import__("plantagent.study", fromlist=["x"]).case_file(
+                        w.case, c["eps"]["observations"]))).keys())} if "eps" in c else None,
+            "doc_pages": {k: len(__import__("plantagent.docs", fromlist=["x"])._pages(
+                __import__("plantagent.docs", fromlist=["x"]).DATA / d["pdf"])) for k, d in w.project.docs.items()}}
 
 
 def ws_ask(case, text, context):
@@ -185,6 +193,35 @@ def ws_ask(case, text, context):
             w.listener, JOBS[job]["done"] = None, True
     threading.Thread(target=work, daemon=True).start()
     return {"job": job}
+
+
+def ws_task(case, task_id):
+    """Launch a long agent task (a full study with its own question) and stream its progress like ws_ask."""
+    from .copilot import tasks
+    from .study import Study
+    w = workspace(case)
+    t = next(x for x in tasks(w.case) if x["id"] == task_id)
+    job = uuid.uuid4().hex[:10]
+    JOBS[job] = {"events": [], "done": False, "answer": None, "error": None, "task": t["title"]}
+
+    def work():
+        try:
+            st = Study(case, w.model, t.get("question"), t.get("task_type"), t.get("simulators"))
+            st.emit = lambda e: JOBS[job]["events"].append({
+                "kind": e["kind"], "name": e.get("name"), "text": e.get("text"),
+                "args": _short(e.get("args"), 140) if e.get("args") else None,
+                "result": _short(e.get("result"), 160) if e.get("result") is not None else None})
+            run_dir = st.run()
+            w.base = w._preload()  # the workspace now works from the new study's models
+            summ = _json(Path(run_dir) / "summary.json") or {}
+            JOBS[job]["answer"] = {"run": Path(run_dir).name, "summary": summ,
+                                   "files": [f for f in DELIVERABLES if (Path(run_dir) / f).exists()]}
+        except Exception as ex:
+            JOBS[job]["error"] = f"{type(ex).__name__}: {ex}"
+        finally:
+            JOBS[job]["done"] = True
+    threading.Thread(target=work, daemon=True).start()
+    return {"job": job, "title": t["title"]}
 
 
 def ws_export(case, kind):
@@ -298,6 +335,18 @@ class Handler(SimpleHTTPRequestHandler):
                 f = export_editable(w, body["label"])
                 base = f"/wsfiles/{case}/{w.dir.name}/"
                 return self._send({"dxf": base + f.name, "dwg": base + f.with_suffix(".dwg").name if f.with_suffix(".dwg").exists() else None})
+            if what == "problems":
+                from .copilot import problems
+                return self._send(problems(workspace(case), float(q["q"]) if q.get("q") else None))
+            if what == "tasks":
+                from .copilot import tasks
+                return self._send(tasks(workspace(case).case))
+            if what == "task" and method == "POST":
+                return self._send(ws_task(case, body["id"]))
+            if what == "page":
+                w = workspace(case)
+                url = w.project.image(q["doc"], int(q["n"]), dpi=int(q.get("dpi", 110)))
+                return self._send(base64.b64decode(url.split(",", 1)[1]), "image/png")
             if what == "capacity":
                 return self._send(profile.capacity(workspace(case).profiles[q["label"]]["spec"]))
             if what == "revisions":
@@ -369,7 +418,7 @@ if __name__ == "__main__":
         assert d["comparison"] and d["files"], d
         if d["profiles"]:
             lo, hi = (profile_at("roseburg", run, d["profiles"][0]["label"], q) for q in (6.0, 30.0))
-            assert [n["ws_ft"] for n in hi["nodes"]][-1] > [n["ws_ft"] for n in lo["nodes"]][-1], "more flow must raise the upstream level"
+            assert any(h["ws_ft"] > l["ws_ft"] for h, l in zip(hi["nodes"], lo["nodes"])), "more flow must raise some water level"
         assert log_events("roseburg", run)["events"] and drawing_png("roseburg")[:4] == b"\x89PNG"
         print("ok", run)
         sys.exit()

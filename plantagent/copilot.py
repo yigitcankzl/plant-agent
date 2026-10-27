@@ -114,6 +114,7 @@ class Workspace(Study):
         self.runs, self.profiles, self.surges, self.eps_runs, self.costs, self.std_checks = {}, {}, {}, {}, {}, {}
         self.steps, self.drawing, self.answers, self.listener = 0, None, [], None
         self.revisions = []
+        self.study, self.study_dir = None, None
         self.base = self._preload()
 
     def _preload(self):
@@ -123,8 +124,11 @@ class Workspace(Study):
             return {}
         st = json.loads((done[-1] / "study.json").read_text())
         an = st["analysis"]
+        self.study = st
+        self.study_dir = done[-1]
         self.runs.update(st.get("runs") or {})
         self.profiles.update(st.get("profiles") or {})
+        self.eps_runs.update(st.get("eps_runs") or {})
         self.drawing = st.get("drawing")
         return {"from_study": str(done[-1].relative_to(ROOT)), "base_model_run": an.get("base_model_run"),
                 "base_profile_run": an.get("base_profile_run"), "design_profile_run": an.get("design_profile_run"),
@@ -170,8 +174,9 @@ class Workspace(Study):
                   "precisely: reuse the preloaded calibrated models (get_spec, then modify and re-run), compute with the tools, "
                   "and finish with `answer`: calc cards (inputs with sources, run labels, standards checked, assumptions) and "
                   "drawing layers anchored to drawing elevations (always at least one layer on the structure the request is about, "
-                  "with a short label and severity). Card results are headlines; details go in inputs. Do only what was asked; "
-                  "3-8 tool calls is typical.\n" + RULES +
+                  "with a short label and severity). Card results are headlines; details go in inputs. Do only what was asked. "
+                  "Be fast: the preloaded data register already holds the documented values, so read pages only for what it "
+                  "lacks; call independent tools together in one turn; aim for 2-4 turns before `answer`.\n" + RULES +
                   (DRAWING_RULES if self.drawing else ""))
         brief = {"project": c.cfg["title"], "documents": docs, "datasets": {k: v.get("title", k) for k, v in self.project.datasets.items()},
                  "preloaded": self.base, "earlier_answers": [a["summary"] for a in self.answers[-6:]]}
@@ -181,7 +186,7 @@ class Workspace(Study):
         llm.TAG = "ws:" + c.name
         usd0 = llm.spent()
         t0 = time.time()
-        ans = self.loop("ask", system, user, self.tools(), "answer", 14)
+        ans = self.loop("ask", system, user, self.tools(), "answer", 9)
         ans["seconds"] = round(time.time() - t0)
         ans["cost_usd"] = round(llm.spent() - usd0, 4)
         ans["request"] = text
@@ -414,6 +419,67 @@ def import_cad(ws, path):
     return {"file": path.name, "changes": changes, "label": label, "added_entities": added, "removed_entities": removed,
             "engineer_notes": notes[:20], "capacity": profile.capacity(ws.profiles[label]["spec"])}
 
+
+
+# --- problems panel and tasks ------------------------------------------------------------------
+def problems(ws, flow_mgd=None):
+    """Everything currently wrong or unverified in the project, like a compiler's problem list."""
+    from . import profile
+    out = []
+    st = ws.study or {}
+    for c in st.get("standards_checks") or []:
+        if c.get("status") == "FAIL":
+            out.append({"severity": "error", "kind": "standard", "text": f"{c['rule_id']} {c['rule']} (value {c['value']}, limit {c['limit']})",
+                        "source": c.get("citation", ""), "ref": c.get("basis")})
+    label = (ws.base or {}).get("base_profile_run")
+    if label in ws.profiles and flow_mgd:
+        r = profile.run(ws.profiles[label]["spec"], float(flow_mgd))
+        for c in r["checks"]:
+            if c["margin_ft"] < 0:
+                out.append({"severity": "error", "kind": "limit", "text": f"{c['id']}: {c['check']} exceeded at {flow_mgd:g} MGD "
+                            f"(margin {c['margin_ft']})", "source": f"profile run {label}", "ref": c["id"]})
+    for i in (st.get("review") or {}).get("issues") or []:
+        resp = next((r for r in (st.get("resolution") or {}).get("responses") or [] if str(r.get("issue", ""))[:40] == str(i.get("issue", ""))[:40]), None)
+        if not resp or resp.get("action") != "fixed":
+            out.append({"severity": "warning" if i.get("severity") == "minor" else "error", "kind": "QA/QC",
+                        "text": f"{i.get('item', '')}: {i.get('issue', '')}"[:220], "source": "independent checker",
+                        "ref": (resp or {}).get("action", "open")})
+    for r in (st.get("collection") or {}).get("rfi") or []:
+        out.append({"severity": "warning", "kind": "RFI", "text": f"{r.get('item', '')}: {r.get('issue', '')}"[:200],
+                    "source": "data register", "ref": r.get("resolution", "")[:80]})
+    scored = {k: v for k, v in ws.eps_runs.items() if (v.get("result") or {}).get("mean_relative_rmse") is not None}
+    best = min(scored, key=lambda k: scored[k]["result"]["mean_relative_rmse"]) if scored else None
+    for k, v in ([(best, scored[best])] if best else []):
+        for f in (v.get("result") or {}).get("fit") or []:
+            if f.get("nse") is not None and f["nse"] < 0.8 and ":flow" in f["series"]:
+                out.append({"severity": "warning", "kind": "calibration", "text": f"{f['series']} NSE {f['nse']} (target >= 0.8), bias {f['bias']}",
+                            "source": f"run {k}", "ref": f["series"]})
+    for a in (st.get("analysis") or {}).get("assumptions") or []:
+        out.append({"severity": "info", "kind": "assumption", "text": str(a)[:200], "source": "analysis", "ref": ""})
+    order = {"error": 0, "warning": 1, "info": 2}
+    return sorted(out, key=lambda p: order[p["severity"]])
+
+
+def tasks(case):
+    """Long agent tasks the workspace can launch for this project (each is a full study with its own question)."""
+    c = case.cfg
+    out = [{"id": "study", "title": f"Run the {c['task_type']} study", "detail": c["question"][:220]}]
+    out.append({"id": "testplan", "title": "Write the field test plan", "task_type": "field test planning",
+                "question": "Review the project documents and the current model. List every missing or unverified input that "
+                            "matters to the hydraulic conclusions, and write a field test plan that would close each one "
+                            "(what to measure, where, how, acceptance criteria), prioritised by how much it changes the answer."})
+    out.append({"id": "standards", "title": "Check against design standards", "task_type": "design standards review",
+                "question": "Check the facility as documented, and its recommended modifications, against the applicable Ten States "
+                            "Standards rules. Compute each checked quantity with the simulators and cite the section."})
+    if "eps" not in c:
+        out.append({"id": "surge", "title": "Pump-trip surge check", "task_type": "surge analysis", "simulators": ["tsnet"],
+                    "question": "Build the pumped system from the documents and check what happens on a power failure that trips all "
+                                "pumps: minimum and maximum pressures along the pipeline, column separation risk, and the smallest "
+                                "protection that works."})
+    else:
+        out.append({"id": "calibrate", "title": "Calibrate the model to SCADA", "task_type": "model calibration against SCADA time series",
+                    "question": c["question"]})
+    return out
 
 if __name__ == "__main__":
     import sys

@@ -244,8 +244,13 @@ def compact(messages, keep=10, limit=600):
 
 
 class Study:
-    def __init__(self, case, model):
+    def __init__(self, case, model, question=None, task_type=None, simulators=None):
         self.case, self.model = Case(case), model
+        if question:  # a task launched from the workspace asks its own question of the same project
+            self.case.question = question
+        if task_type or simulators:
+            self.case.cfg = {**self.case.cfg, **({"task_type": task_type} if task_type else {}),
+                             **({"simulators": sorted(set(self.case.cfg.get("simulators", [])) | set(simulators))} if simulators else {})}
         self.profiles = {}  # label -> {purpose, spec, flows, results}
         self.surges = {}  # label -> {purpose, spec, args, result}
         self.eps_runs = {}  # label -> {purpose, tool, args, result}
