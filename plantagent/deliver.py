@@ -37,6 +37,31 @@ def _table(rows_, cols):
     return "\n".join(out) + "\n"
 
 
+def control_block(study, summary):
+    """What a firm's QA requires on every deliverable: scenario register, units and datum, sign-off, revision log."""
+    import time as _t
+    scen = []
+    for k, v in (study.get("runs") or {}).items():
+        sp, r = v.get("spec", {}), v.get("result", {})
+        scen.append(f"| {k} | EPANET steady state | {', '.join(p['id'] + ('' if p.get('on', True) else ' (off)') for p in sp.get('pumps', []))} | "
+                    f"{r.get('total_pumped_mgd', r.get('total_pumped_lps', ''))} | {v.get('purpose', '')[:70]} |")
+    for k, v in (study.get("profiles") or {}).items():
+        scen.append(f"| {k} | gravity profile | - | {', '.join(str(q) for q in v.get('flows') or [])} | {v.get('purpose', '')[:70]} |")
+    for k, v in (study.get("surges") or {}).items():
+        scen.append(f"| {k} | transient pre-screen (TSNet) | {v.get('args', {}).get('event')} | - | {v.get('purpose', '')[:70]} |")
+    units = "US customary (gpm, mgd, ft, in, psi, hp)" if any((v.get("spec") or {}).get("units", "US") == "US" for v in (study.get("runs") or {}).values()) or study.get("profiles") else "as stated in each run"
+    return "\n".join([
+        "---", "## Document control", "",
+        f"**Units:** {units}. **Elevations:** feet, datum as shown on the source drawings (not re-surveyed).",
+        f"**Prepared by:** AI agent ({summary.get('model')}), {_t.strftime('%Y-%m-%d')}. **Run:** {summary.get('case')} · "
+        f"{summary.get('llm_steps')} agent steps · {summary.get('simulations')} simulator runs.",
+        "**Checked by:** __________________  **Approved (PE, seal):** __________________  ",
+        "_Draft for engineering review. Not for construction. Simulator results are screening-level unless stated otherwise._", "",
+        "### Scenario register", "", "| Run | Model | Pumps | Flow (mgd) | Purpose |", "|---|---|---|---|---|", *scen, "",
+        "### Revision log", "", "| Rev | Date | Description | By |", "|---|---|---|---|",
+        f"| A | {_t.strftime('%Y-%m-%d')} | Initial agent draft | AI agent |", ""])
+
+
 def write_deliverables(d, study, memo, summary):
     col, an, rev, res, runs = (study["collection"], study["analysis"], study["review"], study["resolution"], study["runs"])
     crit = col.get("criteria", {})
@@ -76,7 +101,7 @@ def write_deliverables(d, study, memo, summary):
         "\n\nChecked citations: " + ", ".join(map(str, rev.get("checked_citations") or [])) + "\n\n## Issues\n" +
         _table(rev.get("issues", []), ["severity", "item", "issue", "evidence"]) +
         "\n## Lead engineer responses\n" + _table(res.get("responses", []), ["issue", "action", "explanation"]))
-    (d / "report.md").write_text(memo)
+    (d / "report.md").write_text(memo + "\n\n" + control_block(study, summary))
     (d / "findings.json").write_text(json.dumps(an.get("findings", []), indent=2))
     (d / "study.json").write_text(json.dumps(study, indent=2))
 
