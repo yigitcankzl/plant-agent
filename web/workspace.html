@@ -297,7 +297,7 @@
     <div class="sec"><h4>Layers</h4>
       <div class="layer" data-l="hits"><span class="sw" style="background:var(--accent)"></span>Structures (click to act)</div>
       <div class="layer" data-l="ws"><span class="sw" style="background:#1f4e8c"></span>Water surface at flow</div>
-      <div class="layer" data-l="marks"><span class="sw" style="background:var(--fail)"></span>Copilot marks</div>
+      <div class="layer" data-l="marks"><span class="sw" style="background:var(--fail)"></span>Review marks</div>
     </div>
   </aside>
 
@@ -601,7 +601,8 @@ async function loadIssues() {
   $("#issBtnLbl").textContent = n ? `⛔ ${n} issue${n > 1 ? "s" : ""}` : "✓ no blocking issues";
   $("#issBtnLbl").classList.toggle("clear", !n);
   $("#issuelist").innerHTML = top.map(i => `<div class="iss"><div><b>${esc(i.structure ? i.structure.toLowerCase().replace(/^./, c => c.toUpperCase()) + " — " : "")}${esc(i.plain_kind)}</b>
-      <small>${esc(i.text.slice(0, 150))}</small></div><button class="acc" data-id="${i.id}">Fix</button></div>`).join("") + (ISS.length > 3 ? `<div class="iss"><small>+${ISS.length - 3} more in Expert view</small></div>` : "");
+      <small>${esc(i.text.slice(0, 150))}</small></div><button class="acc" data-id="${i.id}">Fix</button></div>`).join("") + (() => { const rfi = ISS.filter(i => i.kind === "RFI").length, rest = ISS.length - 3 - rfi;
+      return (rfi ? `<div class="iss"><small>📋 ${rfi} data requests to the utility ▸ Expert view</small></div>` : "") + (rest > 0 ? `<div class="iss"><small>+${rest} other findings in Expert view</small></div>` : ""); })();
   document.querySelectorAll("#issuelist .acc").forEach(b => b.onclick = e => { e.stopPropagation(); $("#issuesBtn").classList.remove("open");
     const i = ISS.find(x => x.id === b.dataset.id);
     simpleAsk(`Fix this issue (id ${i.id}): ${i.text}`, {issue_id: i.id, structure: i.structure}, `Fix: ${i.structure || i.plain_kind}`); });
