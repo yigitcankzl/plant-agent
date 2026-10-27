@@ -32,7 +32,9 @@ ANSWER = submit("answer", "Final answer for this request, shown as calc cards an
         "anchor_value": N, "structure": S, "text": S, "severity": {"type": "string", "enum": ["ok", "warn", "fail", "info"]}}}},
     "headline": {"type": "string", "description": "the answer in at most 8 plain words, e.g. 'No - filters and basin limit 18 mgd'"},
     "proposals": {"type": "array", "description": "model changes that fix the problem, each verified before the engineer accepts it",
-                  "items": {"type": "object", "properties": {"title": S, "element": S, "field": S, "value": N, "structure": S,
+                  "items": {"type": "object", "properties": {"kind": {"type": "string", "enum": ["profile", "unit"]},
+                                                            "unit": S, "capacity_mgd": N, "run_label": S,
+                                                            "title": S, "element": S, "field": S, "value": N, "structure": S,
                                                             "profile_label": S, "resolves": {"type": "string", "description": "issue id it fixes"},
                                                             "cost_label": S}}},
     "flow_mgd": {"type": "number", "description": "plant flow the drawing view should show for this answer, if relevant"},
@@ -185,7 +187,9 @@ class Workspace(Study):
                   "lacks; call independent tools together in one turn; aim for 2-4 turns before `answer`. Write for a non-specialist: "
                   "a plain headline, no acronyms in the headline. When a fix is a change to the gravity profile model, return it in "
                   "`proposals` (element id and field from get_spec of the current profile run, the new value, and the issue id it "
-                  "resolves); the workspace verifies it in the solver and the engineer accepts it.\n" + RULES +
+                  "resolves); the workspace verifies it in the solver and the engineer accepts it. For any other unit (pumps, intake, "
+                  "filters, pipelines) use kind 'unit': the unit name as in the capacity table, its new capacity_mgd, and the "
+                  "run_label of the simulator run (run_hydraulics or run_profile) you made that proves it.\n" + RULES +
                   (DRAWING_RULES if self.drawing else ""))
         brief = {"project": c.cfg["title"], "documents": docs, "datasets": {k: v.get("title", k) for k, v in self.project.datasets.items()},
                  "preloaded": self.base, "earlier_answers": [a["summary"] for a in self.answers[-6:]],
@@ -216,6 +220,7 @@ class Workspace(Study):
                 p.update(preview(self, p))
             except Exception as e:
                 p["error"] = f"{type(e).__name__}: {e}"
+        ans["checks"] = check_answer(self, ans)
         for layer in ans.get("layers") or []:  # place layers on the sheet
             a = _anchor_of(self.drawing, layer)
             layer["bbox"] = a["bbox"] if a else None
@@ -373,6 +378,19 @@ def edit(ws, label, element_id, field, value, source="properties panel"):
 def preview(ws, p):
     """What a proposed model change does, before the engineer accepts it (no revision logged)."""
     from . import profile
+    if p.get("kind") == "unit":
+        q, cap = target_flow(ws), float(p.get("capacity_mgd") or 0)
+        r = ws.runs.get(p.get("run_label") or "") or ws.profiles.get(p.get("run_label") or "")
+        proved = None
+        if r and "result" in r and isinstance(r["result"], dict):
+            proved = r["result"].get("total_pumped_mgd")
+        elif r and "spec" in r and "elements" in r["spec"]:
+            caps = [c["binds_at_mgd"] for c in profile.capacity(r["spec"]) if isinstance(c["binds_at_mgd"], (int, float))]
+            proved = min(caps) if caps else 60.0
+        ok = proved is not None and proved >= 0.97 * cap and cap >= q
+        return {"kind": "unit", "target_mgd": q, "old": next((u["capacity_mgd"] for u in unit_capacities(ws) if u["unit"] == p.get("unit")), None),
+                "value": cap, "element": p.get("unit"), "field": "capacity_mgd", "passes_after": bool(ok), "proved_mgd": proved,
+                "failing_after": [] if ok else [f"run {p.get('run_label')} shows {proved} mgd" if proved is not None else "no simulator run cited"]}
     label = p.get("profile_label") if p.get("profile_label") in ws.profiles else current_label(ws)
     spec, old = _changed_spec(ws.profiles[label]["spec"], p["element"], p["field"], p["value"])
     q = target_flow(ws)
@@ -382,11 +400,34 @@ def preview(ws, p):
 
 
 def accept(ws, p):
+    if p.get("kind") == "unit":
+        ws.unit_overrides = {**getattr(ws, "unit_overrides", {}), p["unit"]: float(p["capacity_mgd"])}
+        rev = {"n": len(ws.revisions) + 1, "time": time.strftime("%H:%M:%S"), "from": current_label(ws), "to": current_label(ws),
+               "element": p["unit"], "field": "capacity_mgd", "old": p.get("old"), "new": float(p["capacity_mgd"]),
+               "source": "accepted proposal: " + p.get("title", "") + f" (run {p.get('run_label')})"}
+        ws.revisions.append(rev)
+        ws.accepted = getattr(ws, "accepted", []) + [{"element": p["unit"], "unit": p["unit"], "structure": p.get("structure"),
+                                                      "title": p.get("title", ""), "label": current_label(ws), "resolves": p.get("resolves"),
+                                                      "rev": rev["n"], "capacity_mgd": float(p["capacity_mgd"])}]
+        if p.get("resolves"):
+            ws.resolved.add(p["resolves"])
+        return {"label": current_label(ws), "revision": rev, "capacity": []}
     r = edit(ws, p["profile_label"], p["element"], p["field"], p["value"], source="accepted proposal: " + p.get("title", ""))
-    ws.accepted = getattr(ws, "accepted", []) + [{"element": p["element"], "structure": p.get("structure"), "title": p.get("title", "")}]
+    ws.accepted = getattr(ws, "accepted", []) + [{"element": p["element"], "structure": p.get("structure"), "title": p.get("title", ""),
+                                                  "label": r["label"], "resolves": p.get("resolves"), "rev": r["revision"]["n"]}]
     if p.get("resolves"):
         ws.resolved.add(p["resolves"])
     return r
+
+
+def restore(ws, upto_rev):
+    """Checkpoint restore: keep accepted changes up to revision `upto_rev` (0 = existing plant)."""
+    keep = [a for a in getattr(ws, "accepted", []) if a["rev"] <= int(upto_rev)]
+    ws.accepted = keep
+    ws.current = next((a["label"] for a in reversed(keep) if "unit" not in a), None)
+    ws.unit_overrides = {a["unit"]: a["capacity_mgd"] for a in keep if "unit" in a}
+    ws.resolved = {a["resolves"] for a in keep if a.get("resolves")}
+    return {"current": current_label(ws), "accepted": keep}
 
 
 def target_flow(ws):
@@ -510,6 +551,41 @@ def _structure_of(ws, text, element=None):
     return best if score >= 2.0 else None
 
 
+SIDE = re.compile(r"wastewater|backwash|drain|solids|sludge", re.I)
+
+
+def failing_units(ws):
+    q = target_flow(ws)
+    return [u for u in unit_capacities(ws) if u["capacity_mgd"] is not None and u["capacity_mgd"] < q and not SIDE.search(u["full_unit"])]
+
+
+def check_answer(ws, ans):
+    """Second-engineer check, deterministic: cited runs exist in the log, cited pages contain the quoted number,
+    proposals reproduce in the solver."""
+    runs = [r for c in ans.get("cards") or [] if isinstance(c, dict) for r in (c.get("runs") or [])]
+    known = set(ws.runs) | set(ws.profiles) | set(ws.surges) | set(ws.eps_runs)
+    runs_found = sum(1 for r in runs if any(k in str(r) for k in known))
+    cites, ok = 0, 0
+    docs = list(ws.project.docs)
+    for c in ans.get("cards") or []:
+        for i in (c.get("inputs") or []) if isinstance(c, dict) else []:
+            m = re.search(r"p\.(\d+)", str(i.get("source", "")))
+            num = re.search(r"\d+(?:\.\d+)?", str(i.get("value", "")))
+            if not (m and num):
+                continue
+            cites += 1
+            doc = next((d for d in docs if d in str(i.get("source", "")).lower()), docs[0])
+            try:
+                text = ws.project.page(doc, int(m.group(1)))
+            except Exception:
+                continue
+            ok += num.group(0) in text.replace(",", "")
+    props = [p for p in ans.get("proposals") or [] if isinstance(p, dict)]
+    return {"runs_cited": len(runs), "runs_found": runs_found, "cites": cites, "cites_ok": ok,
+            "proposals": len(props), "proposals_verified": sum(1 for p in props if p.get("passes_after")),
+            "assumptions": sum(len(c.get("assumptions") or []) for c in ans.get("cards") or [] if isinstance(c, dict))}
+
+
 def problems(ws, flow_mgd=None):
     """Everything currently wrong or unverified in the project, like a compiler's problem list."""
     from . import profile
@@ -577,7 +653,7 @@ def tasks(case):
     return out
 
 
-def unit_capacities(ws):
+def unit_capacities(ws, view="proposed"):
     """The capacity-by-unit chart of a capacity study: each unit's limiting flow (from the study's capacity table, or the
     current model when the engineer accepted a change there), mapped to its structure on the drawing."""
     from . import profile
@@ -587,19 +663,28 @@ def unit_capacities(ws):
     for r in (st.get("analysis") or {}).get("capacity_table") or []:
         m = num.search(str(r.get("binds_at", ""))) or num.search(str(r.get("limit", "")))
         cap = float(m.group(1)) if m else None
-        rows.append({"unit": str(r.get("unit", ""))[:40], "capacity_mgd": cap, "limit": str(r.get("limit", ""))[:80],
+        short = re.split(r"\s*[+(/]\s*|\s+-\s+", str(r.get("unit", "")))[0].strip()
+        rows.append({"unit": short[:26], "full_unit": str(r.get("unit", "")), "capacity_mgd": cap, "limit": str(r.get("limit", ""))[:80],
                      "limits_target": bool(r.get("limits_target")), "structure": _structure_of(ws, str(r.get("unit", "")) + " " + str(r.get("limit", "")))})
+    if view != "existing":
+        for name, cap in getattr(ws, "unit_overrides", {}).items():
+            for r in rows:
+                if r["unit"] == name or name.lower() in r["full_unit"].lower():
+                    r.update({"capacity_mgd": cap, "limits_target": False, "changed": "accepted"})
     # units changed by accepted proposals take their capacity from the current model
     label = current_label(ws)
-    if label and getattr(ws, "accepted", None):
+    if label and getattr(ws, "accepted", None) and view != "existing":
         caps = profile.capacity(ws.profiles[label]["spec"])
+        q = target_flow(ws)
         for a in ws.accepted:
+            if "unit" in a:
+                continue
             el = [c for c in caps if c["id"] == a["element"]]
             lim = min((c["binds_at_mgd"] for c in el if isinstance(c["binds_at_mgd"], (int, float))), default=None)
-            key = (a.get("structure") or "").split(" ")[0].lower()
-            for r in rows:
-                if a.get("structure") and (r["structure"] == a["structure"] or (key and key in r["unit"].lower())):
-                    r.update({"capacity_mgd": lim if lim is not None else 60.0, "limits_target": False, "changed": a["title"]})
+            words = {w for w in re.findall(r"[a-z]{5,}", (a.get("title", "") + " " + (a.get("structure") or "")).lower())}
+            for r in rows:  # only the unit the change is about: same structure and a shared specific word
+                if r["structure"] == a.get("structure") and words & set(re.findall(r"[a-z]{5,}", r["full_unit"].lower())):
+                    r.update({"capacity_mgd": round(min(lim, 60.0), 1) if lim is not None else q, "limits_target": False, "changed": a["title"]})
     return rows
 
 if __name__ == "__main__":

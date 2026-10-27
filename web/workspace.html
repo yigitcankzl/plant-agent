@@ -220,6 +220,39 @@
   .ghostl { position: absolute; font: 700 11px var(--sans); color: #fff; background: var(--ok); padding: 2px 7px; border-radius: 4px; pointer-events: none; }
   .readbanner { position: absolute; left: 20px; top: 16px; z-index: 30; background: rgba(28,33,41,.92); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 12.5px; }
   .readbanner b { color: var(--accent); }
+  /* ---- right rail, plan, checkpoints, compare, citations ---- */
+  body.simple .app { grid-template-columns: 290px 1fr 390px !important; }
+  body.simple #ovl { display: block !important; position: static; grid-column: 3; grid-row: 2 / 4; width: auto; max-height: none; border-radius: 0;
+    border: none; border-left: 1px solid var(--line); box-shadow: none; animation: none; background: var(--panel); overflow: auto; padding: 16px 18px; }
+  body.simple #askbar { grid-column: 1 / 4 !important; }
+  body.simple header .btn[href="/"] { display: none; }
+  .plan { margin: 10px 0 4px; }
+  .pl { display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: center; padding: 4px 0; font-size: 13px; color: var(--muted); }
+  .pl .ic2 { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); }
+  .pl.on { color: var(--text); } .pl.on .ic2 { border-color: var(--warn); border-top-color: transparent; animation: spin .8s linear infinite; }
+  .pl.ok { color: var(--text); } .pl.ok .ic2 { border-color: var(--ok); background: var(--ok); }
+  .pl .ev { font: 11px var(--mono); color: var(--accent); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hud { display: flex; justify-content: space-between; color: var(--muted); font: 11px var(--mono); margin-top: 8px; }
+  .chk { margin-top: 12px; padding: 8px 10px; border-radius: 8px; background: rgba(77,163,255,.08); border: 1px solid rgba(77,163,255,.35); font-size: 12px; }
+  .chk b { color: #9ccbff; }
+  .diff { font: 12.5px var(--mono); margin: 4px 0 8px; } .diff .o { color: #ff8f86; text-decoration: line-through; } .diff .n { color: #7fe0ad; font-weight: 700; }
+  .rej { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 7px 12px; margin-left: 6px; cursor: pointer; }
+  .cite { color: var(--accent); cursor: pointer; text-decoration: underline dotted; }
+  .empty2 .qc { border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin: 10px 0; cursor: pointer; background: var(--panel2); }
+  .empty2 .qc:hover { border-color: var(--accent); } .empty2 .qc b { display: block; } .empty2 .qc small { color: var(--muted); }
+  .fixall { width: 100%; margin-top: 6px; background: linear-gradient(90deg, #2f7d4f, #3fb67a); color: #fff; border: none; border-radius: 10px; padding: 12px; font: 700 14px var(--sans); cursor: pointer; }
+  .seg { position: absolute; left: 14px; top: 12px; z-index: 22; display: flex; background: rgba(28,33,41,.92); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg span { padding: 6px 12px; font: 600 12px var(--sans); color: var(--muted); cursor: pointer; } .seg span.on { background: var(--accent); color: #fff; }
+  .tl { position: absolute; left: 14px; bottom: 12px; z-index: 22; display: flex; gap: 0; align-items: center; background: rgba(28,33,41,.92); border: 1px solid var(--line); border-radius: 18px; padding: 6px 12px; font-size: 11.5px; }
+  .tl .cp { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--muted); padding: 0 6px; }
+  .tl .cp i { width: 10px; height: 10px; border-radius: 50%; background: #5b6b7d; display: inline-block; } .tl .cp.on { color: var(--text); } .tl .cp.on i { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+  .tl .ln { width: 18px; height: 2px; background: var(--line); }
+  #pagemodal { display: none; position: fixed; inset: 60px 400px 90px 300px; z-index: 80; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,.6); overflow: auto; padding: 10px; }
+  #pagemodal.show { display: block; } #pagemodal img { width: 100%; background: #fff; border-radius: 4px; }
+  #pagemodal .bar { display: flex; justify-content: space-between; color: var(--muted); padding: 2px 4px 8px; }
+  .kpi.flip { animation: flip .9s; } @keyframes flip { 0% { transform: rotateX(90deg); } 60% { box-shadow: 0 0 0 3px var(--warn); } }
+  body.simple .ubar.na { display: none; }
   .toast { position: fixed; bottom: 210px; right: 420px; background: var(--panel2); border: 1px solid var(--ok); color: var(--text); padding: 10px 14px; border-radius: 6px; z-index: 99; display: none; }
   .toast a { color: var(--accent); }
 </style>
@@ -263,7 +296,6 @@
 
   <main id="main">
     <div class="progress" id="progress"></div>
-    <div id="ovl"></div>
     <div class="stage"><div class="sheet show-hits" id="sheet"></div></div>
   </main>
 
@@ -280,6 +312,7 @@
     <div class="cbox"><h5><span id="sproft">Water surface through the plant</span><span><span id="sflowv" style="font:700 13px var(--mono);color:var(--text)"></span> <input type="range" id="sflow" min="4" max="30" step="0.5" value="18"></span></h5><svg id="sprof" viewBox="0 0 700 160" width="100%" height="160"></svg></div>
     <div class="cbox"><h5><span id="shistt">Demand vs plant capacity</span></h5><svg id="shist" viewBox="0 0 700 160" width="100%" height="160"></svg></div>
   </section>
+  <aside id="ovl"></aside>
   <div id="askbar"><input id="ask2" placeholder="Ask about this plant…" autocomplete="off">
     <div class="sugg" id="sugg"></div><button class="big" id="askgo">Ask</button></div>
   <section class="bp">
@@ -297,6 +330,7 @@
   </section>
 </div>
 <div class="toast" id="toast"></div>
+<div id="pagemodal"><div class="bar"><span id="pmt"></span><span style="cursor:pointer" onclick="this.closest('#pagemodal').classList.remove('show')">✕ close (Esc)</span></div><img id="pmi"></div>
 
 <script>
 const $ = s => document.querySelector(s);
@@ -346,7 +380,7 @@ async function load() {
   drawProfile(); loadProblems(); setupSimple();
   $("#sflow").value = P.target_mgd || 18;
   $("#sflow").oninput = () => { $("#flow").value = $("#sflow").value; drawProfile(); cockpit(); };
-  shistory(); readAnimation().then(cockpit);
+  shistory(); railEmpty(); readAnimation().then(() => { cockpit(); compareCtl(); });
   if (!P.profiles.length) bpTab("problems");
   document.querySelectorAll("[data-ds]").forEach(e => e.onclick = () => drawHistory(e.dataset.ds, "MDD"));
   document.querySelectorAll("[data-doc]").forEach(e => e.onclick = () => { $("#cmd").value = `In ${e.dataset.doc}, `; $("#cmd").focus(); });
@@ -578,53 +612,172 @@ function drawGlows() {
   ACCEPTED.forEach(a => add(bboxOf(a.structure), "ok", "✓ " + a.title.slice(0, 40)));
 }
 
+
+// ---- rail: plan, answer, proposals (accept/reject), checker badge, citations -----------------------
+const PLAN = [["read", "Read the drawing & documents", /search_docs|read_page|view_page|history|read_drawing/],
+  ["model", "Load the calibrated model", /get_spec/], ["sim", "Run the simulators", /run_|profile_capacity|velocity|eps_/],
+  ["std", "Check design standards", /standards/], ["cost", "Estimate cost", /cost_/], ["fix", "Propose & verify a fix", /^$/]];
+let T0 = 0, TICK = null;
+function railStart(label) {
+  const o = $("#ovl"); o.classList.add("show");
+  o.innerHTML = `<div class="q">› ${esc(label)}</div><div class="plan" id="plan">${PLAN.map(([k, t]) => `<div class="pl" id="pl-${k}"><span class="ic2"></span><span>${t}</span><span class="ev"></span></div>`).join("")}</div>
+    <div class="hud"><span id="hudm">Muse ${esc(P.model || "")}</span><span id="hudt">0 s</span></div>`;
+  T0 = Date.now(); clearInterval(TICK); TICK = setInterval(() => { const t = $("#hudt"); if (t) t.textContent = Math.round((Date.now() - T0) / 1000) + " s"; }, 500);
+  $("#pl-read").classList.add("on");
+}
+function railEvent(e) {
+  if (e.kind !== "tool") return;
+  const step = PLAN.find(([k, t, re]) => re.test(e.name)); if (!step) return;
+  const idx = PLAN.indexOf(step);
+  PLAN.forEach(([k], i) => { const el = $("#pl-" + k); if (!el) return; if (i < idx && el.classList.contains("on")) { el.classList.remove("on"); el.classList.add("ok"); } });
+  const el = $("#pl-" + step[0]); if (!el) return; el.classList.remove("ok"); el.classList.add("on");
+  const m = (e.args || "").match(/"(?:page|label|query|rule_id|dataset)":\s*"?([^",}]+)/); if (m) el.querySelector(".ev").textContent = (/page/.test(e.args) ? "p." : "") + m[1];
+  // the agent's cursor: flash the structure its arguments mention
+  const txt = (e.args || "").toLowerCase();
+  const s = (P.structures || []).find(st => st.name.toLowerCase().split(" ").some(w => w.length > 5 && txt.includes(w)));
+  if (s) flash(s.name, step[1]);
+}
+function railDone() { clearInterval(TICK); PLAN.forEach(([k]) => { const el = $("#pl-" + k); if (el && el.classList.contains("on")) { el.classList.remove("on"); el.classList.add("ok"); } }); }
+
+function cites(t) { return esc(t).replace(/(?:dwg )?p\.(\d+)/g, (m, n) => `<span class="cite" data-p="${n}">${m}</span>`); }
+function openPage(n) {
+  const doc = P.documents[0].id;
+  $("#pmt").textContent = `${P.documents[0].title} — page ${n}`; $("#pmi").src = `/api/ws/${CASE}/page?doc=${doc}&n=${n}&dpi=120`;
+  $("#pagemodal").classList.add("show");
+}
+
 async function simpleAsk(text, context, label) {
   if (busy) return;
   $("#ask2").value = "";
-  const o = $("#ovl"); o.classList.add("show");
-  o.innerHTML = `<div class="q">${esc(label || text)}</div><div class="working" id="wk">Reading the drawing and documents…</div>`;
-  const steps = {search_docs: "Searching the documents", read_page: "Reading the report", view_page: "Looking at a drawing",
-    get_spec: "Loading the calibrated model", run_profile: "Running the hydraulic model", profile_capacity: "Finding the limits",
-    run_hydraulics: "Running EPANET", standards_check: "Checking design standards", standards_list: "Looking up design standards",
-    cost_estimate: "Estimating cost", velocity: "Checking velocities", history: "Reading the production record", run_surge: "Simulating a pump trip"};
-  const prev = window._onEvent; window._onEvent = e => { if (e.kind === "tool" && steps[e.name] && $("#wk")) $("#wk").textContent = steps[e.name] + "…"; };
+  railStart(label || text);
+  const prev = window._onEvent; window._onEvent = railEvent;
   await ask(text, context);
-  window._onEvent = prev;
+  window._onEvent = prev; railDone();
   const a = P.answers[P.answers.length - 1];
   if (a && a.request === text) renderOverlay(a, label || text);
 }
 
-function renderOverlay(a, label) {
+function proposalHtml(p, i) {
+  const unit = p.kind === "unit";
+  return `<div class="prop" data-i="${i}"><div class="t">${esc(p.title)}</div>
+    <div class="diff">${esc(unit ? p.unit : p.element + "." + p.field)}: <span class="o">${p.old ?? "—"}</span> → <span class="n">${unit ? p.capacity_mgd + " MGD" : p.value}</span></div>
+    <div class="r ${p.passes_after ? "" : "bad"}">${p.passes_after ? "✓ verified in the simulator" + (p.run_label ? " · run " + esc(p.run_label) : "") + ` · at ${p.target_mgd} MGD` : "✗ not verified: " + esc((p.failing_after || []).join(", "))}</div>
+    <button class="acc" ${p.passes_after ? "" : "disabled style='opacity:.5'"}>Accept</button><button class="rej">Reject</button></div>`;
+}
+
+async function acceptProposal(p, box) {
+  const b = box.querySelector(".acc"); b.disabled = true; b.textContent = "Applying…";
+  const r = await api(`/api/ws/${CASE}/accept`, p);
+  const st = p.structure || (ISS.find(i => i.id === p.resolves) || {}).structure || (UNITS.find(u => u.unit === p.unit) || {}).structure;
+  ACCEPTED.push({title: p.title, structure: st, rev: r.revision.n});
+  if (st) ghost(st, p.title);
+  if (r.label && !$(`#plabel option[value="${r.label}"]`)) $("#plabel").insertAdjacentHTML("beforeend", `<option value="${esc(r.label)}">${esc(r.label)}</option>`);
+  if (r.label) $("#plabel").value = r.label;
+  b.textContent = "✓ Accepted (rev " + r.revision.n + ")"; b.style.background = "#2a6b4a"; box.querySelector(".rej").remove();
+  P.revisions = P.revisions || []; P.revisions.push(r.revision);
+  await loadIssues(); drawProfile(); timeline();
+}
+
+function renderOverlay(a, label, append) {
   const h = a.headline || a.summary.split(/[.;]/)[0];
   const neg = /^(no|not|cannot|fails?|over)/i.test(h), pos = /^(yes|passes|ok|✓)/i.test(h);
-  const props = (a.proposals || []).filter(p => !p.error);
-  $("#ovl").innerHTML = `<span id="ovlx" style="float:right;cursor:pointer;color:var(--muted);font-size:18px;line-height:1" title="Close">×</span><div class="q">${esc(label)}</div><div class="h ${neg ? "no" : pos ? "yes" : ""}">${esc(h)}</div>
-    <div class="sm2">${esc(a.summary)}</div>
-    ${props.map((p, i) => `<div class="prop"><div class="t">${esc(p.title)}</div>
-      <div class="r ${p.passes_after ? "" : "bad"}">${esc(p.element)}.${esc(p.field)}: ${p.old} → ${p.value} · at ${p.target_mgd} mgd ${p.passes_after ? "✓ passes in the simulator" : "✗ still fails: " + esc(p.failing_after.join(", "))}</div>
-      <button class="acc" data-i="${i}">Accept change</button></div>`).join("")}
-    <span class="det" id="det">Show the calculation (${(a.cards || []).length} calc cards) →</span>`;
-  $("#ovlx").onclick = () => $("#ovl").classList.remove("show");
-  $("#det").onclick = () => { document.body.classList.remove("simple"); $("#expert").textContent = "Simple view"; showTab("answers"); };
-  document.querySelectorAll("#ovl .acc").forEach(b => b.onclick = async () => {
-    const p = props[+b.dataset.i];
-    b.disabled = true; b.textContent = "Applying…";
-    const r = await api(`/api/ws/${CASE}/accept`, p);
-    ACCEPTED.push({title: p.title, structure: p.structure || (ISS.find(i => i.id === p.resolves) || {}).structure});
-    ghost(ACCEPTED[ACCEPTED.length - 1].structure, p.title);
-    $("#plabel").insertAdjacentHTML("beforeend", `<option value="${esc(r.label)}">${esc(r.label)}</option>`); $("#plabel").value = r.label;
-    b.textContent = "✓ Accepted — model updated (rev " + r.revision.n + ")"; b.style.background = "#2a6b4a";
-    await loadIssues(); drawProfile(); drawMarks();
-    setTimeout(() => { $("#ovl").style.transition = "all .5s"; $("#ovl").style.maxHeight = "150px"; $("#ovl").style.overflow = "hidden"; }, 2500);
-  });
+  const props = (Array.isArray(a.proposals) ? a.proposals : []).filter(p => !p.error);
+  const c = a.checks || {};
+  const html = `<div class="ansblk"><div class="q">› ${esc(label)}</div><div class="h ${neg ? "no" : pos ? "yes" : ""}">${esc(h)}</div>
+    <div class="sm2">${cites(a.summary)}</div>
+    ${props.map(proposalHtml).join("")}
+    <div class="chk">🔎 <b>Second-engineer check:</b> ${c.proposals ? `${c.proposals_verified}/${c.proposals} fixes reproduced in the solver · ` : ""}${c.runs_found ?? 0}/${c.runs_cited ?? 0} cited runs in the log · ${c.cites_ok ?? 0}/${c.cites ?? 0} page values found on the page${c.assumptions ? ` · ${c.assumptions} assumptions flagged` : ""}</div>
+    <div class="hud"><span>Muse ${esc(P.model || "")}</span><span>${a.seconds} s</span></div>
+    <span class="det">Show the calculation (${(Array.isArray(a.cards) ? a.cards : []).length} calc cards) →</span></div>`;
+  if (append) $("#ovl").insertAdjacentHTML("beforeend", "<hr style='border-color:#2e3742'>" + html); else $("#ovl").innerHTML = html;
+  const blk = [...document.querySelectorAll("#ovl .ansblk")].pop();
+  blk.querySelectorAll(".cite").forEach(x => x.onclick = () => openPage(+x.dataset.p));
+  blk.querySelector(".det").onclick = () => { document.body.classList.remove("simple"); $("#expert").textContent = "Simple view"; showTab("answers"); };
+  blk.querySelectorAll(".prop").forEach(box => { const p = props[+box.dataset.i];
+    box.querySelector(".acc").onclick = () => acceptProposal(p, box);
+    box.querySelector(".rej").onclick = () => { box.style.opacity = .4; box.querySelector(".acc").disabled = true; box.querySelector(".rej").textContent = "Rejected"; };
+    box.onmouseenter = () => { const st = p.structure || (UNITS.find(u => u.unit === p.unit) || {}).structure; if (st) flash(st, p.title); }; });
   drawMarks();
 }
 
+function railEmpty() {
+  const o = $("#ovl");
+  const q = (P.target_mgd || 18);
+  o.innerHTML = `<div class="empty2"><div class="q">Copilot</div>
+    <div class="qc" data-q="Can this plant make ${q} mgd?"><b>Can this plant make ${q} MGD?</b><small>→ verdict, the limiting units, a verified fix</small></div>
+    <div class="qc" data-q="If raw pump 2 fails tonight, can we still make 12 mgd?"><b>If raw pump 2 fails tonight…</b><small>→ EPANET run with the pump out, margin</small></div>
+    <div class="qc" data-q="What would the fixes cost?"><b>What would the fixes cost?</b><small>→ order-of-magnitude estimate, AACE range</small></div>
+    <button class="fixall" id="fixall">⚡ Get me to ${q} MGD</button>
+    <div class="hud"><span>one verified proposal per failing unit · you accept each</span></div></div>`;
+  o.querySelectorAll(".qc").forEach(x => x.onclick = () => simpleAsk(x.dataset.q));
+  $("#fixall").onclick = fixAll;
+}
+
+async function fixAll() {
+  if (busy) return; busy = true;
+  const o = $("#ovl"); o.innerHTML = `<div class="q">⚡ Get me to ${P.target_mgd} MGD</div><div id="fa-plan" class="plan"></div><div class="hud"><span>Muse ${esc(P.model || "")}</span><span id="hudt">0 s</span></div><div id="fa-out"></div>`;
+  T0 = Date.now(); clearInterval(TICK); TICK = setInterval(() => { const t = $("#hudt"); if (t) t.textContent = Math.round((Date.now() - T0) / 1000) + " s"; }, 500);
+  const {job} = await api(`/api/ws/${CASE}/fixall`, {});
+  let off = 0, units = [];
+  while (true) {
+    await new Promise(r => setTimeout(r, 1200));
+    const j = await api(`/api/job/${job}?offset=${off}`); off = j.offset;
+    for (const e of j.events) {
+      if (e.kind === "plan") { units = e.units; $("#fa-plan").innerHTML = units.map((u, i) => `<div class="pl" id="fa-${i}"><span class="ic2"></span><span>${esc(u)}</span><span class="ev"></span></div>`).join(""); }
+      else if (e.kind === "tool") { const i = units.indexOf(e.unit); const el = $("#fa-" + i); if (el) { el.classList.add("on"); el.querySelector(".ev").textContent = e.name; }
+        const st = (UNITS.find(u => u.unit === e.unit) || {}).structure; if (st && Math.random() < .35) flash(st, e.unit); }
+      else if (e.kind === "answer") { const i = units.indexOf(e.unit); const el = $("#fa-" + i); if (el) { el.classList.remove("on"); el.classList.add("ok"); el.querySelector(".ev").textContent = (e.answer.proposals || []).length + " fix"; }
+        P.answers.push(e.answer); const holder = document.createElement("div"); $("#fa-out").appendChild(holder);
+        renderOverlay(e.answer, e.unit, true); }
+    }
+    if (j.done) { if (j.error) $("#fa-out").insertAdjacentHTML("beforeend", `<div class="chip err">${esc(j.error)}</div>`); break; }
+  }
+  clearInterval(TICK); busy = false;
+  $("#ovl").insertAdjacentHTML("afterbegin", `<button class="fixall" id="accall" style="margin-bottom:10px">✓ Accept all verified fixes</button>`);
+  $("#accall").onclick = async () => { for (const box of document.querySelectorAll("#ovl .prop")) { const b = box.querySelector(".acc"); if (b && !b.disabled) { b.click(); await new Promise(r => setTimeout(r, 1400)); } } };
+}
+
+// ---- compare existing / proposed, checkpoints ----------------------------------------------------
+let VIEW = "proposed";
+function compareCtl() {
+  if (!P.has_drawing) return;
+  $("#sheet").insertAdjacentHTML("beforeend", `<div class="seg" id="seg"><span data-v="existing">Existing</span><span data-v="proposed" class="on">Proposed</span></div><div class="tl" id="tl"></div>`);
+  document.querySelectorAll("#seg span").forEach(x => x.onclick = () => setView(x.dataset.v));
+  timeline();
+}
+function setView(v) {
+  VIEW = v; document.querySelectorAll("#seg span").forEach(x => x.classList.toggle("on", x.dataset.v === v));
+  document.querySelectorAll(".ghost,.ghostl,.glow.ok").forEach(n => n.style.display = v === "existing" ? "none" : "");
+  cockpit();
+}
+function timeline() {
+  const t = $("#tl"); if (!t) return;
+  const cps = [{rev: 0, title: "Existing"}].concat(ACCEPTED.map(a => ({rev: a.rev, title: a.title})));
+  const cur = cps[cps.length - 1].rev;
+  t.innerHTML = cps.map((c, i) => `${i ? '<span class="ln"></span>' : ""}<span class="cp ${c.rev <= cur ? "on" : ""}" data-r="${c.rev}" title="${esc(c.title)}"><i></i>${c.rev ? "Rev " + c.rev : "Existing"}</span>`).join("");
+  t.querySelectorAll(".cp").forEach(x => x.onclick = () => restoreTo(+x.dataset.r));
+}
+async function restoreTo(rev) {
+  const r = await api(`/api/ws/${CASE}/restore`, {rev});
+  ACCEPTED = ACCEPTED.filter(a => a.rev <= rev);
+  document.querySelectorAll(".ghost,.ghostl").forEach(n => n.remove());
+  ACCEPTED.forEach(a => a.structure && ghost(a.structure, a.title));
+  if (r.current) $("#plabel").value = r.current;
+  await loadIssues(); drawProfile(); timeline();
+}
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") { if (e.key === "Escape") e.target.blur(); return; }
+  if (e.key === "/") { e.preventDefault(); $("#ask2").focus(); }
+  if (e.key === "Escape") $("#pagemodal").classList.remove("show");
+  if (e.key.toLowerCase() === "b") setView(VIEW === "existing" ? "proposed" : "existing");
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && ACCEPTED.length) { e.preventDefault(); restoreTo(ACCEPTED[ACCEPTED.length - 1].rev - 1); }
+});
 
 // ---- cockpit -----------------------------------------------------------------------------------
 let UNITS = [];
 async function cockpit() {
-  UNITS = await api(`/api/ws/${CASE}/units`);
+  const prevLim = window._lim;
+  UNITS = await api(`/api/ws/${CASE}/units?view=${VIEW}`);
   const q = +$("#sflow").value;
   $("#sflowv").textContent = q.toFixed(1) + " MGD"; $("#flowlbl").textContent = `at ${q.toFixed(1)} MGD`;
   const capped = UNITS.filter(u => u.capacity_mgd != null);
@@ -639,9 +792,12 @@ async function cockpit() {
     <div class="kpi ${errs ? "bad" : "good"}"><div class="l">Blocking issues</div><div class="v">${errs}</div><div class="s">${ISS.length} findings total</div></div>`;
   const max = Math.max(30, ...capped.map(u => u.capacity_mgd));
   $("#ubars").innerHTML = UNITS.map((u, i) => { const c = u.capacity_mgd; const w = c == null ? 100 : Math.min(100, c / max * 100);
-    return `<div class="ubar ${u.changed ? "changed" : ""}" data-i="${i}" title="${esc(u.limit)}"><div class="n"><span>${esc(u.unit.slice(0, 30))}</span><b>${c == null ? "n/a" : c + " MGD"}</b></div>
+    return `<div class="ubar ${u.changed ? "changed" : ""} ${c == null ? "na" : ""}" data-i="${i}" title="${esc(u.limit)}"><div class="n"><span>${esc(u.unit.slice(0, 30))}</span><b>${c == null ? "n/a" : c + " MGD"}</b></div>
       <div class="track"><div class="fill ${c == null ? "na" : c < q ? "bad" : ""}" style="width:${w}%"></div><div class="tgt" style="left:${tgt / max * 100}%"></div><div class="now" style="left:${Math.min(q / max * 100, 100)}%"></div></div></div>`; }).join("");
   document.querySelectorAll(".ubar").forEach(b => b.onclick = () => { const u = UNITS[+b.dataset.i]; if (u.structure) flash(u.structure, u.unit); });
+  window._lim = lim && lim.unit;
+  if (prevLim && lim && prevLim !== lim.unit) document.querySelectorAll(".kpi")[2].classList.add("flip");
+  if (lim && lim.capacity_mgd >= tgt) { $("#issBtnLbl").textContent = `✓ ${tgt} MGD passes`; $("#issBtnLbl").classList.add("clear"); }
   gauges(q); sprofile(q);
 }
 
@@ -669,7 +825,7 @@ function gauges(q) {
 async function sprofile(q) {
   const label = $("#plabel").value || P.current_profile; if (!label) { $("#sprof").innerHTML = ""; return; }
   const r = await api(`/api/ws/${CASE}/profile?label=${encodeURIComponent(label)}&q=${q}`);
-  const nodes = r.nodes.slice(1), W = 700, H = 160;
+  const nodes = r.nodes.slice(1).reverse(), W = 700, H = 160;  // upstream first, like the drawing
   const vals = nodes.map(n => n.ws_ft).concat(r.checks.filter(c => c.limit_ft).map(c => c.limit_ft));
   const lo = Math.min(...vals) - .3, hi = Math.max(...vals) + .3;
   const X = i => 50 + (W - 80) * i / Math.max(nodes.length - 1, 1), Y = v => 10 + (H - 40) * (1 - (v - lo) / (hi - lo));
@@ -689,7 +845,7 @@ async function shistory() {
   const ds = P.datasets[0]; if (!ds) { $("#shistt").textContent = "Capacity by unit (target line)"; return; }
   const h = await api(`/api/ws/${CASE}/history?dataset=${ds.id}&parameter=MDD%20maximum`);
   const hp = await api(`/api/ws/${CASE}/history?dataset=${ds.id}&parameter=MDD%20projected%20medium`).catch(() => null);
-  const pts = h.points, proj = (hp && hp.points) || [], W = 700, H = 160, tgt = P.target_mgd || 18;
+  const pts = h.points, proj = ((hp && hp.points) || []).filter(p => p[0] <= 2040), W = 700, H = 160, tgt = P.target_mgd || 18;
   const xs = pts.concat(proj).map(p => p[0]), x0 = Math.min(...xs), x1 = Math.max(...xs);
   const X = x => 40 + (W - 60) * (x - x0) / (x1 - x0), Y = v => 10 + (H - 34) * (1 - v / (tgt * 1.12));
   let s = `<line x1="40" x2="${W - 20}" y1="${Y(12)}" y2="${Y(12)}" stroke="#e3a33a" stroke-dasharray="5 3"/><text x="${W - 22}" y="${Y(12) - 4}" fill="#e3a33a" font-size="10.5" text-anchor="end">plant 12 MGD</text>

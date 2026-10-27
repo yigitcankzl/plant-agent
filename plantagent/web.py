@@ -164,7 +164,7 @@ def ws_project(case):
             "profiles": [{"label": k, "purpose": v["purpose"], "flows": v.get("flows")} for k, v in w.profiles.items()],
             "answers": w.answers, "session": w.dir.name, "revisions": w.revisions,
             "target_mgd": __import__("plantagent.copilot", fromlist=["x"]).target_flow(w),
-            "rated_mgd": c.get("workspace", {}).get("rated_mgd"),
+            "rated_mgd": c.get("workspace", {}).get("rated_mgd"), "model": w.model,
             "current_profile": __import__("plantagent.copilot", fromlist=["x"]).current_label(w),
             "task_type": c["task_type"], "study_run": w.study_dir.name if w.study_dir else None,
             "eps": {"runs": [{"label": k, "score": (v.get("result") or {}).get("mean_relative_rmse")} for k, v in w.eps_runs.items()
@@ -225,6 +225,33 @@ def ws_task(case, task_id):
             JOBS[job]["done"] = True
     threading.Thread(target=work, daemon=True).start()
     return {"job": job, "title": t["title"]}
+
+
+def ws_fix_all(case):
+    """'Get me to target': one verified proposal per failing unit, streamed as they come; the engineer accepts each."""
+    from .copilot import failing_units, problems, target_flow
+    w = workspace(case)
+    job = uuid.uuid4().hex[:10]
+    JOBS[job] = {"events": [], "done": False, "answer": None, "error": None}
+
+    def work():
+        try:
+            units = failing_units(w)
+            JOBS[job]["events"].append({"kind": "plan", "units": [u["unit"] for u in units]})
+            for u in units[:6]:
+                iss = next((i for i in problems(w) if i.get("structure") and i["structure"] == u["structure"]), None)
+                w.listener = lambda e, u=u: JOBS[job]["events"].append({"kind": e["kind"], "name": e.get("name"), "unit": u["unit"],
+                                                                         "args": _short(e.get("args"), 120) if e.get("args") else None})
+                a = w.ask(f"Bring the {u['full_unit']} to {target_flow(w)} mgd. Its documented limit: {u['limit']}. Propose the least-cost "
+                          f"change, verify it with a simulator run, and return it as a proposal" + (f" resolving issue {iss['id']}" if iss else "") + ".",
+                          {"unit": u["unit"], "structure": u["structure"]})
+                JOBS[job]["events"].append({"kind": "answer", "unit": u["unit"], "answer": a})
+        except Exception as ex:
+            JOBS[job]["error"] = f"{type(ex).__name__}: {ex}"
+        finally:
+            w.listener, JOBS[job]["done"] = None, True
+    threading.Thread(target=work, daemon=True).start()
+    return {"job": job}
 
 
 def ws_export(case, kind):
@@ -350,6 +377,13 @@ class Handler(SimpleHTTPRequestHandler):
                 w = workspace(case)
                 url = w.project.image(q["doc"], int(q["n"]), dpi=int(q.get("dpi", 110)))
                 return self._send(base64.b64decode(url.split(",", 1)[1]), "image/png")
+            if what == "fixall" and method == "POST":
+                return self._send(ws_fix_all(case))
+            if what == "restore" and method == "POST":
+                from .copilot import problems, restore
+                w = workspace(case)
+                r = restore(w, body.get("rev", 0))
+                return self._send({**r, "issues": problems(w)})
             if what == "accept" and method == "POST":
                 from .copilot import accept, problems
                 w = workspace(case)
@@ -357,7 +391,7 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send({**r, "issues": problems(w)})
             if what == "units":
                 from .copilot import unit_capacities
-                return self._send(unit_capacities(workspace(case)))
+                return self._send(unit_capacities(workspace(case), q.get("view", "proposed")))
             if what == "capacity":
                 return self._send(profile.capacity(workspace(case).profiles[q["label"]]["spec"]))
             if what == "revisions":
