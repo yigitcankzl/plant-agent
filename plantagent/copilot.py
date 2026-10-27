@@ -691,8 +691,10 @@ def _station_for(ws, unit_text):
         return None
     # the existing station with every installed pump available (firm capacity then takes the largest one out)
     runs = [(k, v) for k, v in station_runs(ws).items() if all(p["id"].upper().startswith(prefix) for p in v["spec"]["pumps"])
-            and all(p.get("on", True) for p in v["spec"]["pumps"]) and not re.search(r"ALT|UPGRADE|ADD|FIX|NEW|6PUMP", k.upper())]
-    return max(runs, key=lambda kv: (len(kv[1]["spec"]["pumps"]), "NOM" in kv[0].upper()), default=None)
+            and all(p.get("on", True) for p in v["spec"]["pumps"])
+            and not re.search(r"ALT|UPG|ADD|FIX|NEW|PROP|FUT|DESIGN|6PUMP|[-_](1[89]|2[0-4])([^0-9]|$)", k.upper())]
+    # an explicitly 'existing' station run wins; otherwise the one with the most installed pumps
+    return max(runs, key=lambda kv: ("EXIST" in kv[0].upper(), len(kv[1]["spec"]["pumps"]), "NOM" in kv[0].upper()), default=None)
 
 
 def unit_capacities(ws, view="proposed"):
@@ -731,7 +733,7 @@ def unit_capacities(ws, view="proposed"):
             if not mine:
                 continue
             gov = min(mine, key=lambda c: c["binds_at_mgd"])
-            words = set(re.findall(r"[a-z]{4,}", (e["id"] + " " + gov["check"] + " " + _structure_of(ws, e["id"], e["id"]) or "").lower())) - generic
+            words = set(re.findall(r"[a-z]{4,}", (e["id"] + " " + gov["check"] + " " + (_structure_of(ws, e["id"], e["id"]) or "")).lower())) - generic
             words |= {"sedimentation", "flocculation"} if "basin" in gov["check"].lower() else set()
             best = max((r for r in rows if r["source"] == "documented" and not SIDE.search(r["full_unit"])),
                        key=lambda r: len(words & set(re.findall(r"[a-z]{4,}", r["full_unit"].lower()))), default=None)
