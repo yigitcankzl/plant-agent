@@ -160,7 +160,7 @@
   .iss { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 9px 10px; border-radius: 6px; }
   .iss:hover { background: var(--line); }
   .iss b { display: block; font-size: 13px; } .iss small { color: var(--muted); font-size: 11.5px; }
-  #ovl { position: fixed; right: 30px; bottom: 104px; width: 430px; max-height: calc(100vh - 190px); overflow: auto; background: rgba(28,33,41,.97); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; z-index: 25; box-shadow: 0 16px 40px rgba(0,0,0,.55); animation: in .3s; }
+  #ovl { position: fixed; right: 30px; bottom: 300px; width: 430px; max-height: calc(100vh - 370px); overflow: auto; background: rgba(28,33,41,.97); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; z-index: 25; box-shadow: 0 16px 40px rgba(0,0,0,.55); animation: in .3s; }
   #ovl .q { color: var(--muted); font-size: 12px; }
   #ovl .h { font: 700 21px var(--sans); margin: 6px 0 8px; line-height: 1.25; }
   #ovl .h.no { color: #ff8f86; } #ovl .h.yes { color: #7fe0ad; }
@@ -177,6 +177,49 @@
   @keyframes pulse2 { from { opacity: .45; } to { opacity: 1; } }
   .working { color: var(--muted); font-size: 13px; }
   .working::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); margin-right: 8px; animation: blink .7s infinite alternate; }
+  /* ---- cockpit (simple mode): glance panel, charts, live gauges ---- */
+  #glance, #charts { display: none; }
+  body.simple .app { grid-template-columns: 300px 1fr 0; grid-template-rows: 52px 1fr 200px 80px; }
+  body.simple #glance { display: block; grid-column: 1; grid-row: 2 / 4; background: var(--panel); border-right: 1px solid var(--line); overflow: auto; padding: 14px; }
+  body.simple main { grid-column: 2; grid-row: 2; }
+  body.simple #charts { display: grid; grid-column: 2; grid-row: 3; grid-template-columns: 1fr 1fr; background: var(--panel); border-top: 1px solid var(--line); }
+  body.simple #askbar { grid-column: 1 / 3; grid-row: 4; }
+  .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .kpi { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; }
+  .kpi .l { color: var(--muted); font: 600 10px var(--sans); letter-spacing: .6px; text-transform: uppercase; }
+  .kpi .v { font: 700 22px var(--mono); margin-top: 2px; }
+  .kpi .v small { font-size: 12px; color: var(--muted); font-weight: 400; }
+  .kpi .s { color: var(--muted); font-size: 11px; }
+  .kpi.bad .v { color: #ff8f86; } .kpi.good .v { color: #7fe0ad; }
+  .gt { color: var(--muted); font: 600 10.5px var(--sans); letter-spacing: .8px; text-transform: uppercase; margin: 6px 0 8px; display: flex; justify-content: space-between; }
+  .ubar { display: grid; grid-template-columns: 1fr; gap: 3px; padding: 5px 4px; border-radius: 5px; cursor: pointer; }
+  .ubar:hover { background: var(--panel2); }
+  .ubar .n { font-size: 11.5px; display: flex; justify-content: space-between; } .ubar .n b { font: 600 11.5px var(--mono); }
+  .ubar .track { position: relative; height: 9px; background: #262e38; border-radius: 5px; overflow: visible; }
+  .ubar .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--ok); transition: width .5s, background .3s; }
+  .ubar .fill.bad { background: var(--fail); } .ubar .fill.na { background: #4a5563; }
+  .ubar .tgt, .ubar .now { position: absolute; top: -3px; bottom: -3px; width: 2px; }
+  .ubar .tgt { background: #fff; opacity: .7; } .ubar .now { background: var(--accent); }
+  .ubar.changed .n span::after { content: " ✓"; color: var(--ok); }
+  .cbox { padding: 8px 14px; border-right: 1px solid var(--line); min-width: 0; }
+  .cbox h5 { margin: 0 0 2px; font: 600 10.5px var(--sans); color: var(--muted); letter-spacing: .8px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .cbox h5 input { width: 160px; }
+  .gauge { position: absolute; width: 16px; border: 2px solid #5b6b7d; border-radius: 3px; background: rgba(255,255,255,.85); overflow: hidden; pointer-events: none; transition: all .3s; }
+  .gauge i { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(#5fb0ff, #1f6fd1); transition: height .4s, background .3s; }
+  .gauge.over { border-color: var(--fail); box-shadow: 0 0 12px rgba(239,90,79,.8); }
+  .gauge.over i { background: linear-gradient(#ff8f86, #d1342a); }
+  .gauge.over::after { content: ""; position: absolute; left: 50%; top: -2px; width: 3px; height: 10px; background: #ff8f86; animation: drip .6s infinite; }
+  @keyframes drip { from { transform: translateY(-8px); opacity: 1; } to { transform: translateY(6px); opacity: 0; } }
+  .gauge-l { position: absolute; font: 700 10px var(--mono); color: #1d2733; background: rgba(255,255,255,.9); padding: 0 3px; border-radius: 2px; pointer-events: none; }
+  .gauge-l.over { color: #c0261f; }
+  .dot { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #4da3ff; box-shadow: 0 0 8px #4da3ff; transform: translate(-50%, -50%); animation: pop .35s ease-out; pointer-events: none; }
+  .dotl { position: absolute; font: 700 9.5px var(--mono); color: #0b4d9e; background: rgba(230,242,255,.95); padding: 0 3px; border-radius: 2px; pointer-events: none; animation: pop .35s; }
+  @keyframes pop { from { transform: translate(-50%, -50%) scale(2.5); opacity: 0; } }
+  .scan { position: absolute; top: 0; bottom: 0; width: 3px; background: linear-gradient(transparent, #4da3ff, transparent); box-shadow: 0 0 24px 8px rgba(77,163,255,.35); pointer-events: none; }
+  .ghost { position: absolute; border: 2px dashed var(--ok); border-radius: 6px; background-repeat: no-repeat; filter: hue-rotate(90deg) saturate(3); opacity: .85; pointer-events: none; animation: in .6s; }
+  .ghostl { position: absolute; font: 700 11px var(--sans); color: #fff; background: var(--ok); padding: 2px 7px; border-radius: 4px; pointer-events: none; }
+  .readbanner { position: absolute; left: 20px; top: 16px; z-index: 30; background: rgba(28,33,41,.92); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 12.5px; }
+  .readbanner b { color: var(--accent); }
   .toast { position: fixed; bottom: 210px; right: 420px; background: var(--panel2); border: 1px solid var(--ok); color: var(--text); padding: 10px 14px; border-radius: 6px; z-index: 99; display: none; }
   .toast a { color: var(--accent); }
 </style>
@@ -202,6 +245,11 @@
     <a class="btn" href="/" style="text-decoration:none">Benchmark</a>
   </header>
 
+  <aside id="glance">
+    <div class="kpis" id="kpis"></div>
+    <div class="gt"><span>Capacity by unit</span><span id="flowlbl"></span></div>
+    <div id="ubars"></div>
+  </aside>
   <aside class="left">
     <div class="sec"><h4>Documents</h4><div id="docs"></div></div>
     <div class="sec"><h4>Data</h4><div id="data"></div></div>
@@ -228,6 +276,10 @@
       standards checked — and as <b>marks on the drawing</b>. Export them as calc sheets, a memo or a DWG markup.</div></div>
   </aside>
 
+  <section id="charts">
+    <div class="cbox"><h5><span id="sproft">Water surface through the plant</span><span><span id="sflowv" style="font:700 13px var(--mono);color:var(--text)"></span> <input type="range" id="sflow" min="4" max="30" step="0.5" value="18"></span></h5><svg id="sprof" viewBox="0 0 700 160" width="100%" height="160"></svg></div>
+    <div class="cbox"><h5><span id="shistt">Demand vs plant capacity</span></h5><svg id="shist" viewBox="0 0 700 160" width="100%" height="160"></svg></div>
+  </section>
   <div id="askbar"><input id="ask2" placeholder="Ask about this plant…" autocomplete="off">
     <div class="sugg" id="sugg"></div><button class="big" id="askgo">Ask</button></div>
   <section class="bp">
@@ -292,6 +344,9 @@ async function load() {
   $("#plabel").innerHTML = profs.map(p => `<option value="${esc(p.label)}" ${p.label === P.preloaded.base_profile_run ? "selected" : ""}>${esc(p.label)}</option>`).join("");
   P.answers.forEach(a => addAnswer(a, false));
   drawProfile(); loadProblems(); setupSimple();
+  $("#sflow").value = P.target_mgd || 18;
+  $("#sflow").oninput = () => { $("#flow").value = $("#sflow").value; drawProfile(); cockpit(); };
+  shistory(); readAnimation().then(cockpit);
   if (!P.profiles.length) bpTab("problems");
   document.querySelectorAll("[data-ds]").forEach(e => e.onclick = () => drawHistory(e.dataset.ds, "MDD"));
   document.querySelectorAll("[data-doc]").forEach(e => e.onclick = () => { $("#cmd").value = `In ${e.dataset.doc}, `; $("#cmd").focus(); });
@@ -508,7 +563,7 @@ async function loadIssues() {
   document.querySelectorAll("#issuelist .acc").forEach(b => b.onclick = e => { e.stopPropagation(); $("#issuesBtn").classList.remove("open");
     const i = ISS.find(x => x.id === b.dataset.id);
     simpleAsk(`Fix this issue (id ${i.id}): ${i.text}`, {issue_id: i.id, structure: i.structure}, `Fix: ${i.structure || i.plain_kind}`); });
-  drawGlows();
+  drawGlows(); if (UNITS.length) cockpit();
 }
 
 function bboxOf(name) { const s = P.structures.find(x => x.name === name); return s && s.bbox; }
@@ -543,23 +598,136 @@ function renderOverlay(a, label) {
   const h = a.headline || a.summary.split(/[.;]/)[0];
   const neg = /^(no|not|cannot|fails?|over)/i.test(h), pos = /^(yes|passes|ok|✓)/i.test(h);
   const props = (a.proposals || []).filter(p => !p.error);
-  $("#ovl").innerHTML = `<div class="q">${esc(label)}</div><div class="h ${neg ? "no" : pos ? "yes" : ""}">${esc(h)}</div>
+  $("#ovl").innerHTML = `<span id="ovlx" style="float:right;cursor:pointer;color:var(--muted);font-size:18px;line-height:1" title="Close">×</span><div class="q">${esc(label)}</div><div class="h ${neg ? "no" : pos ? "yes" : ""}">${esc(h)}</div>
     <div class="sm2">${esc(a.summary)}</div>
     ${props.map((p, i) => `<div class="prop"><div class="t">${esc(p.title)}</div>
       <div class="r ${p.passes_after ? "" : "bad"}">${esc(p.element)}.${esc(p.field)}: ${p.old} → ${p.value} · at ${p.target_mgd} mgd ${p.passes_after ? "✓ passes in the simulator" : "✗ still fails: " + esc(p.failing_after.join(", "))}</div>
       <button class="acc" data-i="${i}">Accept change</button></div>`).join("")}
     <span class="det" id="det">Show the calculation (${(a.cards || []).length} calc cards) →</span>`;
+  $("#ovlx").onclick = () => $("#ovl").classList.remove("show");
   $("#det").onclick = () => { document.body.classList.remove("simple"); $("#expert").textContent = "Simple view"; showTab("answers"); };
   document.querySelectorAll("#ovl .acc").forEach(b => b.onclick = async () => {
     const p = props[+b.dataset.i];
     b.disabled = true; b.textContent = "Applying…";
     const r = await api(`/api/ws/${CASE}/accept`, p);
     ACCEPTED.push({title: p.title, structure: p.structure || (ISS.find(i => i.id === p.resolves) || {}).structure});
+    ghost(ACCEPTED[ACCEPTED.length - 1].structure, p.title);
     $("#plabel").insertAdjacentHTML("beforeend", `<option value="${esc(r.label)}">${esc(r.label)}</option>`); $("#plabel").value = r.label;
     b.textContent = "✓ Accepted — model updated (rev " + r.revision.n + ")"; b.style.background = "#2a6b4a";
     await loadIssues(); drawProfile(); drawMarks();
+    setTimeout(() => { $("#ovl").style.transition = "all .5s"; $("#ovl").style.maxHeight = "150px"; $("#ovl").style.overflow = "hidden"; }, 2500);
   });
   drawMarks();
+}
+
+
+// ---- cockpit -----------------------------------------------------------------------------------
+let UNITS = [];
+async function cockpit() {
+  UNITS = await api(`/api/ws/${CASE}/units`);
+  const q = +$("#sflow").value;
+  $("#sflowv").textContent = q.toFixed(1) + " MGD"; $("#flowlbl").textContent = `at ${q.toFixed(1)} MGD`;
+  const capped = UNITS.filter(u => u.capacity_mgd != null);
+  const side = /wastewater|backwash|drain|solids|sludge/i;  // side streams do not set the plant's treatment capacity
+  const lim = capped.filter(u => !side.test(u.unit)).reduce((a, u) => (!a || u.capacity_mgd < a.capacity_mgd) ? u : a, null);
+  const errs = ISS.filter(i => i.severity === "error").length;
+  const tgt = P.target_mgd || 18;
+  $("#kpis").innerHTML = `
+    <div class="kpi"><div class="l">Plant rating</div><div class="v">${P.rated_mgd ?? "—"} <small>MGD</small></div><div class="s">as documented</div></div>
+    <div class="kpi"><div class="l">Target</div><div class="v">${tgt} <small>MGD</small></div><div class="s">client question</div></div>
+    <div class="kpi ${lim && lim.capacity_mgd < tgt ? "bad" : "good"}"><div class="l">Bottleneck</div><div class="v">${lim ? lim.capacity_mgd : "—"} <small>MGD</small></div><div class="s">${esc(lim ? lim.unit.slice(0, 26) : "")}</div></div>
+    <div class="kpi ${errs ? "bad" : "good"}"><div class="l">Blocking issues</div><div class="v">${errs}</div><div class="s">${ISS.length} findings total</div></div>`;
+  const max = Math.max(30, ...capped.map(u => u.capacity_mgd));
+  $("#ubars").innerHTML = UNITS.map((u, i) => { const c = u.capacity_mgd; const w = c == null ? 100 : Math.min(100, c / max * 100);
+    return `<div class="ubar ${u.changed ? "changed" : ""}" data-i="${i}" title="${esc(u.limit)}"><div class="n"><span>${esc(u.unit.slice(0, 30))}</span><b>${c == null ? "n/a" : c + " MGD"}</b></div>
+      <div class="track"><div class="fill ${c == null ? "na" : c < q ? "bad" : ""}" style="width:${w}%"></div><div class="tgt" style="left:${tgt / max * 100}%"></div><div class="now" style="left:${Math.min(q / max * 100, 100)}%"></div></div></div>`; }).join("");
+  document.querySelectorAll(".ubar").forEach(b => b.onclick = () => { const u = UNITS[+b.dataset.i]; if (u.structure) flash(u.structure, u.unit); });
+  gauges(q); sprofile(q);
+}
+
+function flash(name, label) {
+  const b = bboxOf(name); if (!b) return;
+  const [x0, y0, x1, y1] = b, pad = .015;
+  $("#sheet").insertAdjacentHTML("beforeend", `<div class="glow ok" id="fl" style="left:${(x0 - pad) * 100}%;top:${(y0 - pad) * 100}%;width:${(x1 - x0 + 2 * pad) * 100}%;height:${(y1 - y0 + 2 * pad) * 100}%;border-color:#4da3ff;box-shadow:0 0 18px rgba(77,163,255,.8)"><span style="background:#4da3ff">${esc(label.slice(0, 40))}</span></div>`);
+  setTimeout(() => $("#fl")?.remove(), 1800);
+}
+
+function gauges(q) {
+  document.querySelectorAll(".gauge,.gauge-l").forEach(n => n.remove());
+  const done = new Set();
+  UNITS.filter(u => u.structure && u.capacity_mgd).forEach(u => {
+    if (done.has(u.structure)) return; done.add(u.structure);
+    const same = UNITS.filter(x => x.structure === u.structure && x.capacity_mgd); const cap = Math.min(...same.map(x => x.capacity_mgd));
+    const b = bboxOf(u.structure); if (!b) return;
+    const util = q / cap, over = util > 1;
+    const left = (b[2] + .012) * 100, top = b[1] * 100;
+    $("#sheet").insertAdjacentHTML("beforeend", `<div class="gauge ${over ? "over" : ""}" style="left:${left}%;top:${top}%;height:46px"><i style="height:${Math.min(util, 1) * 100}%"></i></div>
+      <div class="gauge-l ${over ? "over" : ""}" style="left:${left}%;top:calc(${top}% + 50px)">${Math.round(util * 100)}%</div>`);
+  });
+}
+
+async function sprofile(q) {
+  const label = $("#plabel").value || P.current_profile; if (!label) { $("#sprof").innerHTML = ""; return; }
+  const r = await api(`/api/ws/${CASE}/profile?label=${encodeURIComponent(label)}&q=${q}`);
+  const nodes = r.nodes.slice(1), W = 700, H = 160;
+  const vals = nodes.map(n => n.ws_ft).concat(r.checks.filter(c => c.limit_ft).map(c => c.limit_ft));
+  const lo = Math.min(...vals) - .3, hi = Math.max(...vals) + .3;
+  const X = i => 50 + (W - 80) * i / Math.max(nodes.length - 1, 1), Y = v => 10 + (H - 40) * (1 - (v - lo) / (hi - lo));
+  let s = "";
+  nodes.forEach((n, i) => { s += `<text x="${X(i)}" y="${H - 8}" fill="#8592a3" font-size="11" text-anchor="middle">${esc(n.id.slice(0, 14))}</text>`;
+    r.checks.filter(c => c.id === n.id && c.limit_ft).forEach(c => s += `<line x1="${X(i) - 26}" x2="${X(i) + 26}" y1="${Y(c.limit_ft)}" y2="${Y(c.limit_ft)}" stroke="#ef5a4f" stroke-dasharray="4 3"/><text x="${X(i) + 28}" y="${Y(c.limit_ft) + 4}" fill="#ef5a4f" font-size="9.5">limit</text>`); });
+  const pts = nodes.map((n, i) => `${X(i)},${Y(n.ws_ft)}`);
+  s += `<polygon fill="${r.passes ? "rgba(77,163,255,.18)" : "rgba(239,90,79,.18)"}" points="${X(0)},${H - 30} ${pts.join(" ")} ${X(nodes.length - 1)},${H - 30}"/>`;
+  s += `<polyline fill="none" stroke="${r.passes ? "#4da3ff" : "#ef5a4f"}" stroke-width="2.5" points="${pts.join(" ")}"/>`;
+  nodes.forEach((n, i) => s += `<circle cx="${X(i)}" cy="${Y(n.ws_ft)}" r="4" fill="${n.fails ? "#ef5a4f" : "#4da3ff"}"/><text x="${X(i)}" y="${Y(n.ws_ft) - 8}" fill="#d9e0e8" font-size="10.5" text-anchor="middle" font-family="monospace">${n.ws_ft.toFixed(2)}</text>`);
+  const failing = r.checks.filter(c => c.margin_ft < 0);
+  s += `<text x="${W - 8}" y="16" text-anchor="end" font-size="11.5" fill="${r.passes ? "#7fe0ad" : "#ff8f86"}">${r.passes ? "✓ all limits pass" : "✗ " + esc(failing.map(c => c.id + " " + c.check).join("; ").slice(0, 70))}</text>`;
+  $("#sprof").innerHTML = s;
+}
+
+async function shistory() {
+  const ds = P.datasets[0]; if (!ds) { $("#shistt").textContent = "Capacity by unit (target line)"; return; }
+  const h = await api(`/api/ws/${CASE}/history?dataset=${ds.id}&parameter=MDD%20maximum`);
+  const hp = await api(`/api/ws/${CASE}/history?dataset=${ds.id}&parameter=MDD%20projected%20medium`).catch(() => null);
+  const pts = h.points, proj = (hp && hp.points) || [], W = 700, H = 160, tgt = P.target_mgd || 18;
+  const xs = pts.concat(proj).map(p => p[0]), x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const X = x => 40 + (W - 60) * (x - x0) / (x1 - x0), Y = v => 10 + (H - 34) * (1 - v / (tgt * 1.12));
+  let s = `<line x1="40" x2="${W - 20}" y1="${Y(12)}" y2="${Y(12)}" stroke="#e3a33a" stroke-dasharray="5 3"/><text x="${W - 22}" y="${Y(12) - 4}" fill="#e3a33a" font-size="10.5" text-anchor="end">plant 12 MGD</text>
+    <line x1="40" x2="${W - 20}" y1="${Y(tgt)}" y2="${Y(tgt)}" stroke="#ef5a4f" stroke-dasharray="5 3"/><text x="${W - 22}" y="${Y(tgt) - 4}" fill="#ef5a4f" font-size="10.5" text-anchor="end">2009 plan ${tgt} MGD</text>`;
+  s += `<polyline fill="none" stroke="#4da3ff" stroke-width="2" points="${pts.map(p => `${X(p[0])},${Y(p[1])}`).join(" ")}"/>`;
+  pts.forEach(p => s += `<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="2.6" fill="#4da3ff"/>`);
+  if (proj.length) s += `<polyline fill="none" stroke="#9aa7ff" stroke-width="1.6" stroke-dasharray="4 3" points="${proj.map(p => `${X(p[0])},${Y(p[1])}`).join(" ")}"/>`;
+  for (let y = Math.ceil(x0 / 10) * 10; y <= x1; y += 10) s += `<text x="${X(y)}" y="${H - 6}" fill="#8592a3" font-size="10.5" text-anchor="middle">${y}</text>`;
+  $("#shist").innerHTML = s;
+  $("#shistt").textContent = `Peak-day demand 1992–2018 (measured) and 2020 forecast vs capacity`;
+}
+
+async function readAnimation() {
+  const sheet = $("#sheet"); if (!P.has_drawing) return;
+  const els = P.structures.flatMap(s => s.elevations).sort((a, b) => a.bbox[0] - b.bbox[0]);
+  sheet.insertAdjacentHTML("beforeend", `<div class="readbanner" id="rb"><b>Muse</b> is reading the drawing… <span id="rbn">0</span> elevations</div><div class="scan" id="scan" style="left:0"></div>`);
+  for (let i = 0; i < els.length; i++) {
+    const e = els[i], [x0, y0, x1, y1] = e.bbox;
+    $("#scan").style.left = `${x1 * 100}%`;
+    sheet.insertAdjacentHTML("beforeend", `<div class="dot" style="left:${(x0 + x1) / 2 * 100}%;top:${(y0 + y1) / 2 * 100}%"></div><div class="dotl" style="left:${x1 * 100}%;top:${y0 * 100}%">${e.value}</div>`);
+    $("#rbn").textContent = i + 1;
+    await new Promise(r => setTimeout(r, 70));
+  }
+  $("#scan").remove();
+  $("#rb").innerHTML = `<b>Muse</b> read ${els.length} elevations · ${P.structures.length} structures · every value confirmed by a second read`;
+  await new Promise(r => setTimeout(r, 1800));
+  document.querySelectorAll(".dot,.dotl").forEach(n => n.style.transition = "opacity .8s");
+  document.querySelectorAll(".dot,.dotl").forEach(n => n.style.opacity = 0);
+  setTimeout(() => { document.querySelectorAll(".dot,.dotl").forEach(n => n.remove()); $("#rb")?.remove(); }, 900);
+}
+
+function ghost(name, title) {
+  const b = bboxOf(name); if (!b) return;
+  const img = $("#sheet img"), W = img.clientWidth, H = img.clientHeight;
+  const [x0, y0, x1, y1] = b, pad = .01, gx = x0 - pad, gy = y1 + .02, gw = x1 - x0 + 2 * pad, gh = y1 - y0 + 2 * pad;
+  $("#sheet").insertAdjacentHTML("beforeend", `<div class="ghost" style="left:${gx * 100}%;top:${gy * 100}%;width:${gw * 100}%;height:${gh * 100}%;
+    background-image:url(${img.src});background-size:${W}px ${H}px;background-position:-${(x0 - pad) * W}px -${(y0 - pad) * H}px"></div>
+    <div class="ghostl" style="left:${gx * 100}%;top:calc(${(gy + gh) * 100}% + 4px)">+ ${esc(title.slice(0, 44))} (proposed, rev ${P.revisions.length + 1})</div>`);
 }
 
 // ---- bottom panel: problems (with Fix), profile, activity -------------------------------------

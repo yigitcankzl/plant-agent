@@ -383,6 +383,7 @@ def preview(ws, p):
 
 def accept(ws, p):
     r = edit(ws, p["profile_label"], p["element"], p["field"], p["value"], source="accepted proposal: " + p.get("title", ""))
+    ws.accepted = getattr(ws, "accepted", []) + [{"element": p["element"], "structure": p.get("structure"), "title": p.get("title", "")}]
     if p.get("resolves"):
         ws.resolved.add(p["resolves"])
     return r
@@ -497,11 +498,16 @@ def _structure_of(ws, text, element=None):
             if e:
                 a = _anchor(ws.drawing, e["drawing_ws_ft"], e["id"])
                 return a["structure"] if a else None
-    words = set(re.findall(r"[a-z]{4,}", text.lower()))
-    for s in sorted({e["structure"] for e in (ws.drawing or {}).get("elevations", [])}, key=len, reverse=True):
-        if any(w.rstrip("s") in words or w in words for w in re.findall(r"[a-z]{4,}", s.lower())):
-            return s
-    return None
+    generic = {"water", "pump", "pumps", "station", "basin", "basins", "main", "plant", "overflow", "with"}
+    hints = {"raw": "intake", "fish": "intake", "screens": "intake", "settled": "sedimentation", "launder": "sedimentation"}
+    words = {w.rstrip("s") for w in re.findall(r"[a-z]{3,}", text.lower())}
+    words |= {hints[w] for w in list(words) if w in hints}
+    best, score = None, 0.0
+    for name in {e["structure"] for e in (ws.drawing or {}).get("elevations", [])}:
+        sc = sum((0.4 if w in generic else 2.0) for w in {x.rstrip("s") for x in re.findall(r"[a-z]{3,}", name.lower())} if w in words)
+        if sc > score:
+            best, score = name, sc
+    return best if score >= 2.0 else None
 
 
 def problems(ws, flow_mgd=None):
@@ -569,6 +575,32 @@ def tasks(case):
         out.append({"id": "calibrate", "title": "Calibrate the model to SCADA", "task_type": "model calibration against SCADA time series",
                     "question": c["question"]})
     return out
+
+
+def unit_capacities(ws):
+    """The capacity-by-unit chart of a capacity study: each unit's limiting flow (from the study's capacity table, or the
+    current model when the engineer accepted a change there), mapped to its structure on the drawing."""
+    from . import profile
+    st = ws.study or {}
+    rows = []
+    num = re.compile(r"(\d+(?:\.\d+)?)\s*(?:-\s*(\d+(?:\.\d+)?))?\s*mgd", re.I)
+    for r in (st.get("analysis") or {}).get("capacity_table") or []:
+        m = num.search(str(r.get("binds_at", ""))) or num.search(str(r.get("limit", "")))
+        cap = float(m.group(1)) if m else None
+        rows.append({"unit": str(r.get("unit", ""))[:40], "capacity_mgd": cap, "limit": str(r.get("limit", ""))[:80],
+                     "limits_target": bool(r.get("limits_target")), "structure": _structure_of(ws, str(r.get("unit", "")) + " " + str(r.get("limit", "")))})
+    # units changed by accepted proposals take their capacity from the current model
+    label = current_label(ws)
+    if label and getattr(ws, "accepted", None):
+        caps = profile.capacity(ws.profiles[label]["spec"])
+        for a in ws.accepted:
+            el = [c for c in caps if c["id"] == a["element"]]
+            lim = min((c["binds_at_mgd"] for c in el if isinstance(c["binds_at_mgd"], (int, float))), default=None)
+            key = (a.get("structure") or "").split(" ")[0].lower()
+            for r in rows:
+                if a.get("structure") and (r["structure"] == a["structure"] or (key and key in r["unit"].lower())):
+                    r.update({"capacity_mgd": lim if lim is not None else 60.0, "limits_target": False, "changed": a["title"]})
+    return rows
 
 if __name__ == "__main__":
     import sys
