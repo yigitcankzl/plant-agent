@@ -23,7 +23,6 @@ PRICES = {
     "muse-spark-1.3-contributor": (0.10, 0.20),
 }
 # ponytail: one global cap; keep ~$30 of the $150 for final demo runs and video takes.
-BUDGET_USD = float(os.getenv("MUSE_BUDGET_USD", "120"))
 TAG = ""  # written to each ledger line (e.g. the case name) so cost can be split per study
 
 
@@ -34,6 +33,10 @@ def _load_env():
             if "=" in line and not line.lstrip().startswith("#"):
                 k, v = line.split("=", 1)
                 os.environ.setdefault(k.strip(), v.strip())
+
+
+_load_env()
+BUDGET_USD = float(os.getenv("MUSE_BUDGET_USD", "120"))  # read after .env so the file cap applies
 
 
 def spent(tag=None):
