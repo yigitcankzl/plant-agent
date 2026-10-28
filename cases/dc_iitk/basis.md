@@ -29,6 +29,8 @@ The IT load scenario further down is ILLUSTRATIVE, written for this demonstratio
 
 ## Requirements
 - N+1 redundancy for chillers, plate heat exchangers and pumps: losing the largest single unit must not drop cooling.
+  Each chiller is rated 500 TR = 1,758 kW of cooling; each CDU-loop plate heat exchanger 750 kW.
+- Only the DCLC load on the CDU loop grows with the expansion; the RDHX and warm-water loads stay as they are.
 - The CDU loop must return to 15 C supply; chilled water at 8 C supply.
 
 ## Request

@@ -221,6 +221,10 @@ class PlantWorkspace(Study):
               {"tags": {"type": "array", "items": S}, "start": S, "end": S}),
             f("relief_scan", "Deterministic scan of the P&ID: for each side of each equipment item, whether it reaches a relief "
                              "device without passing a valve that could be closed, and which heated sides could be blocked in.", {}),
+            f("bubble_pressure", "DWSIM: saturation (bubble-point) pressure of a liquid at each temperature, e.g. a refrigerant's "
+                                 "condensing pressure at a condensing temperature.",
+              {"compounds": {"type": "array", "items": S}, "x": {"type": "object"}, "T_C": {"type": "array", "items": N}},
+              ["compounds", "x", "T_C"]),
             f("blocked_in_pressure", "DWSIM: pressure a liquid-full, blocked-in vessel reaches when heated from T1 to T2 "
                                      "(API 521 hydraulic expansion), for relief checks.",
               {"compounds": {"type": "array", "items": S}, "x": {"type": "object"}, "T1_C": N, "P1_bar": N, "T2_C": N},
@@ -244,6 +248,11 @@ class PlantWorkspace(Study):
         if name == "read_data_sheet":
             return {"text": self.basis}
         if name == "run_process":
+            if isinstance(a.get("spec"), str):  # the model sometimes sends the spec as JSON text
+                try:
+                    a["spec"] = json.loads(a["spec"])
+                except json.JSONDecodeError as e:
+                    return {"error": f"spec is not valid JSON ({e}); send it as an object"}
             label = a.get("label") or f"run{len(self.runs) + 1}"
             label = f"{label}-{len(self.runs) + 1}" if label in self.runs else label
             r = process.run(a["spec"], float(a.get("scale") or 1.0))
@@ -268,6 +277,8 @@ class PlantWorkspace(Study):
                 return {"note": "no drawing to compare with"}
             r = self.runs.get(a["label"])
             return coverage(self.pid, r["spec"]) if r else {"error": f"unknown label; logged: {list(self.runs)}"}
+        if name == "bubble_pressure":
+            return process.bubble(a["compounds"], a["x"], a["T_C"])
         if name == "blocked_in_pressure":
             return process.blocked_in(a["compounds"], a["x"], a["T1_C"], a["P1_bar"], a["T2_C"])
         if name == "get_spec":
@@ -350,10 +361,13 @@ class PlantWorkspace(Study):
                         "changes (paths into the spec) that respect every utility and frame limit in the data sheet. Give one "
                         "proposal per limiting equipment item, each with its tag. Prefer the cheapest fix that works: operating "
                         "changes within documented limits (levels, setpoints, utility flows), then cleaning a fouled exchanger "
-                        "back to its documented clean performance, and only then new equipment. Write for a non-specialist; "
+                        "back to its documented clean performance, and only then new equipment. An operating strategy that changes "
+                        "with weather or season (floating head pressure, economiser hours, chilled-water reset) is not a single model "
+                        "change: evaluate it with annual_energy over the bins and report it in a card, and propose only changes "
+                        "that hold at every condition. Answer every part of the request. Write for a non-specialist; "
                         "no acronyms in the headline. " + RULES,
                         json.dumps(brief) + "\n\nRequest: " + text + (f"\nContext: {json.dumps(context)}" if context else ""),
-                        self.tools() + [ANSWER], "answer", 10)
+                        self.tools() + [ANSWER], "answer", 18)
         for k in ("cards", "highlights", "proposals"):
             ans[k] = ans.get(k) if isinstance(ans.get(k), list) else []
         for p in ans["proposals"]:

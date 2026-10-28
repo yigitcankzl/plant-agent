@@ -50,8 +50,9 @@
 const SECTORS = [
   ["Water and wastewater", "💧", ["roseburg", "stpete_swwrf", "west_norriton", "pinole_tm15", "goochland_egps", "edgebrook", "stanislaus_surge", "glwa_120in_break", "ltown"]],
   ["Chemical process plants", "⚗", ["chem_c01"]],
+  ["Food and beverage", "🥛", ["dairy_refrig"]],
   ["Oil, gas and petrochemical", "🔥", ["williams_geismar", "csb_pascagoula"]],
-  ["Campus cooling and data centers", "❄", ["kstate_chw", "lbnl_gsa_dc"]],
+  ["Data centers and campus cooling", "❄", ["dc_iitk", "kstate_chw", "lbnl_gsa_dc"]],
   ["Canal pumping stations", "⚙", ["briare", "caen_hill", "greenwin_crissey"]],
 ];
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
@@ -72,7 +73,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
       const title = (c?.title || p.title).split(",")[0];
       const task = c?.task_type || p.task_type;
       const score = c?.benchmark && c.score != null ? `<div class="score">Matched ${Math.round(c.score * 100)}% of the engineers' conclusions</div><div class="bar"><i style="width:${c.score * 100}%"></i></div>` :
-        p?.kind === "process" ? `<div class="score" style="color:var(--muted)">Model built by the agent from the P&amp;ID</div>` : `<div class="score" style="color:var(--muted)">Not benchmarked</div>`;
+        p?.kind === "process" ? `<div class="score" style="color:var(--muted)">Model built by the agent from the drawing and data sheet</div>` : `<div class="score" style="color:var(--muted)">Not benchmarked</div>`;
       const open = p?.kind === "process" ? `<a class="btn go" href="plant.html?case=${id}">Open workspace</a>` :
         p?.workspace ? `<a class="btn go" href="workspace.html?case=${id}">Open workspace</a>` : "";
       const replay = c?.runs?.length ? `<a class="btn" href="index.html?case=${id}">Replay blind study</a>` : "";

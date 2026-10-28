@@ -53,6 +53,14 @@ def _dwsim():
     return Automation3()
 
 
+def _r(x, n=0):
+    """round() that lets an unsolved (None) value through instead of crashing the whole result."""
+    try:
+        return round(float(x), n)
+    except (TypeError, ValueError):
+        return None
+
+
 class _Sheet:
     def __init__(self, mgr, spec, scale=1.0):
         import System
@@ -228,36 +236,36 @@ class _Sheet:
         st = {}
         for n, s in self.streams.items():
             try:
-                st[n] = {"T_C": round(s.GetTemperature() - 273.15, 2), "P_bar": round(s.GetPressure() / 1e5, 3),
-                         "kg_h": round(s.GetMassFlow() * 3600, 1), "m3_h": round(s.GetVolumetricFlow() * 3600, 2),
-                         "vapour_frac": round(float(s.Phases[2].Properties.molarfraction or 0.0), 4)}
+                st[n] = {"T_C": _r(s.GetTemperature() - 273.15, 2), "P_bar": _r(s.GetPressure() / 1e5, 3),
+                         "kg_h": _r(s.GetMassFlow() * 3600, 1), "m3_h": _r(s.GetVolumetricFlow() * 3600, 2),
+                         "vapour_frac": _r(float(s.Phases[2].Properties.molarfraction or 0.0), 4)}
             except Exception as ex:  # noqa: BLE001 - an unsolved stream reports why
                 st[n] = {"error": str(ex)[:120]}
         un = {}
         for uid, (u, o) in self.units.items():
             t, r = u["type"], {"type": u["type"]}
             if t == "pump":
-                q = self.streams[u["in"]].GetVolumetricFlow() * 3600
+                q = (self.streams[u["in"]].GetVolumetricFlow() or 0) * 3600
                 # ponytail: DWSIM leaves DeltaQ at 0 in curve mode, so shaft power is Q*dP/eta
-                r.update(m3_h=round(q, 2), head_m=round(o.Head, 2), dP_bar=round(o.DeltaP / 1e5, 3), eff_pct=round(o.Eficiencia, 1),
-                         kW=round(q / 3600 * o.DeltaP / (o.Eficiencia / 100) / 1000, 2), npsha_m=round(o.NPSH, 2),
-                         discharge_barg=round(self.streams[u["out"]].GetPressure() / 1e5 - 1.013, 3),
+                r.update(m3_h=_r(q, 2), head_m=_r(o.Head, 2), dP_bar=_r(o.DeltaP / 1e5, 3), eff_pct=_r(o.Eficiencia, 1),
+                         kW=_r(q / 3600 * (o.DeltaP or 0) / ((o.Eficiencia or 100) / 100) / 1000, 2), npsha_m=_r(o.NPSH, 2),
+                         discharge_barg=_r(self.streams[u["out"]].GetPressure() / 1e5 - 1.013, 3),
                          kind=u.get("kind", "centrifugal"))
             elif t == "hx":
-                r.update(duty_kW=round(o.Q, 1), lmtd_C=round(o.LMTD, 2), U_W_m2K=round(o.OverallCoefficient, 1), area_m2=round(o.Area, 2),
-                         dP_hot_bar=round(o.HotSidePressureDrop / 1e5, 3), dP_cold_bar=round(o.ColdSidePressureDrop / 1e5, 3))
+                r.update(duty_kW=_r(o.Q, 1), lmtd_C=_r(o.LMTD, 2), U_W_m2K=_r(o.OverallCoefficient, 1), area_m2=_r(o.Area, 2),
+                         dP_hot_bar=_r(o.HotSidePressureDrop / 1e5, 3), dP_cold_bar=_r(o.ColdSidePressureDrop / 1e5, 3))
             elif t in ("heater", "cooler"):
-                r.update(duty_kW=round(o.DeltaQ, 2))
+                r.update(duty_kW=_r(o.DeltaQ, 2))
             elif t == "compressor":
-                r.update(duty_kW=round(o.DeltaQ, 2), kW=round(o.DeltaQ, 2),
-                         discharge_C=round(self.streams[u["out"]].GetTemperature() - 273.15, 1))
+                r.update(duty_kW=_r(o.DeltaQ, 2), kW=_r(o.DeltaQ, 2),
+                         discharge_C=_r(self.streams[u["out"]].GetTemperature() - 273.15, 1))
             elif t == "valve":
-                r.update(dP_bar=round(o.DeltaP / 1e5, 3))
+                r.update(dP_bar=_r(o.DeltaP / 1e5, 3))
             elif t == "tank":
                 # hold time is volume over the NET throughput (the product leaving), not over a recirculation loop
                 basis = u.get("residence_basis")
                 q = self.streams[basis].GetVolumetricFlow() if basis in self.streams else None
-                r.update(residence_min=round(o.Volume / q / 60 if q else o.ResidenceTime / 60, 2), volume_m3=o.Volume,
+                r.update(residence_min=_r(o.Volume / q / 60 if q else o.ResidenceTime / 60, 2), volume_m3=o.Volume,
                          residence_basis=basis or "tank outlet")
             un[uid] = r
         return {"streams": st, "units": un}
