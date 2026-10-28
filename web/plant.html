@@ -123,7 +123,7 @@
       <div class="eq" onclick="showDoc('pid')"><div class="t" id="pidName">Smart P&amp;ID <span>DEXPI XML</span></div><div class="why" id="pidStats"></div></div>
       <div class="eq" onclick="showDoc('basis')"><div class="t">Operating data sheet <span>md</span></div></div>
     </div>
-    <div class="sec"><h4>Safety scan <span>no AI · P&amp;ID graph</span></h4>
+    <div class="sec" id="safetySec"><h4>Safety scan <span>no AI · P&amp;ID graph</span></h4>
       <button class="btn" onclick="reliefScan()">Check every side for relief protection</button>
       <div id="relief" style="margin-top:6px"></div>
     </div>
@@ -192,6 +192,8 @@ async function load() {
     await new Promise(r => { const im = $('sheet').querySelector('img'); im.complete ? r() : im.onload = r; });
   }
   $('sheet').querySelectorAll('[data-tag]').forEach(g => { if (g.dataset.tag) g.onclick = () => select(g.dataset.tag); });
+  $('safetySec').style.display = P.drawing === 'svg' ? '' : 'none';  // the relief scan needs a smart (DEXPI) P&ID
+  if (P.drawing === 'none') $('pidStats').textContent = 'equipment and connections from the data sheet';
   if (P.drawing === 'none') $('pidName').innerHTML = 'No drawing <span>flowsheet drawn from the model</span>';
   if (P.drawing === 'pdf') $('pidName').innerHTML = `Schematic (PDF) <span>read by ${esc((P.pid.model || 'Muse').replace('muse-', ''))}</span>`;
   if (P.data_note) { $('note').textContent = '⚠ ' + P.data_note; $('note').style.display = 'block'; }
@@ -224,7 +226,7 @@ function model() {
       <div style="color:var(--muted);font-size:11px">${b.coverage.connections.filter(c => c.relief_path).length} relief path(s) excluded: no normal flow</div>` : '') +
     ((P.pid.data_quality || []).length ? `<details style="margin-top:6px"><summary style="color:var(--warn)">⚠ ${P.pid.data_quality.length} P&amp;ID data problems</summary>${P.pid.data_quality.map(a => `<div style="font-size:11.5px;color:var(--muted);padding:2px 0">• ${esc(a)}</div>`).join('')}</details>` : '') +
     `<details style="margin-top:6px"><summary>${(b.assumptions || []).length} assumptions</summary>${(b.assumptions || []).map(a => `<div style="font-size:11.5px;color:var(--muted);padding:2px 0">• ${esc(a)}</div>`).join('')}</details>` +
-    `<div style="margin-top:8px"><button class="btn" onclick="build()">Rebuild from P&amp;ID</button></div>`;
+    `<div style="margin-top:8px"><button class="btn" onclick="build()">Rebuild model</button></div>`;
 }
 
 function worstBy(checks) {
