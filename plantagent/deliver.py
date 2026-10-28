@@ -50,17 +50,28 @@ def control_block(study, summary):
     for k, v in (study.get("surges") or {}).items():
         dw = v.get("args", {}).get("tool") == "dwsim"
         scen.append(f"| {k} | {'process simulation (DWSIM)' if dw else 'transient pre-screen (TSNet)'} | {'-' if dw else v.get('args', {}).get('event')} | - | {v.get('purpose', '')[:70]} |")
-    units = "US customary (gpm, mgd, ft, in, psi, hp)" if any((v.get("spec") or {}).get("units", "US") == "US" for v in (study.get("runs") or {}).values()) or study.get("profiles") else "as stated in each run"
+    process = not study.get("runs") and not study.get("profiles") and any(
+        (v.get("args") or {}).get("tool") == "dwsim" for v in (study.get("surges") or {}).values())
+    if process:  # a process plant: SI units, no drawing datum, no water-network columns
+        units_line = "**Units:** SI as stated in each run (bar, C, kg/h, m3/h, kW). Thermodynamics: DWSIM property packages as stated."
+        reg_head = ["| Run | Model | Purpose |", "|---|---|---|"]
+        scen = [f"| {k} | process simulation (DWSIM) | {v.get('purpose', '')[:90]} |" for k, v in (study.get("surges") or {}).items()]
+        approve = "**Checked by:** __________________  **Approved (responsible engineer):** __________________  "
+    else:
+        units = "US customary (gpm, mgd, ft, in, psi, hp)" if any((v.get("spec") or {}).get("units", "US") == "US" for v in (study.get("runs") or {}).values()) or study.get("profiles") else "as stated in each run"
+        units_line = f"**Units:** {units}. **Elevations:** feet, datum as shown on the source drawings (not re-surveyed)."
+        reg_head = ["| Run | Model | Pumps | Flow (mgd) | Purpose |", "|---|---|---|---|---|"]
+        approve = "**Checked by:** __________________  **Approved (PE, seal):** __________________  "
     return "\n".join([
         "---", "## Document control", "",
-        f"**Units:** {units}. **Elevations:** feet, datum as shown on the source drawings (not re-surveyed).",
-        f"**Prepared by:** AI agent ({summary.get('model')}), {_t.strftime('%Y-%m-%d')}. **Run:** {summary.get('case')} · "
+        units_line,
+        f"**Prepared by:** AI agent ({summary.get('model')}), {_t.strftime('%Y-%m-%d %H:%M %Z')}. **Run:** {summary.get('case')} · "
         f"{summary.get('llm_steps')} agent steps · {summary.get('simulations')} simulator runs.",
-        "**Checked by:** __________________  **Approved (PE, seal):** __________________  ",
+        approve,
         "_Draft for engineering review. Not for construction. Simulator results are screening-level unless stated otherwise._", "",
-        "### Scenario register", "", "| Run | Model | Pumps | Flow (mgd) | Purpose |", "|---|---|---|---|---|", *scen, "",
+        "### Scenario register", "", *reg_head, *scen, "",
         "### Revision log", "", "| Rev | Date | Description | By |", "|---|---|---|---|",
-        f"| A | {_t.strftime('%Y-%m-%d')} | Initial agent draft | AI agent |", ""])
+        f"| A | {_t.strftime('%Y-%m-%d')} | Initial agent draft | AI agent ({summary.get('model')}) |", ""])
 
 
 def write_deliverables(d, study, memo, summary):

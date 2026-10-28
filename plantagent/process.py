@@ -394,11 +394,21 @@ def _worker(a):
         beta = (r1 / r2 - 1) / (T2 - T1)          # 1/K
         kappa = (rm50 - rm) / rm / 50             # 1/bar
         dp = beta * (T2 - T1) / kappa
-        return {"T1_C": T1, "T2_C": T2, "P1_bar": P1, "bubble_P_bar_at_T2": bub, "beta_per_K": round(beta, 5),
+        # a vapour or gas pocket absorbs the expansion: below this liquid fill fraction at T1 the vessel only reaches the
+        # vapour pressure at T2; above it the liquid fills the vessel and hydraulic expansion governs
+        rho_bub = _worker({"op": "props", "spec": spec, "points": [{"T_C": T2, "P_bar": bub * 1.001 + 0.01}]})["points"][0]
+        crit = round(rho_bub["density_kg_m3"] / r1, 3) if rho_bub["vapour_frac"] == 0 else None
+        return {"T1_C": T1, "T2_C": T2, "P1_bar": P1, "bubble_P_bar_at_T2": bub,
+                "bubble_psig_at_T2": round((bub - 1.013) * 14.5038, -1),
+                "critical_liquid_fill_at_T1": crit,
+                "regimes": f"If the vessel held less than {crit:.0%} liquid by volume at T1, the liquid stays below liquid-full "
+                           f"and the pressure stays at the vapour pressure ({bub:.1f} bar). Above that fill, hydraulic expansion "
+                           f"governs (the pressure below)." if crit else "",
+                "beta_per_K": round(beta, 5),
                 "kappa_per_bar": round(kappa, 6), "pressure_rise_bar_per_K": round(beta / kappa, 1),
                 "pressure_bar": round(P1 + dp, 0), "pressure_psig": round((P1 + dp - 1.013) * 14.5038, -1),
-                "note": "API 521 hydraulic-expansion screening (rigid vessel, liquid-full). Any vapour space or wall stretch "
-                        "lowers it; even a few kelvin of heating can exceed the design pressure."}
+                "note": "API 521 hydraulic-expansion screening for a liquid-full rigid vessel (linear beta/kappa). Wall stretch "
+                        "lowers it; the fill fraction decides which regime applies."}
     if op == "props":
         # density and phase of a mixture at given T and P (liquid expansion, vessel fill checks)
         import System

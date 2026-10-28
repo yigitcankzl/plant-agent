@@ -7,7 +7,7 @@ import json
 import time
 from pathlib import Path
 
-from . import llm, pid, process
+from . import audit, llm, pid, process
 from .docs import DATA
 from .study import ARR, Study, submit
 
@@ -117,9 +117,15 @@ class PlantWorkspace(Study):
         self.dir.mkdir(parents=True, exist_ok=True)
         self.log = (self.dir / "log.jsonl").open("w")
         self.steps, self.listener, self.answers, self.revisions = 0, None, [], []
+        self.rev_file = None
         self.runs = {}
         self.model_file = ROOT / "runs" / "ws" / case_name / "model.json"
+        self.rev_file = self.model_file.with_name("revisions.json")
         self.built = json.loads(self.model_file.read_text()) if self.model_file.exists() else None
+        if self.built and self.rev_file.exists():  # revisions survive restarts; the latest one is the current model
+            self.revisions = json.loads(self.rev_file.read_text())
+            if self.revisions:
+                self.built["spec"] = self.revisions[-1]["spec_after"]
         if self.built:
             self.runs[self.built["label"]] = {"spec": self.built["spec"], "purpose": "calibrated model", "result": self.built.get("result")}
         self._state = {}
@@ -209,6 +215,10 @@ class PlantWorkspace(Study):
                       "coverage": coverage(self.pid, run["spec"]), "seconds": round(time.time() - t0),
                       "cost_usd": round(llm.spent() - usd0, 4), "at": time.strftime("%Y-%m-%d %H:%M")}
         self.model_file.write_text(json.dumps(self.built, indent=1))
+        self.revisions = []
+        self.rev_file.write_text("[]")
+        audit.append(self.name, "build", None, "model built from the P&ID and data sheet",
+                     {"label": self.built["label"], "model": self.model, "coverage_missing": self.built["coverage"]["missing_connections"]})
         self._state = {}
         return self.built
 
@@ -273,25 +283,43 @@ class PlantWorkspace(Study):
         (self.dir / "answers.json").write_text(json.dumps(self.answers, indent=1))
         return ans
 
-    def accept(self, p):
+    def accept(self, p, user=None, reason=None):
+        """Accept a verified proposal as a new revision. Revisions are kept on disk and never deleted."""
+        if not (reason or "").strip():
+            raise ValueError("a reason for the change is required")
         v = self.verify(p)  # never trust the client's copy
         if not v["verified"]:
             raise ValueError("proposal does not verify in DWSIM: " + json.dumps(v["over_limits_at_target"])[:300])
-        self.revisions.append({"rev": len(self.revisions) + 1, "title": p.get("title"), "changes": p["changes"],
-                               "spec_before": self.built["spec"], "capacity_multiple": v["capacity_multiple"],
-                               "at": time.strftime("%H:%M:%S")})
-        self.built = {**self.built, "spec": patch(self.built["spec"], p["changes"])}
-        self._state = {}
+        after = patch(self.built["spec"], p["changes"])
+        r = {"rev": len(self.revisions) + 1, "kind": "change", "title": p.get("title"), "changes": p["changes"],
+             "spec_before": self.built["spec"], "spec_after": after, "capacity_multiple": v["capacity_multiple"],
+             "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "user": user, "reason": reason}
+        r["audit"] = audit.append(self.name, "accept", user, reason, {"rev": r["rev"], "title": r["title"], "changes": p["changes"],
+                                                                      "verified_capacity_multiple": v["capacity_multiple"]})["hash"]
+        self._commit(r)
         return {**v, "revisions": self.revisions}
 
-    def restore(self, rev):
-        """Undo back to before revision `rev` (0 restores the built model)."""
-        keep = [r for r in self.revisions if r["rev"] < rev]
-        if len(keep) < len(self.revisions):
-            self.built = {**self.built, "spec": self.revisions[len(keep)]["spec_before"]}
-            self.revisions = keep
-            self._state = {}
+    def restore(self, rev, user=None, reason=None):
+        """Return the model to how it was before revision `rev` (0 = as built). History is kept: the return is itself a
+        new revision with its own audit entry."""
+        if not (reason or "").strip():
+            raise ValueError("a reason for the change is required")
+        target = self.revisions[rev - 1]["spec_before"] if 0 < rev <= len(self.revisions) else self._built_spec()
+        r = {"rev": len(self.revisions) + 1, "kind": "revert", "title": f"Return to the model before Rev {rev}" if rev else
+             "Return to the model as built", "changes": [], "spec_before": self.built["spec"], "spec_after": target,
+             "capacity_multiple": None, "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "user": user, "reason": reason}
+        r["audit"] = audit.append(self.name, "revert", user, reason, {"rev": r["rev"], "to_before_rev": rev})["hash"]
+        self._commit(r)
         return {"revisions": self.revisions}
+
+    def _built_spec(self):
+        return json.loads(self.model_file.read_text())["spec"]
+
+    def _commit(self, r):
+        self.revisions.append(r)
+        self.built = {**self.built, "spec": r["spec_after"]}
+        self.rev_file.write_text(json.dumps(self.revisions, indent=1))
+        self._state = {}
 
     def state(self, scale=1.0):
         """Solved unit at a throughput multiple: what the P&ID view colours. Cached per spec and scale.

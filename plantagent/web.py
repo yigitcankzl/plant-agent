@@ -226,7 +226,10 @@ def plant_project(case):
             "data_note": w.cfg.get("data_note"),
             "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid, "basis": w.basis, "model": w.model,
             "built": {k: v for k, v in w.built.items() if k != "result"} if w.built else None,
-            "answers": w.answers, "revisions": [{k: r[k] for k in ("rev", "title", "changes", "capacity_multiple", "at")} for r in w.revisions],
+            "answers": w.answers, "revisions": [{k: r.get(k) for k in ("rev", "kind", "title", "changes", "capacity_multiple", "at", "user", "reason")}
+                                                for r in w.revisions],
+            "audit": {"verify": __import__("plantagent.audit", fromlist=["x"]).verify(case),
+                      "entries": __import__("plantagent.audit", fromlist=["x"]).entries(case)[-50:]},
             "capacity": w.capacity() if w.built else None, "at_target": st}
 
 
@@ -401,18 +404,27 @@ class Handler(SimpleHTTPRequestHandler):
             if what == "build" and method == "POST":
                 return self._send(plant_job(case, lambda w: {k: v for k, v in w.build().items() if k != "result"}))
             if what == "ask" and method == "POST":
+                from . import audit
+                audit.append(case, "ask", self.headers.get("X-User"), "", {"request": body["text"][:500], "model": w.model})
                 return self._send(plant_job(case, lambda w: w.ask(body["text"], body.get("context"))))
             if what == "state":
                 return self._send(w.state(float(q.get("scale", 1.0))))
             if what == "capacity":
                 return self._send(w.capacity())
+            user = self.headers.get("X-User")
             if what == "accept" and method == "POST":
                 try:
-                    return self._send(w.accept(body))
+                    return self._send(w.accept(body["proposal"], user, body.get("reason")))
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
             if what == "restore" and method == "POST":
-                return self._send(w.restore(int(body.get("rev", 0))))
+                try:
+                    return self._send(w.restore(int(body.get("rev", 0)), user, body.get("reason")))
+                except ValueError as e:
+                    return self._send({"error": str(e)}, code=409)
+            if what == "audit":
+                from . import audit
+                return self._send({"verify": audit.verify(case), "entries": audit.entries(case)})
             if what == "model" and method == "POST":
                 from .llm import PRICES
                 if body["model"] not in PRICES:
@@ -486,6 +498,11 @@ class Handler(SimpleHTTPRequestHandler):
                 f.write_bytes(self.rfile.read(int(self.headers.get("Content-Length") or 0)))
                 return self._send(import_cad(w, f))
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}") if method == "POST" else {}
+            if what in ("accept", "restore", "edit", "photoapply", "import") and method == "POST":
+                from . import audit
+                audit.append(case, what, self.headers.get("X-User"), (body or {}).get("reason", "") if isinstance(body, dict) else "",
+                             {k: v for k, v in (body or {}).items() if k in ("title", "unit", "element", "field", "value", "rev", "run", "pump")}
+                             if isinstance(body, dict) else {})
             if what == "project":
                 return self._send(ws_project(case))
             if what == "ask" and method == "POST":

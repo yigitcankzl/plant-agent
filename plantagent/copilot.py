@@ -693,8 +693,10 @@ def _station_for(ws, unit_text):
     runs = [(k, v) for k, v in station_runs(ws).items() if all(p["id"].upper().startswith(prefix) for p in v["spec"]["pumps"])
             and all(p.get("on", True) for p in v["spec"]["pumps"])
             and not re.search(r"ALT|UPG|ADD|FIX|NEW|PROP|FUT|DESIGN|6PUMP|[-_](1[89]|2[0-4])([^0-9]|$)", k.upper())]
-    # an explicitly 'existing' station run wins; otherwise the one with the most installed pumps
-    return max(runs, key=lambda kv: ("EXIST" in kv[0].upper(), len(kv[1]["spec"]["pumps"]), "NOM" in kv[0].upper()), default=None)
+    # one source of truth: the run the study itself computed firm capacity on wins (that is the number in its report);
+    # then an explicitly 'existing' run; then the one with the most installed pumps
+    return max(runs, key=lambda kv: (bool(kv[1].get("firm")), "EXIST" in kv[0].upper(), len(kv[1]["spec"]["pumps"]),
+                                     "NOM" in kv[0].upper(), kv[0]), default=None)
 
 
 def unit_capacities(ws, view="proposed"):
@@ -718,6 +720,11 @@ def unit_capacities(ws, view="proposed"):
             res = sim.run(stn[1]["spec"])
             row.update({"capacity_mgd": round(res.get("total_pumped_mgd") or 0, 1), "documented": lo,
                         "source": f"simulated: EPANET run {stn[0]} (firm configuration as modelled)"})
+            stn = None
+        if stn and stn[1].get("firm"):  # reuse the study's own N-1 result, so the workspace and the report agree
+            f = stn[1]["firm"]
+            row.update({"capacity_mgd": round(f["firm"], 1), "documented": lo,
+                        "source": f"simulated: EPANET N-1, run {stn[0]} (worst outage {f.get('governing_outage')}), as in the study report"})
             stn = None
         if stn:
             try:

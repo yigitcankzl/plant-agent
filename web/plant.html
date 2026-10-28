@@ -342,7 +342,9 @@ function prop(p, i, j) {
 
 async function accept(i, j) {
   const p = P.answers[i].proposals[j];
-  const r = await api('accept', p);
+  const reason = prompt('Reason for this change (kept in the audit trail):', p.title || '');
+  if (!reason) return;
+  const r = await api('accept', {proposal: p, reason});
   if (r.error) { alert(r.error); return; }
   p.accepted = true;
   await reload();
@@ -355,9 +357,22 @@ async function reload() {
 }
 
 function revs() {
-  $('revs').innerHTML = (P.revisions || []).map(r => `<div class="rev"><div><b>Rev ${r.rev}</b> ${esc(r.title)}<div style="color:var(--muted);font:11px var(--mono)">${r.changes.map(c => esc(c.path) + '=' + esc(c.value)).join(', ')} · max ${Math.round(r.capacity_multiple * 100)}%</div></div><button class="btn" onclick="undo(${r.rev})">Undo</button></div>`).join('');
+  const a = P.audit;
+  $('revs').innerHTML = (P.revisions || []).map(r => `<div class="rev"><div><b>Rev ${r.rev}</b> ${esc(r.title)}<div style="color:var(--muted);font:11px var(--mono)">${r.changes.map(c => esc(c.path) + '=' + esc(c.value)).join(', ')}${r.capacity_multiple ? ' · max ' + Math.round(r.capacity_multiple * 100) + '%' : ''}</div>
+      <div style="color:var(--muted);font-size:11px">${esc(r.at || '')} · ${esc(r.user || 'engineer')} · “${esc(r.reason || '')}”</div></div>${r.kind === 'change' ? `<button class="btn" onclick="undo(${r.rev})">Undo</button>` : ''}</div>`).join('') +
+    (a ? `<div class="rev" style="border-left-color:${a.verify.ok ? 'var(--ok)' : 'var(--fail)'}"><div>Audit trail: ${a.verify.entries} entries · hash chain ${a.verify.ok ? 'intact ✓' : 'BROKEN at ' + a.verify.broken_at}</div><button class="btn" onclick="showAudit()">View</button></div>` : '');
 }
-async function undo(rev) { await api('restore', {rev}); await reload(); }
+async function undo(rev) {
+  const reason = prompt(`Reason for undoing Rev ${rev} (kept in the audit trail):`);
+  if (!reason) return;
+  const r = await api('restore', {rev, reason});
+  if (r.error) { alert(r.error); return; }
+  await reload();
+}
+function showAudit() {
+  $('modalBox').innerHTML = `<h3>Audit trail (append-only, hash-chained)</h3><pre>${esc(P.audit.entries.map(e => `#${e.seq} ${e.at} ${e.user} ${e.action}${e.reason ? ' — ' + e.reason : ''}\n   ${JSON.stringify(e.details).slice(0, 220)}\n   hash ${e.hash.slice(0, 16)}… prev ${e.prev.slice(0, 16)}…`).join('\n'))}</pre>`;
+  $('modal').classList.add('on');
+}
 
 function showDoc(which) {
   $('modalBox').innerHTML = which === 'basis' ? `<pre>${esc(P.basis)}</pre>` :
