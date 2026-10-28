@@ -180,6 +180,23 @@ clauses are redacted, and a leak check runs against the answer key. The agent th
 
 Predicting audit measures from bills alone mostly recovers base rates, so we do not claim it.
 
+**Open weights: the same agent on Muse Spark Open.** Muse Spark Open (Meta's open-weights model, served on Baseten as
+`meta-models/muse-spark-open-1026`) runs through the same client with the model id
+`baseten:meta-models/muse-spark-open-1026`. Same tools, same blind setup, same judge:
+
+| Test | Muse Spark (API, contributor) | Muse Spark Open (Baseten) |
+|---|---|---|
+| Williams Geismar blind incident study (CSB conclusions reached) | 67 % (3 runs) | 58 % (1 run) |
+| 20 real factories (IAC), auditors' measures found, by ARC family | 53 % | 48 % |
+| 20 real factories (IAC), savings estimate error (median factor) | 3.5x | 2.9x |
+
+Muse Spark Open finished the full study loop on its own: 28 agent steps, 24 simulator runs including DWSIM, the QA/QC
+review and the deliverables. On Williams it made the vapour pressure (about 490 psig) the main mechanism, where the
+CSB concluded liquid thermal expansion.
+
+Under a strict JSON schema it sometimes degenerates into whitespace. The client then asks again without the schema
+(`plantagent/iac.py`).
+
 ## Honest limits
 
 - Pump curves defined by a single rated point are flagged as screening only; firm capacity is solved N-1 in EPANET.

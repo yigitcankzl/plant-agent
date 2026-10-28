@@ -1,0 +1,4229 @@
+{
+ "summary": {
+  "model": "baseten:meta-models/muse-spark-open-1026",
+  "industry_prior": true,
+  "plants": 20,
+  "seconds": 51,
+  "cost_usd": 0.1456,
+  "agent": {
+   "recall_exact": 0.406,
+   "recall_family": 0.481,
+   "savings_recall_family": 0.417,
+   "precision_family": 0.368
+  },
+  "baseline": {
+   "recall_exact": 0.502,
+   "recall_family": 0.541,
+   "savings_recall_family": 0.475,
+   "precision_family": 0.457
+  },
+  "agent_beats_baseline_on_plants": 7,
+  "median_savings_error_factor": 2.93,
+  "implemented_found": "36 of 73"
+ },
+ "plants": [
+  {
+   "id": "SF0581",
+   "group": "food",
+   "products": "Dried figs, raisins, paste and concentrate",
+   "profile": {
+    "industry_sic": "2034.0",
+    "industry_naics": "311423.0",
+    "industry_group": "food",
+    "products": "Dried figs, raisins, paste and concentrate",
+    "state": "CA",
+    "fiscal_year": "2022",
+    "annual_sales_usd": 16000000.0,
+    "employees": 65.0,
+    "plant_area_sqft": 645000.0,
+    "production": "3000.0 3.0",
+    "operating_hours_per_year": 2210.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "1,877,280 kWh",
+      "annual_cost_usd": 288658
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "15,860 MMBtu",
+      "annual_cost_usd": 99484
+     },
+     {
+      "stream": "water",
+      "annual_use": "16,061 thousand gal",
+      "annual_cost_usd": 39056
+     },
+     {
+      "stream": "water disposal",
+      "annual_use": "12,551 thousand gal",
+      "annual_cost_usd": 30608
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.4236",
+     "saved": 17942.0,
+     "cost": null,
+     "status": "N",
+     "desc": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES"
+    },
+    {
+     "arc": "2.1233",
+     "saved": 488.0,
+     "cost": null,
+     "status": "N",
+     "desc": "ANALYZE FLUE GAS FOR PROPER AIR/FUEL RATIO"
+    },
+    {
+     "arc": "2.4231",
+     "saved": 3255.0,
+     "cost": 300.0,
+     "status": "N",
+     "desc": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED"
+    },
+    {
+     "arc": "2.4235",
+     "saved": 5523.0,
+     "cost": 1537.0,
+     "status": "N",
+     "desc": "REMOVE OR CLOSE OFF UNNEEDED COMPRESSED AIR LINES"
+    },
+    {
+     "arc": "2.2511",
+     "saved": 7711.0,
+     "cost": 3227.0,
+     "status": "N",
+     "desc": "INSULATE BARE EQUIPMENT"
+    },
+    {
+     "arc": "2.7224",
+     "saved": 2550.0,
+     "cost": 1334.0,
+     "status": "N",
+     "desc": "REDUCE SPACE CONDITIONING DURING NON-WORKING HOURS"
+    },
+    {
+     "arc": "2.2135",
+     "saved": 2960.0,
+     "cost": 2345.0,
+     "status": "N",
+     "desc": "REPAIR AND ELIMINATE STEAM LEAKS"
+    },
+    {
+     "arc": "2.4111",
+     "saved": 202.0,
+     "cost": 192.0,
+     "status": "N",
+     "desc": "UTILIZE ENERGY-EFFICIENT BELTS AND OTHER IMPROVED MECHANISMS"
+    },
+    {
+     "arc": "2.4146",
+     "saved": 17582.0,
+     "cost": 23946.0,
+     "status": "N",
+     "desc": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON"
+    },
+    {
+     "arc": "2.7142",
+     "saved": 26991.0,
+     "cost": 61830.0,
+     "status": "N",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.7142",
+     "measure": "Retrofit processing, packaging and bulk storage lighting to LED high-bay + LED strip",
+     "annual_savings_usd": 47600,
+     "implementation_cost_usd": 52000,
+     "basis": "645k sf site with 65 ee, 2,210 hr/yr operation implies >400k sf of fig/raisin bulk and finished-goods warehouse lit 2,400 effective hrs. Existing 400W metal halide + T8 fluorescent ~260kW connected. LED to 0.28W/sf saves 310,000 kWh = 16.5% of 1,877,280 kWh @ $0.154/kWh. Net after PG&E $75/fixture rebate. Walk-through: count 380 high-bay + 210 8ft strips in paste / concentrate packing lines, measure lux, verify Title 24 compliance."
+    },
+    {
+     "arc": "2.4146",
+     "measure": "VFD / multiple-speed on dryer recirculation fans, evaporator and cooling tower fans/pumps",
+     "annual_savings_usd": 25375,
+     "implementation_cost_usd": 28000,
+     "basis": "Raisin / fig tunnel dryers #1-4 use 6x 25-30HP axial recirculation fans + 2x 40HP fresh-air / exhaust fans, plus paste concentrate triple-effect evaporator vacuum pump and 60-ton evaporative condenser. Constant speed at 2,210 hr. Assume motors =55% of electricity. VFD with moisture-back-temperature control saves 15% on 60% of motor load =165,000 kWh = 8.8% of electricity. $1,200/HP installed."
+    },
+    {
+     "arc": "3.1222",
+     "measure": "Countercurrent cascade rinse for fig/raisin washers - reuse final rinse as first wash",
+     "annual_savings_usd": 13928,
+     "implementation_cost_usd": 18000,
+     "basis": "CA food plant: water 16,061 kGal @ $2.43/kGal, disposal 12,551 kGal @ $2.44/kGal = $69,664/yr total water cost. Current single-pass washers for figs/raisins and crate washers dump to sewer. 3-tank countercurrent with conductivity control saves 20% water =3,212 kGal ($7,805) and 20% disposal =2,510 kGal ($6,123) =19.9% water stream, 20% disposal stream. Plus 5% gas for less hot wash water."
+    },
+    {
+     "arc": "2.2414",
+     "measure": "Waste heat from dryer flue / exhaust gases to preheat combustion air and boiler makeup water",
+     "annual_savings_usd": 11916,
+     "implementation_cost_usd": 30000,
+     "basis": "4 direct-fired natural gas fig tunnel dryers 120-150F, ~65,000 cfm total exhaust at 140-160F, 70% RH + 2x 4 MMBtu/hr Scotch-marine boilers for steam-jacketed fig paste cookers / concentrate pre-heaters / blanchers. Stack economizer + air-to-air plate exchanger: Preheat dryer fresh air 70F->115F and boiler makeup 60F->140F. Saves 1,900 MMBtu =12.0% of 15,860 MMBtu gas @ $6.27/MMBtu. Stainless exchanger needed for sugar/acid exhaust. Walk-through with stack T/RH and IR scan."
+    },
+    {
+     "arc": "2.4236",
+     "measure": "Eliminate leaks in compressed air lines / valves serving sorting, pitting, pneumatic convey and form-fill-seal",
+     "annual_savings_usd": 11534,
+     "implementation_cost_usd": 3800,
+     "basis": "Packaging lines for raisins/paste/concentrate use 2x 50HP rotary screw @ 105 psig, 24/7 for blow-off, sorting tables, bagging. Food-grade audit typically finds 28-35% leak rate. Ultrasonic survey and repair to <10% saves 25% of compressed air load. Compressed air = ~18% of electricity =338,000 kWh, save 75,000 kWh =4.0% of electricity. Labor + fittings."
+    },
+    {
+     "arc": "2.7135",
+     "measure": "Occupancy sensors in intermittently occupied dry / cold storage, fig bins and restrooms",
+     "annual_savings_usd": 10765,
+     "implementation_cost_usd": 9200,
+     "basis": "After LED, 645k sf warehouse: forklift aisles occupied <30% of shift. 35 PIR/ultrasonic high-bay sensors at $260 installed. Saves additional 70,000 kWh =3.7% of electricity (12.5% of warehouse lighting). Net of LED baseline - verify with logger. Prior IAC food group: 33% of plants flagged."
+    },
+    {
+     "arc": "2.2511",
+     "measure": "Insulate bare equipment: dryer shells/doors, steam-jacketed paste kettles, evaporator and 400ft steam header",
+     "annual_savings_usd": 6881,
+     "implementation_cost_usd": 11500,
+     "basis": "Observed in walk-throughs: bare 350F dryer doors, 8x 500-gal paste cookers, concentrate evaporator body, condensate tank 180F. Surface loss 2,800 Btu/hr/sf x ~450 sf bare =1.26 MMBtu/hr x2,210 hr. Removable ceramic blanket jackets + 2in fiberglass on steam lines saves 950 MMBtu =6.0% gas ($5,958) + 6,000 kWh avoided refrigeration load in paste cold-room. $25/ft steam line + $750/kettle jacket."
+    },
+    {
+     "arc": "2.2135",
+     "measure": "Repair steam leaks, failed traps and increase condensate return on blancher/sterilizer circuit",
+     "annual_savings_usd": 6238,
+     "implementation_cost_usd": 6800,
+     "basis": "Paste sterilization, fig blanching and crate wash use 30-80 psig steam. Typical 15 traps, 30% failed open. Return now 40%, target 70%. Fix traps, repack valves, insulate feedwater tank. Saves 800 MMBtu =5.0% gas ($5,018) + 500 kGal makeup water/disposal ($2,420) - trap cost $280 ea. Check with ultrasound + IR during operation."
+    },
+    {
+     "arc": "2.4231",
+     "measure": "Reduce compressed air header pressure and segregate low-pressure blow-off",
+     "annual_savings_usd": 5383,
+     "implementation_cost_usd": 2400,
+     "basis": "Plant runs 105 psig for 90 psig actuators, but raisin destemmer blow-offs and box air-knives need only 15 psig. Lower header 105->85 psig saves ~1% per 2 psi =10% of compressed air =35,000 kWh =1.9% electricity, install dedicated 15HP low-pressure blower $2,400 + regulators."
+    },
+    {
+     "arc": "2.1233",
+     "measure": "Analyze flue gas and tune air/fuel on boilers + direct-fired dryer burners with O2 trim",
+     "annual_savings_usd": 4955,
+     "implementation_cost_usd": 4200,
+     "basis": "2 boilers + 4 dryer burners run with 6-9% O2 (40-70% excess air) without regular analyzer. Tune to 3% O2 for boilers, 4% for direct dryers, prevent scorching/browning defects on light figs. Portable combustion analyzer + linkageless control tweak saves 790 MMBtu =5.0% gas. Quarterly tuning schedule, train maintenance. $3,500 controls + $700 service."
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.7,
+    "recall_family": 0.8,
+    "savings_recall_family": 0.9677010468992067,
+    "precision_family": 0.6666666666666666,
+    "implemented_found": 0,
+    "implemented_total": 0
+   },
+   "baseline": [
+    "2.7142",
+    "2.4236",
+    "2.4231",
+    "2.7135",
+    "2.4146",
+    "2.2511",
+    "2.4111",
+    "2.9114",
+    "2.4221",
+    "2.4239"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.6,
+    "recall_family": 0.7,
+    "savings_recall_family": 0.9296042439322098,
+    "precision_family": 0.625,
+    "implemented_found": 0,
+    "implemented_total": 0
+   },
+   "savings_log_errors": [
+    0.5673292841342829,
+    0.3668887859329645,
+    0.7363780042741704,
+    0.1138838906304808,
+    0.7454703498496424,
+    0.025675351340230225,
+    2.3178370409109412
+   ]
+  },
+  {
+   "id": "WV0614",
+   "group": "textiles",
+   "products": "Spun Yarn",
+   "profile": {
+    "industry_sic": "2281.0",
+    "industry_naics": "313110.0",
+    "industry_group": "textiles",
+    "products": "Spun Yarn",
+    "state": "NC",
+    "fiscal_year": "2021",
+    "annual_sales_usd": 40000000.0,
+    "employees": 500.0,
+    "plant_area_sqft": 361000.0,
+    "production": "18200000.0 2.0",
+    "operating_hours_per_year": 8760.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "56,612,285 kWh",
+      "annual_cost_usd": 1215059
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "119,172 kW-months",
+      "annual_cost_usd": 1936237
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.4146",
+     "saved": 399970.0,
+     "cost": 573165.0,
+     "status": "N",
+     "desc": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON"
+    },
+    {
+     "arc": "2.4224",
+     "saved": 37679.0,
+     "cost": 34222.0,
+     "status": "N",
+     "desc": "UPGRADE CONTROLS ON COMPRESSORS"
+    },
+    {
+     "arc": "2.4157",
+     "saved": 14148.0,
+     "cost": 1000.0,
+     "status": "I",
+     "desc": "ESTABLISH A PREDICTIVE MAINTENANCE PROGRAM"
+    },
+    {
+     "arc": "2.7142",
+     "saved": 13396.0,
+     "cost": 38385.0,
+     "status": "I",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    },
+    {
+     "arc": "2.4151",
+     "saved": 7526.0,
+     "cost": 5317.0,
+     "status": "I",
+     "desc": "DEVELOP A REPAIR/REPLACE POLICY"
+    },
+    {
+     "arc": "2.4111",
+     "saved": 7463.0,
+     "cost": 2884.0,
+     "status": "I",
+     "desc": "UTILIZE ENERGY-EFFICIENT BELTS AND OTHER IMPROVED MECHANISMS"
+    },
+    {
+     "arc": "2.4236",
+     "saved": 3283.0,
+     "cost": 450.0,
+     "status": "I",
+     "desc": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES"
+    },
+    {
+     "arc": "2.4239",
+     "saved": 2815.0,
+     "cost": 60.0,
+     "status": "I",
+     "desc": "ELIMINATE OR REDUCE COMPRESSED AIR USAGE"
+    },
+    {
+     "arc": "2.4239",
+     "saved": 1124.0,
+     "cost": 1083.0,
+     "status": "I",
+     "desc": "ELIMINATE OR REDUCE COMPRESSED AIR USAGE"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON",
+     "annual_savings_usd": 86500,
+     "implementation_cost_usd": 125000,
+     "basis": "4.5% of electricity (2,547k kWh x $0.0215=$54,700) + 2.5% of demand (2,979 kW-mo x $16.25=$48,400, net ~$86.5k after coincidence) for VFDs on humidification/conditioning AHUs (40% of 361k sqft plant must hold 50-58% RH for ring spinning/open-end spinning) and on card/draw/roving/spinning frame drives running 8760h. Textile-specific: replaces inlet vanes/throttling on 75-150HP supply/return fans."
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES",
+     "annual_savings_usd": 72000,
+     "implementation_cost_usd": 7500,
+     "basis": "2.8% of electricity (1,585k kWh x $0.0215=$34,000) + 2.0% of demand (2,383 kW-mo x $16.25=$38,700). Spun yarn uses compressed air for air-splicers, yarn clearing, air-jet cleaning of cards/spinning frames, pneumatic roving. 15-18% of 56.6GWh is compressed air; 20-25% leak loss typical in textile mills with 8760h operation."
+    },
+    {
+     "arc": "2.3212",
+     "measure": "OPTIMIZE PLANT POWER FACTOR",
+     "annual_savings_usd": 55200,
+     "implementation_cost_usd": 38000,
+     "basis": "Demand-only: 2.85% of demand (3,396 kW-mo x $16.25=$55,200). 500+ induction motors on spinning frames (10k+ spindles), cards, winders create PF ~0.78-0.82. Capacitor banks to 0.95 eliminate utility PF penalty and reduce kVA demand, major in NC for all-electric 9.9MW peak textile mill with no fossil fuel offset."
+    },
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS",
+     "annual_savings_usd": 48500,
+     "implementation_cost_usd": 88000,
+     "basis": "2.0% of electricity (1,132k kWh x $0.0215=$24,300) + 1.3% of demand (1,549 kW-mo x $16.25=$25,200 less HVAC interaction). 361,000 sqft spinning/winding/warehouse with 8760h high-bay HID/T8; retrofit to LED high-bay with spectral reflectors. Textile needs 30-50 fc for yarn inspection/defect detection."
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED",
+     "annual_savings_usd": 36200,
+     "implementation_cost_usd": 2500,
+     "basis": "1.4% of electricity (792k kWh x $0.0215=$17,000) + 1.0% of demand (1,192 kW-mo x $16.25=$19,400). Lower header from 110-115 psig to 85-90 psig for Murata/ring spinning splicers and cleaning lances; 6-8% power per 10 psi in all-electric plant. Zero-cost setpoint + regulator zoning."
+    },
+    {
+     "arc": "2.7232",
+     "measure": "REPLACE EXISTING HVAC UNIT WITH HIGH EFFICIENCY MODEL",
+     "annual_savings_usd": 31500,
+     "implementation_cost_usd": 95000,
+     "basis": "1.5% of electricity (849k kWh x $0.0215=$18,200) + 0.7% of demand (834 kW-mo x $16.25=$13,500). HVAC/humidification = ~30-35% of load in NC spun yarn to control 68-75F and RH for fiber strength. Upgrade 20+ year old chillers/AHUs, evaporative pre-cooling, high-efficiency humidification pumps for carding/spinning halls."
+    },
+    {
+     "arc": "2.4111",
+     "measure": "UTILIZE ENERGY-EFFICIENT BELTS AND OTHER IMPROVED MECHANISMS",
+     "annual_savings_usd": 27800,
+     "implementation_cost_usd": 18000,
+     "basis": "1.2% of electricity (679k kWh x $0.0215=$14,600) + 0.7% of demand (834 kW-mo x $16.25=$13,500). Replace standard V-belts with cogged/notched efficient belts on 400+ spinning frame spindle drives, card drives, dust collection fans; 2-5% per drive, 8760h operation amplifies savings."
+    },
+    {
+     "arc": "2.4224",
+     "measure": "UPGRADE CONTROLS ON COMPRESSORS",
+     "annual_savings_usd": 26400,
+     "implementation_cost_usd": 22000,
+     "basis": "1.0% of electricity (566k kWh x $0.0215=$12,200) + 0.7% of demand (834 kW-mo x $16.25=$13,500). Sequencer/pressure-flow controller for 3-4 rotary screws serving intermittent splicer load vs continuous cleaning; avoid simultaneous unloaded operation common in 8760h yarn mills."
+    },
+    {
+     "arc": "2.4133",
+     "measure": "USE MOST EFFICIENT TYPE OF ELECTRIC MOTORS",
+     "annual_savings_usd": 22800,
+     "implementation_cost_usd": 42000,
+     "basis": "0.9% of electricity (509k kWh x $0.0215=$10,900) + 0.6% of demand (715 kW-mo x $16.25=$11,600). Premium IE3/NEMA Premium on motor burnout replacement for 20-100HP card, drawing, open-end spinning motors; policy to avoid rewinding >2x in this motor-intensive SIC 2281 process."
+    },
+    {
+     "arc": "2.7135",
+     "measure": "INSTALL OCCUPANCY SENSORS",
+     "annual_savings_usd": 12400,
+     "implementation_cost_usd": 9000,
+     "basis": "0.5% of electricity (283k kWh x $0.0215=$6,100) + 0.32% of demand (381 kW-mo x $16.25=$6,200). Offices, labs, restrooms, bale storage, spare parts areas in 361k sqft facility lit 8760h but occupied <40% time; textile dust requires enclosed fixtures with sensor control."
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.5555555555555556,
+    "recall_family": 0.7777777777777778,
+    "savings_recall_family": 0.9555317559970784,
+    "precision_family": 0.5555555555555556,
+    "implemented_found": 5,
+    "implemented_total": 7
+   },
+   "baseline": [
+    "2.7142",
+    "2.4236",
+    "2.4231",
+    "2.7135",
+    "2.4146",
+    "2.4111",
+    "2.2136",
+    "2.9114",
+    "2.2511",
+    "2.2437"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.4444444444444444,
+    "recall_family": 0.6666666666666666,
+    "savings_recall_family": 0.8782262763539076,
+    "precision_family": 0.4444444444444444,
+    "implemented_found": 5,
+    "implemented_total": 7
+   },
+   "savings_log_errors": [
+    1.5312451303575079,
+    4.159772367544556,
+    1.2866076430114795,
+    3.472165367360226,
+    1.315078542547341,
+    0.3557388999255873
+   ]
+  },
+  {
+   "id": "IP0131",
+   "group": "wood products",
+   "products": "Architectural Millwork",
+   "profile": {
+    "industry_sic": "2431.0",
+    "industry_naics": "321918.0",
+    "industry_group": "wood products",
+    "products": "Architectural Millwork",
+    "state": "IN",
+    "fiscal_year": "2020",
+    "annual_sales_usd": 56000000.0,
+    "employees": 330.0,
+    "plant_area_sqft": 800000.0,
+    "production": "2100.0 6.0",
+    "operating_hours_per_year": 5000.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "10,819,200 kWh",
+      "annual_cost_usd": 575498
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "31,926 kW-months",
+      "annual_cost_usd": 417916
+     },
+     {
+      "stream": "other electric fees",
+      "annual_use": null,
+      "annual_cost_usd": 2400
+     },
+     {
+      "stream": "water disposal",
+      "annual_use": "1,540 thousand gal",
+      "annual_cost_usd": 10567
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.4322",
+     "saved": 3141.0,
+     "cost": null,
+     "status": "N",
+     "desc": "USE OR REPLACE WITH ENERGY EFFICIENT SUBSTITUTES"
+    },
+    {
+     "arc": "2.4231",
+     "saved": 5581.0,
+     "cost": 300.0,
+     "status": "I",
+     "desc": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED"
+    },
+    {
+     "arc": "2.6212",
+     "saved": 8015.0,
+     "cost": 2880.0,
+     "status": "N",
+     "desc": "TURN OFF EQUIPMENT DURING BREAKS, REDUCE OPERATING TIME"
+    },
+    {
+     "arc": "2.4146",
+     "saved": 5385.0,
+     "cost": 2100.0,
+     "status": "N",
+     "desc": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON"
+    },
+    {
+     "arc": "2.7135",
+     "saved": 1682.0,
+     "cost": 945.0,
+     "status": "N",
+     "desc": "INSTALL OCCUPANCY SENSORS"
+    },
+    {
+     "arc": "2.4111",
+     "saved": 2356.0,
+     "cost": 1500.0,
+     "status": "I",
+     "desc": "UTILIZE ENERGY-EFFICIENT BELTS AND OTHER IMPROVED MECHANISMS"
+    },
+    {
+     "arc": "2.4221",
+     "saved": 1109.0,
+     "cost": 1524.0,
+     "status": "I",
+     "desc": "INSTALL COMPRESSOR AIR INTAKES IN COOLEST LOCATIONS"
+    },
+    {
+     "arc": "2.7142",
+     "saved": 11771.0,
+     "cost": 31062.0,
+     "status": "I",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    },
+    {
+     "arc": "2.4133",
+     "saved": 428.0,
+     "cost": 1430.0,
+     "status": "N",
+     "desc": "USE MOST EFFICIENT TYPE OF ELECTRIC MOTORS"
+    },
+    {
+     "arc": "2.4146",
+     "saved": 17654.0,
+     "cost": 60600.0,
+     "status": "I",
+     "desc": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE ON DUST COLLECTION / EXHAUST FANS WITH AUTOMATED BLAST GATES",
+     "annual_savings_usd": 60900,
+     "implementation_cost_usd": 62000,
+     "basis": "19% of electricity / electric demand; 16% of electric demand cost"
+    },
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS - LED HIGH-BAY RETROFIT IN MILLING, ASSEMBLY AND WAREHOUSE",
+     "annual_savings_usd": 55000,
+     "implementation_cost_usd": 85000,
+     "basis": "12% of electricity / electric demand; 10.9% of total kWh"
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN COMPRESSED AIR LINES/VALVES - SURVEY OF DROPS TO CNC, MOULDER, PIN NAILERS AND CLAMPS",
+     "annual_savings_usd": 24700,
+     "implementation_cost_usd": 4500,
+     "basis": "18% of compressed air = 2.9% of total electricity + demand; 16% of electricity baseline"
+    },
+    {
+     "arc": "2.4224",
+     "measure": "UPGRADE CONTROLS ON COMPRESSORS - SEQUENCER + VFD TRIM COMPRESSOR ON 3x75HP ROTARY SCREW SYSTEM",
+     "annual_savings_usd": 17800,
+     "implementation_cost_usd": 18000,
+     "basis": "12% of compressed air = 1.9% of total electricity + demand"
+    },
+    {
+     "arc": "2.3212",
+     "measure": "OPTIMIZE PLANT POWER FACTOR - 1200 kVAR AUTOMATIC CAPACITORS ON DUST MCC AND COMPRESSOR ROOM",
+     "annual_savings_usd": 18600,
+     "implementation_cost_usd": 20000,
+     "basis": "4.4% of electric demand cost + 0.5% of electricity kWh for I2R loss"
+    },
+    {
+     "arc": "2.2437",
+     "measure": "RECOVER WASTE HEAT FROM EQUIPMENT - COMPRESSOR JACKET/OIL COOLER HEAT TO PREHEAT MAKE-UP AIR FOR FINISH AREA",
+     "annual_savings_usd": 14400,
+     "implementation_cost_usd": 12000,
+     "basis": "1.8% of electricity + winter demand; displaces electric unit heaters/make-up air in IN winter"
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE THE PRESSURE OF COMPRESSED AIR TO MINIMUM REQUIRED - 120 PSI HEADER TO 85-90 PSI AT TOOLS WITH STORAGE",
+     "annual_savings_usd": 12300,
+     "implementation_cost_usd": 1500,
+     "basis": "7.5% of compressed air = 1.2% of total electricity + demand"
+    },
+    {
+     "arc": "2.4239",
+     "measure": "ELIMINATE OR REDUCE COMPRESSED AIR USAGE - REPLACE BLOW-OFF/CHIP CLEARING ON ROUTERS/MOULDERS WITH LOW-PRESSURE BLOWERS/BRUSHES",
+     "annual_savings_usd": 13200,
+     "implementation_cost_usd": 9000,
+     "basis": "9% of compressed air = 1.4% of total electricity + demand"
+    },
+    {
+     "arc": "2.6218",
+     "measure": "TURN OFF EQUIPMENT WHEN NOT IN USE / 2.6231 UTILIZE CONTROLS - INTERLOCK DUST GATES, FINISH OVEN RECIRC FANS AND WIDE-BELT SANDERS TO PRODUCTION",
+     "annual_savings_usd": 11800,
+     "implementation_cost_usd": 6000,
+     "basis": "2.0% of total electricity + demand; idle nights/weekends beyond 5,000 hr schedule"
+    },
+    {
+     "arc": "2.4111",
+     "measure": "UTILIZE ENERGY-EFFICIENT BELTS - COGGED V-BELTS ON MOULDERS, PLANERS, CONVEYORS AND DUST FANS + 2.7135 OCCUPANCY SENSORS IN LUMBER/STORAGE",
+     "annual_savings_usd": 9400,
+     "implementation_cost_usd": 14000,
+     "basis": "1.4% of electricity + demand; 70% of motor load belt-driven + 18% of lighting in low-occupancy zones"
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.5,
+    "recall_family": 0.7,
+    "savings_recall_family": 0.9080739469906516,
+    "precision_family": 0.75,
+    "implemented_found": 5,
+    "implemented_total": 5
+   },
+   "baseline": [
+    "2.4236",
+    "2.7142",
+    "2.4231",
+    "2.4111",
+    "2.4146",
+    "2.7135",
+    "2.3212",
+    "2.4239",
+    "2.4221",
+    "2.4224"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.7,
+    "recall_family": 0.7,
+    "savings_recall_family": 0.7972059801827667,
+    "precision_family": 0.8571428571428571,
+    "implemented_found": 5,
+    "implemented_total": 5
+   },
+   "savings_log_errors": [
+    1.2382707881178103,
+    1.5416943058021275,
+    1.487435271827635,
+    2.7757397489298095,
+    0.7902312905720754,
+    0.8608488577860286,
+    0.3867847454101027,
+    1.383744423486618
+   ]
+  },
+  {
+   "id": "MA0829",
+   "group": "paper",
+   "products": "plastic bags",
+   "profile": {
+    "industry_sic": "2673.0",
+    "industry_naics": "326111.0",
+    "industry_group": "paper",
+    "products": "plastic bags",
+    "state": "MA",
+    "fiscal_year": "2022",
+    "annual_sales_usd": 30000000.0,
+    "employees": 88.0,
+    "plant_area_sqft": 118000.0,
+    "production": "30000000.0 2.0",
+    "operating_hours_per_year": 8400.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "7,679,150 kWh",
+      "annual_cost_usd": 777034
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "13,644 kW-months",
+      "annual_cost_usd": 102332
+     },
+     {
+      "stream": "other electric fees",
+      "annual_use": null,
+      "annual_cost_usd": 923
+     },
+     {
+      "stream": "LPG",
+      "annual_use": "2,957 MMBtu",
+      "annual_cost_usd": 59246
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.2614",
+     "saved": 34736.0,
+     "cost": 24400.0,
+     "status": "N",
+     "desc": "USE COOLING TOWER OR ECONOMIZER TO REPLACE CHILLER COOLING"
+    },
+    {
+     "arc": "2.2511",
+     "saved": 6782.0,
+     "cost": 8620.0,
+     "status": "N",
+     "desc": "INSULATE BARE EQUIPMENT"
+    },
+    {
+     "arc": "2.4231",
+     "saved": 6700.0,
+     "cost": 4400.0,
+     "status": "I",
+     "desc": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED"
+    },
+    {
+     "arc": "2.8121",
+     "saved": 3485.0,
+     "cost": 1000.0,
+     "status": "N",
+     "desc": "APPLY FOR TAX-FREE STATUS FOR ENERGY PURCHASES"
+    },
+    {
+     "arc": "2.4146",
+     "saved": 3278.0,
+     "cost": 15850.0,
+     "status": "N",
+     "desc": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON"
+    },
+    {
+     "arc": "2.2691",
+     "saved": 2891.0,
+     "cost": 4445.0,
+     "status": "I",
+     "desc": "SHUT OFF COOLING IF COLD OUTSIDE AIR WILL COOL PROCESS"
+    },
+    {
+     "arc": "2.4133",
+     "saved": 1594.0,
+     "cost": 5100.0,
+     "status": "I",
+     "desc": "USE MOST EFFICIENT TYPE OF ELECTRIC MOTORS"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES",
+     "annual_savings_usd": 32400,
+     "implementation_cost_usd": 3500,
+     "basis": "Plastic bag plant uses compressed air for 6-8 blown-film air rings, corona treaters, pneumatic take-offs and flexo printers. Assume CA = 22% of 7,679,150 kWh electricity (1,689,413 kWh = $170,976 energy + $22,513 demand = $193,489/yr). Typical leak rate 25-30% of CA. Repairing leaks to <10% saves 20% of CA load = 4.4% of total electricity = ~337,883 kWh at $0.1012/kWh + 28 kW demand reduction."
+    },
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS",
+     "annual_savings_usd": 28900,
+     "implementation_cost_usd": 34000,
+     "basis": "118,000 sqft extrusion/converting/warehouse lit 8,400h/yr. Assume lighting = 14% of electricity = 1,075,081 kWh ($108,798 energy + $14,326 demand = $123,124/yr) at 1.0W/sqft. Retrofit T5/HID to LED high-bays saves 50% lighting + reduced HVAC load = 7.0% of electricity + demand; MA Mass Save rebate reduces cost to $34k net."
+    },
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON",
+     "annual_savings_usd": 21300,
+     "implementation_cost_usd": 18500,
+     "basis": "Blown-film bubble cooling, chilled water pumps, cooling tower fans and scrap grinders are 18% of electricity (1,382,247 kWh = $139,884 energy + $18,419 demand = $158,303/yr) running constant speed at 8,400h. Assume VFDs on 3x 40HP cooling tower fans, chilled water pumps and tower pumps save 30-35% of that subset = 4.1% of total electricity demand + energy."
+    },
+    {
+     "arc": "2.2437",
+     "measure": "RECOVER WASTE HEAT FROM EQUIPMENT",
+     "annual_savings_usd": 16850,
+     "implementation_cost_usd": 14000,
+     "basis": "Recover 80% waste heat from 2x 100HP rotary screw air compressors (1,300h heating season) and extruder barrel cooling to heat makeup air/warehouse in MA winter. Assume displaces 38% of LPG heating load = 1,124 MMBtu of 2,957 MMBtu LPG ($22,509 at $20.03/MMBtu) plus 30 MMBtu electric unit heater savings = $16,850/yr."
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED",
+     "annual_savings_usd": 11200,
+     "implementation_cost_usd": 600,
+     "basis": "Same CA system as 2.4236 = 22% of electricity ($193,489/yr). Plant set at 110 psig for 85 psig tools/printers. Assume reducing header to 95 psig and zoning printers at 90 psig saves 7% of CA energy per 10 psi (1% per 2 psi) = 6% of CA load = 1.32% of total electricity = ~101,365 kWh + 9 kW demand."
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT",
+     "annual_savings_usd": 9600,
+     "implementation_cost_usd": 5200,
+     "basis": "8 blown-film extruder barrels, dies at 350-420F, uninsulated heater bands and 60ft of exposed hot process piping. Assume extrusion heating = 12% of electricity (921,498 kWh = $93,256/yr). Insulating jackets save 10% of barrel heat loss + 15% of bare piping loss = 1.05% of total electricity + reduces cooling load on chillers."
+    },
+    {
+     "arc": "2.4224",
+     "measure": "UPGRADE CONTROLS ON COMPRESSORS",
+     "annual_savings_usd": 8900,
+     "implementation_cost_usd": 13500,
+     "basis": "Assume 2-3 load/unload compressors serving bag machines with 40% part-load during nights/weekends (8,400h operation). Sequencer + pressure/flow controller to replace modulation saves 12% of CA electricity subset = 2.64% of CA = 0.58% of total electricity (44,593 kWh) plus $2,900 demand, vs. installing single 75HP VSD as trim."
+    },
+    {
+     "arc": "2.4133",
+     "measure": "USE MOST EFFICIENT TYPE OF ELECTRIC MOTORS",
+     "annual_savings_usd": 6750,
+     "implementation_cost_usd": 11000,
+     "basis": "Extruder drives, granulators, printers use ~25 standard-efficiency 20-50HP motors rewound, 15% of electricity (1,151,873 kWh = $116,569/yr). Assume replacing 8 failed/rewound motors with NEMA Premium IE3 at next failure saves 4.5% of that motor subset = 0.68% of total electricity plus $900 demand, incremental cost over standard."
+    },
+    {
+     "arc": "2.7135",
+     "measure": "INSTALL OCCUPANCY SENSORS",
+     "annual_savings_usd": 5100,
+     "implementation_cost_usd": 4800,
+     "basis": "Warehouse (40% of 118k sqft), ink room, break rooms, restrooms and offices lit 8,400h but occupied <50%. Assume 30% of LED lighting load (322,524 kWh) wasted = $32,639/yr subset. Occupancy sensors/daylight switching saves 35% of that wasted = 1.1% of total electricity after LED project, incremental to 2.7142."
+    },
+    {
+     "arc": "2.3212",
+     "measure": "OPTIMIZE PLANT POWER FACTOR",
+     "annual_savings_usd": 4200,
+     "implementation_cost_usd": 7200,
+     "basis": "Electric demand = 13,644 kW-months = 1,137 kW avg, cost $102,332/yr at $7.50/kW-mo. Assume measured PF 0.84 from extruder DC drives/large motors, penalty below 0.95. Assume 150 kVAR capacitor bank corrects to 0.96, saves 4.1% of demand charges = $4,200/yr plus 1% I2R loss on feeders, no kWh savings."
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.5714285714285714,
+    "recall_family": 0.5714285714285714,
+    "savings_recall_family": 0.30864695792553726,
+    "precision_family": 0.4444444444444444,
+    "implemented_found": 2,
+    "implemented_total": 3
+   },
+   "baseline": [
+    "2.4236",
+    "2.7142",
+    "2.4231",
+    "2.7135",
+    "2.4146",
+    "2.4221",
+    "2.4111",
+    "2.4239",
+    "2.2437",
+    "2.2511"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.42857142857142855,
+    "recall_family": 0.42857142857142855,
+    "savings_recall_family": 0.28184172468301216,
+    "precision_family": 0.375,
+    "implemented_found": 1,
+    "implemented_total": 3
+   },
+   "savings_log_errors": [
+    1.5760508964013633,
+    1.8714735923937416,
+    0.5138062519041284,
+    0.3474910547703437,
+    1.4432959245164152
+   ]
+  },
+  {
+   "id": "UF0569",
+   "group": "printing",
+   "products": "Newspapers and Other Publications",
+   "profile": {
+    "industry_sic": "2752.0",
+    "industry_naics": "323111.0",
+    "industry_group": "printing",
+    "products": "Newspapers and Other Publications",
+    "state": "FL",
+    "fiscal_year": "2021",
+    "annual_sales_usd": 30000000.0,
+    "employees": 90.0,
+    "plant_area_sqft": 65119.0,
+    "production": "9000000.0 None",
+    "operating_hours_per_year": 8760.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "3,686,880 kWh",
+      "annual_cost_usd": 390809
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "7,429 kW-months",
+      "annual_cost_usd": 64929
+     },
+     {
+      "stream": "other electric fees",
+      "annual_use": null,
+      "annual_cost_usd": 15104
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.4146",
+     "saved": 24828.0,
+     "cost": 23023.0,
+     "status": "I",
+     "desc": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON"
+    },
+    {
+     "arc": "2.6231",
+     "saved": 18925.0,
+     "cost": 25340.0,
+     "status": "N",
+     "desc": "UTILIZE CONTROLS TO OPERATE EQUIPMENT ONLY WHEN NEEDED"
+    },
+    {
+     "arc": "2.4112",
+     "saved": 16113.0,
+     "cost": 14830.0,
+     "status": "N",
+     "desc": "INSTALL SOFT-START TO ELIMINATE NUISANCE TRIPS"
+    },
+    {
+     "arc": "2.4133",
+     "saved": 12766.0,
+     "cost": 5229.0,
+     "status": "I",
+     "desc": "USE MOST EFFICIENT TYPE OF ELECTRIC MOTORS"
+    },
+    {
+     "arc": "2.7212",
+     "saved": 11660.0,
+     "cost": 40000.0,
+     "status": "N",
+     "desc": "INSTALL OR UPGRADE INSULATION ON HVAC DISTRIBUTION SYSTEMS"
+    },
+    {
+     "arc": "2.7142",
+     "saved": 6252.0,
+     "cost": 1985.0,
+     "status": "I",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    },
+    {
+     "arc": "2.2211",
+     "saved": 3887.0,
+     "cost": null,
+     "status": "I",
+     "desc": "USE OPTIMUM TEMPERATURE"
+    },
+    {
+     "arc": "2.2623",
+     "saved": 3742.0,
+     "cost": 3746.0,
+     "status": "N",
+     "desc": "MINIMIZE CONDENSER COOLING WATER TEMPERATURE"
+    },
+    {
+     "arc": "2.4236",
+     "saved": 3071.0,
+     "cost": 495.0,
+     "status": "I",
+     "desc": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES"
+    },
+    {
+     "arc": "2.4239",
+     "saved": 1868.0,
+     "cost": null,
+     "status": "I",
+     "desc": "ELIMINATE OR REDUCE COMPRESSED AIR USAGE"
+    },
+    {
+     "arc": "2.4111",
+     "saved": 1822.0,
+     "cost": null,
+     "status": "I",
+     "desc": "UTILIZE ENERGY-EFFICIENT BELTS AND OTHER IMPROVED MECHANISMS"
+    }
+   ],
+   "agent": [],
+   "agent_score": {
+    "recall_exact": 0.0,
+    "recall_family": 0.0,
+    "savings_recall_family": 0.0,
+    "precision_family": 0.0,
+    "implemented_found": 0,
+    "implemented_total": 7
+   },
+   "baseline": [
+    "2.7142",
+    "2.4236",
+    "2.7135",
+    "2.4231",
+    "2.4221",
+    "2.4146",
+    "2.4111",
+    "2.6218",
+    "2.7447",
+    "2.4239"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.45454545454545453,
+    "recall_family": 0.5454545454545454,
+    "savings_recall_family": 0.5141708121295291,
+    "precision_family": 0.5,
+    "implemented_found": 5,
+    "implemented_total": 7
+   },
+   "savings_log_errors": []
+  },
+  {
+   "id": "DL0184",
+   "group": "chemicals and pharma",
+   "products": "Plastic Films and Resin",
+   "profile": {
+    "industry_sic": "2821.0",
+    "industry_naics": "325211.0",
+    "industry_group": "chemicals and pharma",
+    "products": "Plastic Films and Resin",
+    "state": "DE",
+    "fiscal_year": "2020",
+    "annual_sales_usd": 37000000.0,
+    "employees": 104.0,
+    "plant_area_sqft": 180000.0,
+    "production": "1000000.0 None",
+    "operating_hours_per_year": 8400.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "13,167,928 kWh",
+      "annual_cost_usd": 870384
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "29,191 kW-months",
+      "annual_cost_usd": 124702
+     },
+     {
+      "stream": "other electric fees",
+      "annual_use": null,
+      "annual_cost_usd": 8267
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "37,340 MMBtu",
+      "annual_cost_usd": 194335
+     },
+     {
+      "stream": "water",
+      "annual_use": "456 thousand gal",
+      "annual_cost_usd": 3596
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.6218",
+     "saved": 5702.0,
+     "cost": null,
+     "status": "N",
+     "desc": "TURN OFF EQUIPMENT WHEN NOT IN USE"
+    },
+    {
+     "arc": "2.4226",
+     "saved": 22300.0,
+     "cost": 15661.0,
+     "status": "I",
+     "desc": "USE / PURCHASE OPTIMUM SIZED COMPRESSOR"
+    },
+    {
+     "arc": "2.4146",
+     "saved": 41700.0,
+     "cost": 6337.0,
+     "status": "N",
+     "desc": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON"
+    },
+    {
+     "arc": "2.2437",
+     "saved": 2170.0,
+     "cost": 4250.0,
+     "status": "N",
+     "desc": "RECOVER WASTE HEAT FROM EQUIPMENT"
+    },
+    {
+     "arc": "2.7243",
+     "saved": 9500.0,
+     "cost": 1400.0,
+     "status": "N",
+     "desc": "IMPROVE AIR CIRCULATION WITH DESTRATIFICATION FANS / OTHER"
+    },
+    {
+     "arc": "2.2511",
+     "saved": 4400.0,
+     "cost": 4750.0,
+     "status": "N",
+     "desc": "INSULATE BARE EQUIPMENT"
+    },
+    {
+     "arc": "2.2511",
+     "saved": 800.0,
+     "cost": 95.0,
+     "status": "N",
+     "desc": "INSULATE BARE EQUIPMENT"
+    },
+    {
+     "arc": "2.2511",
+     "saved": 2680.0,
+     "cost": 152.0,
+     "status": "N",
+     "desc": "INSULATE BARE EQUIPMENT"
+    },
+    {
+     "arc": "2.5112",
+     "saved": 240.0,
+     "cost": 40.0,
+     "status": "N",
+     "desc": "USE CONTINUOUS EQUIPMENT WHICH RETAINS PROCESS HEATING"
+    },
+    {
+     "arc": "2.7142",
+     "saved": 7390.0,
+     "cost": 3079.0,
+     "status": "I",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    },
+    {
+     "arc": "2.7314",
+     "saved": 940.0,
+     "cost": null,
+     "status": "I",
+     "desc": "REDUCE VENTILATION AIR"
+    },
+    {
+     "arc": "2.7211",
+     "saved": 1215.0,
+     "cost": 400.0,
+     "status": "I",
+     "desc": "CLEAN AND MAINTAIN REFRIGERANT CONDENSERS AND TOWERS"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.1122",
+     "measure": "RELOCATION OF STEAM TRAPS TO IMPROPER LOCATION AT STEAM HEADER",
+     "annual_savings_usd": 5200,
+     "implementation_cost_usd": 4800,
+     "basis": "2.2% of natural gas use 37,340 MMBtu at $5.20/MMBtu"
+    },
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS",
+     "annual_savings_usd": 8200,
+     "implementation_cost_usd": 6200,
+     "basis": "0.8% of electricity use 13.1 GWh at $0.066/kWh plus demand"
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES",
+     "annual_savings_usd": 6100,
+     "implementation_cost_usd": 2400,
+     "basis": "0.6% of electricity use 13.1 GWh at $0.066/kWh plus demand; 30% leak rate on 150 HP compressor system"
+    },
+    {
+     "arc": "2.2415",
+     "measure": "INSTALL WASTE HEAT RECOVERY FROM REFRIGERATION/COMPRESSOR SYSTEM",
+     "annual_savings_usd": 4200,
+     "implementation_cost_usd": 5800,
+     "basis": "1.8% of natural gas use 37,340 MMBtu at $5.20/MMBtu"
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT (TANKS, PIPES, DUCTS)",
+     "annual_savings_usd": 5900,
+     "implementation_cost_usd": 5200,
+     "basis": "2.5% of natural gas use 37,340 MMBtu at $5.20/MMBtu"
+    },
+    {
+     "arc": "2.4221",
+     "measure": "INSTALL COMPRESSOR AIR INTAKES IN COOLEST LOCATIONS",
+     "annual_savings_usd": 3200,
+     "implementation_cost_usd": 2100,
+     "basis": "0.3% of electricity use 13.1 GWh at $0.066/kWh plus demand; intake temp reduction 20F"
+    },
+    {
+     "arc": "2.2121",
+     "measure": "REPAIR LEAKS IN CONDENSATE RETURN SYSTEM",
+     "annual_savings_usd": 4700,
+     "implementation_cost_usd": 3900,
+     "basis": "2.0% of natural gas use 37,340 MMBtu at $5.20/MMBtu"
+    },
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON VFDs FOR PUMPS/FANS",
+     "annual_savings_usd": 7200,
+     "implementation_cost_usd": 8900,
+     "basis": "0.7% of electricity use 13.1 GWh at $0.066/kWh plus demand; 20% turndown on chilled water pumps/fans"
+    },
+    {
+     "arc": "2.2134",
+     "measure": "REPAIR STEAM LEAKS IN DISTRIBUTION SYSTEM",
+     "annual_savings_usd": 3800,
+     "implementation_cost_usd": 2600,
+     "basis": "1.6% of natural gas use 37,340 MMBtu at $5.20/MMBtu"
+    },
+    {
+     "arc": "2.2423",
+     "measure": "INSTALL ECONOMIZER ON BOILER STACK TO PREHEAT FEEDWATER",
+     "annual_savings_usd": 5500,
+     "implementation_cost_usd": 8200,
+     "basis": "2.3% of natural gas use 37,340 MMBtu at $5.20/MMBtu"
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.4166666666666667,
+    "recall_family": 0.5,
+    "savings_recall_family": 0.8004079283500106,
+    "precision_family": 0.4,
+    "implemented_found": 2,
+    "implemented_total": 4
+   },
+   "baseline": [
+    "2.7142",
+    "2.4236",
+    "2.4146",
+    "2.7135",
+    "2.4231",
+    "2.9114",
+    "2.4111",
+    "2.4221",
+    "2.2437",
+    "2.1233"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.25,
+    "recall_family": 0.3333333333333333,
+    "savings_recall_family": 0.7427527085836606,
+    "precision_family": 0.4444444444444444,
+    "implemented_found": 2,
+    "implemented_total": 4
+   },
+   "savings_log_errors": [
+    0.10400641931009705,
+    0.7891355563889084,
+    1.9414358686603923,
+    1.7564201027827462
+   ]
+  },
+  {
+   "id": "AS0488",
+   "group": "petroleum",
+   "products": "Asphalt Paving Material",
+   "profile": {
+    "industry_sic": "2951.0",
+    "industry_naics": "324121.0",
+    "industry_group": "petroleum",
+    "products": "Asphalt Paving Material",
+    "state": "AZ",
+    "fiscal_year": "2020",
+    "annual_sales_usd": 80001.0,
+    "employees": 32.0,
+    "plant_area_sqft": 100000.0,
+    "production": "1300000.0 3.0",
+    "operating_hours_per_year": 3570.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "6,378,020 kWh",
+      "annual_cost_usd": 525278
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "34,300 kW-months",
+      "annual_cost_usd": 157633
+     },
+     {
+      "stream": "other electric fees",
+      "annual_use": null,
+      "annual_cost_usd": 9926
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.8114",
+     "saved": 118609.0,
+     "cost": 10790.0,
+     "status": "I",
+     "desc": "CHANGE RATE SCHEDULES OR OTHER CHANGES IN UTILITY SERVICE"
+    },
+    {
+     "arc": "2.4146",
+     "saved": 41944.0,
+     "cost": 27312.0,
+     "status": "N",
+     "desc": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON"
+    },
+    {
+     "arc": "3.4154",
+     "saved": 2602.0,
+     "cost": 272.0,
+     "status": "I",
+     "desc": "ELIMINATE LEAKS IN WATER LINES AND VALVES"
+    },
+    {
+     "arc": "2.7272",
+     "saved": 2344.0,
+     "cost": 36.0,
+     "status": "I",
+     "desc": "INSTALL HEAT PIPES / RAISE COOLING SETPOINT"
+    },
+    {
+     "arc": "2.7142",
+     "saved": 1864.0,
+     "cost": 7653.0,
+     "status": "I",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    },
+    {
+     "arc": "2.4111",
+     "saved": 1828.0,
+     "cost": 3940.0,
+     "status": "N",
+     "desc": "UTILIZE ENERGY-EFFICIENT BELTS AND OTHER IMPROVED MECHANISMS"
+    },
+    {
+     "arc": "2.7135",
+     "saved": 395.0,
+     "cost": 1840.0,
+     "status": "N",
+     "desc": "INSTALL OCCUPANCY SENSORS"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON DRYER/BAGHOUSE FAN AND ASPHALT PUMPING SYSTEM",
+     "annual_savings_usd": 41200,
+     "implementation_cost_usd": 62000,
+     "basis": "7.0% of electricity kWh + 6% of demand"
+    },
+    {
+     "arc": "2.9114",
+     "measure": "USE SOLAR HEAT TO MAKE ELECTRICITY - ROOFTOP/GROUND PV IN AZ",
+     "annual_savings_usd": 38500,
+     "implementation_cost_usd": 460000,
+     "basis": "6.5% of electricity kWh, day shift crushing/screening load"
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN COMPRESSED AIR LINES/VALVES - BAGHOUSE PULSE-JET SYSTEM",
+     "annual_savings_usd": 17400,
+     "implementation_cost_usd": 3800,
+     "basis": "2.8% of electricity kWh + 2% of demand"
+    },
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS - LED HIGH-BAYS SHOP/LAB/SILO LOADOUT",
+     "annual_savings_usd": 16400,
+     "implementation_cost_usd": 16500,
+     "basis": "2.7% of electricity kWh + 1.5% of demand"
+    },
+    {
+     "arc": "2.3212",
+     "measure": "OPTIMIZE PLANT POWER FACTOR - CAPACITOR BANK FOR CRUSHER/SCREEN/CONVEYOR MOTOR LOAD",
+     "annual_savings_usd": 14200,
+     "implementation_cost_usd": 12000,
+     "basis": "9.0% of electric demand stream only"
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT - LIQUID AC TANKS, HOT-OIL PIPING, PUGMILL AND DRAG",
+     "annual_savings_usd": 12300,
+     "implementation_cost_usd": 18000,
+     "basis": "2.3% of electricity kWh - electric trace/heat; fuel proxy additional 4-6X not in bill"
+    },
+    {
+     "arc": "2.1233",
+     "measure": "ANALYZE FLUE GAS FOR PROPER AIR/FUEL RATIO - ROTARY DRYER BURNER 60-80 MMBTU/H",
+     "annual_savings_usd": 11200,
+     "implementation_cost_usd": 6500,
+     "basis": "0.6% electricity FD fan kWh + fuel proxy ~$18k/yr not in provided streams"
+    },
+    {
+     "arc": "2.2414",
+     "measure": "USE WASTE HEAT FROM HOT FLUE GASES TO PREHEAT COMBUSTION AIR TO DRYER",
+     "annual_savings_usd": 10500,
+     "implementation_cost_usd": 28000,
+     "basis": "2.0% of electricity kWh equivalent; primary saving is burner fuel not metered"
+    },
+    {
+     "arc": "2.4111",
+     "measure": "UTILIZE ENERGY-EFFICIENT BELTS AND OTHER IMPROVED MECHANISMS ON 12 AGGREGATE CONVEYORS/SCREENS",
+     "annual_savings_usd": 6800,
+     "implementation_cost_usd": 7500,
+     "basis": "1.3% of electricity kWh, 25% of plant load is conveying"
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED - 110 TO 85-90 PSIG WITH PRESSURE/FLOW CONTROLLER",
+     "annual_savings_usd": 5200,
+     "implementation_cost_usd": 900,
+     "basis": "1.0% of electricity kWh, after leak repair"
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.42857142857142855,
+    "recall_family": 0.42857142857142855,
+    "savings_recall_family": 0.2691024023209463,
+    "precision_family": 0.3333333333333333,
+    "implemented_found": 1,
+    "implemented_total": 4
+   },
+   "baseline": [
+    "2.7142",
+    "2.4146",
+    "2.4236",
+    "2.2511",
+    "2.4231",
+    "2.9114",
+    "2.4111",
+    "2.7135",
+    "2.2414",
+    "2.1233"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.5714285714285714,
+    "recall_family": 0.5714285714285714,
+    "savings_recall_family": 0.2714316040239171,
+    "precision_family": 0.4444444444444444,
+    "implemented_found": 1,
+    "implemented_total": 4
+   },
+   "savings_log_errors": [
+    0.017897138914750945,
+    2.1745566185667533,
+    1.3137001391501026
+   ]
+  },
+  {
+   "id": "TT0356",
+   "group": "rubber and plastics",
+   "products": "Carpet Underlay",
+   "profile": {
+    "industry_sic": "3086.0",
+    "industry_naics": "326150.0",
+    "industry_group": "rubber and plastics",
+    "products": "Carpet Underlay",
+    "state": "NC",
+    "fiscal_year": "2026",
+    "annual_sales_usd": 30037211.0,
+    "employees": 58.0,
+    "plant_area_sqft": 114000.0,
+    "production": "54000.0 6.0",
+    "operating_hours_per_year": 6240.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "4,079,280 kWh",
+      "annual_cost_usd": 186921
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "13,167 kW-months",
+      "annual_cost_usd": 94804
+     },
+     {
+      "stream": "other electric fees",
+      "annual_use": null,
+      "annual_cost_usd": 26403
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "15,510 MMBtu",
+      "annual_cost_usd": 89973
+     },
+     {
+      "stream": "water",
+      "annual_use": "1,090 thousand gal",
+      "annual_cost_usd": 1559
+     },
+     {
+      "stream": "water disposal",
+      "annual_use": "875 thousand gal",
+      "annual_cost_usd": 11730
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.4236",
+     "saved": 1071.72,
+     "cost": 195.0,
+     "status": "",
+     "desc": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES"
+    },
+    {
+     "arc": "2.4324",
+     "saved": 7008.4,
+     "cost": 1520.0,
+     "status": "",
+     "desc": "REPLACE HYDRAULIC / PNEUMATIC EQUIPMENT WITH ELECTRIC"
+    },
+    {
+     "arc": "4.6420",
+     "saved": 15973.64,
+     "cost": 6000.0,
+     "status": "",
+     "desc": ""
+    },
+    {
+     "arc": "2.2162",
+     "saved": 8854.0,
+     "cost": 5900.0,
+     "status": "",
+     "desc": "REDUCE EXCESS STEAM BLEEDING"
+    },
+    {
+     "arc": "2.4111",
+     "saved": 1598.36,
+     "cost": 1200.0,
+     "status": "",
+     "desc": "UTILIZE ENERGY-EFFICIENT BELTS AND OTHER IMPROVED MECHANISMS"
+    },
+    {
+     "arc": "2.7135",
+     "saved": 1490.0,
+     "cost": 2840.0,
+     "status": "",
+     "desc": "INSTALL OCCUPANCY SENSORS"
+    },
+    {
+     "arc": "2.1392",
+     "saved": 3632.54,
+     "cost": 21130.0,
+     "status": "",
+     "desc": "REPLACE PURCHASED STEAM WITH OTHER ENERGY SOURCE"
+    },
+    {
+     "arc": "2.2414",
+     "saved": 11844.0,
+     "cost": 50000.0,
+     "status": "",
+     "desc": "USE WASTE HEAT FROM HOT FLUE GASES TO PREHEAT"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS",
+     "annual_savings_usd": 18500,
+     "implementation_cost_usd": 38000,
+     "basis": "Electricity - 35% of kWh"
+    },
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON",
+     "annual_savings_usd": 16800,
+     "implementation_cost_usd": 28000,
+     "basis": "Electricity - 30% of kWh"
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES",
+     "annual_savings_usd": 14900,
+     "implementation_cost_usd": 4500,
+     "basis": "Electricity - 25% of kWh"
+    },
+    {
+     "arc": "2.2442",
+     "measure": "PREHEAT COMBUSTION AIR WITH WASTE HEAT",
+     "annual_savings_usd": 11700,
+     "implementation_cost_usd": 22000,
+     "basis": "Natural gas - 13% of MMBtu"
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT",
+     "annual_savings_usd": 7200,
+     "implementation_cost_usd": 6500,
+     "basis": "Natural gas - 8% of MMBtu"
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED",
+     "annual_savings_usd": 6400,
+     "implementation_cost_usd": 1200,
+     "basis": "Electricity - 10% of kWh"
+    },
+    {
+     "arc": "2.4224",
+     "measure": "UPGRADE CONTROLS ON COMPRESSORS",
+     "annual_savings_usd": 5800,
+     "implementation_cost_usd": 9000,
+     "basis": "Electricity - 10% of kWh"
+    },
+    {
+     "arc": "2.3212",
+     "measure": "OPTIMIZE PLANT POWER FACTOR",
+     "annual_savings_usd": 5200,
+     "implementation_cost_usd": 7500,
+     "basis": "Electric demand - 5.5% of demand cost"
+    },
+    {
+     "arc": "2.4221",
+     "measure": "INSTALL COMPRESSOR AIR INTAKES IN COOLEST LOCATIONS",
+     "annual_savings_usd": 3100,
+     "implementation_cost_usd": 3200,
+     "basis": "Electricity - 6% of kWh"
+    },
+    {
+     "arc": "2.7135",
+     "measure": "INSTALL OCCUPANCY SENSORS",
+     "annual_savings_usd": 2900,
+     "implementation_cost_usd": 4800,
+     "basis": "Electricity - 5% of kWh"
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.25,
+    "recall_family": 0.25,
+    "savings_recall_family": 0.049768556744493105,
+    "precision_family": 0.25,
+    "implemented_found": 0,
+    "implemented_total": 0
+   },
+   "baseline": [
+    "2.4236",
+    "2.7142",
+    "2.4231",
+    "2.7135",
+    "2.4146",
+    "2.4221",
+    "2.2511",
+    "2.4239",
+    "2.4111",
+    "2.3212"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.375,
+    "recall_family": 0.375,
+    "savings_recall_family": 0.08082115826149261,
+    "precision_family": 0.375,
+    "implemented_found": 0,
+    "implemented_total": 0
+   },
+   "savings_log_errors": [
+    2.6320963784497553,
+    1.787033155863968,
+    0.6659346170350606
+   ]
+  },
+  {
+   "id": "CM1038",
+   "group": "stone, clay, glass",
+   "products": "Concrete retaining wall and fencing components",
+   "profile": {
+    "industry_sic": "3272.0",
+    "industry_naics": "327390.0",
+    "industry_group": "stone, clay, glass",
+    "products": "Concrete retaining wall and fencing components",
+    "state": "CO",
+    "fiscal_year": "2025",
+    "annual_sales_usd": 2630000.0,
+    "employees": 33.0,
+    "plant_area_sqft": 44028.0,
+    "production": "40000.0 3.0",
+    "operating_hours_per_year": 3510.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "257,400 kWh",
+      "annual_cost_usd": 11840
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "1,053 kW-months",
+      "annual_cost_usd": 20574
+     },
+     {
+      "stream": "other electric fees",
+      "annual_use": null,
+      "annual_cost_usd": 2433
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "2,984 MMBtu",
+      "annual_cost_usd": 37882
+     },
+     {
+      "stream": "LPG",
+      "annual_use": "862 MMBtu",
+      "annual_cost_usd": 23325
+     },
+     {
+      "stream": "other gas",
+      "annual_use": "18 MMBtu",
+      "annual_cost_usd": 436
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.9114",
+     "saved": 12692.0,
+     "cost": 150694.0,
+     "status": "",
+     "desc": "USE SOLAR HEAT TO MAKE ELECTRICITY"
+    },
+    {
+     "arc": "2.4231",
+     "saved": 1193.0,
+     "cost": null,
+     "status": "",
+     "desc": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED"
+    },
+    {
+     "arc": "2.7232",
+     "saved": 894.0,
+     "cost": 8570.0,
+     "status": "",
+     "desc": "REPLACE EXISTING HVAC UNIT WITH HIGH EFFICIENCY MODEL"
+    },
+    {
+     "arc": "2.7135",
+     "saved": 798.0,
+     "cost": 405.0,
+     "status": "",
+     "desc": "INSTALL OCCUPANCY SENSORS"
+    },
+    {
+     "arc": "2.4236",
+     "saved": 557.0,
+     "cost": 216.53,
+     "status": "",
+     "desc": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES"
+    },
+    {
+     "arc": "2.4322",
+     "saved": 423.52,
+     "cost": 550.0,
+     "status": "",
+     "desc": "USE OR REPLACE WITH ENERGY EFFICIENT SUBSTITUTES"
+    },
+    {
+     "arc": "2.8226",
+     "saved": 23397.71,
+     "cost": 57900.0,
+     "status": "",
+     "desc": "INCREASE EFFICIENCY OF TRUCKS"
+    },
+    {
+     "arc": "2.7491",
+     "saved": 3409.0,
+     "cost": 4933.0,
+     "status": "",
+     "desc": "INSULATE GLAZING, WALLS, CEILINGS, AND ROOFS"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.1332",
+     "measure": "CONVERT COMBUSTION EQUIPMENT TO BURN NATURAL GAS - convert LPG yard heaters / curing to NG + electrify forklifts; LPG cost: 27.06/MMbtu, NG cost: 12.70/MMbtu, electricity cost: 0.046/kWh",
+     "annual_savings_usd": 7223,
+     "implementation_cost_usd": 18500,
+     "basis": "Based on converting ~50% of LPG load (431 MMbtu) from LPG to NG; net: 431*(27.06-12.70)=6,191, + forklift tune 30%: (345*0.30=103.5 MMbtu equivalent) =30,322 kWh*0.046=1,395 + demand 92*12=92*19.54=1,797=>3,192 => net ~ (6,191+1,032)=7,223; assumes 40% forklift portion partially electrified"
+    },
+    {
+     "arc": "2.2414",
+     "measure": "USE WASTE HEAT FROM HOT FLUE GASES TO PREHEAT - recover boiler exhaust heat to preheat combustion air / makeup water / aggregate",
+     "annual_savings_usd": 4550,
+     "implementation_cost_usd": 22000,
+     "basis": "Assume 12% of NG (0.12*2984=358 MMbtu) *12.70=4,545; plus 2% reduction in LP due to reduced infiltration; net ~$4,550; includes heat exchanger for 90-120F cure chambers"
+    },
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS - LED high-bay retrofit",
+     "annual_savings_usd": 3825,
+     "implementation_cost_usd": 12000,
+     "basis": "Assume lighting ~18kW average at 251 kW*yr/3510h \u22487.2%? Actually 256k kWh/3510\u224873.33kW; lighting ~24% of that =18kW; LED reduces to 7.2kW (60% cut) =>10.8kW saved*3510=37,908 kWh*0.046=1,744 + demand 10.8*12=129.6 kW-mo*19.54=2,532\u21924,276; conservatively $3,825 after controls overlap; ~40% of electricity stream assumed lighting-related"
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES (and 2.4231 reduce pressure)",
+     "annual_savings_usd": 3350,
+     "implementation_cost_usd": 1700,
+     "basis": "Assume CA =30% of electric kWh (77,220 kWh) + 30% demand (316 kW-mo); leak fix saves 25% of CA=19,305 kWh*0.046=888 + demand 79kW-mo*19.54=1,543 + pressure reduction 5% extra (~$400) + dryer blowdown avoided; total electric-stream saving ~$3,300"
+    },
+    {
+     "arc": "2.1233",
+     "measure": "ANALYZE FLUE GAS FOR PROPER AIR/FUEL RATIO - tune boiler/oven burners",
+     "annual_savings_usd": 3050,
+     "implementation_cost_usd": 2800,
+     "basis": "Assume reduce excess O2 from 8% to 3% on natural-gas boiler for cure chambers (~2-3 MMBtu/hr tube boiler): 8% NG (0.08*2984=239 MMbtu*12.70=3,030) + minor demand not applicable"
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT - bare steam header, cure chamber tops, boiler breeching",
+     "annual_savings_usd": 2280,
+     "implementation_cost_usd": 6500,
+     "basis": "Assume 6% NG waste via 400ft uninsulated 2in steam line + cure kiln lids (179 MMbtu*12.70=2,272); ~6% of NG stream"
+    },
+    {
+     "arc": "2.2135",
+     "measure": "REPAIR AND ELIMINATE STEAM LEAKS + 2.2113 traps / 2.2121 condensate return",
+     "annual_savings_usd": 2050,
+     "implementation_cost_usd": 5200,
+     "basis": "Assume 5% NG loss from 10-12 failed inverted-bucket traps, valve packing, door gasket leaks, condensate dumped to drain (149 MMbtu*12.70=1,894 + water/chem $300) =2,050; ~5% NG + water/chemical treatment saving"
+    },
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON - VFD on pan mixer, vibro-press tables, dust collector",
+     "annual_savings_usd": 1950,
+     "implementation_cost_usd": 13500,
+     "basis": "Applicable motor load ~30kW avg (mixer 40HP, 2x15HP tables, 25HP dust fan, conveyors) run 3510h throttled; VFD saves 15%: 4.5kW*3510=15,795kWh*0.046=726 + demand 4.5*12=54kW-mo*19.54=1,055 \u2192$1,781 + soft-start reduces peak, use 100% runtime =>$1,950; ~7% of electricity stream on targeted motors"
+    },
+    {
+     "arc": "2.1135",
+     "measure": "REPAIR FURNACES AND OVEN DOORS SO THAT THEY SEAL EFFICIENTLY + 2.7447 vinyl strip doors",
+     "annual_savings_usd": 1750,
+     "implementation_cost_usd": 7800,
+     "basis": "4 warped double doors on 100F/80%RH steam cure cells + large OH door infiltration causing 4-5% NG heating loss (120-135 MMbtu*12.70=1,520-1,710) + 2% LP portable heater runtime; assumes 4.5% NG + 1.5% LP avoided"
+    },
+    {
+     "arc": "2.7243",
+     "measure": "IMPROVE AIR CIRCULATION WITH DESTRATIFICATION FANS / OTHER - 4x 24in destrat fans in high-bay molding/curing bay",
+     "annual_savings_usd": 1450,
+     "implementation_cost_usd": 4200,
+     "basis": "CO winter stratification \u2206T 12-15F under 20ft roof with 4 ceiling-hung NG unit heaters; fans cut heating NG 4% (0.04*2984=119 MMbtu*12.70=1,511) - ~10% of space-heat portion of NG; 4% of NG stream"
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.125,
+    "recall_family": 0.25,
+    "savings_recall_family": 0.04035584166950503,
+    "precision_family": 0.1,
+    "implemented_found": 0,
+    "implemented_total": 0
+   },
+   "baseline": [
+    "2.7142",
+    "2.4236",
+    "2.4231",
+    "2.4146",
+    "2.4111",
+    "2.7135",
+    "2.2511",
+    "2.4239",
+    "2.2437",
+    "2.9114"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.5,
+    "recall_family": 0.5,
+    "savings_recall_family": 0.35144172973900384,
+    "precision_family": 0.375,
+    "implemented_found": 0,
+    "implemented_total": 0
+   },
+   "savings_log_errors": [
+    1.794150384891828
+   ]
+  },
+  {
+   "id": "OK1165",
+   "group": "primary metals",
+   "products": "Pneumatically-driven nails",
+   "profile": {
+    "industry_sic": "3315.0",
+    "industry_naics": "332618.0",
+    "industry_group": "primary metals",
+    "products": "Pneumatically-driven nails",
+    "state": "AR",
+    "fiscal_year": "2026",
+    "annual_sales_usd": 26000000.0,
+    "employees": 40.0,
+    "plant_area_sqft": 125000.0,
+    "production": "2650.0 3.0",
+    "operating_hours_per_year": 1920.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "3,515,400 kWh",
+      "annual_cost_usd": 212335
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "14,632 kW-months",
+      "annual_cost_usd": 129010
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "9,022 MMBtu",
+      "annual_cost_usd": 72546
+     },
+     {
+      "stream": "water",
+      "annual_use": "4,155 thousand gal",
+      "annual_cost_usd": 19600
+     },
+     {
+      "stream": "water disposal",
+      "annual_use": "3,408 thousand gal",
+      "annual_cost_usd": 8546
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.7211",
+     "saved": 294.0,
+     "cost": 935.0,
+     "status": "N",
+     "desc": "CLEAN AND MAINTAIN REFRIGERANT CONDENSERS AND TOWERS"
+    },
+    {
+     "arc": "2.7226",
+     "saved": 2462.0,
+     "cost": 23200.0,
+     "status": "N",
+     "desc": "USE COMPUTER PROGRAMS TO OPTIMIZE HVAC PERFORMANCE"
+    },
+    {
+     "arc": "2.4236",
+     "saved": 9988.0,
+     "cost": 13005.0,
+     "status": "N",
+     "desc": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES"
+    },
+    {
+     "arc": "2.4146",
+     "saved": 25293.0,
+     "cost": 40074.0,
+     "status": "N",
+     "desc": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON"
+    },
+    {
+     "arc": "2.7142",
+     "saved": 1312.0,
+     "cost": 7084.0,
+     "status": "N",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    },
+    {
+     "arc": "2.1321",
+     "saved": 20220.0,
+     "cost": 86500.0,
+     "status": "N",
+     "desc": "REPLACE FOSSIL FUEL EQUIPMENT WITH ELECTRICAL EQUIPMENT"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES",
+     "annual_savings_usd": 28510,
+     "implementation_cost_usd": 5100,
+     "basis": "8% of electricity use, 7% of demand - leaks on air headers for nail heading machines"
+    },
+    {
+     "arc": "2.4224",
+     "measure": "UPGRADE CONTROLS ON COMPRESSORS",
+     "annual_savings_usd": 21260,
+     "implementation_cost_usd": 18500,
+     "basis": "6% of electricity use, 7% of demand - sequencer/pressure-flow controls on rotary screws running unloaded second shift/weekend"
+    },
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS",
+     "annual_savings_usd": 15940,
+     "implementation_cost_usd": 32800,
+     "basis": "5% of electricity use, 5% of demand - 125k sqft HID to LED, 1920 hr + security hours on nail forming, drawing, warehouse"
+    },
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON",
+     "annual_savings_usd": 14230,
+     "implementation_cost_usd": 14800,
+     "basis": "4% of electricity use, 3% of demand - VFD on dust collector / wire scale exhaust and cooling tower serving drawing lubricant coolers"
+    },
+    {
+     "arc": "2.2414",
+     "measure": "USE WASTE HEAT FROM HOT FLUE GASES TO PREHEAT",
+     "annual_savings_usd": 11470,
+     "implementation_cost_usd": 18700,
+     "basis": "14% of natural gas - annealing furnace and galvanizing kettle flue 400-600F to preheat combustion air and incoming wire"
+    },
+    {
+     "arc": "2.3212",
+     "measure": "OPTIMIZE PLANT POWER FACTOR",
+     "annual_savings_usd": 11050,
+     "implementation_cost_usd": 11400,
+     "basis": "9% of electric demand, 0% of use - PF correction to 0.95 on 10+ wire drawing motors/nail headers, eliminate kVA penalty, Arkansas Entergy rider"
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED",
+     "annual_savings_usd": 8930,
+     "implementation_cost_usd": 1400,
+     "basis": "3% of electricity use, 3% of demand - 110 psig to 85-90 psig at headers with PRVs, regulators at each nail machine"
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT",
+     "annual_savings_usd": 6820,
+     "implementation_cost_usd": 4900,
+     "basis": "8% of natural gas, 0.5% of electricity use - bare annealing furnace doors, galvanizing kettle, and bare steam/hot water lines for cleaning"
+    },
+    {
+     "arc": "2.4239",
+     "measure": "ELIMINATE OR REDUCE COMPRESSED AIR USAGE",
+     "annual_savings_usd": 5980,
+     "implementation_cost_usd": 6200,
+     "basis": "2% of electricity use, 2% of demand - replace open blow-offs for wire de-scaling/chip removal with engineered nozzles and low-pressure blowers"
+    },
+    {
+     "arc": "2.1233",
+     "measure": "ANALYZE FLUE GAS FOR PROPER AIR/FUEL RATIO",
+     "annual_savings_usd": 4120,
+     "implementation_cost_usd": 2200,
+     "basis": "5% of natural gas - O2 trim tune on 2-3 gas-fired annealing / stress-relief furnaces currently running high excess air"
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.5,
+    "recall_family": 0.5,
+    "savings_recall_family": 0.6142960264567141,
+    "precision_family": 0.375,
+    "implemented_found": 0,
+    "implemented_total": 0
+   },
+   "baseline": [
+    "2.4236",
+    "2.7142",
+    "2.4231",
+    "2.7135",
+    "2.4146",
+    "2.4221",
+    "2.4111",
+    "2.4239",
+    "2.2511",
+    "2.3212"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.5,
+    "recall_family": 0.5,
+    "savings_recall_family": 0.6142960264567141,
+    "precision_family": 0.375,
+    "implemented_found": 0,
+    "implemented_total": 0
+   },
+   "savings_log_errors": [
+    1.0488705305070538,
+    2.4972789828401716,
+    0.5751752655068872,
+    0.11196797752911912,
+    0.5129638044549865
+   ]
+  },
+  {
+   "id": "SF0578",
+   "group": "fabricated metals",
+   "products": "Metal Food Cans",
+   "profile": {
+    "industry_sic": "3411.0",
+    "industry_naics": "332431.0",
+    "industry_group": "fabricated metals",
+    "products": "Metal Food Cans",
+    "state": "CA",
+    "fiscal_year": "2022",
+    "annual_sales_usd": 250000000.0,
+    "employees": 74.0,
+    "plant_area_sqft": 128000.0,
+    "production": "495000000.0 1.0",
+    "operating_hours_per_year": 4800.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "3,721,332 kWh",
+      "annual_cost_usd": 333037
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "8,888 kW-months",
+      "annual_cost_usd": 145497
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "4,142 MMBtu",
+      "annual_cost_usd": 33428
+     },
+     {
+      "stream": "water",
+      "annual_use": "1,959 thousand gal",
+      "annual_cost_usd": 5154
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.4236",
+     "saved": 342.0,
+     "cost": null,
+     "status": "I",
+     "desc": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES"
+    },
+    {
+     "arc": "2.4235",
+     "saved": 30709.0,
+     "cost": 4981.0,
+     "status": "I",
+     "desc": "REMOVE OR CLOSE OFF UNNEEDED COMPRESSED AIR LINES"
+    },
+    {
+     "arc": "2.7224",
+     "saved": 5919.0,
+     "cost": 1697.0,
+     "status": "I",
+     "desc": "REDUCE SPACE CONDITIONING DURING NON-WORKING HOURS"
+    },
+    {
+     "arc": "2.4322",
+     "saved": 1748.0,
+     "cost": 658.0,
+     "status": "I",
+     "desc": "USE OR REPLACE WITH ENERGY EFFICIENT SUBSTITUTES"
+    },
+    {
+     "arc": "2.4146",
+     "saved": 3646.0,
+     "cost": 4708.0,
+     "status": "N",
+     "desc": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON"
+    },
+    {
+     "arc": "2.4146",
+     "saved": 8961.0,
+     "cost": 12352.0,
+     "status": "N",
+     "desc": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON"
+    },
+    {
+     "arc": "2.4239",
+     "saved": 16091.0,
+     "cost": 27625.0,
+     "status": "I",
+     "desc": "ELIMINATE OR REDUCE COMPRESSED AIR USAGE"
+    },
+    {
+     "arc": "2.7142",
+     "saved": 16673.0,
+     "cost": 46439.0,
+     "status": "I",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS",
+     "annual_savings_usd": 24500,
+     "implementation_cost_usd": 58000,
+     "basis": "181,000 kWh/yr = 4.9% of total electricity, 49% of lighting load. Demand 504 kW-mo/yr. Assumes 64 kW of 400W MH high-bay over bodymaker/cupper/slitter + decorator and T8 in warehouse/end making at 4800 hrs. Replace 460W system with 150W LED high-bay and T8 to 18W LED. CA Title 24 + PG&E rebate ~$120/fixture not included."
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES",
+     "annual_savings_usd": 20400,
+     "implementation_cost_usd": 6500,
+     "basis": "156,000 kWh/yr = 4.2% of total electricity = 15% of compressed air system. Demand 392 kW-mo/yr. Assumes 2x 100-125HP rotary screws at 28% of plant load = 1,042 MWh/yr feeding D&I air bearings, Soudronic welder rolls, air conveyors/mass air tracks, testers. IAC leak rate 25% -> 10%. $0.0895/kWh + $16.37/kW-mo. Ultrasonic survey + 40-60 repairs."
+    },
+    {
+     "arc": "2.4239",
+     "measure": "ELIMINATE OR REDUCE COMPRESSED AIR USAGE",
+     "annual_savings_usd": 18600,
+     "implementation_cost_usd": 62000,
+     "basis": "145,000 kWh/yr = 3.9% of total electricity = 14% of compressed air system. Demand 360 kW-mo/yr. Can plant specific: replace ~30% of compressed air that is misused as low pressure <5 psig - can blow-offs on trimmer scrap ejection, post-washer can drying, mass flow air movers, necker/flanger air lifts, palletizer air cylinders. Install 4x 10-15HP centrifugal/low pressure blowers $Paxton type$ and electric actuators."
+    },
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON",
+     "annual_savings_usd": 12800,
+     "implementation_cost_usd": 38000,
+     "basis": "102,000 kWh/yr = 2.7% of total electricity = 23% of oven fan/pump load. Demand 240 kW-mo/yr. 5-6 gas IBO/pin oven/base-coat oven exhaust & supply fans 15-30HP and washer recirc pumps now inlet damper/throttled for 400F cure and 180F wash. 4800 hrs, VFD to 60-70% on idle/low line speed. 6 x 20HP avg VFD."
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED",
+     "annual_savings_usd": 9200,
+     "implementation_cost_usd": 4500,
+     "basis": "74,000 kWh/yr = 2.0% of total electricity = 7.1% of compressed air system. Demand 180 kW-mo/yr. Plant at 95-100 psig to satisfy bodymaker worst case. Zone to 80-82 psig for general plant + 90 psig dedicated loop for bodymaker/necker only. 1 psi = ~0.5% savings. 12-15 psi reduction. Add regulators, loop separation, lower compressor setpoint."
+    },
+    {
+     "arc": "2.4224",
+     "measure": "UPGRADE CONTROLS ON COMPRESSORS",
+     "annual_savings_usd": 8900,
+     "implementation_cost_usd": 9000,
+     "basis": "72,000 kWh/yr = 1.9% of total electricity = 6.9% of compressed air system. Demand 156 kW-mo/yr. Two rotary screws now in independent load/unload with wide 15 psi band + hot-standby. Add sequencer/auto-lead/lag, narrow to 6 psi, auto-shutdown, schedule for 2-shift 4800 hr operation."
+    },
+    {
+     "arc": "2.3212",
+     "measure": "OPTIMIZE PLANT POWER FACTOR",
+     "annual_savings_usd": 7500,
+     "implementation_cost_usd": 26000,
+     "basis": "Demand/penalty only. ~0% kWh, ~5.2% of demand charge = 458 kW-mo/yr penalty avoided. Soudronic resistance side-seam welders + DC drives on bodymakers pull PF to ~0.78. CA tariff penalty and I2R losses. 300 kVAR automatic capacitor bank at main MCC for welders."
+    },
+    {
+     "arc": "2.2414",
+     "measure": "USE WASTE HEAT FROM HOT FLUE GASES TO PREHEAT",
+     "annual_savings_usd": 4200,
+     "implementation_cost_usd": 28000,
+     "basis": "520 MMBtu/yr = 12.6% of natural gas = 15% of oven gas use. Gas at $8.07/MMBtu. IBO inside-spray bake 400-425F and pin oven 395F exhaust 450-500F at 5,000-8,000 cfm now to roof. Air-to-air HX to preheat oven makeup air 60F->180F and D&I strip infeed. 70% HX effectiveness."
+    },
+    {
+     "arc": "2.2437",
+     "measure": "RECOVER WASTE HEAT FROM EQUIPMENT",
+     "annual_savings_usd": 3800,
+     "implementation_cost_usd": 18000,
+     "basis": "460 MMBtu/yr = 11.1% of natural gas. 200HP compressor room at 105-110F; 75% of input recoverable. Plate HX to preheat 6-stage can washer hot water 140F wash/rinse from 60F city water, displacing gas water heater. Duct hot air to space heat in winter."
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT",
+     "annual_savings_usd": 2600,
+     "implementation_cost_usd": 9000,
+     "basis": "310 MMBtu/yr gas = 7.5% of natural gas + 6,000 kWh/yr cooling benefit. IBO door seals, end-curl oven faces, bare 2in hot water/steam headers to washer, 1,200 gal washer tanks at 180F with missing jackets. 2in fiberglass + Al jacket. Reduces HVAC load in can plant conditioned QA lab."
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.625,
+    "recall_family": 0.75,
+    "savings_recall_family": 0.9088227948958841,
+    "precision_family": 0.375,
+    "implemented_found": 4,
+    "implemented_total": 6
+   },
+   "baseline": [
+    "2.4236",
+    "2.7142",
+    "2.4231",
+    "2.7135",
+    "2.4221",
+    "2.4146",
+    "2.4111",
+    "2.4239",
+    "2.3212",
+    "2.9114"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.625,
+    "recall_family": 0.75,
+    "savings_recall_family": 0.9088227948958841,
+    "precision_family": 0.375,
+    "implemented_found": 4,
+    "implemented_total": 6
+   },
+   "savings_log_errors": [
+    0.3848824729723595,
+    0.23727479137315766,
+    0.1449014712421425,
+    0.356563343023489,
+    0.5590566254220184
+   ]
+  },
+  {
+   "id": "BS0114",
+   "group": "machinery",
+   "products": "Construction Equipment",
+   "profile": {
+    "industry_sic": "3531.0",
+    "industry_naics": "333120.0",
+    "industry_group": "machinery",
+    "products": "Construction Equipment",
+    "state": "ID",
+    "fiscal_year": "2018",
+    "annual_sales_usd": 60000000.0,
+    "employees": 181.0,
+    "plant_area_sqft": 153000.0,
+    "production": "30000.0 1.0",
+    "operating_hours_per_year": 4100.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "1,959,520 kWh",
+      "annual_cost_usd": 106961
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "5,149 kW-months",
+      "annual_cost_usd": 30651
+     },
+     {
+      "stream": "other electric fees",
+      "annual_use": null,
+      "annual_cost_usd": 202
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "13,617 MMBtu",
+      "annual_cost_usd": 78996
+     },
+     {
+      "stream": "LPG",
+      "annual_use": "336 MMBtu",
+      "annual_cost_usd": 22398
+     },
+     {
+      "stream": "#2 fuel oil",
+      "annual_use": "377 MMBtu",
+      "annual_cost_usd": 6312
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.2414",
+     "saved": 4222.0,
+     "cost": 21742.0,
+     "status": "N",
+     "desc": "USE WASTE HEAT FROM HOT FLUE GASES TO PREHEAT"
+    },
+    {
+     "arc": "3.2121",
+     "saved": 26520.0,
+     "cost": 21600.0,
+     "status": "I",
+     "desc": "CONVERT TO ELECTROSTATIC POWDER COATING"
+    },
+    {
+     "arc": "2.4111",
+     "saved": 423.0,
+     "cost": 250.0,
+     "status": "I",
+     "desc": "UTILIZE ENERGY-EFFICIENT BELTS AND OTHER IMPROVED MECHANISMS"
+    },
+    {
+     "arc": "2.7142",
+     "saved": 4503.0,
+     "cost": 11880.0,
+     "status": "N",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    },
+    {
+     "arc": "2.4231",
+     "saved": 601.0,
+     "cost": 7.0,
+     "status": "N",
+     "desc": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED"
+    },
+    {
+     "arc": "2.4236",
+     "saved": 304.0,
+     "cost": 337.0,
+     "status": "I",
+     "desc": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES"
+    },
+    {
+     "arc": "2.9114",
+     "saved": 8591.0,
+     "cost": 166500.0,
+     "status": "N",
+     "desc": "USE SOLAR HEAT TO MAKE ELECTRICITY"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS",
+     "annual_savings_usd": 11800,
+     "implementation_cost_usd": 38000,
+     "basis": "Electricity. Fabrication/welding high-bays and assembly (153k sqft) estimated 30% of kWh (587,000 kWh = $32,056) + 28% of demand (120 kW avg = $8,582/yr). Retrofit 150+ 400W metal halide/HPS high-bays to 165W LED high-bays with dimming saves ~55% lighting energy: 323 MWh * $0.0546 = $8,900 + $2,900 demand. Specific to 4100 hr/yr 2-shift construction equipment plant."
+    },
+    {
+     "arc": "2.2437",
+     "measure": "RECOVER WASTE HEAT FROM EQUIPMENT",
+     "annual_savings_usd": 9480,
+     "implementation_cost_usd": 28000,
+     "basis": "Natural gas. Paint/powder-coat cure oven (500-600F exhaust) and parts washer phosphate pre-treatment estimated 40% of gas = 5,447 MMBtu. Air-to-air exchanger to preheat oven combustion/makeup air and wash tank recovers ~30% of that exhaust heat = 1,634 MMBtu/yr * $5.80/MMBtu. Typical for construction equipment frame/boom paint line."
+    },
+    {
+     "arc": "2.1321",
+     "measure": "REPLACE FOSSIL FUEL EQUIPMENT WITH ELECTRICAL EQUIPMENT",
+     "annual_savings_usd": 8900,
+     "implementation_cost_usd": 42000,
+     "basis": "LPG. 336 MMBtu/yr $22,398 ($66.66/MMBtu) for 4-5 LPG forklifts/tow tractors moving frames/booms. Replace 80% LPG use (269 MMBtu) with electric lithium-ion forklifts. Electricity added ~22 MWh ($1,200 energy + $600 demand). Net savings = 80% LPG cost $17,918 - $1,800 electric - $7,200 battery charging/lease delta = ~$8,900. Eliminates propane at $6+/gal vs $0.055/kWh Idaho hydro power."
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT",
+     "annual_savings_usd": 4950,
+     "implementation_cost_usd": 9500,
+     "basis": "Natural gas. Bare surfaces on powder-cure oven, batch oven doors, phosphate wash tanks (160-180F), and uninsulated hot-water/steam piping in paint shop estimated 12% gas loss = 1,634 MMBtu. Removable jackets, tank covers, 2in mineral wool on 400ft piping saves ~52% of loss = 853 MMBtu * $5.80."
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES",
+     "annual_savings_usd": 4350,
+     "implementation_cost_usd": 3200,
+     "basis": "Electricity (compressed air) + embedded gas. Plant has 3 compressors ~75-100 hp total estimated 22% of kWh (430,000 kWh = $23,500 + $6,700 demand). Leak audit typically finds 25-30% leak rate in fabrication pneumatic tools, blow-off, plasma assist + Ar/CO2 welding shield gas leaks. Repair saves 15% of compressed air energy = 64,500 kWh + 10 kW demand = $4,350/yr."
+    },
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON",
+     "annual_savings_usd": 3900,
+     "implementation_cost_usd": 18000,
+     "basis": "Electricity. Paint booth supply/exhaust fans (20-30 hp each), weld fume/dust collectors, and CNC coolant/cutting table extract fans run constant speed on 2 shifts. Estimated 14% of kWh (274,000 kWh). VFDs on 5 largest motors (avg 20 hp) reduce fan power via affinity laws 35-40% when booth not spraying/parts not present = 58,000 kWh saved * $0.0546 + 6 kW demand = $3,900."
+    },
+    {
+     "arc": "2.1332",
+     "measure": "CONVERT COMBUSTION EQUIPMENT TO BURN NATURAL GAS",
+     "annual_savings_usd": 3650,
+     "implementation_cost_usd": 7500,
+     "basis": "#2 fuel oil. 377 MMBtu/yr $6,312 ($16.74/MMBtu) for backup space heaters/shop furnaces vs natural gas $5.80/MMBtu. Convert oil-fired unit heaters to natural gas with burner conversion kits. Assume 75% of oil displaced (283 MMBtu). Savings = 283 * ($16.74-$5.80) = $3,097 fuel + $550 avoided tank maintenance = $3,650."
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED",
+     "annual_savings_usd": 3100,
+     "implementation_cost_usd": 1200,
+     "basis": "Electricity. After leak repair, plant header maintains 105-110 psig for all tools. Most construction equipment assembly tools/blow-off need 80-85 psig. Pressure reduction 20 psi saves ~10% compressor kWh per 1 psi rule (~1%/2psi). 10% of 430,000 kWh compressed air = 43,000 kWh * $0.0546 = $2,348 + 6 kW demand $428 + reduced shield gas use = ~$3,100. Add zone regulators for low-pressure stations."
+    },
+    {
+     "arc": "2.6218",
+     "measure": "TURN OFF EQUIPMENT WHEN NOT IN USE",
+     "annual_savings_usd": 2750,
+     "implementation_cost_usd": 2000,
+     "basis": "Electricity + natural gas. 40+ MIG welders (30A idle), 2 CNC plasma tables with hydraulics, dust collectors idle during breaks/lunch/shift change per 4100 hr/yr operation (real load ~2800 hr). Idle estimated 8% of electricity (156,000 kWh). Timers/interlocks and operator training to shut off idle welders, blowers, and close paint booth oven doors saves 35,000 kWh ($1,911) + 5 kW demand ($357) + $480 gas pilot/idle = $2,750."
+    },
+    {
+     "arc": "2.4224",
+     "measure": "UPGRADE CONTROLS ON COMPRESSORS",
+     "annual_savings_usd": 2420,
+     "implementation_cost_usd": 6500,
+     "basis": "Electricity. Three rotary-screw compressors operating in load/unload independently, fighting header pressure. Estimated 22% of plant kWh for compressed air. Sequencer/pressure-band controller with networked transducers prevents simultaneous running, widens band to 10 psi, reduces unloaded hours 40% = 32,000 kWh + 8 kW demand savings = $1,747 + $673 = $2,420."
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.42857142857142855,
+    "recall_family": 0.42857142857142855,
+    "savings_recall_family": 0.1197413869453547,
+    "precision_family": 0.2222222222222222,
+    "implemented_found": 1,
+    "implemented_total": 3
+   },
+   "baseline": [
+    "2.4236",
+    "2.7142",
+    "2.4231",
+    "2.7135",
+    "2.4221",
+    "2.4146",
+    "2.4239",
+    "2.9114",
+    "2.2437",
+    "2.4111"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.7142857142857143,
+    "recall_family": 0.7142857142857143,
+    "savings_recall_family": 0.31932512620671333,
+    "precision_family": 0.5,
+    "implemented_found": 2,
+    "implemented_total": 3
+   },
+   "savings_log_errors": [
+    0.9633556901521846,
+    2.6609034226765083,
+    2.322129689067016
+   ]
+  },
+  {
+   "id": "SU0476",
+   "group": "electronics",
+   "products": "Lithium Batteries & Rechargeable Battery Packs",
+   "profile": {
+    "industry_sic": "3692.0",
+    "industry_naics": "335912.0",
+    "industry_group": "electronics",
+    "products": "Lithium Batteries & Rechargeable Battery Packs",
+    "state": "NY",
+    "fiscal_year": "2019",
+    "annual_sales_usd": 48000000.0,
+    "employees": 160.0,
+    "plant_area_sqft": 280000.0,
+    "production": "400000.0 2.0",
+    "operating_hours_per_year": 6240.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "6,637,706 kWh",
+      "annual_cost_usd": 255458
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "15,586 kW-months",
+      "annual_cost_usd": 109516
+     },
+     {
+      "stream": "other electric fees",
+      "annual_use": null,
+      "annual_cost_usd": 7599
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "10,160 MMBtu",
+      "annual_cost_usd": 55804
+     },
+     {
+      "stream": "water",
+      "annual_use": "2,030 thousand gal",
+      "annual_cost_usd": 4549
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.7122",
+     "saved": 216.0,
+     "cost": null,
+     "status": "I",
+     "desc": "DISCONNECT BALLASTS"
+    },
+    {
+     "arc": "2.7447",
+     "saved": 1702.0,
+     "cost": 131.0,
+     "status": "I",
+     "desc": "INSTALL VINYL STRIP / HIGH SPEED / AIR CURTAIN DOORS"
+    },
+    {
+     "arc": "2.7314",
+     "saved": 3103.0,
+     "cost": 894.0,
+     "status": "N",
+     "desc": "REDUCE VENTILATION AIR"
+    },
+    {
+     "arc": "2.7135",
+     "saved": 803.0,
+     "cost": 433.0,
+     "status": "I",
+     "desc": "INSTALL OCCUPANCY SENSORS"
+    },
+    {
+     "arc": "2.4221",
+     "saved": 1955.0,
+     "cost": 1607.0,
+     "status": "N",
+     "desc": "INSTALL COMPRESSOR AIR INTAKES IN COOLEST LOCATIONS"
+    },
+    {
+     "arc": "3.1161",
+     "saved": 5095.0,
+     "cost": 4500.0,
+     "status": "N",
+     "desc": "ELIMINATE/REDUCE AN OPERATION"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.7142 UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS",
+     "measure": "#1 - Relamp high-bay electrode coating/slitting + pack assembly/warehouse from HID/T8 to industrial LED",
+     "annual_savings_usd": 22950,
+     "implementation_cost_usd": 48000,
+     "basis": "Electricity 22% of kWh - 1,460 MWh/yr lighting at 0.8 W/sqft x 280,000 sqft x 6,240h x 0.60 diversity. LED + spectral reflectors/delamping saves 50% = 377,000 kWh energy $14,514 plus 101 kW demand $8,436. NYERDA point-of-sale incentive assumed, net $48k. Payback 2.1 yr. Battery specific: low-heat LED reduces dry room/cleanroom cooling load and is safer for Li-ion aging warehouse, no UV degradation of separators."
+    },
+    {
+     "arc": "2.4146 USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS",
+     "measure": "#2 - VFDs on dry room desiccant AHUs, make-up air, cathode dust collection and process chilled water pumps",
+     "annual_savings_usd": 18200,
+     "implementation_cost_usd": 32000,
+     "basis": "Electricity 35% of kWh - 2,323 MWh/yr for dry room HVAC+chiller+dust. Desiccant dry room must hold -40C dewpoint at <1% RH is single largest load in Li-battery plant, currently constant-volume. Fans/pumps = 60% of that. VFD + pressure control saves 30% fan/pump = 275,000 kWh + 38 kW demand. Energy $10,588 + demand $3,205 + reduced desiccant reactivation over-ventilation. Verified by VFD on 4x 40HP supply/return + 25HP tower + 30HP dust collector. Payback 1.8 yr."
+    },
+    {
+     "arc": "2.4236 ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/VALVES",
+     "measure": "#3 - Ultrasonic leak survey and repair of compressed air + dry N2/argon distribution for pouch handling/electrolyte fill",
+     "annual_savings_usd": 14800,
+     "implementation_cost_usd": 4200,
+     "basis": "Electricity 18% of kWh - 1,195 MWh/yr for 2x 150HP oil-free screw compressors at 100-110 psig for pick-place, vacuum ejectors, dry-room pressurization. Typical 25-30% leak rate in battery automation. Repair to <5% saves ~25% compressor kWh = 265,000 kWh energy $10,203 + 42 kW-month demand $3,543 + 1,000 kWh dryer/ desiccant. $200 materials + 2-day contractor. Payback 0.3 yr. Specific: leaks waste ultra-dry -70C air that costs 2-3x normal air due to desiccant dryers."
+    },
+    {
+     "arc": "2.3212 OPTIMIZE PLANT POWER FACTOR",
+     "measure": "#4 - Automatic capacitor bank for formation/cycling rectifiers",
+     "annual_savings_usd": 9800,
+     "implementation_cost_usd": 6800,
+     "basis": "Electric demand 100% of kW-mo - 15,586 kW-mo/yr $109,516. Formation + aging = 400k cells/yr cycled with DC rectifiers, PF measured 0.76-0.82, paying kVA penalty. Correct to 0.96-0.98 with 400 kVAR detuned automatic bank saves 9% of demand charges = 115 kW-mo avoided + transformer loss reduction (~18,000 kWh). No energy kWh saving, demand $9,800/yr. Utility is National Grid/NYPA with 0.95 PF threshold. Payback 0.7 yr. Critical for Li-ion plant - prevents voltage sag that mis-triggers BMS testers."
+    },
+    {
+     "arc": "2.2437 RECOVER WASTE HEAT FROM EQUIPMENT",
+     "measure": "#5 - Heat recovery from cathode/anode drying ovens and compressor aftercoolers to preheat dry-room makeup and desiccant regeneration",
+     "annual_savings_usd": 8900,
+     "implementation_cost_usd": 22000,
+     "basis": "Natural gas 60% of gas - 6,096 MMBtu/yr for NMP ovens 80-120C, electrode vacuum ovens, and desiccant wheel regeneration at 250F gas. Plus 90F compressor waste heat 85% of compressor kWh. Plate heat exchanger + ducting recovers 25% = 1,524 MMBtu gas $8,366 + 12,000 kWh winter electric reheat $462. Specific: NMP coating ovens exhaust 180F with solvent load, preheat incoming foil and combustion air; compressor heat to temper dry-room make-up in winter reduces gas, in summer bypass. Payback 2.5 yr."
+    },
+    {
+     "arc": "2.6218 TURN OFF EQUIPMENT WHEN NOT IN USE",
+     "measure": "#6 - Automatic shutdown/interlock for vacuum drying ovens, formation cyclers, and dust collectors on 2nd shift/weekend idle",
+     "annual_savings_usd": 7400,
+     "implementation_cost_usd": 2800,
+     "basis": "Electricity 8% of kWh - 531 MWh/yr idle load. 6240 hr operation = 120 hr/week, 48 hr/week no production. Walk-through expected: electrode vacuum ovens held at 85C, 6 formation towers, and 2 Torit dust collectors run unloaded due to start-up fear. Interlocks + $80 smart plugs/timers + SOP saves 40% idle = 112,000 kWh $4,312 + 25 kW demand $2,109. No impact on dry room. Payback 0.4 yr. Battery specific: formation idle still draws BMS balancing current; schedule formation to max capacity first shift."
+    },
+    {
+     "arc": "2.4231 REDUCE THE PRESSURE OF COMPRESSED AIR TO MINIMUM REQUIRED",
+     "measure": "#7 - Reduce header from 105-110 psig to 85 psig with zoned regulators for vacuum ejectors vs. general air",
+     "annual_savings_usd": 5800,
+     "implementation_cost_usd": 900,
+     "basis": "Electricity 18% of kWh - same 1,195 MWh compressor base as #3, measured after leaks repaired. 1 psi = 0.5% kW. 20 psi reduction = 10% = 103,000 kWh energy $3,965 + 15 kW demand $1,263 after excluding 5% high-pressure electrolyte dispense zone fed by booster. Requires pressure logger + regulator audit, <1 day. Payback 0.15 yr. Specific: Li battery pick-and-place and labelers need 65-80 psig, only pouch vacuum cups need 90 psig intermittently."
+    },
+    {
+     "arc": "2.2511 INSULATE BARE EQUIPMENT",
+     "measure": "#8 - Insulate bare electrode curing ovens, hot-oil headers, NMP recovery piping and feedwater tank",
+     "annual_savings_usd": 3900,
+     "implementation_cost_usd": 6200,
+     "basis": "Natural gas 12% of gas - 1,219 MMBtu/yr surface loss + Electricity 2% of kWh for reheat. Found in IACs: 120 ft of 250F bare steam/hot oil line + 4 oven doors with failed gaskets + uninsulated 500-gal condensate/feed tank in coating area. 2\" fiberglass + jackets saves 8% loss = 480 MMBtu gas $2,635 + 18,000 kWh cooling load $693 + demand. Also improves dry room temp stability and worker burn safety near electrolyte fill. Payback 1.6 yr."
+    },
+    {
+     "arc": "2.7135 INSTALL OCCUPANCY SENSORS",
+     "measure": "#9 - Occupancy/vacancy sensors in pack aging rooms, QC/test labs, warehouses and offices",
+     "annual_savings_usd": 2600,
+     "implementation_cost_usd": 4500,
+     "basis": "Electricity 15% of lighting kWh - 219 MWh/yr non-production lighting left 24/7 due to 6,240 hr schedule and safety policy for lithium storage. 40 sensors @ $110 in low-traffic aging racks, cell hold rooms, restrooms, conference saves 35% zone = 58,000 kWh $2,233 + 8 kW demand $675. Use explosion-proof PIR/ultrasonic rated for battery pack storage areas, manual-on auto-off to meet NY code. Payback 1.7 yr."
+    },
+    {
+     "arc": "2.4221 INSTALL COMPRESSOR AIR INTAKES IN COOLEST LOCATIONS",
+     "measure": "#10 - Duct compressor intakes from hot mezzanine to outside north wall + upgrade compressor controls to auto sequencer",
+     "annual_savings_usd": 2100,
+     "implementation_cost_usd": 3800,
+     "basis": "Electricity 18% of kWh - 1,195 MWh compressor base. Intake now at 95F inside enclosure, outside 45F avg NY. Every 20F drop = 3-4% kW. Duct + filter saves 3.5% = 37,000 kWh $1,425 + 6 kW demand $506 plus reduced dryer load for dry-room air. Add $800 sequencer to prevent both 150HP units running unloaded during pack assembly low demand. Payback 1.8 yr. Specific: oil-free air quality critical for LiPF6 electrolyte - cooler, cleaner intake extends desiccant dryer life."
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.3333333333333333,
+    "recall_family": 0.3333333333333333,
+    "savings_recall_family": 0.21423023147428927,
+    "precision_family": 0.2222222222222222,
+    "implemented_found": 1,
+    "implemented_total": 3
+   },
+   "baseline": [
+    "2.7142",
+    "2.4236",
+    "2.4231",
+    "2.7135",
+    "2.4146",
+    "2.9114",
+    "2.4221",
+    "2.4239",
+    "2.6218",
+    "2.2511"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.3333333333333333,
+    "recall_family": 0.3333333333333333,
+    "savings_recall_family": 0.21423023147428927,
+    "precision_family": 0.25,
+    "implemented_found": 1,
+    "implemented_total": 3
+   },
+   "savings_log_errors": [
+    1.1749120100628117,
+    0.07154715129204826
+   ]
+  },
+  {
+   "id": "MZ0292",
+   "group": "transportation equipment",
+   "products": "steel wheels for automobiles",
+   "profile": {
+    "industry_sic": "3714.0",
+    "industry_naics": "336390.0",
+    "industry_group": "transportation equipment",
+    "products": "steel wheels for automobiles",
+    "state": "MO",
+    "fiscal_year": "2021",
+    "annual_sales_usd": 800000000.0,
+    "employees": 340.0,
+    "plant_area_sqft": 620000.0,
+    "production": "10000000.0 None",
+    "operating_hours_per_year": 5175.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "27,509,888 kWh",
+      "annual_cost_usd": 1160304
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "64,653 kW-months",
+      "annual_cost_usd": 468292
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "142,746 MMBtu",
+      "annual_cost_usd": 195048
+     },
+     {
+      "stream": "water",
+      "annual_use": "54,678 thousand gal",
+      "annual_cost_usd": 151255
+     },
+     {
+      "stream": "water disposal",
+      "annual_use": "54,678 thousand gal",
+      "annual_cost_usd": 110072
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.7142",
+     "saved": 14645.0,
+     "cost": 29820.0,
+     "status": "I",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    },
+    {
+     "arc": "2.7135",
+     "saved": 460.0,
+     "cost": 1000.0,
+     "status": "I",
+     "desc": "INSTALL OCCUPANCY SENSORS"
+    },
+    {
+     "arc": "2.7142",
+     "saved": 1098.0,
+     "cost": 5000.0,
+     "status": "I",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    },
+    {
+     "arc": "2.4221",
+     "saved": 12892.0,
+     "cost": 4700.0,
+     "status": "N",
+     "desc": "INSTALL COMPRESSOR AIR INTAKES IN COOLEST LOCATIONS"
+    },
+    {
+     "arc": "2.6127",
+     "saved": 130.0,
+     "cost": 50.0,
+     "status": "I",
+     "desc": "MAINTAIN AIR FILTERS BY CLEANING OR REPLACEMENT"
+    },
+    {
+     "arc": "2.4146",
+     "saved": 62704.0,
+     "cost": 59378.0,
+     "status": "N",
+     "desc": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON"
+    },
+    {
+     "arc": "2.2437",
+     "saved": 18874.0,
+     "cost": 22200.0,
+     "status": "N",
+     "desc": "RECOVER WASTE HEAT FROM EQUIPMENT"
+    },
+    {
+     "arc": "2.7134",
+     "saved": 43.0,
+     "cost": 73.0,
+     "status": "I",
+     "desc": "USE PHOTOCELL CONTROLS"
+    },
+    {
+     "arc": "2.4236",
+     "saved": 2588.0,
+     "cost": 240.0,
+     "status": "I",
+     "desc": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES"
+    },
+    {
+     "arc": "2.4133",
+     "saved": 9760.0,
+     "cost": 45300.0,
+     "status": "N",
+     "desc": "USE MOST EFFICIENT TYPE OF ELECTRIC MOTORS"
+    },
+    {
+     "arc": "3.4112",
+     "saved": 147061.0,
+     "cost": 38160.0,
+     "status": "N",
+     "desc": "RECOVERY METALS FROM RINSE WATER (EVAP., ION EXCHANGE, RO,"
+    },
+    {
+     "arc": "2.2622",
+     "saved": 99528.0,
+     "cost": 502000.0,
+     "status": "I",
+     "desc": "REPLACE EXISTING CHILLER WITH HIGH EFFICIENCY MODEL"
+    },
+    {
+     "arc": "2.4111",
+     "saved": 3837.0,
+     "cost": 450.0,
+     "status": "I",
+     "desc": "UTILIZE ENERGY-EFFICIENT BELTS AND OTHER IMPROVED MECHANISMS"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS",
+     "annual_savings_usd": 92000,
+     "implementation_cost_usd": 145000,
+     "basis": "7.5% of total electric energy + demand. 1.76M kWh + 340 kW peak. Lighting before ~620kW over 5175h."
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/VALVES",
+     "annual_savings_usd": 58000,
+     "implementation_cost_usd": 7500,
+     "basis": "3.6% of total electric. 950,000 kWh + 18k demand. 14% of compressed air load."
+    },
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON",
+     "annual_savings_usd": 55000,
+     "implementation_cost_usd": 68000,
+     "basis": "3.4% of total electric. Dust collector, paint booth, washer pumps, hydraulic packs. 800,000 kWh + 80kW demand."
+    },
+    {
+     "arc": "2.3212",
+     "measure": "OPTIMIZE PLANT POWER FACTOR",
+     "annual_savings_usd": 42000,
+     "implementation_cost_usd": 22000,
+     "basis": "9.0% of demand billing only. PF 0.81 to 0.95. 0 kWh. ~480 kVAR."
+    },
+    {
+     "arc": "3.4115",
+     "measure": "RECOVER AND REUSE COOLING WATER",
+     "annual_savings_usd": 88000,
+     "implementation_cost_usd": 125000,
+     "basis": "33% of combined water+sewer. 29,500 thousand gal saved. Closed loop for welders/compressors."
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED",
+     "annual_savings_usd": 31000,
+     "implementation_cost_usd": 2500,
+     "basis": "1.9% of total electric. 100 to 85 psig. 520,000 kWh + demand. GROSS before 2.4236 interaction."
+    },
+    {
+     "arc": "2.4239",
+     "measure": "ELIMINATE OR REDUCE COMPRESSED AIR USAGE",
+     "annual_savings_usd": 28000,
+     "implementation_cost_usd": 40000,
+     "basis": "1.7% of total electric. Replace blow-offs with LP blowers/air knives post-wash, press cleaning. 460,000 kWh net."
+    },
+    {
+     "arc": "2.2437",
+     "measure": "RECOVER WASTE HEAT FROM EQUIPMENT",
+     "annual_savings_usd": 24000,
+     "implementation_cost_usd": 38000,
+     "basis": "12.3% of natural gas. 17,500 MMBtu. Compressor heat + cure oven exhaust to washer/make-up air."
+    },
+    {
+     "arc": "2.4224",
+     "measure": "UPGRADE CONTROLS ON COMPRESSORS",
+     "annual_savings_usd": 19000,
+     "implementation_cost_usd": 32000,
+     "basis": "1.2% of total electric. Sequencer + narrow band. Incremental after 2.4236/2.4231."
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT",
+     "annual_savings_usd": 14000,
+     "implementation_cost_usd": 9000,
+     "basis": "7.2% of natural gas + 0.3% electric HVAC. 10,200 MMBtu + washer tank/oven duct losses."
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.38461538461538464,
+    "recall_family": 0.5384615384615384,
+    "savings_recall_family": 0.6955248648359296,
+    "precision_family": 0.75,
+    "implemented_found": 3,
+    "implemented_total": 8
+   },
+   "baseline": [
+    "2.7142",
+    "2.4236",
+    "2.4231",
+    "2.7135",
+    "2.4146",
+    "2.4221",
+    "2.2437",
+    "2.4239",
+    "2.3212",
+    "2.9114"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.5384615384615384,
+    "recall_family": 0.6153846153846154,
+    "savings_recall_family": 0.3032599967881805,
+    "precision_family": 0.75,
+    "implemented_found": 5,
+    "implemented_total": 8
+   },
+   "savings_log_errors": [
+    4.428298233961701,
+    3.109557633907765,
+    0.13109205622480474,
+    0.5135106522123506,
+    2.4831018278464922,
+    2.38131913353655,
+    0.24026851674880426,
+    0.38783201521324906
+   ]
+  },
+  {
+   "id": "BD0493",
+   "group": "food",
+   "products": "Cookies, pies, and cakes",
+   "profile": {
+    "industry_sic": "2052.0",
+    "industry_naics": "311811.0",
+    "industry_group": "food",
+    "products": "Cookies, pies, and cakes",
+    "state": "IL",
+    "fiscal_year": "2016",
+    "annual_sales_usd": 50000000.0,
+    "employees": 157.0,
+    "plant_area_sqft": 135000.0,
+    "production": "35000000.0 None",
+    "operating_hours_per_year": 4991.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "4,372,000 kWh",
+      "annual_cost_usd": 213317
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "4,816 kW-months",
+      "annual_cost_usd": 28896
+     },
+     {
+      "stream": "other electric fees",
+      "annual_use": null,
+      "annual_cost_usd": 409
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "30,949 MMBtu",
+      "annual_cost_usd": 119222
+     },
+     {
+      "stream": "water",
+      "annual_use": "2,812 thousand gal",
+      "annual_cost_usd": 10631
+     },
+     {
+      "stream": "water disposal",
+      "annual_use": "2,812 thousand gal",
+      "annual_cost_usd": 10398
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.7231",
+     "saved": 17520.0,
+     "cost": 1900.0,
+     "status": "",
+     "desc": "USE RADIANT HEATER FOR SPOT HEATING"
+    },
+    {
+     "arc": "2.1224",
+     "saved": 7259.0,
+     "cost": 14000.0,
+     "status": "",
+     "desc": "REPLACE BOILER"
+    },
+    {
+     "arc": "2.1233",
+     "saved": 3620.0,
+     "cost": 6000.0,
+     "status": "",
+     "desc": "ANALYZE FLUE GAS FOR PROPER AIR/FUEL RATIO"
+    },
+    {
+     "arc": "2.4236",
+     "saved": 2605.0,
+     "cost": 600.0,
+     "status": "",
+     "desc": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES"
+    },
+    {
+     "arc": "2.3132",
+     "saved": 2280.0,
+     "cost": 50.0,
+     "status": "",
+     "desc": "RECHARGE BATTERIES ON DURING OFF-PEAK DEMAND PERIODS"
+    },
+    {
+     "arc": "2.4231",
+     "saved": 932.0,
+     "cost": 20.0,
+     "status": "",
+     "desc": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED"
+    },
+    {
+     "arc": "2.7135",
+     "saved": 925.0,
+     "cost": 1050.0,
+     "status": "",
+     "desc": "INSTALL OCCUPANCY SENSORS"
+    },
+    {
+     "arc": "2.4221",
+     "saved": 188.0,
+     "cost": 500.0,
+     "status": "",
+     "desc": "INSTALL COMPRESSOR AIR INTAKES IN COOLEST LOCATIONS"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.2414",
+     "measure": "USE WASTE HEAT FROM HOT FLUE GASES TO PREHEAT - Install air-to-air exchangers on 2-3 natural-gas tunnel/band ovens (cookies/pies/cakes) at 400-500F exhaust to preheat combustion air and winter makeup/proofer air",
+     "annual_savings_usd": 13711,
+     "implementation_cost_usd": 24000,
+     "basis": "11.5% of natural gas stream (3,559 MMBtu/yr @ $3.85/MMBtu = $119,222/30,949 MMBtu) from oven flue heat recovery"
+    },
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS - Retrofit 135,000 sqft bakery production, packaging, warehouse and freezer T12/T8 metal-halide to LED high-bays/troffers with DLC rebates (IL 2016)",
+     "annual_savings_usd": 12645,
+     "implementation_cost_usd": 32000,
+     "basis": "5.4% of electricity kWh (210,000 kWh @ $0.0488/kWh) + 8.3% of demand (400 kW-months @ $6.00) = 4.8% of total electric $242,622"
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT - Insulate oven skins/doors, proofer walls, boiler, steam/hot-water headers and bare valves with removable blankets/repair faulty insulation",
+     "annual_savings_usd": 7153,
+     "implementation_cost_usd": 5500,
+     "basis": "6.0% of natural gas (1,857 MMBtu/yr @ $3.85) from reduced radiation/convective loss on baking/proofing equipment"
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/VALVES - Survey/repair 30% leak load on packaging pneumatics, dividers, wrappers and conveyors for cookie/pie lines",
+     "annual_savings_usd": 6064,
+     "implementation_cost_usd": 1800,
+     "basis": "2.8% of total electricity kWh (124,300 kWh @ $0.0488) = 23% of compressed-air electricity (~12% of plant kWh)"
+    },
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS - VFDs on 4x 25-40 hp dough mixers, oven circulation fans, proofer fans and dust-collector blowers vs throttling/inlet vanes",
+     "annual_savings_usd": 5786,
+     "implementation_cost_usd": 18500,
+     "basis": "2.3% of electricity kWh (102,000 kWh @ $0.0488) + 2.8% of demand (135 kW-months @ $6) on mixer/fan motors, 4,991 h/yr"
+    },
+    {
+     "arc": "2.1133",
+     "measure": "ADJUST BURNERS FOR EFFICIENT OPERATION - Tune tunnel-oven ribbon burners and plant boiler burners from ~6% O2 to 2-3% O2, repair linkages/dampers, clean nozzles",
+     "annual_savings_usd": 5365,
+     "implementation_cost_usd": 2200,
+     "basis": "4.5% of natural gas (1,393 MMBtu/yr @ $3.85) via reduced excess air on direct-fired ovens/boiler"
+    },
+    {
+     "arc": "2.2437",
+     "measure": "RECOVER WASTE HEAT FROM EQUIPMENT - Reclaim condenser heat from refrigeration racks/walk-in freezers and oven cooler exhaust to preheat pan-wash/process hot water and space heat",
+     "annual_savings_usd": 4777,
+     "implementation_cost_usd": 9500,
+     "basis": "3.0% of natural gas (928 MMBtu @ $3.85) + 0.56% of electricity (24,600 kWh @ $0.0488) for 110-140F wash water offset"
+    },
+    {
+     "arc": "2.1233",
+     "measure": "ANALYZE FLUE GAS FOR PROPER AIR/FUEL RATIO - Implement weekly O2/CO flue-gas analysis program and install O2 trim on boiler/proofer boiler, training for bakery maintenance",
+     "annual_savings_usd": 4173,
+     "implementation_cost_usd": 6200,
+     "basis": "3.5% of natural gas (1,083 MMBtu/yr @ $3.85) maintaining optimum air/fuel on gas-fired baking/heating"
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED - Lower header 110 to 85 psig with zoned regulators for low-pressure packaging actuators/blow-offs, sequence compressors",
+     "annual_savings_usd": 3034,
+     "implementation_cost_usd": 600,
+     "basis": "1.4% of total electricity kWh (62,200 kWh @ $0.0488) = ~10% of compressed-air electricity via 20 psi reduction"
+    },
+    {
+     "arc": "2.6218",
+     "measure": "TURN OFF EQUIPMENT WHEN NOT IN USE - Interlocks/timers on proofers, conveyors, de-panners, wrappers and exhaust fans to auto-shutdown during sanitation, breaks and 2nd-shift gaps",
+     "annual_savings_usd": 2889,
+     "implementation_cost_usd": 2800,
+     "basis": "1.0% of electricity (45,000 kWh @ $0.0488) + 0.6% of natural gas (180 MMBtu @ $3.85) from idle shutdown, 4,991 h/yr operation"
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.375,
+    "recall_family": 0.375,
+    "savings_recall_family": 0.20258144866823288,
+    "precision_family": 0.2222222222222222,
+    "implemented_found": 0,
+    "implemented_total": 0
+   },
+   "baseline": [
+    "2.7142",
+    "2.4236",
+    "2.4231",
+    "2.7135",
+    "2.4146",
+    "2.2511",
+    "2.4111",
+    "2.9114",
+    "2.4221",
+    "2.4239"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.5,
+    "recall_family": 0.5,
+    "savings_recall_family": 0.13161991565003256,
+    "precision_family": 0.375,
+    "implemented_found": 0,
+    "implemented_total": 0
+   },
+   "savings_log_errors": [
+    1.8727921126366165,
+    0.14216117577173593,
+    1.1803043452228865
+   ]
+  },
+  {
+   "id": "CL2105",
+   "group": "textiles",
+   "products": "Fabric Rolls",
+   "profile": {
+    "industry_sic": "2221.0",
+    "industry_naics": "313210.0",
+    "industry_group": "textiles",
+    "products": "Fabric Rolls",
+    "state": "NC",
+    "fiscal_year": "2021",
+    "annual_sales_usd": 200000000.0,
+    "employees": 166.0,
+    "plant_area_sqft": 288881.0,
+    "production": "27300.0 1.0",
+    "operating_hours_per_year": 6000.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "24,938,760 kWh",
+      "annual_cost_usd": 1375780
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "49,180 kW-months",
+      "annual_cost_usd": 614750
+     },
+     {
+      "stream": "other electric fees",
+      "annual_use": null,
+      "annual_cost_usd": -15146
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "37,342 MMBtu",
+      "annual_cost_usd": 328868
+     },
+     {
+      "stream": "water",
+      "annual_use": "5,861 thousand gal",
+      "annual_cost_usd": 98205
+     },
+     {
+      "stream": "water disposal",
+      "annual_use": "1,459 thousand gal",
+      "annual_cost_usd": 24635
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.7142",
+     "saved": 69992.91382,
+     "cost": 55907.5,
+     "status": "I",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    },
+    {
+     "arc": "2.7135",
+     "saved": 25163.46558,
+     "cost": 8200.0,
+     "status": "I",
+     "desc": "INSTALL OCCUPANCY SENSORS"
+    },
+    {
+     "arc": "2.3131",
+     "saved": 34939.0,
+     "cost": 1120.0,
+     "status": "N",
+     "desc": "RESCHEDULE PLANT OPERATIONS OR REDUCE LOAD TO AVOID PEAKS"
+    },
+    {
+     "arc": "2.4236",
+     "saved": 23818.59192,
+     "cost": 2100.0,
+     "status": "I",
+     "desc": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES"
+    },
+    {
+     "arc": "2.9114",
+     "saved": 567974.55,
+     "cost": 4358847.459,
+     "status": "N",
+     "desc": "USE SOLAR HEAT TO MAKE ELECTRICITY"
+    },
+    {
+     "arc": "2.7442",
+     "saved": 63.3609728,
+     "cost": null,
+     "status": "I",
+     "desc": "KEEP DOORS AND WINDOWS SHUT WHEN NOT ON USE"
+    },
+    {
+     "arc": "2.2211",
+     "saved": 81375.459511,
+     "cost": null,
+     "status": "N",
+     "desc": "USE OPTIMUM TEMPERATURE"
+    },
+    {
+     "arc": "2.4111",
+     "saved": 25046.0,
+     "cost": 7102.0,
+     "status": "N",
+     "desc": "UTILIZE ENERGY-EFFICIENT BELTS AND OTHER IMPROVED MECHANISMS"
+    },
+    {
+     "arc": "2.2421",
+     "saved": 24496.8,
+     "cost": 17450.0,
+     "status": "N",
+     "desc": "INSTALL WASTE HEAT BOILER TO PROVIDE DIRECT POWER"
+    },
+    {
+     "arc": "3.4159",
+     "saved": 2590.81211,
+     "cost": 600.0,
+     "status": "I",
+     "desc": "REPLACE TREATED WATER WITH WELL / SURFACE WATER"
+    },
+    {
+     "arc": "3.4156",
+     "saved": 982.05,
+     "cost": 3050.0,
+     "status": "N",
+     "desc": "USE FLOW CONTROL VALVES ON EQUIPMENT TO OPTIMIZE WATER USE"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS - Relamp weaving shed / loom floor, inspection, warping/slashing and fabric roll warehouse with LED high-bays + DLC fixtures",
+     "annual_savings_usd": 60000,
+     "implementation_cost_usd": 160000,
+     "basis": "Assume lighting = ~6.2% of total electricity (1,550,000 kWh) for 288,881 sq ft at 0.85 W/sq ft, 6000 h/yr"
+    },
+    {
+     "arc": "2.2414",
+     "measure": "USE WASTE HEAT FROM HOT FLUE GASES TO PREHEAT - Install air-to-air plate economizer on stenters to preheat combustion air",
+     "annual_savings_usd": 31000,
+     "implementation_cost_usd": 75000,
+     "basis": "Assume stenters account for ~60% of gas use (22,400 MMBtu); heat recovery saves 15% of stenter gas (3,500 MMBtu)"
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES - Fix leaks in air-jet loom feed lines, pneumatic controls, dye house air agitators",
+     "annual_savings_usd": 28000,
+     "implementation_cost_usd": 9000,
+     "basis": "Assume compressed air = ~22% of electricity (5,500,000 kWh) from 4x 200HP rotary screws; leaks waste ~25% of comp air"
+    },
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON - Install VFDs on stenter exhaust fans and dye jet circulation pumps",
+     "annual_savings_usd": 25000,
+     "implementation_cost_usd": 40000,
+     "basis": "Assume 35% of motor load (6,000,000 kWh) is variable-torque fans/pumps eligible for VFD; 7% saving on that subset ~450,000 kWh"
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT - Insulate dye becks, steamers, dry cans, sizing cylinders and boiler header",
+     "annual_savings_usd": 15000,
+     "implementation_cost_usd": 14000,
+     "basis": "Assume bare surfaces lose ~5% of gas (1,850 MMBtu) by radiation/convection in dye house/finishing"
+    },
+    {
+     "arc": "2.1233",
+     "measure": "ANALYZE FLUE GAS FOR PROPER AIR/FUEL RATIO - Tune boiler + direct-fired stenters with O2 trim",
+     "annual_savings_usd": 10000,
+     "implementation_cost_usd": 4500,
+     "basis": "Assume boiler tune saves ~3% of gas (1,100 MMBtu) from reducing excess air from >40% to <15%"
+    },
+    {
+     "arc": "2.2113",
+     "measure": "REPAIR OR REPLACE STEAM TRAPS - Replace ~40 failed traps on dye machines, steam boxes, tracer lines",
+     "annual_savings_usd": 9000,
+     "implementation_cost_usd": 11000,
+     "basis": "Assume 15% of traps failed open = 4% of gas (1,500 MMBtu) + water/sewer loss (600 kgal)"
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED - Reduce header from ~105 psig to 90 psig for rapier/air-jet looms",
+     "annual_savings_usd": 8000,
+     "implementation_cost_usd": 2500,
+     "basis": "Assume 7% of compressed air energy (~385,000 kWh) saved at ~0.5% per psi reduction"
+    },
+    {
+     "arc": "2.2136",
+     "measure": "INSTALL/REPAIR INSULATION ON STEAM LINES - Re-insulate failed sections on 125 psig dye house distribution + condensate return",
+     "annual_savings_usd": 7000,
+     "implementation_cost_usd": 9000,
+     "basis": "Assume 2% of gas (750 MMBtu) lost from bare/failed insulation on 800 ft of 4-6in steam/condensate lines"
+    },
+    {
+     "arc": "2.7135",
+     "measure": "INSTALL OCCUPANCY SENSORS - In fabric roll warehouse, finished goods staging, off-line inspection, labs",
+     "annual_savings_usd": 5000,
+     "implementation_cost_usd": 6000,
+     "basis": "Assume non-production lighting = 15% of lighting load (~230,000 kWh); sensors save 35% of that subset"
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.2727272727272727,
+    "recall_family": 0.2727272727272727,
+    "savings_recall_family": 0.138917558759082,
+    "precision_family": 0.3333333333333333,
+    "implemented_found": 3,
+    "implemented_total": 5
+   },
+   "baseline": [
+    "2.7142",
+    "2.4236",
+    "2.4231",
+    "2.7135",
+    "2.4146",
+    "2.4111",
+    "2.2136",
+    "2.9114",
+    "2.2511",
+    "2.2437"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.45454545454545453,
+    "recall_family": 0.45454545454545453,
+    "savings_recall_family": 0.8313402270393951,
+    "precision_family": 0.5555555555555556,
+    "implemented_found": 3,
+    "implemented_total": 5
+   },
+   "savings_log_errors": [
+    0.15404944356018327,
+    0.16173806134543883,
+    1.0910249071499292,
+    1.6159552515660471
+   ]
+  },
+  {
+   "id": "UK1701",
+   "group": "wood products",
+   "products": "Wooden and Laminated Cabinets",
+   "profile": {
+    "industry_sic": "2434.0",
+    "industry_naics": "337110.0",
+    "industry_group": "wood products",
+    "products": "Wooden and Laminated Cabinets",
+    "state": "KY",
+    "fiscal_year": "2017",
+    "annual_sales_usd": 28000000.0,
+    "employees": 300.0,
+    "plant_area_sqft": 310000.0,
+    "production": "554400.0 None",
+    "operating_hours_per_year": 5000.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "4,964,160 kWh",
+      "annual_cost_usd": 166035
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "18,883 kW-months",
+      "annual_cost_usd": 299796
+     },
+     {
+      "stream": "other electric fees",
+      "annual_use": null,
+      "annual_cost_usd": 5411
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "20,793 MMBtu",
+      "annual_cost_usd": 61629
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.4152",
+     "saved": 10415.0,
+     "cost": 8440.0,
+     "status": "N",
+     "desc": "USE ONLY CERTIFIED MOTOR REPAIR SHOPS"
+    },
+    {
+     "arc": "2.6212",
+     "saved": 9847.0,
+     "cost": 4000.0,
+     "status": "N",
+     "desc": "TURN OFF EQUIPMENT DURING BREAKS, REDUCE OPERATING TIME"
+    },
+    {
+     "arc": "2.7142",
+     "saved": 3878.0,
+     "cost": 11800.0,
+     "status": "N",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    },
+    {
+     "arc": "2.7135",
+     "saved": 257.0,
+     "cost": 384.0,
+     "status": "N",
+     "desc": "INSTALL OCCUPANCY SENSORS"
+    },
+    {
+     "arc": "2.6212",
+     "saved": 3902.0,
+     "cost": 10000.0,
+     "status": "N",
+     "desc": "TURN OFF EQUIPMENT DURING BREAKS, REDUCE OPERATING TIME"
+    },
+    {
+     "arc": "2.7293",
+     "saved": 1690.0,
+     "cost": 2875.0,
+     "status": "N",
+     "desc": "MODIFY SPRINKLER SYSTEM TO REDUCE HEATING REQUIREMENTS"
+    },
+    {
+     "arc": "2.1114",
+     "saved": 3158.0,
+     "cost": 393.0,
+     "status": "N",
+     "desc": "LIMIT AND CONTROL SECONDARY COMBUSTION AIR IN FURNACE"
+    },
+    {
+     "arc": "2.1233",
+     "saved": 1875.0,
+     "cost": 1500.0,
+     "status": "N",
+     "desc": "ANALYZE FLUE GAS FOR PROPER AIR/FUEL RATIO"
+    },
+    {
+     "arc": "2.4239",
+     "saved": 2426.0,
+     "cost": 1350.0,
+     "status": "N",
+     "desc": "ELIMINATE OR REDUCE COMPRESSED AIR USAGE"
+    },
+    {
+     "arc": "2.4231",
+     "saved": 1915.0,
+     "cost": null,
+     "status": "N",
+     "desc": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED"
+    },
+    {
+     "arc": "2.4236",
+     "saved": 1452.0,
+     "cost": 2100.0,
+     "status": "N",
+     "desc": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES"
+    },
+    {
+     "arc": "2.7142",
+     "saved": 1682.0,
+     "cost": 5300.0,
+     "status": "N",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    },
+    {
+     "arc": "2.7134",
+     "saved": 1070.0,
+     "cost": 800.0,
+     "status": "N",
+     "desc": "USE PHOTOCELL CONTROLS"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS - LED High-Bay Retrofit",
+     "annual_savings_usd": 22500,
+     "implementation_cost_usd": 62000,
+     "basis": "310k sqft production/assembly/warehouse. ~280kW existing 400W metal halide + T8 shop lights at 0.9W/sf. LED high-bay 150W + LED troffers to 0.35W/sf. Saving 165kW connected. 165kW x 5000h x 0.85 diversity = 701,250 kWh = 14.1% of electricity $23,461 + Demand 140kW x $190.50/kW-yr $26,670. Net $22-25k after 15% already LED in office. Use $22,500. Most IAC wood plant measure 60% prior."
+    },
+    {
+     "arc": "2.4146",
+     "measure": "USE VFD/MULTI-SPEED ON DUST COLLECTION + FINISH BOOTH EXHAUST FANS",
+     "annual_savings_usd": 18500,
+     "implementation_cost_usd": 55000,
+     "basis": "Core for SIC 2434: 3 central dust collectors on CNC routers, wide-belt sanders, saws, shapers ~225HP/168kW + 2 finish spray booth exhaust/makeup 60HP/45kW run constant speed with manual blast gates open. Wood shop diversity 40-60%. Assume dust/finish fans = 28-32% of electricity kWh and demand ~450kW-months/yr. VFD + automated blast gates interlocked to machines saves 35% fan power avg. 75kW avg x 4200 effective h = 315,000 kWh = 6.3% of electricity $10,534 + Demand reduction 65kW x $190.50 = $12,383. Less VFD losses. Net $18,500. Prior 29% wood plants."
+    },
+    {
+     "arc": "2.3212",
+     "measure": "OPTIMIZE PLANT POWER FACTOR",
+     "annual_savings_usd": 13800,
+     "implementation_cost_usd": 12500,
+     "basis": "Electric bill inverted: $166,035 kWh at $0.0334/kWh vs $299,796 demand at $15.88/kW-mo = 64% of electric cost in demand. Avg peak 18,883/12=1,574kW. Woodworking motors - dust collectors, compressors, CNC spindles, shapers highly inductive. KY LG&E/KU type tariff penalizes PF <0.90 on kVA. Assumed PF 0.78-0.82 measured pre-assessment. 500-600 kVAR auto capacitor bank on 480V main to 0.95 saves 12-15% billed kVA demand = 180-220 kW-months/yr = $2,900-3,500 + penalty elimination. No kWh saving. Conservatively 900 kW-months x $15.88 = $14,290. Prior 19% wood plants."
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN COMPRESSED AIR LINES/VALVES",
+     "annual_savings_usd": 11200,
+     "implementation_cost_usd": 2800,
+     "basis": "2x 100HP rotary screws at 110 psig serving pneumatic clamps, staple/nail guns, CNC tool changers, blow-offs in assembly/lamination. Wood cabinet plants leak 25-35% due to cracked whip hoses to hand tools, quick disconnects. Compressed air = 18-20% of electricity = ~950,000 kWh = $31,800 energy + $57,000 demand ~ 364 kW-mo. Ultrasonic survey expects 25% leak rate, 70% repairable = 17.5% of air. 166,250 kWh = 3.3% of electricity $5,560 + Demand 50kW x $190.50 = $9,525 less compressor unloading. Net ~$11,200. Prior #1 64% wood plants."
+    },
+    {
+     "arc": "2.4224",
+     "measure": "UPGRADE CONTROLS ON COMPRESSORS - Sequencer/PFC",
+     "annual_savings_usd": 5800,
+     "implementation_cost_usd": 9500,
+     "basis": "Two compressors currently in start/stop or load/unload with wide 15psi band fighting. Install pressure/flow controller + sequencer to run one as trim, hold header at 90-95 psig vs 110 psig. Saves 8-10% of compressed air energy on top of leaks. 8% x 950,000 kWh = 76,000 kWh = 1.5% of electricity $2,540 + Demand 17kW x $190.50 = $3,238. Prior 14% wood plants. Often paired with 2.4231."
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE PRESSURE OF COMPRESSED AIR TO MINIMUM REQUIRED",
+     "annual_savings_usd": 4200,
+     "implementation_cost_usd": 500,
+     "basis": "Plant set at 110 psig for 80-85 psig tools. Every 2 psi = 1% power. Regulate assembly headers to 90 psig, CNC to 95 psig via dedicated regulators, replace blow-off with 15 psig. Saving ~5% of compressed air = 47,500 kWh = 1.0% of electricity $1,588 + Demand 14kW x $190.50 = $2,667. Zero cost - adjustment + training. Prior 37% wood plants."
+    },
+    {
+     "arc": "2.2437",
+     "measure": "RECOVER WASTE HEAT FROM EQUIPMENT - Compressor + Finishing Oven Flue to Makeup Air",
+     "annual_savings_usd": 5100,
+     "implementation_cost_usd": 8500,
+     "basis": "Gas $2.964/MMBtu very cheap so gas $ rank low, but 20,793 MMBtu/yr largely space heat + gas curing ovens/lamination hot press + 15-20k CFM spray booth makeup air KY winter. Each 100HP screw rejects 85% input as 180F heat ~1,200 MMBtu/yr recoverable. + 350F finishing oven flue. Duct compressor aftercooler + oven exhaust via heat exchanger to temper makeup air. Assume displace 1,400 MMBtu gas = 6.7% of gas $4,150 + reduce 12kW electric reheat winter demand $900. Prior 7-8% wood plants 2.2414/2.2437."
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT - Laminating Presses, Curing Oven, Hot Oil/Steam Lines",
+     "annual_savings_usd": 3200,
+     "implementation_cost_usd": 4200,
+     "basis": "Expects bare 180-200F laminating press platens, uninsulated hot oil lines to edgebanders, curing oven doors/plenum, bare condensate on 15psig steam press. IAC typically 60-80F surface > ambient. Savings 3-5% of gas process load. 800-900 MMBtu/yr = 4.3% of gas $2,670 + small electric AC load in finish area $500. Prior 12% wood plants 2.2511, 11% 2.2136."
+    },
+    {
+     "arc": "2.4111",
+     "measure": "UTILIZE ENERGY-EFFICIENT BELTS - Cogged V-Belts on Dust/Makeup Fans",
+     "annual_savings_usd": 2600,
+     "implementation_cost_usd": 1800,
+     "basis": "Wood plant has 30-40 belt drives on 20-75HP dust collectors, supply fans, CNC vacuum pumps on standard V-belts at 90% eff. Cogged notched belts at 96% + lower slip. 2-3% of driven load. Driven load ~180kW x 5000h x 2.5% = 22,500 kWh = 0.45% of electricity $752 + Demand 6kW x $190.50 = $1,143 + belt life. Prior #4 36% wood plants. 1-2 hr shutdown change."
+    },
+    {
+     "arc": "2.7135",
+     "measure": "INSTALL OCCUPANCY SENSORS + 2.6218 TURN OFF EQUIPMENT WHEN NOT IN USE Interlocks",
+     "annual_savings_usd": 2100,
+     "implementation_cost_usd": 3400,
+     "basis": "310k sqft includes lumber/warm storage, hardware warehouse, lamination staging, break rooms, mix room lit 5000h but occupied 40%. 30 sensors $110 ea + interlock dust collector branches to CNC/sander starters to prevent 20-40HP fans running on breaks. Lighting 22kW x 2000h = 44,000 kWh = 0.9% electricity $1,471 + Demand 10kW x $190.50 = $1,905 prorated. Prior 27% occupancy + 11% turn-off. Also saves filter life."
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.38461538461538464,
+    "recall_family": 0.5384615384615384,
+    "savings_recall_family": 0.2910459751646889,
+    "precision_family": 0.3333333333333333,
+    "implemented_found": 0,
+    "implemented_total": 0
+   },
+   "baseline": [
+    "2.4236",
+    "2.7142",
+    "2.4231",
+    "2.4111",
+    "2.4146",
+    "2.7135",
+    "2.3212",
+    "2.4239",
+    "2.4221",
+    "2.4224"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.46153846153846156,
+    "recall_family": 0.5384615384615384,
+    "savings_recall_family": 0.2910459751646889,
+    "precision_family": 0.42857142857142855,
+    "implemented_found": 0,
+    "implemented_total": 0
+   },
+   "savings_log_errors": [
+    2.5935317476596182,
+    2.0429718618984443,
+    1.0621426088867183,
+    0.6742786962555625
+   ]
+  },
+  {
+   "id": "MZ0380",
+   "group": "paper",
+   "products": "plastic trash bags",
+   "profile": {
+    "industry_sic": "2673.0",
+    "industry_naics": "322220.0",
+    "industry_group": "paper",
+    "products": "plastic trash bags",
+    "state": "IL",
+    "fiscal_year": "2025",
+    "annual_sales_usd": 29680550.0,
+    "employees": 453.0,
+    "plant_area_sqft": 670000.0,
+    "production": "1994000000.0 1.0",
+    "operating_hours_per_year": 8688.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "40,724,397 kWh",
+      "annual_cost_usd": 2378205
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "64,568 kW-months",
+      "annual_cost_usd": 818004
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "13,020 MMBtu",
+      "annual_cost_usd": 58180
+     },
+     {
+      "stream": "water",
+      "annual_use": "29,836 thousand gal",
+      "annual_cost_usd": 168559
+     },
+     {
+      "stream": "water disposal",
+      "annual_use": "29,836 thousand gal",
+      "annual_cost_usd": 127012
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.4146",
+     "saved": 105308.0,
+     "cost": 41000.0,
+     "status": "I",
+     "desc": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON"
+    },
+    {
+     "arc": "2.2625",
+     "saved": 106086.0,
+     "cost": 31591.0,
+     "status": "I",
+     "desc": "CHILL WATER TO THE HIGHEST TEMPERATURE POSSIBLE"
+    },
+    {
+     "arc": "2.6127",
+     "saved": 2269.0,
+     "cost": 500.0,
+     "status": "I",
+     "desc": "MAINTAIN AIR FILTERS BY CLEANING OR REPLACEMENT"
+    },
+    {
+     "arc": "2.7224",
+     "saved": 11856.0,
+     "cost": 3000.0,
+     "status": "I",
+     "desc": "REDUCE SPACE CONDITIONING DURING NON-WORKING HOURS"
+    },
+    {
+     "arc": "2.7491",
+     "saved": 10506.0,
+     "cost": 19860.0,
+     "status": "N",
+     "desc": "INSULATE GLAZING, WALLS, CEILINGS, AND ROOFS"
+    },
+    {
+     "arc": "2.4133",
+     "saved": 81337.0,
+     "cost": 387626.0,
+     "status": "I",
+     "desc": "USE MOST EFFICIENT TYPE OF ELECTRIC MOTORS"
+    },
+    {
+     "arc": "2.7221",
+     "saved": 2164.0,
+     "cost": null,
+     "status": "I",
+     "desc": "LOWER TEMPERATURE DURING THE WINTER SEASON AND VICE-VERSA"
+    },
+    {
+     "arc": "2.7135",
+     "saved": 4713.0,
+     "cost": 2400.0,
+     "status": "I",
+     "desc": "INSTALL OCCUPANCY SENSORS"
+    },
+    {
+     "arc": "2.2622",
+     "saved": 53986.0,
+     "cost": 195000.0,
+     "status": "N",
+     "desc": "REPLACE EXISTING CHILLER WITH HIGH EFFICIENCY MODEL"
+    },
+    {
+     "arc": "2.9114",
+     "saved": 37784.0,
+     "cost": 447535.0,
+     "status": "N",
+     "desc": "USE SOLAR HEAT TO MAKE ELECTRICITY"
+    },
+    {
+     "arc": "2.4322",
+     "saved": 53306.0,
+     "cost": 145600.0,
+     "status": "I",
+     "desc": "USE OR REPLACE WITH ENERGY EFFICIENT SUBSTITUTES"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS - LED high-bay retrofit for blown film / converting halls",
+     "annual_savings_usd": 159000,
+     "implementation_cost_usd": 202000,
+     "basis": "5.0% of electricity = 50-55% of lighting load. 2.04M kWh saved from 3.05M kWh lighting load at 670k sqft, 8688 hrs."
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES - bag machine pneumatics, resin conveying, trim handling",
+     "annual_savings_usd": 95000,
+     "implementation_cost_usd": 14000,
+     "basis": "2.9% of electricity = 16% of compressor use. 1.2M kWh + 140 kW demand saved from 18% share for compressed air at 7.3M kWh/yr."
+    },
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON - extrusion drives, chillers, cooling tower fans, chilled water pumps",
+     "annual_savings_usd": 76000,
+     "implementation_cost_usd": 145000,
+     "basis": "1.9% of electricity = 25-30% of cooling/tower/pumping load. 0.98M kWh saved from 8% share for cooling system."
+    },
+    {
+     "arc": "2.3212",
+     "measure": "OPTIMIZE PLANT POWER FACTOR - capacitor banks on extrusion MCCs and compressor room",
+     "annual_savings_usd": 62000,
+     "implementation_cost_usd": 47000,
+     "basis": "1.5% of electricity + 7.5% of demand charge. 450 kVAR correction from 0.81 to 0.96 PF, 280 kW demand reduction."
+    },
+    {
+     "arc": "2.4224",
+     "measure": "UPGRADE CONTROLS ON COMPRESSORS - sequencer + VSD trim on common header",
+     "annual_savings_usd": 48000,
+     "implementation_cost_usd": 52000,
+     "basis": "1.2% of electricity = 10-12% of compressor use after leaks. 0.62M kWh saved from 7.3M kWh compressor share."
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED - 105 psig to 85-90 psig with zone regulators for bag makers",
+     "annual_savings_usd": 43000,
+     "implementation_cost_usd": 6000,
+     "basis": "1.1% of electricity = 7.5% of compressor use. 0.55M kWh saved from 7.3M kWh compressor share at 0.5% per psi."
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT - extruder barrels, adapters, dies, melt pipes on 20-30 blown film lines",
+     "annual_savings_usd": 39000,
+     "implementation_cost_usd": 30000,
+     "basis": "1.0% of electricity = 8% of extruder barrel heating load. 0.50M kWh saved from 6.1M kWh barrel heat share."
+    },
+    {
+     "arc": "2.4239",
+     "measure": "ELIMINATE OR REDUCE COMPRESSED AIR USAGE - replace venturi resin conveying and air lances with PD blowers",
+     "annual_savings_usd": 38000,
+     "implementation_cost_usd": 55000,
+     "basis": "0.9% of electricity = 12-15% of compressor use. 0.49M kWh saved from 7.3M kWh compressor share for pellet/CaCO3 conveying."
+    },
+    {
+     "arc": "2.2437",
+     "measure": "RECOVER WASTE HEAT FROM EQUIPMENT - compressor aftercoolers + extruder cooling air to preheat winter makeup air",
+     "annual_savings_usd": 30000,
+     "implementation_cost_usd": 36000,
+     "basis": "30% of natural gas + 0.4% of electricity. 800 MMBtu gas + 150MWh electric resistance offset from 670k sqft heating in IL climate."
+    },
+    {
+     "arc": "2.7135",
+     "measure": "INSTALL OCCUPANCY SENSORS - warehouses, regrind/reclaim, shops, restrooms + photocells at dock skylights",
+     "annual_savings_usd": 18000,
+     "implementation_cost_usd": 14000,
+     "basis": "0.4% of electricity = 12% of lighting load after LED. 0.23M kWh saved from 1.0M kWh new LED load."
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.18181818181818182,
+    "recall_family": 0.18181818181818182,
+    "savings_recall_family": 0.23442890169715436,
+    "precision_family": 0.25,
+    "implemented_found": 2,
+    "implemented_total": 8
+   },
+   "baseline": [
+    "2.4236",
+    "2.7142",
+    "2.4231",
+    "2.7135",
+    "2.4146",
+    "2.4221",
+    "2.4111",
+    "2.4239",
+    "2.2437",
+    "2.2511"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.18181818181818182,
+    "recall_family": 0.18181818181818182,
+    "savings_recall_family": 0.23442890169715436,
+    "precision_family": 0.25,
+    "implemented_found": 2,
+    "implemented_total": 8
+   },
+   "savings_log_errors": [
+    0.3261560493770722,
+    1.3400471099545708
+   ]
+  },
+  {
+   "id": "BD0478",
+   "group": "printing",
+   "products": "Printed paper goods",
+   "profile": {
+    "industry_sic": "2752.0",
+    "industry_naics": "323111.0",
+    "industry_group": "printing",
+    "products": "Printed paper goods",
+    "state": "IL",
+    "fiscal_year": "2016",
+    "annual_sales_usd": 8000000.0,
+    "employees": 48.0,
+    "plant_area_sqft": 60000.0,
+    "production": "1400000.0 2.0",
+    "operating_hours_per_year": 4400.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "1,321,324 kWh",
+      "annual_cost_usd": 138444
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "5,127 kW-months",
+      "annual_cost_usd": 47349
+     },
+     {
+      "stream": "other electric fees",
+      "annual_use": null,
+      "annual_cost_usd": 420
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "1,877 MMBtu",
+      "annual_cost_usd": 11808
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "2.7142",
+     "saved": 4978.0,
+     "cost": 3229.0,
+     "status": "I",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    },
+    {
+     "arc": "2.7221",
+     "saved": 2345.0,
+     "cost": 15.0,
+     "status": "N",
+     "desc": "LOWER TEMPERATURE DURING THE WINTER SEASON AND VICE-VERSA"
+    },
+    {
+     "arc": "2.4231",
+     "saved": 1961.0,
+     "cost": 15.0,
+     "status": "I",
+     "desc": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED"
+    },
+    {
+     "arc": "2.4236",
+     "saved": 1217.0,
+     "cost": 1000.0,
+     "status": "I",
+     "desc": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES"
+    },
+    {
+     "arc": "2.7142",
+     "saved": 1111.0,
+     "cost": 575.0,
+     "status": "N",
+     "desc": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS"
+    },
+    {
+     "arc": "2.4221",
+     "saved": 784.0,
+     "cost": 900.0,
+     "status": "I",
+     "desc": "INSTALL COMPRESSOR AIR INTAKES IN COOLEST LOCATIONS"
+    },
+    {
+     "arc": "2.7135",
+     "saved": 751.0,
+     "cost": 450.0,
+     "status": "N",
+     "desc": "INSTALL OCCUPANCY SENSORS"
+    },
+    {
+     "arc": "4.5130",
+     "saved": 13019.0,
+     "cost": 7560.0,
+     "status": "I",
+     "desc": ""
+    }
+   ],
+   "agent": [
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS",
+     "annual_savings_usd": 14200,
+     "implementation_cost_usd": 38500,
+     "basis": "Press hall, bindery and 60k sqft warehouse still on T12/T8 fluorescents and MH high-bays (~65kW, 22% of electricity for 4,400h). LED high-bay + troffer retrofit saves 45% = 107,000 kWh = 8.1% of electricity @ $0.105/kWh ($11,213) + 28kW peak demand cut = 336 kW-mo @ $9.23 ($3,101). Net after ComEd prescriptive rebate."
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES",
+     "annual_savings_usd": 7800,
+     "implementation_cost_usd": 1800,
+     "basis": "Two rotary-screw compressors (est. 60-75HP) feed sheet feeders, pneumatic clamps, blanket washers, folder pneumatics = ~18% of electricity (~238 MWh). Ultrasonic survey typically finds 25-30% leak rate in printing plants. Repair saves 3.9% of electricity = 52,000 kWh @ $0.105 ($5,450) + 18kW demand = 216 kW-mo @ $9.23 ($1,994). No gas impact."
+    },
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON",
+     "annual_savings_usd": 6400,
+     "implementation_cost_usd": 10500,
+     "basis": "Gas IR/hot-air web dryer exhaust, press ventilation, ink-mist collectors and chilled-water pump run constant-speed. VFD on ~75HP fan/pump load saves 35% fan energy = 3.6% of electricity = 48,000 kWh @ $0.105 ($5,030) + 14kW demand = 168 kW-mo @ $9.23 ($1,551). Specific to variable web speed of 2752 presses."
+    },
+    {
+     "arc": "2.6218",
+     "measure": "TURN OFF EQUIPMENT WHEN NOT IN USE",
+     "annual_savings_usd": 5200,
+     "implementation_cost_usd": 500,
+     "basis": "Offset presses, UV-curing units, CTP processor, conveyors and dust collectors idle 20-25% of 4,400h for make-ready, plate change and wash-up. Timers/ interlocks and SOP to shut down saves 3.0% of electricity = 39,600 kWh @ $0.105 ($4,150) + 10kW demand = 120 kW-mo @ $9.23 ($1,108). Zero-cost behavioral + $500 controls."
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED",
+     "annual_savings_usd": 3400,
+     "implementation_cost_usd": 450,
+     "basis": "Plant set at 110 psig, printing OEMs require 85-90 psig for feeders/stacker. 20 psi reduction saves ~9% of compressor electricity per 2:1 rule = 1.6% of total electricity = 21,000 kWh @ $0.105 ($2,200) + 7kW demand = 84 kW-mo @ $9.23 ($775). Regulator + pressure/flow controller."
+    },
+    {
+     "arc": "2.2437",
+     "measure": "RECOVER WASTE HEAT FROM EQUIPMENT",
+     "annual_savings_usd": 2900,
+     "implementation_cost_usd": 6500,
+     "basis": "Recover 60% of 40kW compressor aftercooler heat plus 280F gas dryer flue via air-to-air HX to preheat winter makeup air for press hall in IL climate. Displaces 17% of natural gas = 320 MMBtu @ $6.29 ($2,013) + 8,000 kWh electric reheat @ $0.105 ($839)."
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT",
+     "annual_savings_usd": 2200,
+     "implementation_cost_usd": 2400,
+     "basis": "Bare 250F gas dryer hoods, hot-air ducts, steam-heated calendar rollers and condensate header (~180 sqft) in web press line. Removable jackets save 10.4% of natural gas = 195 MMBtu @ $6.29 ($1,227) + 9 MWh reduced cooling load in conditioned bindery @ $0.105 ($944)."
+    },
+    {
+     "arc": "2.3212",
+     "measure": "OPTIMIZE PLANT POWER FACTOR",
+     "annual_savings_usd": 2050,
+     "implementation_cost_usd": 3400,
+     "basis": "Printing presses, DC drives and large motors cause PF ~0.78. 150 kVAR auto capacitor bank avoids ComEd PF penalty and reduces I2R losses. Saves 3.7% of electric demand cost = 222 kW-mo @ $9.23 ($2,050) + ~5,000 kWh losses. No kWh reduction primary."
+    },
+    {
+     "arc": "2.4221",
+     "measure": "INSTALL COMPRESSOR AIR INTAKES IN COOLEST LOCATIONS",
+     "annual_savings_usd": 1650,
+     "implementation_cost_usd": 1100,
+     "basis": "Compressors breathe 95F press-room air. Ducting intake to north wall/shaded outside IL ambient (avg 45F winter, 75F summer) improves density 6-8%. Saves 1.2% of electricity = 15,800 kWh @ $0.105 ($1,658) + minor demand. Low cost sheet-metal duct + filter."
+    },
+    {
+     "arc": "2.7135",
+     "measure": "INSTALL OCCUPANCY SENSORS",
+     "annual_savings_usd": 1380,
+     "implementation_cost_usd": 1950,
+     "basis": "Paper storage, plate-making, ink-bunker, restrooms and QA offices lit 4,400h but occupied <40%. 18 occupancy sensors @ 40% reduction saves 1.0% of electricity = 13,200 kWh @ $0.105 ($1,386) + small demand. Printing plant has many low-occupancy support areas."
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.75,
+    "recall_family": 0.75,
+    "savings_recall_family": 0.412825804479095,
+    "precision_family": 0.4444444444444444,
+    "implemented_found": 4,
+    "implemented_total": 5
+   },
+   "baseline": [
+    "2.7142",
+    "2.4236",
+    "2.7135",
+    "2.4231",
+    "2.4221",
+    "2.4146",
+    "2.4111",
+    "2.6218",
+    "2.7447",
+    "2.4239"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.75,
+    "recall_family": 0.75,
+    "savings_recall_family": 0.412825804479095,
+    "precision_family": 0.5,
+    "implemented_found": 4,
+    "implemented_total": 5
+   },
+   "savings_log_errors": [
+    2.5479814539497223,
+    1.857734919690156,
+    1.0273866176167257,
+    0.7441215465442186,
+    0.6084331263871157
+   ]
+  },
+  {
+   "id": "MZ0228",
+   "group": "chemicals and pharma",
+   "products": "Starch",
+   "profile": {
+    "industry_sic": "2842.0",
+    "industry_naics": "325612.0",
+    "industry_group": "chemicals and pharma",
+    "products": "Starch",
+    "state": "MO",
+    "fiscal_year": "2017",
+    "annual_sales_usd": 65000000.0,
+    "employees": 120.0,
+    "plant_area_sqft": 145000.0,
+    "production": "40000000.0 1.0",
+    "operating_hours_per_year": 3380.0,
+    "utilities": [
+     {
+      "stream": "electricity",
+      "annual_use": "1,530,139 kWh",
+      "annual_cost_usd": 154701
+     },
+     {
+      "stream": "electric demand",
+      "annual_use": "5,376 kW-months",
+      "annual_cost_usd": 47165
+     },
+     {
+      "stream": "other electric fees",
+      "annual_use": null,
+      "annual_cost_usd": 3022
+     },
+     {
+      "stream": "natural gas",
+      "annual_use": "10,609 MMBtu",
+      "annual_cost_usd": 75265
+     },
+     {
+      "stream": "water",
+      "annual_use": "15,650 thousand gal",
+      "annual_cost_usd": 100666
+     }
+    ]
+   },
+   "engineers": [
+    {
+     "arc": "3.4154",
+     "saved": 20062.0,
+     "cost": null,
+     "status": "I",
+     "desc": "ELIMINATE LEAKS IN WATER LINES AND VALVES"
+    },
+    {
+     "arc": "2.2437",
+     "saved": 7002.0,
+     "cost": 1080.0,
+     "status": "I",
+     "desc": "RECOVER WASTE HEAT FROM EQUIPMENT"
+    },
+    {
+     "arc": "2.4236",
+     "saved": 4092.0,
+     "cost": 1772.0,
+     "status": "I",
+     "desc": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES"
+    },
+    {
+     "arc": "2.4231",
+     "saved": 1423.0,
+     "cost": 280.0,
+     "status": "I",
+     "desc": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED"
+    },
+    {
+     "arc": "2.4221",
+     "saved": 897.0,
+     "cost": 340.0,
+     "status": "I",
+     "desc": "INSTALL COMPRESSOR AIR INTAKES IN COOLEST LOCATIONS"
+    },
+    {
+     "arc": "2.2515",
+     "saved": 625.0,
+     "cost": 651.0,
+     "status": "N",
+     "desc": "USE OPTIMUM THICKNESS INSULATION"
+    }
+   ],
+   "agent": [
+    {
+     "arc": "3.1222",
+     "measure": "REDUCE WATER USE WITH COUNTERCURRENT RINSING",
+     "annual_savings_usd": 20360,
+     "implementation_cost_usd": 14000,
+     "basis": "18% of water [2,817 kgal @ $6.43/kgal = $18,120] + 3% of gas for reduced hot process water heating [318 MMBtu @ $7.09 = $2,240]"
+    },
+    {
+     "arc": "2.7142",
+     "measure": "UTILIZE HIGHER EFFICIENCY LAMPS AND/OR BALLASTS",
+     "annual_savings_usd": 16200,
+     "implementation_cost_usd": 18500,
+     "basis": "9.5% of electricity kWh [145,000 kWh @ $0.101 = $14,650] + 4% of demand [215 kW-mo @ $8.77 = $1,890]; 145,000 sqft production/warehouse/packaging - replace T12/T8 fluor + 400W MH/HPS high bay with LED + spectral reflector/delamp"
+    },
+    {
+     "arc": "2.2414",
+     "measure": "USE WASTE HEAT FROM HOT FLUE GASES TO PREHEAT",
+     "annual_savings_usd": 9030,
+     "implementation_cost_usd": 27000,
+     "basis": "12% of gas [1,273 MMBtu @ $7.09]; flash/ring dryer exhaust 85-110C, 45% RH + boiler stack ~180C to preheat dryer combustion air and boiler makeup via gas-to-air HX"
+    },
+    {
+     "arc": "2.4146",
+     "measure": "USE ADJUSTABLE FREQUENCY DRIVE OR MULTIPLE SPEED MOTORS ON",
+     "annual_savings_usd": 8900,
+     "implementation_cost_usd": 26000,
+     "basis": "5.8% of electricity kWh [89,000 kWh] + 5.5% of demand [295 kW-mo]; VFDs on starch milk/hydrocyclone feed pumps 4x 25HP, wash water pumps, flash dryer ID fan 60HP, dust collector 40HP, cooling tower fan"
+    },
+    {
+     "arc": "2.4236",
+     "measure": "ELIMINATE LEAKS IN INERT GAS AND COMPRESSED AIR LINES/ VALVES",
+     "annual_savings_usd": 5800,
+     "implementation_cost_usd": 3200,
+     "basis": "3.8% of kWh + 2.5% of demand; assumes CA = 25% of plant electric [382k kWh + 1,344 kW-mo]; 30% leak rate typical on pneumatic conveying of starch powder, rotary airlocks, pulse-jet baghouses, form-fill-seal packers; repair saves ~15% of CA"
+    },
+    {
+     "arc": "2.4224",
+     "measure": "UPGRADE CONTROLS ON COMPRESSORS",
+     "annual_savings_usd": 4040,
+     "implementation_cost_usd": 9500,
+     "basis": "2.0% of kWh + 2.0% of demand; sequencer/pressure-flow controller + 400 gal storage for 2x 50HP rotary screw base + trim on load/unload; avoids short cycling and unloaded power at 3,380 hr/yr intermittent packaging load"
+    },
+    {
+     "arc": "2.4231",
+     "measure": "REDUCE THE PRESSURE OF COMPRESSED AIR TO THE MINIMUM REQUIRED",
+     "annual_savings_usd": 3770,
+     "implementation_cost_usd": 600,
+     "basis": "1.9% of kWh + 1.9% of demand; lower header 95 to 80 psig + zone regulators for 90 psig packaging vs 30 psig conveying blowers; 1 psi = 0.5% power"
+    },
+    {
+     "arc": "2.1233",
+     "measure": "ANALYZE FLUE GAS FOR PROPER AIR/FUEL RATIO",
+     "annual_savings_usd": 3760,
+     "implementation_cost_usd": 4200,
+     "basis": "5.0% of gas [530 MMBtu]; O2 trim tune for 150HP firetube boiler for jet cooker steam 90-120 psig and direct-fired flash dryer burner - currently 6-8% O2, reset to 2.5-3.5% O2 + quarterly tune"
+    },
+    {
+     "arc": "2.2511",
+     "measure": "INSULATE BARE EQUIPMENT / 2.2136 INSULATE STEAM LINES",
+     "annual_savings_usd": 3390,
+     "implementation_cost_usd": 5800,
+     "basis": "4.5% of gas [478 MMBtu]; removable jackets on jet cooker, slurry pre-heater, condensate receiver, flash dryer ducts + repair 180 ft bare 15-psig and 90-psig steam/condensate lines in starch cooking/mixing area"
+    },
+    {
+     "arc": "2.7135",
+     "measure": "INSTALL OCCUPANCY SENSORS",
+     "annual_savings_usd": 1810,
+     "implementation_cost_usd": 2400,
+     "basis": "0.8% of kWh + 1.3% of demand; PIR/ultrasonic in warehouse aisles, QA lab, locker/change rooms, maintenance shop - 3,380 hr operation = 4,000+ hr unoccupied lighting burn"
+    }
+   ],
+   "agent_score": {
+    "recall_exact": 0.3333333333333333,
+    "recall_family": 0.6666666666666666,
+    "savings_recall_family": 0.2063575848215595,
+    "precision_family": 0.3333333333333333,
+    "implemented_found": 3,
+    "implemented_total": 5
+   },
+   "baseline": [
+    "2.7142",
+    "2.4236",
+    "2.4146",
+    "2.7135",
+    "2.4231",
+    "2.9114",
+    "2.4111",
+    "2.4221",
+    "2.2437",
+    "2.1233"
+   ],
+   "baseline_score": {
+    "recall_exact": 0.6666666666666666,
+    "recall_family": 0.6666666666666666,
+    "savings_recall_family": 0.39336089850737516,
+    "precision_family": 0.3333333333333333,
+    "implemented_found": 4,
+    "implemented_total": 5
+   },
+   "savings_log_errors": [
+    1.4050905984446582,
+    1.5049441088963997,
+    0.9743076823522041,
+    1.6908335506380945
+   ]
+  }
+ ]
+}

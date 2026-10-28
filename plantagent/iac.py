@@ -135,7 +135,24 @@ def ask(model, prof, arcs, prior=None):
                                          "industry and its processes, not generic."},
            {"role": "user", "content": "ARC catalogue:\n" + cat + pri + "\n\nPlant profile:\n" + json.dumps(prof, indent=1)}]
     m = llm.complete(model, msg, response_format={"type": "json_schema", "json_schema": {"name": "audit", "schema": SCHEMA, "strict": True}})
-    return json.loads(m["content"])["measures"][:10]
+    try:
+        return json.loads(m["content"])["measures"][:10]
+    except json.JSONDecodeError:  # long reasoning outputs sometimes break the JSON late: keep every measure object that parses
+        import re
+        out = []
+        for chunk in re.findall(r'\{[^{}]*"arc"[^{}]*\}', m["content"]):
+            try:
+                out.append(json.loads(chunk))
+            except json.JSONDecodeError:
+                pass
+        if out:
+            return out[:10]
+        # strict-schema decoding can degenerate (e.g. a run of whitespace): ask again without the schema
+        m = llm.complete(model, msg + [{"role": "user", "content": "Return only a JSON object {\"measures\": [...]} with the "
+                                        "fields arc, measure, annual_savings_usd, implementation_cost_usd, basis. No other text."}],
+                         response_format={"type": "json_object"})
+        txt = m["content"]
+        return json.loads(txt[txt.index("{"):txt.rindex("}") + 1])["measures"][:10]
 
 
 def run(n, model, prior=False):
@@ -173,7 +190,7 @@ def run(n, model, prior=False):
                if any(r["savings_log_errors"] for r in rows) else None,
                "implemented_found": f"{sum(r['agent_score']['implemented_found'] for r in rows)} of {sum(r['agent_score']['implemented_total'] for r in rows)}"}
     OUT.mkdir(parents=True, exist_ok=True)
-    f = OUT / f"{time.strftime('%Y%m%d-%H%M%S')}-{model}{'-prior' if prior else ''}.json"
+    f = OUT / f"{time.strftime('%Y%m%d-%H%M%S')}-{model.replace(':', '_').replace('/', '_')}{'-prior' if prior else ''}.json"
     f.write_text(json.dumps({"summary": summary, "plants": rows}, indent=1))
     print(json.dumps(summary, indent=1), "\n", f)
     return summary
