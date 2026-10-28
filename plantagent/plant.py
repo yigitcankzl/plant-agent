@@ -146,14 +146,20 @@ class PlantWorkspace(Study):
         return self.built
 
     def verify(self, p):
-        """Re-solve a proposal in DWSIM: it counts only if the unit then reaches the target throughput within every limit."""
+        """Re-solve a proposal in DWSIM at the target throughput. It is verified when every limit of the equipment it targets
+        is within 100 % and it pushes no other limit over 100 % that was within it before."""
         target = float(self.cfg.get("target_scale", 1.0))
+        before = {(c["id"], c["check"]): c["utilisation"] for c in self.state(target)["checks"] if "utilisation" in c}
         spec = patch(self.spec, p.get("changes") or [])
-        cap = process.capacity(spec)
         at = process.run(spec, target)
+        cap = process.capacity(spec)
         over = [c for c in at["checks"] if c.get("utilisation", 0) > 1.0]
-        return {"verified": not at["errors"] and not over, "capacity_multiple": cap.get("capacity_multiple"),
-                "limited_by": cap.get("limited_by"), "over_limits_at_target": over, "target_scale": target}
+        tag = p.get("tag")
+        own = [c for c in over if c["id"] == tag or any(c["id"] in ch["path"] for ch in p.get("changes") or [])]
+        broke = [c for c in over if before.get((c["id"], c["check"]), 0) <= 1.0]
+        return {"verified": not at["errors"] and not own and not broke, "fixes": tag, "still_over": own, "breaks": broke,
+                "capacity_multiple": cap.get("capacity_multiple"), "limited_by": cap.get("limited_by"),
+                "reaches_target": not over and not at["errors"], "over_limits_at_target": over, "target_scale": target}
 
     def ask(self, text, context=None):
         if not self.built:
@@ -174,10 +180,23 @@ class PlantWorkspace(Study):
         for k in ("cards", "highlights", "proposals"):
             ans[k] = ans.get(k) if isinstance(ans.get(k), list) else []
         for p in ans["proposals"]:
+            for c in p.get("changes") or []:  # the value it replaces, for the diff view
+                try:
+                    k, oid, fld = c["path"].split(".", 2)
+                    o = next(u for u in self.spec["units"] if u["id"] == oid) if k == "units" else self.spec.get(k, {}).get(oid, {})
+                    c["from"] = o.get(fld)
+                except (ValueError, StopIteration):
+                    c["from"] = None
             try:
                 p.update(self.verify(p))
             except Exception as e:  # noqa: BLE001 - a proposal that does not solve is shown as failed
                 p.update(verified=False, error=f"{type(e).__name__}: {e}")
+        if len(ans["proposals"]) > 1:  # the fixes together: does the unit then reach the target?
+            try:
+                both = self.verify({"changes": [c for p in ans["proposals"] for c in p.get("changes") or []]})
+                ans["combined"] = {k: both[k] for k in ("reaches_target", "capacity_multiple", "limited_by", "over_limits_at_target")}
+            except Exception as e:  # noqa: BLE001
+                ans["combined"] = {"error": f"{type(e).__name__}: {e}"}
         logged = set(self.runs)
         ans["checks"] = [{"item": f"run {r}", "ok": r in logged} for c in ans["cards"] for r in (c.get("runs") or [])]
         ans.update(seconds=round(time.time() - t0), cost_usd=round(llm.spent() - usd0, 4), request=text)

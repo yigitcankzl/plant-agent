@@ -239,7 +239,7 @@ def _checks(sheet, res):
                     out.append({"id": key, "check": "required area", "error": "; ".join(errs)[:200] or "no solution"})
         if u and u["type"] == "hx":
             add("installed area vs frame", u["area_m2"], lim.get("max_area_m2"), "m2")
-        if u and lim.get("max_kW") and u["type"] in ("hx", "heater", "cooler"):
+        if u and lim.get("max_kW") and u["type"] in ("heater", "cooler"):  # an exchanger's datasheet duty is a design point, not a limit
             add("duty vs design", abs(u.get("duty_kW") or 0), lim["max_kW"], "kW")
         if u and u["type"] == "tank":
             add("residence time", u["residence_min"], lim.get("min_residence_min"), "min", higher_is_worse=False)
