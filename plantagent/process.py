@@ -201,11 +201,12 @@ class _Sheet:
     def required_area(self, uid, out_T_C, side="cold"):
         """Area this exchanger needs to reach out_T_C on `side` at the current flows (DWSIM design mode)."""
         u, h = self.units[uid]
+        from DWSIM.UnitOperations.UnitOperations import SpecifiedTemperature
         h.CalcMode = self.HXM.CalcArea
         if side == "cold":
-            h.TempColdOut = 273.15 + float(out_T_C)
+            h.DefinedTemperature, h.TempColdOut = SpecifiedTemperature.Cold_Fluid, 273.15 + float(out_T_C)
         else:
-            h.TempHotOut = 273.15 + float(out_T_C)
+            h.DefinedTemperature, h.TempHotOut = SpecifiedTemperature.Hot_Fluid, 273.15 + float(out_T_C)
         errs = self.solve()
         a = float(h.Area)
         h.CalcMode, h.Area = self.HXM.CalcBothTemp_UA, float(u.get("area_m2", 10))
