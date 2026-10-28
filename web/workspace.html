@@ -928,9 +928,9 @@ async function cockpit() {
   const errs = ISS.filter(i => i.severity === "error").length;
   const tgt = P.target_mgd || 18;
   $("#kpis").innerHTML = `
-    <div class="kpi"><div class="l">Plant rating</div><div class="v">${P.rated_mgd ?? "—"} <small>MGD</small></div><div class="s">as documented</div></div>
+    <div class="kpi"><div class="l">Plant rating</div><div class="v">${P.rated_mgd ?? "—"} <small title="million gallons per day">MGD</small></div><div class="s">design rating, as documented</div></div>
     <div class="kpi"><div class="l">Target</div><div class="v">${tgt} <small>MGD</small></div><div class="s">client question</div></div>
-    <div class="kpi ${lim && lim.capacity_mgd < tgt ? "bad" : "good"}"><div class="l">Bottleneck</div><div class="v">${lim ? lim.capacity_mgd : "—"} <small>MGD</small></div><div class="s">${esc(lim ? lim.unit.slice(0, 26) : "")}</div></div>
+    <div class="kpi ${lim && lim.capacity_mgd < tgt ? "bad" : "good"}"><div class="l">First limit found</div><div class="v">${lim ? lim.capacity_mgd : "—"} <small title="million gallons per day">MGD</small></div><div class="s" title="${esc(lim?.source || "")}">${esc(lim ? lim.unit.slice(0, 26) : "")}${lim && /N-1|firm/.test(lim.source || "") ? " · with its largest pump out of service" : ""}</div></div>
     <div class="kpi ${errs ? "bad" : "good"}"><div class="l">Blocking issues</div><div class="v">${errs}</div><div class="s">${ISS.length} findings total</div></div>`;
   const max = Math.max(30, ...capped.map(u => u.capacity_mgd));
   $("#ubars").innerHTML = UNITS.map((u, i) => { const c = u.capacity_mgd; const w = c == null ? 100 : Math.min(100, c / max * 100);
