@@ -1,0 +1,23 @@
+[
+  {
+    "evidence": "B offline 16 months (p.7); A quench flow dropped past day, meeting then supervisor troubleshooting (p.11); quench to B then ~3 min to rupture (p.11); quench ~185 degF (p.9), shell propane ~130 degF entering (p.9), ~95% propane balance propylene+C4s (p.9); fouling reduces flow/heat transfer (p.8). bubble_pressure quoted: 18.75 bar at 54.44C, 34.13 bar at 85.0C, 34.82 bar at 86.11C; blocked_in_pressure quoted: P1 18.75 bar 54.44 to 85.0C, bubble 34.13 bar at T2, beta 0.00812/K kappa 0.0006/bar, 13.5 bar/K, 432.0 bar / 6260 psig; fluid_properties quoted: 441.98 kg/m3 vapour 0.0 at 18.75 bar/54.44C to 337.44 kg/m3 vapour 0.0214 at 34.13 bar/85C; RB-HEAT-01 quoted: 5000 kg/h 11.3 m3/h vapour 0.0 to 130.48 m3/h vapour 1.0 at 20 bar, duty 471.88 kW.",
+    "limiting_value": "Hydraulic 6260 psig (blocked_in_pressure quoted) exceeds MAWP 300 psig and hydrotest 450 psig per task brief (UNVERIFIED in p.6-13); bubble 34.13 bar at 185 degF to 34.82 bar at 187 degF (bubble_pressure quoted, ASSUMPTION bara-to-psig ~480-490 psig) alone exceeds both ratings; 13.5 bar/K means ~0.1-0.2K exceeds MAWP from 18.75 bar. Explains 3-min delay, 30-ft missile/30000 lb/3.5-h fire/18-mo outage (p.11-p.12).",
+    "limits_target": true,
+    "modification": "Root cause: heating blocked-in liquid-propane shell with hot quench with no relief. Implement A1 interlocked open vent + A2 dedicated shell PSV + layup/checklist; revalidate PHA/MOC for 2001 valves.",
+    "unit": "Reboiler B shell - boiling-liquid/thermal-expansion rupture"
+  },
+  {
+    "evidence": "p.9: reboiler could be isolated from its protective PRV; p.10 Fig.4: 2001 gate valves isolating reboilers from PRV at top of fractionator, not original design. No thermal PSV stated in p.6-13. Rupture in ~3 min despite PRV proves no path if gates closed (ASSUMPTION RFI-06, to be verified). RB-ALT-OPEN quoted: vented 5000 kg/h at 85C 20.0 to 19.5 bar at 84.36C vapour 1.0 vs 34+/6260 psig trapped.",
+    "limiting_value": "Relief path closed = zero capacity for isolated shell; single overhead PRV cannot protect blockable volume. Firm capacity per document rule = one reboiler with other out (p.9 two reboilers, one standby 16 mo per p.7) - relief path is what binds, not heat-transfer area.",
+    "limits_target": true,
+    "modification": "Why not protected: 2001 MOC created blockable volume without thermal relief or controls. Correct by A1+A2 + car-seal program + relief study; verify PRV set/capacity via nameplate/U-1 (ASSUMPTION pending).",
+    "unit": "Overpressure protection (2001 valving/MOC)"
+  },
+  {
+    "evidence": "Fouling definition p.8; A flow drop past day p.11 triggered nonroutine switch to standby B; B 16-mo N2 layup per task brief behind single blocks (UNVERIFIED in pages); operating fluid ~95% propane p.9 but standby inventory not sampled in p.6-13 (ASSUMPTION liquid present, see response). RB-BASE-02 quoted: 9000 kg/h 54.44 to 85C at 20 bar, duty 849.38 kW, safe only when vented.",
+    "limiting_value": "Contributing not causal: fouling explains motive; 16-mo layup + leaking-through/drained-incompletely gates explains trapped liquid (ASSUMPTION to be verified). Normal boiling at column pressure when vented - no exceedance.",
+    "limits_target": false,
+    "modification": "Procedural/management: MOC/PHA for one-reboiler standby philosophy, written layup (drain/N2) and switch-on procedure with independent verification, training on blocked-in heating; PSM audit.",
+    "unit": "Management system / operating procedure"
+  }
+]

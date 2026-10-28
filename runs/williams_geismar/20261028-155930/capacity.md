@@ -1,0 +1,8 @@
+# Step 5 - Capacity evaluation
+
+| unit | limit | binds_at | limits_target | evidence |
+|---|---|---|---|---|
+| Reboiler B shell EA-425B/435B isolated | MAWP 300 psig / hydro 450 psig ASSUMPTION (brief, RFI-03) - firm capacity = one reboiler (p.9 C-02) | Bubble alone 34.13 bar at 85C (185F) to 34.82 bar at 86.11C (187F); liquid-full hydraulic 432 bar (6260 psig) heating 54.44 to 85C at 13.5 bar/K | True | bubble_pressure 18.75 bar at 54.44C, 34.13 bar at 85C, 34.82 at 86.11C; blocked_in 432 bar beta 0.00812 kappa 0.0006; RB-HEAT-01 54.44 to 85C at 20 bar goes vapour_frac 1.0 m3_h 11.3 to 130.48; p.9 fluid/T, p.11 3-min rupture |
+| Relief path to fractionator overhead PRV | C-01 relief path must remain open (p.9-p.10) | 2001 shell gates closed isolate B shell from PRV; no dedicated thermal relief found | True | p.9 'could be isolated from its protective PRV' + p.10 Fig.4 'PRV protected fractionator and shells' + gates installed 2001; rupture in ~3 min despite PRV proves no path (RFI-06/07); RB-ALT-OPEN vented holds 19.5 bar util 0.78 |
+| Reboiler A in-service | Normal boiling at column pressure when vented | Fouled but vented; flow dropped gradually over past day (p.11 Fig.5) prompting nonroutine switch to B | False | p.8 fouling definition + p.11 flow drop + p.6 fn7; RB-BASE-02 proxy duty 848.6 kW; did not overpressure - contributing trigger, not pressure cause |
+| Tube-side quench water to B | Hot quench water heating medium | Admits ~185-187F water to cold trapped C3; rapid flow rise Fig.6 at 08:33 (p.11-12) | True | p.9 185F + brief 187F; p.11 rapid rise; RB-HEAT-01 duty 471.88 kW to bring 5000 kg/h C3 54.44 to 85C; fluid_properties density fall 441.98 to 337.44 kg/m3 |

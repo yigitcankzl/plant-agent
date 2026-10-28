@@ -61,7 +61,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
   const ws = Object.fromEntries(projects.map(p => [p.case, p]));
   const graded = cases.filter(c => c.benchmark && c.score != null);
   const mean = graded.reduce((t, c) => t + c.score, 0) / (graded.length || 1);
-  const types = new Set(cases.map(c => c.task_type.split(/[ /(]/)[0]));
+  const types = new Set(graded.map(c => c.task_type));
   document.getElementById("stats").innerHTML = [
     [projects.filter(p => p.kind !== "process").length, "real facilities (+ the DEXPI reference P&ID)"], [types.size, "kinds of engineering task"],
     [graded.length, "blind benchmark studies"], [Math.round(mean * 100) + "%", "of engineers' conclusions reached (mean)"]]

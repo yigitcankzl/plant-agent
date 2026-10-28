@@ -19,28 +19,59 @@ simulator run.
 ## Process plants: from a smart P&ID to a verified fix
 
 `web/plant.html?case=chem_c01` opens a chemical unit from its **DEXPI P&ID**, the vendor-neutral P&ID exchange standard.
+The P&ID is the DEXPI e.V. reference example C01. Its operating data sheet (`cases/chem_c01/basis.md`) is
+**illustrative**, written for this demo, and the page says so.
 
-- The reader (`plantagent/pid.py`, standard library only) turns the P&ID into equipment with design data, connections,
-  valves and control loops. It reads all 18 vendor exports in the DEXPI test set.
-- **Muse builds the DWSIM model itself** from the P&ID and the operating data sheet. It maps every tag to a unit,
-  includes every rating as a limit, and calibrates against the measured temperatures (34 vs 33.9 C, 18 vs 18.4 C).
-  This took 136 s and cost $0.006.
-- Each equipment item on the P&ID shows its live load. The throughput slider re-solves DWSIM in about 0.3 s.
-- **"Get me to target"**: Muse finds that both coolers limit +20 % throughput. It proposes the cheapest fixes, raising
-  cooling water to 30 m3/h and chilled water to 20 m3/h within the data-sheet supply limits.
-- The workspace re-solves each proposal in DWSIM before it can be accepted, and then all of them together: the unit
-  reaches 120 % and the new maximum is 125 %.
-- Accepted changes become revisions that can be undone.
-- The P&ID is the DEXPI e.V. reference example. Its operating data sheet is illustrative and labelled as such.
+- **P&ID reader** (`plantagent/pid.py`, standard library only):
+  - Turns the P&ID into equipment with design data, connections, valves and control loops.
+  - Reads all 18 vendor exports in the DEXPI test set.
+  - Flags design data that does not hang together. On C01 it flags a pump whose 60 kW shaft power implies 9 %
+    efficiency, and a tank whose dimensions give 1,257 m3 against a stated 26 m3.
+- **Muse builds the DWSIM model itself** from the P&ID and the data sheet:
+  - It follows the P&ID topology: the tank recirculation loop through H1008 is closed with a recycle, and the
+    reciprocating pump is modelled as positive displacement.
+  - Where the site datasheets contradict the P&ID, it uses the site data and records the conflict as an assumption.
+  - It reproduces all 14 measured values on the data sheet: temperatures, flows and pressure drops, e.g. 34.0 vs
+    33.98 C and 23.6 vs 23.63 C.
+  - A **coverage check** compares the model with the P&ID line by line. All 5 flow connections are modelled; the
+    relief path through PSV 47125 is excluded because it carries no normal flow.
+  - The build took 221 s and cost $0.0095.
+- **Live load on the P&ID.** Each equipment item shows its load, and the throughput slider re-solves DWSIM in about
+  0.3–0.5 s.
+- **"Get me to target" (+20 %).** Three limits bind, and Muse proposes the cheapest fix for each:
 
-DWSIM (`plantagent/process.py`) runs headless through pythonnet as one long-lived worker. It provides:
+  | Limit | Fix |
+  |---|---|
+  | H1007 cooler outlet | Cooling water 20 → 27 m3/h, which is 90 % of the branch supply. The exchanger pressure drop rises to 0.86 of the 1.0 bar available. |
+  | Tank temperature, held by the H1008 recirculation | Chilled water 15 → 18 m3/h |
+  | Quality-control hold time in the tank | Working level 80 → 85 %, the documented maximum |
 
-- pumps, heat exchangers in rating mode, heaters and coolers, valves, tanks, mixers, splitters and compressors
-- required exchanger area against installed area
-- a throughput capacity search
-- bubble-point pressure and fluid properties
+- **Verified before acceptance.** DWSIM re-solves each proposal, and then all of them together: the unit reaches 120 %
+  and the new maximum is 124 %. Accepting re-verifies on the server, and accepted changes become revisions that can be
+  undone.
 
-The same tools are available in blind studies (`"simulators": ["dwsim"]`).
+### What the DWSIM layer models
+
+DWSIM (`plantagent/process.py`) runs headless through pythonnet as one long-lived worker.
+
+- **Unit operations:** pumps (centrifugal or positive displacement), heat exchangers in rating mode, heaters and
+  coolers, valves, tanks at vessel pressure, mixers, splitters (fixed recirculation) and compressors.
+- **Recycle loops.**
+- **Limits checked:**
+  - pump rated and minimum flow, motor power, NPSH margin, and discharge against 90 % of the relief set pressure
+  - exchanger required area against installed area, with U and pressure drop that follow flow (films ~Q^0.8, dP ~Q^1.8)
+  - frame limit and available pressure drop
+  - hold time on net throughput
+  - utilities at no more than 90 % of supply
+- **Other tools:** a throughput capacity search, bubble-point pressure, fluid properties, and an API 521
+  blocked-in (hydraulic expansion) pressure. The same tools are available in blind studies
+  (`"simulators": ["dwsim"]`).
+- **Limits of the layer:** steady state only. There is no control-valve Cv sizing or line hydraulics yet, and U is
+  scaled from one test point, not computed from exchanger geometry.
+
+The first model of this unit put H1008 in series instead of in the recirculation loop. It is kept in
+`runs/ws/chem_c01/model_v1_series.json`. An independent practitioner review caught it, which is why the coverage check now
+exists.
 
 ## What it does
 
@@ -48,7 +79,7 @@ The same tools are available in blind studies (`"simulators": ["dwsim"]`).
 |---|---|
 | **Engineering workspace** (`web/workspace.html`) | The real AutoCAD sheet with live water-surface gauges and capacity by unit. Each value is marked ● simulated or ○ documented. Also: water-surface and demand charts, plus Existing / Proposed views and a revision timeline. |
 | **Ask / Fix / Get me to target** | Muse plans, reads, simulates and proposes. A proposal can be accepted only if the solver reproduces it, and the server re-checks before writing. |
-| **Second-engineer check** | A deterministic check, not another LLM. Cited runs must exist in the log, cited page values must appear on the page, and proposals must reproduce in the solver. |
+| **Citation and solver check** | Deterministic, with no LLM involved. Cited runs must exist in the log, cited page values must appear on the page, and proposals must reproduce in the solver. This is separate from the QA/QC step of a blind study, where a second agent reviews the first agent's work. |
 | **Drawing reading** | The sheet is read twice by Muse vision, as a full sheet and as zoomed tiles, and the two reads are reconciled. Roseburg: 35/35 elevations agree. An unseen sheet takes about 37 s. |
 | **Field photo** | Muse reads a pump nameplate or gauge against a JSON schema. A specific-speed check and a letter-O/zero check catch misreads. The reading is matched to a model pump and applied as a logged revision. Writes are blocked when the reading is more than 2× off or overloads the motor. |
 | **Voice** | Push-to-talk, transcribed by Muse Voice Transcribe. |
@@ -61,7 +92,18 @@ On each real project, the pages holding the engineers' conclusions are **withhel
 clauses are redacted, and a leak check runs against the answer key. The agent then does the study, and
 **muse-wonder-1.0**, a different model from the agent, grades its findings against the engineers' conclusions.
 
-- 12 cases, 6 task types: capacity, troubleshooting, energy audit, surge, failure investigation, force-main design.
+- 13 cases and 6 task types: capacity, troubleshooting, energy audit, surge, failure investigation and force-main
+  design. The cases span water and wastewater, canal pumping stations, campus cooling, a data center, a gas plant and an
+  olefins plant.
+- **Mean of the latest run per case: 65 %** of the engineers' conclusions.
+- **Judge check:** every graded run was re-graded by a second model (muse-spark-1.3). It gave the same verdict on 88 %
+  of 134 items, and the mean score moved from 66 % to 64 % (`evidence/judge_agreement.json`). That shows consistency
+  between models; it is not a human check.
+- **Gas and olefins plant incidents (CSB).** Pascagoula was first run with the water-network tools, which do not fit a
+  cryogenic gas plant, and scored 67 %. Re-run with the DWSIM process tools (bubble point, fluid properties,
+  blocked-in expansion) it scored 92 %. Williams Geismar scored 67 % in both runs. In the second run the agent
+  computed the blocked-in expansion pressure: 6,260 psig, against the CSB's estimate of about 5,000 psig. All runs
+  are kept.
 - **Run-to-run variance (Roseburg, strict redaction, 3 independent runs):** 93%, 64% and 57% of the engineers'
   conclusions, mean 71%. The earlier Roseburg runs (57%, 71%, 79%) used a looser redaction that left hint sentences
   visible. They are kept for transparency but should not be compared with these.
@@ -98,15 +140,28 @@ echo "META_API_KEY=..." > .env                 # Meta Model API key
 .venv/bin/python -m plantagent.grade                   # grade the latest runs against the engineers
 ```
 
+**From a clean clone, with no API key and no DWSIM:**
+
+- `home.html` and the blind-study replays (`index.html?case=...`) read the committed runs in `runs/`.
+- `plant.html?case=chem_c01` shows the agent-built model and its committed answer. The throughput slider replays
+  71 precomputed DWSIM solutions (80–150 %).
+- Asking, building and accepting need the API key and DWSIM.
+- The water workspace needs the public PDFs (URLs in `cases/*/case.json`; PDFs are not redistributed).
+
 Optional tools:
 
 - DWSIM 9 (Linux build) and .NET 8, for process plants (`~/opt/dwsim`, `~/opt/dotnet`)
-
 - ODA File Converter (DWG)
 - LibreCAD (CAD round trip)
 - `.venv-surge` with `tsnet`, `numpy<2` and `wntr<1.2`, for transients
 
 Muse spend is capped by `MUSE_BUDGET_USD` and logged in `runs/usage.jsonl`.
+
+## Timeline
+
+Built during the hackathon window. Kickoff was Oct 26, 2026 at 12:00 PM ET; the first source file was created on
+Oct 27 at 01:44 Istanbul time (Oct 26, 6:44 PM ET). The first commit (Oct 27) bundles that first night's work, and the git
+history shows the order of the work after it.
 
 ## Data and credits
 
