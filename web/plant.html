@@ -233,9 +233,51 @@ async function load() {
   $('toTarget').disabled = false;
 }
 
+// ---- engineer confirms Muse's read of a PDF schematic before any model is built ----
+let READ = null;
+const cell = (v, k, w) => `<input data-k="${k}" value="${esc(Array.isArray(v) ? v.join(', ') : v ?? '')}" style="width:${w || 70}px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;font:11.5px var(--mono)">`;
+const ROWS = {loops: [['name', 60], ['fluid', 60], ['supply_C', 40], ['return_C', 40]],
+              equipment: [['tag', 80], ['class', 120], ['count', 34], ['capacity_kW', 50], ['loops', 90]],
+              connections: [['from', 80], ['to', 80], ['loop', 60], ['inline', 90]]};
+function readTable(kind, rows) {
+  return `<div class="tt" style="margin-top:8px">${kind}</div><table id="rt-${kind}">${rows.map(r => `<tr>${ROWS[kind].map(([k, w]) => `<td>${cell(r[k], k, w)}</td>`).join('')}<td><button class="btn" onclick="this.closest('tr').remove()" title="Remove">✕</button></td></tr>`).join('')}</table>
+    <button class="btn" onclick="addRow('${kind}')">+ add ${kind === 'equipment' ? 'equipment' : kind.slice(0, -1)}</button>`;
+}
+function addRow(kind) { $('rt-' + kind).insertAdjacentHTML('beforeend', `<tr>${ROWS[kind].map(([k, w]) => `<td>${cell('', k, w)}</td>`).join('')}<td><button class="btn" onclick="this.closest('tr').remove()">✕</button></td></tr>`); }
+function collect(kind) {
+  const num = ['supply_C', 'return_C', 'count', 'capacity_kW', 'flow_gpm'];
+  return [...$('rt-' + kind).querySelectorAll('tr')].map(tr => Object.fromEntries([...tr.querySelectorAll('input')].map(i => {
+    const v = i.value.trim(); return [i.dataset.k, num.includes(i.dataset.k) ? (v === '' ? null : Number(v)) : (['loops', 'inline'].includes(i.dataset.k) ? v.split(',').map(x => x.trim()).filter(Boolean) : v)];
+  })));
+}
+async function reviewRead() {
+  READ = await api('pidread');
+  const r = READ.confirmed || READ.original;
+  if (!r) { $('answers').innerHTML = '<div class="empty">The schematic has not been read yet.</div>'; return; }
+  const orig = Object.fromEntries((READ.original?.equipment || []).map(e => [e.tag, e]));
+  $('answers').innerHTML = `<div class="ans"><div class="hl">Check the drawing read before building</div>
+    <div class="sm">${esc((READ.model || 'Muse').replace('muse-', 'Muse '))} read this PDF schematic. Correct anything it missed or got wrong (missing chillers, a branch in parallel, a capacity), then confirm. The model is built only from the confirmed read; Muse's original read is kept, and your corrections are counted as a measure of how well it read the sheet.</div>
+    ${READ.corrections.length ? `<div class="card warn"><div class="tt">${READ.corrections.length} corrections already confirmed</div>${READ.corrections.map(c => `<div style="font-size:11.5px">• ${esc(c)}</div>`).join('')}</div>` : ''}
+    <div class="card" style="overflow:auto">${readTable('loops', r.loops || [])}${readTable('equipment', (r.equipment || []).map(e => ({...e, loops: e.loops})))}${readTable('connections', r.connections || [])}</div>
+    <input id="readReason" placeholder="Reason, e.g. checked against the drawing and the tender datasheets" style="width:100%;margin:6px 0;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:5px;padding:7px">
+    <button class="btn go" onclick="confirmRead()">Confirm read</button> <span id="readMsg"></span>
+    <div style="margin-top:10px"><button class="btn" id="buildBtn" onclick="build()" ${P.read_confirmed ? '' : 'disabled title="Confirm the read first"'}>Build the model from the confirmed read</button></div></div>`;
+  READ.originalByTag = orig;
+}
+async function confirmRead() {
+  const prev = Object.fromEntries((READ.confirmed || READ.original).equipment.map(e => [e.tag, e]));
+  const equipment = collect('equipment').map(e => ({label_text: prev[e.tag]?.label_text || '', occurrence: prev[e.tag]?.occurrence || 1, flow_gpm: prev[e.tag]?.flow_gpm ?? null,
+                                                    notes: prev[e.tag]?.notes || '', box: prev[e.tag]?.box || [], ...e}));
+  const r = await api('confirmread', {read: {loops: collect('loops'), equipment, connections: collect('connections')}, reason: $('readReason').value});
+  if (r.error) { $('readMsg').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return; }
+  $('readMsg').textContent = `Confirmed: ${r.corrections.length} corrections to Muse's read.`;
+  P.read_confirmed = true; $('buildBtn').disabled = false; $('buildBtn').title = '';
+}
+
 function noModel() {
   $('eqlist').innerHTML = `<div class="empty">No simulation model yet.<br>The agent reads the <b>P&amp;ID</b> and the <b>operating data sheet</b> and builds a calibrated DWSIM model itself.</div>`;
-  $('answers').innerHTML = `<div class="empty"><button class="btn go" onclick="build()">Build the model from the P&amp;ID</button></div>`;
+  if (P.drawing === 'pdf') reviewRead();
+  else $('answers').innerHTML = `<div class="empty"><button class="btn go" onclick="build()">Build the model from the P&amp;ID</button></div>`;
   $('verdict').textContent = 'No model yet';
 }
 
@@ -246,6 +288,7 @@ function model() {
   $('modelBox').innerHTML = `<div class="why" style="color:var(--muted);font-size:11.5px;margin-bottom:6px">DWSIM flowsheet built by the agent from the P&amp;ID, ${b.spec.units.length} units. Calibration:</div>` +
     `<details><summary>${(b.calibration || []).length} measured values reproduced</summary>` +
     (b.calibration || []).map(c => `<div class="kv"><span>${esc(c.item)}</span>${esc(String(c.simulated).split(' (')[0])} <span>vs ${esc(String(c.measured).split(' (')[0])}</span></div>`).join('') + `</details>` +
+    (P.drawing === 'pdf' ? `<div class="kv" style="margin-top:6px"><span>Drawing read</span>${P.read_confirmed ? `confirmed · ${P.read_corrections} corrections by the engineer` : 'not confirmed'}</div>` : '') +
     (b.coverage ? `<div class="kv" style="margin-top:6px"><span>P&amp;ID coverage</span>${b.coverage.connections.filter(c => c.modelled).length} of ${b.coverage.connections.filter(c => !c.relief_path).length} flow connections ${b.coverage.missing_connections.length || b.coverage.missing_equipment.length ? '<b style="color:var(--fail)">✗</b>' : '<b style="color:var(--ok)">✓</b>'}</div>
       <div style="color:var(--muted);font-size:11px">${b.coverage.connections.filter(c => c.relief_path).length} relief path(s) excluded: no normal flow</div>` : '') +
     ((P.pid.data_quality || []).length ? `<details style="margin-top:6px"><summary style="color:var(--warn)">⚠ ${P.pid.data_quality.length} P&amp;ID data problems</summary>${P.pid.data_quality.map(a => `<div style="font-size:11.5px;color:var(--muted);padding:2px 0">• ${esc(a)}</div>`).join('')}</details>` : '') +

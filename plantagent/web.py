@@ -249,6 +249,7 @@ def plant_project(case):
             "data_note": w.cfg.get("data_note"), "throughput": w.cfg.get("throughput"), "drawing": "svg" if w.cfg.get("svg") else "pdf" if w.cfg.get("pid_pdf") else "none", "dexpi": bool(w.cfg.get("pid")),
             "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid or {"equipment": [], "connections": [], "valves": [], "control": []}, "basis": w.basis, "model": w.model,
             "built": {k: v for k, v in w.built.items() if k != "result"} if w.built else None,
+            "read_confirmed": bool((w.pid or {}).get("confirmed")), "read_corrections": len((w.pid or {}).get("corrections") or []),
             "answers": w.answers, "revisions": [{k: r.get(k) for k in ("rev", "kind", "title", "changes", "capacity_multiple", "at", "user", "reason")}
                                                 for r in w.revisions],
             "audit": {"verify": __import__("plantagent.audit", fromlist=["x"]).verify(case),
@@ -545,6 +546,16 @@ class Handler(SimpleHTTPRequestHandler):
             if what == "restore" and method == "POST":
                 try:
                     return self._send(w.restore(int(body.get("rev", 0)), user, body.get("reason")))
+                except ValueError as e:
+                    return self._send({"error": str(e)}, code=409)
+            if what == "pidread":  # Muse's read of a PDF schematic and the engineer's confirmed version
+                orig = json.loads(w.pid_file.read_text()) if w.pid_file.exists() else None
+                conf = json.loads(w.confirmed_file.read_text()) if w.confirmed_file.exists() else None
+                return self._send({"original": (orig or {}).get("raw"), "model": (orig or {}).get("model"),
+                                   "confirmed": (conf or {}).get("raw"), "corrections": (conf or {}).get("corrections") or []})
+            if what == "confirmread" and method == "POST":
+                try:
+                    return self._send(w.confirm_read(body.get("read") or {}, user, body.get("reason")))
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
             if what == "relief":

@@ -57,6 +57,29 @@ def limit_changes(p):
     return [c["path"] for c in p.get("changes") or [] if str(c.get("path", "")).startswith("limits.")]
 
 
+def read_corrections(orig, conf):
+    """What the engineer changed in Muse's read: loops, equipment and connections added, removed or edited."""
+    out = []
+    lo, lc = {x["name"]: x for x in orig.get("loops", [])}, {x["name"]: x for x in conf.get("loops", [])}
+    out += [f"loop added: {n}" for n in lc.keys() - lo.keys()] + [f"loop removed: {n}" for n in lo.keys() - lc.keys()]
+    out += [f"loop {n}: {k} {lo[n].get(k)} -> {lc[n].get(k)}" for n in lo.keys() & lc.keys() for k in ("fluid", "supply_C", "return_C")
+            if lo[n].get(k) != lc[n].get(k)]
+    eo, ec = {x["tag"]: x for x in orig.get("equipment", [])}, {x["tag"]: x for x in conf.get("equipment", [])}
+    out += [f"equipment added: {t} ({ec[t]['class']})" for t in ec.keys() - eo.keys()] + [f"equipment removed: {t}" for t in eo.keys() - ec.keys()]
+    for t in eo.keys() & ec.keys():
+        for k in ("class", "count", "capacity_kW", "flow_gpm"):
+            a, b = eo[t].get(k), ec[t].get(k)
+            if (a or None) != (b or None) and not (isinstance(a, (int, float)) and isinstance(b, (int, float)) and float(a) == float(b)):
+                out.append(f"{t}: {k} {a} -> {b}")
+        if sorted(eo[t].get("loops") or []) != sorted(ec[t].get("loops") or []):
+            out.append(f"{t}: loops {eo[t].get('loops')} -> {ec[t].get('loops')}")
+    key = lambda c: (c["from"], c["to"], c.get("loop") or "")  # noqa: E731
+    co, cc = {key(c) for c in orig.get("connections", [])}, {key(c) for c in conf.get("connections", [])}
+    out += [f"connection added: {a} -> {b} ({lp})" for a, b, lp in sorted(cc - co)]
+    out += [f"connection removed: {a} -> {b} ({lp})" for a, b, lp in sorted(co - cc)]
+    return out
+
+
 def patch(spec, changes):
     """Apply dotted-path changes to a copy of the spec. Installed HX area also moves the area limit (same plates)."""
     s = copy.deepcopy(spec)
@@ -163,9 +186,12 @@ class PlantWorkspace(Study):
         self.name, self.model = case_name, model
         self.cfg = json.loads((ROOT / "cases" / case_name / "case.json").read_text())
         self.pid_file = ROOT / "runs" / "ws" / case_name / "pid_read.json"
+        self.confirmed_file = self.pid_file.with_name("pid_confirmed.json")
         if self.cfg.get("pid"):
             self.pid = pid.overview(DATA / self.cfg["pid"])
-        elif self.pid_file.exists():  # a PDF schematic, read once by Muse vision
+        elif self.confirmed_file.exists():  # a PDF schematic: the engineer-confirmed read is the one models are built on
+            self.pid = json.loads(self.confirmed_file.read_text())
+        elif self.pid_file.exists():  # read by Muse vision, not yet confirmed by the engineer
             self.pid = json.loads(self.pid_file.read_text())
         else:
             self.pid = None
@@ -309,10 +335,42 @@ class PlantWorkspace(Study):
         audit.append(self.name, "read_drawing", None, "PDF schematic read by Muse vision", {"model": self.pid["model"], "equipment": len(self.pid["equipment"])})
         return self.pid
 
+    def confirm_read(self, raw, user=None, reason=None):
+        """The engineer checks Muse's read of a PDF schematic and corrects it; models are built only on a confirmed read.
+        Muse's original read stays untouched, so the corrections measure how well vision read the sheet."""
+        from . import pidvision
+        if not self.pid_file.exists():
+            raise ValueError("there is no drawing read to confirm yet")
+        if not (reason or "").strip():
+            raise ValueError("a reason is required (e.g. 'checked against the drawing and the tender')")
+        orig = json.loads(self.pid_file.read_text())
+        clean = {"title": orig.get("title", ""), "notes": orig.get("raw", {}).get("notes", []),
+                 "loops": [{k: lp.get(k) for k in ("name", "fluid", "supply_C", "return_C")} for lp in raw.get("loops") or [] if lp.get("name")],
+                 "equipment": [{"tag": str(e["tag"]).strip(), "label_text": e.get("label_text") or "", "occurrence": int(e.get("occurrence") or 1),
+                                "class": e.get("class") or "", "count": int(e.get("count") or 1),
+                                "loops": [x.strip() for x in (e.get("loops") if isinstance(e.get("loops"), list) else str(e.get("loops") or "").split(",")) if x.strip()],
+                                "capacity_kW": e.get("capacity_kW"), "flow_gpm": e.get("flow_gpm"), "notes": e.get("notes") or "", "box": e.get("box") or []}
+                               for e in raw.get("equipment") or [] if str(e.get("tag") or "").strip()],
+                 "connections": [{"from": c["from"], "to": c["to"], "loop": c.get("loop") or "",
+                                  "inline": c.get("inline") if isinstance(c.get("inline"), list) else [x.strip() for x in str(c.get("inline") or "").split(",") if x.strip()]}
+                                 for c in raw.get("connections") or [] if c.get("from") and c.get("to")]}
+        tags = {e["tag"] for e in clean["equipment"]}
+        bad = [f"{c['from']} -> {c['to']}" for c in clean["connections"] if c["from"] not in tags or c["to"] not in tags]
+        if bad:
+            raise ValueError("connections refer to equipment not in the list: " + ", ".join(bad[:5]))
+        corr = read_corrections(orig.get("raw", {}), clean)
+        self.pid = {**orig, "raw": clean, **pidvision.overview_of(clean), "confirmed": True, "corrections": corr,
+                    "positions": {t: p for t, p in (orig.get("positions") or {}).items() if t in tags}}
+        self.confirmed_file.write_text(json.dumps(self.pid, indent=1))
+        audit.append(self.name, "confirm_read", user, reason, {"corrections": len(corr), "items": corr[:20]})
+        return {"corrections": corr, "equipment": len(clean["equipment"]), "connections": len(clean["connections"])}
+
     def build(self):
         """The agent reads the P&ID and data sheet and builds + calibrates the DWSIM model itself."""
         if self.pid is None and self.cfg.get("pid_pdf"):
             self.read_drawing()
+        if self.cfg.get("pid_pdf") and not (self.pid or {}).get("confirmed"):
+            raise ValueError("confirm the drawing read first: check Muse's reading of the schematic and correct it before a model is built")
         t0, usd0 = time.time(), llm.spent()
         llm.TAG = "plant:" + self.name
         sub = self.loop("build", "You are a process engineer building a steady-state simulation model of a unit from its P&ID. " + RULES,
@@ -337,7 +395,8 @@ class PlantWorkspace(Study):
         self.built = {"label": sub["label"] if sub["label"] in self.runs else list(self.runs)[-1], "spec": run["spec"],
                       "result": run["result"], "mapping": sub.get("mapping"), "calibration": sub.get("calibration"),
                       "assumptions": sub.get("assumptions"), "model": self.model,
-                      "coverage": coverage(self.pid, run["spec"]) if self.pid else None, "seconds": round(time.time() - t0),
+                      "coverage": coverage(self.pid, run["spec"]) if self.pid else None,
+                      "read_corrections": len((self.pid or {}).get("corrections") or []), "seconds": round(time.time() - t0),
                       "cost_usd": round(llm.spent() - usd0, 4), "at": time.strftime("%Y-%m-%d %H:%M")}
         self.model_file.write_text(json.dumps(self.built, indent=1))
         self.revisions = []
@@ -531,5 +590,11 @@ if __name__ == "__main__":
     p = patch(s, [{"path": "units.H1.area_m2", "value": 12}, {"path": "feeds.CW.m3_h", "value": 26}])
     assert p["units"][0]["area_m2"] == 12 and p["limits"]["H1"]["area_m2"] == 12 and p["feeds"]["CW"]["m3_h"] == 26
     assert s["units"][0]["area_m2"] == 10
+    o = {"loops": [{"name": "CHW", "fluid": "water", "supply_C": 8, "return_C": 13}],
+         "equipment": [{"tag": "PHE", "class": "plate heat exchanger", "count": 2, "loops": ["CHW"], "capacity_kW": 750}],
+         "connections": [{"from": "PHE", "to": "RDHX", "loop": "CHW"}]}
+    c = {"loops": o["loops"], "equipment": [{**o["equipment"][0]}, {"tag": "CH", "class": "chiller", "count": 2, "loops": ["CHW"], "capacity_kW": 1758}],
+         "connections": [{"from": "CH", "to": "PHE", "loop": "CHW"}]}
+    assert read_corrections(o, c) == ["equipment added: CH (chiller)", "connection added: CH -> PHE (CHW)", "connection removed: PHE -> RDHX (CHW)"], read_corrections(o, c)
     assert limit_changes({"changes": [{"path": "limits.H1.area_m2", "value": 99}, {"path": "units.H1.area_m2", "value": 12}]}) == ["limits.H1.area_m2"]
     print("ok")
