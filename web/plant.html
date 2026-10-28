@@ -199,7 +199,7 @@ async function load() {
   if (P.data_note) { $('note').textContent = '⚠ ' + P.data_note; $('note').style.display = 'block'; }
   const hi = Math.max(150, Math.ceil(P.target_scale * 100 / 10) * 10 + 30);
   $('scale').max = hi; $('maxLbl').textContent = hi + '%';
-  $('pidStats').textContent = `${P.pid.equipment.length} equipment · ${P.pid.connections.length} connections · ${P.pid.valves.length} valves · ${P.pid.control.length} signals`;
+  if (P.drawing !== 'none') $('pidStats').textContent = `${P.pid.equipment.length} equipment · ${P.pid.connections.length} connections · ${P.pid.valves.length} valves · ${P.pid.control.length} signals`;
   const feed = Object.entries(P.built?.spec?.feeds || {}).find(([k, f]) => !f.utility);
   base = P.throughput ? {name: P.throughput.name, m3_h: P.throughput.base, unit: P.throughput.unit} :
     feed ? {name: feed[0], m3_h: feed[1].m3_h ?? feed[1].kg_h, unit: feed[1].m3_h != null ? 'm³/h' : 'kg/h'} : null;
