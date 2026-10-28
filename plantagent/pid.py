@@ -110,6 +110,11 @@ def parse(path):
         for ref in asys.iterfind(".//Association[@Type='refers to']"):
             for a_id in act:
                 sig_edges.append(dict(src=a_id, dst=ref.get("ItemID"), type="actuates"))
+    # vendor exports reference connection targets this reader does not model (e.g. off-page items): keep them as boundaries
+    for e in pipe_edges + sig_edges:
+        for k in ("src", "dst"):
+            if e[k] and e[k] not in nodes:
+                nodes[e[k]] = dict(id=e[k], kind="line_end", cls="Boundary", tag=None, attrs={})
     return dict(nodes=nodes, pipe_edges=pipe_edges, signal_edges=sig_edges, owner=owner)
 
 
@@ -119,7 +124,7 @@ def equipment_paths(g):
     adj = defaultdict(list)
     for e in g["pipe_edges"]:
         adj[own(e["src"])].append((own(e["dst"]), e))
-    terminal = lambda i: g["nodes"][i]["kind"] in ("equipment", "offpage", "line_end")
+    terminal = lambda i: g["nodes"].get(i, {"kind": "line_end"})["kind"] in ("equipment", "offpage", "line_end")
     paths = []
     for start in [n for n in adj if terminal(n)]:
         stack = [(start, [], [])]
