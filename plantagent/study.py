@@ -321,6 +321,21 @@ class Study:
             r = self.profiles[a["label"]]
             fresh = [profile.run(r["spec"], float(q)) for q in r["flows"]]
             return {"label": a["label"], "matches_logged_result": fresh == r["results"], "results": fresh, "spec": r["spec"]}
+        if name == "rerun" and a["label"] in self.surges and (self.surges[a["label"]].get("args") or {}).get("tool") == "dwsim":
+            r = self.surges[a["label"]]
+            sp = r["spec"]
+            if "units" in sp:
+                fresh = process.run(sp, float((r.get("result") or {}).get("scale") or 1.0))
+            elif "T1_C" in sp:
+                fresh = process.blocked_in(sp["compounds"], sp["x"], sp["T1_C"], sp["P1_bar"], sp["T2_C"])
+            elif "points" in sp:
+                fresh = process.props(sp["compounds"], sp["x"], sp["points"])
+            else:
+                fresh = process.bubble(sp["compounds"], sp["x"], sp["T_C"])
+            return {"label": a["label"], "matches_logged_result": fresh == r["result"], "result": fresh}
+        if name == "rerun" and a["label"] not in self.runs:
+            return {"label": a["label"], "matches_logged_result": False,
+                    "error": f"no logged run with this label; logged: {sorted(list(self.runs) + list(self.profiles) + list(self.surges))[:40]}"}
         if name == "rerun":
             r = self.runs[a["label"]]
             fresh = sim.run(r["spec"])

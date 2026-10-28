@@ -380,6 +380,24 @@ def edit(ws, label, element_id, field, value, source="properties panel"):
     return {"label": new, "revision": rev, "capacity": profile.capacity(spec)}
 
 
+LIMIT_FIELDS = {"max_ws_ft", "min_ws_ft", "max_flow_mgd"}
+
+
+def _loosened_limits(ws, run):
+    """Limits a cited profile run relaxes against the current model (same element ids)."""
+    base = ws.profiles.get(current_label(ws), {}).get("spec") or {}
+    cur = {e["id"]: e for e in [base.get("start", {})] + base.get("elements", []) if e}
+    out = []
+    for e in [run["spec"].get("start", {})] + run["spec"].get("elements", []):
+        b = cur.get(e.get("id"))
+        for f in ("max_ws_ft", "max_flow_mgd"):
+            if b and f in b and e.get(f) is not None and float(e[f]) > float(b[f]) + 1e-9:
+                out.append(f"{e['id']}.{f} {b[f]} -> {e[f]}")
+        if b and "min_ws_ft" in b and e.get("min_ws_ft") is not None and float(e["min_ws_ft"]) < float(b["min_ws_ft"]) - 1e-9:
+            out.append(f"{e['id']}.min_ws_ft {b['min_ws_ft']} -> {e['min_ws_ft']}")
+    return out
+
+
 def preview(ws, p):
     """What a proposed model change does, before the engineer accepts it (no revision logged)."""
     from . import profile
@@ -397,13 +415,21 @@ def preview(ws, p):
             lims = [x for x in (_profile_limit(r["spec"], e["id"]) for e in els) if x is not None]
             if lims:
                 proved, proof = min(lims), f"gravity profile {run_label}: binding limit of {', '.join(e['id'] for e in els)}"
+        loosened = _loosened_limits(ws, r) if r and "elements" in r.get("spec", {}) else []
+        if loosened:
+            proved, proof = None, None
         ok = proved is not None and proved >= q
-        why = ("no simulator run cited" if not r else "the cited run has no computed limit for this unit (nothing to verify)"
+        why = ("no simulator run cited" if not r else f"the cited run raises documented limits ({', '.join(loosened)})" if loosened
+               else "the cited run has no computed limit for this unit (nothing to verify)"
                if proved is None else f"solver gives {proved:g} MGD < {q:g}" if not ok else "")
         return {"kind": "unit", "target_mgd": q, "old": next((u["capacity_mgd"] for u in unit_capacities(ws) if u["unit"] == p.get("unit")), None),
                 "value": proved, "claimed_mgd": p.get("capacity_mgd"), "element": p.get("unit"), "field": "capacity_mgd",
                 "passes_after": bool(ok), "proved_mgd": proved, "proof": proof, "failing_after": [why] if why else []}
     label = p.get("profile_label") if p.get("profile_label") in ws.profiles else current_label(ws)
+    if p.get("field") in LIMIT_FIELDS:  # a documented limit does not move without a physical change behind it
+        return {"profile_label": label, "old": None, "target_mgd": target_flow(ws), "passes_before": None, "passes_after": False,
+                "failing_after": [f"{p['field']} is a documented limit: it only changes with a physical modification and its own "
+                                  "evidence, so the simulator cannot verify this"], "unverified_reason": "changes a documented limit"}
     spec, old = _changed_spec(ws.profiles[label]["spec"], p["element"], p["field"], p["value"])
     q = target_flow(ws)
     before, after = profile.run(ws.profiles[label]["spec"], q), profile.run(spec, q)

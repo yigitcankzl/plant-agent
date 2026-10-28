@@ -168,7 +168,17 @@ async function projects() {
 }
 
 async function load() {
+  try { await loadInner(); } catch (e) {  // never leave the page on "Loading…"
+    const msg = `Could not load this project: ${esc(e.message || e)}. Check that the PlantAgent server is running (python -m plantagent.web) and reload.`;
+    $('eqlist').innerHTML = `<div class="empty" style="color:var(--fail)">${msg}</div>`;
+    $('sheet').innerHTML = `<div class="empty" style="color:var(--fail);padding:30px">${msg}</div>`;
+    $('verdict').textContent = 'Not loaded';
+  }
+}
+
+async function loadInner() {
   P = await api('project');
+  if (P.error) throw new Error(P.error);
   document.title = 'PlantAgent · ' + P.title;
   if (P.drawing === 'none') {  // no drawing: draw the agent's own flowsheet, one box per unit in flow order
     const us = P.built?.spec?.units || [], W = 150, H = 54, gap = 46, cols = Math.min(6, Math.max(1, us.length));
@@ -183,13 +193,15 @@ async function load() {
       <text x="${p.x + W / 2}" y="${p.y + 40}" text-anchor="middle" font-size="11" fill="#555" font-family="sans-serif">${esc(NAMES[u.type] || u.type)}</text></g>`; });
     $('sheet').innerHTML = svgs + '</svg>';
   } else if (P.drawing === 'svg') {
-    $('sheet').innerHTML = await fetch(`/api/plant/${CASE}/svg`).then(r => r.text());
+    const r = await fetch(`/api/plant/${CASE}/svg`);
+    if (!r.ok) throw new Error(`the P&ID drawing did not load (HTTP ${r.status})`);
+    $('sheet').innerHTML = await r.text();
   } else {  // a PDF schematic read by Muse vision: the sheet as an image, one positioned box per tag
     $('sheet').innerHTML = `<img src="/api/plant/${CASE}/sheet.png" alt="schematic">` + Object.entries(P.pid.positions || {}).map(([t, p]) => {
       const [x0, y0, x1, y1] = p.box, pad = .012;
       return `<div class="tagbox" data-tag="${esc(t)}" title="${esc(t)} (${esc(p.source)})" style="left:${(x0 - pad) * 100}%;top:${(y0 - pad) * 100}%;width:${(x1 - x0 + 2 * pad) * 100}%;height:${(y1 - y0 + 2 * pad) * 100}%"></div>`;
     }).join('');
-    await new Promise(r => { const im = $('sheet').querySelector('img'); im.complete ? r() : im.onload = r; });
+    await new Promise((r, x) => { const im = $('sheet').querySelector('img'); im.complete ? r() : (im.onload = r, im.onerror = () => x(new Error('the drawing image did not load'))); });
   }
   $('sheet').querySelectorAll('[data-tag]').forEach(g => { if (g.dataset.tag) g.onclick = () => select(g.dataset.tag); });
   $('safetySec').style.display = P.drawing === 'svg' ? '' : 'none';  // the relief scan needs a smart (DEXPI) P&ID
@@ -364,23 +376,23 @@ function ans(a, idx) {
   const cb = a.combined, comb = cb && !cb.error ? `<div class="card ${cb.reaches_target ? 'ok' : 'fail'}"><div class="tt">All ${a.proposals.length} changes together · re-solved in DWSIM</div>
     <div class="res">${cb.reaches_target ? '✓ Reaches ' + Math.round(P.target_scale * 100) + '%' : '✗ Short of target'} · new maximum ${Math.round((cb.capacity_multiple || 0) * 100)}% (${esc(cb.limited_by?.id || '')})</div></div>` : '';
   return `<div class="ans"><div class="rq">› ${esc(a.request)}</div><div class="hl">${esc(a.headline)}</div><div class="sm">${esc(a.summary)}</div>${props}${comb}${cards}
-    <div class="meta">${a.seconds}s · $${(a.cost_usd || 0).toFixed(4)} · ${(a.checks || []).filter(c => c.ok).length}/${(a.checks || []).length} cited runs found in the log</div></div>`;
+    <div class="meta">${a.seconds}s · $${(a.cost_usd || 0).toFixed(4)} · ${(a.checks || []).filter(c => c.ok).length}/${(a.checks || []).length} cited runs re-solved to the same result${(a.checks || []).filter(c => !c.ok).map(c => ` · <span style="color:var(--fail)">✗ ${esc(c.item)}: ${esc(c.why || 'not reproduced')}</span>`).join('')}</div></div>`;
 }
 
 function prop(p, i, j) {
   const spec = P.built.spec, units = Object.fromEntries(spec.units.map(u => [u.id, u]));
   const cur = path => { const [k, id, f] = path.split('.'); const o = k === 'units' ? units[id] : (spec[k] || {})[id]; return o ? o[f] : undefined; };
   const diff = (p.changes || []).map(c => `<div><span class="m">- ${esc(c.path)} = ${esc(('from' in c ? c.from : cur(c.path)) ?? '—')}</span><br><span class="p">+ ${esc(c.path)} = ${esc(c.value)}</span></div>`).join('');
-  const v = p.verified ? `<span class="vb y">✓ DWSIM: ${esc(p.fixes || '')} within limits at ${Math.round(P.target_scale * 100)}%</span>`
-    : `<span class="vb n">✗ ${p.error ? 'did not solve' : esc((p.still_over?.[0] || p.breaks?.[0] || {}).id || '') + ' still over its limit'}</span>`;
+  const v = p.verified ? `<span class="vb y" title="Re-solved in DWSIM with this change at ${Math.round(P.target_scale * 100)}% throughput; every limit of ${esc(p.fixes || '')} within 100 %, nothing else pushed over.">✓ Simulated: ${esc(p.fixes || '')} within limits at ${Math.round(P.target_scale * 100)}%</span>`
+    : `<span class="vb n">✗ ${p.unverified_reason ? 'Not verifiable: ' + esc(p.unverified_reason) : p.error ? 'did not solve' : esc((p.still_over?.[0] || p.breaks?.[0] || {}).id || '') + ' still over its limit'}</span>`;
   return `<div class="prop ${p.accepted ? 'done' : ''}"><div class="ph"><b>${esc(p.title)}</b><span class="vb" style="color:var(--muted)">${esc(p.cost_class || '')}</span></div>
     <div class="diff">${diff}</div>${p.why ? `<div class="diff" style="color:var(--muted);font-family:var(--sans)">${esc(p.why)}</div>` : ''}
-    <div class="pf">${v}${p.verified ? `<button class="btn go" onclick="accept(${i},${j})">Accept</button><button class="btn" onclick="this.closest('.prop').remove()">Reject</button>` : ''}${p.accepted ? '<span class="vb y">accepted</span>' : ''}</div></div>`;
+    <div class="pf">${v}${p.verified ? `<button class="btn go" onclick="accept(${i},${j})" title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature.">Apply as draft model revision</button><button class="btn" onclick="this.closest('.prop').remove()">Dismiss</button>` : ''}${p.accepted ? '<span class="vb y">applied as draft revision</span>' : ''}</div></div>`;
 }
 
 async function accept(i, j) {
   const p = P.answers[i].proposals[j];
-  const reason = prompt('Reason for this change (kept in the audit trail):', p.title || '');
+  const reason = prompt('Applying this as a DRAFT model revision (not an engineering approval). Reason, kept in the audit trail:', p.title || '');
   if (!reason) return;
   const r = await api('accept', {proposal: p, reason});
   if (r.error) { alert(r.error); return; }

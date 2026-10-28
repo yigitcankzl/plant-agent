@@ -44,6 +44,12 @@ ANSWER = submit("answer", "Final answer, shown on the P&ID and as calc cards (no
 }, ["headline", "summary", "cards"])
 
 
+def limit_changes(p):
+    """Paths in a proposal that edit the limits themselves rather than the plant. Installed exchanger area is physical
+    (patch moves its area limit with it), so only explicit limits.* edits count."""
+    return [c["path"] for c in p.get("changes") or [] if str(c.get("path", "")).startswith("limits.")]
+
+
 def patch(spec, changes):
     """Apply dotted-path changes to a copy of the spec. Installed HX area also moves the area limit (same plates)."""
     s = copy.deepcopy(spec)
@@ -305,7 +311,11 @@ class PlantWorkspace(Study):
         sub = self.loop("build", "You are a process engineer building a steady-state simulation model of a unit from its P&ID. " + RULES,
                         f"Unit: {self.cfg['title']}\n\nRead the P&ID and the operating data sheet. Build the DWSIM flowsheet "
                         "with run_process, following the P&ID topology exactly: every process equipment item as a unit with its "
-                        "P&ID tag as id, recirculation loops closed with a recycle unit, control valves that carry flow as valves "
+                        "P&ID tag as id, recirculation loops closed with a recycle unit only where the loop temperature is set by "
+                        "mixing (e.g. a tank fed by fresh product and a recirculation); a closed circulating loop held at a "
+                        "known supply temperature (chilled water, a coolant loop) is modelled once-through instead: a feed at "
+                        "its supply temperature and flow, through its heat loads, to the exchanger or chiller that returns it "
+                        "to supply temperature. Control valves that carry flow as valves "
                         "with their tags, utilities as feeds with utility: true. Where the site datasheets contradict P&ID "
                         "attributes, use the site data and list the conflict as an assumption; also act on the P&ID data_quality "
                         "warnings. Put in `limits` EVERY rating and requirement you can cite: pump rated and minimum flow, motor "
@@ -315,7 +325,7 @@ class PlantWorkspace(Study):
                         "(temperatures, flows, pressure drops) and report measured vs simulated. Run check_coverage on your final "
                         "model and fix every missing connection that carries normal flow. Then call submit_model. If there are project "
                         "documents, search them and read only the pages with the equipment data you need (datasheets), at most 6.",
-                        self.tools() + [SUBMIT_MODEL], "submit_model", 22)
+                        self.tools() + [SUBMIT_MODEL], "submit_model", 30)
         run = self.runs.get(sub["label"]) or list(self.runs.values())[-1]
         self.built = {"label": sub["label"] if sub["label"] in self.runs else list(self.runs)[-1], "spec": run["spec"],
                       "result": run["result"], "mapping": sub.get("mapping"), "calibration": sub.get("calibration"),
@@ -335,6 +345,12 @@ class PlantWorkspace(Study):
         """Re-solve a proposal in DWSIM at the target throughput. It is verified when every limit of the equipment it targets
         is within 100 % and it pushes no other limit over 100 % that was within it before."""
         target = float(self.cfg.get("target_scale", 1.0))
+        loosened = limit_changes(p)
+        if loosened:  # a documented rating does not move without a physical change behind it
+            return {"verified": False, "fixes": p.get("tag"), "still_over": [], "breaks": [], "capacity_multiple": None,
+                    "limited_by": None, "reaches_target": False, "over_limits_at_target": [], "target_scale": target,
+                    "unverified_reason": "changes a documented limit (" + ", ".join(loosened) + "): a rating only changes with a "
+                                         "physical modification and its own evidence, so this cannot be verified in the simulator"}
         before = {(c["id"], c["check"]): c["utilisation"] for c in self.state(target)["checks"] if "utilisation" in c}
         spec = patch(self.spec, p.get("changes") or [])
         at = process.run(spec, target)
@@ -388,12 +404,23 @@ class PlantWorkspace(Study):
                 ans["combined"] = {k: both[k] for k in ("reaches_target", "capacity_multiple", "limited_by", "over_limits_at_target")}
             except Exception as e:  # noqa: BLE001
                 ans["combined"] = {"error": f"{type(e).__name__}: {e}"}
-        logged = set(self.runs)
-        ans["checks"] = [{"item": f"run {r}", "ok": r in logged} for c in ans["cards"] for r in (c.get("runs") or [])]
+        ans["checks"] = [self.reproduce(r) for r in dict.fromkeys(r for c in ans["cards"] for r in (c.get("runs") or []))]
         ans.update(seconds=round(time.time() - t0), cost_usd=round(llm.spent() - usd0, 4), request=text)
         self.answers.append(ans)
         (self.dir / "answers.json").write_text(json.dumps(self.answers, indent=1))
         return ans
+
+    def reproduce(self, label):
+        """A cited run counts only if it exists and re-solves to the same result now."""
+        r = self.runs.get(label)
+        if not r:
+            return {"item": f"run {label}", "ok": False, "why": "not in the log"}
+        try:
+            fresh = process.run(r["spec"], float(r.get("scale") or 1.0))
+        except Exception as e:  # noqa: BLE001
+            return {"item": f"run {label}", "ok": False, "why": f"does not re-solve: {e}"}
+        same = fresh.get("units") == (r.get("result") or {}).get("units")
+        return {"item": f"run {label}", "ok": same, "why": "" if same else "re-solved to a different result"}
 
     def accept(self, p, user=None, reason=None):
         """Accept a verified proposal as a new revision. Revisions are kept on disk and never deleted."""
@@ -479,4 +506,5 @@ if __name__ == "__main__":
     p = patch(s, [{"path": "units.H1.area_m2", "value": 12}, {"path": "feeds.CW.m3_h", "value": 26}])
     assert p["units"][0]["area_m2"] == 12 and p["limits"]["H1"]["area_m2"] == 12 and p["feeds"]["CW"]["m3_h"] == 26
     assert s["units"][0]["area_m2"] == 10
+    assert limit_changes({"changes": [{"path": "limits.H1.area_m2", "value": 99}, {"path": "units.H1.area_m2", "value": 12}]}) == ["limits.H1.area_m2"]
     print("ok")
