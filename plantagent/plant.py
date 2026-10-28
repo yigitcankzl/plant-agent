@@ -63,6 +63,50 @@ def patch(spec, changes):
     return s
 
 
+def coverage(pid_ov, spec):
+    """Which P&ID equipment-to-equipment connections the model reproduces, and which equipment it leaves out."""
+    tags = {e["tag"] for e in pid_ov["equipment"] if e["tag"]}
+    units = {u["id"]: u for u in spec.get("units", [])}
+    outs, ins = {}, {}
+    for u in units.values():
+        for k, d in (("in", ins), ("out", outs), ("cold", None), ("hot", None)):
+            v = u.get(k)
+            if k in ("cold", "hot") and v:
+                ins.setdefault(v[0], []).append(u["id"]); outs.setdefault(v[1], []).append(u["id"])
+            elif v and d is not None:
+                for name in (v if isinstance(v, list) else [v]):
+                    d.setdefault(name, []).append(u["id"])
+    nxt = {}
+    for st, srcs in outs.items():
+        for a in srcs:
+            nxt.setdefault(a, set()).update(ins.get(st, []))
+    for u in units.values():  # a recycle hands its stream on to whoever reads the tear stream
+        if u["type"] == "recycle":
+            nxt.setdefault(u["id"], set()).update(ins.get(u["out"], []))
+
+    def reaches(a, b):
+        seen, todo = set(), [a]
+        while todo:
+            x = todo.pop()
+            for y in nxt.get(x, ()):
+                if y == b:
+                    return True
+                if y not in seen and y not in tags:  # pass through valves, mixers, splitters, recycles only
+                    seen.add(y); todo.append(y)
+        return False
+
+    tag_of = lambda s: s.split("(")[0]  # noqa: E731
+    rows = []
+    for c in pid_ov["connections"]:
+        a, b = tag_of(c["from"]), tag_of(c["to"])
+        if a in tags and b in tags and a != b:
+            relief = any("SafetyValve" in v for v in c["inline"])  # a relief path carries no normal flow
+            rows.append({"from": a, "to": b, "lines": c["lines"], "relief_path": relief,
+                         "modelled": a in units and b in units and reaches(a, b)})
+    return {"connections": rows, "missing_connections": [r for r in rows if not r["modelled"] and not r["relief_path"]],
+            "missing_equipment": sorted(tags - set(units))}
+
+
 class PlantWorkspace(Study):
     def __init__(self, case_name, model="muse-spark-1.3-contributor"):
         self.name, self.model = case_name, model
@@ -79,6 +123,11 @@ class PlantWorkspace(Study):
         if self.built:
             self.runs[self.built["label"]] = {"spec": self.built["spec"], "purpose": "calibrated model", "result": self.built.get("result")}
         self._state = {}
+        # pick up the answers of the latest session made on this same model, so a restart keeps the engineer's thread
+        for prev in sorted((ROOT / "runs" / "ws" / case_name).glob("2*/answers.json"), reverse=True):
+            if prev.parent != self.dir and self.built and prev.stat().st_mtime > self.model_file.stat().st_mtime:
+                self.answers = json.loads(prev.read_text())
+                break
 
     @property
     def spec(self):
@@ -102,6 +151,13 @@ class PlantWorkspace(Study):
             f("process_capacity", "Throughput multiple of a logged run at which the first stated limit reaches 100 %, and which.",
               {"label": S}, ["label"]),
             f("get_spec", "Full spec of a logged run (the calibrated model is preloaded), to copy and modify.", {"label": S}, ["label"]),
+            f("check_coverage", "Compare a logged run's flowsheet with the P&ID: which equipment-to-equipment connections (by line "
+                                "number) the model reproduces, which it misses, and which P&ID equipment it leaves out.",
+              {"label": S}, ["label"]),
+            f("blocked_in_pressure", "DWSIM: pressure a liquid-full, blocked-in vessel reaches when heated from T1 to T2 "
+                                     "(API 521 hydraulic expansion), for relief checks.",
+              {"compounds": {"type": "array", "items": S}, "x": {"type": "object"}, "T1_C": N, "P1_bar": N, "T2_C": N},
+              ["compounds", "x", "T1_C", "P1_bar", "T2_C"]),
         ]
 
     def call(self, name, a):
@@ -119,6 +175,11 @@ class PlantWorkspace(Study):
             r = self.runs[a["label"]]
             r["capacity"] = process.capacity(r["spec"])
             return {"label": a["label"], **r["capacity"]}
+        if name == "check_coverage":
+            r = self.runs.get(a["label"])
+            return coverage(self.pid, r["spec"]) if r else {"error": f"unknown label; logged: {list(self.runs)}"}
+        if name == "blocked_in_pressure":
+            return process.blocked_in(a["compounds"], a["x"], a["T1_C"], a["P1_bar"], a["T2_C"])
         if name == "get_spec":
             r = self.runs.get(a["label"])
             return {"label": a["label"], "spec": r["spec"]} if r else {"error": f"unknown label; logged: {list(self.runs)}"}
@@ -130,16 +191,22 @@ class PlantWorkspace(Study):
         llm.TAG = "plant:" + self.name
         sub = self.loop("build", "You are a process engineer building a steady-state simulation model of a unit from its P&ID. " + RULES,
                         f"Unit: {self.cfg['title']}\n\nRead the P&ID and the operating data sheet. Build the DWSIM flowsheet "
-                        "with run_process: every process equipment item on the main flow path as a unit with its P&ID tag as id, "
-                        "utilities as feeds with utility: true, and `limits` holding EVERY rating and requirement you can cite "
-                        "(pump rated flow and power from the P&ID, exchanger installed area and the outlet temperature the process "
-                        "needs, frame limits, tank residence time, utility supply limits on the utility feed streams). Calibrate "
-                        "against the measured temperatures in the data sheet and report measured vs simulated. Then call submit_model.",
-                        self.tools() + [SUBMIT_MODEL], "submit_model", 14)
+                        "with run_process, following the P&ID topology exactly: every process equipment item as a unit with its "
+                        "P&ID tag as id, recirculation loops closed with a recycle unit, control valves that carry flow as valves "
+                        "with their tags, utilities as feeds with utility: true. Where the site datasheets contradict P&ID "
+                        "attributes, use the site data and list the conflict as an assumption; also act on the P&ID data_quality "
+                        "warnings. Put in `limits` EVERY rating and requirement you can cite: pump rated and minimum flow, motor "
+                        "power, NPSHr and relief set pressure; exchanger installed area with the outlet temperature the process "
+                        "needs, frame limit and available pressure drop; tank hold time; product temperature limits; utility "
+                        "supply limits on the utility feed streams. Calibrate against EVERY measured value in the data sheet "
+                        "(temperatures, flows, pressure drops) and report measured vs simulated. Run check_coverage on your final "
+                        "model and fix every missing connection that carries normal flow. Then call submit_model.",
+                        self.tools() + [SUBMIT_MODEL], "submit_model", 22)
         run = self.runs.get(sub["label"]) or list(self.runs.values())[-1]
         self.built = {"label": sub["label"] if sub["label"] in self.runs else list(self.runs)[-1], "spec": run["spec"],
                       "result": run["result"], "mapping": sub.get("mapping"), "calibration": sub.get("calibration"),
-                      "assumptions": sub.get("assumptions"), "model": self.model, "seconds": round(time.time() - t0),
+                      "assumptions": sub.get("assumptions"), "model": self.model,
+                      "coverage": coverage(self.pid, run["spec"]), "seconds": round(time.time() - t0),
                       "cost_usd": round(llm.spent() - usd0, 4), "at": time.strftime("%Y-%m-%d %H:%M")}
         self.model_file.write_text(json.dumps(self.built, indent=1))
         self._state = {}
@@ -172,8 +239,10 @@ class PlantWorkspace(Study):
         ans = self.loop("ask", "You are the process engineering copilot inside the engineer's P&ID workspace. The calibrated DWSIM "
                         "model is preloaded (get_spec, then modify and re-run). Answer quickly and precisely and finish with "
                         "`answer`: a plain headline, calc cards, highlights on P&ID tags, and for a fix, proposals as model "
-                        "changes (paths into the spec) that respect every utility and frame limit in the data sheet. Prefer the "
-                        "cheapest fix that works (operating changes, cleaning) before new equipment. Write for a non-specialist; "
+                        "changes (paths into the spec) that respect every utility and frame limit in the data sheet. Give one "
+                        "proposal per limiting equipment item, each with its tag. Prefer the cheapest fix that works: operating "
+                        "changes within documented limits (levels, setpoints, utility flows), then cleaning a fouled exchanger "
+                        "back to its documented clean performance, and only then new equipment. Write for a non-specialist; "
                         "no acronyms in the headline. " + RULES,
                         json.dumps(brief) + "\n\nRequest: " + text + (f"\nContext: {json.dumps(context)}" if context else ""),
                         self.tools() + [ANSWER], "answer", 10)
@@ -225,18 +294,38 @@ class PlantWorkspace(Study):
         return {"revisions": self.revisions}
 
     def state(self, scale=1.0):
-        """Solved unit at a throughput multiple: what the P&ID view colours. Cached per spec and scale."""
+        """Solved unit at a throughput multiple: what the P&ID view colours. Cached per spec and scale.
+        Without DWSIM installed (a judge's clean clone) the unmodified model replays precomputed DWSIM solutions."""
         if not self.built:
             return None
         key = hashlib.sha1(json.dumps([self.spec, round(scale, 3)], sort_keys=True).encode()).hexdigest()
         if key not in self._state:
-            self._state[key] = {"scale": scale, **process.run(self.spec, scale)}
+            if process.available():
+                self._state[key] = {"scale": scale, **process.run(self.spec, scale)}
+            else:
+                demo = self._demo()
+                if not demo or demo["spec"] != self.spec:
+                    raise RuntimeError("DWSIM is not installed and there are no precomputed solutions for this model")
+                near = min(demo["states"], key=lambda st: abs(st["scale"] - scale))
+                self._state[key] = {**near, "replayed": True}
         return self._state[key]
+
+    def _demo(self):
+        f = self.model_file.with_name("states.json")
+        return json.loads(f.read_text()) if f.exists() else None
+
+    def precompute(self):
+        """Store DWSIM solutions from 80 % to 150 % throughput, so the slider works without DWSIM."""
+        states = [{"scale": round(x / 100, 2), **process.run(self.spec, x / 100)} for x in range(80, 151)]
+        self.model_file.with_name("states.json").write_text(json.dumps({"spec": self.spec, "capacity": process.capacity(self.spec),
+                                                                        "states": states}))
+        return len(states)
 
     def capacity(self):
         key = "cap:" + hashlib.sha1(json.dumps(self.spec, sort_keys=True).encode()).hexdigest()
         if key not in self._state:
-            self._state[key] = process.capacity(self.spec)
+            demo = None if process.available() else self._demo()
+            self._state[key] = demo["capacity"] if demo and demo["spec"] == self.spec else process.capacity(self.spec)
         return self._state[key]
 
 

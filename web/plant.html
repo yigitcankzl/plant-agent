@@ -119,6 +119,7 @@
 
   <main>
     <div class="progress" id="progress"></div>
+    <div id="note" style="display:none;margin:8px 18px 0;padding:6px 10px;border:1px solid #5a4a2a;border-radius:5px;color:var(--warn);font-size:12px"></div>
     <div class="stage"><div class="sheet" id="sheet"></div></div>
   </main>
 
@@ -160,6 +161,7 @@ async function load() {
   const svg = await fetch(`/api/plant/${CASE}/svg`).then(r => r.text());
   $('sheet').innerHTML = svg;
   $('sheet').querySelectorAll('g[data-tag]').forEach(g => { if (g.dataset.tag) g.onclick = () => select(g.dataset.tag); });
+  if (P.data_note) { $('note').textContent = '⚠ ' + P.data_note; $('note').style.display = 'block'; }
   $('pidStats').textContent = `${P.pid.equipment.length} equipment · ${P.pid.connections.length} connections · ${P.pid.valves.length} valves · ${P.pid.control.length} signals`;
   const feed = Object.entries(P.built?.spec?.feeds || {}).find(([k, f]) => !f.utility);
   base = feed ? {name: feed[0], m3_h: feed[1].m3_h ?? feed[1].kg_h, unit: feed[1].m3_h != null ? 'm³/h' : 'kg/h'} : null;
@@ -180,7 +182,11 @@ function model() {
   if (!b) { $('modelBox').innerHTML = ''; return; }
   $('builtBy').textContent = `${b.model.replace('muse-', '').replace('-contributor', '')} · ${b.seconds}s`;
   $('modelBox').innerHTML = `<div class="why" style="color:var(--muted);font-size:11.5px;margin-bottom:6px">DWSIM flowsheet built by the agent from the P&amp;ID, ${b.spec.units.length} units. Calibration:</div>` +
-    (b.calibration || []).map(c => `<div class="kv"><span>${esc(c.item)}</span>${esc(String(c.simulated).split(' (')[0])} <span>vs ${esc(String(c.measured).split(' (')[0])}</span></div>`).join('') +
+    `<details><summary>${(b.calibration || []).length} measured values reproduced</summary>` +
+    (b.calibration || []).map(c => `<div class="kv"><span>${esc(c.item)}</span>${esc(String(c.simulated).split(' (')[0])} <span>vs ${esc(String(c.measured).split(' (')[0])}</span></div>`).join('') + `</details>` +
+    (b.coverage ? `<div class="kv" style="margin-top:6px"><span>P&amp;ID coverage</span>${b.coverage.connections.filter(c => c.modelled).length} of ${b.coverage.connections.filter(c => !c.relief_path).length} flow connections ${b.coverage.missing_connections.length || b.coverage.missing_equipment.length ? '<b style="color:var(--fail)">✗</b>' : '<b style="color:var(--ok)">✓</b>'}</div>
+      <div style="color:var(--muted);font-size:11px">${b.coverage.connections.filter(c => c.relief_path).length} relief path(s) excluded: no normal flow</div>` : '') +
+    ((P.pid.data_quality || []).length ? `<details style="margin-top:6px"><summary style="color:var(--warn)">⚠ ${P.pid.data_quality.length} P&amp;ID data problems</summary>${P.pid.data_quality.map(a => `<div style="font-size:11.5px;color:var(--muted);padding:2px 0">• ${esc(a)}</div>`).join('')}</details>` : '') +
     `<details style="margin-top:6px"><summary>${(b.assumptions || []).length} assumptions</summary>${(b.assumptions || []).map(a => `<div style="font-size:11.5px;color:var(--muted);padding:2px 0">• ${esc(a)}</div>`).join('')}</details>` +
     `<div style="margin-top:8px"><button class="btn" onclick="build()">Rebuild from P&amp;ID</button></div>`;
 }
@@ -199,7 +205,8 @@ function render(st) {
   $('flowv').innerHTML = base ? `${(base.m3_h * s).toFixed(1)} <small>${base.unit} · ${s >= 1 ? '+' : ''}${Math.round((s - 1) * 100)}%</small>` : `${Math.round(s * 100)}%`;
   const rows = Object.values(w).sort((a, b) => b.utilisation - a.utilisation);
   $('eqlist').innerHTML = rows.map(c => {
-    const u = units[c.id], name = u ? NAMES[u.type] || u.type : 'Utility supply';
+    const feeds = P.built.spec.feeds || {};
+    const u = units[c.id], name = u ? NAMES[u.type] || u.type : feeds[c.id]?.utility ? 'Utility supply' : 'Process stream';
     return `<div class="eq" data-id="${esc(c.id)}" onclick="select('${esc(c.id)}')"><div class="t">${esc(c.id)} <span>${Math.round(c.utilisation * 100)}%</span></div>
       <div class="bar"><i style="width:${Math.min(100, c.utilisation / 1.3 * 100)}%;background:var(--${sev(c.utilisation)})"></i></div>
       <div class="why">${esc(name)} · ${esc(c.check)}: ${fmt(c.value)} of ${fmt(c.limit)} ${esc(c.unit)}</div></div>`;

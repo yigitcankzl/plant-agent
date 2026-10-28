@@ -42,6 +42,20 @@ def _json(path, default=None):
     return json.loads(path.read_text()) if path.exists() else default
 
 
+SIM_OF = {"run_hydraulics": "EPANET", "firm_capacity": "EPANET", "run_profile": "hydraulic profile", "run_surge": "TSNet",
+          "eps_run": "EPANET EPS", "eps_fit": "EPANET EPS", "run_process": "DWSIM", "bubble_pressure": "DWSIM",
+          "fluid_properties": "DWSIM", "blocked_in_pressure": "DWSIM"}
+
+
+def _sims_used(case, run):
+    """Simulators the agent actually called in a run (from its log), for honest labels."""
+    used = set()
+    for line in (RUNS / case / run / "log.jsonl").open():
+        if '"tool": "' in line:
+            used.add(SIM_OF.get(json.loads(line).get("tool")))
+    return sorted(u for u in used if u)
+
+
 def cases():
     out = []
     for name in all_cases():
@@ -52,7 +66,8 @@ def cases():
         out.append({"name": name, "title": c.cfg["title"], "task_type": c.cfg["task_type"], "question": c.question,
                     "benchmark": c.cfg.get("benchmark", True), "drawing_page": c.cfg.get("drawing_page"), "runs": runs,
                     "score": grade["score"] if grade else None, "judge": grade.get("judge") if grade else None,
-                    "summary": _json(RUNS / name / done[0] / "summary.json") if done else None})
+                    "summary": _json(RUNS / name / done[0] / "summary.json") if done else None,
+                    "simulators_used": _sims_used(name, done[0]) if done else []})
     return out
 
 
@@ -208,6 +223,7 @@ def plant_project(case):
     w = plant(case)
     st = w.state(float(w.cfg.get("target_scale", 1.0))) if w.built else None
     return {"case": case, "kind": "process", "title": w.cfg["title"], "source": w.cfg["source"], "question": w.cfg["question"],
+            "data_note": w.cfg.get("data_note"),
             "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid, "basis": w.basis, "model": w.model,
             "built": {k: v for k, v in w.built.items() if k != "result"} if w.built else None,
             "answers": w.answers, "revisions": [{k: r[k] for k in ("rev", "title", "changes", "capacity_multiple", "at")} for r in w.revisions],

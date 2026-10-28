@@ -54,7 +54,6 @@ const SECTORS = [
   ["Campus cooling and data centers", "❄", ["kstate_chw", "lbnl_gsa_dc"]],
   ["Canal pumping stations", "⚙", ["briare", "caen_hill", "greenwin_crissey"]],
 ];
-const SIMS = { chem_c01: ["DWSIM"], williams_geismar: ["DWSIM"], ltown: ["EPANET EPS"], stanislaus_surge: ["EPANET", "TSNet"], roseburg: ["EPANET", "profile"], stpete_swwrf: ["EPANET", "profile"] };
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 (async () => {
   const [cases, projects] = await Promise.all([fetch("/api/cases").then(r => r.json()), fetch("/api/projects").then(r => r.json())]);
@@ -78,7 +77,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
         p?.workspace ? `<a class="btn go" href="workspace.html?case=${id}">Open workspace</a>` : "";
       const replay = c?.runs?.length ? `<a class="btn" href="index.html?case=${id}">Replay blind study</a>` : "";
       return `<div class="card"><div class="t">${esc(title)}</div><div class="k">${esc(task)}</div>
-        <div class="sims">${(SIMS[id] || ["EPANET"]).map(s => `<span class="sim">${s}</span>`).join("")}</div>${score}<div class="acts">${open}${replay}</div></div>`;
+        <div class="sims">${(p?.kind === "process" ? ["DWSIM"] : c?.simulators_used?.length ? c.simulators_used : ["documents only"]).map(s => `<span class="sim">${s}</span>`).join("")}</div>${score}<div class="acts">${open}${replay}</div></div>`;
     }).join("");
     return cards ? `<h2><i>${icon}</i>${name}</h2><div class="grid">${cards}</div>` : "";
   }).join("");

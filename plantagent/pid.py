@@ -161,7 +161,37 @@ def overview(path):
     valves = [{"tag": x["tag"], "class": x["cls"], **({"set_pressure": x["attrs"]["SetPressureHigh"]} if "SetPressureHigh" in x["attrs"] else {})}
               for x in n.values() if x["kind"] == "piping_component" and "Valve" in x["cls"]]
     control = [f'{label(g, e["src"])} --{e["type"]}--> {label(g, e["dst"])}' for e in g["signal_edges"]]
-    return {"equipment": eq, "connections": paths, "lines": list(lines.values()), "valves": valves, "control": control}
+    return {"equipment": eq, "connections": paths, "lines": list(lines.values()), "valves": valves, "control": control,
+            "data_quality": lint(eq)}
+
+
+def _num(v):
+    try:
+        return float(str(v).split()[0])
+    except (ValueError, IndexError):
+        return None
+
+
+def lint(eq):
+    """Design data that does not hang together: flag it before anyone builds a model on it."""
+    out = []
+    for e in eq:
+        d = e["design"]
+        q, h, p = _num(d.get("DesignVolumeFlowRate")), _num(d.get("DesignPressureHead")), _num(d.get("DesignShaftPower"))
+        if q and h and p:
+            eff = 1000 * 9.81 * q / 3600 * h / 1000 / p
+            if not 0.3 <= eff <= 0.9:
+                out.append(f"{e['tag']}: rated {q:g} m3/h at {h:g} m needs {1000 * 9.81 * q / 3600 * h / 1000:.1f} kW hydraulic, "
+                           f"but the shaft power is {p:g} kW (implied efficiency {eff:.0%}): check the datasheet")
+        vol = _num(d.get("NominalCapacity(Volume)"))
+        for part in e["design_limits"]:
+            dn, length = _num(part.get("NominalDiameter")), _num(d.get("CylinderLength"))
+            if vol and dn and length:
+                geo = 3.14159 / 4 * (dn / 1000) ** 2 * length
+                if abs(geo / vol - 1) > 0.3:
+                    out.append(f"{e['tag']}: nominal volume {vol:g} m3 but diameter {dn:g} mm x length {length:g} m gives {geo:,.0f} m3: check the datasheet")
+                break
+    return out
 
 
 if __name__ == "__main__":

@@ -6,8 +6,8 @@
 <title>PlantAgent — AI plant engineer</title>
 <style>
   :root {
-    --paper: #f4f1ea; --ink: #1d2733; --muted: #6b7682; --line: #d6d0c3; --blue: #1f4e8c;
-    --red: #c0261f; --green: #2f7d4f; --amber: #b7791f; --card: #fffdf8;
+    --paper: #15191f; --ink: #d9e0e8; --muted: #8592a3; --line: #2e3742; --blue: #4da3ff;
+    --red: #ef5a4f; --green: #3fb67a; --amber: #e3a33a; --card: #1c2129;
     --mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     --sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   }
@@ -16,7 +16,7 @@
   header { display: flex; align-items: center; gap: 16px; padding: 12px 20px; border-bottom: 2px solid var(--ink); background: var(--card); }
   .brand { font: 700 18px var(--mono); letter-spacing: .5px; }
   .brand small { display: block; font: 500 11px var(--sans); color: var(--muted); letter-spacing: 0; }
-  header select, header button { font: 13px var(--sans); padding: 6px 10px; border: 1px solid var(--ink); background: var(--card); border-radius: 3px; }
+  header select, header button { font: 13px var(--sans); padding: 6px 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 3px; }
   header button { cursor: pointer; }
   header button.primary { background: var(--ink); color: var(--paper); }
   .spacer { flex: 1; }
@@ -26,7 +26,7 @@
   .q { padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--card); }
   .q h2 { margin: 0 0 4px; font-size: 15px; }
   .q .tt { font: 600 11px var(--mono); color: var(--blue); text-transform: uppercase; letter-spacing: .6px; }
-  .q p { margin: 6px 0 0; color: #333; font-size: 13px; }
+  .q p { margin: 6px 0 0; color: var(--ink); font-size: 13px; }
   .steps { padding: 10px 16px; border-bottom: 1px solid var(--line); display: grid; gap: 4px; }
   .step { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
   .step .dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--line); }
@@ -198,9 +198,12 @@ function follow(c, r, offset, evs) {  // live study: poll the log until the deli
 // ---- drawing + flow slider ------------------------------------------------------------------
 async function renderDrawing() {
   const p = $("#p-drawing"), c = cur.case;
-  if (!cur.profiles.length) {
-    p.innerHTML = `<div class="empty">This study has no hydraulic profile drawing.${cur.files.includes("profile_chart.png") ? "" : ""}
-      <br>Simulations are in the calc appendix (Deliverables).</div>`; return;
+  const dtab = document.querySelector('.tab[data-p="drawing"]');
+  dtab.style.display = cur.profiles.length ? "" : "none";
+  if (!cur.profiles.length) {  // no drawing in this study: open on the comparison with the engineers instead
+    p.innerHTML = "";
+    if (dtab.classList.contains("on")) document.querySelector('.tab[data-p="compare"]').click();
+    return;
   }
   const base = cur.base_profile && cur.profiles.find(x => x.label === cur.base_profile) ? cur.base_profile : cur.profiles[0].label;
   const flows = cur.profiles.find(x => x.label === base).flows.map(Number);

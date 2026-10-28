@@ -102,6 +102,12 @@ PROCESS_TOOLS = [
      "(Propane, Propylene, n-Butane, Ethane, Water, ...); x: mole fractions.",
      "parameters": {"type": "object", "properties": {"compounds": {"type": "array", "items": {"type": "string"}}, "x": {"type": "object"},
                     "T_C": {"type": "array", "items": {"type": "number"}}}, "required": ["compounds", "x", "T_C"]}}},
+    {"type": "function", "function": {"name": "blocked_in_pressure", "description": "DWSIM: pressure a liquid-full, blocked-in vessel "
+     "reaches when heated from T1_C to T2_C starting at P1_bar (API 521 hydraulic expansion, rigid vessel), with the liquid's "
+     "expansion coefficient and compressibility.",
+     "parameters": {"type": "object", "properties": {"compounds": {"type": "array", "items": {"type": "string"}}, "x": {"type": "object"},
+                    "T1_C": {"type": "number"}, "P1_bar": {"type": "number"}, "T2_C": {"type": "number"}},
+                    "required": ["compounds", "x", "T1_C", "P1_bar", "T2_C"]}}},
     {"type": "function", "function": {"name": "fluid_properties", "description": "DWSIM: density (kg/m3) and vapour fraction of a mixture "
      "at each {T_C, P_bar} point (Peng-Robinson). Use for liquid thermal expansion and fill-level calculations.",
      "parameters": {"type": "object", "properties": {"compounds": {"type": "array", "items": {"type": "string"}}, "x": {"type": "object"},
@@ -346,6 +352,10 @@ class Study:
             r = process.bubble(a["compounds"], a["x"], a["T_C"])
             self.surges[f"bubble{len(self.surges) + 1}"] = {"purpose": "DWSIM bubble pressure", "spec": a, "args": {"tool": "dwsim"}, "result": r}
             return r
+        if name == "blocked_in_pressure":
+            r = process.blocked_in(a["compounds"], a["x"], a["T1_C"], a["P1_bar"], a["T2_C"])
+            self.surges[f"blockedin{len(self.surges) + 1}"] = {"purpose": "DWSIM blocked-in liquid expansion", "spec": a, "args": {"tool": "dwsim"}, "result": r}
+            return r
         if name == "fluid_properties":
             r = process.props(a["compounds"], a["x"], a["points"])
             self.surges[f"props{len(self.surges) + 1}"] = {"purpose": "DWSIM fluid properties", "spec": a, "args": {"tool": "dwsim"}, "result": r}
@@ -441,6 +451,8 @@ class Study:
         rules = RULES + (DRAWING_RULES if drawing else "")
         sim_tools = SIM_TOOLS + ENG_TOOLS + (PROFILE_TOOLS if drawing else []) + (SURGE_TOOLS if "tsnet" in c.cfg.get("simulators", []) else []) + \
             (EPS_TOOLS if "eps" in c.cfg else []) + (PROCESS_TOOLS if "dwsim" in c.cfg.get("simulators", []) else [])
+        if c.cfg.get("simulators") == ["dwsim"]:  # a process plant: no water-network tools, water standards or water cost curves
+            sim_tools = PROCESS_TOOLS
         doc_tools = DOC_TOOLS + (PROFILE_TOOLS[:1] if drawing else [])
         llm.TAG = c.name
         usd0 = llm.spent(c.name)
