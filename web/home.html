@@ -32,17 +32,43 @@
   .sims { display: flex; gap: 5px; flex-wrap: wrap; } .sim { font: 10.5px var(--mono); color: var(--warn); border: 1px solid #5a4a2a; border-radius: 9px; padding: 0 6px; }
   .foot { color: var(--muted); font-size: 12.5px; margin-top: 34px; max-width: 900px; }
 </style>
+<link rel="stylesheet" href="design.css">
 </head>
-<body>
+<body class="landing">
 <div class="wrap">
-  <div class="logo">Plant<span>Agent</span></div>
-  <h1>An AI engineer for any plant.</h1>
-  <div class="lead">Give it the plant's drawings, P&amp;IDs, reports and data. Meta's Muse models read them, build the simulation model
-    themselves (EPANET, a hydraulic profile solver, DWSIM process simulation, TSNet), and answer like a consulting engineer, with every
-    fix verified in the simulator before the engineer accepts it. Tested blind against real engineers' conclusions.</div>
+  <header class="site-top">
+    <a class="logo" href="home.html">Plant<span>Agent</span></a>
+    <nav aria-label="Main navigation"><a href="#cases">Case library</a><a href="index.html?case=roseburg">Study replay</a></nav>
+  </header>
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="kicker">Engineering decisions, with the working shown</p>
+        <h1 id="hero-title">Know what the plant can actually take.</h1>
+        <p class="lead">PlantAgent connects source drawings, operating data and simulation runs. Explore a constraint, test a change and review the evidence before an engineer accepts it.</p>
+        <div class="hero-actions">
+          <a class="btn go" href="workspace.html?case=roseburg">Explore the water plant</a>
+          <a class="btn" href="plant.html?case=chem_c01">Explore the process unit</a>
+        </div>
+        <p class="hero-note">Existing case workspaces. Engineering output is a draft for professional review.</p>
+      </div>
+      <div class="case-board" aria-label="Featured engineering case">
+        <div class="case-board-top"><span>Featured case / Roseburg, Oregon</span><span>Water treatment</span></div>
+        <h2>Can this plant produce 18 MGD?</h2>
+        <p class="case-question">Start from a real plant drawing. Follow the limiting equipment, inspect the model and compare proposed fixes with the documented 12 MGD rating.</p>
+        <div class="case-path"><span><b>01 / Source</b>Drawing and report</span><span><b>02 / Test</b>Hydraulic model</span><span><b>03 / Decide</b>Proposals and evidence</span></div>
+        <div class="case-board-foot">Open the workspace to inspect the saved case or ask a new question.</div>
+      </div>
+    </section>
+    <section class="method" aria-label="How PlantAgent works">
+      <article><h3>Read the plant</h3><p>Find equipment and limits in drawings, P&amp;IDs, reports and operating data.</p></article>
+      <article><h3>Test the question</h3><p>Run the relevant hydraulic or process model and expose the binding constraints.</p></article>
+      <article><h3>Review the change</h3><p>See the proposal, source references, assumptions and simulator result together.</p></article>
+    </section>
+  </main>
   <div class="stats" id="stats"></div>
-  <div id="groups"></div>
-  <div class="foot">Scores: share of the real engineers' conclusions the agent reached on its own, with their conclusion pages withheld,
+  <section id="cases" aria-labelledby="cases-title"><div class="library-head"><h2 id="cases-title">Case library</h2><p>Open an interactive workspace where available, or inspect a recorded blind study.</p></div><div id="groups"></div></section>
+  <div class="foot">Benchmark scores: share of real engineers' conclusions the agent reached on its own, with their conclusion pages withheld,
     graded by a different model (muse-wonder-1.0) against an answer key taken from the withheld pages. Latest graded run per case.
     Draft engineering output for review by a licensed engineer.</div>
 </div>
@@ -64,8 +90,8 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
   const mean = graded.reduce((t, c) => t + c.score, 0) / (graded.length || 1);
   const types = new Set(graded.map(c => c.task_type));
   document.getElementById("stats").innerHTML = [
-    [projects.filter(p => p.kind !== "process").length, "real facilities (+ the DEXPI reference P&ID)"], [types.size, "kinds of engineering task"],
-    [graded.length, "blind benchmark studies"], [Math.round(mean * 100) + "%", "of engineers' conclusions reached (mean)"]]
+    [projects.filter(p => p.kind !== "process").length, "documented facilities"], [types.size, "engineering task types"],
+    [graded.length, "blind studies"], [Math.round(mean * 100) + "%", "engineer conclusions matched (model-graded mean)"]]
     .map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join("");
   document.getElementById("groups").innerHTML = SECTORS.map(([name, icon, ids]) => {
     const cards = ids.filter(id => by[id] || ws[id]).map(id => {
@@ -74,15 +100,15 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
       const task = c?.task_type || p.task_type;
       const score = c?.benchmark && c.score != null ? `<div class="score">Matched ${Math.round(c.score * 100)}% of the engineers' conclusions</div><div class="bar"><i style="width:${c.score * 100}%"></i></div>` :
         p?.kind === "process" ? `<div class="score" style="color:var(--muted)">Model built by the agent from the drawing and data sheet</div>` : `<div class="score" style="color:var(--muted)">Not benchmarked</div>`;
-      const open = p?.kind === "process" ? `<a class="btn go" href="plant.html?case=${id}">Open workspace</a>` :
-        p?.workspace ? `<a class="btn go" href="workspace.html?case=${id}">Open workspace</a>` : "";
-      const replay = c?.runs?.length ? `<a class="btn" href="index.html?case=${id}">Replay blind study</a>` : "";
+      const open = p?.kind === "process" ? `<a class="btn go" href="plant.html?case=${id}">Explore case</a>` :
+        p?.workspace ? `<a class="btn go" href="workspace.html?case=${id}">Explore case</a>` : "";
+      const replay = c?.runs?.length ? `<a class="btn" href="index.html?case=${id}">View study replay</a>` : "";
       return `<div class="card"><div class="t">${esc(title)}</div><div class="k">${esc(task)}</div>
         <div class="sims">${(p?.kind === "process" ? ["DWSIM"] : c?.simulators_used?.length ? c.simulators_used : ["documents only"]).map(s => `<span class="sim">${s}</span>`).join("")}</div>${score}<div class="acts">${open}${replay}</div></div>`;
     }).join("");
     return cards ? `<h2><i>${icon}</i>${name}</h2><div class="grid">${cards}</div>` : "";
   }).join("");
-})();
+})().catch(() => { document.getElementById("groups").innerHTML = '<p class="foot">Cases could not be loaded. Start the PlantAgent server and reload this page.</p>'; });
 </script>
 </body>
 </html>

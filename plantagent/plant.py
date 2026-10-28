@@ -467,14 +467,16 @@ class PlantWorkspace(Study):
             return None
         key = hashlib.sha1(json.dumps([self.spec, round(scale, 3)], sort_keys=True).encode()).hexdigest()
         if key not in self._state:
-            if process.available():
-                self._state[key] = {"scale": scale, **process.run(self.spec, scale)}
-            else:
-                demo = self._demo()
-                if not demo or demo["spec"] != self.spec:
-                    raise RuntimeError("DWSIM is not installed and there are no precomputed solutions for this model")
+            demo = self._demo()
+            hit = demo and demo["spec"] == self.spec and min(abs(st["scale"] - scale) for st in demo["states"]) < 0.006
+            if hit or (demo and demo["spec"] == self.spec and not process.available()):
+                # stored DWSIM solutions of this exact model: instant first load, and a clean clone works without DWSIM
                 near = min(demo["states"], key=lambda st: abs(st["scale"] - scale))
                 self._state[key] = {**near, "replayed": True}
+            elif process.available():
+                self._state[key] = {"scale": scale, **process.run(self.spec, scale)}
+            else:
+                raise RuntimeError("DWSIM is not installed and there are no precomputed solutions for this model")
         return self._state[key]
 
     def _demo(self):
@@ -491,7 +493,7 @@ class PlantWorkspace(Study):
     def capacity(self):
         key = "cap:" + hashlib.sha1(json.dumps(self.spec, sort_keys=True).encode()).hexdigest()
         if key not in self._state:
-            demo = None if process.available() else self._demo()
+            demo = self._demo()
             self._state[key] = demo["capacity"] if demo and demo["spec"] == self.spec else process.capacity(self.spec)
         return self._state[key]
 

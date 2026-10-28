@@ -261,11 +261,12 @@
   .toast { position: fixed; bottom: 210px; right: 420px; background: var(--panel2); border: 1px solid var(--ok); color: var(--text); padding: 10px 14px; border-radius: 6px; z-index: 99; display: none; }
   .toast a { color: var(--accent); }
 </style>
+<link rel="stylesheet" href="design.css">
 </head>
-<body class="simple">
+<body class="workspace simple">
 <div class="app" id="app">
   <header>
-    <div class="logo">Plant<span>Agent</span></div>
+    <a class="logo" href="home.html" style="color:var(--text);text-decoration:none" title="Back to case library">Plant<span>Agent</span></a>
     <div class="ptitle" id="ptitle"></div>
     <select class="projsel" id="projsel" title="Switch project"></select>
     <div class="cmd"><span class="k">›_</span><input id="cmd" placeholder="Ask or command — e.g. “If raw pump 2 fails tonight, can we still make 12 mgd?”" autocomplete="off"><span class="hint">Ctrl K</span></div>
@@ -307,7 +308,7 @@
   </main>
 
   <aside class="right">
-    <div class="rtabs"><div class="rt on" data-t="answers">Calc cards <span id="spend"></span></div><div class="rt" data-t="props">Properties</div><div class="rt" data-t="revs">Revisions <span id="revn"></span></div></div>
+    <div class="rtabs"><div class="rt on" data-t="answers">Evidence <span id="spend"></span></div><div class="rt" data-t="props">Properties</div><div class="rt" data-t="revs">Revisions <span id="revn"></span></div></div>
     <div id="props" class="rpane" style="display:none"></div>
     <div id="revs" class="rpane" style="display:none"></div>
     <div id="answers" class="rpane"><div class="empty">Click a structure on the drawing or type a request.<br><br>
@@ -320,7 +321,7 @@
     <div class="cbox"><h5><span id="shistt">Demand vs plant capacity</span></h5><svg id="shist" viewBox="0 0 700 160" width="100%" height="160"></svg></div>
   </section>
   <aside id="ovl"></aside>
-  <div id="askbar"><input id="ask2" placeholder="Ask about this plant…" autocomplete="off">
+  <div id="askbar"><input id="ask2" aria-label="Ask an engineering question" placeholder="Ask a question about this plant…" autocomplete="off">
     <div class="sugg" id="sugg"></div><button class="btn" id="mic" title="Speak your question (Muse Voice Transcribe)" style="padding:11px 13px;font-size:16px">🎤</button><label class="btn" title="Field photo: nameplate or gauge" style="padding:11px 13px;font-size:16px;cursor:pointer">📷<input type="file" id="photo" accept="image/*" hidden></label><button class="big" id="askgo">Ask</button></div>
   <section class="bp">
     <div class="bptabs"><div class="bpt on" data-b="problems">Problems <span class="n" id="probn"></span></div><div class="bpt" data-b="profile">Profile &amp; flow</div><div class="bpt" data-b="activity">Activity</div></div>
@@ -717,17 +718,20 @@ function renderOverlay(a, label, append) {
 function railEmpty() {
   const o = $("#ovl");
   const q = (P.target_mgd || 18);
-  o.innerHTML = `<div class="empty2"><div class="q">Copilot</div>
-    <div class="qc" data-q="Can this plant make ${q} mgd?"><b>Can this plant make ${q} MGD?</b><small>→ verdict, the limiting units, a verified fix</small></div>
-    <div class="qc" data-q="If raw pump 2 fails tonight, can we still make 12 mgd?"><b>If raw pump 2 fails tonight…</b><small>→ EPANET run with the pump out, margin</small></div>
-    <div class="qc" data-q="What would the fixes cost?"><b>What would the fixes cost?</b><small>→ order-of-magnitude estimate, AACE range</small></div>
-    <button class="fixall" id="fixall">⚡ Get me to ${q} MGD</button>
-    <label class="fixall" style="display:block;text-align:center;background:linear-gradient(90deg,#24415f,#4da3ff)">📄 Read a drawing it has never seen<input type="file" id="newsheet" accept="application/pdf" hidden></label>
-    <button class="fixall" id="reveal" style="background:linear-gradient(90deg,#3a4b8c,#6270dc)">⚖ Compare with the real engineers</button>
-    <div class="hud"><span>one verified proposal per failing unit · you accept each</span></div></div>`;
+  o.innerHTML = `<div class="empty2"><div class="q">Engineering question</div>
+    <h2 class="rail-title">What would you like to test?</h2>
+    <p class="rail-intro">Choose a question or write your own below. The answer will connect source pages, model runs and proposed changes.</p>
+    <button class="qc" data-q="Can this plant make ${q} mgd?"><b>Can this plant make ${q} MGD?</b><small>Find the limiting units and test a change.</small></button>
+    <button class="qc" data-q="If raw pump 2 fails tonight, can we still make 12 mgd?"><b>If raw pump 2 fails tonight…</b><small>Check firm capacity with the pump out.</small></button>
+    <button class="qc" data-q="What would the fixes cost?"><b>What would the fixes cost?</b><small>See an order-of-magnitude estimate.</small></button>
+    <button class="fixall" id="fixall">Find a path to ${q} MGD</button>
+    <button class="fixall secondary" id="newsheetbtn" type="button">Read a new drawing</button><input type="file" id="newsheet" accept="application/pdf" hidden>
+    <button class="fixall secondary" id="reveal">Compare with the real engineers</button>
+    <div class="hud"><span>Proposals remain drafts until an engineer reviews them.</span></div></div>`;
   o.querySelectorAll(".qc").forEach(x => x.onclick = () => simpleAsk(x.dataset.q));
   $("#fixall").onclick = fixAll;
   $("#reveal").onclick = reveal;
+  $("#newsheetbtn").onclick = () => $("#newsheet").click();
   $("#newsheet").onchange = e => e.target.files[0] && readNewSheet(e.target.files[0]);
 }
 
@@ -1143,7 +1147,7 @@ document.querySelectorAll("#exports [data-k]").forEach(d => d.onclick = async e 
   catch (err) { t.textContent = err.message; }
   setTimeout(() => t.style.display = "none", 9000);
 });
-load().catch(e => document.body.insertAdjacentHTML("afterbegin", `<div class="empty">${esc(e.message)}</div>`));
+load().catch(e => document.body.insertAdjacentHTML("afterbegin", `<div class="load-error" role="alert"><b>Could not load this workspace.</b> ${esc(e.message)} <a href="" onclick="location.reload();return false">Reload the page</a></div>`));
 </script>
 </body>
 </html>
