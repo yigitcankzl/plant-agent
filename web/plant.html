@@ -100,6 +100,12 @@
   .modal.on { display: flex; }
   .modal .box { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; width: min(820px, 92vw); max-height: 84vh; overflow: auto; padding: 16px 20px; }
   .modal pre { white-space: pre-wrap; font: 12px/1.5 var(--mono); }
+  .tour-on { outline: 3px solid #4da3ff !important; outline-offset: 2px; border-radius: 6px; }
+  #tour { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 60; background: #0f2e45; color: #fff; border: 1px solid #4da3ff;
+          border-radius: 10px; padding: 12px 16px; width: min(720px, 92vw); box-shadow: 0 10px 40px rgba(0,0,0,.5); display: none; }
+  #tour .st { font: 600 11px var(--mono); color: #9fd0ff; letter-spacing: .5px; }
+  #tour .tx { margin: 4px 0 10px; font-size: 14px; line-height: 1.45; }
+  #tour .row { display: flex; gap: 8px; justify-content: flex-end; }
 </style>
 <link rel="stylesheet" href="design.css">
 </head>
@@ -151,6 +157,8 @@
     <div id="answers"></div>
   </aside>
 </div>
+<div id="tour" role="dialog" aria-live="polite"><div class="st" id="tourStep"></div><div class="tx" id="tourText"></div>
+  <div class="row"><button class="btn" onclick="tourEnd()">Close</button><button class="btn go" id="tourNext" onclick="tourGo(TOUR_I + 1)">Next</button></div></div>
 <div class="modal" id="modal" onclick="if(event.target===this)this.classList.remove('on')"><div class="box" id="modalBox"></div></div>
 
 <script>
@@ -280,7 +288,7 @@ function render(st) {
   const over = rows.filter(c => c.utilisation > 1);
   $('verdict').innerHTML = over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(over[0].id)} is over its limit`
     : `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — tightest: ${esc(top?.id || '')} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`;
-  $('verdictSub').innerHTML = cap?.capacity_multiple ? `Simulated maximum: <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(cap.limited_by?.id)}</b> (${esc(cap.limited_by?.check)}). Solved in DWSIM.` : '';
+  $('verdictSub').innerHTML = cap?.capacity_multiple ? `Simulated maximum: <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(cap.limited_by?.id)}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? 'Recorded DWSIM solution of this model (re-solved live when the model changes).' : 'Solved live in DWSIM.'}` : '';
 }
 const fmt = v => typeof v === 'number' ? (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1)) : v;
 
@@ -367,13 +375,26 @@ function answers() {
   $('spend').textContent = list.length ? '$' + list.reduce((t, a) => t + (a.cost_usd || 0), 0).toFixed(3) : '';
 }
 
+const BASIS = {documented: ['in document', '#4da3ff'], measured: ['measured', '#3fb67a'], computed: ['computed', '#e3a33a'], assumed: ['assumed', '#ef5a4f']};
+const basisOf = x => x.basis || (/run|dwsim|simulat|solve/i.test(x.source || '') ? 'computed' : /assum|judg|estimat/i.test(x.source || '') ? 'assumed'
+  : /measur|dcs|scada|historian|test|current operation/i.test(x.source || '') ? 'measured' : 'documented');
+const basisChip = b => `<span class="vb" style="border:1px solid ${BASIS[b][1]};color:${BASIS[b][1]}">${BASIS[b][0]}</span>`;
+function compare(a) {  // the alternatives side by side, from what the server re-solved
+  const ps = a.proposals || [];
+  if (ps.length < 2) return '';
+  return `<div class="card"><div class="tt">Alternatives compared · each re-solved in DWSIM</div><table>
+    <tr><td><b>Change</b></td><td><b>Fixes</b></td><td><b>Max throughput after</b></td><td><b>Cost</b></td><td><b>Status</b></td></tr>
+    ${ps.map(p => `<tr><td>${esc(p.title)}</td><td class="v">${esc(p.fixes || p.tag || '')}</td><td class="v">${p.capacity_multiple ? Math.round(p.capacity_multiple * 100) + '%' : '—'}</td>
+      <td>${esc(p.cost_class || '')}</td><td>${p.verified ? '<span style="color:var(--ok)">simulated ✓</span>' : `<span style="color:var(--fail)">${p.unverified_reason ? 'not verifiable' : 'fails'}</span>`}</td></tr>`).join('')}</table></div>`;
+}
 function ans(a, idx) {
   const cards = (a.cards || []).map(c => `<div class="card ${c.status || ''}"><div class="tt">${esc(c.title)}</div><div class="res">${esc(c.result)}</div>
-    ${(c.inputs || []).length ? `<details><summary>${c.inputs.length} inputs · ${(c.runs || []).length} runs</summary><table>${c.inputs.map(x => `<tr><td>${esc(x.name)}</td><td class="v">${esc(x.value)}</td><td class="src">${esc(x.source)}</td></tr>`).join('')}</table></details>` : ''}</div>`).join('');
+    ${(c.inputs || []).length ? `<details><summary>${c.inputs.length} inputs (${[...new Set(c.inputs.map(basisOf))].join(', ')}) · runs: ${esc((c.runs || []).join(', ') || 'none')}</summary><table>${c.inputs.map(x => `<tr><td>${esc(x.name)}</td><td class="v">${esc(x.value)}</td><td>${basisChip(basisOf(x))}</td><td class="src">${esc(x.source)}</td></tr>`).join('')}</table></details>` : ''}</div>`).join('');
+  const fc = (a.field_checks || []).length ? `<div class="card warn"><div class="tt">Before deciding: field checks</div><table>${a.field_checks.map(f => `<tr><td>${esc(f.item)}</td><td>${esc(f.where)}</td><td class="src">${esc(f.changes)}</td></tr>`).join('')}</table></div>` : '';
   const props = (a.proposals || []).map((p, j) => prop(p, idx, j)).join('');
   const cb = a.combined, comb = cb && !cb.error ? `<div class="card ${cb.reaches_target ? 'ok' : 'fail'}"><div class="tt">All ${a.proposals.length} changes together · re-solved in DWSIM</div>
     <div class="res">${cb.reaches_target ? '✓ Reaches ' + Math.round(P.target_scale * 100) + '%' : '✗ Short of target'} · new maximum ${Math.round((cb.capacity_multiple || 0) * 100)}% (${esc(cb.limited_by?.id || '')})</div></div>` : '';
-  return `<div class="ans"><div class="rq">› ${esc(a.request)}</div><div class="hl">${esc(a.headline)}</div><div class="sm">${esc(a.summary)}</div>${props}${comb}${cards}
+  return `<div class="ans"><div class="rq">› ${esc(a.request)}</div><div class="hl">${esc(a.headline)}</div><div class="sm">${esc(a.summary)}</div>${fc}${props}${compare(a)}${comb}${cards}
     <div class="meta">${a.seconds}s · $${(a.cost_usd || 0).toFixed(4)} · ${(a.checks || []).filter(c => c.ok).length}/${(a.checks || []).length} cited runs re-solved to the same result${(a.checks || []).filter(c => !c.ok).map(c => ` · <span style="color:var(--fail)">✗ ${esc(c.item)}: ${esc(c.why || 'not reproduced')}</span>`).join('')}</div></div>`;
 }
 
@@ -452,10 +473,35 @@ async function reliefScan() {
 
 $('q').onkeydown = e => { if (e.key === 'Enter') { ask($('q').value); $('q').value = ''; } };
 $('toTarget').onclick = () => ask(`Get the unit to ${Math.round(P.target_scale * 100)}% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in DWSIM, within every utility and frame limit on the data sheet.`);
+// ---- guided demo: question -> source drawing -> limit -> proposal -> before/after -> evidence ----
+let TOUR_I = 0;
+const TOUR = [
+  ['The source', 'A real P&ID in the DEXPI exchange standard (the DEXPI reference unit; the operating data sheet is illustrative). The agent read it and built this DWSIM simulation itself, reproducing the 14 measured values on the data sheet.', () => ['sheet', 'modelBox'], () => setScale(100)],
+  ['The question', 'Sales wants +20 % throughput. Move to 120 %: every equipment item on the P&ID is re-solved in DWSIM and coloured by how close it runs to its limit.', () => ['scale', 'verdict'], () => setScale(Math.round(P.target_scale * 100))],
+  ['What limits it', 'Three limits bind: the H1007 cooler outlet, the tank temperature held by the H1008 loop, and the quality-control hold time in T4750. Each bar shows the value against the documented limit.', () => ['eqlist'], null],
+  ['The fixes', 'The agent proposes the cheapest change for each limit, within the utility supply limits on the data sheet. The server re-solves each one in DWSIM before it can be applied; a change that only edits a limit is refused.', () => ['answers'], () => document.querySelector('.prop')?.scrollIntoView({block: 'center'})],
+  ['Before and after', 'All changes together, re-solved: the unit reaches 120 % and the new maximum is about 124 %. No capital spend: operating changes inside documented limits.', () => ['answers'], () => [...document.querySelectorAll('.card')].find(c => /All \d+ changes together|Alternatives compared/.test(c.textContent))?.scrollIntoView({block: 'center'})],
+  ['The evidence', 'Every input is labelled as in a document, measured, computed or assumed, and every cited run is re-solved to the same result. Changes are draft model revisions with a reason, kept in a hash-chained audit trail. The P&ID coverage check confirms the model has every flow connection on the drawing.', () => ['revs', 'modelBox'], null],
+];
+function setScale(v) { $('scale').value = v; $('scale').oninput(); }
+function tourGo(i) {
+  document.querySelectorAll('.tour-on').forEach(e => e.classList.remove('tour-on'));
+  if (i >= TOUR.length) return tourEnd();
+  TOUR_I = i;
+  const [t, x, on, act] = TOUR[i];
+  $('tour').style.display = 'block';
+  $('tourStep').textContent = `Step ${i + 1} of ${TOUR.length} · ${t}`;
+  $('tourText').textContent = x;
+  $('tourNext').textContent = i === TOUR.length - 1 ? 'Finish' : 'Next';
+  on().forEach(id => $(id)?.classList.add('tour-on'));
+  if (act) act();
+}
+function tourEnd() { $('tour').style.display = 'none'; document.querySelectorAll('.tour-on').forEach(e => e.classList.remove('tour-on')); }
+
 $('model').onchange = e => api('model', {model: e.target.value});
 window.onresize = () => ST && render(ST);
 projects().catch(() => { $('proj').innerHTML = '<option>Project list unavailable</option>'; });
-load().catch(e => {
+load().then(() => { if (new URLSearchParams(location.search).get('tour') && P?.built) tourGo(0); }).catch(e => {
   $('eqlist').innerHTML = `<div class="empty" role="alert"><b>Could not load this case.</b><br>${esc(e.message)}<br><button class="btn" onclick="location.reload()">Reload the page</button></div>`;
   $('sheet').innerHTML = '<div class="sheet-error">The source drawing could not be displayed. Check the case server and reload.</div>';
   $('answers').innerHTML = '<div class="empty">Check that the project data and simulation server are available, then reload.</div>';

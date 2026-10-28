@@ -29,9 +29,16 @@ ANSWER = submit("answer", "Final answer, shown on the P&ID and as calc cards (no
     "headline": {"type": "string", "description": "the answer in at most 8 plain words, e.g. 'No - cooler H1007 limits at +17%'"},
     "summary": {"type": "string", "description": "at most 2 plain sentences with the key numbers and their sources"},
     "cards": ARR({"title": S, "result": {"type": "string", "description": "headline value(s) with units, at most 14 words"},
-                  "inputs": ARR({"name": S, "value": S, "source": S}), "runs": {"type": "array", "items": S},
+                  "inputs": ARR({"name": S, "value": S, "source": S,
+                                 "basis": {"type": "string", "enum": ["documented", "measured", "computed", "assumed"],
+                                           "description": "documented = drawing/datasheet/report value; measured = operating or field data; "
+                                                          "computed = a logged simulator run; assumed = engineering judgement"}}),
+                  "runs": {"type": "array", "items": S},
                   "assumptions": {"type": "array", "items": S},
                   "status": {"type": "string", "enum": ["ok", "warn", "fail", "info"]}}),
+    "field_checks": ARR({"item": {"type": "string", "description": "the missing or assumed value"},
+                         "where": {"type": "string", "description": "where and how to measure or confirm it"},
+                         "changes": {"type": "string", "description": "which conclusion would change, and at what value"}}),
     "highlights": ARR({"tag": {"type": "string", "description": "equipment tag on the P&ID, e.g. H1007"}, "text": S,
                        "severity": {"type": "string", "enum": ["ok", "warn", "fail", "info"]}}),
     "proposals": {"type": "array", "description": "fixes, each a change to the model; the workspace re-solves it in DWSIM before "
@@ -381,7 +388,9 @@ class PlantWorkspace(Study):
                         "with weather or season (floating head pressure, economiser hours, chilled-water reset) is not a single model "
                         "change: evaluate it with annual_energy over the bins and report it in a card, and propose only changes "
                         "that hold at every condition. Answer every part of the request. Write for a non-specialist; "
-                        "no acronyms in the headline. " + RULES,
+                        "no acronyms in the headline. Label every card input with its basis (documented, measured, computed, assumed). If "
+                        "a value that decides the answer is missing or only assumed, say the conclusion is provisional and add a "
+                        "field check: what to measure, where, and which conclusion it would change. " + RULES,
                         json.dumps(brief) + "\n\nRequest: " + text + (f"\nContext: {json.dumps(context)}" if context else ""),
                         self.tools() + [ANSWER], "answer", 18)
         for k in ("cards", "highlights", "proposals"):
