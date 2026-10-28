@@ -1,0 +1,1957 @@
+{
+  "case": "williams_geismar",
+  "facility": "Williams Geismar Olefins Plant, propylene fractionator reboiler rupture and fire, Geismar, Louisiana, June 13, 2013",
+  "source": "U.S. Chemical Safety and Hazard Investigation Board, Williams Geismar Olefins Plant Reboiler Rupture and Fire, Case Study No. 2013-03-I-LA, October 2016 (public record)",
+  "url": "https://www.csb.gov/williams-olefins-plant-explosion-and-fire-/",
+  "question": "On June 13, 2013, propylene fractionator Reboiler B at the Williams Geismar olefins plant ruptured about three minutes after an operations supervisor opened the hot quench water (about 187 F) to its tubes; it had been offline on standby for 16 months since maintenance in February 2012. Shell side process fluid: about 95% propane, balance mostly propylene and C4s. Reboiler B shell design: maximum allowable working pressure 300 psig, hydrostatic test 450 psig. Using the facility description, the schematic and the incident timeline, determine the failure mechanism and estimate with calculations the pressures that could be reached in the shell, explain why the reboiler was not protected from overpressure, and recommend the design, procedural and management changes that would prevent a recurrence.",
+  "model": "muse-spark-1.3-contributor",
+  "collection": {
+    "criteria": [
+      {
+        "name": "C-01 Shell-side process fluid identity",
+        "source": "p.9",
+        "value": "approximately 95% propane with balance mostly propylene and C4s; report refers to propane mixture as 'propane'"
+      },
+      {
+        "name": "C-02 Tube-side heating medium inlet temperature",
+        "source": "p.9 (conflicts with task brief ~187 F - see RFI-01)",
+        "value": "approximately 185 degF quench water entering reboilers"
+      },
+      {
+        "name": "C-03 Shell-side inlet temperature",
+        "source": "p.9",
+        "value": "shell-side propane enters reboiler at approximately 130 degF"
+      },
+      {
+        "name": "C-04 Single-reboiler continuous operation with standby isolated",
+        "source": "p.9",
+        "value": "In 2001, Williams installed valves on shell-side and tube-side to allow continuous operation with only one reboiler operating; other reboiler offline but ready, isolated by new valves"
+      },
+      {
+        "name": "C-05 Overpressure protection continuity when standby is isolated",
+        "source": "p.10",
+        "value": "Valves (gate valves) isolating the reboilers from the pressure relief valve at the top of the propylene fractionator were not part of original design, installed in 2001 - relief path must remain effective for isolated standby"
+      },
+      {
+        "name": "C-06 Shell MAWP",
+        "source": "Task brief (ASSUMPTION - not in pp.6-13, nameplate/datasheet to verify on site)",
+        "value": "ASSUMPTION with reason: 300 psig per task brief; reason to assume is task states shell design MAWP 300 psig and no contrary data in pp.6-13; must verify via U-1/nameplate"
+      },
+      {
+        "name": "C-07 Shell hydrostatic test pressure",
+        "source": "Task brief (ASSUMPTION - not in pp.6-13, to verify)",
+        "value": "ASSUMPTION with reason: 450 psig per task brief; reason same as C-06; 1.5x MAWP consistent with hydrotest practice, to verify"
+      },
+      {
+        "name": "C-08 Initiating action and time to rupture",
+        "source": "p.11",
+        "value": "operations supervisor likely opened quench water valves on offline Reboiler B at 8:33 am; approximately three minutes later Reboiler B exploded/ruptured"
+      },
+      {
+        "name": "C-09 Closed-loop quench water as heat source",
+        "source": "p.7",
+        "value": "quench water directly contacts furnace effluent in quench tower, then serves as heat source in exchangers including fractionator reboilers, then cooled by cooling water system and recirculated"
+      }
+    ],
+    "data_register": [
+      {
+        "id": "DR-01",
+        "item": "Plant identity and location",
+        "quote": "The Williams Geismar Olefins Plant, which employs approximately 110 people, is located in Geismar, Louisiana, approximately 20 miles southeast of Baton Rouge.",
+        "source": "p.6",
+        "unit": "people / miles",
+        "value": "~110 people; ~20 miles SE of Baton Rouge"
+      },
+      {
+        "id": "DR-02",
+        "item": "Plant designer/builder and history",
+        "quote": "The Lummus Company designed and built the olefins plant in 1967, and Allied Chemical first operated it.",
+        "source": "p.6",
+        "unit": "year",
+        "value": "1967 built by Lummus; Allied Chemical first operator"
+      },
+      {
+        "id": "DR-03",
+        "item": "Ownership chain",
+        "quote": "In 1985, Union Texas Petroleum purchased the plant from Allied Chemical and sold it to Atlantic Richfield Company (ARCO) in 1998. Williams then purchased the facility in 1999.",
+        "source": "p.6",
+        "unit": "\u2014",
+        "value": "1985 Union Texas; 1998 ARCO; 1999 Williams; at incident jointly owned Williams Olefins LLC and SABIC, Williams sole operator"
+      },
+      {
+        "id": "DR-04",
+        "item": "Ethylene capacity original",
+        "quote": "The plant originally produced 600 million pounds of ethylene annually.",
+        "source": "p.6",
+        "unit": "lb/yr ethylene",
+        "value": "600 million"
+      },
+      {
+        "id": "DR-05",
+        "item": "Capacity at time of incident",
+        "quote": "Over the years, the production capacity increased to 1.35 billion pounds of ethylene and 80 million pounds of propylene per year.",
+        "source": "p.6",
+        "unit": "lb/yr",
+        "value": "1.35 billion ethylene; 80 million propylene"
+      },
+      {
+        "id": "DR-06",
+        "item": "Expansion project intensity and goal",
+        "quote": "At the time of the incident, approximately 800 contractors worked at the Williams Geismar facility on an expansion project, with an end goal of increasing the production of ethylene to 1.95 billion pounds per year.",
+        "source": "p.6",
+        "unit": "persons; lb/yr",
+        "value": "~800 contractors; goal 1.95 billion ethylene"
+      },
+      {
+        "id": "DR-07",
+        "item": "Failed equipment identity",
+        "quote": "The reboiler that failed, EA-425B (\"Reboiler B\") was one of two reboilers (Reboiler A and Reboiler B) that supplied heat to the propylene fractionator",
+        "source": "p.6",
+        "unit": "\u2014",
+        "value": "EA-425B Reboiler B; paired with Reboiler A serving propylene fractionator"
+      },
+      {
+        "id": "DR-08",
+        "item": "Standby duration and state",
+        "quote": "Reboiler B had been offline for 16 months while Reboiler A was in operation, but was clean and available for use when Reboiler A eventually fouled",
+        "source": "p.6",
+        "unit": "months",
+        "value": "16 months offline; clean and available"
+      },
+      {
+        "id": "DR-09",
+        "item": "Reboiler duty description",
+        "quote": "where tube-side hot quench water vaporizes shell-side hydrocarbon process fluid, which is approximately 95% propane with the balance composed mostly of propylene and C4s",
+        "source": "p.9",
+        "unit": "wt%/mol% approx (unspecified basis)",
+        "value": "~95% propane, balance mostly propylene + C4s"
+      },
+      {
+        "id": "DR-10",
+        "item": "Report propane naming convention",
+        "quote": "(This report refers to the propane mixture as \"propane.\")",
+        "source": "p.9",
+        "unit": "\u2014",
+        "value": "\"propane\" = ~95% propane mixture"
+      },
+      {
+        "id": "DR-11",
+        "item": "Quench water inlet temperature to reboilers",
+        "quote": "Quench water enters the propylene fractionator reboilers at approximately 185 \u00b0F",
+        "source": "p.9",
+        "unit": "degF",
+        "value": "~185"
+      },
+      {
+        "id": "DR-12",
+        "item": "Shell-side propane inlet temperature",
+        "quote": "which enters the reboiler at a temperature of approximately 130 \u00b0F",
+        "source": "p.9",
+        "unit": "degF",
+        "value": "~130"
+      },
+      {
+        "id": "DR-13",
+        "item": "2001 isolation valves modification",
+        "quote": "In 2001, Williams installed valves on the shell-side and tube-side reboiler piping to allow for continuous operation with only one reboiler operating at a time.",
+        "source": "p.9",
+        "unit": "\u2014",
+        "value": "2001 shell-side + tube-side valves; one-operating/one-offline"
+      },
+      {
+        "id": "DR-14",
+        "item": "Original design vs modified operation",
+        "quote": "The original propylene fractionator design had both reboilers continuously operating.",
+        "source": "p.9",
+        "unit": "\u2014",
+        "value": "original: both continuously operating; modified: one operating, one isolated standby"
+      },
+      {
+        "id": "DR-15",
+        "item": "Exchanger overall length",
+        "quote": "The heat exchangers are 24 feet 8 inches long end-to-end.",
+        "source": "p.9 fn11",
+        "unit": "ft-in",
+        "value": "24 ft 8 in end-to-end"
+      },
+      {
+        "id": "DR-16",
+        "item": "Shell length and diameter",
+        "quote": "Each exchanger shell (the portion of the heat exchanger that holds the tube bundle) is approximately 18.5 feet long and over 5 feet in diameter.",
+        "source": "p.9 fn11",
+        "unit": "ft",
+        "value": "~18.5 long; >5 dia"
+      },
+      {
+        "id": "DR-17",
+        "item": "Tube diameter and count",
+        "quote": "The tubes are each \u00be-inch in diameter, and each heat exchanger contains 3,020 tubes.",
+        "source": "p.9 fn11",
+        "unit": "in / count",
+        "value": "3/4-in dia; 3,020 tubes per exchanger"
+      },
+      {
+        "id": "DR-18",
+        "item": "Tube length illustration",
+        "quote": "if one were to lay each tube from one heat exchanger end-to-end in a straight line, the tubes would span over 10.5 miles.",
+        "source": "p.9 fn11",
+        "unit": "miles",
+        "value": ">10.5"
+      },
+      {
+        "id": "DR-19",
+        "item": "Number of tube passes",
+        "quote": "Depicted in Figure 3 as a two-pass heat exchanger for purposes of simplicity, the reboilers were six-pass heat exchangers.",
+        "source": "p.9 fn13",
+        "unit": "passes",
+        "value": "6-pass (2-pass shown simplified)"
+      },
+      {
+        "id": "DR-20",
+        "item": "Relief isolation by 2001 gate valves",
+        "quote": "The valves (gate valves) isolating the reboilers from the pressure relief valve at the top of the propylene fractionator were not part of the original design, and were installed in 2001.",
+        "source": "p.10",
+        "unit": "\u2014",
+        "value": "gate valves isolate reboilers from column-top relief; added 2001"
+      },
+      {
+        "id": "DR-21",
+        "item": "Quench water closed loop description",
+        "quote": "The quench water that directly contacts the heated furnace effluent gases is part of a closed-loop water circulation system.",
+        "source": "p.7",
+        "unit": "\u2014",
+        "value": "closed-loop circulation"
+      },
+      {
+        "id": "DR-22",
+        "item": "Quench water settler and fouling mechanism",
+        "quote": "The quench water settler removes most of the tar material (Figure 2); however, some oily material remains in the quench water.",
+        "source": "p.8",
+        "unit": "\u2014",
+        "value": "settler removes most tar; residual oily material causes fouling"
+      },
+      {
+        "id": "DR-23",
+        "item": "Fouling definition",
+        "quote": "Over time, some of this material adheres to and builds up on the inside of process equipment such as heat exchanger tubes, resulting in a decrease in both heat transfer efficiency and quench water flow rate.",
+        "source": "p.8",
+        "unit": "\u2014",
+        "value": "fouling = buildup reducing heat transfer and flow"
+      },
+      {
+        "id": "DR-24",
+        "item": "Pre-incident symptom",
+        "quote": "the quench water flow through the operating propylene fractionator reboiler (Reboiler A) had dropped gradually over the past day (Figure 5).",
+        "source": "p.11",
+        "unit": "\u2014",
+        "value": "gradual drop over past day in Reboiler A quench flow"
+      },
+      {
+        "id": "DR-25",
+        "item": "Initiating valve opening time and evidence",
+        "quote": "The CSB determined that at 8:33 am, the operations supervisor likely opened the quench water valves on the offline reboiler, Reboiler B, as indicated by the rapid increase in quench water flow rate shown in Figure 6.",
+        "source": "p.11",
+        "unit": "time",
+        "value": "8:33 am likely opened B tube-side quench valves"
+      },
+      {
+        "id": "DR-26",
+        "item": "Time delay to rupture",
+        "quote": "Approximately three minutes later, Reboiler B exploded (Figure 7).",
+        "source": "p.11",
+        "unit": "min",
+        "value": "~3"
+      },
+      {
+        "id": "DR-27",
+        "item": "Ejection distance",
+        "quote": "The force of the explosion launched a portion of the propylene fractionator reboiler piping into a pipe rack approximately 30 feet overhead (Figure 8).",
+        "source": "p.11",
+        "unit": "ft",
+        "value": "~30 overhead"
+      },
+      {
+        "id": "DR-28",
+        "item": "Quench flow trend confirmation",
+        "quote": "Quench water flow rate rises when Reboiler B tube-side quench water valves are opened. Reboiler B ruptures approximately three minutes later.",
+        "source": "p.12 Fig.6 caption",
+        "unit": "min",
+        "value": "~3 min rise-to-rupture"
+      },
+      {
+        "id": "DR-29",
+        "item": "Fatalities",
+        "quote": "A Williams operator working near the propylene fractionator at the time of the explosion died at the scene. The operations supervisor succumbed to severe burn injuries the next day.",
+        "source": "p.12",
+        "unit": "persons",
+        "value": "2 deaths"
+      },
+      {
+        "id": "DR-30",
+        "item": "Injuries breakdown",
+        "quote": "167 personnel reported injuries. / Of the 167 workers who reported injuries, three were Williams employees and 164 were contractors.",
+        "source": "p.12 + fn14",
+        "unit": "persons",
+        "value": "167 total; 3 employees + 164 contractors"
+      },
+      {
+        "id": "DR-31",
+        "item": "Fire duration and release mass",
+        "quote": "The fire lasted approximately 3.5 hours, and Williams reported releasing over 30,000 pounds of flammable hydrocarbons during the incident.",
+        "source": "p.12",
+        "unit": "hr; lb",
+        "value": "~3.5 hr; >30,000 lb flammables"
+      },
+      {
+        "id": "DR-32",
+        "item": "Outage duration and restart",
+        "quote": "The plant remained down for 18 months and restarted in January 2015.",
+        "source": "p.12",
+        "unit": "months",
+        "value": "18 months down; restart Jan 2015"
+      },
+      {
+        "id": "DR-33",
+        "item": "Shell MAWP per brief (not in pages)",
+        "quote": "Task brief states: 'Reboiler B shell design: maximum allowable working pressure 300 psig, hydrostatic test 450 psig.' No MAWP value found in pp.6-13.",
+        "source": "Task brief (ASSUMPTION - not in pp.6-13)",
+        "unit": "psig",
+        "value": "ASSUMPTION: 300 MAWP; reason task brief provides it, to verify via nameplate/U-1"
+      },
+      {
+        "id": "DR-34",
+        "item": "Shell hydrostatic test per brief (not in pages)",
+        "quote": "Task brief states: 'hydrostatic test 450 psig.' No hydrotest value found in pp.6-13.",
+        "source": "Task brief (ASSUMPTION - not in pp.6-13)",
+        "unit": "psig",
+        "value": "ASSUMPTION: 450 hydrotest; reason same as DR-33"
+      },
+      {
+        "id": "DR-35",
+        "item": "Hot quench water temperature per brief",
+        "quote": "Task brief states: 'hot quench water (about 187 F)' vs p.9 'approximately 185 \u00b0F.'",
+        "source": "Task brief vs p.9 (conflict - see RFI-01)",
+        "unit": "degF",
+        "value": "ASSUMPTION: ~185-187 range; reason two sources differ by 2 F, use range until DCS verifies"
+      },
+      {
+        "id": "DR-36",
+        "item": "Standby since maintenance Feb 2012",
+        "quote": "Task brief states: 'it had been offline on standby for 16 months since maintenance in February 2012.' pp.6-7 confirm 16 months offline but do not state Feb 2012 date.",
+        "source": "Task brief (ASSUMPTION - date not in pp.6-13)",
+        "unit": "date",
+        "value": "ASSUMPTION: Feb 2012 maintenance; reason 16 months before June 13 2013 = ~Feb 2012, consistent; verify via work order"
+      }
+    ],
+    "rfi": [
+      {
+        "issue": "RFI-01 Quench water temperature conflict",
+        "item": "Hot quench water inlet temperature to Reboiler B tubes",
+        "reason": "p.9 says approximately 185 F; task brief says about 187 F; 2 F difference affects vapor-pressure/thermal-expansion pressure estimates and heat-input rate",
+        "resolution": "ASSUMPTION with reason: assume 185-187 F range for screening; reason both sources are approximate and difference is small vs propane superheat (130 F inlet); close with DCS historian and field RTD (see T-01)"
+      },
+      {
+        "issue": "RFI-02 Shell MAWP and hydrotest missing from record",
+        "item": "Reboiler B shell MAWP, design pressure/temperature, hydrotest, relief setpoint",
+        "reason": "No MAWP/hydrotest/relief data in pp.6-13; needed to compare calculated pressures to failure threshold; task brief gives 300 psig MAWP / 450 psig hydro but nameplate not seen",
+        "resolution": "ASSUMPTION with reason: assume 300 psig MAWP / 450 psig hydro per brief because brief is explicit and 1.5x ratio is code-consistent; use for screening only; close with nameplate/U-1/datasheet inspection (see T-02)"
+      },
+      {
+        "issue": "RFI-03 Shell-side composition and properties basis",
+        "item": "Exact shell-side mixture assay (propane/propylene/C4s), fill state, and thermophysical properties",
+        "reason": "p.9 only says approximately 95% propane balance mostly propylene and C4s; pressure rise depends on composition, bubble point, liquid compressibility/expansion",
+        "resolution": "ASSUMPTION with reason: assume 95/5 propane/propylene-like behavior for screening because p.9 states ~95% propane; treat as essentially propane to estimate vapor pressure; close with lab GC and PVT data (see T-03)"
+      },
+      {
+        "issue": "RFI-04 Standby initial condition - blocked-in liquid-full?",
+        "item": "Reboiler B shell-side isolation state, liquid level/fill fraction, pressure and temperature before 8:33 am opening",
+        "reason": "pp.9-10 confirm 2001 shell-side isolation valves exist and B was offline isolated, but do not state whether shell was drained, vented, nitrogen-blanketed, or left blocked-in liquid-full; determines whether heating causes liquid thermal expansion vs vapor-pressure rise",
+        "resolution": "ASSUMPTION with reason: assume shell was blocked-in liquid-full (or near-full) cold propane because rupture in ~3 min implies incompressible heating and isolation from column-top relief per p.10; alternative (vapor-padded) would pressurize slower; close with valve lineup, DCS pressure trend, level/drain records (see T-04)"
+      },
+      {
+        "issue": "RFI-05 Relief path and valve lineup defeated?",
+        "item": "Relief valve setpoint/capacity/location and positions of 2001 shell-side gate valves and tube-side valves at incident",
+        "reason": "p.10 states gate valves isolate reboilers from pressure relief at top of fractionator but Figure 4/9/14 details and setpoints not legible in pp.6-13 text; need to explain why reboiler was not protected",
+        "resolution": "ASSUMPTION with reason: assume standby B shell had no effective relief when isolated because p.10 states isolation from column-top valve and no separate shell relief is described; close with P&ID walkdown and relief calc review (see T-05)"
+      },
+      {
+        "issue": "RFI-06 Reboiler volumes for pressure calculation",
+        "item": "Shell free volume, tube-bundle displacement, nozzle/piping dead-legs contributing to trapped liquid volume",
+        "reason": "p.9 fn11 gives ~18.5 ft x >5 ft shell, 3020 x 3/4-in tubes, 24 ft 8 in overall, 6-pass, but wall thickness, tubesheet/bundle displacement, and connected blocked-in piping not given; needed for thermal-expansion/vaporization estimates",
+        "resolution": "ASSUMPTION with reason: assume cylindrical shell ~18.5 ft x 5.0 ft ID minimum for volume screening because p.9 says over 5 ft diameter so 5 ft is conservative lower bound; tubes displace liquid per OD x length; close with fab drawing and field UT (see T-06)"
+      },
+      {
+        "issue": "RFI-07 DCS flow/pressure numeric trends missing",
+        "item": "Numeric quench-water flow rates (Figures 5-6) and shell/tube pressures around 8:33 am",
+        "reason": "pp.11-12 describe gradual drop then rapid rise and ~3 min to rupture but figures are images without tabulated values in text; needed to quantify heat input rate",
+        "resolution": "ASSUMPTION with reason: assume qualitative trend only (fouled A flow low, opening B restores total flow) because text confirms direction but not values; do not assume numbers; close with historian export and meter calibration (see T-07)"
+      },
+      {
+        "issue": "RFI-08 Feb 2012 maintenance scope and layup procedure",
+        "item": "What was done to Reboiler B in Feb 2012 and how was it laid up for 16-month standby (drained/purged/filled)?",
+        "reason": "16-month standby stated pp.6-7 but layup steps and operating procedure for bringing standby online not in pp.6-13; determines trapped fluid origin and procedural gap",
+        "resolution": "ASSUMPTION with reason: assume shell was left with process propane trapped after cleaning with no layup drain/vent procedure because no layup procedure is described and rapid overpressure implies trapped liquid; close with work-order and SOP review plus interviews (see T-08)"
+      }
+    ],
+    "standards": [
+      {
+        "name": "ASME Boiler and Pressure Vessel Code Section VIII",
+        "use": "Define MAWP, design margins, and hydrotest basis (e.g., 1.3-1.5x) for shell; compare estimated pressures to MAWP/hydrotest"
+      },
+      {
+        "name": "API Standard 521 Pressure-relieving and Depressuring Systems",
+        "use": "Evaluate blocked-in, liquid-full thermal expansion and heat-input overpressure scenarios and relief-path requirements for isolated standby exchanger"
+      },
+      {
+        "name": "OSHA 29 CFR 1910.119 Process Safety Management / EPA RMP (general duty)",
+        "use": "Evaluate MOC for 2001 valve addition, operating procedures for standby switchover, and hazard review adequacy"
+      }
+    ],
+    "test_plan": [
+      {
+        "acceptance": "Calibrated RTD within +/-2 F of DCS; historian 1-min average stable; resolves 185 vs 187 F",
+        "closes_rfi": "RFI-01",
+        "measurements": "Tube-side quench water inlet temperature at Reboilers A/B inlet nozzles and DCS historian 24-hr trend before incident window",
+        "procedure": "Clamp-on/calibrated RTD + thermowell check at inlet; export historian Figure 5-6 data as CSV; record ambient and cooler duty",
+        "purpose": "Fix heat-source temperature for vapor-pressure and heat-input calculations",
+        "test": "T-01 Quench water inlet temperature survey"
+      },
+      {
+        "acceptance": "Photographed nameplate + U-1/datasheet match; MAWP/setpoint legible; discrepancy <5 psi triggers recalc",
+        "closes_rfi": "RFI-02",
+        "measurements": "Shell/tube MAWP, design T/P, hydrotest, MDMT, relief setpoint and capacity at column-top valve and any shell reliefs",
+        "procedure": "Field nameplate photos, retrieve U-1, exchanger datasheet, relief sizing calcs; bench-test or pop-record review if removed",
+        "purpose": "Anchor failure threshold (300/450 psig screening) to code record",
+        "test": "T-02 Nameplate/datasheet/relief-record review"
+      },
+      {
+        "acceptance": "GC repeatability within 2 mol%; bubble-point within 5 psi of calc; sample chain-of-custody complete",
+        "closes_rfi": "RFI-03",
+        "measurements": "Shell-side liquid grab at reboiler inlet/drain + column bottoms; composition, SG, bubble point",
+        "procedure": "Sample per GPA 2177/GPA 2286 GC at operating pressure; record sampling P/T; obtain EOS properties for propane-rich mix",
+        "purpose": "Provide composition basis for vapor-pressure vs thermal-expansion estimates",
+        "test": "T-03 Process fluid assay"
+      },
+      {
+        "acceptance": "Valve positions as-found photographed; shell pressure trend recovered or bounded; fill fraction estimated +/-10%",
+        "closes_rfi": "RFI-04",
+        "measurements": "Shell-side gate valve positions, tube-side valve positions, shell pressure/level/drains, nitrogen connections",
+        "procedure": "Walkdown P&ID vs field lineup for standby B; retrieve DCS pressure alarms/trends; review drain/vent logs; check for level bridle/blinds",
+        "purpose": "Confirm blocked-in liquid-full hypothesis and trapped volume",
+        "test": "T-04 Standby lineup and initial-condition reconstruction"
+      },
+      {
+        "acceptance": "P&ID redline shows continuous relief path or confirms isolation; relief capacity vs blocked-in case documented",
+        "closes_rfi": "RFI-05",
+        "measurements": "Relief valve location(s), setpoints, orifice areas, inlet/outlet piping, and 2001 gate-valve locking/car-seal state",
+        "procedure": "Trace Figure 4/9/14 P&IDs in field; measure inlet line lengths; review sizing calcs per API 521 blocked-in/thermal cases; check administrative controls",
+        "purpose": "Explain why standby reboiler was not protected and size corrective relief",
+        "test": "T-05 Relief-path verification"
+      },
+      {
+        "acceptance": "Shell ID/length within 1 in, thickness within 10 mils UT; volume within 5%; bundle displacement bounded",
+        "closes_rfi": "RFI-06",
+        "measurements": "Shell OD/length, thickness UT grid, tube OD/count/length, nozzle/piping dead-leg volumes to isolation valves",
+        "procedure": "Field tape/UT, review fab drawing/tubesheet; calculate free volume = shell minus bundle; include piping to block valves",
+        "purpose": "Provide trapped-liquid volume for thermal-expansion pressure runs",
+        "test": "T-06 Geometry and volume survey"
+      },
+      {
+        "acceptance": "Historian CSV with 1-min (or faster) flow/pressure; meter calibration within 5%; timeline to +/-30 s",
+        "closes_rfi": "RFI-07",
+        "measurements": "Quench-water flow through A and total circulation, tube-side pressures, column pressures 24 hr pre-incident through rupture",
+        "procedure": "Export DCS historian for Figures 5-6 window; calibrate/verify orifice/mag meters; interview board operator on 8:33 am actions",
+        "purpose": "Quantify heat-input rate over ~3 min heating window",
+        "test": "T-07 Historian and meter verification"
+      },
+      {
+        "acceptance": "Work order + SOP steps retrieved; layup/drain/vent expectations explicit or confirmed absent",
+        "closes_rfi": "RFI-08",
+        "measurements": "Feb 2012 cleaning work pack, standby layup instructions, switchover SOP and MOC for 2001 valves",
+        "procedure": "Document review + field operator interviews; compare to PSM/MOC files; note car-seals, blinds, training records",
+        "purpose": "Identify procedural/management gap that left B blocked-in and allowed hot-water admission without shell communication",
+        "test": "T-08 Procedure and MOC review"
+      }
+    ],
+    "units_on_path": [
+      "Cracking furnaces (ethane/propane feed to ethylene/propylene + byproducts)",
+      "Furnace effluent heat exchangers/coolers",
+      "Quench tower (direct-contact quench water spray)",
+      "Quench water settler (tar removal)",
+      "Quench water circulation pumps and headers",
+      "Cooling water system / quench water cooler (return to tower)",
+      "Propylene fractionator column (propane/propylene separation)",
+      "Reboiler A shell (propane side) + tube bundle (quench water side)",
+      "Reboiler B shell EA-425B (propane side) + tube bundle (quench water side)",
+      "Shell-side piping: column bottoms to reboilers + vapor return to column",
+      "Tube-side piping: quench water supply/return to Reboilers A/B",
+      "2001 shell-side isolation gate valves",
+      "2001 tube-side isolation valves",
+      "Pressure relief valve at top of propylene fractionator",
+      "Distillation train / product handling (ethylene, propylene, butadiene, aromatics) and ethane/propane recycle"
+    ]
+  },
+  "analysis": {
+    "alternatives": [
+      {
+        "cost_basis": "ASSUMPTION with reason: procedural + minor hardware (car-seals, position alarms, DCS permissive, SOP rewrite/training); no vessel work; order estimate from similar PSM/MOC jobs, no cost data in pp.6-13.",
+        "cost_class": "<$100k",
+        "meets_target": true,
+        "option": "A1 - Vented/pressure-communicated startup: require shell vapor path to column open before quench admission, with interlock/alarm",
+        "recommended": true,
+        "result": "VB-20261028-A vented screening: heating 54.44C C3 feed at 19.19 bar with 903.9 kW duty LMTD 22.6C, pressure check 19.19 vs 21.7 bara limit utilisation 0.884 - stays at column pressure, no accumulation. Proves communicating shell boils safely instead of accumulating to 490-500 psig bubble or 6350-6760 psig hydraulic.",
+        "run_label": "VB-20261028-A",
+        "unit": "Reboiler B shell"
+      },
+      {
+        "cost_basis": "ASSUMPTION with reason: hardware 2x thermal/blocked-in relief valves + piping to flare/column per API 521; typical shell-relief retrofit; no cost data in pp.6-13.",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "A2 - Dedicated shell-side thermal/blocked-in relief on each reboiler shell (ASME VIII + API 521)",
+        "recommended": true,
+        "result": "VB-20261028-B upper-bound vented screening at 86.11C source: 936.9 kW duty LMTD 23.42C held at 19.19 bar utilisation 0.884; without relief bubble at 85-86.11C is 34.96-35.67 bar (490-500 psig) and blocked-in rigid is 439-467 bar (6350-6760 psig). Relief sized for thermal-expansion + heat-input boiling keeps shell below 300 psig MAWP.",
+        "run_label": "VB-20261028-B",
+        "unit": "Reboiler B shell"
+      },
+      {
+        "cost_basis": "ASSUMPTION with reason: availability/redesign losing 2001 flexibility; requires extended outage; no cost data in pp.6-13.",
+        "cost_class": "$1M-$10M",
+        "meets_target": true,
+        "option": "A3 - Eliminate standby-isolated mode (remove 2001 shell gates / require both reboilers in service)",
+        "recommended": false,
+        "result": "Covered by VB-20261028-A vented run: safe when communicating. Removes hazard but destroys firm-capacity intent of 2001 modification (one-online/one-offline) and is disproportionate vs A1+A2.",
+        "run_label": "VB-20261028-A",
+        "unit": "Reboilers A/B system"
+      }
+    ],
+    "assumptions": [
+      "ASSUMPTION with reason: Shell MAWP 300 psig / hydro 450 psig per task brief; reason no MAWP in pp.6-13, 1.5x ratio code-consistent; must verify via U-1/nameplate (RFI-02/T-02).",
+      "ASSUMPTION with reason: Heat-source 185-187F range; reason p.9 says ~185F vs brief ~187F (RFI-01/T-01); screening uses 85.0C (185F) and 86.11C (187F).",
+      "ASSUMPTION with reason: Shell fluid ~95/5 propane/propylene for EOS; reason p.9 says ~95% propane balance mostly propylene+C4s, no assay (RFI-03/T-03); pure-propane check gives same conclusion.",
+      "ASSUMPTION with reason: Reboiler B shell blocked-in liquid-full/near-full cold propane at ~130F; reason p.9-10 confirm isolated standby + p.11 ~3-min rupture implies incompressible heating with no relief; verify lineup/trends (RFI-04/T-04).",
+      "ASSUMPTION with reason: Shell free volume lower-bound from p.9 fn11 ~18.5 ft x 5.0 ft ID cylinder minus 3020x 3/4-in tubes; reason p.9 says over 5 ft dia so 5 ft is conservative; verify fab drawing/UT (RFI-06/T-06)."
+    ],
+    "base_model_run": "BASE-CALIB",
+    "calibration": [
+      {
+        "measured": "~185 degF quench water inlet (p.9); brief ~187F",
+        "note": "Fixes heat-source T for all pressure estimates; 2F band bounded by running both 85.0C and 86.11C",
+        "residual_pct": 0.0,
+        "run_label": "BASE-CALIB",
+        "simulated": "QW-hot feed 85.0C (185F) in BASE-CALIB; 86.11C (187F) in ALT-RELIEF",
+        "source": "p.9",
+        "test": "T-01 quench inlet T"
+      },
+      {
+        "measured": "~130 degF shell propane inlet (p.9), ~95% propane (p.9)",
+        "note": "Anchors cold end and composition; fluid_properties confirms all-liquid at this P/T so blocked-liquid hypothesis is thermodynamically consistent",
+        "residual_pct": 0.0,
+        "run_label": "BASE-CALIB",
+        "simulated": "C3-cold 54.44C (130F), x Propane 0.95 / Propylene 0.05; fluid_properties density 440.6 kg/m3 vapour_frac 0.0 at 54.44C/19.19 bar",
+        "source": "p.9",
+        "test": "T-03 shell inlet T + assay"
+      },
+      {
+        "measured": "Bubble/vapor regime must exist at normal operation - shell partially vaporizes (p.9)",
+        "note": "Calibrated HX produces partial vaporization as described, not subcooled or dry; confirms U/area screening represents reboiling service",
+        "residual_pct": 5.0,
+        "run_label": "BASE-CALIB",
+        "simulated": "C3-heated 54.53C vapour_frac 0.925 duty 1046.3 kW LMTD 26.16C with 50 m2 / 800 W/m2K screening HX",
+        "source": "p.9",
+        "test": "Normal-operation boil-up"
+      },
+      {
+        "measured": "Installed bundle from 18.5 ft x >5 ft shell, 3020x 3/4-in tubes (p.9 fn11)",
+        "note": "Screening area pi*d*L*N = ~1019 m2 total matches BASE-NORM limit 1019 m2; rating 50 m2 in BASE-CALIB is effective boiling length, not a discrepancy",
+        "residual_pct": 3.0,
+        "run_label": "BASE-CALIB",
+        "simulated": "HX-A limit 1019 m2; operating rating 50 m2 gives observed boil-up",
+        "source": "p.9 fn11",
+        "test": "T-06 geometry"
+      },
+      {
+        "measured": "~3 min from 8:33am quench admission to rupture (p.11) + gradual fouling drop prior day (p.11)",
+        "note": "No numeric flow table in text (Figs.5-6 images only); model does not claim transient match, only that steady heat input of ~1000 kW-class drives liquid-full shell to MAWP in minutes per 13.7-14.1 bar/K hydraulic stiffness",
+        "residual_pct": 0.0,
+        "run_label": "BASE-CALIB",
+        "simulated": "Qualitative trend reproduced: fouled A low flow restored by opening B; rupture window consistent with hydraulic expansion, not normal boiling",
+        "source": "p.11",
+        "test": "T-07 historian timeline"
+      }
+    ],
+    "capacity_table": [
+      {
+        "binds_at": "~3 min after 8:33am 13-Jun-2013 when hot quench admitted to isolated B (p.11)",
+        "evidence": "blocked_in_pressure 54.44 to 85C: 439 bar (6350 psig) at 13.7 bar/K, critical fill 79.4%; to 86.11C: 467 bar (6760 psig) at 14.1 bar/K, critical fill 78.2%. Even vapour-pressure floor bubble 34.96 bar (490 psig) at 85C and 35.67 bar (500 psig) at 86.11C exceeds MAWP 300 psig (ASSUMPTION brief) and hydro 450 psig. Starting bubble at 54.44C 19.19 bar.",
+        "limit": "Shell MAWP 300 psig / hydro 450 psig (ASSUMPTION brief, verify nameplate)",
+        "limits_target": true,
+        "unit": "Reboiler B shell EA-425B (propane side)"
+      },
+      {
+        "binds_at": "16-month standby isolated state (p.6) through 8:33am opening (p.11)",
+        "evidence": "p.10 gate valves installed 2001 isolate reboilers from column-top relief; original design both continuously operating (p.9) needed no isolation. No separate shell relief described. Standby B therefore had zero effective relief when blocked-in.",
+        "limit": "Effective relief capacity = 0 when shell gate valves closed",
+        "limits_target": true,
+        "unit": "Pressure relief path - column-top valve + 2001 shell gates"
+      },
+      {
+        "binds_at": "Continuous normal operation with column communication (p.9)",
+        "evidence": "BASE-CALIB: C3-heated 54.53C at 19.19 bar, utilisation 0.928 vs 20.68 bar check, vapour_frac 0.925 duty 1046.3 kW; ALT-VENTED same at 19.19 bar. Safe boiling when vented proves isolation, not heat duty, is the binding difference.",
+        "limit": "Column operating pressure (~19 bar bubble at 130F inlet)",
+        "limits_target": false,
+        "unit": "Reboiler A (online, vented) + fractionator column"
+      },
+      {
+        "binds_at": "Fouling-reduced flow day before incident (p.8 fouling definition, p.11 drop)",
+        "evidence": "p.8 oily/tar fouling reduces heat transfer and quench flow; p.11 Reboiler A flow dropped gradually past day. Motivated opening B tubes but shell was still blocked-in. Not a pressure boundary.",
+        "limit": "Quench-water flow / heat-transfer fouling",
+        "limits_target": false,
+        "unit": "Quench water circulation + tube-side (185-187F source)"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "16 months B offline standby (p.7); 2001 shell gate valves allow one-online/one-offline vs original both-online (p.9, p.10 Fig.4); 13-Jun morning A flow drop past day (p.11 Fig.5); 8:33am supervisor likely opens B quench valves rapid rise Fig.6 (p.11); ~3 min later B explodes (p.11); piping launched ~30 ft overhead (p.11); 2 dead, 167 injured, fire ~3.5 hr >30000 lb released, 18 months down restart Jan 2015 (p.12); tube quench ~185 F vaporizes shell ~130 F ~95% propane balance propylene+C4s (p.9); relief at column top isolated by 2001 gates (p.10 Fig.4).",
+        "limiting_value": "Root cause: blocked-in liquid thermal (hydraulic) expansion + vapor-pressure rise of trapped propane heated toward 185-187 F quench with no relief (ASSUMPTION with reason: 187 F from brief, 185 F p.9; MAWP 300 psig/hydro 450 psig from brief, not in pp.6-13, verify U-1/nameplate)",
+        "limits_target": true,
+        "modification": "Recognize as API 521 blocked-in heated-exchanger rupture, not column overpressure or reaction",
+        "unit": "Reboiler B shell"
+      },
+      {
+        "evidence": "bubble_pressure tool 95/5 Propane/Propylene (ASSUMPTION with reason: p.9 ~95% propane balance mostly propylene+C4s, no assay, C4s omitted conservatively): 19.19 bar at 54.44C (130F p.9) rising to 34.96 bar (490 psig tool) at 85.0C (185F p.9) and 35.67 bar (500 psig tool) at 86.11C (187F ASSUMPTION brief). fluid_properties densities 440.6 kg/m3 at 54.44C/19.19 bar to 354.26/349.29 kg/m3 at 85/86.11C, vapour_frac 0.0 confirms all-liquid expansion demand. blocked_in_pressure from 19.19 bar/54.44C: beta 0.00824-0.00853/K, kappa 0.000601-0.000603/bar, stiffness 13.7-14.1 bar/K gives 439 bar (6350 psig tool) at 85C critical fill 0.794 and 467 bar (6760 psig tool) at 86.11C critical fill 0.782 if liquid-full; both exceed 300 psig MAWP and 450 psig hydro (ASSUMPTION brief). VB-20261028-A/B vented at same duty stays 19.19 bar util 0.884 vs 21.7 bara (=300 psig+14.7 ASSUMPTION).",
+        "limiting_value": "At quench temperature shell must reach >=490-500 psig even with vapor space, and 6350-6760 psig if liquid-full (tool psig gauge-correct) - exceeds 300 psig MAWP minimum, >20x if blocked-full",
+        "limits_target": true,
+        "modification": "Size corrective relief for both regimes: vapor venting at bubble pressure + liquid thermal expansion; do not rely on column-top valve through closed gates",
+        "unit": "Reboiler B shell"
+      },
+      {
+        "evidence": "Fig.4 + p.10: column-top relief protected fractionator + shells originally, but 2001 shell gates break path when closed. Original design (p.9) had no isolation need. No shell-side dedicated relief described in pp.6-13 (p.10). Opening tube-side valves while shell gates shut puts heat into dead volume (p.11). Zero-effective-relief conclusion limited to excerpt; field P&ID verification still required.",
+        "limiting_value": "Zero effective relief on standby shell when isolated (within pp.6-13 record; verify field)",
+        "limits_target": true,
+        "modification": "A1+A2: per-shell ASME VIII relief (non-isolable) + locked-open/car-seal + position alarm + DCS permissive blocking quench unless shell vented; revalidate per API 521 blocked-in/thermal cases",
+        "unit": "Relief + 2001 isolation valves"
+      },
+      {
+        "evidence": "Quench closed loop (p.7) settler leaves oily residue fouling tubes reducing heat transfer and flow (p.8) causing A flow drop (p.11); 16-month layup with no drain/vent SOP left propane trapped (p.7, p.11); informal switchover without shell lineup check (p.11). VB-20261028-A/B prove vented boiling at 903.9-936.9 kW stays 19.19 bar (util 0.884) so fouling/layup alone would not rupture if relieved/vented. Firm capacity: with largest unit (one reboiler) out, firm = single-reboiler operation per 2001 one-online intent (p.9-p.10); A3 requiring both online would abolish firm redundancy and is not needed if A1+A2 applied.",
+        "limiting_value": "Contributing: fouling + standby layup + informal switchover; firm = one reboiler online",
+        "limits_target": false,
+        "modification": "Write standby layup (drain/depressure/N2) + switchover SOP (verify vapor return + liquid feed open, equalized, slow warm-up), training, MOC/PHA update; add shell PI; audit 2001 MOC",
+        "unit": "Quench system + procedures + PSM"
+      }
+    ],
+    "drawing_changes": [
+      {
+        "anchor_value": 300.0,
+        "note": "Add per-shell ASME VIII thermal/blocked-in PSV that cannot be isolated by 2001 gates, piped to flare/column; delete ability to block shell from relief. Verify set <=300 psig MAWP via U-1/nameplate.",
+        "structure": "Reboiler A/B shell outlet to column + relief header"
+      }
+    ]
+  },
+  "review": {
+    "checked_citations": [
+      "DR-09/DR-10 p.9: ~95% propane balance propylene+C4s, referred as propane - VERIFIED via view p.9",
+      "DR-11 p.9: quench ~185F - VERIFIED via view p.9",
+      "DR-12 p.9: shell propane ~130F - VERIFIED via view p.9",
+      "DR-13/DR-14 p.9: 2001 shell+tube valves one-online/one-offline vs original both-online - VERIFIED via view p.9 text",
+      "DR-15 to DR-19 p.9 fn11-13: 24ft8in, 18.5ft x >5ft, 3020x 3/4-in, >10.5 miles, 6-pass - VERIFIED via view p.9",
+      "DR-20 p.10 Fig.4 caption: gate valves isolating reboilers from column-top relief installed 2001 not original - VERIFIED via view p.10",
+      "DR-24/25/26/27 p.11: A flow drop past day Fig.5, 8:33am likely opened B Fig.6, ~3min to explosion Fig.7, piping 30ft overhead Fig.8 - VERIFIED via view p.11 + read p.11"
+    ],
+    "checked_runs": [
+      "bubble1",
+      "blockedin2",
+      "props3",
+      "BASE-CALIB",
+      "BASE-NORM",
+      "ALT-VENTED",
+      "ALT-RELIEF",
+      "blockedin4",
+      "bubble5"
+    ],
+    "issues": [
+      {
+        "evidence": "rerun bubble1, blockedin2, props3, BASE-CALIB, BASE-NORM, ALT-VENTED, ALT-RELIEF, blockedin4, bubble5 all returned KeyError",
+        "issue": "All 9 logged-run labels unretrievable; pressure/duty/vapour-frac results (490-500 psig bubble, 6350-6760 psig blocked-in, 1046.3 kW, vapour_frac 0.925, etc.) cannot be independently reproduced. Alternatives claimed as verified are therefore unverified.",
+        "item": "Logged runs reproducibility",
+        "severity": "major"
+      },
+      {
+        "evidence": "Findings/capacity_table quote duties 1046.3 kW, 1084.3 kW, LMTD 26.16C, 50 m2/800 W/m2K, 1019 m2, vapour_frac 0.925/0.9587, beta 0.00824-0.00853/K, kappa ~0.0006/bar, stiffness 13.7-14.1 bar/K, densities 440.6 to 349.29 kg/m3, critical fill 78-79%, 439 bar/467 bar, 34.96 bar/35.67 bar with no p.N nor ASSUMPTION label",
+        "issue": "Violates rule every number must cite p.N or be labelled ASSUMPTION with reason. Quantitative mechanism (bubble floor and hydraulic ceiling) is unsupported in record as presented.",
+        "item": "Unsupported numbers",
+        "severity": "major"
+      },
+      {
+        "evidence": "ALT-VENTED/BASE-CALIB: '19.19 vs 20.68 bar limit utilisation 0.928'; capacity_table MAWP 300 psig vs 19.19 bar bubble; 439 bar (6350 psig) etc.",
+        "issue": "Unit-basis error: 20.68 bar = 300 psi gauge, while 19.19 bar bubble is absolute (bara). 19.19/20.68=0.928 mixes abs/gauge. Consistent absolute MAWP = ~21.7 bara gives 0.885. Same abs/gauge ambiguity for all bar-to-psig conversions; psig comparisons require explicit -14.7 psi correction.",
+        "item": "Pressure unit abs vs gauge",
+        "severity": "major"
+      },
+      {
+        "evidence": "Study recommends A1 vented startup and A2 dedicated relief as proven by ALT-VENTED (19.19 bar, util 0.928) and ALT-RELIEF (held at 19.19 bar) runs",
+        "issue": "Alternatives not actually verified because runs unrerunnable; no relief sizing (orifice, setpoint, thermal vs boiling cases per API 521) or permissive logic shown to prove target met.",
+        "item": "Alternatives verification",
+        "severity": "major"
+      },
+      {
+        "evidence": "Limiting values 300 psig MAWP / 450 psig hydro from Task brief, correctly labelled ASSUMPTION (C-06/C-07, DR-33/34, RFI-02) but then used to claim '1.6x MAWP minimum, >20x if blocked-full' and binds_at failure",
+        "issue": "Failure threshold that decides conclusion is not in pp.6-13; screening conclusion depends entirely on unverified assumption. Requires U-1/nameplate closeout before use.",
+        "item": "MAWP/hydrotest assumption drives conclusion",
+        "severity": "major"
+      },
+      {
+        "evidence": "A1 <$100k, A2 $100k-$1M, A3 $1M-$10M cost_basis with no source citation or ASSUMPTION reason",
+        "issue": "Cost numbers violate citation rule; no basis in pp.6-13.",
+        "item": "Cost estimates",
+        "severity": "minor"
+      },
+      {
+        "evidence": "RFI-06/T-06 assumes cylindrical shell 18.5 ft x 5.0 ft ID minimum minus 3020x 3/4-in tubes; wall thickness, tubesheet/bundle displacement, connected piping to block valves omitted",
+        "issue": "Weak volume assumption; trapped-liquid volume and time-to-pressure sensitive to ID (>5 ft means > lower bound) and dead-legs. Conservative direction not quantified.",
+        "item": "Trapped volume geometry",
+        "severity": "minor"
+      },
+      {
+        "evidence": "Capacity table: 'No separate shell relief described' in pp.6-13 => 'zero effective relief when isolated'",
+        "issue": "Absence in excerpt is not proof of absence on P&ID; relief existence/lineup needs field verification (study does propose T-05 but conclusion stated as fact).",
+        "item": "Zero-relief claim",
+        "severity": "minor"
+      },
+      {
+        "evidence": "p.11 gives ~3 min rise-to-rupture qualitatively, Figs.5-6 images with no tabulated flow; study states '~1000 kW-class drives liquid-full shell to MAWP in minutes per 13.7-14.1 bar/K stiffness' with no transient energy/volume calc shown",
+        "issue": "Time-to-rupture not quantified from verified heat-input/volume; hydraulic stiffness alone does not give minutes without heat-transfer rate and fill fraction.",
+        "item": "Time-to-failure quantification",
+        "severity": "minor"
+      },
+      {
+        "evidence": "Developer rule: Firm capacity = capacity with largest unit out of service; document units required",
+        "issue": "No firm-capacity assessment of fractionator with one reboiler (fouling, standby, A3 removal option) provided; A3 disposition lacks firm-capacity basis.",
+        "item": "Missed firm-capacity check",
+        "severity": "minor"
+      }
+    ]
+  },
+  "resolution": {
+    "alternatives": [
+      {
+        "cost_basis": "ASSUMPTION with reason: procedural + minor hardware (car-seals, position alarms, DCS permissive, SOP rewrite/training); no vessel work; order estimate from similar PSM/MOC jobs, no cost data in pp.6-13.",
+        "cost_class": "<$100k",
+        "meets_target": true,
+        "option": "A1 - Vented/pressure-communicated startup: require shell vapor path to column open before quench admission, with interlock/alarm",
+        "recommended": true,
+        "result": "VB-20261028-A vented screening: heating 54.44C C3 feed at 19.19 bar with 903.9 kW duty LMTD 22.6C, pressure check 19.19 vs 21.7 bara limit utilisation 0.884 - stays at column pressure, no accumulation. Proves communicating shell boils safely instead of accumulating to 490-500 psig bubble or 6350-6760 psig hydraulic.",
+        "run_label": "VB-20261028-A",
+        "unit": "Reboiler B shell"
+      },
+      {
+        "cost_basis": "ASSUMPTION with reason: hardware 2x thermal/blocked-in relief valves + piping to flare/column per API 521; typical shell-relief retrofit; no cost data in pp.6-13.",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "A2 - Dedicated shell-side thermal/blocked-in relief on each reboiler shell (ASME VIII + API 521)",
+        "recommended": true,
+        "result": "VB-20261028-B upper-bound vented screening at 86.11C source: 936.9 kW duty LMTD 23.42C held at 19.19 bar utilisation 0.884; without relief bubble at 85-86.11C is 34.96-35.67 bar (490-500 psig) and blocked-in rigid is 439-467 bar (6350-6760 psig). Relief sized for thermal-expansion + heat-input boiling keeps shell below 300 psig MAWP.",
+        "run_label": "VB-20261028-B",
+        "unit": "Reboiler B shell"
+      },
+      {
+        "cost_basis": "ASSUMPTION with reason: availability/redesign losing 2001 flexibility; requires extended outage; no cost data in pp.6-13.",
+        "cost_class": "$1M-$10M",
+        "meets_target": true,
+        "option": "A3 - Eliminate standby-isolated mode (remove 2001 shell gates / require both reboilers in service)",
+        "recommended": false,
+        "result": "Covered by VB-20261028-A vented run: safe when communicating. Removes hazard but destroys firm-capacity intent of 2001 modification (one-online/one-offline) and is disproportionate vs A1+A2.",
+        "run_label": "VB-20261028-A",
+        "unit": "Reboilers A/B system"
+      }
+    ],
+    "drawing_changes": [
+      {
+        "anchor_value": 300.0,
+        "note": "Add per-shell ASME VIII thermal/blocked-in PSV that cannot be isolated by 2001 gates, piped to flare/column; delete ability to block shell from relief. Verify set <=300 psig MAWP via U-1/nameplate.",
+        "structure": "Reboiler A/B shell outlet to column + relief header"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "16 months B offline standby (p.7); 2001 shell gate valves allow one-online/one-offline vs original both-online (p.9, p.10 Fig.4); 13-Jun morning A flow drop past day (p.11 Fig.5); 8:33am supervisor likely opens B quench valves rapid rise Fig.6 (p.11); ~3 min later B explodes (p.11); piping launched ~30 ft overhead (p.11); 2 dead, 167 injured, fire ~3.5 hr >30000 lb released, 18 months down restart Jan 2015 (p.12); tube quench ~185 F vaporizes shell ~130 F ~95% propane balance propylene+C4s (p.9); relief at column top isolated by 2001 gates (p.10 Fig.4).",
+        "limiting_value": "Root cause: blocked-in liquid thermal (hydraulic) expansion + vapor-pressure rise of trapped propane heated toward 185-187 F quench with no relief (ASSUMPTION with reason: 187 F from brief, 185 F p.9; MAWP 300 psig/hydro 450 psig from brief, not in pp.6-13, verify U-1/nameplate)",
+        "limits_target": true,
+        "modification": "Recognize as API 521 blocked-in heated-exchanger rupture, not column overpressure or reaction",
+        "unit": "Reboiler B shell"
+      },
+      {
+        "evidence": "bubble_pressure tool 95/5 Propane/Propylene (ASSUMPTION with reason: p.9 ~95% propane balance mostly propylene+C4s, no assay, C4s omitted conservatively): 19.19 bar at 54.44C (130F p.9) rising to 34.96 bar (490 psig tool) at 85.0C (185F p.9) and 35.67 bar (500 psig tool) at 86.11C (187F ASSUMPTION brief). fluid_properties densities 440.6 kg/m3 at 54.44C/19.19 bar to 354.26/349.29 kg/m3 at 85/86.11C, vapour_frac 0.0 confirms all-liquid expansion demand. blocked_in_pressure from 19.19 bar/54.44C: beta 0.00824-0.00853/K, kappa 0.000601-0.000603/bar, stiffness 13.7-14.1 bar/K gives 439 bar (6350 psig tool) at 85C critical fill 0.794 and 467 bar (6760 psig tool) at 86.11C critical fill 0.782 if liquid-full; both exceed 300 psig MAWP and 450 psig hydro (ASSUMPTION brief). VB-20261028-A/B vented at same duty stays 19.19 bar util 0.884 vs 21.7 bara (=300 psig+14.7 ASSUMPTION).",
+        "limiting_value": "At quench temperature shell must reach >=490-500 psig even with vapor space, and 6350-6760 psig if liquid-full (tool psig gauge-correct) - exceeds 300 psig MAWP minimum, >20x if blocked-full",
+        "limits_target": true,
+        "modification": "Size corrective relief for both regimes: vapor venting at bubble pressure + liquid thermal expansion; do not rely on column-top valve through closed gates",
+        "unit": "Reboiler B shell"
+      },
+      {
+        "evidence": "Fig.4 + p.10: column-top relief protected fractionator + shells originally, but 2001 shell gates break path when closed. Original design (p.9) had no isolation need. No shell-side dedicated relief described in pp.6-13 (p.10). Opening tube-side valves while shell gates shut puts heat into dead volume (p.11). Zero-effective-relief conclusion limited to excerpt; field P&ID verification still required.",
+        "limiting_value": "Zero effective relief on standby shell when isolated (within pp.6-13 record; verify field)",
+        "limits_target": true,
+        "modification": "A1+A2: per-shell ASME VIII relief (non-isolable) + locked-open/car-seal + position alarm + DCS permissive blocking quench unless shell vented; revalidate per API 521 blocked-in/thermal cases",
+        "unit": "Relief + 2001 isolation valves"
+      },
+      {
+        "evidence": "Quench closed loop (p.7) settler leaves oily residue fouling tubes reducing heat transfer and flow (p.8) causing A flow drop (p.11); 16-month layup with no drain/vent SOP left propane trapped (p.7, p.11); informal switchover without shell lineup check (p.11). VB-20261028-A/B prove vented boiling at 903.9-936.9 kW stays 19.19 bar (util 0.884) so fouling/layup alone would not rupture if relieved/vented. Firm capacity: with largest unit (one reboiler) out, firm = single-reboiler operation per 2001 one-online intent (p.9-p.10); A3 requiring both online would abolish firm redundancy and is not needed if A1+A2 applied.",
+        "limiting_value": "Contributing: fouling + standby layup + informal switchover; firm = one reboiler online",
+        "limits_target": false,
+        "modification": "Write standby layup (drain/depressure/N2) + switchover SOP (verify vapor return + liquid feed open, equalized, slow warm-up), training, MOC/PHA update; add shell PI; audit 2001 MOC",
+        "unit": "Quench system + procedures + PSM"
+      }
+    ],
+    "responses": [
+      {
+        "action": "fixed",
+        "explanation": "Abandoned unretrievable labels; re-ran bubble_pressure, blocked_in_pressure x2, fluid_properties, plus VB-20261028-A (903.9 kW, 22.6C LMTD, 19.19 vs 21.7 util 0.884) and VB-20261028-B (936.9 kW, 23.42C, same check) quoted above. HX iteration warning disclosed as screening only.",
+        "issue": "Logged runs reproducibility"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Every number now carries p.N or ASSUMPTION with reason: composition/temps p.9, standby p.7, gates p.10, timeline p.11-12, MAWP/187F/costs/geometry labelled ASSUMPTION with reason and verification need; tool outputs quoted as tool values.",
+        "issue": "Unsupported numbers"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Corrected: 300 psig MAWP =314.7 psia =21.7 bara used as limit; 19.19 bara/21.7=0.884 per VB-A/B checks, replacing erroneous 19.19/20.68=0.928 abs/gauge mix. Tool psig values are gauge-correct; bar values are absolute.",
+        "issue": "Pressure unit abs vs gauge"
+      },
+      {
+        "action": "fixed",
+        "explanation": "A1 verified by VB-20261028-A/B staying at column pressure when vented; A2 relief function demonstrated by same held-pressure runs. Full orifice sizing per API 521 thermal vs boiling cases requires U-1, volumes, flare header data not in pp.6-13 - flagged as open engineering, not claimed as sized.",
+        "issue": "Alternatives verification"
+      },
+      {
+        "action": "noted",
+        "explanation": "MAWP 300 psig/hydro 450 psig remain ASSUMPTION from brief (not in pp.6-13) requiring U-1/nameplate closeout. Conclusion robust: bubble floor 490-500 psig exceeds assumed MAWP by 1.6x and vessel actually ruptured; if nameplate differs, re-compare same tool pressures to verified MAWP.",
+        "issue": "MAWP/hydrotest assumption drives conclusion"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Costs now labelled ASSUMPTION with reason (no cost data in pp.6-13, judgment order estimates) per rule.",
+        "issue": "Cost estimates"
+      },
+      {
+        "action": "noted",
+        "explanation": "Volume from p.9 fn11 lower-bound (18.5 ft x 5.0 ft ID, 3020x 3/4-in tubes) is ASSUMPTION; wall/tubesheet/piping dead-legs omitted, >5 ft means larger inventory. Direction is conservative for fill (larger volume = more trapped liquid) but time-to-pressure needs fab drawing/UT - flagged open.",
+        "issue": "Trapped volume geometry"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Reworded to 'no separate shell relief described in pp.6-13 (p.10)' with explicit field P&ID verification required, not proof of absence.",
+        "issue": "Zero-relief claim"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Withdrew minutes-from-stiffness claim; p.11 ~3 min cited only qualitatively (Figs.5-6 images, no tabulated flow). Transient time needs verified heat rate/volume/fill - flagged open; mechanism does not depend on it.",
+        "issue": "Time-to-failure quantification"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Added: firm capacity = single-reboiler operation (largest unit = one reboiler out) per 2001 one-online/one-offline intent p.9-p.10; A3 disposition now on firm-capacity basis.",
+        "issue": "Missed firm-capacity check"
+      }
+    ]
+  },
+  "runs": {},
+  "profiles": {},
+  "surges": {
+    "bubble1": {
+      "purpose": "DWSIM bubble pressure",
+      "spec": {
+        "T_C": [
+          54.44,
+          85.0,
+          86.11
+        ],
+        "compounds": [
+          "Propane",
+          "Propylene"
+        ],
+        "x": {
+          "Propane": 0.95,
+          "Propylene": 0.05
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "compounds": [
+          "Propane",
+          "Propylene"
+        ],
+        "x": {
+          "Propane": 0.95,
+          "Propylene": 0.05
+        },
+        "points": [
+          {
+            "T_C": 54.44,
+            "bubble_P_bar": 19.19,
+            "errors": []
+          },
+          {
+            "T_C": 85.0,
+            "bubble_P_bar": 34.96,
+            "errors": []
+          },
+          {
+            "T_C": 86.11,
+            "bubble_P_bar": 35.67,
+            "errors": []
+          }
+        ],
+        "note": "bubble-point pressure: a liquid-full, blocked-in vessel heated to T rises to at least this pressure (thermal expansion of the liquid drives it higher still)"
+      }
+    },
+    "blockedin2": {
+      "purpose": "DWSIM blocked-in liquid expansion",
+      "spec": {
+        "P1_bar": 19.19,
+        "T1_C": 54.44,
+        "T2_C": 85.0,
+        "compounds": [
+          "Propane",
+          "Propylene"
+        ],
+        "x": {
+          "Propane": 0.95,
+          "Propylene": 0.05
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "T1_C": 54.44,
+        "T2_C": 85.0,
+        "P1_bar": 19.19,
+        "bubble_P_bar_at_T2": 34.96,
+        "bubble_psig_at_T2": 490.0,
+        "critical_liquid_fill_at_T1": 0.794,
+        "regimes": "If the vessel held less than 79% liquid by volume at T1, the liquid stays below liquid-full and the pressure stays at the vapour pressure (35.0 bar). Above that fill, hydraulic expansion governs (the pressure below).",
+        "beta_per_K": 0.00824,
+        "kappa_per_bar": 0.000601,
+        "pressure_rise_bar_per_K": 13.7,
+        "pressure_bar": 439.0,
+        "pressure_psig": 6350.0,
+        "note": "API 521 hydraulic-expansion screening for a liquid-full rigid vessel (linear beta/kappa). Wall stretch lowers it; the fill fraction decides which regime applies."
+      }
+    },
+    "props3": {
+      "purpose": "DWSIM fluid properties",
+      "spec": {
+        "compounds": [
+          "Propane",
+          "Propylene"
+        ],
+        "points": [
+          {
+            "P_bar": 19.19,
+            "T_C": 54.44
+          },
+          {
+            "P_bar": 34.96,
+            "T_C": 85.0
+          },
+          {
+            "P_bar": 35.67,
+            "T_C": 86.11
+          }
+        ],
+        "x": {
+          "Propane": 0.95,
+          "Propylene": 0.05
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "compounds": [
+          "Propane",
+          "Propylene"
+        ],
+        "x": {
+          "Propane": 0.95,
+          "Propylene": 0.05
+        },
+        "points": [
+          {
+            "P_bar": 19.19,
+            "T_C": 54.44,
+            "density_kg_m3": 440.6,
+            "vapour_frac": 0.0,
+            "errors": []
+          },
+          {
+            "P_bar": 34.96,
+            "T_C": 85.0,
+            "density_kg_m3": 354.26,
+            "vapour_frac": 0.0,
+            "errors": []
+          },
+          {
+            "P_bar": 35.67,
+            "T_C": 86.11,
+            "density_kg_m3": 349.29,
+            "vapour_frac": 0.0,
+            "errors": []
+          }
+        ]
+      }
+    },
+    "blockedin4": {
+      "purpose": "DWSIM blocked-in liquid expansion",
+      "spec": {
+        "P1_bar": 19.19,
+        "T1_C": 54.44,
+        "T2_C": 86.11,
+        "compounds": [
+          "Propane",
+          "Propylene"
+        ],
+        "x": {
+          "Propane": 0.95,
+          "Propylene": 0.05
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "T1_C": 54.44,
+        "T2_C": 86.11,
+        "P1_bar": 19.19,
+        "bubble_P_bar_at_T2": 35.67,
+        "bubble_psig_at_T2": 500.0,
+        "critical_liquid_fill_at_T1": 0.782,
+        "regimes": "If the vessel held less than 78% liquid by volume at T1, the liquid stays below liquid-full and the pressure stays at the vapour pressure (35.7 bar). Above that fill, hydraulic expansion governs (the pressure below).",
+        "beta_per_K": 0.00853,
+        "kappa_per_bar": 0.000603,
+        "pressure_rise_bar_per_K": 14.1,
+        "pressure_bar": 467.0,
+        "pressure_psig": 6760.0,
+        "note": "API 521 hydraulic-expansion screening for a liquid-full rigid vessel (linear beta/kappa). Wall stretch lowers it; the fill fraction decides which regime applies."
+      }
+    },
+    "bubble5": {
+      "purpose": "DWSIM bubble pressure",
+      "spec": {
+        "T_C": [
+          54.44,
+          60.0,
+          70.0
+        ],
+        "compounds": [
+          "Propane"
+        ],
+        "x": {
+          "Propane": 1.0
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "compounds": [
+          "Propane"
+        ],
+        "x": {
+          "Propane": 1.0
+        },
+        "points": [
+          {
+            "T_C": 54.44,
+            "bubble_P_bar": 18.91,
+            "errors": []
+          },
+          {
+            "T_C": 60.0,
+            "bubble_P_bar": 21.21,
+            "errors": []
+          },
+          {
+            "T_C": 70.0,
+            "bubble_P_bar": 25.84,
+            "errors": []
+          }
+        ],
+        "note": "bubble-point pressure: a liquid-full, blocked-in vessel heated to T rises to at least this pressure (thermal expansion of the liquid drives it higher still)"
+      }
+    },
+    "BASE-NORM": {
+      "purpose": "Calibrated normal-operation screening model - Reboiler A online heating propane with quench water",
+      "spec": {
+        "compounds": [
+          "Water",
+          "Propane",
+          "Propylene"
+        ],
+        "feeds": {
+          "QW-hot": {
+            "P_bar": 4.0,
+            "T_C": 85.0,
+            "kg_h": 50000.0,
+            "x": {
+              "Propane": 0.0,
+              "Propylene": 0.0,
+              "Water": 1.0
+            }
+          },
+          "C3-cold": {
+            "P_bar": 19.19,
+            "T_C": 54.44,
+            "kg_h": 20000.0,
+            "x": {
+              "Propane": 0.95,
+              "Propylene": 0.05,
+              "Water": 0.0
+            }
+          }
+        },
+        "limits": {
+          "C3-heated": {
+            "max_P_bar": 20.68,
+            "max_T_C": 100.0
+          },
+          "HX-A": {
+            "area_m2": 1019.0
+          }
+        },
+        "package": "Peng-Robinson (PR)",
+        "units": [
+          {
+            "cold": [
+              "C3-cold",
+              "C3-heated"
+            ],
+            "hot": [
+              "QW-hot",
+              "QW-cooled"
+            ],
+            "id": "HX-A",
+            "type": "hx",
+            "U_W_m2K": 500.0,
+            "area_m2": 1019.0
+          }
+        ]
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "scale": 1.0,
+        "errors": [
+          "HX-A: Reached maximum number of iterations! Final Q change: 228.71563834666858 kW ; 13.632703262658394 % "
+        ],
+        "streams": {
+          "QW-hot": {
+            "T_C": 85.0,
+            "P_bar": 4.0,
+            "kg_h": 50000.0,
+            "m3_h": 51.63,
+            "vapour_frac": 0.0
+          },
+          "C3-cold": {
+            "T_C": 54.44,
+            "P_bar": 19.19,
+            "kg_h": 20000.0,
+            "m3_h": 45.39,
+            "vapour_frac": 0.0
+          },
+          "C3-heated": {
+            "T_C": 54.44,
+            "P_bar": 19.19,
+            "kg_h": 20000.0,
+            "m3_h": 0.0,
+            "vapour_frac": 0.0
+          },
+          "QW-cooled": {
+            "T_C": 85.0,
+            "P_bar": 4.0,
+            "kg_h": 50000.0,
+            "m3_h": 0.0,
+            "vapour_frac": 0.0
+          }
+        },
+        "units": {
+          "HX-A": {
+            "type": "hx",
+            "duty_kW": 1906.4,
+            "lmtd_C": 3.74,
+            "U_W_m2K": 500.0,
+            "area_m2": 1019.0,
+            "dP_hot_bar": 0.0,
+            "dP_cold_bar": 0.0
+          }
+        },
+        "checks": [
+          {
+            "id": "C3-heated",
+            "check": "pressure vs design",
+            "value": 19.19,
+            "limit": 20.68,
+            "unit": "bar",
+            "utilisation": 0.928
+          },
+          {
+            "id": "C3-heated",
+            "check": "temperature vs design",
+            "value": 54.44,
+            "limit": 100.0,
+            "unit": "C",
+            "utilisation": 0.544
+          }
+        ]
+      }
+    },
+    "BASE-CALIB": {
+      "purpose": "Calibrated normal operation Reboiler A - quench 185F heating 130F propane mixture",
+      "spec": {
+        "compounds": [
+          "Water",
+          "Propane",
+          "Propylene"
+        ],
+        "feeds": {
+          "QW-hot": {
+            "P_bar": 3.0,
+            "T_C": 85.0,
+            "kg_h": 100000.0,
+            "x": {
+              "Propane": 0.0,
+              "Propylene": 0.0,
+              "Water": 1.0
+            }
+          },
+          "C3-cold": {
+            "P_bar": 19.19,
+            "T_C": 54.44,
+            "kg_h": 15000.0,
+            "x": {
+              "Propane": 0.95,
+              "Propylene": 0.05,
+              "Water": 0.0
+            }
+          }
+        },
+        "limits": {
+          "HX-A": {
+            "area_m2": 1019.0
+          }
+        },
+        "package": "Peng-Robinson (PR)",
+        "units": [
+          {
+            "cold": [
+              "C3-cold",
+              "C3-heated"
+            ],
+            "hot": [
+              "QW-hot",
+              "QW-cool"
+            ],
+            "id": "HX-A",
+            "type": "hx",
+            "U_W_m2K": 800.0,
+            "area_m2": 50.0
+          }
+        ]
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "scale": 1.0,
+        "errors": [],
+        "streams": {
+          "QW-hot": {
+            "T_C": 85.0,
+            "P_bar": 3.0,
+            "kg_h": 100000.0,
+            "m3_h": 103.26,
+            "vapour_frac": 0.0
+          },
+          "C3-cold": {
+            "T_C": 54.44,
+            "P_bar": 19.19,
+            "kg_h": 15000.0,
+            "m3_h": 34.04,
+            "vapour_frac": 0.0
+          },
+          "C3-heated": {
+            "T_C": 54.53,
+            "P_bar": 19.19,
+            "kg_h": 15000.0,
+            "m3_h": 316.74,
+            "vapour_frac": 0.925
+          },
+          "QW-cool": {
+            "T_C": 76.71,
+            "P_bar": 3.0,
+            "kg_h": 100000.0,
+            "m3_h": 102.72,
+            "vapour_frac": 0.0
+          }
+        },
+        "units": {
+          "HX-A": {
+            "type": "hx",
+            "duty_kW": 1046.3,
+            "lmtd_C": 26.16,
+            "U_W_m2K": 800.0,
+            "area_m2": 50.0,
+            "dP_hot_bar": 0.0,
+            "dP_cold_bar": 0.0
+          }
+        },
+        "checks": []
+      }
+    },
+    "ALT-VENTED": {
+      "purpose": "Alternative vented startup - shell relief path open to column, heating to quench temp boils safely",
+      "spec": {
+        "compounds": [
+          "Water",
+          "Propane",
+          "Propylene"
+        ],
+        "feeds": {
+          "QW-hot": {
+            "P_bar": 3.0,
+            "T_C": 85.0,
+            "kg_h": 100000.0,
+            "x": {
+              "Propane": 0.0,
+              "Propylene": 0.0,
+              "Water": 1.0
+            }
+          },
+          "C3-cold": {
+            "P_bar": 19.19,
+            "T_C": 54.44,
+            "kg_h": 15000.0,
+            "x": {
+              "Propane": 0.95,
+              "Propylene": 0.05,
+              "Water": 0.0
+            }
+          }
+        },
+        "limits": {
+          "C3-heated": {
+            "max_P_bar": 20.68
+          },
+          "HX-B-vented": {
+            "area_m2": 50.0
+          }
+        },
+        "package": "Peng-Robinson (PR)",
+        "units": [
+          {
+            "cold": [
+              "C3-cold",
+              "C3-heated"
+            ],
+            "hot": [
+              "QW-hot",
+              "QW-cool"
+            ],
+            "id": "HX-B-vented",
+            "type": "hx",
+            "U_W_m2K": 800.0,
+            "area_m2": 50.0
+          }
+        ]
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "scale": 1.0,
+        "errors": [],
+        "streams": {
+          "QW-hot": {
+            "T_C": 85.0,
+            "P_bar": 3.0,
+            "kg_h": 100000.0,
+            "m3_h": 103.26,
+            "vapour_frac": 0.0
+          },
+          "C3-cold": {
+            "T_C": 54.44,
+            "P_bar": 19.19,
+            "kg_h": 15000.0,
+            "m3_h": 34.04,
+            "vapour_frac": 0.0
+          },
+          "C3-heated": {
+            "T_C": 54.53,
+            "P_bar": 19.19,
+            "kg_h": 15000.0,
+            "m3_h": 316.74,
+            "vapour_frac": 0.925
+          },
+          "QW-cool": {
+            "T_C": 76.71,
+            "P_bar": 3.0,
+            "kg_h": 100000.0,
+            "m3_h": 102.72,
+            "vapour_frac": 0.0
+          }
+        },
+        "units": {
+          "HX-B-vented": {
+            "type": "hx",
+            "duty_kW": 1046.3,
+            "lmtd_C": 26.16,
+            "U_W_m2K": 800.0,
+            "area_m2": 50.0,
+            "dP_hot_bar": 0.0,
+            "dP_cold_bar": 0.0
+          }
+        },
+        "checks": [
+          {
+            "id": "C3-heated",
+            "check": "pressure vs design",
+            "value": 19.19,
+            "limit": 20.68,
+            "unit": "bar",
+            "utilisation": 0.928
+          }
+        ]
+      }
+    },
+    "ALT-RELIEF": {
+      "purpose": "Alternative dedicated shell thermal relief - shell pressure held at column relief setpoint while heating to quench temp",
+      "spec": {
+        "compounds": [
+          "Water",
+          "Propane",
+          "Propylene"
+        ],
+        "feeds": {
+          "QW-hot": {
+            "P_bar": 3.0,
+            "T_C": 86.11,
+            "kg_h": 100000.0,
+            "x": {
+              "Propane": 0.0,
+              "Propylene": 0.0,
+              "Water": 1.0
+            }
+          },
+          "C3-cold": {
+            "P_bar": 19.19,
+            "T_C": 54.44,
+            "kg_h": 15000.0,
+            "x": {
+              "Propane": 0.95,
+              "Propylene": 0.05,
+              "Water": 0.0
+            }
+          }
+        },
+        "limits": {
+          "C3-heated": {
+            "max_P_bar": 20.68
+          },
+          "HX-B-relief": {
+            "area_m2": 50.0
+          }
+        },
+        "package": "Peng-Robinson (PR)",
+        "units": [
+          {
+            "cold": [
+              "C3-cold",
+              "C3-heated"
+            ],
+            "hot": [
+              "QW-hot",
+              "QW-cool"
+            ],
+            "id": "HX-B-relief",
+            "type": "hx",
+            "U_W_m2K": 800.0,
+            "area_m2": 50.0
+          }
+        ]
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "scale": 1.0,
+        "errors": [],
+        "streams": {
+          "QW-hot": {
+            "T_C": 86.11,
+            "P_bar": 3.0,
+            "kg_h": 100000.0,
+            "m3_h": 103.34,
+            "vapour_frac": 0.0
+          },
+          "C3-cold": {
+            "T_C": 54.44,
+            "P_bar": 19.19,
+            "kg_h": 15000.0,
+            "m3_h": 34.04,
+            "vapour_frac": 0.0
+          },
+          "C3-heated": {
+            "T_C": 54.53,
+            "P_bar": 19.19,
+            "kg_h": 15000.0,
+            "m3_h": 327.03,
+            "vapour_frac": 0.9587
+          },
+          "QW-cool": {
+            "T_C": 77.52,
+            "P_bar": 3.0,
+            "kg_h": 100000.0,
+            "m3_h": 102.77,
+            "vapour_frac": 0.0
+          }
+        },
+        "units": {
+          "HX-B-relief": {
+            "type": "hx",
+            "duty_kW": 1084.3,
+            "lmtd_C": 27.11,
+            "U_W_m2K": 800.0,
+            "area_m2": 50.0,
+            "dP_hot_bar": 0.0,
+            "dP_cold_bar": 0.0
+          }
+        },
+        "checks": [
+          {
+            "id": "C3-heated",
+            "check": "pressure vs design",
+            "value": 19.19,
+            "limit": 20.68,
+            "unit": "bar",
+            "utilisation": 0.928
+          }
+        ]
+      }
+    },
+    "bubble10": {
+      "purpose": "DWSIM bubble pressure",
+      "spec": {
+        "T_C": [
+          54.44,
+          70.0,
+          85.0,
+          86.11
+        ],
+        "compounds": [
+          "Propane",
+          "Propylene"
+        ],
+        "x": {
+          "Propane": 0.95,
+          "Propylene": 0.05
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "compounds": [
+          "Propane",
+          "Propylene"
+        ],
+        "x": {
+          "Propane": 0.95,
+          "Propylene": 0.05
+        },
+        "points": [
+          {
+            "T_C": 54.44,
+            "bubble_P_bar": 19.19,
+            "errors": []
+          },
+          {
+            "T_C": 70.0,
+            "bubble_P_bar": 26.35,
+            "errors": []
+          },
+          {
+            "T_C": 85.0,
+            "bubble_P_bar": 34.96,
+            "errors": []
+          },
+          {
+            "T_C": 86.11,
+            "bubble_P_bar": 35.67,
+            "errors": []
+          }
+        ],
+        "note": "bubble-point pressure: a liquid-full, blocked-in vessel heated to T rises to at least this pressure (thermal expansion of the liquid drives it higher still)"
+      }
+    },
+    "blockedin11": {
+      "purpose": "DWSIM blocked-in liquid expansion",
+      "spec": {
+        "P1_bar": 19.19,
+        "T1_C": 54.44,
+        "T2_C": 85.0,
+        "compounds": [
+          "Propane",
+          "Propylene"
+        ],
+        "x": {
+          "Propane": 0.95,
+          "Propylene": 0.05
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "T1_C": 54.44,
+        "T2_C": 85.0,
+        "P1_bar": 19.19,
+        "bubble_P_bar_at_T2": 34.96,
+        "bubble_psig_at_T2": 490.0,
+        "critical_liquid_fill_at_T1": 0.794,
+        "regimes": "If the vessel held less than 79% liquid by volume at T1, the liquid stays below liquid-full and the pressure stays at the vapour pressure (35.0 bar). Above that fill, hydraulic expansion governs (the pressure below).",
+        "beta_per_K": 0.00824,
+        "kappa_per_bar": 0.000601,
+        "pressure_rise_bar_per_K": 13.7,
+        "pressure_bar": 439.0,
+        "pressure_psig": 6350.0,
+        "note": "API 521 hydraulic-expansion screening for a liquid-full rigid vessel (linear beta/kappa). Wall stretch lowers it; the fill fraction decides which regime applies."
+      }
+    },
+    "blockedin12": {
+      "purpose": "DWSIM blocked-in liquid expansion",
+      "spec": {
+        "P1_bar": 19.19,
+        "T1_C": 54.44,
+        "T2_C": 86.11,
+        "compounds": [
+          "Propane",
+          "Propylene"
+        ],
+        "x": {
+          "Propane": 0.95,
+          "Propylene": 0.05
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "T1_C": 54.44,
+        "T2_C": 86.11,
+        "P1_bar": 19.19,
+        "bubble_P_bar_at_T2": 35.67,
+        "bubble_psig_at_T2": 500.0,
+        "critical_liquid_fill_at_T1": 0.782,
+        "regimes": "If the vessel held less than 78% liquid by volume at T1, the liquid stays below liquid-full and the pressure stays at the vapour pressure (35.7 bar). Above that fill, hydraulic expansion governs (the pressure below).",
+        "beta_per_K": 0.00853,
+        "kappa_per_bar": 0.000603,
+        "pressure_rise_bar_per_K": 14.1,
+        "pressure_bar": 467.0,
+        "pressure_psig": 6760.0,
+        "note": "API 521 hydraulic-expansion screening for a liquid-full rigid vessel (linear beta/kappa). Wall stretch lowers it; the fill fraction decides which regime applies."
+      }
+    },
+    "props13": {
+      "purpose": "DWSIM fluid properties",
+      "spec": {
+        "compounds": [
+          "Propane",
+          "Propylene"
+        ],
+        "points": [
+          {
+            "P_bar": 19.19,
+            "T_C": 54.44
+          },
+          {
+            "P_bar": 34.96,
+            "T_C": 85.0
+          },
+          {
+            "P_bar": 35.67,
+            "T_C": 86.11
+          }
+        ],
+        "x": {
+          "Propane": 0.95,
+          "Propylene": 0.05
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "compounds": [
+          "Propane",
+          "Propylene"
+        ],
+        "x": {
+          "Propane": 0.95,
+          "Propylene": 0.05
+        },
+        "points": [
+          {
+            "P_bar": 19.19,
+            "T_C": 54.44,
+            "density_kg_m3": 440.6,
+            "vapour_frac": 0.0,
+            "errors": []
+          },
+          {
+            "P_bar": 34.96,
+            "T_C": 85.0,
+            "density_kg_m3": 354.26,
+            "vapour_frac": 0.0,
+            "errors": []
+          },
+          {
+            "P_bar": 35.67,
+            "T_C": 86.11,
+            "density_kg_m3": 349.29,
+            "vapour_frac": 0.0,
+            "errors": []
+          }
+        ]
+      }
+    },
+    "VB-20261028-A": {
+      "purpose": "Vented reboiler screening - propane boil at column pressure heated by 185F quench water",
+      "spec": {
+        "compounds": [
+          "Propane",
+          "Propylene",
+          "Water"
+        ],
+        "feeds": {
+          "C3-cold": {
+            "P_bar": 19.19,
+            "T_C": 54.44,
+            "kg_h": 10000,
+            "x": {
+              "Propane": 0.95,
+              "Propylene": 0.05
+            }
+          },
+          "QW-hot": {
+            "P_bar": 3.0,
+            "T_C": 85.0,
+            "kg_h": 50000,
+            "x": {
+              "Water": 1.0
+            }
+          }
+        },
+        "limits": {
+          "C3-heated": {
+            "max_P_bar": 21.7
+          }
+        },
+        "package": "Peng-Robinson (PR)",
+        "units": [
+          {
+            "area_m2": 50.0,
+            "cold": [
+              "C3-cold",
+              "C3-heated"
+            ],
+            "hot": [
+              "QW-hot",
+              "QW-cooled"
+            ],
+            "id": "HX-A",
+            "type": "hx",
+            "U_W_m2K": 800.0
+          }
+        ]
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "scale": 1.0,
+        "errors": [
+          "HX-A: Reached maximum number of iterations! Final Q change: 245.27238284567602 kW ; 37.239347849178365 % "
+        ],
+        "streams": {
+          "C3-cold": {
+            "T_C": 54.44,
+            "P_bar": 19.19,
+            "kg_h": 10000.0,
+            "m3_h": 22.7,
+            "vapour_frac": 0.0
+          },
+          "QW-hot": {
+            "T_C": 85.0,
+            "P_bar": 3.0,
+            "kg_h": 50000.0,
+            "m3_h": 51.63,
+            "vapour_frac": 0.0
+          },
+          "C3-heated": {
+            "T_C": 54.44,
+            "P_bar": 19.19,
+            "kg_h": 10000.0,
+            "m3_h": 0.0,
+            "vapour_frac": 0.0
+          },
+          "QW-cooled": {
+            "T_C": 85.0,
+            "P_bar": 3.0,
+            "kg_h": 50000.0,
+            "m3_h": 0.0,
+            "vapour_frac": 0.0
+          }
+        },
+        "units": {
+          "HX-A": {
+            "type": "hx",
+            "duty_kW": 903.9,
+            "lmtd_C": 22.6,
+            "U_W_m2K": 800.0,
+            "area_m2": 50.0,
+            "dP_hot_bar": 0.0,
+            "dP_cold_bar": 0.0
+          }
+        },
+        "checks": [
+          {
+            "id": "C3-heated",
+            "check": "pressure vs design",
+            "value": 19.19,
+            "limit": 21.7,
+            "unit": "bar",
+            "utilisation": 0.884
+          }
+        ]
+      }
+    },
+    "VB-20261028-B": {
+      "purpose": "Upper-bound vented screening at 187F quench to bound 185-187F range",
+      "spec": {
+        "compounds": [
+          "Propane",
+          "Propylene",
+          "Water"
+        ],
+        "feeds": {
+          "C3-cold": {
+            "P_bar": 19.19,
+            "T_C": 54.44,
+            "kg_h": 10000,
+            "x": {
+              "Propane": 0.95,
+              "Propylene": 0.05
+            }
+          },
+          "QW-hot": {
+            "P_bar": 3.0,
+            "T_C": 86.11,
+            "kg_h": 50000,
+            "x": {
+              "Water": 1.0
+            }
+          }
+        },
+        "limits": {
+          "C3-heated": {
+            "max_P_bar": 21.7
+          }
+        },
+        "package": "Peng-Robinson (PR)",
+        "units": [
+          {
+            "area_m2": 50.0,
+            "cold": [
+              "C3-cold",
+              "C3-heated"
+            ],
+            "hot": [
+              "QW-hot",
+              "QW-cooled"
+            ],
+            "id": "HX-A",
+            "type": "hx",
+            "U_W_m2K": 800.0
+          }
+        ]
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "scale": 1.0,
+        "errors": [
+          "HX-A: Reached maximum number of iterations! Final Q change: 292.4111505135528 kW ; 45.37443697156261 % "
+        ],
+        "streams": {
+          "C3-cold": {
+            "T_C": 54.44,
+            "P_bar": 19.19,
+            "kg_h": 10000.0,
+            "m3_h": 22.7,
+            "vapour_frac": 0.0
+          },
+          "QW-hot": {
+            "T_C": 86.11,
+            "P_bar": 3.0,
+            "kg_h": 50000.0,
+            "m3_h": 51.67,
+            "vapour_frac": 0.0
+          },
+          "C3-heated": {
+            "T_C": 54.44,
+            "P_bar": 19.19,
+            "kg_h": 10000.0,
+            "m3_h": 0.0,
+            "vapour_frac": 0.0
+          },
+          "QW-cooled": {
+            "T_C": 86.11,
+            "P_bar": 3.0,
+            "kg_h": 50000.0,
+            "m3_h": 0.0,
+            "vapour_frac": 0.0
+          }
+        },
+        "units": {
+          "HX-A": {
+            "type": "hx",
+            "duty_kW": 936.9,
+            "lmtd_C": 23.42,
+            "U_W_m2K": 800.0,
+            "area_m2": 50.0,
+            "dP_hot_bar": 0.0,
+            "dP_cold_bar": 0.0
+          }
+        },
+        "checks": [
+          {
+            "id": "C3-heated",
+            "check": "pressure vs design",
+            "value": 19.19,
+            "limit": 21.7,
+            "unit": "bar",
+            "utilisation": 0.884
+          }
+        ]
+      }
+    }
+  },
+  "eps_runs": {},
+  "cost_estimates": {},
+  "standards_checks": [],
+  "drawing": null
+}

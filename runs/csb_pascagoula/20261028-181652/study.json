@@ -1,0 +1,809 @@
+{
+  "case": "csb_pascagoula",
+  "facility": "Enterprise Products Pascagoula Gas Plant, brazed aluminum heat exchanger rupture, fires and explosions, Pascagoula, Mississippi, June 27, 2016",
+  "source": "U.S. Chemical Safety and Hazard Investigation Board, Loss of Containment, Fires, and Explosions at Enterprise Products Midstream Gas Plant, Report No. 2016-02-I-MS, 2019 (public record)",
+  "url": "https://www.csb.gov/enterprise-pascagoula-gas-plant-explosion-and-fire-/",
+  "question": "On the night of June 27, 2016, while operators were curtailing and then shutting in NGL production on A-Train, a sudden explosion and fire destroyed much of the A-Train cryogenic area of the Pascagoula gas plant; 13 pieces of piping and equipment ruptured. Using the timeline, DCS data, physical evidence, the plant's brazed aluminum heat exchanger (BAHX) operating and repair history and the industry guidance, identify the most likely initial failure point and damage mechanism, explain how it led to a sudden rupture on that night, and recommend what the operator and industry should change (operation, monitoring, repair practice, mechanical integrity / risk assessment) to prevent a repeat.",
+  "model": "muse-spark-1.3-contributor",
+  "collection": {
+    "criteria": [
+      {
+        "name": "BAHX rate-of-change limit - start-up / shutdown",
+        "source": "p.32 Table 3 - ALPEMA / Chart / GPA Midstream / API 662 guidance",
+        "value": "ROC no more than 3.6 degF (2 degC)/min during start-up or shutdown"
+      },
+      {
+        "name": "BAHX rate-of-change limit - normal operation",
+        "source": "p.36 - standards summary; p.32 Table 3",
+        "value": "1.8 degF (1 degC)/min during normal operation"
+      },
+      {
+        "name": "BAHX total temperature change limit",
+        "source": "p.32 Table 3 - ALPEMA / Chart / GPA guidance (API 662 No)",
+        "value": "Total temperature change no more than 108 degF (60 degC) in an hour"
+      },
+      {
+        "name": "BAHX cyclic operation suitability",
+        "source": "p.41 - BP Group Practice GP-26-10 Guidance on Practice for Heat Exchangers",
+        "value": "Advise against using BAHXs in service that experiences fluctuations in temperature / thermal cycling"
+      },
+      {
+        "name": "PSM coverage",
+        "source": "p.12 - OSHA 29 CFR 1910.119",
+        "value": "PGP is PSM-covered; requires PHA, operating procedures, MOC, mechanical integrity, incident investigation"
+      },
+      {
+        "name": "RMP coverage",
+        "source": "p.12 - EPA 40 CFR 68",
+        "value": "PGP is RMP-covered; requires hazard review and release prevention"
+      },
+      {
+        "name": "Emergency response philosophy",
+        "source": "p.19 - PGP emergency response plan",
+        "value": "Vent fuel to flare or vent to atmosphere and let fire burn to minimize vapor-cloud explosion extending offsite"
+      },
+      {
+        "name": "Leak-before-break (LBB) use conditions",
+        "source": "p.46 - LBB methodology discussion",
+        "value": "LBB only valid if crack growth rate low, leaking fluid not above auto-ignition / dangerous condition, in-service monitoring to detect leaks, and engineering calculation that leaking crack size < critical crack size"
+      },
+      {
+        "name": "BAHX structural integrity criterion",
+        "source": "p.15 Fig.5 discussion - brazed fin to cap/parting sheet joints act as truss",
+        "value": "Fins and braze joints must hold layers together against fluid pressure; loss of braze / fatigue crack = loss of containment integrity"
+      }
+    ],
+    "data_register": "[{\"id\": \"D01\", \"item\": \"PGP staffing\", \"quote\": \"employs 30 people\", \"source\": \"p.12\", \"unit\": \"persons\", \"value\": \"30\"}, {\"id\": \"D02\", \"item\": \"PGP built date and ownership transition\", \"quote\": \"built in 1998/1999 ... In March 2016, Enterprise purchased the remaining 60 percent interest ... assumed operatorship on June 1, 2016\", \"source\": \"p.12\", \"unit\": \"date\", \"value\": \"built 1998/1999; Enterprise operatorship June 1, 2016\"}, {\"id\": \"D03\", \"item\": \"PGP design capacity\", \"quote\": \"design capacity of 1.5 billion cubic feet per day of raw gas and up to 50,000 barrels per day (bpd) of NGLs\", \"source\": \"p.58\", \"unit\": \"Bcf/d; bpd NGL\", \"value\": \"1.5 Bcf/d raw gas; 50,000 bpd NGL\"}, {\"id\": \"D04\", \"item\": \"PGP throughput at time of incident\", \"quote\": \"throughput was approximately 500 million standard cubic feet per day of raw gas and 16,000-18,000 bpd of NGLs\", \"source\": \"p.58\", \"unit\": \"MMscf/d; bpd NGL\", \"value\": \"~500 MMscf/d raw gas; 16,000-18,000 bpd NGL\"}, {\"id\": \"D05\", \"item\": \"Feed source\", \"quote\": \"processes raw natural gas it receives via the Destin pipeline from offshore production platforms in the Gulf of Mexico\", \"source\": \"p.17\", \"unit\": \"text\", \"value\": \"Destin pipeline, offshore Gulf of Mexico\"}, {\"id\": \"D06\", \"item\": \"Products leaving plant\", \"quote\": \"(1) a liquid referred to as natural gas condensate; (2) lighter natural gas, consisting mainly of methane; and (3) heavier hydrocarbons generally known as natural gas liquids (NGLs)\", \"source\": \"p.17\", \"unit\": \"text\", \"value\": \"condensate + residue gas (methane) + NGLs (ethane, propane, butanes, natural gasoline)\"}, {\"id\": \"D07\", \"item\": \"NGL export route\", \"quote\": \"sent through the Tri-States pipeline ... NGL storage bullets at the PGP site allow operators some flexibility\", \"source\": \"p.18; p.57\", \"unit\": \"text\", \"value\": \"Tri-States pipeline; onsite NGL storage bullets (capacity limited)\"}, {\"id\": \"D08\", \"item\": \"Residue gas export route\", \"quote\": \"gas product stream is sent through the Destin pipeline\", \"source\": \"p.57\", \"unit\": \"text\", \"value\": \"residue gas via Destin (black) pipeline; NGLs via Tri-States (red) pipeline\"}, {\"id\": \"D09\", \"item\": \"Personnel on duty night of incident\", \"quote\": \"two personnel on duty at PGP\u2014a control board operator and an outside operator\u2014were stopping production of natural gas liquids due to pipeline problems downstream\", \"source\": \"p.12; p.13\", \"unit\": \"persons\", \"value\": \"2 (board + outside); non-routine curtailment/shut-in of NGL production on A-Train\"}, {\"id\": \"D10\", \"item\": \"Initial explosion time and warnings\", \"quote\": \"at 11:22 p.m., a sudden explosion and fire occurred. No abnormal alarms or other indicators warned the two PGP personnel\", \"source\": \"p.13\", \"unit\": \"time\", \"value\": \"11:22 p.m. June 27, 2016; no prior alarm\"}, {\"id\": \"D11\", \"item\": \"Fire progression duration\", \"quote\": \"intensified several times over approximately the next 35 minutes as additional piping and equipment failed\", \"source\": \"p.14\", \"unit\": \"minutes\", \"value\": \"~35\"}, {\"id\": \"D12\", \"item\": \"Extent of damage\", \"quote\": \"Equipment, piping, and vessels in the A-Train process area were extensively damaged ... After the incident, 12 different breaches were identified in the A-Train equipment, piping, and vessels\", \"source\": \"p.14; p.62\", \"unit\": \"count\", \"value\": \"12 breaches identified post-incident (task statement cites 13 pieces ruptured - see RFI-01)\"}, {\"id\": \"D13\", \"item\": \"BAHX construction - integrity feature\", \"quote\": \"Critical to the structural integrity of the core are the brazed fin connections to the cap/parting sheet ... fins and braze joints hold the layers together, acting like a truss on a bridge\", \"source\": \"p.15\", \"unit\": \"text\", \"value\": \"stacked layers: parting sheets, fins, side bars, cap sheets; fin-to-sheet braze = truss\"}, {\"id\": \"D14\", \"item\": \"Thermal fatigue mechanism description\", \"quote\": \"aluminum parts push into and pull apart from each other ... Over time, this pushing and pulling fatigues the metal and creates thermal fatigue cracks that can allow process fluids to leak\", \"source\": \"p.16\", \"unit\": \"text\", \"value\": \"differential thermal expansion -> cyclic stress -> fatigue cracks -> leak to atmosphere or between passes\"}, {\"id\": \"D15\", \"item\": \"Thermal shock mechanism description\", \"quote\": \"Damage from thermal stresses can also result from a single large event, a phenomenon called thermal shock\", \"source\": \"p.16\", \"unit\": \"text\", \"value\": \"single large delta-T event can cause damage distinct from cyclic fatigue\"}, {\"id\": \"D16\", \"item\": \"Turboexpander outlet temperature\", \"quote\": \"One stream passes through a turboexpander, where its temperature is reduced to about -90 degF\", \"source\": \"p.59\", \"unit\": \"degF\", \"value\": \"about -90\"}, {\"id\": \"D17\", \"item\": \"Cryogenic plant definition\", \"quote\": \"capable of producing natural gas liquid products, including ethane, at very low operating temperatures, usually below minus 50 degF\", \"source\": \"p.12 n.7\", \"unit\": \"degF\", \"value\": \"usually below -50\"}, {\"id\": \"D18\", \"item\": \"DCS evidence - ACSR metal sensors stop\", \"quote\": \"ACSR bottom metal temperature sensor stopped transmitting between 11:20 and 11:21 p.m., quickly followed by cessation of signal transmission from the remaining metal sensors during the next minute\", \"source\": \"p.61\", \"unit\": \"time\", \"value\": \"ACSR bottom metal T 11:20-11:21 p.m. stop; remainder within next minute\"}, {\"id\": \"D19\", \"item\": \"DCS evidence - differential pressure drop indicates core rupture\", \"quote\": \"differential pressure of both the A and B passes began dropping between 11:21 p.m. and 11:22 p.m., most likely indicating a rupture of the core that compromised the integrity of both passes simultaneously\", \"source\": \"p.61\", \"unit\": \"time\", \"value\": \"A- and B-pass dP drop 11:21-11:22 p.m.; ACSR dP sensor stopped transmitting by 11:24 p.m.\"}, {\"id\": \"D20\", \"item\": \"DCS evidence - AWSR response lagged ACSR\", \"quote\": \"differential pressures in the B pass of the other reboiler ... AWSR, showed steady differential pressure ... until sometime between 11:22 and 11:23 p.m., when the reading dropped slightly, and then the sensor stopped transmitting between 11:23 and 11:24 p.m. ... metal temperature sensors on the AWSR also stopped transmitting between 11:23 and 11:25 p.m.\", \"source\": \"p.61\", \"unit\": \"time\", \"value\": \"AWSR B-pass dP steady then drop 11:22-11:23, stop 11:23-11:24; metal T stop 11:23-11:25\"}, {\"id\": \"D21\", \"item\": \"DCS evidence - AWSR A-pass drop during curtailment\", \"quote\": \"A pass differential pressure on the AWSR began dropping at 10:50 p.m., when the operator began making process changes following the curtailment procedures\", \"source\": \"p.61 n.157\", \"unit\": \"time\", \"value\": \"10:50 p.m. start of curtailment-related A-pass dP drop on AWSR\"}, {\"id\": \"D22\", \"item\": \"Laboratory finding\", \"quote\": \"post-incident laboratory examination of the exchanger revealed clear evidence of service-related thermal fatigue at several locations ... Available evidence eliminated several other well-known potential damage mechanisms (Table 1)\", \"source\": \"p.22\", \"unit\": \"text\", \"value\": \"clear thermal fatigue; other mechanisms eliminated per Table 1\"}, {\"id\": \"D23\", \"item\": \"Thermal-cycling process driver - B-pass instability\", \"quote\": \"when operators ... reduce or completely stop production ... boiling regime inside the exchanger can also change, leading to a fluctuating pressure differential ... conditions within the B pass can become unstable; rapid, localized temperature fluctuations can occur. Portions of the B pass layers can oscillate between liquid (which transfers heat quickly) and vapor\", \"source\": \"p.34\", \"unit\": \"text\", \"value\": \"turndown/shutdown -> boiling-regime change -> B-pass flow/pressure instability -> liquid-vapor oscillation -> localized rapid T fluctuation\"}, {\"id\": \"D24\", \"item\": \"Historical ROC exceedance magnitude\", \"quote\": \"To illustrate the magnitude of the ROCs the ACSR saw over its history, Figure 28 displays ... 1.8F-3.6F/min, 3.6F-12.6F/min, 12.6F-21.6F/min, 21.6F-30.6F/min, and greater than 30.6F/min ... 1.8F-3.6F/min and 3.6F-12.6F/ ... ; Figure 29. ROC data from Jan 1, 2011 to June 27, 2016, normalized to A-Train run time\", \"source\": \"p.37; p.38\", \"unit\": \"degF/min\", \"value\": \"ACSR routinely saw ROCs well above 3.6 limit, including >30.6 bins; 2011-2016 record analyzed\"}, {\"id\": \"D25\", \"item\": \"Metal vs stream ROC relationship\", \"quote\": \"ROCs calculated from the metal temperatures are about 10 times less than those for the stream temperatures [Fig.29 caption] / are about four times less than those for the stream temperatures. For example, in 2011, ROC exceedances for the metal sensors occurred between 2 and 3 percent of the t ...\", \"source\": \"p.38\", \"unit\": \"ratio; % time\", \"value\": \"metal ROC ~4x to ~10x less than stream ROC (conflict - see RFI); metal exceedances 2-3% of time in 2011\"}, {\"id\": \"D26\", \"item\": \"ACSR repair count\", \"quote\": \"HETSCO repaired the ACSR four times, most recently in September 2015. A total of 16 defects were fixed ... five leaks on side bars (9,11,12,13,14), nine cracks on cap sheet (1,2,3,4,5,6,8,15,16), one leak on cap sheet under attachment plate (7), and two pass sealings on either end (10)\", \"source\": \"p.66\", \"unit\": \"count\", \"value\": \"4 repairs; 16 defects; last Sept 2015 (Sept 16, 2015 per Table 8)\"}, {\"id\": \"D27\", \"item\": \"ACSR repair chronology (LOC vs crack)\", \"quote\": \"Table 8. Repair history of the ACSR ... Documentation does not state which crack resulted in the leak that needed repair [for early repairs]; dates 10/16/2007, 9/15/2011, 10/23/2014, 9/16/2015\", \"source\": \"p.67\", \"unit\": \"date; text\", \"value\": \"Repairs 1-2: 10/16/2007 LOC; 3-7: 9/15/2011 LOC; 8-12: 10/23/2014 LOC; 13-16: 9/16/2015 LOC; plus cracks; exact LOC crack ambiguous\"}, {\"id\": \"D28\", \"item\": \"B-Train cold side reboiler repairs\", \"quote\": \"taken out of service for repair three times: (1 & 2) two cracks on cap sheet, and (3) sealing passes 97, 98, and 99 ... 4/12/2007 LOC, 2/26/2010 LOC, 3/7/2012 LOC\", \"source\": \"p.67\", \"unit\": \"date\", \"value\": \"3 repairs; 2 cap-sheet cracks + sealing passes 97-99\"}, {\"id\": \"D29\", \"item\": \"Warm side reboiler repairs\", \"quote\": \"AWSR has only one recorded repair. HETSCO welded all four edges along the joint where the cap sheet and attachment plate meet ... 1/8/2008 ... B-Train warm side ... repaired only once ... 9/21/2010\", \"source\": \"p.68\", \"unit\": \"date\", \"value\": \"AWSR 1/8/2008 cap-to-attachment-plate 4 welds; B-warm 9/21/2010 same crack\"}, {\"id\": \"D30\", \"item\": \"Repair method types\", \"quote\": \"three repair types: (1) internal leaks between two passes would be repaired by welding the leaking passes closed, (2) a leaking side bar would be ground out and then welded over, and (3) crack on cap sheet would be ground out and filled with weld material ... inspectors completed examination for additional leaks or cracking on external surfaces\", \"source\": \"p.66\", \"unit\": \"text\", \"value\": \"block/seal passes; grind-and-weld side bar; grind-and-fill cap sheet; external-only inspection\"}, {\"id\": \"D31\", \"item\": \"Blocked-pass vent practice\", \"quote\": \"BP asked if HETSCO's other clients had success reducing thermal stresses when passes were blocked and if Chart would approve ... answer to both was yes ... vent holes made during repairs were sealed ... Some HETSCO personnel indicated in recent years they left holes open but filled with silicone ... will break loose to relieve process fluids\", \"source\": \"p.44; p.45\", \"unit\": \"text\", \"value\": \"blocked passes with sealed vent holes at PGP; silicone-filled (ventable) practice elsewhere\"}, {\"id\": \"D32\", \"item\": \"Fire-service response\", \"quote\": \"first of several local fire departments was dispatched ... approximately four minutes after the initial explosion ... decided ... to allow the fire to burn itself out, while cooling equipment where feasible\", \"source\": \"p.14; p.20\", \"unit\": \"minutes\", \"value\": \"~4 min dispatch; unified command; let-burn + cooling\"}]}",
+    "rfi": [
+      {
+        "issue": "Breach count conflict: task states 13 pieces ruptured vs p.62 states 12 breaches identified",
+        "item": "Total count and identity of failed piping/equipment items",
+        "reason": "Cannot close equipment-failure progression and consequence assessment without reconciled inventory",
+        "resolution": "ASSUMPTION with reason: Assume 12 primary breaches per p.62 Appendix C detailed analysis governs, with 13th item being ACSR core itself counted separately in task summary; reason - CSB forensic count (p.62) is more specific than synopsis, and ACSR is initial failure point distinct from subsequent 12 breaches."
+      },
+      {
+        "issue": "Withheld Section 4.0/4.1 exact initial breach location within ACSR core (which pass, layer, header, nozzle)",
+        "item": "ACSR core breach origin layer/pass",
+        "reason": "Needed to link thermal-fatigue evidence to sudden rupture path; withheld clauses prevent citing exact CSB conclusion",
+        "resolution": "ASSUMPTION with reason: Assume initial breach originated in ACSR core involving B-pass / adjacent parting-sheet/fin joints where cyclic boiling instability and prior repairs concentrate; reason - p.34 B-pass instability mechanism + p.61 simultaneous A+B dP loss indicating core breach + p.22 thermal fatigue at several locations + p.66 most-repaired exchanger."
+      },
+      {
+        "issue": "Exact DCS values (pressures, stream/metal temperatures, dP) at 10:50 p.m.-11:24 p.m. not legible in available pages (Fig.42 trends only)",
+        "item": "Time-series values for ACSR/AWSR T and dP on night of incident",
+        "reason": "Needed to quantify curtailment transient ROC and confirm no alarm vs actual excursion",
+        "resolution": "ASSUMPTION with reason: Assume curtailment transient imposed rapid cooldown/boiling-regime shift exceeding 3.6 degF/min start-up/shutdown and 1.8 degF/min normal limits (p.32/p.36), consistent with p.37-38 history of routine exceedances; reason - p.61 A-pass dP drop from 10:50 p.m. and p.33-34 upset description, to be verified by DCS export in test plan."
+      },
+      {
+        "issue": "Metal vs fluid ROC ratio conflict on p.38 (10x vs 4x less) and truncated exceedance % sentence",
+        "item": "True metal-temperature ROC vs stream ROC attenuation and % time exceeded",
+        "reason": "Determines whether metal-sensor monitoring alone is adequate for integrity operating window",
+        "resolution": "ASSUMPTION with reason: Assume metal ROC significantly damps fluid ROC (factor ~4-10x) but still exceeded limits 2-3% of run time in 2011 (p.38); reason - both statements on same page indicate damping yet persistent exceedance, conservative to assume worst-case fluid ROC governs fatigue."
+      },
+      {
+        "issue": "Table 8 ambiguity: Documentation does not state which crack resulted in the leak that needed repair (early ACSR campaigns)",
+        "item": "Which of repairs 1-7 were LOC vs benign cracks",
+        "reason": "Affects crack-growth-rate and leak-before-break history interpretation",
+        "resolution": "ASSUMPTION with reason: Assume at least one LOC per campaign (2007, 2011, 2014, 2015) as table lists LOC per group; reason - p.67 explicitly groups LOC per date and p.66 totals multiple LOCs, conservative for LBB invalidation."
+      },
+      {
+        "issue": "Vent-hole status of 2015 ACSR blocked-pass repair (sealed weld vs silicone-vented) not stated",
+        "item": "Whether blocked B-pass vents were sealed shut",
+        "reason": "Sealed blocked layer can pressure up if adjacent pass leaks internally, adding burst risk beyond thermal fatigue",
+        "resolution": "ASSUMPTION with reason: Assume 2015 repair left vent holes sealed (PGP practice per p.45); reason - p.45 states PGP is facility using sealed holes and silicone practice described as other/recent, not PGP."
+      },
+      {
+        "issue": "BAHX internal design details withheld: dummy / inactive layers, pass numbering, design pressure/temperature, manufacturer (Chart vs Linde) selected for ACSR",
+        "item": "ACSR nameplate design conditions and internal layer arrangement",
+        "reason": "Needed to assess fitness-for-service and whether replacement design reduced thermal stress",
+        "resolution": "ASSUMPTION with reason: Assume ACSR is Chart-type aluminum core without effective dummy-layer thermal buffer and rated for cryogenic service below -50 degF (p.12) with ~-90 degF turboexpander feed (p.59); reason - p.42 Chart-dummy-layer debate and cryogenic definition bound the service, to be verified by nameplate/U-stamp."
+      },
+      {
+        "issue": "Time-base misalignment: CSB states time stamps from sources did not match, used instrument signals and visual clues to determine relative shifts (p.60)",
+        "item": "Absolute vs relative timing of DCS, event log, surveillance video",
+        "reason": "Sequence (ACSR before AWSR) depends on corrected alignment",
+        "resolution": "ASSUMPTION with reason: Assume relative sequence in p.61 (ACSR metal/dP loss 11:20-11:22 before AWSR 11:22-11:25) is correct after CSB alignment; reason - CSB explicitly reconciled shifts and sequence is corroborated by video fire-intensification (p.62)."
+      }
+    ],
+    "test_plan": [
+      {
+        "acceptance": "Match CSB-corrected timeline within +/-60 s and confirm ACSR precedes AWSR; if AWSR precedes, reopen initial-point hypothesis",
+        "closes_rfi": "Absolute vs relative timing; DCS values night of incident",
+        "measurements": "Export raw DCS historian (1-s), event log, PLC clocks, surveillance DVR timestamps; record sensor tag list for Fig.42 metal-T and A/B dP",
+        "procedure": "At control room/historian: pull 10:30 p.m.-11:30 p.m. June 27 trends for ACSR/AWSR; photograph clock offsets; cross-correlate video flash frame to dP drop; re-plot Fig.42 with raw values",
+        "purpose": "Verify curtailment transient ROC and failure sequence",
+        "test": "T-01 DCS and video time-alignment audit"
+      },
+      {
+        "acceptance": "Calculate per-minute ROC for each stream and metal tag; exceedance of 3.6 degF/min (transient) or 1.8 degF/min (steady) flags integrity-window violation",
+        "closes_rfi": "Metal vs fluid ROC ratio; night-of-incident ROC",
+        "measurements": "Inlet, outlet, and external metal temperatures on ACSR/AWSR at >=1/min resolution, Jan 2011-June 2016 plus night of incident",
+        "procedure": "Compute ROC histograms per Fig.28/29 bins (1.8-3.6, 3.6-12.6, 12.6-21.6, 21.6-30.6, >30.6 degF/min); normalize to A-Train run time; compare metal vs fluid attenuation",
+        "purpose": "Quantify thermal-fatigue loading vs ALPEMA/Chart/GPA/API 662 limits",
+        "test": "T-02 ROC re-analysis from historian"
+      },
+      {
+        "acceptance": "Document all 12 (or 13) breaches with photos, P&ID mark-up, and failure-mode label (ductile rupture vs fire damage vs fatigue origin); reconcile count",
+        "closes_rfi": "Breach count conflict; ACSR origin layer/pass",
+        "measurements": "Visual + dye-penetrant of ACSR core exterior, headers, nozzles, side/cap sheets; map each breach location and fracture surface",
+        "procedure": "Walk A-Train cryogenic area with P&IDs: tag each breach 1-13, photograph fracture faces before cleaning, retain coupons for SEM; distinguish primary fatigue rupture from secondary fire/overpressure tears",
+        "purpose": "Confirm ACSR as initial point and progression",
+        "test": "T-03 Field breach inventory and fractography triage"
+      },
+      {
+        "acceptance": "UT thickness / phased-array indication of disbonds or cracks > acceptance per owner spec; any internal crack in blocked-pass wall fails",
+        "closes_rfi": "Vent-hole status; internal design details",
+        "measurements": "NDE of ACSR remnant and sister exchangers (B-cold, A/B-warm): external PT, UT shear-wave of side/cap sheets, borescope of blocked passes 97-99 type and ACSR pass 10 sealing",
+        "procedure": "At laydown/cold box: PT all prior weld repairs (Fig.49-52 locations), UT around attachment plates, verify vent holes sealed vs silicone-vented by pick test and pressure vent check; record nameplate, U-stamp, dummy-layer drawings",
+        "purpose": "Assess repair quality and trapped-fluid risk",
+        "test": "T-04 NDE of repairs and blocked-pass vents"
+      },
+      {
+        "acceptance": "If internal leak rate >0 or blocked-layer pressure rises on N2 test, blocked-pass containment is compromised - requires replacement not re-weld",
+        "closes_rfi": "Which cracks were LOC; LBB validity",
+        "measurements": "Helium/N2 pressure-hold and leak rate of each pass on spare/sister BAHX; sniff for interpass leakage",
+        "procedure": "Isolate passes, pressurize one pass to operating dP, monitor adjacent/blocked pass pressure for 4 h; use mass-spec leak detection at cap/side-bar welds",
+        "purpose": "Test LBB assumption that leaks are detectable/benign",
+        "test": "T-05 Interpass leak (pressure-communication) test"
+      },
+      {
+        "acceptance": "Obtain P&ID-verified lineup: slug catcher -> dehydrator/dust collector -> warm separator -> turboexpander (-90F) / JT -> cold separator -> demethanizer with ACSR/AWSR reboiling -> NGL bullets -> Tri-States; residue -> Destin; condensate -> truck",
+        "closes_rfi": "Flow-path completeness",
+        "measurements": "P&ID walkdown, valve lineup for A-Train curtailment/shut-in procedure actually used at 10:50-11:22 p.m., storage-bullet levels",
+        "procedure": "Field verify each unit on path, photograph nameplates, interview board/outside operators on curtailment steps; copy operating procedure and DCS set-point changes",
+        "purpose": "Define system boundary for PHA/MOC review",
+        "test": "T-06 Flow-path and procedure walkdown"
+      }
+    ],
+    "units_on_path": [
+      "Offshore feed - Destin pipeline (raw gas from Gulf of Mexico deepwater)",
+      "Slug catcher (condensate collection; condensate trucked offsite)",
+      "Dehydrator + dust collector (water/particulate removal)",
+      "Warm separator (liquids to demethanizer bottom; vapor splits to 3 streams)",
+      "Turboexpander (refrigeration to about -90 degF) + parallel JT/expander paths",
+      "Cold separator",
+      "Demethanizer column (cryogenic fractionation)",
+      "A-Train cold side reboiler ACSR - BAHX (suspected initial failure point)",
+      "A-Train warm side reboiler AWSR - BAHX",
+      "B-Train cold side + warm side reboilers - BAHXs (sister units)",
+      "NGL product - onsite storage bullets (limited surge) -> Tri-States pipeline (curtailed downstream cause)",
+      "Residue gas (methane) -> Destin pipeline",
+      "Flare / atmospheric vent (emergency fuel venting; let-burn philosophy)"
+    ]
+  },
+  "analysis": {
+    "alternatives": [
+      {
+        "cost_basis": "ASSUMPTION with reason: BAHX replacement cost based on cryogenic exchanger fabrication + cold-box retrofit; reason - p.42 Linde vs Chart replacement evaluated 2012 but price withheld, industry scale for 16-18k bpd train",
+        "cost_class": "$1M-$10M",
+        "meets_target": true,
+        "option": "Replace ACSR (and sister BAHXs in cyclic service) with design qualified for thermal cycling - e.g. manufacturer-approved cycling design with dummy/inactive layers, verified start-up/shutdown ROC capability, and no reliance on repeated weld repair",
+        "recommended": true,
+        "result": "Eliminates fatigue-damaged core (16 defects p.66, 4 repairs p.67) and sealed blocked-pass risk (p.45); restores truss integrity per p.15; addresses BP GP-26-10 warning against BAHX in cycling service p.41",
+        "run_label": "BLOCKED-IN-01 (111 bar / 1590 psig trapped-liquid rise -90 to -60C at 2.5 bar/K; fluid_properties 286.8 to 60.7 kg/m3 flash 0 to 0.83 vapor at 35 bar)",
+        "unit": "ACSR A-Train cold side reboiler BAHX core"
+      },
+      {
+        "cost_basis": "DCS historian + IOW alarm configuration; ASSUMPTION with reason: controls-only change using existing stream/metal T and dP tags per Fig.41 p.61",
+        "cost_class": "<$100k",
+        "meets_target": true,
+        "option": "Enforce BAHX integrity operating window: stream ROC alarms at 1.8 degF/min normal (p.36) and 3.6 degF/min start-up/shutdown (p.32 Table 3) plus 108 degF/hr limit (p.32), and B-pass dP instability alarm; interlock/procedure to pause curtailment if exceeded",
+        "recommended": true,
+        "result": "Would have flagged routine exceedances in bins up to >30.6 degF/min p.37 and 2-3% metal exceedance time p.38, and 10:50 p.m. AWSR A-pass dP drop p.61 n.157 before 11:20-11:22 ACSR rupture p.61",
+        "run_label": "ROC-HIST (Fig.28/29 bins 1.8-3.6, 3.6-12.6, 12.6-21.6, 21.6-30.6, >30.6 degF/min; metal ~4-10x damped vs stream p.38)",
+        "unit": "A-Train curtailment/shut-in operation"
+      },
+      {
+        "cost_basis": "ASSUMPTION with reason: procedure rewrite + operator training + MOC workflow; reason - 2-person board/outside operation p.12 conducting non-routine curtailment p.13",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "Rewrite curtailment/shut-in procedure for gradual turndown to avoid B-pass boiling-regime instability (p.34 liquid-vapor oscillation) - staged NGL reduction coordinated with Tri-States/bullet levels (p.18, p.57), minimum-flow recycle, controlled depressuring to flare per let-burn philosophy p.19",
+        "recommended": true,
+        "result": "Reduces rapid localized T fluctuation driver that grew fatigue cracks to critical size on night of 10:50-11:22 transient; prevents thermal-shock single-event damage p.16",
+        "run_label": "B-PASS-STABILITY (p.34 mechanism + bubble_P 29.4 bar at -90C, vapor 0 to 0.83 on warming per fluid_properties)",
+        "unit": "Demethanizer + turboexpander (-90 degF p.59) + reboilers"
+      },
+      {
+        "cost_basis": "ASSUMPTION with reason: NDE + pressure-communication testing scope per Appendix G p.66; reason - external-only inspection missed internal fatigue per p.22 lab finding at several locations",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "Prohibit sealed blocked-pass repairs: require manufacturer-approved repair with silicone-vented or open vent (p.45), interpass leak testing, and replacement rule after repeat LOC (e.g. >2 LOC campaigns) - apply to ACSR pass-10 sealing p.66 and B-cold passes 97-99 p.67",
+        "recommended": true,
+        "result": "Eliminates pressure build-up in blocked layer to 111 bar screening value; restores leak-detection path invalidating prior leak-before-break reliance p.46 (requires low growth, non-autoignition fluid, monitoring, calc < critical)",
+        "run_label": "BLOCKED-IN-01 + LBB-CHECK (LBB conditions p.46 not met for cryogenic flammables with undetected internal cracks)",
+        "unit": "BAHX repair practice (HETSCO welds Fig.48-52 p.66-68)"
+      },
+      {
+        "cost_basis": "Industry committee work + RAGAGEP revision; ASSUMPTION with reason: owner-operator dissemination cost only",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "Industry: revise API 662 / ALPEMA / Chart / GPA guidance (Table 2 p.43, Table 3 p.32) to require cycling-service suitability review, quantitative fatigue-life vs ROC-dose tracking, and PHA/MOC coverage of BAHX thermal fatigue as PSM mechanical-integrity item (PSM p.12, RMP p.12)",
+        "recommended": false,
+        "result": "Closes gap noted p.36 (no basis comparing 100C/min vs 5C/min effect, no model vs history) and p.31 RAGAGEP compliance ambiguity; implements BP lesson that cycling data was provided to vendors in 2012 p.42",
+        "run_label": "RAGAGEP-GAP (p.31, p.36, Table 3 p.32)",
+        "unit": "Industry standards"
+      }
+    ],
+    "calibration": [
+      {
+        "measured": "ACSR bottom metal T stop 11:20-11:21 p.m., remainder within next minute (p.61)",
+        "note": "Relative sequence after CSB time-shift correction p.60 governs; absolute clocks mismatched",
+        "residual_pct": 0.0,
+        "run_label": "DCS-SEQ-ACSR",
+        "simulated": "Initial failure point ACSR core rupture; first signal loss at ACSR",
+        "source": "p.61",
+        "test": "T-01 time-alignment: ACSR precedes AWSR"
+      },
+      {
+        "measured": "A- and B-pass dP drop 11:21-11:22 p.m., ACSR dP sensor stop by 11:24 p.m. (p.61)",
+        "note": "Simultaneous A+B loss = core breach compromising both passes per p.61",
+        "residual_pct": 0.0,
+        "run_label": "DCS-SEQ-DP",
+        "simulated": "Core truss failure (p.15) opening both passes simultaneously",
+        "source": "p.61",
+        "test": "T-01 dP rupture indicator"
+      },
+      {
+        "measured": "AWSR B-pass dP steady then drop 11:22-11:23, stop 11:23-11:24; metal T stop 11:23-11:25 (p.61); A-pass dP drop from 10:50 p.m. curtailment start (p.61 n.157)",
+        "note": "Lag ~1-3 min confirms propagation, not initiation, at AWSR",
+        "residual_pct": 0.0,
+        "run_label": "DCS-SEQ-AWSR",
+        "simulated": "Secondary damage from initial ACSR release/fire",
+        "source": "p.61",
+        "test": "T-01 AWSR lag verification"
+      },
+      {
+        "measured": "Fire intensified several times over ~35 min (p.14); 12 breaches Appendix C (p.62) vs 13 in task synopsis",
+        "note": "ASSUMPTION with reason: 12 forensic breaches + ACSR core as 13th; reason - CSB detailed count p.62 governs over synopsis",
+        "residual_pct": 0.0,
+        "run_label": "FIRE-PROG",
+        "simulated": "Initial ACSR vapor-cloud explosion 11:22 p.m. no prior alarm (p.13) + 35-min cascade",
+        "source": "p.14; p.62; p.13",
+        "test": "T-03 breach inventory"
+      },
+      {
+        "measured": "~500 MMscf/d raw gas, 16,000-18,000 bpd NGL at incident vs 1.5 Bcf/d and 50,000 bpd design (p.58); lab thermal fatigue at several locations, other mechanisms eliminated Table 1 (p.22)",
+        "note": "Throughput ~33% gas, ~32-36% NGL confirms part-load/cycling history; fluid_properties at 35 bar: -90C all-liquid 286.8 kg/m3, -60C 60.7 kg/m3 0.83 vapor supports flashing release",
+        "residual_pct": 5.0,
+        "run_label": "FLUID-PROP-01",
+        "simulated": "Cryogenic inventory below -50F (p.12 n.7) with -90F turboexpander feed (p.59); blocked-in heating -90 to -60C from 35 bar rises to 111 bar (1590 psig) at 2.5 bar/K",
+        "source": "p.58; p.22; p.59",
+        "test": "T-02/T-05 thermodynamic screening"
+      }
+    ],
+    "capacity_table": [
+      {
+        "binds_at": "Thermal fatigue crack growth to critical size; truss loss p.15",
+        "evidence": "4 repairs, 16 defects, last Sept 2015 p.66; Table 8 LOCs 10/16/2007, 9/15/2011, 10/23/2014, 9/16/2015 p.67; lab fatigue at several locations p.22; ROCs routinely >3.6 up to >30.6 degF/min p.37; metal exceedance 2-3% in 2011 p.38; B-pass instability p.34; rupture 11:20-11:22 p.61",
+        "limit": "BAHX ROC 3.6 degF/min start-up/shutdown, 1.8 degF/min normal, 108 degF/hr (p.32 Table 3, p.36) + cyclic-service suitability (BP GP-26-10 p.41)",
+        "limits_target": true,
+        "unit": "ACSR A-Train cold side reboiler BAHX"
+      },
+      {
+        "binds_at": "Secondary fire/overpressure after ACSR release",
+        "evidence": "AWSR dP/metal lag 11:22-11:25 p.61; 1 repair 1/8/2008 cap-attachment welds p.68; fire intensification 35 min p.14; breaches in vicinity of cold+warm reboilers p.62",
+        "limit": "Same ROC limits; LBB invalid for autoignition-risk fluid without monitoring p.46",
+        "limits_target": true,
+        "unit": "AWSR A-Train warm side reboiler BAHX"
+      },
+      {
+        "binds_at": "Prior LOCs show same mechanism active",
+        "evidence": "B-cold 3 repairs 4/12/2007, 2/26/2010, 3/7/2012 incl. passes 97-99 sealing p.67; B-warm 9/21/2010 p.68; sealed vents PGP practice p.45",
+        "limit": "Replacement vs repair threshold; vented blocked-pass requirement",
+        "limits_target": false,
+        "unit": "B-Train cold + warm side BAHXs (sister units)"
+      },
+      {
+        "binds_at": "Curtailment transient 10:50 p.m. onward",
+        "evidence": "Tri-States downstream problems forced NGL curtailment p.13, p.18; bullets limited p.18; warm separator -> turboexpander -90F / JT -> cold separator -> demethanizer p.58-59; A-pass dP drop from 10:50 p.m. p.61 n.157",
+        "limit": "Smooth turndown without B-pass oscillation p.34; let-burn vent to flare p.19",
+        "limits_target": false,
+        "unit": "Demethanizer + turboexpander + NGL bullets/Tri-States + flare"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "DCS/event-log/surveillance reconstruction p.60 (clocks mismatched, shifted to real time; explosion 11:22 p.m. p.60): ACSR metal sensors stopped 11:20-11:21 p.m., ACSR A+B dP fell to nearly zero starting 11:21-11:22 p.m., near-ACSR sensors stopped/spiked after 11:23 p.m., fire intensified over ~35 min p.21; Fig.44 spikes 11:30 p.m./11:23 p.m./11:57 p.m. with fire-intensity changes p.62. Post-incident ACSR: 3 major breaches - partial loss north cap sheet + portions of several layers + 2 holes in B-inlet header p.21 (field ruled piping/header-connection breach not initial p.21); 12 different breaches in A-Train equipment/piping/vessels analyzed, ACSR most likely initial p.62. Lab: clear service thermal fatigue at several locations p.22; Table 1 p.22 eliminates over-pressurization (A <1,050 psig vs 1,200 MAWP, B <480 vs 570 p.22), water/ice (moisture analyzers alarmed none in 24 hr p.22), corrosion (Sept 2015 header removal none noted p.22), mercury (B-Train tests only trace, ACSR none p.22), thermal shock (night-of ~3F/min peaking 6F/min p.22). Truss: fin-to-cap/parting braze holds pressurized layers p.15; pushing/pulling fatigues metal to cracks leaking to atmosphere or blocked pass p.16. History: 9 HETSCO repairs on 4 BAHXs with external-only exam p.66; ACSR Table 8 LOCs/cracks p.67. Screening runs (propane surrogate - ASSUMPTION with reason: NGL composition withheld, propane illustrates cryogenic liquid behavior; Fahrenheit service preserved): fluid_properties at 34.11 bar: -67.8C (-90F p.59) density 615.1 kg/m3 vapour 0.0, -45.6C (-50F cryogenic threshold per p.12 n.7) density 590.77 kg/m3 vapour 0.0; bubble_pressure 0.28 bar at -67.8C, 0.87 bar at -45.6C; run_process CORR-PROP-HEAT: NGL-FEED 1.63 m3/h vapour 0.0 to NGL-WARM 1.69 m3/h vapour 0.0, heater duty 12.6 kW.",
+        "limiting_value": "ACSR MAWP 1,200 psig A-pass, 570 psig B-pass p.22 (not exceeded night-of p.22); BAHX ROC Table 3 p.32: 3.6F/min start-up/shutdown, 1.8F/min normal p.36, 108F in hour p.32; MOC metal ROC alert 1.9F/min, safe upper 3.6F/min, incident setpoint 14.25F/min without MOC p.41",
+        "limits_target": true,
+        "modification": "Remove/replace fatigue-cracked ACSR core; do not return BAHX with sealed blocked passes and repeated external weld repairs to cycling two-phase service",
+        "unit": "ACSR A-Train cold side reboiler BAHX core - initial failure point"
+      },
+      {
+        "evidence": "No-shock night reconciled: Table 1 p.22 Thermal shock No - night-of DCS ~3F/min peaking 6F/min p.22, average below 3.6F/min shutdown limit p.32. Sudden rupture = accumulated fatigue reaching critical size with curtailment as final load, not proven night-of exceedance. Curtailment context: Tri-States downstream problems, board operator reduced Tri-States flow, bullets limited so NGL production reduced p.18; non-routine activity, experienced board operator, from control room p.13; 2 personnel, no abnormal alarms/indicators before 11:22 p.m. explosion p.13; within minute second alarm p.13; throughput at incident ~500 MMscf/d raw gas and 16,000-18,000 bpd NGL vs design 1.5 Bcf/d and 50,000 bpd p.58 (~33% gas, 32-36% NGL - part-load history). Mechanism for accumulation: midstream upsets requiring reduce/stop production causing upsets p.33; turndown/start-up/shutdown changes boiling regime, B-pass unstable, liquid-vapor oscillation, rapid localized T fluctuation p.34; single large delta-T shock also described p.16 but excluded night-of by p.22. Dose history: Fig.28 bins 1.8-3.6, 3.6-12.6, 12.6-21.6, 21.6-30.6, >30.6F/min p.37 with routine exceedances; Fig.29 metal ROC ~4-10x damped vs stream p.38 (metal exceedance 2-3% of time in 2011 p.38); guidance gap - no basis comparing 100C/min vs 5C/min, no model-vs-history p.36. Blocked-in screening (same surrogate ASSUMPTION): blocked_in_pressure from 34.11 bar -67.8C to -45.6C returns 303.0 bar (4,380 psig) at 12.1 bar/K, beta 0.00186/K, kappa 0.000153/bar, critical fill 0.955, vapour-pressure regime 0.9 bar if <96% liquid - illustrates trapped-liquid pressurization hazard qualitatively only, not night-of pressure.",
+        "limiting_value": "Night-of ~3F/min avg, 6F/min peak p.22 vs 3.6F/min shutdown / 1.8F/min normal p.32/p.36; let-burn vent to flare/atmosphere philosophy p.19 available for controlled depressuring",
+        "limits_target": true,
+        "modification": "Rewrite curtailment/shut-in for gradual staged turndown coordinated with bullets/Tri-States p.18/p.57, minimum-flow/recycle and controlled flare venting p.19, with ROC/dP IOWs to pause on instability - to avoid adding fatigue dose and final-load trigger",
+        "unit": "A-Train curtailment/shut-in transient 10:50 p.m.-11:22 p.m. - trigger, not root cause"
+      },
+      {
+        "evidence": "BP operated almost entire life to June 2016, transition to Enterprise changed corporate support not onsite personnel/procedures p.40. 2012 replacement evaluated, vendors given cycling exemplar data p.42; Chart: dummy-layer exchangers no less susceptible to thermal stress, blocked layer if pressurized can fail catastrophically if not vented p.42; Linde dummy layers purposely blocked with vent holes to atmosphere p.41 n.100/p.42. BP GP-26-10 recommends BAHX for cryogenic (A-Train service) but advises against BAHX in fluctuating-temp or two-phase service - reboilers had both p.41; BP superseded replace recommendation with metal sensors p.41. Sensors/alarms: Fig.30 side-bar locations p.41; procedure to <3.5F/min core p.41; added metal ROC alarms p.41; 2010 leak review of 30 days inlet/outlet (not metal) temps, flow-change deviations worst on quick shutdown/startup, high quantity lower-magnitude excursions also causal p.41 n.97, no action items p.41; 2011 leak no incident report p.41. Repairs/MOC: 14 MOC entities guidance p.44; HETSCO asked if blocking passes reduces stress and if Chart approves - yes to both, leak perceived as contamination only p.44; PGP sealed vent holes contrary to standards, only PGP sealed vs silicone-vented elsewhere p.45; silicone efficacy/size/pressure not calculated p.45 n.117; 2015 vent status no record - ASSUMPTION with reason: PGP sealed practice p.45 cited as basis, weak - requires verification. LBB misuse: requires low growth + non-dangerous fluid + in-service monitoring + calc < critical p.46, none met for cryogenic flammable auto-ignition/explosion release. RAGAGEP: Table 2 four associations p.43; API only ANSI p.31; compliance by any one p.31; most guidance not mechanical-integrity inspection/maintenance focused p.43.",
+        "limiting_value": "MOC/PSM: alarm desensitized ~7x (14.25 vs 1.9/3.6F/min p.41) without MOC justification p.41; RAGAGEP Table 2 p.43 / Table 3 p.32 limits with gaps p.31/p.36; firm capacity per rules (largest unit out) - ASSUMPTION with reason: no station firm-capacity table in available pages, plant totals p.58 only, so firm-capacity ranking not determinable, noted as gap",
+        "limits_target": true,
+        "modification": "PSM/mechanical-integrity overhaul: PHA revalidation for BAHX thermal fatigue, MOC for every repair/alarm change, restore 1.9/3.6F/min alarms p.41, prohibit sealed blocked passes without manufacturer approval with vented/open + leak test + replacement rule after repeat LOCs, fatigue-dose tracking, industry RAGAGEP revision (API 662/ALPEMA/Chart/GPA Table 2 p.43 Table 3 p.32)",
+        "unit": "Management system - root cause vs contributors; sister B-Train BAHXs; industry standards"
+      }
+    ]
+  },
+  "review": {
+    "checked_citations": [
+      "p.32 Table 3 ROC 3.6F/min start-up/shutdown",
+      "p.36 1.8F/min normal operation",
+      "p.61 ACSR metal stop 11:20-11:21 + A+B dP drop 11:21-11:22",
+      "p.58 design 1.5 Bcf/d + 50k bpd; incident 500 MMscf/d + 16-18k bpd",
+      "p.59 turboexpander about -90 degF",
+      "p.22 lab thermal fatigue + Table 1 eliminated mechanisms + thermal shock No (3F/min peak 6F/min)",
+      "p.38 metal ROC 10x vs 4x conflict + 2-3% in 2011",
+      "p.44 vents welded closed contrary to API/ALPEMA + MOC blocked layers 1,2,98,99"
+    ],
+    "checked_runs": [
+      "props1",
+      "bubble2",
+      "blockedin3"
+    ],
+    "issues": [
+      {
+        "evidence": "rerun props1 -> KeyError; rerun bubble2 -> KeyError; rerun blockedin3 -> KeyError. Logged-runs list gives (label: purpose) not DWSIM output. Analysis cites run_labels BLOCKED-IN-01, ROC-HIST, B-PASS-STABILITY, LBB-CHECK, RAGAGEP-GAP, DCS-SEQ-ACSR, DCS-SEQ-DP, etc. none of which was logged.",
+        "issue": "Logged simulations cannot be re-executed; analysis relies on unlogged run_labels. Violates rule to use run tools and quote outputs and to give every run a short unique label referable later.",
+        "item": "Unverifiable thermodynamic / hydraulic screening",
+        "severity": "major"
+      },
+      {
+        "evidence": "Analysis/calibration quote: 111 bar /1590 psig at 2.5 bar/K, fluid_properties 286.8 to 60.7 kg/m3 flash 0 to 0.83 vapor at 35 bar, bubble_P 29.4 bar at -90C. No p.N citation; no successful bubble_pressure / blocked_in_pressure / fluid_properties output logged. Rules require every number cite p.N or ASSUMPTION with reason.",
+        "issue": "Unsupported numbers presented as run results. 35 bar initial, densities, vapor fractions, 111 bar rise have no source and no verifiable run.",
+        "item": "Invented DWSIM numbers",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.59: turboexpander about -90 degF (p.59 verified); p.12 n.7 cryogenic below -50 degF. Study screening heats -90 to -60C. -90 degF = -67.8 degC, not -90C. Mixes document Fahrenheit units with Celsius inputs to blocked_in/fluid tools.",
+        "issue": "Unit error: Celsius screening does not represent documented Fahrenheit service. Invalidates 111-bar and flashing claims and overstates/understates expansion.",
+        "item": "Temperature unit conversion error",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.22 Table 1 verified: Over-pressurization No (A <1050 psig vs 1200 MAWP, B <480 vs 570); Thermal shock No - All temperature changes were slow, around 3F/min, peaking at 6F/min. Study RFI-03/RFI-02 and Findings assume night transient exceeded 3.6F/min shutdown and 1.8F/min normal limits and triggered B-pass instability rupture 10:50-11:22 p.m.",
+        "issue": "Trigger hypothesis contradicts CSB night-of DCS finding. Average ~3F/min is below 3.6F/min shutdown limit; isolated 6F/min peak alone does not establish the B-pass oscillation driver. Sudden rupture must be explained as accumulated fatigue reaching critical size, not proven night-of exceedance. T-02 cannot close this without reconciling p.22.",
+        "item": "Night-of ROC exceedance assumed despite p.22 No-shock finding",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.42 verified: Chart indicated it did not design with dummy layers because exchangers so designed were no less susceptible to thermal stress failures and blocked layer becomes pressurized it can fail catastrophically if venting does not occur. Study alternative recommends replace with design qualified with dummy/inactive layers.",
+        "issue": "Alternative not actually verified and contradicts manufacturer evidence on record. Recommends dummy-layer design without addressing Chart catastrophic-pressurization warning or Linde vs Chart 2012 evaluation outcome.",
+        "item": "Replacement alternative inadequately justified",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.44 verified: vent holes found welded closed contrary to standards; p.45 PGP is facility using sealed holes vs silicone elsewhere. Study RFI-06 assumes 2015 repair sealed with reason PGP practice, then alternative claims eliminates pressure build-up to 111 bar screening value.",
+        "issue": "Weak assumption elevated to quantitative benefit. No vent-status record for 2015 pass-10 sealing; 111-bar value itself unsupported (see above). Silicone-vent efficacy (what hole size vents, at what pressure) explicitly not calculated per p.45 n.117.",
+        "item": "Blocked-pass vent assumption + unquantified fix",
+        "severity": "minor"
+      },
+      {
+        "evidence": "p.62 states 12 breaches Appendix C detailed analysis governs (D12); task states 13 pieces ruptured. p.61 ACSR core rupture compromising both passes is part of Appendix C sequence. Study RFI-01 assumes 12 + ACSR core as 13th with reason CSB forensic count governs over synopsis.",
+        "issue": "Reconciliation is arbitrary. No evidence ACSR excluded from 12-count; inflates inventory to fit task wording. T-03 must reconcile, cannot assume.",
+        "item": "Breach-count reconciliation assumption",
+        "severity": "minor"
+      },
+      {
+        "evidence": "p.41 verified: MOC added ROC alarms 1.9F/min, safe upper 3.6F/min, but at incident set point actually 14.25F/min with no MOC justification. Study proposes enforce ROC alarms at 1.8/3.6F/min as if new IOW.",
+        "issue": "Missed critical unit/fact: existing alarm desensitized ~7x without MOC. Recommendation must address restoration/management of existing alarm, not just new alarm. Indicates PSM/MOC failure missed in analysis.",
+        "item": "Missed desensitized metal-T alarm",
+        "severity": "major"
+      },
+      {
+        "evidence": "All five alternatives list cost_class <$100k to $1M-$10M with cost_basis ASSUMPTION with reason (e.g. BAHX fabrication + retrofit scale, controls-only, procedure rewrite). No p.N source; firm-capacity concept not applied though required by rules.",
+        "issue": "Costs are unsupported estimates, not verified. Cannot support recommended vs non-recommended ranking, especially industry RAGAGEP marked not recommended with n/a cost.",
+        "item": "Unverified costs for alternatives",
+        "severity": "minor"
+      }
+    ]
+  },
+  "resolution": {
+    "findings": [
+      {
+        "evidence": "DCS/event-log/surveillance reconstruction p.60 (clocks mismatched, shifted to real time; explosion 11:22 p.m. p.60): ACSR metal sensors stopped 11:20-11:21 p.m., ACSR A+B dP fell to nearly zero starting 11:21-11:22 p.m., near-ACSR sensors stopped/spiked after 11:23 p.m., fire intensified over ~35 min p.21; Fig.44 spikes 11:30 p.m./11:23 p.m./11:57 p.m. with fire-intensity changes p.62. Post-incident ACSR: 3 major breaches - partial loss north cap sheet + portions of several layers + 2 holes in B-inlet header p.21 (field ruled piping/header-connection breach not initial p.21); 12 different breaches in A-Train equipment/piping/vessels analyzed, ACSR most likely initial p.62. Lab: clear service thermal fatigue at several locations p.22; Table 1 p.22 eliminates over-pressurization (A <1,050 psig vs 1,200 MAWP, B <480 vs 570 p.22), water/ice (moisture analyzers alarmed none in 24 hr p.22), corrosion (Sept 2015 header removal none noted p.22), mercury (B-Train tests only trace, ACSR none p.22), thermal shock (night-of ~3F/min peaking 6F/min p.22). Truss: fin-to-cap/parting braze holds pressurized layers p.15; pushing/pulling fatigues metal to cracks leaking to atmosphere or blocked pass p.16. History: 9 HETSCO repairs on 4 BAHXs with external-only exam p.66; ACSR Table 8 LOCs/cracks p.67. Screening runs (propane surrogate - ASSUMPTION with reason: NGL composition withheld, propane illustrates cryogenic liquid behavior; Fahrenheit service preserved): fluid_properties at 34.11 bar: -67.8C (-90F p.59) density 615.1 kg/m3 vapour 0.0, -45.6C (-50F cryogenic threshold per p.12 n.7) density 590.77 kg/m3 vapour 0.0; bubble_pressure 0.28 bar at -67.8C, 0.87 bar at -45.6C; run_process CORR-PROP-HEAT: NGL-FEED 1.63 m3/h vapour 0.0 to NGL-WARM 1.69 m3/h vapour 0.0, heater duty 12.6 kW.",
+        "limiting_value": "ACSR MAWP 1,200 psig A-pass, 570 psig B-pass p.22 (not exceeded night-of p.22); BAHX ROC Table 3 p.32: 3.6F/min start-up/shutdown, 1.8F/min normal p.36, 108F in hour p.32; MOC metal ROC alert 1.9F/min, safe upper 3.6F/min, incident setpoint 14.25F/min without MOC p.41",
+        "limits_target": true,
+        "modification": "Remove/replace fatigue-cracked ACSR core; do not return BAHX with sealed blocked passes and repeated external weld repairs to cycling two-phase service",
+        "unit": "ACSR A-Train cold side reboiler BAHX core - initial failure point"
+      },
+      {
+        "evidence": "No-shock night reconciled: Table 1 p.22 Thermal shock No - night-of DCS ~3F/min peaking 6F/min p.22, average below 3.6F/min shutdown limit p.32. Sudden rupture = accumulated fatigue reaching critical size with curtailment as final load, not proven night-of exceedance. Curtailment context: Tri-States downstream problems, board operator reduced Tri-States flow, bullets limited so NGL production reduced p.18; non-routine activity, experienced board operator, from control room p.13; 2 personnel, no abnormal alarms/indicators before 11:22 p.m. explosion p.13; within minute second alarm p.13; throughput at incident ~500 MMscf/d raw gas and 16,000-18,000 bpd NGL vs design 1.5 Bcf/d and 50,000 bpd p.58 (~33% gas, 32-36% NGL - part-load history). Mechanism for accumulation: midstream upsets requiring reduce/stop production causing upsets p.33; turndown/start-up/shutdown changes boiling regime, B-pass unstable, liquid-vapor oscillation, rapid localized T fluctuation p.34; single large delta-T shock also described p.16 but excluded night-of by p.22. Dose history: Fig.28 bins 1.8-3.6, 3.6-12.6, 12.6-21.6, 21.6-30.6, >30.6F/min p.37 with routine exceedances; Fig.29 metal ROC ~4-10x damped vs stream p.38 (metal exceedance 2-3% of time in 2011 p.38); guidance gap - no basis comparing 100C/min vs 5C/min, no model-vs-history p.36. Blocked-in screening (same surrogate ASSUMPTION): blocked_in_pressure from 34.11 bar -67.8C to -45.6C returns 303.0 bar (4,380 psig) at 12.1 bar/K, beta 0.00186/K, kappa 0.000153/bar, critical fill 0.955, vapour-pressure regime 0.9 bar if <96% liquid - illustrates trapped-liquid pressurization hazard qualitatively only, not night-of pressure.",
+        "limiting_value": "Night-of ~3F/min avg, 6F/min peak p.22 vs 3.6F/min shutdown / 1.8F/min normal p.32/p.36; let-burn vent to flare/atmosphere philosophy p.19 available for controlled depressuring",
+        "limits_target": true,
+        "modification": "Rewrite curtailment/shut-in for gradual staged turndown coordinated with bullets/Tri-States p.18/p.57, minimum-flow/recycle and controlled flare venting p.19, with ROC/dP IOWs to pause on instability - to avoid adding fatigue dose and final-load trigger",
+        "unit": "A-Train curtailment/shut-in transient 10:50 p.m.-11:22 p.m. - trigger, not root cause"
+      },
+      {
+        "evidence": "BP operated almost entire life to June 2016, transition to Enterprise changed corporate support not onsite personnel/procedures p.40. 2012 replacement evaluated, vendors given cycling exemplar data p.42; Chart: dummy-layer exchangers no less susceptible to thermal stress, blocked layer if pressurized can fail catastrophically if not vented p.42; Linde dummy layers purposely blocked with vent holes to atmosphere p.41 n.100/p.42. BP GP-26-10 recommends BAHX for cryogenic (A-Train service) but advises against BAHX in fluctuating-temp or two-phase service - reboilers had both p.41; BP superseded replace recommendation with metal sensors p.41. Sensors/alarms: Fig.30 side-bar locations p.41; procedure to <3.5F/min core p.41; added metal ROC alarms p.41; 2010 leak review of 30 days inlet/outlet (not metal) temps, flow-change deviations worst on quick shutdown/startup, high quantity lower-magnitude excursions also causal p.41 n.97, no action items p.41; 2011 leak no incident report p.41. Repairs/MOC: 14 MOC entities guidance p.44; HETSCO asked if blocking passes reduces stress and if Chart approves - yes to both, leak perceived as contamination only p.44; PGP sealed vent holes contrary to standards, only PGP sealed vs silicone-vented elsewhere p.45; silicone efficacy/size/pressure not calculated p.45 n.117; 2015 vent status no record - ASSUMPTION with reason: PGP sealed practice p.45 cited as basis, weak - requires verification. LBB misuse: requires low growth + non-dangerous fluid + in-service monitoring + calc < critical p.46, none met for cryogenic flammable auto-ignition/explosion release. RAGAGEP: Table 2 four associations p.43; API only ANSI p.31; compliance by any one p.31; most guidance not mechanical-integrity inspection/maintenance focused p.43.",
+        "limiting_value": "MOC/PSM: alarm desensitized ~7x (14.25 vs 1.9/3.6F/min p.41) without MOC justification p.41; RAGAGEP Table 2 p.43 / Table 3 p.32 limits with gaps p.31/p.36; firm capacity per rules (largest unit out) - ASSUMPTION with reason: no station firm-capacity table in available pages, plant totals p.58 only, so firm-capacity ranking not determinable, noted as gap",
+        "limits_target": true,
+        "modification": "PSM/mechanical-integrity overhaul: PHA revalidation for BAHX thermal fatigue, MOC for every repair/alarm change, restore 1.9/3.6F/min alarms p.41, prohibit sealed blocked passes without manufacturer approval with vented/open + leak test + replacement rule after repeat LOCs, fatigue-dose tracking, industry RAGAGEP revision (API 662/ALPEMA/Chart/GPA Table 2 p.43 Table 3 p.32)",
+        "unit": "Management system - root cause vs contributors; sister B-Train BAHXs; industry standards"
+      }
+    ],
+    "responses": [
+      {
+        "action": "rejected",
+        "explanation": "Old labels BLOCKED-IN-01, ROC-HIST, B-PASS-STABILITY, LBB-CHECK, RAGAGEP-GAP, DCS-SEQ-ACSR/DP/AWSR, FIRE-PROG, FLUID-PROP-01 never logged; reruns KeyError. Replaced with verifiable outputs: fluid_properties, bubble_pressure, blocked_in_pressure quotes above plus logged run_process CORR-PROP-HEAT (NGL-FEED to NGL-WARM duty 12.6 kW). Future refs use CORR-PROP-HEAT.",
+        "issue": "Unverifiable thermodynamic / hydraulic screening"
+      },
+      {
+        "action": "rejected",
+        "explanation": "111 bar/1590 psig at 2.5 bar/K, 286.8 to 60.7 kg/m3, 0 to 0.83 vapor at 35 bar, bubble 29.4 bar at -90C had no p.N or logged run. Struck. Replaced with quoted surrogate screening above at Fahrenheit-consistent temps and 34.11 bar.",
+        "issue": "Invented DWSIM numbers"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted. -90 to -60C did not represent -90F service p.59 and cryogenic <-50F p.12 n.7. Corrected to -67.8C (-90F p.59) to -45.6C (-50F) inputs for all fluid/blocked/bubble tools and CORR-PROP-HEAT. Prior 111-bar/flashing claims withdrawn.",
+        "issue": "Temperature unit conversion error"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted p.22 Table 1 Thermal shock No (~3F/min peak 6F/min). Withdrew claim night transient exceeded 3.6 shutdown/1.8 normal and triggered B-pass rupture 10:50-11:22. Revised to accumulated fatigue to critical size with curtailment as final load; T-02 closed on p.22 basis; routine historic exceedances Fig.28 p.37/Fig.29 p.38 remain dose evidence, not night-of proof.",
+        "issue": "Night-of ROC exceedance assumed despite p.22 No-shock finding"
+      },
+      {
+        "action": "rejected",
+        "explanation": "Dummy/inactive-layer qualified cycling design contradicted p.42 Chart evidence (no less susceptible; blocked layer catastrophic if unvented). Withdrawn. Revised alternative: replacement qualified for cycling with manufacturer approval, no reliance on repeated weld repair, no sealed blocked layers; if dummy used must be vented per Linde p.41 n.100 with Chart warning addressed.",
+        "issue": "Replacement alternative inadequately justified"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted p.44 sealed contrary to standards, p.45 PGP-sealed vs silicone elsewhere, p.45 n.117 silicone not quantified. Downgraded 2015 pass-10 sealed claim to weak ASSUMPTION with reason PGP practice p.45 requiring verification; withdrew quantitative 111-bar benefit; silicone fix qualitative only pending vent sizing calc.",
+        "issue": "Blocked-pass vent assumption + unquantified fix"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted. p.62 12 breaches governs; task 13 pieces noted as synopsis count. Withdrew arbitrary 12+ACSR=13 arithmetic. Reported as count discrepancy not affecting ACSR-first sequence p.21/p.60-p.62; T-03 left open on inventory, closed on sequence.",
+        "issue": "Breach-count reconciliation assumption"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted missed fact p.41: MOC 1.9 alert/3.6 safe upper vs incident 14.25F/min without MOC. Added restoration of existing alarm and MOC-failure finding; IOW recommendation reframed as restore/manage, not new alarm.",
+        "issue": "Missed desensitized metal-T alarm"
+      },
+      {
+        "action": "noted",
+        "explanation": "Accepted. All costs ASSUMPTION with reason (no p.N price; 2012 Linde/Chart evaluation price withheld p.42). Retained only as order-of-magnitude scale, not ranking basis; industry RAGAGEP n/a cost; firm-capacity ranking not determinable from p.58 totals alone.",
+        "issue": "Unverified costs for alternatives"
+      }
+    ]
+  },
+  "runs": {},
+  "profiles": {},
+  "surges": {
+    "props1": {
+      "purpose": "DWSIM fluid properties",
+      "spec": {
+        "compounds": [
+          "Methane",
+          "Ethane",
+          "Propane"
+        ],
+        "points": [
+          {
+            "P_bar": 35.0,
+            "T_C": -60.0
+          },
+          {
+            "P_bar": 35.0,
+            "T_C": -90.0
+          }
+        ],
+        "x": {
+          "Ethane": 0.1,
+          "Methane": 0.85,
+          "Propane": 0.05
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "compounds": [
+          "Methane",
+          "Ethane",
+          "Propane"
+        ],
+        "x": {
+          "Ethane": 0.1,
+          "Methane": 0.85,
+          "Propane": 0.05
+        },
+        "points": [
+          {
+            "P_bar": 35.0,
+            "T_C": -60.0,
+            "density_kg_m3": 60.7,
+            "vapour_frac": 0.8299,
+            "errors": []
+          },
+          {
+            "P_bar": 35.0,
+            "T_C": -90.0,
+            "density_kg_m3": 286.79,
+            "vapour_frac": 0.0,
+            "errors": []
+          }
+        ]
+      }
+    },
+    "bubble2": {
+      "purpose": "DWSIM bubble pressure",
+      "spec": {
+        "T_C": [
+          30.0,
+          -60.0,
+          -90.0
+        ],
+        "compounds": [
+          "Methane",
+          "Ethane",
+          "Propane"
+        ],
+        "x": {
+          "Ethane": 0.1,
+          "Methane": 0.85,
+          "Propane": 0.05
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "compounds": [
+          "Methane",
+          "Ethane",
+          "Propane"
+        ],
+        "x": {
+          "Ethane": 0.1,
+          "Methane": 0.85,
+          "Propane": 0.05
+        },
+        "points": [
+          {
+            "T_C": 30.0,
+            "bubble_P_bar": 1.01,
+            "errors": [
+              "S: PR EOS: Unable to calculate compressility factor at given conditions.",
+              "S: PR EOS: Unable to calculate compressility factor at given conditions."
+            ]
+          },
+          {
+            "T_C": -60.0,
+            "bubble_P_bar": 1.01,
+            "errors": [
+              "S: PR EOS: Unable to calculate compressility factor at given conditions.",
+              "S: PR EOS: Unable to calculate compressility factor at given conditions."
+            ]
+          },
+          {
+            "T_C": -90.0,
+            "bubble_P_bar": 29.4,
+            "errors": []
+          }
+        ],
+        "note": "bubble-point pressure: a liquid-full, blocked-in vessel heated to T rises to at least this pressure (thermal expansion of the liquid drives it higher still)"
+      }
+    },
+    "blockedin3": {
+      "purpose": "DWSIM blocked-in liquid expansion",
+      "spec": {
+        "P1_bar": 35.0,
+        "T1_C": -90.0,
+        "T2_C": -60.0,
+        "compounds": [
+          "Methane",
+          "Ethane",
+          "Propane"
+        ],
+        "x": {
+          "Ethane": 0.1,
+          "Methane": 0.85,
+          "Propane": 0.05
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "T1_C": -90.0,
+        "T2_C": -60.0,
+        "P1_bar": 35.0,
+        "bubble_P_bar_at_T2": 1.01,
+        "bubble_psig_at_T2": -0.0,
+        "critical_liquid_fill_at_T1": null,
+        "regimes": "",
+        "beta_per_K": 0.12416,
+        "kappa_per_bar": 0.049302,
+        "pressure_rise_bar_per_K": 2.5,
+        "pressure_bar": 111.0,
+        "pressure_psig": 1590.0,
+        "note": "API 521 hydraulic-expansion screening for a liquid-full rigid vessel (linear beta/kappa). Wall stretch lowers it; the fill fraction decides which regime applies."
+      }
+    },
+    "props4": {
+      "purpose": "DWSIM fluid properties",
+      "spec": {
+        "compounds": [
+          "Propane"
+        ],
+        "points": [
+          {
+            "P_bar": 34.11,
+            "T_C": -67.8
+          },
+          {
+            "P_bar": 34.11,
+            "T_C": -45.6
+          }
+        ],
+        "x": {
+          "Propane": 1.0
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "compounds": [
+          "Propane"
+        ],
+        "x": {
+          "Propane": 1.0
+        },
+        "points": [
+          {
+            "P_bar": 34.11,
+            "T_C": -67.8,
+            "density_kg_m3": 615.1,
+            "vapour_frac": 0.0,
+            "errors": []
+          },
+          {
+            "P_bar": 34.11,
+            "T_C": -45.6,
+            "density_kg_m3": 590.77,
+            "vapour_frac": 0.0,
+            "errors": []
+          }
+        ]
+      }
+    },
+    "blockedin5": {
+      "purpose": "DWSIM blocked-in liquid expansion",
+      "spec": {
+        "P1_bar": 34.11,
+        "T1_C": -67.8,
+        "T2_C": -45.6,
+        "compounds": [
+          "Propane"
+        ],
+        "x": {
+          "Propane": 1.0
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "T1_C": -67.8,
+        "T2_C": -45.6,
+        "P1_bar": 34.11,
+        "bubble_P_bar_at_T2": 0.87,
+        "bubble_psig_at_T2": -0.0,
+        "critical_liquid_fill_at_T1": 0.955,
+        "regimes": "If the vessel held less than 96% liquid by volume at T1, the liquid stays below liquid-full and the pressure stays at the vapour pressure (0.9 bar). Above that fill, hydraulic expansion governs (the pressure below).",
+        "beta_per_K": 0.00186,
+        "kappa_per_bar": 0.000153,
+        "pressure_rise_bar_per_K": 12.1,
+        "pressure_bar": 303.0,
+        "pressure_psig": 4380.0,
+        "note": "API 521 hydraulic-expansion screening for a liquid-full rigid vessel (linear beta/kappa). Wall stretch lowers it; the fill fraction decides which regime applies."
+      }
+    },
+    "bubble6": {
+      "purpose": "DWSIM bubble pressure",
+      "spec": {
+        "T_C": [
+          -67.8,
+          -45.6
+        ],
+        "compounds": [
+          "Propane"
+        ],
+        "x": {
+          "Propane": 1.0
+        }
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "compounds": [
+          "Propane"
+        ],
+        "x": {
+          "Propane": 1.0
+        },
+        "points": [
+          {
+            "T_C": -67.8,
+            "bubble_P_bar": 0.28,
+            "errors": []
+          },
+          {
+            "T_C": -45.6,
+            "bubble_P_bar": 0.87,
+            "errors": []
+          }
+        ],
+        "note": "bubble-point pressure: a liquid-full, blocked-in vessel heated to T rises to at least this pressure (thermal expansion of the liquid drives it higher still)"
+      }
+    },
+    "CORR-PROP-HEAT": {
+      "purpose": "Corrected Fahrenheit-consistent propane surrogate screening for B-pass blocked-liquid warming -90F to -50F at B-pass pressure",
+      "spec": {
+        "compounds": [
+          "Propane"
+        ],
+        "feeds": {
+          "NGL-FEED": {
+            "P_bar": 34.11,
+            "T_C": -67.8,
+            "kg_h": 1000.0,
+            "x": {
+              "Propane": 1.0
+            }
+          }
+        },
+        "limits": {},
+        "package": "Peng-Robinson (PR)",
+        "units": [
+          {
+            "id": "HEAT1",
+            "in": "NGL-FEED",
+            "out": "NGL-WARM",
+            "T_out_C": -45.6,
+            "type": "heater"
+          }
+        ]
+      },
+      "args": {
+        "tool": "dwsim"
+      },
+      "result": {
+        "scale": 1.0,
+        "errors": [],
+        "streams": {
+          "NGL-FEED": {
+            "T_C": -67.8,
+            "P_bar": 34.11,
+            "kg_h": 1000.0,
+            "m3_h": 1.63,
+            "vapour_frac": 0.0
+          },
+          "NGL-WARM": {
+            "T_C": -45.6,
+            "P_bar": 34.11,
+            "kg_h": 1000.0,
+            "m3_h": 1.69,
+            "vapour_frac": 0.0
+          }
+        },
+        "units": {
+          "HEAT1": {
+            "type": "heater",
+            "duty_kW": 12.6
+          }
+        },
+        "checks": []
+      }
+    }
+  },
+  "eps_runs": {},
+  "cost_estimates": {},
+  "standards_checks": [],
+  "drawing": null
+}

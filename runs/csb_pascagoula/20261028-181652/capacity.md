@@ -1,0 +1,8 @@
+# Step 5 - Capacity evaluation
+
+| unit | limit | binds_at | limits_target | evidence |
+|---|---|---|---|---|
+| ACSR A-Train cold side reboiler BAHX | BAHX ROC 3.6 degF/min start-up/shutdown, 1.8 degF/min normal, 108 degF/hr (p.32 Table 3, p.36) + cyclic-service suitability (BP GP-26-10 p.41) | Thermal fatigue crack growth to critical size; truss loss p.15 | True | 4 repairs, 16 defects, last Sept 2015 p.66; Table 8 LOCs 10/16/2007, 9/15/2011, 10/23/2014, 9/16/2015 p.67; lab fatigue at several locations p.22; ROCs routinely >3.6 up to >30.6 degF/min p.37; metal exceedance 2-3% in 2011 p.38; B-pass instability p.34; rupture 11:20-11:22 p.61 |
+| AWSR A-Train warm side reboiler BAHX | Same ROC limits; LBB invalid for autoignition-risk fluid without monitoring p.46 | Secondary fire/overpressure after ACSR release | True | AWSR dP/metal lag 11:22-11:25 p.61; 1 repair 1/8/2008 cap-attachment welds p.68; fire intensification 35 min p.14; breaches in vicinity of cold+warm reboilers p.62 |
+| B-Train cold + warm side BAHXs (sister units) | Replacement vs repair threshold; vented blocked-pass requirement | Prior LOCs show same mechanism active | False | B-cold 3 repairs 4/12/2007, 2/26/2010, 3/7/2012 incl. passes 97-99 sealing p.67; B-warm 9/21/2010 p.68; sealed vents PGP practice p.45 |
+| Demethanizer + turboexpander + NGL bullets/Tri-States + flare | Smooth turndown without B-pass oscillation p.34; let-burn vent to flare p.19 | Curtailment transient 10:50 p.m. onward | False | Tri-States downstream problems forced NGL curtailment p.13, p.18; bullets limited p.18; warm separator -> turboexpander -90F / JT -> cold separator -> demethanizer p.58-59; A-pass dP drop from 10:50 p.m. p.61 n.157 |

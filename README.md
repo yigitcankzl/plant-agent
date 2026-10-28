@@ -106,6 +106,30 @@ The first model of this unit put H1008 in series instead of in the recirculation
 `runs/ws/chem_c01/model_v1_series.json`. An independent practitioner review caught it, which is why the coverage check now
 exists.
 
+## Try it in three minutes
+
+Open `web/home.html` and press **Start the 3-minute demo**. It walks through the chemical unit in six steps:
+
+1. the source P&ID and the model the agent built from it
+2. the +20 % question
+3. what limits it
+4. the fixes, each re-solved in DWSIM
+5. before and after
+6. the evidence
+
+What the workspace shows:
+
+- **Basis of every input.** Each input is labelled as in a document, measured, computed or assumed.
+- **Re-solved runs.** Every cited run is re-solved and must reproduce. A run that does not is shown as not reproduced.
+- **Recorded vs. live solutions.** Recorded DWSIM solutions are labelled as such and are re-solved live once the model
+  changes.
+- **Draft revisions.** Applying a fix creates a draft model revision, not an engineering approval. It needs a reason
+  and goes into the hash-chained audit trail.
+- **Limits cannot be edited away.** A proposal that only edits a documented limit is refused as not verifiable. This
+  applies to process limits, profile ratings, and a cited run that relaxes them.
+- **Provisional answers.** When a deciding value is missing, the answer says it is provisional and lists field checks:
+  what to measure, where, and which conclusion it would change.
+
 ## What it does
 
 | | |
@@ -137,8 +161,9 @@ clauses are redacted, and a leak check runs against the answer key. The agent th
   blocked-in expansion) it scored 92 %. Williams Geismar scored 67 % in both runs. In the second run the agent
   computed the blocked-in expansion pressure: 6,260 psig, against the CSB's estimate of about 5,000 psig. All runs
   are kept.
-- **Run-to-run variance (Roseburg, strict redaction, 3 independent runs):** 93%, 64% and 57% of the engineers'
-  conclusions, mean 71%. The earlier Roseburg runs (57%, 71%, 79%) used a looser redaction that left hint sentences
+- **Run-to-run variance (Roseburg, strict redaction, 4 independent runs):** 93%, 64%, 57% and 50% of the engineers'
+  conclusions, mean 66%. The fourth run was made with the treatment-rating tool added. In it, one item contradicted the
+  engineers: the agent held the clearwell to be limiting. The earlier Roseburg runs (57%, 71%, 79%) used a looser redaction that left hint sentences
   visible. They are kept for transparency but should not be compared with these.
 - Results, per-run deliverables and grades are in [`evidence/`](evidence/README.md).
 - **Contamination check:** with no documents, Muse says it does not know the Roseburg report's conclusions

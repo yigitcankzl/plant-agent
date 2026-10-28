@@ -1,0 +1,30 @@
+[
+  {
+    "evidence": "16 months B offline standby (p.7); 2001 shell gate valves allow one-online/one-offline vs original both-online (p.9, p.10 Fig.4); 13-Jun morning A flow drop past day (p.11 Fig.5); 8:33am supervisor likely opens B quench valves rapid rise Fig.6 (p.11); ~3 min later B explodes (p.11); piping launched ~30 ft overhead (p.11); 2 dead, 167 injured, fire ~3.5 hr >30000 lb released, 18 months down restart Jan 2015 (p.12); tube quench ~185 F vaporizes shell ~130 F ~95% propane balance propylene+C4s (p.9); relief at column top isolated by 2001 gates (p.10 Fig.4).",
+    "limiting_value": "Root cause: blocked-in liquid thermal (hydraulic) expansion + vapor-pressure rise of trapped propane heated toward 185-187 F quench with no relief (ASSUMPTION with reason: 187 F from brief, 185 F p.9; MAWP 300 psig/hydro 450 psig from brief, not in pp.6-13, verify U-1/nameplate)",
+    "limits_target": true,
+    "modification": "Recognize as API 521 blocked-in heated-exchanger rupture, not column overpressure or reaction",
+    "unit": "Reboiler B shell"
+  },
+  {
+    "evidence": "bubble_pressure tool 95/5 Propane/Propylene (ASSUMPTION with reason: p.9 ~95% propane balance mostly propylene+C4s, no assay, C4s omitted conservatively): 19.19 bar at 54.44C (130F p.9) rising to 34.96 bar (490 psig tool) at 85.0C (185F p.9) and 35.67 bar (500 psig tool) at 86.11C (187F ASSUMPTION brief). fluid_properties densities 440.6 kg/m3 at 54.44C/19.19 bar to 354.26/349.29 kg/m3 at 85/86.11C, vapour_frac 0.0 confirms all-liquid expansion demand. blocked_in_pressure from 19.19 bar/54.44C: beta 0.00824-0.00853/K, kappa 0.000601-0.000603/bar, stiffness 13.7-14.1 bar/K gives 439 bar (6350 psig tool) at 85C critical fill 0.794 and 467 bar (6760 psig tool) at 86.11C critical fill 0.782 if liquid-full; both exceed 300 psig MAWP and 450 psig hydro (ASSUMPTION brief). VB-20261028-A/B vented at same duty stays 19.19 bar util 0.884 vs 21.7 bara (=300 psig+14.7 ASSUMPTION).",
+    "limiting_value": "At quench temperature shell must reach >=490-500 psig even with vapor space, and 6350-6760 psig if liquid-full (tool psig gauge-correct) - exceeds 300 psig MAWP minimum, >20x if blocked-full",
+    "limits_target": true,
+    "modification": "Size corrective relief for both regimes: vapor venting at bubble pressure + liquid thermal expansion; do not rely on column-top valve through closed gates",
+    "unit": "Reboiler B shell"
+  },
+  {
+    "evidence": "Fig.4 + p.10: column-top relief protected fractionator + shells originally, but 2001 shell gates break path when closed. Original design (p.9) had no isolation need. No shell-side dedicated relief described in pp.6-13 (p.10). Opening tube-side valves while shell gates shut puts heat into dead volume (p.11). Zero-effective-relief conclusion limited to excerpt; field P&ID verification still required.",
+    "limiting_value": "Zero effective relief on standby shell when isolated (within pp.6-13 record; verify field)",
+    "limits_target": true,
+    "modification": "A1+A2: per-shell ASME VIII relief (non-isolable) + locked-open/car-seal + position alarm + DCS permissive blocking quench unless shell vented; revalidate per API 521 blocked-in/thermal cases",
+    "unit": "Relief + 2001 isolation valves"
+  },
+  {
+    "evidence": "Quench closed loop (p.7) settler leaves oily residue fouling tubes reducing heat transfer and flow (p.8) causing A flow drop (p.11); 16-month layup with no drain/vent SOP left propane trapped (p.7, p.11); informal switchover without shell lineup check (p.11). VB-20261028-A/B prove vented boiling at 903.9-936.9 kW stays 19.19 bar (util 0.884) so fouling/layup alone would not rupture if relieved/vented. Firm capacity: with largest unit (one reboiler) out, firm = single-reboiler operation per 2001 one-online intent (p.9-p.10); A3 requiring both online would abolish firm redundancy and is not needed if A1+A2 applied.",
+    "limiting_value": "Contributing: fouling + standby layup + informal switchover; firm = one reboiler online",
+    "limits_target": false,
+    "modification": "Write standby layup (drain/depressure/N2) + switchover SOP (verify vapor return + liquid feed open, equalized, slow warm-up), training, MOC/PHA update; add shell PI; audit 2001 MOC",
+    "unit": "Quench system + procedures + PSM"
+  }
+]

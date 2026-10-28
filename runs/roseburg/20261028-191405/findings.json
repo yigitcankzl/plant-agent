@@ -1,0 +1,93 @@
+[
+  {
+    "evidence": "Tested 14 mgd Pumps 1,2,4 and firm ~15.0 mgd 2002 p.109; Pump 3 below rated p.109. No compliant firm_capacity run logged this session (prior hsps runs model-specific, system head unproven). W-PS-02 requires firm >= design flow.",
+    "limiting_value": "14-15 mgd tested firm (p.109) < 18 mgd",
+    "limits_target": true,
+    "modification": "Rehab Pump 3 to rated + add firm capacity to reach 18 mgd firm + VFD on 1 raw pump p.115 for level control; retest required (ASSUMPTION: retest preconditions sizing, reason field-demonstrated only).",
+    "unit": "RAW-WATER PUMP STATION"
+  },
+  {
+    "evidence": "30-in steel 1/4-in wall p.110 => ID 29.5-in (ASSUMPTION: OD minus 2x wall, reason geometry). velocity 5.867 fps at 18 mgd (velocity tool, 29.5-in) vs desirable 6.0 fps screening.",
+    "limiting_value": "5.867 fps at 18 mgd < 6.0 fps",
+    "limits_target": false,
+    "modification": "Retain; verify headloss by field test, no replacement for 18 mgd.",
+    "unit": "30-IN RAW-WATER PIPELINE"
+  },
+  {
+    "evidence": "Single basin rated 12 mgd p.111; demonstrated 11.5 mgd p.111. grav-base-v2: at 13.1 mgd SED 464.88 ft margin 0.12 ft to 465.0 ft weir p.111; at 18 mgd SED 465.65 ft margin -0.65 ft (overtops weir). Treatment rating binds at 12.0 mgd (logged check margin -6.0 mgd at 18 mgd).",
+    "limiting_value": "12 mgd treatment rating p.111; hydraulic over weir between 13.1 and 18 mgd (~13-14 mgd by interpolation, unlogged profile_capacity rejected)",
+    "limits_target": true,
+    "modification": "Second floc/sed basin identical to existing (both basins required for 18 mgd; N-1 =12 mgd non-firm - see response). Least-cost vs weir-raise alone which leaves treatment limiting.",
+    "unit": "FLOCCULATION + SEDIMENTATION"
+  },
+  {
+    "evidence": "42-in settled pipe 2.8-in (0.233 ft) at 13.1 mgd p.111 fitted in grav-base-v2 (implied C 121); val independent check channel ~6-in below 465.0 ft weir p.111. velocity 2.895 fps at 18 mgd (velocity tool, 42-in) matches 2.9 fps at 18 mgd p.111.",
+    "limiting_value": "0.233 ft at 13.1 mgd p.111; ~0.42 ft at 18 mgd (grav-base-v2); 2.9 fps at 18 mgd p.111 adequate",
+    "limits_target": false,
+    "modification": "Retain 42-in; select low-loss connection for new basin (connection TBD p.111).",
+    "unit": "42-IN SETTLED-WATER PIPE"
+  },
+  {
+    "evidence": "3 mgd/filter treatment p.112; 4 mgd hydraulic to clearwell p.112. grav-base-v2 FILTERS check margin -1.1 mgd at 13.1 mgd, -6.0 mgd at 18 mgd vs 12.0 mgd rating. 4 filters N-1 =9 mgd treatment. 6 filters total =18 mgd but N-1 =15 mgd.",
+    "limiting_value": "12.0 mgd (4x3 mgd p.112); 6-filter N-1 15 mgd <18 mgd per W-FIL-02",
+    "limits_target": true,
+    "modification": "Add Filters 5+6 for 18 mgd operational (all 6 on); disclose non-firm - firm 18 mgd needs 7th filter or justified higher rate (W-FIL-01 2-4 gpm/sf advisory). Least-cost operational fix is 2 filters.",
+    "unit": "FILTERS 1-4 BAYS/MEDIA"
+  },
+  {
+    "evidence": "Filter-to-waste ~2 mgd by difference 9.1 mgd raw minus effluent p.113; need 3.0-4.5 mgd/filter at 18 mgd N-1/wasting (ASSUMPTION: 18/6=3.0, 18/4=4.5 when N-1/wasting, reason arithmetic split). velocity 8.865 fps at 2 mgd, 13.297 fps at 3 mgd in 8-in (velocity tool).",
+    "limiting_value": "2 mgd waste limit p.113 < 3.0-4.5 mgd needed",
+    "limits_target": true,
+    "modification": "Re-pipe filter-to-waste to full filter rate with modulating control + compliant sampling; meter fix precondition (7% low p.112).",
+    "unit": "FILTER-TO-WASTE PIPING"
+  },
+  {
+    "evidence": "627k gal total (170+324+133k) p.114 =75 min at 12 mgd p.114; +85k gal under Filters 5-6 p.115 =>712k gal =57 min at 18 mgd p.115 <60-min desirable p.115. p.114 states clearwell also wetwell+contact basin, ~1.0 ft drop per backwash, minimum level maintained, actual < total.",
+    "limiting_value": "57 min total-volume at 18 mgd p.115 <60-min screen p.115; usable < total; CT per Sec 3 unproven",
+    "limits_target": true,
+    "modification": "CT/tracer proof required; add baffling/storage only if CT fails (prove before building).",
+    "unit": "CLEARWELL STORAGE"
+  },
+  {
+    "evidence": "Nominal firm 10 mgd p.115 (1x1400 +3x2800 gpm at 305 ft TDH p.115). Prior firm_capacity 11.205 mgd gov outage and 17.836 mgd 6-pump model are system-curve-specific with unproven offsite head; gap 0.164 mgd to 18 mgd. VFDs reduce speed/head, cannot increase N-1 capacity.",
+    "limiting_value": "10-11.2 mgd firm <18 mgd; 6-pump ~17.8 mgd <18 mgd firm (fails W-PS-03)",
+    "limits_target": true,
+    "modification": "Add 2x2800 gpm in reserved spaces p.115 (6 pumps nominal firm 18.1 mgd) + verify against field head; upsize/trim only after T-06/T-07 retest. Strictly fails until proven.",
+    "unit": "HIGH-SERVICE PUMP STATION"
+  },
+  {
+    "evidence": "29.25-in ID p.116; velocity 5.968 fps at 18 mgd (velocity tool, 29.25-in) vs Table 4-3 5.97 fps p.117; 6.0 fps desirable, short-segment exception p.116-p.117.",
+    "limiting_value": "5.97 fps at 18 mgd p.117 adequate at 18 mgd",
+    "limits_target": false,
+    "modification": "Retain site main at 18 mgd; higher-head pumps only if full transmission headloss (>18 mgd discussion p.117) proves greater.",
+    "unit": "SITE FINISHED-WATER MAIN"
+  },
+  {
+    "evidence": "Rated 9700 gpm/14.0 mgd, 150 psi, HGL 630 ft p.117; 18 mgd =12500 gpm (ASSUMPTION: mgd-gpm conversion, reason 1 mgd=694.4 gpm) > rating. Steady-state EPANET cannot prove transient.",
+    "limiting_value": "14.0 mgd surge rating p.117 <18 mgd",
+    "limits_target": true,
+    "modification": "Rerun transient surge study for 18 mgd + upsize/controls as required; precondition to 18 mgd.",
+    "unit": "SURGE PROTECTION"
+  },
+  {
+    "evidence": "30-in drain ~10 mgd p.111; overflow weir ~12 mgd at 9-in depth p.111; HSPS overflow ~19 mgd at 1-ft, combined 24 mgd p.114.",
+    "limiting_value": "10 mgd drain p.111 <12 mgd weir <18 mgd plant flow",
+    "limits_target": true,
+    "modification": "Flag as emergency-handling limiter; verify diversion-MH to WWPS/river path for 18 mgd or restrict emergency procedure.",
+    "unit": "EMERGENCY OVERFLOW DRAINS"
+  },
+  {
+    "evidence": "Sum effluent meters ~7% low vs raw mag meter, straight-pipe not met p.112; waste by difference p.113; settled-pipe anchor uses raw mag meter 13.1 mgd p.111.",
+    "limiting_value": "7% bias p.112 propagates to split/calibration",
+    "limits_target": true,
+    "modification": "Fix metering/straight-pipe (precondition to proving 18 mgd), reconcile mass balance.",
+    "unit": "FILTER EFFLUENT METERS"
+  },
+  {
+    "evidence": "Offsite transmission to Reservoir Hill 710.0 ft dwg p.136, reservoir levels/controls, river intake levels 453.0/450.0/432/425.5/420/415.5/408.0 dwg p.136, rapid mix, filter influent/effluent piping, backwash drains, washwater/solids basins 2x300k gal p.119 and WWPS 3x1500 gpm firm 3000 gpm p.119 with 65-75k gal/backwash p.114 not proven at 18 mgd mass-balance.",
+    "limiting_value": "Unproven at 18 mgd - may limit even if HSPS firm increased",
+    "limits_target": true,
+    "modification": "Survey/test offsite transmission + intake + rapid mix/inlet/effluent + backwash conveyance + WWPS cycle/mass-balance before committing HSPS expansion.",
+    "unit": "OFFSITE TRANSMISSION + INTAKE + RAPID MIX + INLET/EFFLUENT + SOLIDS SIDE-STREAM"
+  }
+]

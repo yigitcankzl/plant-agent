@@ -1,0 +1,17 @@
+# Step 5 - Capacity evaluation
+
+| unit | limit | binds_at | limits_target | evidence |
+|---|---|---|---|---|
+| RAW-WATER PUMP STATION | firm <18 mgd (treatment+hydraulic) | ~14-15 mgd tested (p.109); <18 mgd | True | DR-04 14 mgd Pumps 1,2,4; DR-05 15.0 mgd firm 2002 (p.109); Pump 3 below rated |
+| 30-IN RAW-WATER PIPELINE | 30-in steel 1/4-in wall (p.110) adequate at 18 mgd | >18 mgd (velocity 5.673 fps at 18 mgd <6.0 fps p.116) | False | velocity 5.673 fps (30-in at 18 mgd) vs Table 4-3 5.97 fps (p.117); desirable 6.0 fps (p.116) |
+| FLOCCULATION BASIN + SEDIMENTATION BASIN LAUNDERS | single basin rated 12 mgd (p.111); 11.5 mgd demonstrated (p.111) | 12 mgd treatment rating (p.111); hydraulic overflow 19.25 mgd | True | base-grav-final binds_at 12.0 mgd rating; profile_capacity overflow 19.25 mgd, MAX WS 22.48 mgd |
+| FILTERS 1-4 (BAYS, MEDIA, UNDERDRAINS) | 3 mgd/filter treatment (p.112); N-1 firm 9 mgd existing | 12.02 mgd (4x3 mgd treatment, p.112); hydraulic 16 mgd (4x4 mgd p.112) | True | base-grav-final filters bind 12.02 mgd; treatment_capacity N-1 analogue; 463-464 ft level (p.112)(dwg p.136 464.0) |
+| FILTER-TO-WASTE PIPING | filter-to-waste piping 2 mgd (p.113) | 2 mgd to waste (p.113); need 3.0-4.5 mgd/filter at 18 mgd N-1/wasting | True | DR-19 9.1 mgd split ~2 mgd waste (p.113); 16-in drains/18-in effluent 4 mgd to clearwell (p.112) |
+| CLEARWELL OVERFLOWS | HSPS overflow 19 mgd; combined 24 mgd (p.114) | ~19 mgd HSPS weir (p.114); 24 mgd combined (p.114) | False | base-grav-final clearwell overflow 19 mgd at 1-ft (p.114 DR-STR); weir 449.5 ft 9 ft (p.114)(dwg p.136) |
+| CLEARWELL / TREATED STORAGE (3 ZONES) | 60-min desirable (p.115); CT per Sec 3 governs (RFI-09) | 75 min at 12 mgd (p.114); 57 min at 18 mgd with Filters 5-6 (p.115) <60-min screen | True | 627k gal (170+324+133k) (p.114); +85k gal Filters 5-6 (p.115); 1 ft drop/backwash (p.114); 65-75k gal/backwash (p.114) |
+| HIGH-SERVICE PUMP STATION | HSPS firm 10-11.2 mgd <18 mgd | 10 mgd nominal firm (p.115); modelled 11.2 mgd; observed 3x3300 gpm system point | True | firm_capacity hsps-exist-fix 11.205 mgd (gov HS2 outage), all-pumps 14.814 mgd; 1x1400 +3x2800 at 305 ft TDH (p.115) |
+| 30-IN SITE FINISHED-WATER MAIN + HEADER | 6.0 fps desirable (p.116); site main adequate at 18 mgd | 18 mgd 5.97 fps Table 4-3 (p.117); 20 mgd 6.63 fps >6.0 fps | False | velocity 5.968 fps (29.25-in ID p.116 at 18 mgd) vs 5.97 fps Table 4-3 (p.117); short-segment exception (p.116-p.117) |
+| SURGE TANK | surge protection 14.0 mgd (p.117) | 14.0 mgd surge rating (p.117); 18 mgd =12500 gpm >9700 gpm | True | 9700 gpm/14.0 mgd, 150 psi, HGL 630 ft (p.117); 1900 cf/14200 gal tank (p.117) |
+| 42-IN SETTLED-WATER PIPELINE | 42-in settled pipe (p.111) adequate; connection TBD (p.111) | 42-in 2.9 fps at 18 mgd (p.111); 3.9 fps at 24 mgd - adequate | False | velocity 2.895 fps (42-in at 18 mgd) matches 2.9 fps (p.111); 2.8-in at 13.1 mgd (p.111) |
+| BACKWASH PUMPS + PIPING + AIR SCOUR | adequate existing media; deep-bed >18 mgd needs higher rate (p.119) | backwash 3250 gpm/pump at 41 ft (p.119); 4060 gpm tested (p.119) <4400 gpm deep-bed (p.119) | False | 2x3250 gpm 50hp (p.118-p.119); 16-in header (p.119); 4400 gpm est, 4060 gpm test (p.119); 8-in air 1050 scfm (p.118) |
+| WASTEWATER PUMP STATION + WASHWATER/SOLIDS BASINS | adequate 12 mgd; 18 mgd mass-balance unproven (RFI-12) | 3000 gpm firm (p.119); basins 2x300k gal (p.119) | False | 3x1500 gpm at 40 ft, 3000 firm (p.119); 65-75k gal/backwash (p.114) |

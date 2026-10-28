@@ -1,0 +1,412 @@
+{
+  "case": "roseburg",
+  "model": "muse-spark-1.3-contributor",
+  "llm_steps": 78,
+  "simulations": 12,
+  "wall_time_s": 896,
+  "cost_usd": 0.0733,
+  "model_inp": {
+    "base_run": "hsps-exist-fix",
+    "pumps": 4,
+    "pipes": 2,
+    "reloads": true
+  },
+  "cost_estimates": {
+    "Filters 5 and 6": {
+      "total": 4100000.0,
+      "range": [
+        2870000.0,
+        6150000.0
+      ]
+    },
+    "Second pretreatment basin": {
+      "total": 1216000.0,
+      "range": [
+        851000.0,
+        1824000.0
+      ]
+    },
+    "HSPS two added pumps": {
+      "total": 81000.0,
+      "range": [
+        56000.0,
+        121000.0
+      ]
+    },
+    "test-pipe-id": {
+      "total": 1000.0,
+      "range": [
+        1000.0,
+        3000.0
+      ]
+    },
+    "Raw-water pump rehab + 1 pump": {
+      "total": 53000.0,
+      "range": [
+        37000.0,
+        79000.0
+      ]
+    },
+    "Filter-to-waste re-piping": {
+      "total": 0.0,
+      "range": [
+        0.0,
+        0.0
+      ]
+    },
+    "Surge restudy + controls": {
+      "total": 129000.0,
+      "range": [
+        65000.0,
+        258000.0
+      ]
+    }
+  },
+  "standards": {
+    "pass": 3,
+    "FAIL": 0,
+    "not checked": 2
+  },
+  "profile": {
+    "base_run": "base-grav-final",
+    "limits": [
+      {
+        "id": "sedimentation_basin",
+        "check": "single basin treatment 12 mgd",
+        "binds_at_mgd": 12.0
+      },
+      {
+        "id": "filters",
+        "check": "filter treatment 3 mgd each",
+        "binds_at_mgd": 12.02
+      },
+      {
+        "id": "settled_channel",
+        "check": "basin overflow weir 465.0 ft",
+        "binds_at_mgd": 19.25
+      },
+      {
+        "id": "sedimentation_basin",
+        "check": "basin MAX WS 465.98 ft",
+        "binds_at_mgd": 22.48
+      },
+      {
+        "id": "rapid_mix",
+        "check": "rapid-mix top 467.5 ft",
+        "binds_at_mgd": 26.66
+      },
+      {
+        "id": "clearwell",
+        "check": "clearwell HSPS overflow weir 449.5 ft",
+        "binds_at_mgd": null
+      },
+      {
+        "id": "filters",
+        "check": "filter top of wall 467.5 ft",
+        "binds_at_mgd": null
+      }
+    ]
+  },
+  "design_profile_sheet": {
+    "run": "design-18",
+    "file": "runs/roseburg/20261028-191405/design_profile.dxf",
+    "flows": [
+      18.0
+    ],
+    "structures": 12,
+    "elev_range_ft": [
+      447,
+      470
+    ]
+  },
+  "pump_datasheets": [
+    {
+      "alternative": "Alt H-1: add 2x2800 gpm 305 ft TDH pumps in reserved spaces (p.115) total 6 pumps",
+      "run": "hsps-18-6pump",
+      "pump": "HS1",
+      "duty_flow_gpm": 1282.5,
+      "duty_head_ft": 321.35,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 130.3,
+      "motor_selected_hp": 150,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 138.6,
+      "electric_kw": 102.3,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt H-1: add 2x2800 gpm 305 ft TDH pumps in reserved spaces (p.115) total 6 pumps",
+      "run": "hsps-18-6pump",
+      "pump": "HS2",
+      "duty_flow_gpm": 2565.0,
+      "duty_head_ft": 321.35,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 260.6,
+      "motor_selected_hp": 300,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 277.2,
+      "electric_kw": 204.6,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt H-1: add 2x2800 gpm 305 ft TDH pumps in reserved spaces (p.115) total 6 pumps",
+      "run": "hsps-18-6pump",
+      "pump": "HS3",
+      "duty_flow_gpm": 2565.0,
+      "duty_head_ft": 321.35,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 260.6,
+      "motor_selected_hp": 300,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 277.2,
+      "electric_kw": 204.6,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt H-1: add 2x2800 gpm 305 ft TDH pumps in reserved spaces (p.115) total 6 pumps",
+      "run": "hsps-18-6pump",
+      "pump": "HS4",
+      "duty_flow_gpm": 2565.0,
+      "duty_head_ft": 321.35,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 260.6,
+      "motor_selected_hp": 300,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 277.2,
+      "electric_kw": 204.6,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt H-1: add 2x2800 gpm 305 ft TDH pumps in reserved spaces (p.115) total 6 pumps",
+      "run": "hsps-18-6pump",
+      "pump": "HS5",
+      "duty_flow_gpm": 2565.0,
+      "duty_head_ft": 321.35,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 260.6,
+      "motor_selected_hp": 300,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 277.2,
+      "electric_kw": 204.6,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt H-1: add 2x2800 gpm 305 ft TDH pumps in reserved spaces (p.115) total 6 pumps",
+      "run": "hsps-18-6pump",
+      "pump": "HS6",
+      "duty_flow_gpm": 2565.0,
+      "duty_head_ft": 321.35,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 260.6,
+      "motor_selected_hp": 300,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 277.2,
+      "electric_kw": 204.6,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt R-1: rehab Pump 3 to rated + add/replace to achieve 18 mgd firm (VFD on 1 raw pump p.115)",
+      "run": "hsps-exist-fix",
+      "pump": "HS1",
+      "duty_flow_gpm": 1469.7,
+      "duty_head_ft": 294.63,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 136.9,
+      "motor_selected_hp": 200,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 138.6,
+      "electric_kw": 107.5,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt R-1: rehab Pump 3 to rated + add/replace to achieve 18 mgd firm (VFD on 1 raw pump p.115)",
+      "run": "hsps-exist-fix",
+      "pump": "HS2",
+      "duty_flow_gpm": 2939.3,
+      "duty_head_ft": 294.63,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 273.9,
+      "motor_selected_hp": 350,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 277.2,
+      "electric_kw": 215.0,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt R-1: rehab Pump 3 to rated + add/replace to achieve 18 mgd firm (VFD on 1 raw pump p.115)",
+      "run": "hsps-exist-fix",
+      "pump": "HS3",
+      "duty_flow_gpm": 2939.3,
+      "duty_head_ft": 294.63,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 273.9,
+      "motor_selected_hp": 350,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 277.2,
+      "electric_kw": 215.0,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt R-1: rehab Pump 3 to rated + add/replace to achieve 18 mgd firm (VFD on 1 raw pump p.115)",
+      "run": "hsps-exist-fix",
+      "pump": "HS4",
+      "duty_flow_gpm": 2939.3,
+      "duty_head_ft": 294.63,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 273.9,
+      "motor_selected_hp": 350,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 277.2,
+      "electric_kw": 215.0,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt SU-1: rerun surge study for 18 mgd + upsize/controls as required (rated only to 14.0 mgd p.117)",
+      "run": "hsps-18-6pump",
+      "pump": "HS1",
+      "duty_flow_gpm": 1282.5,
+      "duty_head_ft": 321.35,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 130.3,
+      "motor_selected_hp": 150,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 138.6,
+      "electric_kw": 102.3,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt SU-1: rerun surge study for 18 mgd + upsize/controls as required (rated only to 14.0 mgd p.117)",
+      "run": "hsps-18-6pump",
+      "pump": "HS2",
+      "duty_flow_gpm": 2565.0,
+      "duty_head_ft": 321.35,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 260.6,
+      "motor_selected_hp": 300,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 277.2,
+      "electric_kw": 204.6,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt SU-1: rerun surge study for 18 mgd + upsize/controls as required (rated only to 14.0 mgd p.117)",
+      "run": "hsps-18-6pump",
+      "pump": "HS3",
+      "duty_flow_gpm": 2565.0,
+      "duty_head_ft": 321.35,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 260.6,
+      "motor_selected_hp": 300,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 277.2,
+      "electric_kw": 204.6,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt SU-1: rerun surge study for 18 mgd + upsize/controls as required (rated only to 14.0 mgd p.117)",
+      "run": "hsps-18-6pump",
+      "pump": "HS4",
+      "duty_flow_gpm": 2565.0,
+      "duty_head_ft": 321.35,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 260.6,
+      "motor_selected_hp": 300,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 277.2,
+      "electric_kw": 204.6,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt SU-1: rerun surge study for 18 mgd + upsize/controls as required (rated only to 14.0 mgd p.117)",
+      "run": "hsps-18-6pump",
+      "pump": "HS5",
+      "duty_flow_gpm": 2565.0,
+      "duty_head_ft": 321.35,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 260.6,
+      "motor_selected_hp": 300,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 277.2,
+      "electric_kw": 204.6,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    },
+    {
+      "alternative": "Alt SU-1: rerun surge study for 18 mgd + upsize/controls as required (rated only to 14.0 mgd p.117)",
+      "run": "hsps-18-6pump",
+      "pump": "HS6",
+      "duty_flow_gpm": 2565.0,
+      "duty_head_ft": 321.35,
+      "speed": 1.0,
+      "efficiency_at_duty": 0.8,
+      "shaft_power_hp": 260.6,
+      "motor_selected_hp": 300,
+      "motor_basis": "next standard size >= max(1.15 x duty power, max power on the curve to runout)",
+      "max_power_to_runout_hp": 277.2,
+      "electric_kw": 204.6,
+      "npsh_available_ft": 40.1,
+      "npsh_basis": "atmosphere at 0 ft elevation, water 20 C, suction level 449.0 ft, centerline 442.0 ft, suction loss 0 ft",
+      "npsh_ok": null,
+      "npsh_note": "NPSHr not given: margin not checked (request the certified curve)"
+    }
+  ]
+}
