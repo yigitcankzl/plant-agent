@@ -107,11 +107,55 @@ def coverage(pid_ov, spec):
             "missing_equipment": sorted(tags - set(units))}
 
 
+def historian(path, tags=None, start=None, end=None):
+    """Summary of a historian/SCADA export (CSV: a time column, then one column per tag): mean, p5, p95, min, max per tag,
+    over an optional time window. Standard library only."""
+    import csv
+    import statistics
+    with open(path) as f:
+        rows = list(csv.reader(f))
+    head, data = rows[0], rows[1:]
+    if start or end:
+        data = [r for r in data if (not start or r[0] >= start) and (not end or r[0] <= end)]
+    out = {}
+    for j, tag in enumerate(head[1:], 1):
+        if tags and tag not in tags:
+            continue
+        v = sorted(float(r[j]) for r in data if j < len(r) and r[j] not in ("", "NaN", "nan"))
+        if v:
+            q = lambda p: v[min(len(v) - 1, int(p * len(v)))]  # noqa: E731
+            out[tag] = {"n": len(v), "mean": round(statistics.fmean(v), 3), "p5": q(.05), "p95": q(.95), "min": v[0], "max": v[-1]}
+    return {"from": data[0][0] if data else None, "to": data[-1][0] if data else None, "tags": out, "available": head[1:]}
+
+
+def annual_energy(spec, units, bins, price=None):
+    """Bin-method annual electricity of `units` over operating bins; each bin is a DWSIM solve."""
+    rows, total = [], 0.0
+    for b in bins:
+        r = process.run(patch(spec, b.get("changes") or []), float(b.get("scale") or 1.0))
+        kw = 0.0
+        for uid in units:
+            u = r["units"].get(uid) or {}
+            f = (b.get("electric_per_kW_duty") or {}).get(uid)
+            kw += abs(u.get("duty_kW") or 0) * f if f else (u.get("kW") or 0)
+        rows.append({"bin": b.get("name"), "hours": b["hours"], "kW": round(kw, 1), "MWh": round(kw * b["hours"] / 1000, 1),
+                     "errors": r["errors"]})
+        total += kw * b["hours"]
+    return {"bins": rows, "MWh_per_year": round(total / 1000, 1), "hours": sum(b["hours"] for b in bins),
+            "cost_per_year": round(total * price) if price else None}
+
+
 class PlantWorkspace(Study):
     def __init__(self, case_name, model="muse-spark-1.3-contributor"):
         self.name, self.model = case_name, model
         self.cfg = json.loads((ROOT / "cases" / case_name / "case.json").read_text())
-        self.pid = pid.overview(DATA / self.cfg["pid"])
+        self.pid_file = ROOT / "runs" / "ws" / case_name / "pid_read.json"
+        if self.cfg.get("pid"):
+            self.pid = pid.overview(DATA / self.cfg["pid"])
+        elif self.pid_file.exists():  # a PDF schematic, read once by Muse vision
+            self.pid = json.loads(self.pid_file.read_text())
+        else:
+            self.pid = None
         self.basis = (ROOT / "cases" / case_name / self.cfg["basis"]).read_text()
         self.dir = ROOT / "runs" / "ws" / case_name / time.strftime("%Y%m%d-%H%M%S")
         self.dir.mkdir(parents=True, exist_ok=True)
@@ -149,6 +193,9 @@ class PlantWorkspace(Study):
         return [
             f("read_pid", "The smart P&ID: equipment with design data and limits, connections (with inline valves), lines with fluid "
                           "codes, valves, control loops.", {}),
+            f("search_documents", "Keyword search over the project documents (tenders, datasheets, reports); returns [doc, page].",
+              {"query": S}, ["query"]),
+            f("read_document_page", "Text of one page of a project document.", {"doc": S, "page": {"type": "integer"}}, ["doc", "page"]),
             f("read_data_sheet", "The operating data sheet: current operation, process requirements, equipment performance, utilities.", {}),
             f("run_process", "Solve a DWSIM flowsheet and log it under `label`. Returns stream T/P/flows, unit results and every "
                              "limit check (utilisation = value/limit). Spec: " + json.dumps(process.SPEC_HELP),
@@ -160,6 +207,18 @@ class PlantWorkspace(Study):
             f("check_coverage", "Compare a logged run's flowsheet with the P&ID: which equipment-to-equipment connections (by line "
                                 "number) the model reproduces, which it misses, and which P&ID equipment it leaves out.",
               {"label": S}, ["label"]),
+            f("annual_energy", "Annual electricity by the bin method: solve a logged model once per bin (e.g. wet-bulb bins) with "
+                               "that bin's changes and throughput, then sum electric power x hours. Power counts pumps and "
+                               "compressors in `units` from the solve; for equipment not modelled electrically (a chiller "
+                               "modelled as a cooler) give electric_per_kW_duty {unit: kWe per kW of duty, e.g. 1/COP} per bin. "
+                               "Use it to compare a base case and an alternative over the same bins.",
+              {"label": S, "units": {"type": "array", "items": S},
+               "bins": {"type": "array", "items": {"type": "object", "description": "{name, hours, scale, changes: [{path, value}], "
+                                                                                       "electric_per_kW_duty: {unit: factor}}"}},
+               "price_per_kWh": N}, ["label", "units", "bins"]),
+            f("historian", "Summary statistics (mean, p5, p95, min, max) of the plant's historian/SCADA export for chosen tags "
+                           "and an optional time window; call with no tags to list what is available.",
+              {"tags": {"type": "array", "items": S}, "start": S, "end": S}),
             f("relief_scan", "Deterministic scan of the P&ID: for each side of each equipment item, whether it reaches a relief "
                              "device without passing a valve that could be closed, and which heated sides could be blocked in.", {}),
             f("blocked_in_pressure", "DWSIM: pressure a liquid-full, blocked-in vessel reaches when heated from T1 to T2 "
@@ -170,7 +229,18 @@ class PlantWorkspace(Study):
 
     def call(self, name, a):
         if name == "read_pid":
-            return self.pid
+            return self.pid or {"note": "this project has no drawing: take the equipment and connections from the data sheet"}
+        if name == "search_documents":
+            from .docs import _pages
+            q = [w for w in a["query"].lower().split() if len(w) > 2]
+            hits = [(sum(t.lower().count(w) for w in q), d["id"], i + 1) for d in self.cfg.get("documents", [])
+                    for i, t in enumerate(_pages(DATA / d["pdf"]))]
+            return [{"doc": d, "page": p} for n, d, p in sorted(hits, reverse=True)[:8] if n]
+        if name == "read_document_page":
+            from .docs import _pages
+            d = next(x for x in self.cfg.get("documents", []) if x["id"] == a["doc"])
+            # ponytail: whitespace squeezed and capped, so a dozen page reads stay inside the model's working context
+            return {"doc": a["doc"], "page": a["page"], "text": " ".join(_pages(DATA / d["pdf"])[int(a["page"]) - 1].split())[:3500]}
         if name == "read_data_sheet":
             return {"text": self.basis}
         if name == "run_process":
@@ -183,9 +253,19 @@ class PlantWorkspace(Study):
             r = self.runs[a["label"]]
             r["capacity"] = process.capacity(r["spec"])
             return {"label": a["label"], **r["capacity"]}
+        if name == "historian":
+            if not self.cfg.get("historian"):
+                return {"note": "no historian export in this project"}
+            return historian(ROOT / "cases" / self.name / self.cfg["historian"], a.get("tags"), a.get("start"), a.get("end"))
+        if name == "annual_energy":
+            return annual_energy(self.runs[a["label"]]["spec"], a["units"], a["bins"], a.get("price_per_kWh"))
         if name == "relief_scan":
+            if not self.cfg.get("pid"):
+                return {"error": "the relief scan needs a smart (DEXPI) P&ID; this drawing is a PDF read by vision"}
             return pid.relief_scan(DATA / self.cfg["pid"])
         if name == "check_coverage":
+            if not self.pid:
+                return {"note": "no drawing to compare with"}
             r = self.runs.get(a["label"])
             return coverage(self.pid, r["spec"]) if r else {"error": f"unknown label; logged: {list(self.runs)}"}
         if name == "blocked_in_pressure":
@@ -195,8 +275,20 @@ class PlantWorkspace(Study):
             return {"label": a["label"], "spec": r["spec"]} if r else {"error": f"unknown label; logged: {list(self.runs)}"}
         raise ValueError(f"unknown tool {name}")
 
+    def read_drawing(self):
+        """A PDF schematic: Muse vision reads it once into the P&ID structure (cached)."""
+        from . import pidvision
+        t0, usd0 = time.time(), llm.spent()
+        self.pid = {**pidvision.read(DATA / self.cfg["pid_pdf"], self.cfg.get("pid_page", 1) - 1, self.cfg.get("vision_model", "muse-spark-1.3")),
+                    "seconds": round(time.time() - t0), "cost_usd": round(llm.spent() - usd0, 4)}
+        self.pid_file.write_text(json.dumps(self.pid, indent=1))
+        audit.append(self.name, "read_drawing", None, "PDF schematic read by Muse vision", {"model": self.pid["model"], "equipment": len(self.pid["equipment"])})
+        return self.pid
+
     def build(self):
         """The agent reads the P&ID and data sheet and builds + calibrates the DWSIM model itself."""
+        if self.pid is None and self.cfg.get("pid_pdf"):
+            self.read_drawing()
         t0, usd0 = time.time(), llm.spent()
         llm.TAG = "plant:" + self.name
         sub = self.loop("build", "You are a process engineer building a steady-state simulation model of a unit from its P&ID. " + RULES,
@@ -210,19 +302,21 @@ class PlantWorkspace(Study):
                         "needs, frame limit and available pressure drop; tank hold time; product temperature limits; utility "
                         "supply limits on the utility feed streams. Calibrate against EVERY measured value in the data sheet "
                         "(temperatures, flows, pressure drops) and report measured vs simulated. Run check_coverage on your final "
-                        "model and fix every missing connection that carries normal flow. Then call submit_model.",
+                        "model and fix every missing connection that carries normal flow. Then call submit_model. If there are project "
+                        "documents, search them and read only the pages with the equipment data you need (datasheets), at most 6.",
                         self.tools() + [SUBMIT_MODEL], "submit_model", 22)
         run = self.runs.get(sub["label"]) or list(self.runs.values())[-1]
         self.built = {"label": sub["label"] if sub["label"] in self.runs else list(self.runs)[-1], "spec": run["spec"],
                       "result": run["result"], "mapping": sub.get("mapping"), "calibration": sub.get("calibration"),
                       "assumptions": sub.get("assumptions"), "model": self.model,
-                      "coverage": coverage(self.pid, run["spec"]), "seconds": round(time.time() - t0),
+                      "coverage": coverage(self.pid, run["spec"]) if self.pid else None, "seconds": round(time.time() - t0),
                       "cost_usd": round(llm.spent() - usd0, 4), "at": time.strftime("%Y-%m-%d %H:%M")}
         self.model_file.write_text(json.dumps(self.built, indent=1))
         self.revisions = []
         self.rev_file.write_text("[]")
         audit.append(self.name, "build", None, "model built from the P&ID and data sheet",
-                     {"label": self.built["label"], "model": self.model, "coverage_missing": self.built["coverage"]["missing_connections"]})
+                     {"label": self.built["label"], "model": self.model,
+                      "coverage_missing": (self.built["coverage"] or {}).get("missing_connections")})
         self._state = {}
         return self.built
 
@@ -362,6 +456,11 @@ class PlantWorkspace(Study):
 
 
 if __name__ == "__main__":
+    import tempfile
+    with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False) as f:
+        f.write("time,TI1,FI1\n2026-01-01T00:00,10,5\n2026-01-01T01:00,20,\n2026-01-01T02:00,30,7\n")
+    h = historian(f.name)
+    assert h["tags"]["TI1"]["mean"] == 20 and h["tags"]["FI1"]["n"] == 2 and h["available"] == ["TI1", "FI1"], h
     s = {"units": [{"id": "H1", "type": "hx", "area_m2": 10}], "feeds": {"CW": {"m3_h": 20}}, "limits": {"H1": {"area_m2": 10}}}
     p = patch(s, [{"path": "units.H1.area_m2", "value": 12}, {"path": "feeds.CW.m3_h", "value": 26}])
     assert p["units"][0]["area_m2"] == 12 and p["limits"]["H1"]["area_m2"] == 12 and p["feeds"]["CW"]["m3_h"] == 26

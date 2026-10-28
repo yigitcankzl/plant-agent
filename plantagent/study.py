@@ -123,6 +123,10 @@ ENG_TOOLS = [
      "only for a new or rebuilt station; equipment curves (pump, VFD, tank) for equipment added to an existing one.",
      "parameters": {"type": "object", "properties": {"label": {"type": "string"}, "lines": {"type": "array", "items": {"type": "object"}},
                     "aace_class": {"type": "integer", "enum": [4, 5]}}, "required": ["label", "lines"]}}},
+    {"type": "function", "function": {"name": "treatment_capacity", "description": "Rated capacity of treatment units (flocculation, "
+     "sedimentation, filters) from their dimensions against Ten States Standards: the plant flow in mgd at which each criterion "
+     "binds, with the largest filter out of service. Use it rather than quoting a documented rating. " + standards.TREATMENT_HELP,
+     "parameters": {"type": "object", "properties": {"units": {"type": "array", "items": {"type": "object"}}}, "required": ["units"]}}},
     {"type": "function", "function": {"name": "standards_list", "description": "Design-standard rules (Ten States Standards water "
      "2022 / wastewater 2014, HI operating region) with section numbers.",
      "parameters": {"type": "object", "properties": {"standard": {"type": "string", "enum": ["water", "wastewater", "all"]}}}}},
@@ -366,6 +370,12 @@ class Study:
             result = cost.estimate(a["lines"], int(a.get("aace_class") or 5), label=a.get("label", ""))
             self.costs[a.get("label") or f"estimate{len(self.costs) + 1}"] = result
             return result
+        if name == "treatment_capacity":
+            r = standards.treatment_capacity(a["units"])
+            self.treatment = getattr(self, "treatment", {})
+            for x in r:
+                self.treatment[x["unit"]] = x
+            return r
         if name == "standards_list":
             return standards.list_rules(a.get("standard") or "all")
         if name == "standards_check":
@@ -519,6 +529,7 @@ class Study:
                  "question": c.question, "model": self.model, "collection": collect, "analysis": analysis,
                  "review": review, "resolution": resolution, "runs": self.runs, "profiles": self.profiles, "surges": self.surges, "eps_runs": self.eps_runs,
                  "cost_estimates": self.costs, "standards_checks": list(self.std_checks.values()),
+                 "treatment_capacity": list(getattr(self, "treatment", {}).values()),
                  "drawing": self.drawing}
         memo = llm.chat(self.model, [
             {"role": "system", "content": "You write technical memoranda for a consulting engineering firm. Use only facts and "

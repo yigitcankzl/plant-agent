@@ -66,11 +66,11 @@ def _client_for(model):
     if model.startswith("fireworks:"):
         if spent("fireworks") >= FIREWORKS_BUDGET_USD:
             raise RuntimeError(f"Fireworks budget reached (${spent('fireworks'):.2f} of ${FIREWORKS_BUDGET_USD}).")
-        _fw = _fw or OpenAI(api_key=os.environ["FIREWORKS_API_KEY"], base_url="https://api.fireworks.ai/inference/v1")
+        _fw = _fw or OpenAI(api_key=os.environ["FIREWORKS_API_KEY"], base_url="https://api.fireworks.ai/inference/v1", timeout=240, max_retries=2)
         return _fw, model.split(":", 1)[1]
     if spent() - spent("fireworks") >= BUDGET_USD:
         raise RuntimeError(f"Muse budget reached (${spent():.2f} of ${BUDGET_USD}). Raise MUSE_BUDGET_USD deliberately.")
-    _client = _client or OpenAI(api_key=os.environ["META_API_KEY"], base_url=os.getenv("META_BASE_URL", "https://api.meta.ai/v1"))
+    _client = _client or OpenAI(api_key=os.environ["META_API_KEY"], base_url=os.getenv("META_BASE_URL", "https://api.meta.ai/v1"), timeout=240, max_retries=2)
     return _client, model
 
 

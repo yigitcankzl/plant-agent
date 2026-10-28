@@ -23,7 +23,7 @@ SPEC_HELP = {
              "pump: in, out, dP_bar or curve [[m3_h, head_m],...], eff_pct, kind: centrifugal|positive_displacement. "
              "hx: cold [in, out], hot [in, out], U_W_m2K, area_m2 (rating: outlets are computed); optional U_ref_flows_m3_h "
              "[hot, cold] (U then varies with flow, each film ~ Q^0.8) and dP_ref_bar [hot, cold] at those flows (dP ~ Q^1.8). "
-             "heater|cooler: in, out, T_out_C or duty_kW. valve: in, out, dP_bar or kv or P_out_bar. "
+             "heater|cooler: in, out, T_out_C or duty_kW (scales: true if that duty grows with throughput, e.g. an IT or process heat load). valve: in, out, dP_bar or kv or P_out_bar. "
              "tank: in, out, volume_m3 = WORKING volume (about 80 % of nominal unless the data says otherwise), P_bar = vessel "
              "pressure (an atmospheric tank is about 1.013; the outlet leaves at this pressure, which sets pump suction and NPSH), "
              "residence_basis = the product stream that leaves the tank for good (hold time = volume / that flow). "
@@ -32,11 +32,11 @@ SPEC_HELP = {
              "recycle: in (the calculated return stream), out (the tear stream used upstream, e.g. into a mixer), guess "
              "{T_C, kg_h} (closes recirculation loops). Streams are created by name the first time they appear. Model EVERY "
              "connection on the P&ID that carries process flow (recirculation loops included) or say why it is excluded.",
-    "limits": "{unit or stream id: {max_m3_h, min_m3_h (pump minimum continuous flow), max_kW, max_head_m, npshr_m, "
+    "limits": "{unit or stream id: {max_m3_h, min_m3_h (pump minimum continuous flow), max_kW (pump or compressor motor), max_discharge_C (compressor), max_head_m, npshr_m, "
               "psv_set_barg (relief valve on the pump discharge: discharge must stay below 90 % of set), area_m2 (installed HX "
               "area), out_T_C (outlet the process needs, side: cold|hot), max_dP_hot_bar, max_dP_cold_bar (available pressure "
               "drop), min_residence_min, max_area_m2 (HX frame limit), and for streams max_T_C, max_P_bar (design limit), "
-              "max_m3_h (utility supply; checked against 90 % of it to keep a margin)}}. Values come from the P&ID or datasheets; cite them.",
+              "max_m3_h (utility supply; checked against 90 % of it to keep a margin), must_be_liquid: true (e.g. condenser outlet)}}. Values come from the P&ID or datasheets; cite them.",
 }
 
 
@@ -139,7 +139,7 @@ class _Sheet:
                 h.OutletTemperature = 273.15 + float(u["T_out_C"])
             else:
                 h.CalcMode = cls.CalculationMode.HeatAdded if t == "heater" else cls.CalculationMode.HeatRemoved
-                h.DeltaQ = float(u["duty_kW"])
+                h.DeltaQ = float(u["duty_kW"]) * (self.scale if u.get("scales") else 1.0)
             return h
         if t == "valve":
             v = self._add("Valve", uid)
@@ -200,7 +200,7 @@ class _Sheet:
             self._link(self.stream(u["in"]), c); self._link(c, self.stream(u["out"]))
             self._link(self._add("EnergyStream", f"E-{uid}"), c)
             c.CalcMode, c.POut = self.Comp.CalculationMode.OutletPressure, float(u["P_out_bar"]) * 1e5
-            c.AdiabaticEfficiency = float(u.get("eff_pct", 75)) / 100
+            c.AdiabaticEfficiency = float(u.get("eff_pct", 75))  # DWSIM takes percent, like the pump
             return c
         raise ValueError(f"unknown unit type {t}")
 
@@ -246,8 +246,11 @@ class _Sheet:
             elif t == "hx":
                 r.update(duty_kW=round(o.Q, 1), lmtd_C=round(o.LMTD, 2), U_W_m2K=round(o.OverallCoefficient, 1), area_m2=round(o.Area, 2),
                          dP_hot_bar=round(o.HotSidePressureDrop / 1e5, 3), dP_cold_bar=round(o.ColdSidePressureDrop / 1e5, 3))
-            elif t in ("heater", "cooler", "compressor"):
+            elif t in ("heater", "cooler"):
                 r.update(duty_kW=round(o.DeltaQ, 2))
+            elif t == "compressor":
+                r.update(duty_kW=round(o.DeltaQ, 2), kW=round(o.DeltaQ, 2),
+                         discharge_C=round(self.streams[u["out"]].GetTemperature() - 273.15, 1))
             elif t == "valve":
                 r.update(dP_bar=round(o.DeltaP / 1e5, 3))
             elif t == "tank":
@@ -302,6 +305,9 @@ def _checks(sheet, res):
                     add(f"area needed for {side} outlet {lim['out_T_C']} C", need, lim["area_m2"], "m2")
                 else:
                     out.append({"id": key, "check": "required area", "error": "; ".join(errs)[:200] or "no solution"})
+        if u and u["type"] == "compressor":
+            add("shaft power vs motor", u["kW"], lim.get("max_kW"), "kW")
+            add("discharge temperature vs limit", u["discharge_C"], lim.get("max_discharge_C"), "C")
         if u and u["type"] == "hx":
             add("installed area vs frame", u["area_m2"], lim.get("max_area_m2"), "m2")
             add("hot-side pressure drop vs available", u["dP_hot_bar"], lim.get("max_dP_hot_bar"), "bar")
@@ -313,6 +319,9 @@ def _checks(sheet, res):
         if s and "T_C" in s:
             add("temperature vs design", s["T_C"], lim.get("max_T_C"), "C")
             add("pressure vs design", s["P_bar"], lim.get("max_P_bar"), "bar")
+            if lim.get("must_be_liquid") and s.get("vapour_frac", 0) > 0:  # e.g. a condenser that cannot condense at this pressure
+                out.append({"id": key, "check": "must leave as liquid", "value": s["vapour_frac"], "limit": 0, "unit": "vapour fraction",
+                            "utilisation": round(1 + s["vapour_frac"], 3)})
             add("flow vs 90 % of available supply", s["m3_h"], UTILITY_MARGIN * lim["max_m3_h"] if lim.get("max_m3_h") else None, "m3/h")
     return sorted(out, key=lambda c: -c.get("utilisation", 0))
 

@@ -223,8 +223,8 @@ def plant_project(case):
     w = plant(case)
     st = w.state(float(w.cfg.get("target_scale", 1.0))) if w.built else None
     return {"case": case, "kind": "process", "title": w.cfg["title"], "source": w.cfg["source"], "question": w.cfg["question"],
-            "data_note": w.cfg.get("data_note"),
-            "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid, "basis": w.basis, "model": w.model,
+            "data_note": w.cfg.get("data_note"), "throughput": w.cfg.get("throughput"), "drawing": "svg" if w.cfg.get("svg") else "pdf" if w.cfg.get("pid_pdf") else "none",
+            "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid or {"equipment": [], "connections": [], "valves": [], "control": []}, "basis": w.basis, "model": w.model,
             "built": {k: v for k, v in w.built.items() if k != "result"} if w.built else None,
             "answers": w.answers, "revisions": [{k: r.get(k) for k in ("rev", "kind", "title", "changes", "capacity_multiple", "at", "user", "reason")}
                                                 for r in w.revisions],
@@ -401,6 +401,9 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(plant_project(case))
             if what == "svg":
                 return self._send((ROOT / "cases" / case / w.cfg["svg"]).read_bytes(), "image/svg+xml")
+            if what == "sheet.png":
+                from . import pidvision
+                return self._send(pidvision.render(DATA_ROOT / w.cfg["pid_pdf"], w.cfg.get("pid_page", 1) - 1), "image/png")
             if what == "build" and method == "POST":
                 return self._send(plant_job(case, lambda w: {k: v for k, v in w.build().items() if k != "result"}))
             if what == "ask" and method == "POST":

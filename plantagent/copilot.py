@@ -752,6 +752,13 @@ def unit_capacities(ws, view="proposed"):
             if best and words & set(re.findall(r"[a-z]{4,}", best["full_unit"].lower())):
                 best.update({"capacity_mgd": round(gov["binds_at_mgd"], 1),
                              "source": f"simulated: gravity profile {label}, {e['id']} ({gov['check']})"})
+    # treatment ratings computed from unit dimensions (Ten States) replace documented ratings, or bind if lower
+    for t in st.get("treatment_capacity") or []:
+        key = {"floc": "floc", "sed": "sedim", "filt": "filter"}.get(t["type"][:4] if t["type"][:4] != "sedi" else "sed")
+        row = next((r for r in rows if key and key in r["full_unit"].lower() and not SIDE.search(r["full_unit"])), None)
+        if row and t.get("capacity_mgd") is not None and (row["source"] == "documented" or t["capacity_mgd"] < (row["capacity_mgd"] or 1e9)):
+            row.update({"documented": row.get("documented") or (row["capacity_mgd"] if row["source"] == "documented" else None),
+                        "capacity_mgd": t["capacity_mgd"], "source": f"computed: Ten States, {t['governing']}"})
     if view != "existing":
         for a in getattr(ws, "accepted", []):
             if a.get("proved_mgd") is None:

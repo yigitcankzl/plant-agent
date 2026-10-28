@@ -50,21 +50,54 @@ The P&ID is the DEXPI e.V. reference example C01. Its operating data sheet (`cas
   and the new maximum is 124 %. Accepting re-verifies on the server, and accepted changes become revisions that can be
   undone.
 
+### Safety, records and data the engineer already has
+
+- **Relief protection scan** (`pid.relief_scan`, deterministic, no LLM). For every side of every equipment item it
+  checks whether the side reaches a relief device without passing a valve that could be closed. Relief direction
+  counts: a relief valve protects its inlet, not the vessel it discharges into. It flags heated sides that could be
+  blocked in, which is the Williams Geismar pattern.
+  - On C01 it finds that both coolers' cooling- and chilled-water sides have no relief on the drawing. This is the
+    API 521 blocked-in cooling-water case.
+  - It also finds that H1008's product side reaches PSV 47125 only through a ball valve.
+- **Audit trail** (`plantagent/audit.py`).
+  - It is append-only and hash-chained, so editing or deleting any entry breaks the chain, and `verify()` reports where.
+  - Each entry records user, time with time zone, action and reason.
+  - Accepting a change requires a reason. Undo never deletes history: it adds a revert revision.
+  - Revisions are kept on disk.
+- **PDF schematics** (`plantagent/pidvision.py`). Most plants have only PDF or scanned P&IDs. Muse vision reads the
+  sheet into the same structure as the DEXPI reader: loops with temperatures, equipment, connections and inline valves.
+  Equipment positions come from the PDF's text layer, so the live badges sit on the real sheet. If the sheet has no
+  text layer, the positions are Muse's estimates.
+- **Project documents.** The agent can search and read tenders and datasheets (`search_documents`,
+  `read_document_page`) and cites their page numbers.
+- **Historian / SCADA export.** `historian` returns the mean, p5, p95 and range per tag over a time window, for
+  calibration against real operation.
+- **Annual energy** (`annual_energy`, bin method). The tool solves the model once per bin (e.g. wet-bulb bins) and
+  sums electric power x hours. A base case and an alternative can be compared over the same bins.
+- **Water treatment ratings** (`standards.treatment_capacity`). It computes the rated capacity of flocculation,
+  sedimentation and filters from their dimensions against Ten States Standards, including the case with the largest
+  filter out, instead of quoting a documented rating. The workspace takes the lower of this rating and the hydraulic
+  limit.
+
 ### What the DWSIM layer models
 
 DWSIM (`plantagent/process.py`) runs headless through pythonnet as one long-lived worker.
 
 - **Unit operations:** pumps (centrifugal or positive displacement), heat exchangers in rating mode, heaters and
-  coolers, valves, tanks at vessel pressure, mixers, splitters (fixed recirculation) and compressors.
+  coolers (fixed or scaling heat loads), valves, tanks at vessel pressure, mixers, splitters (fixed recirculation) and
+  compressors. This covers refrigeration cycles, e.g. ammonia with Peng-Robinson; the condenser outlet must be liquid.
 - **Recycle loops.**
 - **Limits checked:**
   - pump rated and minimum flow, motor power, NPSH margin, and discharge against 90 % of the relief set pressure
+  - compressor motor power and discharge temperature
   - exchanger required area against installed area, with U and pressure drop that follow flow (films ~Q^0.8, dP ~Q^1.8)
   - frame limit and available pressure drop
   - hold time on net throughput
   - utilities at no more than 90 % of supply
-- **Other tools:** a throughput capacity search, bubble-point pressure, fluid properties, and an API 521
-  blocked-in (hydraulic expansion) pressure. The same tools are available in blind studies
+- **Other tools:** a throughput capacity search, bubble-point pressure and fluid properties.
+- **API 521 blocked-in (hydraulic expansion) check.** It reports both regimes: if the vessel was less than the
+  critical liquid fill when isolated, the pressure stays at the vapour pressure; above that fill, hydraulic expansion
+  governs. For Williams Geismar the critical fill is 70 %; the CSB found the reboiler was at least 65.5 % full. The same tools are available in blind studies
   (`"simulators": ["dwsim"]`).
 - **Limits of the layer:** steady state only. There is no control-valve Cv sizing or line hydraulics yet, and U is
   scaled from one test point, not computed from exchanger geometry.

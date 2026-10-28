@@ -45,6 +45,14 @@
   .sheet { position: relative; background: var(--paper); border-radius: 3px; box-shadow: 0 6px 30px rgba(0,0,0,.45); }
   .sheet svg { width: 100%; height: auto; display: block; }
   .sheet svg g[data-tag] { cursor: pointer; }
+  .sheet img { width: 100%; display: block; }
+  .tagbox { position: absolute; border: 1.5px solid transparent; border-radius: 4px; cursor: pointer; }
+  .tagbox:hover { border-color: var(--accent); }
+  .tagbox.u-ok { border-color: #2f9663; background: rgba(47,150,99,.08); }
+  .tagbox.u-warn { border-color: #c5871e; background: rgba(197,135,30,.12); }
+  .tagbox.u-fail { border-color: #e0392c; background: rgba(224,57,44,.15); animation: blinkbox .9s infinite alternate; }
+  .tagbox.u-sel { border-color: var(--accent); }
+  @keyframes blinkbox { to { background: rgba(224,57,44,.02); } }
   .sheet svg g.u-ok * { stroke: #2f9663 !important; }
   .sheet svg g.u-warn * { stroke: #c5871e !important; }
   .sheet svg g.u-fail * { stroke: #e0392c !important; }
@@ -112,7 +120,7 @@
     <div class="sec"><h4>Equipment load <span id="atScale"></span></h4><div id="eqlist"><div class="empty">Loading…</div></div></div>
     <div class="sec"><h4>Model <span id="builtBy"></span></h4><div id="modelBox"></div></div>
     <div class="sec"><h4>Documents</h4>
-      <div class="eq" onclick="showDoc('pid')"><div class="t">Smart P&amp;ID <span>DEXPI XML</span></div><div class="why" id="pidStats"></div></div>
+      <div class="eq" onclick="showDoc('pid')"><div class="t" id="pidName">Smart P&amp;ID <span>DEXPI XML</span></div><div class="why" id="pidStats"></div></div>
       <div class="eq" onclick="showDoc('basis')"><div class="t">Operating data sheet <span>md</span></div></div>
     </div>
     <div class="sec"><h4>Safety scan <span>no AI · P&amp;ID graph</span></h4>
@@ -130,8 +138,8 @@
   <footer>
     <div class="flowctl">
       <div class="flowv" id="flowv">–</div>
-      <input type="range" id="scale" min="80" max="150" step="1" value="100">
-      <div style="display:flex;justify-content:space-between;color:var(--muted);font:11px var(--mono)"><span>80%</span><span id="tgtLbl"></span><span>150%</span></div>
+      <input type="range" id="scale" min="80" max="250" step="1" value="100">
+      <div style="display:flex;justify-content:space-between;color:var(--muted);font:11px var(--mono)"><span>80%</span><span id="tgtLbl"></span><span id="maxLbl">250%</span></div>
     </div>
     <div class="verdict"><div class="big" id="verdict">–</div><div class="sub" id="verdictSub"></div></div>
   </footer>
@@ -150,7 +158,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const api = (p, body) => fetch(`/api/plant/${CASE}/${p}`, body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)} : {}).then(r => r.json());
 let P = null, ST = null, busy = false, base = null;
-const NAMES = {pump: 'Pump', hx: 'Heat exchanger', tank: 'Tank', valve: 'Valve', heater: 'Heater', cooler: 'Cooler', compressor: 'Compressor'};
+const NAMES = {pump: 'Pump', hx: 'Heat exchanger', tank: 'Tank', valve: 'Valve', heater: 'Heater / heat load', cooler: 'Cooler', compressor: 'Compressor', mixer: 'Mixer', splitter: 'Splitter', recycle: 'Loop closure'};
 const sev = u => u > 1.0 ? 'fail' : u > 0.9 ? 'warn' : 'ok';
 
 async function projects() {
@@ -162,13 +170,37 @@ async function projects() {
 async function load() {
   P = await api('project');
   document.title = 'PlantAgent · ' + P.title;
-  const svg = await fetch(`/api/plant/${CASE}/svg`).then(r => r.text());
-  $('sheet').innerHTML = svg;
-  $('sheet').querySelectorAll('g[data-tag]').forEach(g => { if (g.dataset.tag) g.onclick = () => select(g.dataset.tag); });
+  if (P.drawing === 'none') {  // no drawing: draw the agent's own flowsheet, one box per unit in flow order
+    const us = P.built?.spec?.units || [], W = 150, H = 54, gap = 46, cols = Math.min(6, Math.max(1, us.length));
+    const pos = us.map((u, i) => ({x: 30 + (i % cols) * (W + gap), y: 40 + Math.floor(i / cols) * (H + 70)}));
+    const rows = Math.ceil(us.length / cols), w = 60 + cols * (W + gap), h = 80 + rows * (H + 70);
+    let svgs = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#555"/></marker></defs>`;
+    const outOf = u => [].concat(u.out || [], u.cold ? [u.cold[1]] : [], u.hot ? [u.hot[1]] : []), inOf = u => [].concat(u.in || [], u.cold ? [u.cold[0]] : [], u.hot ? [u.hot[0]] : []);
+    us.forEach((a, i) => us.forEach((b, j) => { if (i !== j && outOf(a).some(s => inOf(b).includes(s))) {
+      const A = pos[i], B = pos[j]; svgs += `<line x1="${A.x + W}" y1="${A.y + H / 2}" x2="${B.x}" y2="${B.y + H / 2}" stroke="#555" stroke-width="1.5" marker-end="url(#ar)"/>`; } }));
+    us.forEach((u, i) => { const p = pos[i]; svgs += `<g data-tag="${esc(u.id)}"><rect x="${p.x}" y="${p.y}" width="${W}" height="${H}" rx="6" fill="#fff" stroke="#333"/>
+      <text x="${p.x + W / 2}" y="${p.y + 22}" text-anchor="middle" font-size="13" font-weight="700" font-family="monospace">${esc(u.id)}</text>
+      <text x="${p.x + W / 2}" y="${p.y + 40}" text-anchor="middle" font-size="11" fill="#555" font-family="sans-serif">${esc(NAMES[u.type] || u.type)}</text></g>`; });
+    $('sheet').innerHTML = svgs + '</svg>';
+  } else if (P.drawing === 'svg') {
+    $('sheet').innerHTML = await fetch(`/api/plant/${CASE}/svg`).then(r => r.text());
+  } else {  // a PDF schematic read by Muse vision: the sheet as an image, one positioned box per tag
+    $('sheet').innerHTML = `<img src="/api/plant/${CASE}/sheet.png" alt="schematic">` + Object.entries(P.pid.positions || {}).map(([t, p]) => {
+      const [x0, y0, x1, y1] = p.box, pad = .012;
+      return `<div class="tagbox" data-tag="${esc(t)}" title="${esc(t)} (${esc(p.source)})" style="left:${(x0 - pad) * 100}%;top:${(y0 - pad) * 100}%;width:${(x1 - x0 + 2 * pad) * 100}%;height:${(y1 - y0 + 2 * pad) * 100}%"></div>`;
+    }).join('');
+    await new Promise(r => { const im = $('sheet').querySelector('img'); im.complete ? r() : im.onload = r; });
+  }
+  $('sheet').querySelectorAll('[data-tag]').forEach(g => { if (g.dataset.tag) g.onclick = () => select(g.dataset.tag); });
+  if (P.drawing === 'none') $('pidName').innerHTML = 'No drawing <span>flowsheet drawn from the model</span>';
+  if (P.drawing === 'pdf') $('pidName').innerHTML = `Schematic (PDF) <span>read by ${esc((P.pid.model || 'Muse').replace('muse-', ''))}</span>`;
   if (P.data_note) { $('note').textContent = '⚠ ' + P.data_note; $('note').style.display = 'block'; }
+  const hi = Math.max(150, Math.ceil(P.target_scale * 100 / 10) * 10 + 30);
+  $('scale').max = hi; $('maxLbl').textContent = hi + '%';
   $('pidStats').textContent = `${P.pid.equipment.length} equipment · ${P.pid.connections.length} connections · ${P.pid.valves.length} valves · ${P.pid.control.length} signals`;
   const feed = Object.entries(P.built?.spec?.feeds || {}).find(([k, f]) => !f.utility);
-  base = feed ? {name: feed[0], m3_h: feed[1].m3_h ?? feed[1].kg_h, unit: feed[1].m3_h != null ? 'm³/h' : 'kg/h'} : null;
+  base = P.throughput ? {name: P.throughput.name, m3_h: P.throughput.base, unit: P.throughput.unit} :
+    feed ? {name: feed[0], m3_h: feed[1].m3_h ?? feed[1].kg_h, unit: feed[1].m3_h != null ? 'm³/h' : 'kg/h'} : null;
   $('tgtLbl').textContent = `target ${Math.round(P.target_scale * 100)}%`;
   $('scale').value = Math.round(P.target_scale * 100);
   model(); answers(); revs();
@@ -218,10 +250,10 @@ function render(st) {
   // colour the P&ID and badge each tagged equipment item
   const sheet = $('sheet');
   sheet.querySelectorAll('.badge').forEach(b => b.remove());
-  sheet.querySelectorAll('g[data-tag]').forEach(g => g.classList.remove('u-ok', 'u-warn', 'u-fail'));
+  sheet.querySelectorAll('[data-tag]').forEach(g => g.classList.remove('u-ok', 'u-warn', 'u-fail'));
   const box = sheet.getBoundingClientRect();
   for (const c of rows) {
-    const g = sheet.querySelector(`g[data-tag="${CSS.escape(c.id)}"]`);
+    const g = sheet.querySelector(`[data-tag="${CSS.escape(c.id)}"]`);
     if (!g) continue;
     g.classList.add('u-' + sev(c.utilisation));
     const r = g.getBoundingClientRect();
@@ -243,8 +275,8 @@ const fmt = v => typeof v === 'number' ? (Math.abs(v) >= 100 ? v.toFixed(0) : v.
 function select(tag) {
   document.querySelectorAll('.eq.sel').forEach(e => e.classList.remove('sel'));
   document.querySelectorAll('.eq[data-id]').forEach(e => { if (e.dataset.id === tag) e.classList.add('sel'); });
-  $('sheet').querySelectorAll('g.u-sel').forEach(g => g.classList.remove('u-sel'));
-  $('sheet').querySelector(`g[data-tag="${CSS.escape(tag)}"]`)?.classList.add('u-sel');
+  $('sheet').querySelectorAll('.u-sel').forEach(g => g.classList.remove('u-sel'));
+  $('sheet').querySelector(`[data-tag="${CSS.escape(tag)}"]`)?.classList.add('u-sel');
   const e = P.pid.equipment.find(x => x.tag === tag);
   $('q').value = e ? `Why is ${tag} (${e.class}) limiting, and what is the cheapest fix?` : `What limits ${tag}?`;
   $('q').focus();
@@ -303,7 +335,7 @@ function notes(a) {
   const sheet = $('sheet'), box = sheet.getBoundingClientRect();
   sheet.querySelectorAll('.note').forEach(n => n.remove());
   for (const h of a.highlights || []) {
-    const g = sheet.querySelector(`g[data-tag="${CSS.escape(h.tag)}"]`);
+    const g = sheet.querySelector(`[data-tag="${CSS.escape(h.tag)}"]`);
     if (!g) continue;
     const r = g.getBoundingClientRect(), n = document.createElement('div');
     n.className = 'note ' + (h.severity || 'info');
@@ -395,7 +427,7 @@ async function reliefScan() {
   const byTag = {};
   for (const r of rs) if (r.status !== 'protected') (byTag[r.tag] = byTag[r.tag] || []).push(r);
   for (const [tag, list] of Object.entries(byTag)) {
-    const g = sheet.querySelector(`g[data-tag="${CSS.escape(tag)}"]`); if (!g) continue;
+    const g = sheet.querySelector(`[data-tag="${CSS.escape(tag)}"]`); if (!g) continue;
     const b = g.getBoundingClientRect(), n = document.createElement('div');
     const hot = list.filter(r => r.thermal_expansion_risk);
     n.className = 'note ' + (hot.length ? 'fail' : 'warn');
