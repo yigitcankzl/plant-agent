@@ -359,7 +359,9 @@ async function load() {
   P = await api(`/api/ws/${CASE}/project`);
   const cases = await api("/api/cases");
   $("#projsel").innerHTML = cases.filter(c => c.runs.length).map(c => `<option value="${c.name}" ${c.name === CASE ? "selected" : ""}>${esc(c.title.split(",")[0])} · ${esc(c.task_type.split(" ")[0])}</option>`).join("");
-  $("#projsel").onchange = e => location.search = "?case=" + e.target.value;
+  const procs = (await api("/api/projects")).filter(p => p.kind === "process");
+  $("#projsel").insertAdjacentHTML("beforeend", procs.map(p => `<option value="plant:${p.case}">⚗ ${esc(p.title.split("(")[0])} · process</option>`).join(""));
+  $("#projsel").onchange = e => e.target.value.startsWith("plant:") ? location.href = "plant.html?case=" + e.target.value.slice(6) : location.search = "?case=" + e.target.value;
   document.title = "PlantAgent · " + P.title.split(",")[0];
   const tl = await api(`/api/ws/${CASE}/tasks`);
   $("#taskitems").innerHTML = tl.map(t => `<div data-t="${t.id}">${esc(t.title)}<small>${esc((t.detail || t.question || "").slice(0, 110))}…</small></div>`).join("");

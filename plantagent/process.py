@@ -312,6 +312,27 @@ def _worker(a):
         return {"compounds": spec["compounds"], "x": spec["x"], "points": out,
                 "note": "bubble-point pressure: a liquid-full, blocked-in vessel heated to T rises to at least this pressure "
                         "(thermal expansion of the liquid drives it higher still)"}
+    if op == "props":
+        # density and phase of a mixture at given T and P (liquid expansion, vessel fill checks)
+        import System
+        from DWSIM.Interfaces.Enums.GraphicObjects import ObjectType
+        sim = mgr.CreateFlowsheet()
+        for c in spec["compounds"]:
+            sim.AddCompound(c)
+        sim.CreateAndAddPropertyPackage(spec.get("package") or "Peng-Robinson (PR)")
+        s = sim.AddObject(ObjectType.MaterialStream, 0, 0, "S").GetAsObject()
+        x = [float(spec["x"].get(c, 0)) for c in spec["compounds"]]
+        s.SetOverallComposition(System.Array[System.Double]([v / sum(x) for v in x]))
+        s.SetMassFlow(1.0)
+        out = []
+        for pt in a["points"]:
+            s.SetTemperature(273.15 + float(pt["T_C"]))
+            s.SetPressure(float(pt["P_bar"]) * 1e5)
+            errs = mgr.CalculateFlowsheet4(sim)
+            out.append({**pt, "density_kg_m3": round(s.GetMassFlow() / s.GetVolumetricFlow(), 2),
+                        "vapour_frac": round(float(s.Phases[2].Properties.molarfraction or 0.0), 4),
+                        "errors": [str(e.Message)[:120] for e in errs] if errs is not None else []})
+        return {"compounds": spec["compounds"], "x": spec["x"], "points": out}
     raise ValueError(op)
 
 
@@ -356,6 +377,10 @@ def bubble(compounds, x, T_C, package="Peng-Robinson (PR)"):
     return _call({"op": "bubble", "spec": {"compounds": compounds, "x": x, "package": package}, "T_C": list(T_C)})
 
 
+def props(compounds, x, points, package="Peng-Robinson (PR)"):
+    return _call({"op": "props", "spec": {"compounds": compounds, "x": x, "package": package}, "points": list(points)})
+
+
 DEMO = {
     "compounds": ["Water", "Ethanol"], "package": "NRTL",
     "feeds": {"FEED": {"T_C": 25, "P_bar": 1.2, "kg_h": 18000, "x": {"Water": 0.9, "Ethanol": 0.1}},
@@ -388,5 +413,8 @@ if __name__ == "__main__":
         assert 1.0 < c["capacity_multiple"] < 2.0
         b = bubble(["Propylene", "Propane"], {"Propylene": 0.9, "Propane": 0.1}, [20, 60, 90])
         print(b["points"])
+        d = props(["Propane"], {"Propane": 1}, [{"T_C": 25, "P_bar": 20}, {"T_C": 85, "P_bar": 60}])["points"]
+        print(d)
+        assert 450 < d[0]["density_kg_m3"] < 520 and d[1]["density_kg_m3"] < d[0]["density_kg_m3"]
         assert b["points"][2]["bubble_P_bar"] > b["points"][0]["bubble_P_bar"] > 5
         print("ok")

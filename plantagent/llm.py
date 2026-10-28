@@ -46,29 +46,43 @@ def spent(tag=None):
     return sum(r["usd"] for r in rows if tag is None or r.get("tag") == tag)
 
 
+FIREWORKS_BUDGET_USD = float(os.getenv("FIREWORKS_BUDGET_USD", "80"))
+# ponytail: Fireworks prices are not verified yet; this conservative default over-counts until the real rate is set
+FIREWORKS_DEFAULT_PRICE = (1.0, 3.0)
+
+
 def cost(model, usage):
-    pin, pout = PRICES[model]
+    pin, pout = PRICES.get(model) or (FIREWORKS_DEFAULT_PRICE if model.startswith("fireworks:") else PRICES[model])
     return (usage.prompt_tokens * pin + usage.completion_tokens * pout) / 1e6
 
 
-_client = None
+_client, _fw = None, None
+
+
+def _client_for(model):
+    """Meta Model API by default; `fireworks:<model id>` runs an open-weights model on Fireworks (own key and budget)."""
+    global _client, _fw
+    _load_env()
+    if model.startswith("fireworks:"):
+        if spent("fireworks") >= FIREWORKS_BUDGET_USD:
+            raise RuntimeError(f"Fireworks budget reached (${spent('fireworks'):.2f} of ${FIREWORKS_BUDGET_USD}).")
+        _fw = _fw or OpenAI(api_key=os.environ["FIREWORKS_API_KEY"], base_url="https://api.fireworks.ai/inference/v1")
+        return _fw, model.split(":", 1)[1]
+    if spent() - spent("fireworks") >= BUDGET_USD:
+        raise RuntimeError(f"Muse budget reached (${spent():.2f} of ${BUDGET_USD}). Raise MUSE_BUDGET_USD deliberately.")
+    _client = _client or OpenAI(api_key=os.environ["META_API_KEY"], base_url=os.getenv("META_BASE_URL", "https://api.meta.ai/v1"))
+    return _client, model
 
 
 def complete(model, messages, **params):
     """Returns the assistant message as a dict {content, tool_calls}. Cached; raises once the budget is used up."""
-    global _client
     key = hashlib.sha256(json.dumps([model, messages, params], sort_keys=True).encode()).hexdigest()
     hit = CACHE / f"{key}.json"
     if hit.exists():
         return json.loads(hit.read_text())["message"]
 
-    if spent() >= BUDGET_USD:
-        raise RuntimeError(f"Muse budget reached (${spent():.2f} of ${BUDGET_USD}). Raise MUSE_BUDGET_USD deliberately.")
-    if _client is None:
-        _load_env()
-        _client = OpenAI(api_key=os.environ["META_API_KEY"], base_url=os.getenv("META_BASE_URL", "https://api.meta.ai/v1"))
-
-    r = _client.chat.completions.create(model=model, messages=messages, **params)
+    client, model_id = _client_for(model)
+    r = client.chat.completions.create(model=model_id, messages=messages, **params)
     m = r.choices[0].message
     msg = {"content": m.content, "tool_calls": [
         {"id": t.id, "name": t.function.name, "arguments": t.function.arguments} for t in (m.tool_calls or [])]}
@@ -77,7 +91,7 @@ def complete(model, messages, **params):
     CACHE.mkdir(parents=True, exist_ok=True)
     hit.write_text(json.dumps({"message": msg}))
     with LEDGER.open("a") as f:
-        f.write(json.dumps({"model": model, "tag": TAG, "in": r.usage.prompt_tokens, "out": r.usage.completion_tokens, "usd": round(usd, 5)}) + "\n")
+        f.write(json.dumps({"model": model, "tag": "fireworks" if model.startswith("fireworks:") else TAG, "in": r.usage.prompt_tokens, "out": r.usage.completion_tokens, "usd": round(usd, 5)}) + "\n")
     return msg
 
 

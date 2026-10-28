@@ -10,7 +10,7 @@ import json
 import time
 from pathlib import Path
 
-from . import cad, cost, eps, llm, profile, sim, standards, surge
+from . import cad, cost, eps, llm, process, profile, sim, standards, surge
 from .docs import DATA, Case
 from .deliver import write_deliverables
 
@@ -89,6 +89,23 @@ EPS_TOOLS = [
      "parameters": {"type": "object", "properties": {"label": {"type": "string"}, "purpose": {"type": "string"},
                     "params": {"type": "array", "items": {"type": "object"}}, "base_changes": {"type": "array", "items": {"type": "object"}},
                     "duration_h": {"type": "number"}}, "required": ["label", "params"]}}},
+]
+
+PROCESS_TOOLS = [
+    {"type": "function", "function": {"name": "run_process", "description": "Solve a DWSIM process flowsheet (pumps, heat exchangers, "
+     "heaters, valves, tanks, mixers, splitters, compressors) and log it under `label`; returns streams, unit results and limit "
+     "checks. Spec: " + json.dumps(process.SPEC_HELP),
+     "parameters": {"type": "object", "properties": {"label": {"type": "string"}, "purpose": {"type": "string"}, "spec": {"type": "object"},
+                    "scale": {"type": "number"}}, "required": ["label", "spec"]}}},
+    {"type": "function", "function": {"name": "bubble_pressure", "description": "DWSIM: bubble-point (equilibrium vapour) pressure of a "
+     "liquid mixture at each temperature, e.g. the pressure a liquid-filled vessel reaches when heated. compounds: DWSIM names "
+     "(Propane, Propylene, n-Butane, Ethane, Water, ...); x: mole fractions.",
+     "parameters": {"type": "object", "properties": {"compounds": {"type": "array", "items": {"type": "string"}}, "x": {"type": "object"},
+                    "T_C": {"type": "array", "items": {"type": "number"}}}, "required": ["compounds", "x", "T_C"]}}},
+    {"type": "function", "function": {"name": "fluid_properties", "description": "DWSIM: density (kg/m3) and vapour fraction of a mixture "
+     "at each {T_C, P_bar} point (Peng-Robinson). Use for liquid thermal expansion and fill-level calculations.",
+     "parameters": {"type": "object", "properties": {"compounds": {"type": "array", "items": {"type": "string"}}, "x": {"type": "object"},
+                    "points": {"type": "array", "items": {"type": "object"}}}, "required": ["compounds", "x", "points"]}}},
 ]
 
 ENG_TOOLS = [
@@ -320,6 +337,19 @@ class Study:
             result = surge.run(a["spec"], a["event"], **kw)
             self.surges[label] = {"purpose": a.get("purpose", ""), "spec": a["spec"], "args": {"event": a["event"], **kw}, "result": result}
             return {"label": label, **result}
+        if name == "run_process":
+            label = a.get("label") or f"process{len(self.surges) + 1}"
+            result = process.run(a["spec"], float(a.get("scale") or 1.0))
+            self.surges[label] = {"purpose": a.get("purpose", ""), "spec": a["spec"], "args": {"tool": "dwsim"}, "result": result}
+            return {"label": label, **result}
+        if name == "bubble_pressure":
+            r = process.bubble(a["compounds"], a["x"], a["T_C"])
+            self.surges[f"bubble{len(self.surges) + 1}"] = {"purpose": "DWSIM bubble pressure", "spec": a, "args": {"tool": "dwsim"}, "result": r}
+            return r
+        if name == "fluid_properties":
+            r = process.props(a["compounds"], a["x"], a["points"])
+            self.surges[f"props{len(self.surges) + 1}"] = {"purpose": "DWSIM fluid properties", "spec": a, "args": {"tool": "dwsim"}, "result": r}
+            return r
         if name == "cost_catalogue":
             return cost.catalogue()
         if name == "cost_estimate":
@@ -410,7 +440,7 @@ class Study:
         drawing = "profile" in c.cfg.get("simulators", [])
         rules = RULES + (DRAWING_RULES if drawing else "")
         sim_tools = SIM_TOOLS + ENG_TOOLS + (PROFILE_TOOLS if drawing else []) + (SURGE_TOOLS if "tsnet" in c.cfg.get("simulators", []) else []) + \
-            (EPS_TOOLS if "eps" in c.cfg else [])
+            (EPS_TOOLS if "eps" in c.cfg else []) + (PROCESS_TOOLS if "dwsim" in c.cfg.get("simulators", []) else [])
         doc_tools = DOC_TOOLS + (PROFILE_TOOLS[:1] if drawing else [])
         llm.TAG = c.name
         usd0 = llm.spent(c.name)

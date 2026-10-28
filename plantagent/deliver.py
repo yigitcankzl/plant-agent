@@ -48,7 +48,8 @@ def control_block(study, summary):
     for k, v in (study.get("profiles") or {}).items():
         scen.append(f"| {k} | gravity profile | - | {', '.join(str(q) for q in v.get('flows') or [])} | {v.get('purpose', '')[:70]} |")
     for k, v in (study.get("surges") or {}).items():
-        scen.append(f"| {k} | transient pre-screen (TSNet) | {v.get('args', {}).get('event')} | - | {v.get('purpose', '')[:70]} |")
+        dw = v.get("args", {}).get("tool") == "dwsim"
+        scen.append(f"| {k} | {'process simulation (DWSIM)' if dw else 'transient pre-screen (TSNet)'} | {'-' if dw else v.get('args', {}).get('event')} | - | {v.get('purpose', '')[:70]} |")
     units = "US customary (gpm, mgd, ft, in, psi, hp)" if any((v.get("spec") or {}).get("units", "US") == "US" for v in (study.get("runs") or {}).values()) or study.get("profiles") else "as stated in each run"
     return "\n".join([
         "---", "## Document control", "",
