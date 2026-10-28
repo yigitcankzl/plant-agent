@@ -46,29 +46,38 @@ def spent(tag=None):
     return sum(r["usd"] for r in rows if tag is None or r.get("tag") == tag)
 
 
-FIREWORKS_BUDGET_USD = float(os.getenv("FIREWORKS_BUDGET_USD", "80"))
-# ponytail: Fireworks prices are not verified yet; this conservative default over-counts until the real rate is set
-FIREWORKS_DEFAULT_PRICE = (1.0, 3.0)
+# Open-weights hosts, addressed as "<host>:<model id>" (e.g. "baseten:meta-models/muse-spark-open-1026"); own key and budget each.
+OPEN_HOSTS = {"fireworks": ("https://api.fireworks.ai/inference/v1", "FIREWORKS_API_KEY", float(os.getenv("FIREWORKS_BUDGET_USD", "80"))),
+              "baseten": ("https://inference.baseten.co/v1", "BASETEN_API_KEY", float(os.getenv("BASETEN_BUDGET_USD", "80")))}
+# ponytail: hackathon credit hosts publish no per-token price for this model; a conservative default over-counts spend
+OPEN_DEFAULT_PRICE = (1.0, 3.0)
+
+
+def _host(model):
+    return model.split(":", 1)[0] if model.split(":", 1)[0] in OPEN_HOSTS else None
 
 
 def cost(model, usage):
-    pin, pout = PRICES.get(model) or (FIREWORKS_DEFAULT_PRICE if model.startswith("fireworks:") else PRICES[model])
+    pin, pout = PRICES.get(model) or (OPEN_DEFAULT_PRICE if _host(model) else PRICES[model])
     return (usage.prompt_tokens * pin + usage.completion_tokens * pout) / 1e6
 
 
-_client, _fw = None, None
+_client, _open = None, {}
 
 
 def _client_for(model):
-    """Meta Model API by default; `fireworks:<model id>` runs an open-weights model on Fireworks (own key and budget)."""
-    global _client, _fw
+    """Meta Model API by default; "<host>:<model id>" runs Muse Spark Open on an open-weights host (own key and budget)."""
+    global _client
     _load_env()
-    if model.startswith("fireworks:"):
-        if spent("fireworks") >= FIREWORKS_BUDGET_USD:
-            raise RuntimeError(f"Fireworks budget reached (${spent('fireworks'):.2f} of ${FIREWORKS_BUDGET_USD}).")
-        _fw = _fw or OpenAI(api_key=os.environ["FIREWORKS_API_KEY"], base_url="https://api.fireworks.ai/inference/v1", timeout=240, max_retries=2)
-        return _fw, model.split(":", 1)[1]
-    if spent() - spent("fireworks") >= BUDGET_USD:
+    host = _host(model)
+    if host:
+        url, key, budget = OPEN_HOSTS[host]
+        if spent(host) >= budget:
+            raise RuntimeError(f"{host} budget reached (${spent(host):.2f} of ${budget}).")
+        if host not in _open:
+            _open[host] = OpenAI(api_key=os.environ[key], base_url=url, timeout=300, max_retries=2)
+        return _open[host], model.split(":", 1)[1]
+    if spent() - sum(spent(h) for h in OPEN_HOSTS) >= BUDGET_USD:
         raise RuntimeError(f"Muse budget reached (${spent():.2f} of ${BUDGET_USD}). Raise MUSE_BUDGET_USD deliberately.")
     _client = _client or OpenAI(api_key=os.environ["META_API_KEY"], base_url=os.getenv("META_BASE_URL", "https://api.meta.ai/v1"), timeout=240, max_retries=2)
     return _client, model
@@ -91,7 +100,7 @@ def complete(model, messages, **params):
     CACHE.mkdir(parents=True, exist_ok=True)
     hit.write_text(json.dumps({"message": msg}))
     with LEDGER.open("a") as f:
-        f.write(json.dumps({"model": model, "tag": "fireworks" if model.startswith("fireworks:") else TAG, "in": r.usage.prompt_tokens, "out": r.usage.completion_tokens, "usd": round(usd, 5)}) + "\n")
+        f.write(json.dumps({"model": model, "tag": _host(model) or TAG, "in": r.usage.prompt_tokens, "out": r.usage.completion_tokens, "usd": round(usd, 5)}) + "\n")
     return msg
 
 
