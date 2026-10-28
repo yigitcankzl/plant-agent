@@ -17,14 +17,15 @@ DOTNET = Path(os.path.expanduser("~/opt/dotnet"))
 SPEC_HELP = {
     "compounds": "DWSIM compound names, e.g. ['Water','Ethanol'], ['Propylene','Propane'], ['Methane','Water','Hydrogen','Carbon monoxide','Carbon dioxide']",
     "package": "property package: 'NRTL' (polar liquids), 'Peng-Robinson (PR)' (hydrocarbons/gases), 'Steam Tables (IAPWS-IF97)' (water/steam only)",
-    "feeds": "{stream: {T_C, P_bar, kg_h | m3_h (liquid at feed T), x: {compound: mole fraction}}}",
+    "feeds": "{stream: {T_C, P_bar, kg_h | m3_h (liquid at feed T), x: {compound: mole fraction}, utility: true for cooling "
+             "water/steam/chilled water (not scaled with throughput)}}",
     "units": "list, each with id and type. pump: in, out, dP_bar or curve [[m3_h, head_m],...], eff_pct. "
              "hx: cold [in, out], hot [in, out], U_W_m2K, area_m2 (rating: outlets are computed). "
              "heater|cooler: in, out, T_out_C or duty_kW. valve: in, out, dP_bar or kv. tank: in, out, volume_m3. "
              "mixer: in [..], out. splitter: in, out [..], fractions [..]. compressor: in, out, P_out_bar, eff_pct. "
              "Streams are created by name the first time they appear.",
     "limits": "{unit or stream id: {max_m3_h, max_kW, max_head_m, area_m2 (installed HX area), out_T_C (HX/heater outlet the process "
-              "needs, on the side given by side: cold|hot), min_residence_min, max_T_C, max_P_bar (design limit)}}. Values come from "
+              "needs, on the side given by side: cold|hot), min_residence_min, max_area_m2 (HX frame limit), and for streams max_T_C, max_P_bar (design limit), max_m3_h (utility supply)}}. Values come from "
               "the P&ID or datasheets; cite them.",
 }
 
@@ -62,7 +63,7 @@ class _Sheet:
             pp.EnthalpyEntropyCpCvCalculationMode = type(mode).LiqCp_Excess
         self.streams, self.units = {}, {}
         for name, f in spec.get("feeds", {}).items():
-            self._feed(self.stream(name), f, scale)
+            self._feed(self.stream(name), f, 1.0 if f.get("utility") else scale)
         for u in spec["units"]:
             self.units[u["id"]] = (u, self._unit(u))
 
@@ -236,6 +237,8 @@ def _checks(sheet, res):
                     add(f"area needed for {side} outlet {lim['out_T_C']} C", need, lim["area_m2"], "m2")
                 else:
                     out.append({"id": key, "check": "required area", "error": "; ".join(errs)[:200] or "no solution"})
+        if u and u["type"] == "hx":
+            add("installed area vs frame", u["area_m2"], lim.get("max_area_m2"), "m2")
         if u and lim.get("max_kW") and u["type"] in ("hx", "heater", "cooler"):
             add("duty vs design", abs(u.get("duty_kW") or 0), lim["max_kW"], "kW")
         if u and u["type"] == "tank":
@@ -243,11 +246,16 @@ def _checks(sheet, res):
         if s and "T_C" in s:
             add("temperature vs design", s["T_C"], lim.get("max_T_C"), "C")
             add("pressure vs design", s["P_bar"], lim.get("max_P_bar"), "bar")
+            add("flow vs available", s["m3_h"], lim.get("max_m3_h"), "m3/h")
     return sorted(out, key=lambda c: -c.get("utilisation", 0))
 
 
+_MGR = None
+
+
 def _worker(a):
-    mgr = _dwsim()
+    global _MGR
+    mgr = _MGR = _MGR or _dwsim()
     spec, op = a["spec"], a["op"]
     if op == "run":
         sh = _Sheet(mgr, spec, float(a.get("scale", 1.0)))
@@ -308,13 +316,32 @@ def _worker(a):
 
 
 # ---------------------------------------------------------------- caller side
+_PROC, _LOCK = None, __import__("threading").Lock()
+
+
 def _call(payload):
-    out = subprocess.run([sys.executable, "-m", "plantagent.process", "--worker"], input=json.dumps(payload),
-                         capture_output=True, text=True, cwd=ROOT, timeout=300)
-    lines = out.stdout.strip().splitlines()
-    if out.returncode or not lines:
-        raise RuntimeError((out.stderr.strip().splitlines() or ["DWSIM worker failed"])[-1])
-    return json.loads(lines[-1])
+    """One long-lived DWSIM worker (start-up once, then ~0.05 s per solve); restarted if it dies.
+    ponytail: one global lock serialises solves; a worker pool if several users solve at once."""
+    global _PROC
+    with _LOCK:
+        for attempt in (0, 1):
+            if _PROC is None or _PROC.poll() is not None:
+                _PROC = subprocess.Popen([sys.executable, "-m", "plantagent.process", "--serve"], stdin=subprocess.PIPE,
+                                         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, cwd=ROOT)
+            try:
+                _PROC.stdin.write(json.dumps(payload) + "\n")
+                _PROC.stdin.flush()
+                line = _PROC.stdout.readline()
+                if line:
+                    r = json.loads(line)
+                    if "worker_error" in r:
+                        raise RuntimeError(r["worker_error"])
+                    return r
+            except (BrokenPipeError, json.JSONDecodeError):
+                pass
+            _PROC.kill()
+            _PROC = None
+        raise RuntimeError("DWSIM worker failed")
 
 
 def run(spec, scale=1.0):
@@ -332,7 +359,7 @@ def bubble(compounds, x, T_C, package="Peng-Robinson (PR)"):
 DEMO = {
     "compounds": ["Water", "Ethanol"], "package": "NRTL",
     "feeds": {"FEED": {"T_C": 25, "P_bar": 1.2, "kg_h": 18000, "x": {"Water": 0.9, "Ethanol": 0.1}},
-              "HOT_IN": {"T_C": 90, "P_bar": 3, "kg_h": 21600, "x": {"Water": 1}}},
+              "HOT_IN": {"T_C": 90, "P_bar": 3, "kg_h": 21600, "x": {"Water": 1}, "utility": True}},
     "units": [{"id": "P-101", "type": "pump", "in": "FEED", "out": "S1", "dP_bar": 4, "eff_pct": 70},
               {"id": "E-101", "type": "hx", "cold": ["S1", "S2"], "hot": ["HOT_IN", "HOT_OUT"], "U_W_m2K": 1500, "area_m2": 10},
               {"id": "V-101", "type": "valve", "in": "S2", "out": "S3", "dP_bar": 2},
@@ -342,8 +369,16 @@ DEMO = {
 }
 
 if __name__ == "__main__":
-    if "--worker" in sys.argv:
-        print(json.dumps(_worker(json.loads(sys.stdin.read()))))
+    if "--serve" in sys.argv:
+        out = sys.stdout
+        sys.stdout = sys.stderr  # DWSIM may print; keep the protocol channel clean
+        for line in sys.stdin:
+            try:
+                r = _worker(json.loads(line))
+            except Exception as ex:  # noqa: BLE001 - report to the caller, keep serving
+                r = {"worker_error": f"{type(ex).__name__}: {ex}"[:400]}
+            out.write(json.dumps(r) + "\n")
+            out.flush()
     else:
         r = run(DEMO)
         assert not r["errors"], r["errors"]

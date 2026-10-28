@@ -115,8 +115,10 @@ class Case:
         return [p for p in phrases if re.sub(r"\s+", " ", p.lower()) in text]
 
 
-def all_cases():
-    return sorted(p.name for p in (ROOT / "cases").iterdir() if (p / "case.json").exists())
+def all_cases(kind="study"):
+    """Document-study cases by default; kind="process" lists the P&ID process-plant workspaces."""
+    return sorted(p.name for p in (ROOT / "cases").iterdir() if (p / "case.json").exists()
+                  and json.loads((p / "case.json").read_text()).get("kind", "study") == kind)
 
 
 if __name__ == "__main__":

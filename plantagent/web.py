@@ -143,7 +143,7 @@ def eps_series(case, run, label, key):
 import threading  # noqa: E402
 import uuid  # noqa: E402
 
-WORKSPACES, JOBS = {}, {}
+WORKSPACES, PLANTS, JOBS = {}, {}, {}
 
 
 def workspace(case):
@@ -174,6 +174,44 @@ def ws_project(case):
                         w.case, c["eps"]["observations"]))).keys())} if "eps" in c else None,
             "doc_pages": {k: len(__import__("plantagent.docs", fromlist=["x"])._pages(
                 __import__("plantagent.docs", fromlist=["x"]).DATA / d["pdf"])) for k, d in w.project.docs.items()}}
+
+
+def plant(case):
+    from .plant import PlantWorkspace
+    if case not in PLANTS:
+        PLANTS[case] = PlantWorkspace(case, os.getenv("COPILOT_MODEL", "muse-spark-1.3-contributor"))
+    return PLANTS[case]
+
+
+def plant_job(case, fn):
+    """Run a plant-workspace agent call in the background and stream its tool calls (same job protocol as ws_ask)."""
+    w = plant(case)
+    job = uuid.uuid4().hex[:10]
+    JOBS[job] = {"events": [], "done": False, "answer": None, "error": None}
+
+    def work():
+        w.listener = lambda e: JOBS[job]["events"].append({
+            "kind": e["kind"], "name": e.get("name"), "text": e.get("text"),
+            "args": _short(e.get("args"), 140) if e.get("args") else None,
+            "result": _short(e.get("result"), 160) if e.get("result") is not None else None})
+        try:
+            JOBS[job]["answer"] = fn(w)
+        except Exception as ex:
+            JOBS[job]["error"] = f"{type(ex).__name__}: {ex}"
+        finally:
+            w.listener, JOBS[job]["done"] = None, True
+    threading.Thread(target=work, daemon=True).start()
+    return {"job": job}
+
+
+def plant_project(case):
+    w = plant(case)
+    st = w.state(float(w.cfg.get("target_scale", 1.0))) if w.built else None
+    return {"case": case, "kind": "process", "title": w.cfg["title"], "source": w.cfg["source"], "question": w.cfg["question"],
+            "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid, "basis": w.basis, "model": w.model,
+            "built": {k: v for k, v in w.built.items() if k != "result"} if w.built else None,
+            "answers": w.answers, "revisions": [{k: r[k] for k in ("rev", "title", "changes", "capacity_multiple", "at")} for r in w.revisions],
+            "capacity": w.capacity() if w.built else None, "at_target": st}
 
 
 def ws_ask(case, text, context):
@@ -336,6 +374,41 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send({"error": "unknown job"}, code=404)
             off = int(q.get("offset", 0))
             return self._send({**j, "events": j["events"][off:], "offset": len(j["events"])})
+        if parts[:2] == ["api", "plant"] and len(parts) == 4 and parts[2] in set(all_cases("process")):
+            case, what = parts[2], parts[3]
+            body = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}") if method == "POST" else {}
+            w = plant(case)
+            if what == "project":
+                return self._send(plant_project(case))
+            if what == "svg":
+                return self._send((ROOT / "cases" / case / w.cfg["svg"]).read_bytes(), "image/svg+xml")
+            if what == "build" and method == "POST":
+                return self._send(plant_job(case, lambda w: {k: v for k, v in w.build().items() if k != "result"}))
+            if what == "ask" and method == "POST":
+                return self._send(plant_job(case, lambda w: w.ask(body["text"], body.get("context"))))
+            if what == "state":
+                return self._send(w.state(float(q.get("scale", 1.0))))
+            if what == "capacity":
+                return self._send(w.capacity())
+            if what == "accept" and method == "POST":
+                try:
+                    return self._send(w.accept(body))
+                except ValueError as e:
+                    return self._send({"error": str(e)}, code=409)
+            if what == "restore" and method == "POST":
+                return self._send(w.restore(int(body.get("rev", 0))))
+            if what == "model" and method == "POST":
+                from .llm import PRICES
+                if body["model"] not in PRICES:
+                    return self._send({"error": "unknown model"}, code=400)
+                w.model = body["model"]
+                return self._send({"model": w.model})
+        if parts[:2] == ["api", "projects"]:
+            return self._send([{"case": n, "kind": "study", "title": Case(n).cfg["title"], "task_type": Case(n).cfg["task_type"],
+                                "workspace": "workspace" in Case(n).cfg} for n in all_cases()] +
+                              [{"case": n, "kind": "process", "title": json.loads((ROOT / "cases" / n / "case.json").read_text())["title"],
+                                "task_type": json.loads((ROOT / "cases" / n / "case.json").read_text())["task_type"], "workspace": True}
+                               for n in all_cases("process")])
         if parts[:2] == ["api", "ws"] and len(parts) == 4 and parts[2] in known:
             case, what = parts[2], parts[3]
             if what == "model" and method == "POST":
