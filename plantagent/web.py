@@ -223,7 +223,7 @@ def plant_project(case):
     w = plant(case)
     st = w.state(float(w.cfg.get("target_scale", 1.0))) if w.built else None
     return {"case": case, "kind": "process", "title": w.cfg["title"], "source": w.cfg["source"], "question": w.cfg["question"],
-            "data_note": w.cfg.get("data_note"), "throughput": w.cfg.get("throughput"), "drawing": "svg" if w.cfg.get("svg") else "pdf" if w.cfg.get("pid_pdf") else "none",
+            "data_note": w.cfg.get("data_note"), "throughput": w.cfg.get("throughput"), "drawing": "svg" if w.cfg.get("svg") else "pdf" if w.cfg.get("pid_pdf") else "none", "dexpi": bool(w.cfg.get("pid")),
             "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid or {"equipment": [], "connections": [], "valves": [], "control": []}, "basis": w.basis, "model": w.model,
             "built": {k: v for k, v in w.built.items() if k != "result"} if w.built else None,
             "answers": w.answers, "revisions": [{k: r.get(k) for k in ("rev", "kind", "title", "changes", "capacity_multiple", "at", "user", "reason")}
@@ -231,6 +231,61 @@ def plant_project(case):
             "audit": {"verify": __import__("plantagent.audit", fromlist=["x"]).verify(case),
                       "entries": __import__("plantagent.audit", fromlist=["x"]).entries(case)[-50:]},
             "capacity": w.capacity() if w.built else None, "at_target": st}
+
+
+MAX_UPLOAD = 20 * 1024 * 1024
+
+
+def new_project(b):
+    """Start a process-plant project from the engineer's own drawing and data sheet. The drawing is a DEXPI XML P&ID or a
+    PDF; it is checked before anything is written. Nothing is spent until the engineer presses Build."""
+    import re as _re
+    from . import pid as _pid
+    title, question, sheet = (str(b.get(k) or "").strip() for k in ("title", "question", "data_sheet"))
+    if len(title) < 4 or len(question) < 10:
+        raise ValueError("give a project title and the engineering question")
+    if len(sheet) < 200:
+        raise ValueError("paste the operating data sheet (current flows, temperatures, pressures, ratings): the model is built and "
+                         "calibrated from it")
+    slug = _re.sub(r"[^a-z0-9]+", "_", title.lower()).strip("_")[:40] or "project"
+    while (ROOT / "cases" / slug).exists():
+        slug += "_2"
+    name = str(b.get("drawing_name") or "")
+    ext = Path(name).suffix.lower()
+    if ext not in (".xml", ".pdf"):
+        raise ValueError("the drawing must be a DEXPI P&ID (.xml) or a PDF")
+    data = base64.b64decode(str(b.get("drawing_b64") or ""), validate=True)
+    if not data or len(data) > MAX_UPLOAD:
+        raise ValueError("the drawing is empty or over 20 MB")
+    up = DATA_ROOT / "uploads" / slug
+    up.mkdir(parents=True, exist_ok=True)
+    f = up / ("drawing" + ext)
+    f.write_bytes(data)
+    try:
+        if ext == ".xml":
+            ov = _pid.overview(f)
+            if not ov["equipment"]:
+                raise ValueError("no equipment found in this DEXPI file")
+        else:
+            if len(pymupdf.open(str(f))) < 1:
+                raise ValueError("the PDF has no pages")
+    except ValueError:
+        f.unlink(missing_ok=True)
+        raise
+    except Exception as e:  # noqa: BLE001 - any parse failure means the file is not usable
+        f.unlink(missing_ok=True)
+        raise ValueError(f"the drawing could not be read: {type(e).__name__}") from e
+    target = float(b.get("target_scale") or 1.2)
+    cfg = {"kind": "process", "title": title, "source": "Uploaded by the engineer", "basis": "basis.md", "task_type": "capacity study",
+           "question": question, "target_scale": target, "benchmark": False, "uploaded": True,
+           ("pid" if ext == ".xml" else "pid_pdf"): f"uploads/{slug}/drawing{ext}"}
+    d = ROOT / "cases" / slug
+    d.mkdir(parents=True)
+    (d / "basis.md").write_text(sheet + "\n")
+    (d / "case.json").write_text(json.dumps(cfg, indent=2))
+    from . import audit
+    audit.append(slug, "create", None, "project created from uploaded drawing and data sheet", {"drawing": f.name, "bytes": len(data)})
+    return {"case": slug, "url": f"plant.html?case={slug}"}
 
 
 def ws_ask(case, text, context):
@@ -437,6 +492,11 @@ class Handler(SimpleHTTPRequestHandler):
                     return self._send({"error": "unknown model"}, code=400)
                 w.model = body["model"]
                 return self._send({"model": w.model})
+        if parts == ["api", "newproject"] and method == "POST":
+            try:
+                return self._send(new_project(json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")))
+            except ValueError as e:
+                return self._send({"error": str(e)}, code=400)
         if parts[:2] == ["api", "projects"]:
             return self._send([{"case": n, "kind": "study", "title": Case(n).cfg["title"], "task_type": Case(n).cfg["task_type"],
                                 "workspace": "workspace" in Case(n).cfg} for n in all_cases()] +

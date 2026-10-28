@@ -187,7 +187,7 @@ def relief_scan(path):
     is_relief = lambda i: any(r in (n.get(i, {}).get("cls") or "") for r in RELIEF)  # noqa: E731
     is_valve = lambda i: "Valve" in (n.get(i, {}).get("cls") or "") and not is_relief(i)  # noqa: E731
     out = []
-    for eq in [x for x in n.values() if x["kind"] == "equipment" and x.get("tag")]:
+    for eq in [x for x in n.values() if x["kind"] == "equipment"]:
         nozzles = [x["id"] for x in n.values() if x["kind"] == "nozzle" and x.get("parent") == eq["id"]]
         sides = defaultdict(list)
         for z in nozzles:
@@ -223,7 +223,7 @@ def relief_scan(path):
             else:
                 status, text = "no relief on this P&ID", "no relief device reachable" + (" (lines leave the drawing: check the connecting P&ID)" if boundary else "")
             risk = heated and status != "protected"
-            out.append({"tag": eq["tag"], "class": eq["cls"], "side_fluids": list(fluids), "status": status, "detail": text,
+            out.append({"tag": eq.get("tag") or eq["id"], "class": eq["cls"], "side_fluids": list(fluids), "status": status, "detail": text,
                         "thermal_expansion_risk": risk,
                         "why": ("a heat-exchanger side that can be blocked in while the other side is hot: liquid thermal expansion can "
                                 "exceed the design pressure (API 521 hydraulic expansion; Williams Geismar 2013)") if risk else ""})

@@ -507,6 +507,20 @@ class PlantWorkspace(Study):
         return self._state[key]
 
 
+if __name__ == "__main__" and len(__import__("sys").argv) > 2:
+    # python -m plantagent.plant --build <case> [model]   |   --precompute <case>
+    import sys
+    op, case = sys.argv[1], sys.argv[2]
+    w = PlantWorkspace(case, *(sys.argv[3:4] or []))
+    if op == "--build":
+        b = w.build()
+        print(json.dumps({k: b.get(k) for k in ("label", "calibration", "coverage", "seconds", "cost_usd")}, indent=1)[:4000])
+        c = w.capacity()
+        print("capacity", c.get("capacity_multiple"), c.get("limited_by"), c.get("errors"))
+    elif op == "--precompute":
+        print(w.precompute(), "stored solutions")
+    sys.exit()
+
 if __name__ == "__main__":
     import tempfile
     with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False) as f:

@@ -31,6 +31,13 @@
   a.btn:hover { border-color: var(--accent); } a.btn.go { background: #1d4f86; border-color: #2b6cb3; font-weight: 600; }
   .sims { display: flex; gap: 5px; flex-wrap: wrap; } .sim { font: 10.5px var(--mono); color: var(--warn); border: 1px solid #5a4a2a; border-radius: 9px; padding: 0 6px; }
   .foot { color: var(--muted); font-size: 12.5px; margin-top: 34px; max-width: 900px; }
+  .newproj form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; margin-top: 10px; }
+  .newproj label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 600; }
+  .newproj input, .newproj textarea { font: 14px/1.4 var(--sans); padding: 9px 10px; border: 1px solid #b6c9c5; border-radius: 6px; background: #fff; color: #17323a; }
+  .newproj .wide { grid-column: 1 / 3; }
+  .newproj button.btn { min-height: 44px; padding: 10px 18px; border-radius: 7px; border: 1px solid #126e68; background: #126e68; color: #fff; font-weight: 700; cursor: pointer; }
+  #newMsg { margin-left: 10px; font-size: 13px; }
+  @media (max-width: 760px) { .newproj form { grid-template-columns: 1fr; } .newproj .wide { grid-column: 1; } }
 </style>
 <link rel="stylesheet" href="design.css">
 </head>
@@ -67,6 +74,20 @@
     </section>
   </main>
   <div class="stats" id="stats"></div>
+  <section id="new" aria-labelledby="new-title" class="newproj">
+    <div class="library-head"><h2 id="new-title">Start your own project</h2>
+      <p>Upload your P&amp;ID (DEXPI XML, or a PDF that Muse reads) and paste the operating data sheet. Building the model spends Muse
+        credit and runs only when you press Build in the workspace.</p></div>
+    <form id="newForm">
+      <label>Project title<input name="title" required minlength="4" placeholder="Line 3 product cooler"></label>
+      <label>Engineering question<input name="question" required minlength="10" placeholder="Can we run +15 % throughput? What limits first, and the cheapest fix?"></label>
+      <label>Target throughput multiple<input name="target_scale" type="number" step="0.01" min="0.5" max="5" value="1.2"></label>
+      <label>P&amp;ID or schematic (.xml DEXPI or .pdf, up to 20 MB)<input name="drawing" type="file" accept=".xml,.pdf" required></label>
+      <label class="wide">Operating data sheet (current flows, temperatures, pressures, equipment ratings, utility limits, requirements)
+        <textarea name="data_sheet" rows="8" required minlength="200" placeholder="Feed 18 m3/h at 50 C ... Cooling water 20 m3/h at 25 C, at most 30 m3/h ... Product to storage at most 35 C ..."></textarea></label>
+      <div class="wide"><button class="btn go" type="submit">Create project</button> <span id="newMsg" role="status"></span></div>
+    </form>
+  </section>
   <section id="cases" aria-labelledby="cases-title"><div class="library-head"><h2 id="cases-title">Case library</h2><p>Open an interactive workspace where available, or inspect a recorded blind study.</p></div><div id="groups"></div></section>
   <div class="foot">Benchmark scores: share of real engineers' conclusions the agent reached on its own, with their conclusion pages withheld,
     graded by a different model (muse-wonder-1.0) against an answer key taken from the withheld pages. Latest graded run per case.
@@ -109,6 +130,20 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
     return cards ? `<h2><i>${icon}</i>${name}</h2><div class="grid">${cards}</div>` : "";
   }).join("");
 })().catch(() => { document.getElementById("groups").innerHTML = '<p class="foot">Cases could not be loaded. Start the PlantAgent server and reload this page.</p>'; });
+document.getElementById("newForm").onsubmit = async e => {
+  e.preventDefault();
+  const f = e.target, msg = document.getElementById("newMsg"), file = f.drawing.files[0];
+  if (!file) return;
+  if (file.size > 20 * 1024 * 1024) { msg.textContent = "The drawing is over 20 MB."; return; }
+  msg.textContent = "Checking the drawing…";
+  const b64 = await new Promise((ok, bad) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = bad; r.readAsDataURL(file); });
+  const res = await fetch("/api/newproject", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({
+    title: f.title.value, question: f.question.value, target_scale: f.target_scale.value, data_sheet: f.data_sheet.value,
+    drawing_name: file.name, drawing_b64: b64})}).then(r => r.json()).catch(() => ({error: "the server did not answer"}));
+  if (res.error) { msg.style.color = "#b42318"; msg.textContent = res.error; return; }
+  msg.style.color = ""; msg.textContent = "Created. Opening the workspace…";
+  location.href = res.url;
+};
 </script>
 </body>
 </html>

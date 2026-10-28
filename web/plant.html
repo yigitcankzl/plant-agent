@@ -185,7 +185,12 @@ async function load() {
   if (P.error) throw new Error(P.error);
   document.title = 'PlantAgent · ' + P.title;
   if (P.drawing === 'none') {  // no drawing: draw the agent's own flowsheet, one box per unit in flow order
-    const us = P.built?.spec?.units || [], W = 150, H = 54, gap = 46, cols = Math.min(6, Math.max(1, us.length));
+    // no model yet: lay out the P&ID's own equipment and connections; after Build, the model's units
+    const fromPid = !P.built?.spec?.units && (P.pid?.equipment || []).length;
+    const us = fromPid ? P.pid.equipment.map(e => ({id: e.tag || e.id, type: e.class, in: P.pid.connections.filter(c => c.to.split('(')[0] === (e.tag || e.id)).map(c => c.from + '>' + c.to),
+                                                   out: P.pid.connections.filter(c => c.from.split('(')[0] === (e.tag || e.id)).map(c => c.from + '>' + c.to)}))
+                       : P.built?.spec?.units || [];
+    const W = 150, H = 54, gap = 46, cols = Math.min(6, Math.max(1, us.length));
     const pos = us.map((u, i) => ({x: 30 + (i % cols) * (W + gap), y: 40 + Math.floor(i / cols) * (H + 70)}));
     const rows = Math.ceil(us.length / cols), w = 60 + cols * (W + gap), h = 80 + rows * (H + 70);
     let svgs = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#555"/></marker></defs>`;
@@ -195,7 +200,7 @@ async function load() {
     us.forEach((u, i) => { const p = pos[i]; svgs += `<g data-tag="${esc(u.id)}"><rect x="${p.x}" y="${p.y}" width="${W}" height="${H}" rx="6" fill="#fff" stroke="#333"/>
       <text x="${p.x + W / 2}" y="${p.y + 22}" text-anchor="middle" font-size="13" font-weight="700" font-family="monospace">${esc(u.id)}</text>
       <text x="${p.x + W / 2}" y="${p.y + 40}" text-anchor="middle" font-size="11" fill="#555" font-family="sans-serif">${esc(NAMES[u.type] || u.type)}</text></g>`; });
-    $('sheet').innerHTML = svgs + '</svg>';
+    $('sheet').innerHTML = us.length ? svgs + '</svg>' : '<div class="empty" style="padding:30px">The flowsheet appears here once the agent has built the model from the data sheet.</div>';
   } else if (P.drawing === 'svg') {
     const r = await fetch(`/api/plant/${CASE}/svg`);
     if (!r.ok) throw new Error(`the P&ID drawing did not load (HTTP ${r.status})`);
@@ -208,14 +213,14 @@ async function load() {
     await new Promise((r, x) => { const im = $('sheet').querySelector('img'); im.complete ? r() : (im.onload = r, im.onerror = () => x(new Error('the drawing image did not load'))); });
   }
   $('sheet').querySelectorAll('[data-tag]').forEach(g => { if (g.dataset.tag) g.onclick = () => select(g.dataset.tag); });
-  $('safetySec').style.display = P.drawing === 'svg' ? '' : 'none';  // the relief scan needs a smart (DEXPI) P&ID
-  if (P.drawing === 'none') $('pidStats').textContent = 'equipment and connections from the data sheet';
-  if (P.drawing === 'none') $('pidName').innerHTML = 'No drawing <span>flowsheet drawn from the model</span>';
+  $('safetySec').style.display = P.dexpi ? '' : 'none';  // the relief scan needs a smart (DEXPI) P&ID
+  if (P.drawing === 'none' && !P.dexpi) $('pidStats').textContent = 'equipment and connections from the data sheet';
+  if (P.drawing === 'none') $('pidName').innerHTML = P.dexpi ? 'Smart P&amp;ID <span>DEXPI XML · flowsheet drawn from the model</span>' : 'No drawing <span>flowsheet drawn from the model</span>';
   if (P.drawing === 'pdf') $('pidName').innerHTML = `Schematic (PDF) <span>read by ${esc((P.pid.model || 'Muse').replace('muse-', ''))}</span>`;
   if (P.data_note) { $('note').textContent = '⚠ ' + P.data_note; $('note').style.display = 'block'; }
   const hi = Math.max(150, Math.ceil(P.target_scale * 100 / 10) * 10 + 30);
   $('scale').max = hi; $('maxLbl').textContent = hi + '%';
-  if (P.drawing !== 'none') $('pidStats').textContent = `${P.pid.equipment.length} equipment · ${P.pid.connections.length} connections · ${P.pid.valves.length} valves · ${P.pid.control.length} signals`;
+  if (P.drawing !== 'none' || P.dexpi) $('pidStats').textContent = `${P.pid.equipment.length} equipment · ${P.pid.connections.length} connections · ${P.pid.valves.length} valves · ${P.pid.control.length} signals`;
   const feed = Object.entries(P.built?.spec?.feeds || {}).find(([k, f]) => !f.utility);
   base = P.throughput ? {name: P.throughput.name, m3_h: P.throughput.base, unit: P.throughput.unit} :
     feed ? {name: feed[0], m3_h: feed[1].m3_h ?? feed[1].kg_h, unit: feed[1].m3_h != null ? 'm³/h' : 'kg/h'} : null;
@@ -452,6 +457,7 @@ function showDoc(which) {
 async function reliefScan() {
   const rs = await api('relief');
   const col = r => r.status === 'protected' ? 'ok' : r.thermal_expansion_risk ? 'fail' : 'warn';
+  if (!rs.length) { $('relief').innerHTML = '<div class="why">No equipment with nozzles found on this P&ID: nothing to check.</div>'; return; }
   $('relief').innerHTML = rs.map(r => `<div class="eq" onclick="select('${esc(r.tag)}')"><div class="t">${esc(r.tag)} <span>${esc(r.side_fluids.join(','))} side</span></div>
     <div class="why" style="color:var(--${col(r)})">${r.status === 'protected' ? '✓' : '⚠'} ${esc(r.status)}${r.thermal_expansion_risk ? ' · can be blocked in while heated' : ''}</div>
     <div class="why">${esc(r.detail)}</div></div>`).join('');
