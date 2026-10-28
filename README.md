@@ -237,7 +237,9 @@ Optional tools:
 - LibreCAD (CAD round trip)
 - `.venv-surge` with `tsnet`, `numpy<2` and `wntr<1.2`, for transients
 
-Muse spend is capped by `MUSE_BUDGET_USD` and logged in `runs/usage.jsonl`.
+Muse spend is capped by `MUSE_BUDGET_USD` and logged in `runs/usage.jsonl`. The web UI disables
+Muse-spending actions unless `WEB_ALLOW_RUNS=1`; do not expose it publicly with that flag without
+authentication at the proxy, since the local server has no login.
 
 ## Timeline
 

@@ -1,17 +1,22 @@
-"""Append-only, hash-chained audit trail per project (who did what, when, why), for change control and data integrity.
+"""Hash-chained audit trail per project for accidental-edit detection, not tamper-proof evidence.
 
-Every entry carries the previous entry's hash, so any edit or deletion breaks the chain and verify() reports where.
-ponytail: user identity comes from the X-User header (no login yet); an identity provider and e-signatures plug in here.
+The whole file can be rewritten or truncated and rehashed by anyone who can write it; there is no external trust anchor.
+User identity is only a claim from the unauthenticated X-User header.
 """
 import hashlib
 import json
+import re
+import threading
 import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+_LOCK = threading.RLock()
 
 
 def _file(case):
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", case):
+        raise ValueError("invalid audit case")
     f = ROOT / "runs" / "audit" / f"{case}.jsonl"
     f.parent.mkdir(parents=True, exist_ok=True)
     return f
@@ -23,29 +28,38 @@ def _hash(entry):
 
 
 def entries(case):
-    f = _file(case)
-    return [json.loads(line) for line in f.read_text().splitlines() if line.strip()] if f.exists() else []
+    with _LOCK:
+        f = _file(case)
+        return [json.loads(line) for line in f.read_text().splitlines() if line.strip()] if f.exists() else []
 
 
 def append(case, action, user=None, reason=None, details=None):
-    prev = entries(case)
-    e = {"seq": len(prev) + 1, "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "case": case, "action": action,
-         "user": user or "engineer (unauthenticated)", "reason": reason or "", "details": details or {},
-         "prev": prev[-1]["hash"] if prev else "0" * 64}
-    e["hash"] = _hash(e)
-    with _file(case).open("a") as f:  # append only
-        f.write(json.dumps(e) + "\n")
-    return e
+    with _LOCK:
+        prev = entries(case)
+        e = {"seq": len(prev) + 1, "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "case": case, "action": action,
+             "user": f"claimed: {user}" if user else "engineer (unauthenticated)", "reason": reason or "", "details": details or {},
+             "prev": prev[-1]["hash"] if prev else "0" * 64}
+        e["hash"] = _hash(e)
+        with _file(case).open("a") as f:
+            f.write(json.dumps(e) + "\n")
+        return e
 
 
 def verify(case):
-    """The chain is intact when every entry hashes to its stored hash and points at the one before it."""
-    prev = "0" * 64
-    for i, e in enumerate(entries(case)):
-        if e.get("prev") != prev or _hash(e) != e.get("hash") or e.get("seq") != i + 1:
-            return {"ok": False, "broken_at": i + 1, "entries": i}
-        prev = e["hash"]
-    return {"ok": True, "entries": len(entries(case))}
+    """Check internal consistency only; a valid chain does not prove the file was not rewritten."""
+    with _LOCK:
+        f = _file(case)
+        lines = f.read_text().splitlines() if f.exists() else []
+        prev = "0" * 64
+        for i, line in enumerate(lines):
+            try:
+                e = json.loads(line)
+                if e.get("prev") != prev or _hash(e) != e.get("hash") or e.get("seq") != i + 1:
+                    return {"ok": False, "broken_at": i + 1, "entries": i}
+                prev = e["hash"]
+            except (ValueError, TypeError, AttributeError):
+                return {"ok": False, "broken_at": i + 1, "entries": i}
+        return {"ok": True, "entries": len(lines)}
 
 
 if __name__ == "__main__":

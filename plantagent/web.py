@@ -1,11 +1,14 @@
 """Web UI for studies: live or replayed agent log, the drawing with a flow slider, deliverables, agent vs. engineers, benchmark.
 
 Usage: python -m plantagent.web [--port 8000]
-Starting a new study from the UI spends Muse credit, so it is off unless WEB_ALLOW_RUNS=1 (cap: MUSE_BUDGET_USD).
+Muse-spending UI actions are off unless WEB_ALLOW_RUNS=1 (cap: MUSE_BUDGET_USD).
 """
 import argparse
 import base64
+import binascii
+import io
 import json
+import math
 import mimetypes
 import os
 import subprocess
@@ -15,6 +18,7 @@ from functools import lru_cache
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
+from xml.parsers import expat
 
 import pymupdf
 
@@ -35,10 +39,29 @@ DELIVERABLES = ["report.md", "design_profile.dwg", "design_profile.dxf", "pump_d
 
 def _runs(case):
     d = RUNS / case
-    return sorted((p.name for p in d.iterdir() if (p / "log.jsonl").exists()), reverse=True) if d.exists() else []
+    if not d.is_dir() or not d.resolve().is_relative_to(ROOT.resolve()):
+        return []
+    return sorted((p.name for p in d.iterdir() if _safe_file(d, p.name, "log.jsonl")), reverse=True)
+
+
+def _safe_file(base, *parts):
+    if any(not p or p in (".", "..") or "/" in p or "\\" in p for p in parts):
+        return None
+    base = base.resolve()
+    if not base.is_relative_to(ROOT.resolve()):
+        return None
+    f = base.joinpath(*parts).resolve()
+    return f if f.is_relative_to(base) and f.is_file() else None
+
+
+def _require_runs():
+    if os.getenv("WEB_ALLOW_RUNS") != "1":
+        raise PermissionError("Muse/spending actions are disabled (set WEB_ALLOW_RUNS=1)")
 
 
 def _json(path, default=None):
+    if not path.resolve().is_relative_to(ROOT.resolve()):
+        raise ValueError("file outside repository")
     return json.loads(path.read_text()) if path.exists() else default
 
 
@@ -234,6 +257,7 @@ def plant_project(case):
 
 
 MAX_UPLOAD = 20 * 1024 * 1024
+MAX_POST = 28 * 1024 * 1024
 
 
 def new_project(b):
@@ -242,45 +266,65 @@ def new_project(b):
     import re as _re
     from . import pid as _pid
     title, question, sheet = (str(b.get(k) or "").strip() for k in ("title", "question", "data_sheet"))
-    if len(title) < 4 or len(question) < 10:
+    if not 4 <= len(title) <= 200 or not 10 <= len(question) <= 4000:
         raise ValueError("give a project title and the engineering question")
-    if len(sheet) < 200:
+    if not 200 <= len(sheet) <= 1024 * 1024:
         raise ValueError("paste the operating data sheet (current flows, temperatures, pressures, ratings): the model is built and "
                          "calibrated from it")
-    slug = _re.sub(r"[^a-z0-9]+", "_", title.lower()).strip("_")[:40] or "project"
-    while (ROOT / "cases" / slug).exists():
-        slug += "_2"
+    base_slug = _re.sub(r"[^a-z0-9]+", "_", title.lower()).strip("_")[:40] or "project"
     name = str(b.get("drawing_name") or "")
     ext = Path(name).suffix.lower()
     if ext not in (".xml", ".pdf"):
         raise ValueError("the drawing must be a DEXPI P&ID (.xml) or a PDF")
-    data = base64.b64decode(str(b.get("drawing_b64") or ""), validate=True)
+    encoded = b.get("drawing_b64")
+    if not isinstance(encoded, str) or len(encoded) > 4 * ((MAX_UPLOAD + 2) // 3):
+        raise ValueError("the drawing is empty or over 20 MB")
+    try:
+        data = base64.b64decode(encoded, validate=True)
+    except (binascii.Error, ValueError) as e:
+        raise ValueError("invalid base64 drawing") from e
     if not data or len(data) > MAX_UPLOAD:
         raise ValueError("the drawing is empty or over 20 MB")
+    try:
+        if ext == ".xml":
+            def reject_doctype(*_):
+                raise ValueError("XML DTD and entities are not allowed")
+            parser = expat.ParserCreate()
+            parser.StartDoctypeDeclHandler = reject_doctype
+            parser.Parse(data, True)
+            ov = _pid.overview(io.BytesIO(data))
+            if not ov["equipment"]:
+                raise ValueError("no equipment found in this DEXPI file")
+        else:
+            if not data.startswith(b"%PDF-"):
+                raise ValueError("the drawing is not a PDF")
+            with pymupdf.open(stream=data, filetype="pdf") as pdf:
+                if len(pdf) < 1:
+                    raise ValueError("the PDF has no pages")
+    except ValueError:
+        raise
+    except Exception as e:  # noqa: BLE001 - any parse failure means the file is not usable
+        raise ValueError(f"the drawing could not be read: {type(e).__name__}") from e
+    target = float(b.get("target_scale") or 1.2)
+    if not math.isfinite(target) or target <= 0:
+        raise ValueError("target_scale must be positive and finite")
+    for n in range(1, 10000):
+        slug = base_slug if n == 1 else f"{base_slug}_{n}"
+        d = ROOT / "cases" / slug
+        try:
+            d.mkdir(parents=True)
+            break
+        except FileExistsError:
+            continue
+    else:
+        raise ValueError("too many projects with this title")
     up = DATA_ROOT / "uploads" / slug
     up.mkdir(parents=True, exist_ok=True)
     f = up / ("drawing" + ext)
     f.write_bytes(data)
-    try:
-        if ext == ".xml":
-            ov = _pid.overview(f)
-            if not ov["equipment"]:
-                raise ValueError("no equipment found in this DEXPI file")
-        else:
-            if len(pymupdf.open(str(f))) < 1:
-                raise ValueError("the PDF has no pages")
-    except ValueError:
-        f.unlink(missing_ok=True)
-        raise
-    except Exception as e:  # noqa: BLE001 - any parse failure means the file is not usable
-        f.unlink(missing_ok=True)
-        raise ValueError(f"the drawing could not be read: {type(e).__name__}") from e
-    target = float(b.get("target_scale") or 1.2)
     cfg = {"kind": "process", "title": title, "source": "Uploaded by the engineer", "basis": "basis.md", "task_type": "capacity study",
            "question": question, "target_scale": target, "benchmark": False, "uploaded": True,
            ("pid" if ext == ".xml" else "pid_pdf"): f"uploads/{slug}/drawing{ext}"}
-    d = ROOT / "cases" / slug
-    d.mkdir(parents=True)
     (d / "basis.md").write_text(sheet + "\n")
     (d / "case.json").write_text(json.dumps(cfg, indent=2))
     from . import audit
@@ -401,8 +445,7 @@ def drawing_png(case):
 
 
 def start_run(case):
-    if os.getenv("WEB_ALLOW_RUNS") != "1":
-        raise PermissionError("starting studies from the UI is disabled (set WEB_ALLOW_RUNS=1)")
+    _require_runs()
     before = set(_runs(case))
     log = open(RUNS / f"web_{case}.log", "w")
     subprocess.Popen([sys.executable, "-u", "-m", "plantagent.study", "--case", case], cwd=ROOT, stdout=log, stderr=log)
@@ -416,6 +459,7 @@ def start_run(case):
 
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *a, **kw):
+        a[0].settimeout(15)
         super().__init__(*a, directory=str(STATIC), **kw)
 
     def log_message(self, *a):
@@ -429,6 +473,24 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+        return True
+
+    def _body(self, limit=MAX_POST):
+        length = self.headers.get("Content-Length")
+        if self.headers.get("Transfer-Encoding") or length is None or not length.isdecimal():
+            raise ValueError("a valid Content-Length is required")
+        if int(length) > limit:
+            raise OverflowError("request body too large")
+        data = self.rfile.read(int(length))
+        if len(data) != int(length):
+            raise ValueError("incomplete request body")
+        return data
+
+    def _json_body(self):
+        body = json.loads(self._body() or b"{}")
+        if not isinstance(body, dict):
+            raise ValueError("JSON body must be an object")
+        return body
 
     def _route(self, method):
         u = urlparse(self.path)
@@ -438,8 +500,10 @@ class Handler(SimpleHTTPRequestHandler):
         if parts[:1] not in (["api"], ["files"], ["wsfiles"]):
             return None
         if parts[:1] == ["wsfiles"] and len(parts) == 4 and parts[1] in known:
-            f = RUNS / "ws" / parts[1] / Path(parts[2]).name / Path(parts[3]).name
-            if f.exists():
+            name = parts[3]
+            allowed = name in {"calc_sheets.xlsx", "memo.md", "markup.dwg", "profile_sheet.dwg", "profile_sheet.dxf"} or name.endswith(("_editable.dxf", "_editable.dwg"))
+            f = _safe_file(RUNS / "ws" / parts[1], parts[2], name) if allowed else None
+            if f:
                 return self._send(f.read_bytes(), mimetypes.guess_type(f.name)[0] or "application/octet-stream")
             return self._send({"error": "not found"}, code=404)
         if parts[:2] == ["api", "job"] and len(parts) == 3:
@@ -450,12 +514,15 @@ class Handler(SimpleHTTPRequestHandler):
             return self._send({**j, "events": j["events"][off:], "offset": len(j["events"])})
         if parts[:2] == ["api", "plant"] and len(parts) == 4 and parts[2] in set(all_cases("process")):
             case, what = parts[2], parts[3]
-            body = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}") if method == "POST" else {}
+            if method == "POST" and what in ("build", "ask"):
+                _require_runs()
+            body = self._json_body() if method == "POST" else {}
             w = plant(case)
             if what == "project":
                 return self._send(plant_project(case))
             if what == "svg":
-                return self._send((ROOT / "cases" / case / w.cfg["svg"]).read_bytes(), "image/svg+xml")
+                f = _safe_file(ROOT / "cases" / case, w.cfg["svg"])
+                return self._send(f.read_bytes(), "image/svg+xml") if f else self._send({"error": "not found"}, code=404)
             if what == "sheet.png":
                 from . import pidvision
                 return self._send(pidvision.render(DATA_ROOT / w.cfg["pid_pdf"], w.cfg.get("pid_page", 1) - 1), "image/png")
@@ -488,13 +555,13 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send({"verify": audit.verify(case), "entries": audit.entries(case)})
             if what == "model" and method == "POST":
                 from .llm import PRICES
-                if body["model"] not in PRICES:
+                if body["model"] not in PRICES and not __import__("plantagent.llm", fromlist=["x"])._host(str(body["model"])):
                     return self._send({"error": "unknown model"}, code=400)
                 w.model = body["model"]
                 return self._send({"model": w.model})
         if parts == ["api", "newproject"] and method == "POST":
             try:
-                return self._send(new_project(json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")))
+                return self._send(new_project(self._json_body()))
             except ValueError as e:
                 return self._send({"error": str(e)}, code=400)
         if parts[:2] == ["api", "projects"]:
@@ -506,17 +573,24 @@ class Handler(SimpleHTTPRequestHandler):
                                for n in all_cases("process")])
         if parts[:2] == ["api", "ws"] and len(parts) == 4 and parts[2] in known:
             case, what = parts[2], parts[3]
+            if method == "POST" and what in ("ask", "task", "fixall", "photo", "voice", "readsheet"):
+                _require_runs()
+            body = self._json_body() if method == "POST" and what not in ("readsheet", "voice", "photo", "import") else {}
             if what == "model" and method == "POST":
                 from .llm import PRICES
-                if body["model"] not in PRICES:
+                if body["model"] not in PRICES and not __import__("plantagent.llm", fromlist=["x"])._host(str(body["model"])):
                     return self._send({"error": "unknown model"}, code=400)
                 workspace(case).model = body["model"]
                 return self._send({"model": body["model"]})
             if what == "readsheet" and method == "POST":
                 from . import cad
                 import tempfile
-                data = self.rfile.read(int(self.headers.get("Content-Length") or 0))
+                data = self._body(MAX_UPLOAD)
+                if not data.startswith(b"%PDF-"):
+                    raise ValueError("upload a PDF sheet")
                 page = int(q.get("page", 1))
+                if page < 1:
+                    raise ValueError("page must be positive")
                 with tempfile.TemporaryDirectory() as t:
                     pdf = Path(t) / "sheet.pdf"
                     pdf.write_bytes(data)
@@ -540,7 +614,7 @@ class Handler(SimpleHTTPRequestHandler):
                     g = _json(graded[-1] / "grade.json") if graded else None
                 key = w.case.answer_key or {}
                 v = {i["id"]: i for i in (g or {}).get("items", [])}
-                summ = _json((w.study_dir or Path(".")) / "summary.json") or {}
+                summ = _json(w.study_dir / "summary.json") if w.study_dir else {}
                 return self._send({"score": (g or {}).get("score"), "judge": (g or {}).get("judge"), "source": key.get("source"),
                                    "run": w.study_dir.name if w.study_dir else None, "agent_model": summ.get("model"),
                                    "scores_all_runs": [(_json(p / "grade.json") or {}).get("score") for p in sorted((RUNS / case).glob("2*"))
@@ -549,11 +623,15 @@ class Handler(SimpleHTTPRequestHandler):
                                               "note": v.get(i["id"], {}).get("note")} for i in key.get("items", [])]})
             if what == "voice" and method == "POST":
                 from . import llm
-                data = self.rfile.read(int(self.headers.get("Content-Length") or 0))
+                data = self._body(MAX_UPLOAD)
+                if not data.startswith(b"RIFF") or data[8:12] != b"WAVE":
+                    raise ValueError("upload WAV audio")
                 return self._send(llm.transcribe(data))
             if what == "photo" and method == "POST":
                 from .copilot import read_photo
-                data = self.rfile.read(int(self.headers.get("Content-Length") or 0))
+                data = self._body(MAX_UPLOAD)
+                if not data:
+                    raise ValueError("upload a photo")
                 return self._send(read_photo(workspace(case), data))
             if what == "import" and method == "POST":
                 from .copilot import import_cad
@@ -562,9 +640,8 @@ class Handler(SimpleHTTPRequestHandler):
                 if Path(name).suffix.lower() not in (".dxf", ".dwg"):
                     return self._send({"error": "upload a .dxf or .dwg"}, code=400)
                 f = w.dir / ("in_" + name)
-                f.write_bytes(self.rfile.read(int(self.headers.get("Content-Length") or 0)))
+                f.write_bytes(self._body(MAX_UPLOAD))
                 return self._send(import_cad(w, f))
-            body = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}") if method == "POST" else {}
             if what in ("accept", "restore", "edit", "photoapply", "import") and method == "POST":
                 from . import audit
                 audit.append(case, what, self.headers.get("X-User"), (body or {}).get("reason", "") if isinstance(body, dict) else "",
@@ -575,6 +652,8 @@ class Handler(SimpleHTTPRequestHandler):
             if what == "ask" and method == "POST":
                 return self._send(ws_ask(case, body["text"], body.get("context")))
             if what == "export" and method == "POST":
+                if body.get("kind") == "memo":
+                    _require_runs()
                 return self._send(ws_export(case, body["kind"]))
             if what == "elements":
                 from .copilot import elements
@@ -597,8 +676,11 @@ class Handler(SimpleHTTPRequestHandler):
             if what == "task" and method == "POST":
                 return self._send(ws_task(case, body["id"]))
             if what == "page":
+                n, dpi = int(q["n"]), int(q.get("dpi", 110))
+                if n < 1 or not 36 <= dpi <= 300:
+                    raise ValueError("invalid page or DPI")
                 w = workspace(case)
-                url = w.project.image(q["doc"], int(q["n"]), dpi=int(q.get("dpi", 110)))
+                url = w.project.image(q["doc"], n, dpi=dpi)
                 return self._send(base64.b64decode(url.split(",", 1)[1]), "image/png")
             if what == "photoapply" and method == "POST":
                 from .copilot import apply_photo
@@ -638,8 +720,8 @@ class Handler(SimpleHTTPRequestHandler):
                     n["fails"] = any(c["id"] == n["id"] and c["margin"] < 0 for c in r["checks"])
                 return self._send(r)
         if parts[:1] == ["files"] and len(parts) == 4 and parts[1] in known and parts[3] in DELIVERABLES:
-            f = RUNS / parts[1] / Path(parts[2]).name / parts[3]
-            if f.exists():
+            f = _safe_file(RUNS / parts[1], parts[2], parts[3]) if parts[2] in _runs(parts[1]) else None
+            if f:
                 return self._send(f.read_bytes(), mimetypes.guess_type(f.name)[0] or "application/octet-stream")
             return self._send({"error": "not found"}, code=404)
         api = parts[1:]
@@ -652,8 +734,8 @@ class Handler(SimpleHTTPRequestHandler):
         if method == "POST" and api[:1] == ["start"] and len(api) == 2:
             return self._send(start_run(api[1]))
         if len(api) == 4 and api[0] == "run":
-            case, run, what = api[1], Path(api[2]).name, api[3]
-            if not (RUNS / case / run / "log.jsonl").exists():
+            case, run, what = api[1], api[2], api[3]
+            if run not in _runs(case) or not _safe_file(RUNS / case, run, "log.jsonl"):
                 return self._send({"error": "unknown run"}, code=404)
             if what == "log":
                 return self._send(log_events(case, run, int(q.get("offset", 0))))
@@ -668,9 +750,18 @@ class Handler(SimpleHTTPRequestHandler):
     def _handle(self, method):
         try:
             if self._route(method) is None:
-                super().do_GET()
+                if method == "GET":
+                    super().do_GET()
+                else:
+                    self._send({"error": "not found"}, code=404)
         except PermissionError as e:
             self._send({"error": str(e)}, code=403)
+        except OverflowError as e:
+            self._send({"error": str(e)}, code=413)
+        except TimeoutError as e:
+            self._send({"error": str(e)}, code=408)
+        except (ValueError, UnicodeDecodeError, KeyError, TypeError) as e:
+            self._send({"error": str(e)}, code=400)
         except Exception as e:  # show the error in the UI instead of dropping the connection
             self._send({"error": f"{type(e).__name__}: {e}"}, code=500)
 
