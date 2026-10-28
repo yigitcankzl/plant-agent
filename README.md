@@ -68,6 +68,13 @@ The P&ID is the DEXPI e.V. reference example C01. Its operating data sheet (`cas
   sheet into the same structure as the DEXPI reader: loops with temperatures, equipment, connections and inline valves.
   Equipment positions come from the PDF's text layer, so the live badges sit on the real sheet. If the sheet has no
   text layer, the positions are Muse's estimates.
+- **Data centre (IIT Kanpur tenders), an honest gap.** Muse reads the real PDF liquid-cooling schematic correctly:
+  - the three loops with their temperatures (8/13, 15/20 and 30/38 C)
+  - 2 x 750 kW plate exchangers, 14 rear-door exchangers and the dry coolers
+
+  Four attempts to have the agent build a DWSIM model of the plant from it did not give a model we would show. They
+  either missed the chillers, which are the N+1 question, or put the rear-door exchangers in series. No capacity answer
+  is shown for this case.
 - **Project documents.** The agent can search and read tenders and datasheets (`search_documents`,
   `read_document_page`) and cites their page numbers.
 - **Historian / SCADA export.** `historian` returns the mean, p5, p95 and range per tag over a time window, for

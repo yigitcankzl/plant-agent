@@ -500,7 +500,8 @@ class Handler(SimpleHTTPRequestHandler):
         if parts[:2] == ["api", "projects"]:
             return self._send([{"case": n, "kind": "study", "title": Case(n).cfg["title"], "task_type": Case(n).cfg["task_type"],
                                 "workspace": "workspace" in Case(n).cfg} for n in all_cases()] +
-                              [{"case": n, "kind": "process", "title": json.loads((ROOT / "cases" / n / "case.json").read_text())["title"],
+                              [{"case": n, "kind": "process", "built": (RUNS / "ws" / n / "model.json").exists(),
+                                "title": json.loads((ROOT / "cases" / n / "case.json").read_text())["title"],
                                 "task_type": json.loads((ROOT / "cases" / n / "case.json").read_text())["task_type"], "workspace": True}
                                for n in all_cases("process")])
         if parts[:2] == ["api", "ws"] and len(parts) == 4 and parts[2] in known:

@@ -1,0 +1,672 @@
+{
+ "title": "HVAC SCHEMATIC DRAWING-02 - CONSTRUCTION OF COOLING INFRASTRUCTURE FOR DATA CENTRE UNDER NSM-II IN COMPUTER CENTRE, IIT KANPUR.",
+ "loops": [
+  {
+   "fluid": "water",
+   "name": "CHW",
+   "return_C": 13.0,
+   "supply_C": 8.0
+  },
+  {
+   "fluid": "water",
+   "name": "CDU",
+   "return_C": 20.0,
+   "supply_C": 15.0
+  },
+  {
+   "fluid": "water",
+   "name": "Dry Cooler",
+   "return_C": 38.0,
+   "supply_C": 30.0
+  }
+ ],
+ "raw": {
+  "connections": [
+   {
+    "from": "PUMP-CHW",
+    "inline": [
+     "BFV",
+     "Y-STR",
+     "NRV",
+     "TP",
+     "PG"
+    ],
+    "loop": "CHW",
+    "to": "PHE-750"
+   },
+   {
+    "from": "PHE-750",
+    "inline": [
+     "BFV",
+     "MBFV",
+     "CV",
+     "TP",
+     "PG"
+    ],
+    "loop": "CHW",
+    "to": "RDHX-1"
+   },
+   {
+    "from": "RDHX-1",
+    "inline": [
+     "BFV",
+     "TP"
+    ],
+    "loop": "CHW",
+    "to": "RACK-1"
+   },
+   {
+    "from": "PHE-750",
+    "inline": [
+     "BFV",
+     "MBFV",
+     "CV",
+     "TP",
+     "PG"
+    ],
+    "loop": "CDU",
+    "to": "CDU-1"
+   },
+   {
+    "from": "CDU-1",
+    "inline": [
+     "BFV"
+    ],
+    "loop": "CDU",
+    "to": "RACK-1"
+   },
+   {
+    "from": "DC-300",
+    "inline": [
+     "BFV",
+     "MBFV",
+     "CV",
+     "TP",
+     "PG",
+     "FS"
+    ],
+    "loop": "Dry Cooler",
+    "to": "PHE-300"
+   },
+   {
+    "from": "PHE-300",
+    "inline": [
+     "BFV",
+     "Y-ST",
+     "NRV",
+     "TP",
+     "PG"
+    ],
+    "loop": "Dry Cooler",
+    "to": "PUMP-DC"
+   },
+   {
+    "from": "PUMP-DC",
+    "inline": [
+     "BFV",
+     "Y-ST",
+     "NRV"
+    ],
+    "loop": "Dry Cooler",
+    "to": "DC-300"
+   },
+   {
+    "from": "TANK-1",
+    "inline": [
+     "BFV"
+    ],
+    "loop": "CHW",
+    "to": "PHE-750"
+   }
+  ],
+  "equipment": [
+   {
+    "box": [
+     0.04,
+     0.115,
+     0.165,
+     0.21
+    ],
+    "capacity_kW": 750.0,
+    "class": "plate heat exchanger",
+    "count": 2,
+    "flow_gpm": null,
+    "label_text": "PHE",
+    "loops": [
+     "CHW",
+     "CDU"
+    ],
+    "notes": "2x 750 KW as printed; one side 8C/13C, other side 15C/20C",
+    "occurrence": 1,
+    "tag": "PHE-750"
+   },
+   {
+    "box": [
+     0.395,
+     0.164,
+     0.44,
+     0.21
+    ],
+    "capacity_kW": 300.0,
+    "class": "plate heat exchanger",
+    "count": 1,
+    "flow_gpm": null,
+    "label_text": "PHE",
+    "loops": [
+     "CHW",
+     "Dry Cooler"
+    ],
+    "notes": "300 KW as printed; 8C/13C and 30C/38C in vicinity",
+    "occurrence": 3,
+    "tag": "PHE-300"
+   },
+   {
+    "box": [
+     0.555,
+     0.164,
+     0.65,
+     0.25
+    ],
+    "capacity_kW": 300.0,
+    "class": "dry cooler",
+    "count": 2,
+    "flow_gpm": null,
+    "label_text": "DRY COOLER",
+    "loops": [
+     "Dry Cooler"
+    ],
+    "notes": "2x DRY COOLER 300 KW as printed; 30C/38C",
+    "occurrence": 1,
+    "tag": "DC-300"
+   },
+   {
+    "box": [
+     0.65,
+     0.295,
+     0.695,
+     0.335
+    ],
+    "capacity_kW": null,
+    "class": "CDU",
+    "count": 1,
+    "flow_gpm": null,
+    "label_text": "CDU",
+    "loops": [
+     "CDU",
+     "Dry Cooler"
+    ],
+    "notes": "coolant distribution unit feeding racks",
+    "occurrence": 1,
+    "tag": "CDU-1"
+   },
+   {
+    "box": [
+     0.178,
+     0.25,
+     0.215,
+     0.31
+    ],
+    "capacity_kW": null,
+    "class": "tank",
+    "count": 1,
+    "flow_gpm": null,
+    "label_text": "THERMAL STORAGE TANK",
+    "loops": [
+     "CHW"
+    ],
+    "notes": "THERMAL STORAGE TANK as printed",
+    "occurrence": 1,
+    "tag": "TANK-1"
+   },
+   {
+    "box": [
+     0.06,
+     0.25,
+     0.165,
+     0.35
+    ],
+    "capacity_kW": null,
+    "class": "pump",
+    "count": 2,
+    "flow_gpm": null,
+    "label_text": "PUMP",
+    "loops": [
+     "CHW"
+    ],
+    "notes": "2x pumps for PHE 750 KW circuit; BFV, Y-STR, NRV, TP, PG as printed",
+    "occurrence": 1,
+    "tag": "PUMP-CHW"
+   },
+   {
+    "box": [
+     0.52,
+     0.38,
+     0.61,
+     0.48
+    ],
+    "capacity_kW": null,
+    "class": "pump",
+    "count": 3,
+    "flow_gpm": null,
+    "label_text": "PUMP",
+    "loops": [
+     "Dry Cooler"
+    ],
+    "notes": "3x pumps for PHE 300 KW / dry cooler circuit; BFV, Y-ST, TP, PG, TG-1, NRV as printed",
+    "occurrence": 3,
+    "tag": "PUMP-DC"
+   },
+   {
+    "box": [
+     0.625,
+     0.375,
+     0.905,
+     0.68
+    ],
+    "capacity_kW": null,
+    "class": "rear-door heat exchanger",
+    "count": 14,
+    "flow_gpm": 20.0,
+    "label_text": "RDHX",
+    "loops": [
+     "CHW"
+    ],
+    "notes": "14x RDHX each 20 gpm, 50 mm CHW S/R; 4x BFV + TP per unit as printed",
+    "occurrence": 1,
+    "tag": "RDHX-1"
+   },
+   {
+    "box": [
+     0.61,
+     0.375,
+     0.92,
+     0.685
+    ],
+    "capacity_kW": null,
+    "class": "rack",
+    "count": 14,
+    "flow_gpm": null,
+    "label_text": "RACK 1",
+    "loops": [
+     "CHW",
+     "CDU"
+    ],
+    "notes": "14x racks RACK 1-10 as printed; includes AIR COOLED RACKS and DCLC RACKS; each associated with RDHX",
+    "occurrence": 1,
+    "tag": "RACK-1"
+   }
+  ],
+  "loops": [
+   {
+    "fluid": "water",
+    "name": "CHW",
+    "return_C": 13.0,
+    "supply_C": 8.0
+   },
+   {
+    "fluid": "water",
+    "name": "CDU",
+    "return_C": 20.0,
+    "supply_C": 15.0
+   },
+   {
+    "fluid": "water",
+    "name": "Dry Cooler",
+    "return_C": 38.0,
+    "supply_C": 30.0
+   }
+  ],
+  "notes": [
+   "CHW 8C/13C, CDU 15C/20C, Dry Cooler 30C/38C as printed near PHEs and dry coolers",
+   "Fluid water inferred from CHILLED WATER / CHW S/R legends; fluid not explicitly printed",
+   "14x RDHX/Racks grouped; 2x PHE 750 KW grouped; 2x DRY COOLER 300 KW grouped; 3x + 2x pumps grouped by circuit",
+   "Valve abbreviations as printed: BFV, NRV, MBFV, Y-ST/Y-STR, CV, TP, PG, FS, TG etc."
+  ],
+  "title": "HVAC SCHEMATIC DRAWING-02 - CONSTRUCTION OF COOLING INFRASTRUCTURE FOR DATA CENTRE UNDER NSM-II IN COMPUTER CENTRE, IIT KANPUR."
+ },
+ "positions": {
+  "PHE-750": {
+   "box": [
+    0.5730403800475059,
+    0.584873949579832,
+    0.5771971496437055,
+    0.5978151260504202
+   ],
+   "source": "pdf text"
+  },
+  "PHE-300": {
+   "box": [
+    0.6045130641330166,
+    0.22084033613445378,
+    0.6086698337292161,
+    0.233781512605042
+   ],
+   "source": "pdf text"
+  },
+  "DC-300": {
+   "box": [
+    0.5744655581947743,
+    0.8,
+    0.5786223277909739,
+    0.8416806722689076
+   ],
+   "source": "pdf text"
+  },
+  "CDU-1": {
+   "box": [
+    0.18871733966745843,
+    0.486218487394958,
+    0.19061757719714964,
+    0.492436974789916
+   ],
+   "source": "pdf text"
+  },
+  "TANK-1": {
+   "box": [
+    0.178,
+    0.25,
+    0.215,
+    0.31
+   ],
+   "source": "muse estimate"
+  },
+  "PUMP-CHW": {
+   "box": [
+    0.49085510688836104,
+    0.11647058823529412,
+    0.49275534441805224,
+    0.12453781512605042
+   ],
+   "source": "pdf text"
+  },
+  "PUMP-DC": {
+   "box": [
+    0.5269596199524941,
+    0.4342857142857143,
+    0.5326603325415677,
+    0.4369747899159664
+   ],
+   "source": "pdf text"
+  },
+  "RDHX-1": {
+   "box": [
+    0.25475059382422804,
+    0.9356302521008404,
+    0.25914489311163896,
+    0.9378151260504202
+   ],
+   "source": "pdf text"
+  },
+  "RACK-1": {
+   "box": [
+    0.35368171021377676,
+    0.9055462184873949,
+    0.3555819477434679,
+    0.9156302521008403
+   ],
+   "source": "pdf text"
+  }
+ },
+ "model": "muse-spark-1.3",
+ "sheet": [
+  842.0,
+  595.0
+ ],
+ "equipment": [
+  {
+   "tag": "PHE-750",
+   "id": "PHE-750",
+   "class": "plate heat exchanger",
+   "design": {
+    "capacity_kW": 750.0,
+    "count": 2,
+    "loops": "CHW, CDU",
+    "label": "PHE",
+    "notes": "2x 750 KW as printed; one side 8C/13C, other side 15C/20C"
+   },
+   "design_limits": []
+  },
+  {
+   "tag": "PHE-300",
+   "id": "PHE-300",
+   "class": "plate heat exchanger",
+   "design": {
+    "capacity_kW": 300.0,
+    "loops": "CHW, Dry Cooler",
+    "label": "PHE",
+    "notes": "300 KW as printed; 8C/13C and 30C/38C in vicinity"
+   },
+   "design_limits": []
+  },
+  {
+   "tag": "DC-300",
+   "id": "DC-300",
+   "class": "dry cooler",
+   "design": {
+    "capacity_kW": 300.0,
+    "count": 2,
+    "loops": "Dry Cooler",
+    "label": "DRY COOLER",
+    "notes": "2x DRY COOLER 300 KW as printed; 30C/38C"
+   },
+   "design_limits": []
+  },
+  {
+   "tag": "CDU-1",
+   "id": "CDU-1",
+   "class": "CDU",
+   "design": {
+    "loops": "CDU, Dry Cooler",
+    "label": "CDU",
+    "notes": "coolant distribution unit feeding racks"
+   },
+   "design_limits": []
+  },
+  {
+   "tag": "TANK-1",
+   "id": "TANK-1",
+   "class": "tank",
+   "design": {
+    "loops": "CHW",
+    "label": "THERMAL STORAGE TANK",
+    "notes": "THERMAL STORAGE TANK as printed"
+   },
+   "design_limits": []
+  },
+  {
+   "tag": "PUMP-CHW",
+   "id": "PUMP-CHW",
+   "class": "pump",
+   "design": {
+    "count": 2,
+    "loops": "CHW",
+    "label": "PUMP",
+    "notes": "2x pumps for PHE 750 KW circuit; BFV, Y-STR, NRV, TP, PG as printed"
+   },
+   "design_limits": []
+  },
+  {
+   "tag": "PUMP-DC",
+   "id": "PUMP-DC",
+   "class": "pump",
+   "design": {
+    "count": 3,
+    "loops": "Dry Cooler",
+    "label": "PUMP",
+    "notes": "3x pumps for PHE 300 KW / dry cooler circuit; BFV, Y-ST, TP, PG, TG-1, NRV as printed"
+   },
+   "design_limits": []
+  },
+  {
+   "tag": "RDHX-1",
+   "id": "RDHX-1",
+   "class": "rear-door heat exchanger",
+   "design": {
+    "flow_gpm": 20.0,
+    "count": 14,
+    "loops": "CHW",
+    "label": "RDHX",
+    "notes": "14x RDHX each 20 gpm, 50 mm CHW S/R; 4x BFV + TP per unit as printed"
+   },
+   "design_limits": []
+  },
+  {
+   "tag": "RACK-1",
+   "id": "RACK-1",
+   "class": "rack",
+   "design": {
+    "count": 14,
+    "loops": "CHW, CDU",
+    "label": "RACK 1",
+    "notes": "14x racks RACK 1-10 as printed; includes AIR COOLED RACKS and DCLC RACKS; each associated with RDHX"
+   },
+   "design_limits": []
+  }
+ ],
+ "connections": [
+  {
+   "from": "PUMP-CHW(pump)",
+   "to": "PHE-750(plate heat exchanger)",
+   "lines": [
+    "CHW"
+   ],
+   "inline": [
+    "BFV",
+    "Y-STR",
+    "NRV",
+    "TP",
+    "PG"
+   ]
+  },
+  {
+   "from": "PHE-750(plate heat exchanger)",
+   "to": "RDHX-1(rear-door heat exchanger)",
+   "lines": [
+    "CHW"
+   ],
+   "inline": [
+    "BFV",
+    "MBFV",
+    "CV",
+    "TP",
+    "PG"
+   ]
+  },
+  {
+   "from": "RDHX-1(rear-door heat exchanger)",
+   "to": "RACK-1(rack)",
+   "lines": [
+    "CHW"
+   ],
+   "inline": [
+    "BFV",
+    "TP"
+   ]
+  },
+  {
+   "from": "PHE-750(plate heat exchanger)",
+   "to": "CDU-1(CDU)",
+   "lines": [
+    "CDU"
+   ],
+   "inline": [
+    "BFV",
+    "MBFV",
+    "CV",
+    "TP",
+    "PG"
+   ]
+  },
+  {
+   "from": "CDU-1(CDU)",
+   "to": "RACK-1(rack)",
+   "lines": [
+    "CDU"
+   ],
+   "inline": [
+    "BFV"
+   ]
+  },
+  {
+   "from": "DC-300(dry cooler)",
+   "to": "PHE-300(plate heat exchanger)",
+   "lines": [
+    "Dry Cooler"
+   ],
+   "inline": [
+    "BFV",
+    "MBFV",
+    "CV",
+    "TP",
+    "PG",
+    "FS"
+   ]
+  },
+  {
+   "from": "PHE-300(plate heat exchanger)",
+   "to": "PUMP-DC(pump)",
+   "lines": [
+    "Dry Cooler"
+   ],
+   "inline": [
+    "BFV",
+    "Y-ST",
+    "NRV",
+    "TP",
+    "PG"
+   ]
+  },
+  {
+   "from": "PUMP-DC(pump)",
+   "to": "DC-300(dry cooler)",
+   "lines": [
+    "Dry Cooler"
+   ],
+   "inline": [
+    "BFV",
+    "Y-ST",
+    "NRV"
+   ]
+  },
+  {
+   "from": "TANK-1(tank)",
+   "to": "PHE-750(plate heat exchanger)",
+   "lines": [
+    "CHW"
+   ],
+   "inline": [
+    "BFV"
+   ]
+  }
+ ],
+ "lines": [
+  {
+   "line": "CHW",
+   "fluid_code": "water",
+   "supply_C": 8.0,
+   "return_C": 13.0
+  },
+  {
+   "line": "CDU",
+   "fluid_code": "water",
+   "supply_C": 15.0,
+   "return_C": 20.0
+  },
+  {
+   "line": "Dry Cooler",
+   "fluid_code": "water",
+   "supply_C": 30.0,
+   "return_C": 38.0
+  }
+ ],
+ "valves": [],
+ "control": [],
+ "data_quality": [],
+ "read_notes": [
+  "CHW 8C/13C, CDU 15C/20C, Dry Cooler 30C/38C as printed near PHEs and dry coolers",
+  "Fluid water inferred from CHILLED WATER / CHW S/R legends; fluid not explicitly printed",
+  "14x RDHX/Racks grouped; 2x PHE 750 KW grouped; 2x DRY COOLER 300 KW grouped; 3x + 2x pumps grouped by circuit",
+  "Valve abbreviations as printed: BFV, NRV, MBFV, Y-ST/Y-STR, CV, TP, PG, FS, TG etc."
+ ],
+ "seconds": 37
+}

@@ -120,7 +120,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
       const title = (c?.title || p.title).split(",")[0];
       const task = c?.task_type || p.task_type;
       const score = c?.benchmark && c.score != null ? `<div class="score">Matched ${Math.round(c.score * 100)}% of the engineers' conclusions</div><div class="bar"><i style="width:${c.score * 100}%"></i></div>` :
-        p?.kind === "process" ? `<div class="score" style="color:var(--muted)">Model built by the agent from the drawing and data sheet</div>` : `<div class="score" style="color:var(--muted)">Not benchmarked</div>`;
+        p?.kind === "process" ? `<div class="score" style="color:var(--muted)">${p.built ? "Model built by the agent from the drawing and data sheet" : "Drawing read by Muse; simulation model not reliable yet"}</div>` : `<div class="score" style="color:var(--muted)">Not benchmarked</div>`;
       const open = p?.kind === "process" ? `<a class="btn go" href="plant.html?case=${id}">Explore case</a>` :
         p?.workspace ? `<a class="btn go" href="workspace.html?case=${id}">Explore case</a>` : "";
       const replay = c?.runs?.length ? `<a class="btn" href="index.html?case=${id}">View study replay</a>` : "";
