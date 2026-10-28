@@ -1,0 +1,7 @@
+# Step 3 - Calibration against field data
+
+| test | source | measured | simulated | residual_pct | run_label | note |
+|---|---|---|---|---|---|---|
+| Design-lift calibration River 172.4 mNGF (p.11) to canal 182.963 mNGF (p.8) | p.12 Table 1 | 610 l/s Design duty CT3400/736 (p.12 Table 1: 610 l/s, 95.4 kW, 77.5%, 43.5 kWh/1000m3) | 609.5 l/s, 11.36 m TDH, 92.2 kW electric, 1.58 m/s DN700, 42.0 kWh/ML (CAL-BASE-DES run output) | -0.08 | CAL-BASE-DES | Tuned rated head 11.35 m to reproduce nominal 0.6 m3/s target (p.5+p.7). Specific 42.0 kWh/ML sim vs 43.5 (p.12) within 3.5%. Base for annual energy. |
+| Low-lift runout River TWL 177.48 mNGF (p.8+p.11) | p.11+p.12 | ~800 l/s runout at minimum lift (p.11) ; Table 1 Minimum 803 l/s, 96.2 kW, 67.3%, 33.3 kWh/1000m3, NPSHr 8.22 m (p.12) | 887.8 l/s, 7.12 m TDH, 84.2 kW electric, 2.31 m/s DN700, 146% rated warning (CAL-BASE-MIN run output) | 10.6 | CAL-BASE-MIN | Single-point EPANET curve overpredicts far-right flow (+10.6%). Directionally confirms runout well above 600 l/s nominal (p.5) and efficiency drop 77.5% to 67.3% (p.12). Illustrates velocity/NPSH risk, not exact prediction. |
+| Old RATEAU ID BV 57 measured duty (p.6+p.14) | p.14 Table 3 | 880 l/s at 166 kW input, 99 kW hydraulic, 60%, 52.4 kWh/1000m3, 300A 380V (p.14 Table 3) | 819.6 l/s, 11.97 m TDH, 168.8 kW electric, 2.13 m/s DN700 (ALT-OLD-880 run output) | -6.86 | ALT-OLD-880 | Confirms old-pump baseline inefficiency vs new 77.5-78.8% (p.12). Flow residual reflects unknown test lift/head; power match +1.7% validates electric model. |

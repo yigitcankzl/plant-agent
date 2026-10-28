@@ -1,0 +1,3790 @@
+{
+  "case": "west_norriton",
+  "facility": "Rittenhouse Boulevard Pump Station and Force Main, West Norriton Township, Pennsylvania",
+  "source": "Gilmore & Associates, Rittenhouse Boulevard Pump Station capacity study for West Norriton Township, November 2020 (public record)",
+  "url": "https://westnorritontwp.org/DocumentCenter/View/1369",
+  "question": "The Rittenhouse Boulevard sewage pump station must convey the projected 20-year peak flow of 4,960 gpm (7.14 MGD) with one pump out of service. Can the existing station and force main do it? If not, what limits it, and what are the least-cost alternatives (pumps, impellers, force main) that achieve at least 4,960 gpm with two pumps operating? Verify each alternative's operating point.",
+  "model": "muse-spark-1.3-contributor",
+  "collection": {
+    "criteria": [
+      {
+        "name": "Required firm capacity (largest unit out of service)",
+        "source": "Task brief + p.3",
+        "value": ">=4,960 gpm (7.14 MGD) with two pumps operating, one pump out of service"
+      },
+      {
+        "name": "Projected 20-year peak flow - design flow",
+        "source": "p.3",
+        "value": "4,960 gpm = 7.14 MGD = 7,141,500 gpd"
+      },
+      {
+        "name": "Peak flow methodology",
+        "source": "p.3",
+        "value": "2,106,900 gpd historical avg (Jan 2016-Sept 2020) + 273,600 gpd growth (960 EDU x 285 gpd/EDU) = 2,380,500 gpd avg x PF 3.0 = 7,141,500 gpd peak"
+      },
+      {
+        "name": "Static head basis for hydraulics",
+        "source": "p.10",
+        "value": "29.35 ft (73.9 ft high point minus 44.55 ft wetwell Pump Off)"
+      },
+      {
+        "name": "Force-main roughness basis",
+        "source": "p.10",
+        "value": "C=85 for 13,500 ft 18.24-in CIP existing force main; C=120 for 97 ft 18.49-in DIP and 32.3 ft 12.34-in DIP station piping"
+      },
+      {
+        "name": "Existing pump curve basis",
+        "source": "p.13",
+        "value": "Existing Pump Performance Curve 17.25-in impeller, 1-pump and 2-/3-pump parallel curves vs system head curves as tabulated"
+      }
+    ],
+    "definitions": [
+      {
+        "source": "Developer instruction",
+        "term": "Firm capacity",
+        "definition": "Capacity with the largest unit of a station out of service; here 2 of 3 pumps operating"
+      },
+      {
+        "source": "p.3",
+        "term": "20-year peak flow",
+        "definition": "Total projected 20-year average daily flow multiplied by average daily dry-weather peaking factor 3.0"
+      },
+      {
+        "source": "p.3",
+        "term": "EDU",
+        "definition": "Estimated dwelling unit; growth projected as 960 EDU at 285 gpd/EDU"
+      },
+      {
+        "source": "p.10",
+        "term": "Static head",
+        "definition": "High Point Elev minus Low Point Elev (Wetwell Pump Off)"
+      },
+      {
+        "source": "p.10",
+        "term": "C",
+        "definition": "Hazen-Williams roughness coefficient for force-main pipe"
+      },
+      {
+        "source": "p.10",
+        "term": "Equivalent length",
+        "definition": "Pipe length plus equivalent length of bends/valves/meters for head-loss calculation; total 14,505 ft"
+      },
+      {
+        "source": "p.13",
+        "term": "Parallel pump operation",
+        "definition": "2 Pumps (Parallel) or 3 Pumps (Parallel) combined head-capacity curve vs 1/2/3-pump system head curves"
+      }
+    ],
+    "standards": [
+      {
+        "name": "PA DEP permitted capacity 8.74 MGD",
+        "use": "Permit ceiling cited p.3 for comparison; design must not exceed permit without modification"
+      },
+      {
+        "name": "Township Chapter 94 reporting + historical flows",
+        "use": "Basis cited p.3 for growth and peaking projections"
+      },
+      {
+        "name": "Hazen-Williams head-loss method (implied by C values)",
+        "use": "Use C=85/120 and diameters/lengths/equivalent lengths from p.10 in run_hydraulics; do not compute hydraulics by hand"
+      },
+      {
+        "name": "Document units (gpm, MGD, gpd, ft, in, hp)",
+        "use": "Retain as printed; 1 MGD = 694.44 gpm for checks"
+      }
+    ],
+    "data_register": [
+      {
+        "id": "D01",
+        "item": "Projected 20-year peak flow",
+        "quote": "projected 20-year peak flow and anticipated flow capacity need ... is approximately 7.14 MGD or 4,960 gpm",
+        "source": "p.3",
+        "unit": "gpm / MGD / gpd",
+        "value": "4,960 gpm = 7.14 MGD = 7,141,500 gpd"
+      },
+      {
+        "id": "D02",
+        "item": "Historical average daily flow Jan 2016-Sept 2020",
+        "quote": "average daily flow from January 2016 to September 2020, was approximately 2,106,900 gallons per day (gpd)",
+        "source": "p.3",
+        "unit": "gpd",
+        "value": "2,106,900"
+      },
+      {
+        "id": "D03",
+        "item": "Average daily dry weather peaking factor",
+        "quote": "had an average daily dry weather peaking factor of 3.0",
+        "source": "p.3",
+        "unit": "dimensionless",
+        "value": "3.0"
+      },
+      {
+        "id": "D04",
+        "item": "Projected new connections",
+        "quote": "it is projected that 960 new estimated dwelling units (EDUs) will be connected to the station within 20 years",
+        "source": "p.3",
+        "unit": "EDU",
+        "value": "960"
+      },
+      {
+        "id": "D05",
+        "item": "Unit flow per EDU",
+        "quote": "Based on a standard 285 gpd/EDU",
+        "source": "p.3",
+        "unit": "gpd/EDU",
+        "value": "285"
+      },
+      {
+        "id": "D06",
+        "item": "Projected 20-year flow addition",
+        "quote": "projected 20-year flow addition to the station is 273,600 gpd",
+        "source": "p.3",
+        "unit": "gpd",
+        "value": "273,600"
+      },
+      {
+        "id": "D07",
+        "item": "Growth breakdown Riverview",
+        "quote": "Riverview 330 EDU 285 gal/EDU 94,050 gpd",
+        "source": "p.3",
+        "unit": "EDU / gpd",
+        "value": "330 EDU = 94,050 gpd"
+      },
+      {
+        "id": "D08",
+        "item": "Growth breakdown Main & Schuylkill",
+        "quote": "Main & Schyulkill [sic] 22 EDU 285 gal/EDU 6,270 gpd",
+        "source": "p.3",
+        "unit": "EDU / gpd",
+        "value": "22 EDU = 6,270 gpd"
+      },
+      {
+        "id": "D09",
+        "item": "Growth breakdown Office Bldg @ Egypt",
+        "quote": "Office Bldg @ Egypt 8 EDU 285 gal/EDU 2,280 gpd",
+        "source": "p.3",
+        "unit": "EDU / gpd",
+        "value": "8 EDU = 2,280 gpd"
+      },
+      {
+        "id": "D10",
+        "item": "Growth breakdown Westover",
+        "quote": "Westover 500 EDU 285 gal/EDU 142,500 gpd",
+        "source": "p.3",
+        "unit": "EDU / gpd",
+        "value": "500 EDU = 142,500 gpd"
+      },
+      {
+        "id": "D11",
+        "item": "Growth breakdown Miscellaneous",
+        "quote": "Miscellaneous 100 EDU 285 gal/EDU 28,500 gpd",
+        "source": "p.3",
+        "unit": "EDU / gpd",
+        "value": "100 EDU = 28,500 gpd"
+      },
+      {
+        "id": "D12",
+        "item": "Total projected 20-year average daily flow",
+        "quote": "Summing the recorded historical average daily flow of 2,106,900 gpd with the projected 20-year flow addition of 273,600 gpd, the resulting flow is 2,380,500 gpd",
+        "source": "p.3",
+        "unit": "gpd",
+        "value": "2,380,500 (Table 1 shows 2,380,511)"
+      },
+      {
+        "id": "D13",
+        "item": "2016 field inspection capacity (2 pumps)",
+        "quote": "field inspection concluded the flow capacity of the station, with two pumps operating, was approximately 3,200 gallons per minute (gpm) or 4.6 million gallons per day (MGD)",
+        "source": "p.3",
+        "unit": "gpm / MGD",
+        "value": "3,200 gpm = 4.6 MGD"
+      },
+      {
+        "id": "D14",
+        "item": "Rettew Aug 2013 projected capacity",
+        "quote": "less than half of the projected flow capacity of 6,600 gpm or 9.5 MGD as documented in the Rettew Design Engineer's Report dated August 2013",
+        "source": "p.3",
+        "unit": "gpm / MGD",
+        "value": "6,600 gpm = 9.5 MGD"
+      },
+      {
+        "id": "D15",
+        "item": "Pre-2015 upgrade capacity",
+        "quote": "approximately 2.2 MGD lower than the previous flow capacity prior to the 2015 upgrade (6.8 MGD)",
+        "source": "p.3",
+        "unit": "MGD",
+        "value": "6.8"
+      },
+      {
+        "id": "D16",
+        "item": "PA DEP permitted capacity",
+        "quote": "4.14 MGD lower than the Pennsylvania Department of Environmental Protection (PA DEP) permitted capacity of 8.74 MGD",
+        "source": "p.3",
+        "unit": "MGD",
+        "value": "8.74"
+      },
+      {
+        "id": "D17",
+        "item": "Station configuration",
+        "quote": "designed and built as a conventional wet well/dry well triplex pump station",
+        "source": "p.4",
+        "unit": "none",
+        "value": "triplex (3 pumps)"
+      },
+      {
+        "id": "D18",
+        "item": "Original pumps (c.1965)",
+        "quote": "originally comprised of three 75 hp pumps, each capable of delivering 1,750 gpm (2.5 MGD)",
+        "source": "p.4",
+        "unit": "hp / gpm / MGD",
+        "value": "3 x 75 hp x 1,750 gpm (2.5 MGD)"
+      },
+      {
+        "id": "D19",
+        "item": "Influent gravity sewer and wetwell depth",
+        "quote": "A 24-inch cast iron gravity pipe discharged into the wetwell, which was approximately 37 feet below grade",
+        "source": "p.4",
+        "unit": "in / ft",
+        "value": "24-in CIP gravity; wetwell ~37 ft below grade"
+      },
+      {
+        "id": "D20",
+        "item": "Force main route and length / discharge point",
+        "quote": "pumped directly to the headworks of the Norristown Municipal Wastewater Authority (NMWA) Wastewater Treatment Plant (WWTP) located at 368 E. Washington Street via approximately 13,500 LF of 18-inch cast iron force main",
+        "source": "p.4",
+        "unit": "LF / in",
+        "value": "~13,500 LF 18-in CIP to NMWA WWTP headworks"
+      },
+      {
+        "id": "D21",
+        "item": "1983 upgrade pumps",
+        "quote": "new enlarged pumps, each rated at 100 hp, and capable of 2,000 gpm (2.9 MGD)",
+        "source": "p.4",
+        "unit": "hp / gpm / MGD",
+        "value": "100 hp x 2,000 gpm (2.9 MGD) each"
+      },
+      {
+        "id": "D22",
+        "item": "1992 field test capacity (3 pumps)",
+        "quote": "station had a capacity of approximately 3,200 gpm (4.6 MGD) with all three pumps operating. The recorded pump capacity was measured during a field test conducted on June 19, 1992",
+        "source": "p.4",
+        "unit": "gpm / MGD",
+        "value": "3,200 gpm (4.6 MGD) with 3 pumps operating on 1992-06-19"
+      },
+      {
+        "id": "D23",
+        "item": "Existing force main STA 0+00 to 135+00 geometry",
+        "quote": "PIPE DIAMETER FM (in) = 18.24 LENGTH OF PIPE FM (ft) = 13,500 PIPE TYPE = C.I.P. C= 85",
+        "source": "p.10",
+        "unit": "in / ft",
+        "value": "18.24-in dia x 13,500 ft CIP C=85"
+      },
+      {
+        "id": "D24",
+        "item": "Existing force main STA -0+97 to 0+00 geometry",
+        "quote": "PIPE DIAMETER PS (in) = 18.49 LENGTH OF PIPE PS (ft) = 97 PIPE TYPE = DIP C= 120",
+        "source": "p.10",
+        "unit": "in / ft",
+        "value": "18.49-in dia x 97 ft DIP C=120"
+      },
+      {
+        "id": "D25",
+        "item": "Inside pump station piping geometry",
+        "quote": "PIPE DIAMETER PS (in) = 12.34 LENGTH OF PIPE PS (ft) = 32.3 PIPE TYPE = DIP C= 120",
+        "source": "p.10",
+        "unit": "in / ft",
+        "value": "12.34-in dia x 32.3 ft DIP C=120"
+      },
+      {
+        "id": "D26",
+        "item": "High point elevation",
+        "quote": "HIGH POINT ELEV. (ft) 73.9",
+        "source": "p.10",
+        "unit": "ft",
+        "value": "73.9"
+      },
+      {
+        "id": "D27",
+        "item": "Low point elevation (wetwell Pump Off)",
+        "quote": "LOW POINT ELEV. (ft) 44.55 Wetwell Pump Off Off",
+        "source": "p.10",
+        "unit": "ft",
+        "value": "44.55"
+      },
+      {
+        "id": "D28",
+        "item": "Static head",
+        "quote": "STATIC HEAD (ft) = 29.35",
+        "source": "p.10",
+        "unit": "ft",
+        "value": "29.35 (=73.9-44.55)"
+      },
+      {
+        "id": "D29",
+        "item": "Equivalent length 18-in DIP STA -0+97 to 0+00",
+        "quote": "TOTAL EQV. LENGTH (ft) = 124.6 [18-in DIP fittings: plug valves, tees, bends, mag meter, increaser]",
+        "source": "p.10",
+        "unit": "ft",
+        "value": "124.6"
+      },
+      {
+        "id": "D30",
+        "item": "Equivalent length 12-in DIP inside station",
+        "quote": "TOTAL EQV. LENGTH (ft) = 156.4 [12-in DIP: increaser, check valve, plug valve, 45-deg bends]",
+        "source": "p.10",
+        "unit": "ft",
+        "value": "156.4"
+      },
+      {
+        "id": "D31",
+        "item": "Equivalent length 18-in CIP STA 0+00 to 135+00",
+        "quote": "TOTAL EQV. LENGTH (ft) = 594.2 [18-in CIP: 90-deg, 45-deg, 22.5-deg, 11.25-deg bends, air-release tees]",
+        "source": "p.10",
+        "unit": "ft",
+        "value": "594.2"
+      },
+      {
+        "id": "D32",
+        "item": "Total equivalent length of pipe",
+        "quote": "Total Equivalent Length of Pipe 14,505",
+        "source": "p.10",
+        "unit": "ft",
+        "value": "14,505"
+      },
+      {
+        "id": "D33",
+        "item": "Existing pump impeller size",
+        "quote": "Existing Pump Performance Curve (17.25\" Impeller)",
+        "source": "p.13",
+        "unit": "in",
+        "value": "17.25"
+      },
+      {
+        "id": "D34",
+        "item": "System heads (1/2/3 pumps) at 0 gpm",
+        "quote": "0 29.35 29.35 29.35 [Flow Rate 1 Pump 2 Pump 3 Pump]",
+        "source": "p.13",
+        "unit": "gpm / ft",
+        "value": "0 gpm = 29.35 ft (all)"
+      },
+      {
+        "id": "D35",
+        "item": "System heads at 3,034-3,200 gpm (~existing capacity)",
+        "quote": "3034 114.04 111.29 110.74 / 3200 122.81 119.78 119.16",
+        "source": "p.13",
+        "unit": "gpm / ft",
+        "value": "3034 gpm: 114.04/111.29/110.74 ft; 3200 gpm: 122.81/119.78/119.16 ft"
+      },
+      {
+        "id": "D36",
+        "item": "System heads at 4,800-5,000 gpm (~target range)",
+        "quote": "4800 227.23 220.81 219.51 / 5000 242.75 235.83 234.42",
+        "source": "p.13",
+        "unit": "gpm / ft",
+        "value": "4800 gpm: 227.23/220.81/219.51 ft; 5000 gpm: 242.75/235.83/234.42 ft"
+      },
+      {
+        "id": "D37",
+        "item": "Pump heads 1-pump and 2-pump parallel",
+        "quote": "0 152.68 152.68 / 1600 124.22 137.48 / 2000 116.44 134.23 / 4800 70.80 111.47 / 6000 101.67 [1 Pump 2 Pumps (Parallel)]",
+        "source": "p.13",
+        "unit": "gpm / ft",
+        "value": "e.g., 0 gpm 152.68 ft; 2-pump 4800 gpm 111.47 ft; 2-pump 6000 gpm 101.67 ft"
+      },
+      {
+        "id": "D38",
+        "item": "Pump heads 3-pump parallel",
+        "quote": "2400 137.48 / 3000 134.23 / 4800 124.22 / 6000 116.44 / 9000 101.67 / 9600 98.27 [3 Pumps (Parallel)]",
+        "source": "p.13",
+        "unit": "gpm / ft",
+        "value": "e.g., 3-pump 4800 gpm 124.22 ft; 6000 gpm 116.44 ft"
+      }
+    ],
+    "rfi": [
+      {
+        "issue": "R-01 System-head table values withheld on p.10; only geometry/equivalent lengths legible",
+        "item": "Friction + minor loss values for 1/2/3-pump cases",
+        "reason": "Must recompute system curves with run_hydraulics from p.10 geometry rather than copy withheld numbers; p.13 system heads used only for cross-check",
+        "resolution": "ASSUMPTION: Use run_hydraulics with D23-D32 geometry, C=85/120, static 29.35 ft; treat p.13 system-head columns as check data, not design basis"
+      },
+      {
+        "issue": "R-02 Pump make/model, speed, motor HP and VFD status for current 17.25-in pumps not on available pages",
+        "item": "Existing pump driver and curve limits",
+        "reason": "p.13 gives only impeller size and head-capacity points; HP/speed needed for alternative pump/impeller costing comes from withheld pages",
+        "resolution": "ASSUMPTION: Treat p.13 17.25-in curves as the as-tested existing-pump basis for no-change case; evaluate pump/impeller upsizes only by their published curves when pages become available, holding station piping as-is unless force-main alternative is tested"
+      },
+      {
+        "issue": "R-03 Conflicting capacity statements: 3,200 gpm with 2 pumps (p.3, 2016) vs 3,200 gpm with 3 pumps (p.4, 1992)",
+        "item": "What is firm (2-pump) vs installed (3-pump) existing capacity",
+        "reason": "Different pump vintages/configurations; task requires firm capacity with 1 out, so 2016 2-pump test governs current adequacy",
+        "resolution": "ASSUMPTION: Adopt p.3 3,200 gpm with 2 operating as existing firm baseline for deficiency = 4,960-3,200 = 1,760 gpm shortfall; cite p.4 1992 3-pump value only as history"
+      },
+      {
+        "issue": "R-04 Conflicting projections: Rettew 6,600 gpm/9.5 MGD vs G&A 4,960 gpm/7.14 MGD",
+        "item": "Which target governs",
+        "reason": "Task explicitly sets 4,960 gpm 20-year peak; G&A 2020 supersedes 2013 estimate with updated history + Chapter 94 growth",
+        "resolution": "ASSUMPTION: Design to 4,960 gpm firm; note Rettew 6,600 gpm and DEP 8.74 MGD only for context/permit headroom"
+      },
+      {
+        "issue": "R-05 Suction (wetwell operating) level for duty point vs 44.55 ft Pump-Off level",
+        "item": "Pump-on / low-water operating elevation",
+        "source": "p.10 shows only Low Point 44.55 ft Wetwell Pump Off; duty static may be larger at low water",
+        "reason": "Static head 29.35 ft uses Pump-Off level; operating static at pump-on or low-water would be higher and conservative. Without operating levels must fix datum.",
+        "resolution": "ASSUMPTION: Use 29.35 ft static head as printed for all run_hydraulics cases; note that lower wetwell levels would increase required head and would only worsen existing deficiency"
+      },
+      {
+        "issue": "R-06 Actual internal diameters/roughness (18.24 vs nominal 18; C=85 old CIP) and fitting counts partially legible",
+        "item": "True Hazen-Williams diameter and minor-loss inventory",
+        "reason": "Must use numbers as printed; field wear/tuberculation could raise losses beyond C=85",
+        "resolution": "ASSUMPTION: Use listed actual IDs (18.24/18.49/12.34 in), lengths (13,500/97/32.3 ft), C values, and total equivalent 14,505 ft exactly as p.10; sensitivity to lower C to be noted as risk, not base case"
+      },
+      {
+        "issue": "R-07 Least-cost alternative costs, proposed impellers, parallel force-main sizing not on available pages (recommendation clauses withheld)",
+        "item": "Alternative pump/impeller/force-main options and costs",
+        "reason": "Cannot invent costs or new curves; later steps must derive operating points from facts + run_hydraulics/velocity",
+        "resolution": "ASSUMPTION: Reach conclusions from facts on available pages; verify each alternative operating point by run_hydraulics intersection with quoted pump curves and velocity checks, and rank least-cost by pipe/pump scope qualitatively pending cost pages"
+      }
+    ],
+    "units_on_path": [
+      "24-in CIP gravity influent to wetwell (~37 ft below grade)",
+      "Wetwell (low point 44.55 ft Pump Off)",
+      "Triplex dry-well pumps (existing 17.25-in impeller curves, p.13)",
+      "12.34-in DIP discharge piping inside pump station (32.3 ft + 156.4 ft equiv, C=120)",
+      "18.49-in DIP force main STA -0+97 to 0+00 (97 ft + 124.6 ft equiv, C=120)",
+      "18.24-in CIP force main STA 0+00 to 135+00 (13,500 ft + 594.2 ft equiv, C=85)",
+      "High point (73.9 ft) controlling 29.35 ft static head",
+      "NMWA WWTP headworks discharge (368 E Washington St)"
+    ]
+  },
+  "analysis": {
+    "alternatives": [
+      {
+        "cost_basis": "ASSUMPTION: qualitative only - no costs on pp.3,4,10,13; pump/motor/VFD/electrical + pressure-rating review only avoids ~13,500 LF (p.4) parallel FM along Schuylkill River (p.4); illustrative rating 2500 gpm at 240 ft (ASSUMPTION: selected to overcome ~235.83 ft at 5,000 gpm 2-pump p.13); shaft ~190.3 hp (run ALT-A-HH2) needs ~250 hp motors (ASSUMPTION: motor > shaft for margin, no motor data on pages)",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "A - High-head replacement pumps on existing single FM (pump-only, illustrative)",
+        "recommended": true,
+        "result": "5049.2 gpm total 7.271 MGD with 2 pumps (run ALT-A-HH2) exceeds 4,960 gpm 7.14 MGD (p.3) by ~89 gpm (ASSUMPTION: 5049.2 minus 4960 arithmetic); per pump 2524.6 gpm at 238.42 ft TDH (run ALT-A-HH2) vs system 220.81 ft at 4,800 gpm and 235.83 ft at 5,000 gpm 2-pump (p.13); HDR 121.55 psi and N1 122.72 psi (run ALT-A-HH2); FM 6.2 fps, PS18 6.03 fps, branch 6.77 fps (run ALT-A-HH2); shaft 190.3 hp, 101% of rated flow (run ALT-A-HH2) with default eff 0.80/motor 0.95 (ASSUMPTION: tool defaults, no data on pages)",
+        "run_label": "ALT-A-HH2",
+        "unit": "Triplex pumps firm 2 of 3 largest out (triplex p.4)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: qualitative only - no costs on pp.3,4,10,13; ~13,500 LF (p.4) parallel 18.24-in FM (p.10) along Schuylkill River (p.4) dominates; retains existing 17.25-in pumps (p.13) so no pump cost; new-barrel diameter/length/C ASSUMPTION: same 18.24-in x 14094.2 ft C=120 as new-pipe roughness, existing C=85 (p.10)",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "B - Parallel FM retaining existing 17.25-in pumps (force-main-only)",
+        "recommended": false,
+        "result": "6402.3 gpm total 9.219 MGD with 2 existing pumps (run ALT-B-PFM-EX) exceeds 4,960 gpm 7.14 MGD (p.3) by ~1442 gpm (ASSUMPTION: arithmetic); per pump 3201.1 gpm at 98.25 ft TDH (run ALT-B-PFM-EX) vs single-pump curve 98.27 ft at 3200 gpm (p.13) and shutoff 152.68 ft at 0 gpm (p.13); split 2654.6 gpm existing C=85 and 3747.7 gpm new C=120 (run ALT-B-PFM-EX; C existing p.10, C new ASSUMPTION); branch 8.59 fps PS18 7.65 fps (run ALT-B-PFM-EX); shaft 99.5 hp default eff (run ALT-B-PFM-EX, ASSUMPTION defaults)",
+        "run_label": "ALT-B-PFM-EX",
+        "unit": "18.24-in CIP FM STA 0+00 to 135+00 13,500 ft C=85 (p.10) plus parallel barrel (ASSUMPTION)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: qualitative only - no costs on pp.3,4,10,13; combines ~13,500 LF (p.4) parallel FM cost plus new pumps/motors; illustrative rating 2500 gpm at 105 ft (ASSUMPTION: selected for ~90 ft duty); highest capital by avoiding nothing, lowest head/energy",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "C - Parallel FM plus moderate new pumps (combined, illustrative)",
+        "recommended": false,
+        "result": "5976.2 gpm total 8.606 MGD with 2 pumps rated 2500 gpm at 105 ft (ASSUMPTION rating) (run ALT-C-PFM-NP) exceeds 4,960 gpm 7.14 MGD (p.3) by ~1016 gpm (ASSUMPTION: arithmetic); per pump 2988.1 gpm at 90.0 ft TDH 120% of rated flow (run ALT-C-PFM-NP); HDR 56.76 psi (run ALT-C-PFM-NP); branch 8.02 fps PS18 7.14 fps (run ALT-C-PFM-NP); shaft 85.0 hp default eff (run ALT-C-PFM-NP, ASSUMPTION defaults)",
+        "run_label": "ALT-C-PFM-NP",
+        "unit": "System pumps + parallel FM (ASSUMPTION ratings/barrel)"
+      }
+    ],
+    "base_model_run": "BASE2",
+    "calibration": [
+      {
+        "measured": "3,200 gpm (4.6 MGD) with two pumps operating, Feb 2016 field inspection (p.3)",
+        "note": "Model reproduces firm-capacity test within 2.5%; geometry C=85 13,500 ft 18.24-in (p.10) plus C=120 station piping (p.10) and 29.35 ft static (73.9 ft minus 44.55 ft) (p.10); curves 17.25-in (p.13)",
+        "residual_pct": 2.5,
+        "run_label": "BASE2",
+        "simulated": "3,280.8 gpm total (4.724 MGD), per pump 1640.4 gpm at 123.43 ft TDH (run BASE2)",
+        "source": "p.3",
+        "test": "2016 firm-capacity test (2 pumps)"
+      },
+      {
+        "measured": "3,200 gpm (4.6 MGD) with all three pumps operating on 1992-06-19 (p.4)",
+        "note": "ASSUMPTION: 1992 test was on 1983 100-hp 2,000 gpm pumps (p.4), not current 17.25-in pumps (p.13), so not direct calibration; shown for history. Current 3-pump model gives 3,446.9 gpm (run BASE3), +7.7% above 1992 value, consistent with different pump vintage.",
+        "residual_pct": 7.7,
+        "run_label": "BASE3",
+        "simulated": "3,446.9 gpm total (4.964 MGD), per pump 1149.0 gpm at 131.74 ft TDH (run BASE3)",
+        "source": "p.4",
+        "test": "1992 installed-capacity test (3 pumps)"
+      },
+      {
+        "measured": "2-pump system head 119.78 ft at 3,200 gpm and 136.08 ft at 3,500 gpm (p.13); interpolated ~124.17 ft at 3,280.8 gpm (ASSUMPTION: linear interpolation between tabulated p.13 values for check only)",
+        "note": "TDH matches interpolated system head within -0.6%, confirming Hazen-Williams C=85/120 (p.10), IDs 18.24/18.49/12.34-in (p.10), lengths 13,500/97/32.3 ft (p.10) and equiv 124.6/156.4/594.2 ft total 14,505 ft (p.10) are correctly coded",
+        "residual_pct": -0.6,
+        "run_label": "BASE2",
+        "simulated": "123.43 ft TDH at 3,280.8 gpm total (run BASE2)",
+        "source": "p.13",
+        "test": "System-head curve check (2-pump)"
+      }
+    ],
+    "capacity_table": [
+      {
+        "binds_at": "~3,281 gpm firm intersection (run BASE2); target 4,960 gpm (p.3) not reached",
+        "evidence": "BASE2 firm 3,280.8 gpm (4.724 MGD) (run BASE2) < 4,960 gpm (7.14 MGD) (p.3), shortfall ~1,680 gpm (ASSUMPTION: 4,960 minus 3,280.8 arithmetic); 1-pump 2,847.6 gpm at 104.16 ft (run BASE1); 3-pump 3,446.9 gpm (run BASE3) still < 4,960 gpm (p.3); adds only ~166 gpm for 3rd pump (ASSUMPTION: 3,446.9 minus 3,280.8) showing steep system",
+        "limit": "Firm 3,280.8 gpm (4.724 MGD) with 2 pumps, 17.25-in impeller (p.13) (run BASE2)",
+        "limits_target": true,
+        "unit": "Pump station firm (triplex, 2 of 3 operating; triplex p.4)"
+      },
+      {
+        "binds_at": "Binds below 4,960 gpm (p.3); at 4,800-5,000 gpm system needs 220.81-235.83 ft 2-pump (p.13)",
+        "evidence": "System 227.23 ft 1-pump / 220.81 ft 2-pump at 4,800 gpm and 242.75 ft / 235.83 ft at 5,000 gpm (p.13) vs 2-pump pump head only 111.47 ft at 4,800 gpm and 101.67 ft at 6,000 gpm (p.13); velocity at 7.14 MGD (p.3) in 18.24-in (p.10) is 6.089 fps (velocity tool) and at 6.8 MGD (p.3) is 5.798 fps (velocity tool); BASE2 FM velocity 4.03 fps at 3,280.8 gpm (run BASE2) rising to 6.2 fps at 5,049.2 gpm (run ALT-PUMP-BIG)",
+        "limit": "Friction-controlled; existing 18.24-in x 13,500 ft CIP C=85 (p.10) + 594.2 ft equiv (p.10)",
+        "limits_target": true,
+        "unit": "Force main STA 0+00 to 135+00"
+      },
+      {
+        "binds_at": "Does not bind before FM/pumps; minor vs 13,500 ft (p.4) FM",
+        "evidence": "12.34-in x 32.3 ft + 156.4 ft equiv (p.10) and 18.49-in x 97 ft + 124.6 ft equiv C=120 (p.10); BASE2 branch 4.4 fps and PS18 3.92 fps at 3,280.8 gpm (run BASE2); ALT-PUMP-BIG PS18 6.03 fps at 5,049.2 gpm (run ALT-PUMP-BIG) high but system head still dominated by 14,094.2 ft FM reach (ASSUMPTION: 13,500 ft + 594.2 ft per p.10)",
+        "limit": "Adequate; no independent limit below 4,960 gpm (p.3) in available pages",
+        "limits_target": false,
+        "unit": "Station/connector piping (12.34-in + 18.49-in DIP C=120)"
+      },
+      {
+        "binds_at": "29.35 ft at all flows 0 gpm (p.13); 73.9 ft high point minus 44.55 ft Pump Off (p.10)",
+        "evidence": "Static 29.35 ft (p.10) << friction ~190-210 ft at 4,800-5,000 gpm (ASSUMPTION: system minus static using 220.81-29.35 and 235.83-29.35 from p.13 values); BASE2 TDH 123.43 ft (run BASE2) minus 29.35 ft (p.10) = ~94 ft friction (ASSUMPTION: subtraction for illustration)",
+        "limit": "29.35 ft static (p.10)",
+        "limits_target": false,
+        "unit": "Static head / wetwell level"
+      },
+      {
+        "binds_at": "n/a in available pages; 24-in CIP ~37 ft below grade influent (p.4) to NMWA headworks via ~13,500 LF 18-in (p.4)",
+        "evidence": "No surcharge or headworks backup data on pp.3,4,10,13; pump/FM intersection (runs BASE2/BASE3) binds first; ASSUMPTION: influent and outfall adequate pending Chapter 94 (p.3) review",
+        "limit": "No evidence of limit (ASSUMPTION: lack of data, not proof of adequacy)",
+        "limits_target": false,
+        "unit": "Gravity influent + NMWA WWTP headworks outfall"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "Firm BASE2 3280.8 gpm 4.724 MGD (run BASE2) vs 4,960 gpm 7.14 MGD need (p.3), shortfall ~1679 gpm (ASSUMPTION: 4960 minus 3280.8); 1-pump 2847.6 gpm at 104.16 ft (run BASE1); 3-pump 3446.9 gpm 4.964 MGD per pump 1149.0 gpm at 131.74 ft (run BASE3-3P) still < 4960 gpm (p.3); 2016 field 3200 gpm 4.6 MGD 2-pump (p.3) vs BASE2 +2.5% high (ASSUMPTION: (3280.8-3200)/3200); C=70 sensitivity 2777.3 gpm 3.999 MGD (run BASE2-C70) shows C=85 (p.10) may be optimistic; 1992 3200 gpm 3-pump (p.4) vs BASE3-3P +7.7% high (ASSUMPTION: arithmetic) not direct calibration (ASSUMPTION: different 100-hp 2000 gpm vintage p.4)",
+        "limiting_value": "Existing firm ~3280.8 gpm 4.724 MGD 2 pumps 17.25-in (p.13) (run BASE2), ~1679 gpm short of 4960 gpm 7.14 MGD (p.3) (ASSUMPTION arithmetic); low-C case ~2777 gpm (run BASE2-C70)",
+        "limits_target": true,
+        "modification": "No-change: cannot convey 20-year peak firm; 2016 test 3200 gpm (p.3) confirms",
+        "unit": "Existing station + single FM (No-change)"
+      },
+      {
+        "evidence": "System 227.23 ft 1-pump / 220.81 ft 2-pump at 4800 gpm and 242.75 ft / 235.83 ft at 5000 gpm (p.13) vs 2-pump pump head only 111.47 ft at 4800 gpm and 101.67 ft at 6000 gpm (p.13); static 29.35 ft (p.10) from 73.9 ft high minus 44.55 ft Pump Off (p.10) << friction; existing 18.24-in x 13,500 ft CIP C=85 (p.10) + 594.2 ft equiv (p.10) + 14094.2 ft modeled (ASSUMPTION: 13500 plus 594.2 per p.10); velocity at 7.14 MGD (p.3) in 18.24-in (p.10) is 6.088 fps (velocity tool) and at 6.8 MGD (p.3) is 5.798 fps (velocity tool); BASE2 FM 4.03 fps at 3280.8 gpm (run BASE2) rising to 6.2 fps at 5049.2 gpm (run ALT-A-HH2)",
+        "limiting_value": "Friction-controlled; existing 18.24-in x 13,500 ft CIP C=85 (p.10) binds below 4960 gpm (p.3); needs 220.81-235.83 ft 2-pump at 4800-5000 gpm (p.13)",
+        "limits_target": true,
+        "modification": "Upsize/parallel FM or high-head pumps to overcome friction",
+        "unit": "Force main STA 0+00 to 135+00"
+      },
+      {
+        "evidence": "12.34-in x 32.3 ft + 156.4 ft equiv (p.10) and 18.49-in x 97 ft + 124.6 ft equiv C=120 (p.10); BASE2 branch 4.4 fps PS18 3.92 fps at 3280.8 gpm (run BASE2); ALT-A-HH2 branch 6.77 fps PS18 6.03 fps at 5049.2 gpm (run ALT-A-HH2); ALT-B-PFM-EX branch 8.59 fps PS18 7.65 fps at 6402.3 gpm (run ALT-B-PFM-EX); ALT-C-PFM-NP branch 8.02 fps PS18 7.14 fps at 5976.2 gpm (run ALT-C-PFM-NP); per-pump 2524-3201 gpm (runs ALT-A-HH2/ALT-B-PFM-EX/ALT-C-PFM-NP) exceeds original 1750 gpm 75-hp (p.4) and 1983 2000 gpm 100-hp (p.4) ratings; existing motor/NPSH/hammer/scour not on pp.3,4,10,13; 1965 FM/valves/meter pressure rating for 121.55 psi HDR 122.72 psi suction (run ALT-A-HH2) not on pages",
+        "limiting_value": "Station/connector piping not proven adequate below 4960 gpm (p.3); 6.77-8.59 fps branch velocities (runs ALT-A-HH2/ALT-B-PFM-EX/ALT-C-PFM-NP) + 99.5-190.3 hp shafts (runs) vs unknown motors/ratings",
+        "limits_target": true,
+        "modification": "Verify/replace 12.34-in/18.49-in DIP (p.10), valves/meter, motors, surge for selected alternative; Alt A thin ~89 gpm margin (ASSUMPTION arithmetic) erased by lower Pump-On level vs 44.55 ft Pump Off (p.10)",
+        "unit": "Station/connector piping 12.34-in + 18.49-in DIP C=120 (p.10) + motors/valves"
+      },
+      {
+        "evidence": "ALT-A-HH2 5049.2 gpm 7.271 MGD (run ALT-A-HH2) with 2x 2524.6 gpm at 238.42 ft (run ALT-A-HH2) overcomes 235.83 ft system at 5000 gpm (p.13); HDR 121.55 psi (run ALT-A-HH2) vs 72.33 psi base (run BASE2); FM 6.2 fps (run ALT-A-HH2) vs 6.088 fps target velocity (velocity tool for 7.14 MGD p.3); illustrative 2500 gpm at 240 ft rating (ASSUMPTION: no curve/HP/speed/VFD/eff/NPSH on pages, default 0.80/0.95 ASSUMPTION defaults); static 29.35 ft Pump Off (p.10) optimistic, operating level withheld; 24-in CIP gravity ~37 ft below grade influent (p.4) to NMWA headworks via ~13500 LF 18-in (p.4) adequacy no data on pages (ASSUMPTION lack of data)",
+        "limiting_value": "Meets firm with ~89 gpm 1.8% margin (ASSUMPTION: 5049.2 minus 4960) (run ALT-A-HH2/target p.3); shaft 190.3 hp total electric 298.8 kW (run ALT-A-HH2, ASSUMPTION defaults) vs 100.5 kW base (run BASE2)",
+        "limits_target": false,
+        "modification": "A - Replace pumps/motors with high-head units on existing FM (RECOMMENDED qualitative least-capital by avoiding ~13500 LF p.4, NOT document-proven; verify selectable pump 2524.6 gpm at 238.42 ft, 102+ psi + surge rating, VFD/electrical, low-level head)",
+        "unit": "Pumps replacement illustrative"
+      },
+      {
+        "evidence": "ALT-B-PFM-EX 6402.3 gpm 9.219 MGD (run ALT-B-PFM-EX) with existing 17.25-in curves (p.13) at 98.25 ft TDH (run ALT-B-PFM-EX) near 98.27 ft at 3200 gpm single-pump point (p.13) well below 152.68 ft shutoff (p.13); proves FM friction was binding; new-barrel split 3747.7 gpm C=120 vs old 2654.6 gpm C=85 (run ALT-B-PFM-EX; C existing p.10, C new ASSUMPTION new-pipe roughness same 18.24-in x 14094.2 ft ASSUMPTION length/ID/equiv); per-pump 3201.1 gpm (run ALT-B-PFM-EX) within documented to 5000 gpm 67.46 ft (p.13) but motor/NPSH unknown on pages",
+        "limiting_value": "Meets firm with ~1442 gpm margin (ASSUMPTION: 6402.3 minus 4960) (run ALT-B-PFM-EX/target p.3)",
+        "limits_target": false,
+        "modification": "B - Add parallel ~13,500 LF FM (p.4) 18.24-in C=120 (ASSUMPTION new-pipe), retain pumps; verify new-pipe sizing/material/C, station velocities 8.59 fps (run ALT-B-PFM-EX), motors",
+        "unit": "Force main parallel (ASSUMPTION sizing)"
+      },
+      {
+        "evidence": "ALT-C-PFM-NP 5976.2 gpm 8.606 MGD (run ALT-C-PFM-NP) with 2x 2988.1 gpm at 90.0 ft TDH 120% rated (run ALT-C-PFM-NP) using illustrative 2500 gpm at 105 ft rating (ASSUMPTION: no manufacturer data on pages); HDR 56.76 psi (run ALT-C-PFM-NP) vs 121.55 psi pump-only (run ALT-A-HH2); FM-E 2477.9 gpm FM-N 3498.2 gpm (run ALT-C-PFM-NP); Table 2380511 gpd vs text 2380500 gpd 11 gpd and 7141500 gpd = 4959.4 gpm not 4960 gpm (p.3) immaterial rounding noted",
+        "limiting_value": "Meets firm with ~1016 gpm margin (ASSUMPTION: 5976.2 minus 4960) (run ALT-C-PFM-NP/target p.3)",
+        "limits_target": false,
+        "modification": "C - Parallel FM (ASSUMPTION as in B) plus moderate new pumps (ASSUMPTION rating); verify selectable pump 2988 gpm at 90 ft, velocities 8.02 fps (run ALT-C-PFM-NP)",
+        "unit": "System pumps + parallel FM illustrative"
+      }
+    ]
+  },
+  "review": {
+    "checked_citations": [
+      "D01 4960gpm=7.14MGD peak flow p.3 verified",
+      "D02/D03 2106900gpd + PF3.0 p.3 verified",
+      "D04-D06 960EDU x285=273600gpd p.3 verified",
+      "D13 3200gpm 2-pump 2016 test p.3 verified vs D22 3200gpm 3-pump 1992 p.4 conflict noted",
+      "D23-D28 FM geometry 18.24-in 13500ft C85, 18.49-in 97ft C120, 12.34-in 32.3ft C120, static 29.35ft (73.9-44.55) p.10 verified",
+      "D29-D32 equiv lengths 124.6/156.4/594.2 total 14505ft p.10 verified by summation",
+      "D33-D38 17.25-in impeller pump vs system heads incl 235.83ft at 5000gpm 2-pump p.13 verified"
+    ],
+    "checked_runs": [
+      "BASE2",
+      "BASE1",
+      "BASE3",
+      "ALT-PUMP-BIG",
+      "ALT-PFM-EX",
+      "ALT-PFM-NEWP"
+    ],
+    "issues": [
+      {
+        "item": "Alternatives ALT-PUMP-BIG & ALT-PFM-NEWP pump curves",
+        "issue": "Operating points not actually verified: 2500gpm@240ft/250hp and 2500gpm@105ft/100hp rated points are ASSUMPTION with no manufacturer curve, HP, speed, VFD, efficiency or NPSH on pp.3,4,10,13. EPANET single-point curve derivation + default eff 0.80 used. No selectable pump proven to deliver 2524.6gpm@238.42ft or 2988.1gpm@90ft in triplex station.",
+        "evidence": "Rerun ALT-PUMP-BIG spec pumps rated_gpm 2500 rated_head_ft 240 motor_hp 250; ALT-PFM-NEWP rated 2500/105; p.13 only gives 17.25-in existing curves; R-02 states HP/speed/VFD withheld",
+        "severity": "major"
+      },
+      {
+        "item": "Least-cost / RECOMMENDED ranking",
+        "issue": "Cost classes $1M-$10M vs >$10M and RECOMMENDED flag for Option A have zero cost basis on available pages. All cost_basis entries are ASSUMPTION about ~13500 LF parallel FM (p.4) dominating cost. Cannot conclude least-cost without withheld cost pages.",
+        "evidence": "pp.3,4,10,13 contain no costs, impeller options, or parallel FM sizing; R-07 withheld; analysis.cost_basis explicitly ASSUMPTION",
+        "severity": "major"
+      },
+      {
+        "item": "Pump-only Alt A pressure/power margin & static datum",
+        "issue": "5049.2gpm exceeds 4960gpm by only ~89gpm (1.8%). Requires 238.42ft TDH, header 102.23psi, shaft 190.3hp, FM 6.2fps, branch 6.77fps, PS18 6.03fps. No evidence 1965 18.24-in CIP FM, 12.34-in DIP, valves/mag meter rated for 102psi+surge. Uses optimistic 29.35ft static from 44.55ft Pump-Off (p.10); lower Pump-On level increases head and erases margin.",
+        "evidence": "Rerun ALT-PUMP-BIG total 5049.2gpm HDR 102.23psi shaft 190.3hp; p.10 STATIC 29.35 HIGH 73.9 LOW 44.55 Pump Off; R-05 notes operating level withheld",
+        "severity": "major"
+      },
+      {
+        "item": "Station piping claimed Adequate",
+        "issue": "Capacity table says 12.34-in + 18.49-in DIP C120 does not bind, but reruns show 8.59fps branch +7.65fps PS18 (ALT-PFM-EX), 8.02fps+7.14fps (ALT-PFM-NEWP), 6.77fps (ALT-PUMP-BIG). Per-pump 2988-3201gpm far exceeds original 1750gpm (p.4) and 1983 2000gpm (p.4) ratings; shaft 85-99.5hp vs unknown existing motor. Velocity, scour, hammer, runout, motor overload not evaluated.",
+        "evidence": "Rerun ALT-PFM-EX S1 8.59fps PS18 7.65fps P1 3201.1gpm 99.5hp; ALT-PFM-NEWP S1 8.02fps; BASE2 branch 4.4fps; p.4 75hp 1750gpm, 100hp 2000gpm",
+        "severity": "major"
+      },
+      {
+        "item": "Parallel-FM Alts B/C new-barrel assumption",
+        "issue": "ALT-PFM-EX 6402.3gpm and ALT-PFM-NEWP 5976.2gpm assume new parallel barrel 18.24-in x14094.2ft C120 same ID as old CIP. New-pipe diameter/material/C and 594.2ft equiv (p.10) reuse are ASSUMPTION, not on pages. Existing-pump operation at 3201gpm@98.25ft near runout with default eff, no motor/NPSH check.",
+        "evidence": "Rerun ALT-PFM-EX FM-E 2654.6gpm C85 FM-N 3747.7gpm C120 total 6402.3gpm TDH 98.25ft; p.10 C85 existing, C120 station piping only; new FM C120 ASSUMPTION",
+        "severity": "major"
+      },
+      {
+        "item": "Calibration bias / C-factor optimism",
+        "issue": "BASE2 3280.8gpm +2.5% above 2016 3200gpm 2-pump test (p.3) accepted; BASE3 3446.9gpm +7.7% above 1992 3200gpm 3-pump (p.4) dismissed as different vintage without install-date evidence on available pages. C85 for old CIP (p.10) may be optimistic if tuberculated; no low-C sensitivity. Model may overpredict firm capacity.",
+        "evidence": "Rerun BASE2 3280.8gpm 123.43ft vs p.3 3200gpm; BASE3 3446.9gpm vs p.4 3200gpm; p.10 C85; R-06 notes wear risk",
+        "severity": "minor"
+      },
+      {
+        "item": "Source arithmetic + energy numbers",
+        "issue": "Table 1 2380511gpd vs text 2380500gpd (11gpd) and 7141500gpd=4959.4gpm not 4960gpm (p.3) \u2013 immaterial rounding but shortfall/margin (~1680gpm, ~89gpm, ~1442gpm) presented as exact. kW/shaft_hp/specific_energy (e.g., 298.8kW vs 100.5kW, 260.6kWh/ML) use EPANET defaults eff 0.80/motor 0.95, not document data.",
+        "evidence": "p.3 text 2380500 vs Table 2380511; rerun BASE2 total_electric_kw 100.5 ALT-PUMP-BIG 298.8 with efficiency 0.8",
+        "severity": "minor"
+      },
+      {
+        "item": "Influent + outfall not on path analysis",
+        "issue": "24-in CIP gravity ~37ft below grade influent to NMWA headworks via ~13500 LF (p.4) and high-point control assumed, but no evidence influent or headworks can pass 7.14MGD. Study labels ASSUMPTION lack of data, but firm-adequacy conclusion incomplete.",
+        "evidence": "p.4 gravity + NMWA WWTP headworks location; p.10 high 73.9ft; no surcharge/headworks data on pp.3,4,10,13",
+        "severity": "minor"
+      }
+    ]
+  },
+  "resolution": {
+    "alternatives": [
+      {
+        "cost_basis": "ASSUMPTION: qualitative only - no costs on pp.3,4,10,13; pump/motor/VFD/electrical + pressure-rating review only avoids ~13,500 LF (p.4) parallel FM along Schuylkill River (p.4); illustrative rating 2500 gpm at 240 ft (ASSUMPTION: selected to overcome ~235.83 ft at 5,000 gpm 2-pump p.13); shaft ~190.3 hp (run ALT-A-HH2) needs ~250 hp motors (ASSUMPTION: motor > shaft for margin, no motor data on pages)",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "A - High-head replacement pumps on existing single FM (pump-only, illustrative)",
+        "recommended": true,
+        "result": "5049.2 gpm total 7.271 MGD with 2 pumps (run ALT-A-HH2) exceeds 4,960 gpm 7.14 MGD (p.3) by ~89 gpm (ASSUMPTION: 5049.2 minus 4960 arithmetic); per pump 2524.6 gpm at 238.42 ft TDH (run ALT-A-HH2) vs system 220.81 ft at 4,800 gpm and 235.83 ft at 5,000 gpm 2-pump (p.13); HDR 121.55 psi and N1 122.72 psi (run ALT-A-HH2); FM 6.2 fps, PS18 6.03 fps, branch 6.77 fps (run ALT-A-HH2); shaft 190.3 hp, 101% of rated flow (run ALT-A-HH2) with default eff 0.80/motor 0.95 (ASSUMPTION: tool defaults, no data on pages)",
+        "run_label": "ALT-A-HH2",
+        "unit": "Triplex pumps firm 2 of 3 largest out (triplex p.4)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: qualitative only - no costs on pp.3,4,10,13; ~13,500 LF (p.4) parallel 18.24-in FM (p.10) along Schuylkill River (p.4) dominates; retains existing 17.25-in pumps (p.13) so no pump cost; new-barrel diameter/length/C ASSUMPTION: same 18.24-in x 14094.2 ft C=120 as new-pipe roughness, existing C=85 (p.10)",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "B - Parallel FM retaining existing 17.25-in pumps (force-main-only)",
+        "recommended": false,
+        "result": "6402.3 gpm total 9.219 MGD with 2 existing pumps (run ALT-B-PFM-EX) exceeds 4,960 gpm 7.14 MGD (p.3) by ~1442 gpm (ASSUMPTION: arithmetic); per pump 3201.1 gpm at 98.25 ft TDH (run ALT-B-PFM-EX) vs single-pump curve 98.27 ft at 3200 gpm (p.13) and shutoff 152.68 ft at 0 gpm (p.13); split 2654.6 gpm existing C=85 and 3747.7 gpm new C=120 (run ALT-B-PFM-EX; C existing p.10, C new ASSUMPTION); branch 8.59 fps PS18 7.65 fps (run ALT-B-PFM-EX); shaft 99.5 hp default eff (run ALT-B-PFM-EX, ASSUMPTION defaults)",
+        "run_label": "ALT-B-PFM-EX",
+        "unit": "18.24-in CIP FM STA 0+00 to 135+00 13,500 ft C=85 (p.10) plus parallel barrel (ASSUMPTION)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: qualitative only - no costs on pp.3,4,10,13; combines ~13,500 LF (p.4) parallel FM cost plus new pumps/motors; illustrative rating 2500 gpm at 105 ft (ASSUMPTION: selected for ~90 ft duty); highest capital by avoiding nothing, lowest head/energy",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "C - Parallel FM plus moderate new pumps (combined, illustrative)",
+        "recommended": false,
+        "result": "5976.2 gpm total 8.606 MGD with 2 pumps rated 2500 gpm at 105 ft (ASSUMPTION rating) (run ALT-C-PFM-NP) exceeds 4,960 gpm 7.14 MGD (p.3) by ~1016 gpm (ASSUMPTION: arithmetic); per pump 2988.1 gpm at 90.0 ft TDH 120% of rated flow (run ALT-C-PFM-NP); HDR 56.76 psi (run ALT-C-PFM-NP); branch 8.02 fps PS18 7.14 fps (run ALT-C-PFM-NP); shaft 85.0 hp default eff (run ALT-C-PFM-NP, ASSUMPTION defaults)",
+        "run_label": "ALT-C-PFM-NP",
+        "unit": "System pumps + parallel FM (ASSUMPTION ratings/barrel)"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "Firm BASE2 3280.8 gpm 4.724 MGD (run BASE2) vs 4,960 gpm 7.14 MGD need (p.3), shortfall ~1679 gpm (ASSUMPTION: 4960 minus 3280.8); 1-pump 2847.6 gpm at 104.16 ft (run BASE1); 3-pump 3446.9 gpm 4.964 MGD per pump 1149.0 gpm at 131.74 ft (run BASE3-3P) still < 4960 gpm (p.3); 2016 field 3200 gpm 4.6 MGD 2-pump (p.3) vs BASE2 +2.5% high (ASSUMPTION: (3280.8-3200)/3200); C=70 sensitivity 2777.3 gpm 3.999 MGD (run BASE2-C70) shows C=85 (p.10) may be optimistic; 1992 3200 gpm 3-pump (p.4) vs BASE3-3P +7.7% high (ASSUMPTION: arithmetic) not direct calibration (ASSUMPTION: different 100-hp 2000 gpm vintage p.4)",
+        "limiting_value": "Existing firm ~3280.8 gpm 4.724 MGD 2 pumps 17.25-in (p.13) (run BASE2), ~1679 gpm short of 4960 gpm 7.14 MGD (p.3) (ASSUMPTION arithmetic); low-C case ~2777 gpm (run BASE2-C70)",
+        "limits_target": true,
+        "modification": "No-change: cannot convey 20-year peak firm; 2016 test 3200 gpm (p.3) confirms",
+        "unit": "Existing station + single FM (No-change)"
+      },
+      {
+        "evidence": "System 227.23 ft 1-pump / 220.81 ft 2-pump at 4800 gpm and 242.75 ft / 235.83 ft at 5000 gpm (p.13) vs 2-pump pump head only 111.47 ft at 4800 gpm and 101.67 ft at 6000 gpm (p.13); static 29.35 ft (p.10) from 73.9 ft high minus 44.55 ft Pump Off (p.10) << friction; existing 18.24-in x 13,500 ft CIP C=85 (p.10) + 594.2 ft equiv (p.10) + 14094.2 ft modeled (ASSUMPTION: 13500 plus 594.2 per p.10); velocity at 7.14 MGD (p.3) in 18.24-in (p.10) is 6.088 fps (velocity tool) and at 6.8 MGD (p.3) is 5.798 fps (velocity tool); BASE2 FM 4.03 fps at 3280.8 gpm (run BASE2) rising to 6.2 fps at 5049.2 gpm (run ALT-A-HH2)",
+        "limiting_value": "Friction-controlled; existing 18.24-in x 13,500 ft CIP C=85 (p.10) binds below 4960 gpm (p.3); needs 220.81-235.83 ft 2-pump at 4800-5000 gpm (p.13)",
+        "limits_target": true,
+        "modification": "Upsize/parallel FM or high-head pumps to overcome friction",
+        "unit": "Force main STA 0+00 to 135+00"
+      },
+      {
+        "evidence": "12.34-in x 32.3 ft + 156.4 ft equiv (p.10) and 18.49-in x 97 ft + 124.6 ft equiv C=120 (p.10); BASE2 branch 4.4 fps PS18 3.92 fps at 3280.8 gpm (run BASE2); ALT-A-HH2 branch 6.77 fps PS18 6.03 fps at 5049.2 gpm (run ALT-A-HH2); ALT-B-PFM-EX branch 8.59 fps PS18 7.65 fps at 6402.3 gpm (run ALT-B-PFM-EX); ALT-C-PFM-NP branch 8.02 fps PS18 7.14 fps at 5976.2 gpm (run ALT-C-PFM-NP); per-pump 2524-3201 gpm (runs ALT-A-HH2/ALT-B-PFM-EX/ALT-C-PFM-NP) exceeds original 1750 gpm 75-hp (p.4) and 1983 2000 gpm 100-hp (p.4) ratings; existing motor/NPSH/hammer/scour not on pp.3,4,10,13; 1965 FM/valves/meter pressure rating for 121.55 psi HDR 122.72 psi suction (run ALT-A-HH2) not on pages",
+        "limiting_value": "Station/connector piping not proven adequate below 4960 gpm (p.3); 6.77-8.59 fps branch velocities (runs ALT-A-HH2/ALT-B-PFM-EX/ALT-C-PFM-NP) + 99.5-190.3 hp shafts (runs) vs unknown motors/ratings",
+        "limits_target": true,
+        "modification": "Verify/replace 12.34-in/18.49-in DIP (p.10), valves/meter, motors, surge for selected alternative; Alt A thin ~89 gpm margin (ASSUMPTION arithmetic) erased by lower Pump-On level vs 44.55 ft Pump Off (p.10)",
+        "unit": "Station/connector piping 12.34-in + 18.49-in DIP C=120 (p.10) + motors/valves"
+      },
+      {
+        "evidence": "ALT-A-HH2 5049.2 gpm 7.271 MGD (run ALT-A-HH2) with 2x 2524.6 gpm at 238.42 ft (run ALT-A-HH2) overcomes 235.83 ft system at 5000 gpm (p.13); HDR 121.55 psi (run ALT-A-HH2) vs 72.33 psi base (run BASE2); FM 6.2 fps (run ALT-A-HH2) vs 6.088 fps target velocity (velocity tool for 7.14 MGD p.3); illustrative 2500 gpm at 240 ft rating (ASSUMPTION: no curve/HP/speed/VFD/eff/NPSH on pages, default 0.80/0.95 ASSUMPTION defaults); static 29.35 ft Pump Off (p.10) optimistic, operating level withheld; 24-in CIP gravity ~37 ft below grade influent (p.4) to NMWA headworks via ~13500 LF 18-in (p.4) adequacy no data on pages (ASSUMPTION lack of data)",
+        "limiting_value": "Meets firm with ~89 gpm 1.8% margin (ASSUMPTION: 5049.2 minus 4960) (run ALT-A-HH2/target p.3); shaft 190.3 hp total electric 298.8 kW (run ALT-A-HH2, ASSUMPTION defaults) vs 100.5 kW base (run BASE2)",
+        "limits_target": false,
+        "modification": "A - Replace pumps/motors with high-head units on existing FM (RECOMMENDED qualitative least-capital by avoiding ~13500 LF p.4, NOT document-proven; verify selectable pump 2524.6 gpm at 238.42 ft, 102+ psi + surge rating, VFD/electrical, low-level head)",
+        "unit": "Pumps replacement illustrative"
+      },
+      {
+        "evidence": "ALT-B-PFM-EX 6402.3 gpm 9.219 MGD (run ALT-B-PFM-EX) with existing 17.25-in curves (p.13) at 98.25 ft TDH (run ALT-B-PFM-EX) near 98.27 ft at 3200 gpm single-pump point (p.13) well below 152.68 ft shutoff (p.13); proves FM friction was binding; new-barrel split 3747.7 gpm C=120 vs old 2654.6 gpm C=85 (run ALT-B-PFM-EX; C existing p.10, C new ASSUMPTION new-pipe roughness same 18.24-in x 14094.2 ft ASSUMPTION length/ID/equiv); per-pump 3201.1 gpm (run ALT-B-PFM-EX) within documented to 5000 gpm 67.46 ft (p.13) but motor/NPSH unknown on pages",
+        "limiting_value": "Meets firm with ~1442 gpm margin (ASSUMPTION: 6402.3 minus 4960) (run ALT-B-PFM-EX/target p.3)",
+        "limits_target": false,
+        "modification": "B - Add parallel ~13,500 LF FM (p.4) 18.24-in C=120 (ASSUMPTION new-pipe), retain pumps; verify new-pipe sizing/material/C, station velocities 8.59 fps (run ALT-B-PFM-EX), motors",
+        "unit": "Force main parallel (ASSUMPTION sizing)"
+      },
+      {
+        "evidence": "ALT-C-PFM-NP 5976.2 gpm 8.606 MGD (run ALT-C-PFM-NP) with 2x 2988.1 gpm at 90.0 ft TDH 120% rated (run ALT-C-PFM-NP) using illustrative 2500 gpm at 105 ft rating (ASSUMPTION: no manufacturer data on pages); HDR 56.76 psi (run ALT-C-PFM-NP) vs 121.55 psi pump-only (run ALT-A-HH2); FM-E 2477.9 gpm FM-N 3498.2 gpm (run ALT-C-PFM-NP); Table 2380511 gpd vs text 2380500 gpd 11 gpd and 7141500 gpd = 4959.4 gpm not 4960 gpm (p.3) immaterial rounding noted",
+        "limiting_value": "Meets firm with ~1016 gpm margin (ASSUMPTION: 5976.2 minus 4960) (run ALT-C-PFM-NP/target p.3)",
+        "limits_target": false,
+        "modification": "C - Parallel FM (ASSUMPTION as in B) plus moderate new pumps (ASSUMPTION rating); verify selectable pump 2988 gpm at 90 ft, velocities 8.02 fps (run ALT-C-PFM-NP)",
+        "unit": "System pumps + parallel FM illustrative"
+      }
+    ],
+    "responses": [
+      {
+        "action": "fixed",
+        "explanation": "Conceded: pp.3,4,10,13 give only 17.25-in existing curves (p.13); no manufacturer curve/HP/speed/VFD/eff/NPSH for new pumps. Re-ran as illustrative rated points ALT-A-HH2 2500 gpm at 240 ft and ALT-C-PFM-NP 2500 gpm at 105 ft with default eff 0.80/motor 0.95 (ASSUMPTION tool defaults). Intersections verified hydraulically (runs ALT-A-HH2/ALT-C-PFM-NP) but selectable pump not proven; procurement submittal required.",
+        "issue": "Alternatives ALT-PUMP-BIG & ALT-PFM-NEWP pump curves"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Conceded: pp.3,4,10,13 contain no costs, impeller options, or parallel FM sizing. Changed cost_class to n/a and cost_basis to explicit ASSUMPTION qualitative. RECOMMENDED for A retained only as engineering judgment (avoids ~13,500 LF p.4) not document-proven least-cost.",
+        "issue": "Least-cost / RECOMMENDED ranking"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Re-ran ALT-A-HH2: 5049.2 gpm total, 2524.6 gpm at 238.42 ft per pump, HDR 121.55 psi N1 122.72 psi, shaft 190.3 hp, FM 6.2 fps branch 6.77 fps PS18 6.03 fps. Disclosed thin ~89 gpm 1.8% margin (ASSUMPTION arithmetic), no pressure rating for 1965 18.24-in CIP, 12.34-in DIP, valves/mag meter on pages for 121 psi+surge, and static 29.35 ft from 73.9 minus 44.55 Pump Off (p.10); lower Pump-On level raises head and erases margin.",
+        "issue": "Pump-only Alt A pressure/power margin & static datum"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Withdrew Adequate claim. Reruns show branch 8.59 fps PS18 7.65 fps (run ALT-B-PFM-EX), 8.02/7.14 fps (run ALT-C-PFM-NP), 6.77/6.03 fps (run ALT-A-HH2) vs 4.4/3.92 fps base (run BASE2); per-pump 2988-3201 gpm far exceeds 1750 gpm (p.4) and 2000 gpm (p.4) ratings; shaft 85-190 hp vs unknown motors; scour/hammer/runout/motor overload not evaluated on pages.",
+        "issue": "Station piping claimed Adequate"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Disclosed new barrel as ASSUMPTION: same 18.24-in x 14094.2 ft C=120 (new-pipe roughness) vs existing C=85 (p.10); 594.2 ft equiv (p.10) reuse ASSUMPTION. ALT-B-PFM-EX 6402.3 gpm TDH 98.25 ft and ALT-C-PFM-NP 5976.2 gpm at 90 ft verified hydraulically but existing-pump 3201 gpm operation and new-pipe sizing need motor/NPSH/design verification; no data on pages.",
+        "issue": "Parallel-FM Alts B/C new-barrel assumption"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Acknowledged BASE2 3280.8 gpm (run BASE2) +2.5% above 2016 3200 gpm 2-pump (p.3) and BASE3-3P 3446.9 gpm (run BASE3-3P) +7.7% above 1992 3200 gpm 3-pump (p.4); 1992 test on 1983 100-hp 2000 gpm pumps (p.4) not current 17.25-in (p.13) so not direct calibration. Added C=70 sensitivity BASE2-C70 2777.3 gpm (run BASE2-C70); C=85 (p.10) may be optimistic if tuberculated.",
+        "issue": "Calibration bias / C-factor optimism"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Noted Table 2380511 vs text 2380500 11 gpd and 7141500/1440=4959.4 not 4960 (p.3) as immaterial rounding; shortfall/margins labelled ASSUMPTION arithmetic. Energy/kW/shaft/specific energy from runs BASE2/ALT-A-HH2 etc use default eff 0.80/motor 0.95 (ASSUMPTION defaults) not document data.",
+        "issue": "Source arithmetic + energy numbers"
+      },
+      {
+        "action": "noted",
+        "explanation": "No surcharge/headworks data on pp.3,4,10,13 for 24-in CIP ~37 ft below grade influent (p.4) to NMWA headworks via ~13500 LF (p.4) at 7.14 MGD (p.3); pump/FM intersection binds first in model but firm-adequacy incomplete pending Chapter 94 (p.3) influent/outfall review.",
+        "issue": "Influent + outfall not on path analysis"
+      }
+    ]
+  },
+  "runs": {
+    "BASE2": {
+      "purpose": "Calibrated existing conditions, 2 pumps operating (firm capacity) with 17.25-in curves vs p.13 system",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "id": "WW",
+            "head_ft": 44.55
+          },
+          {
+            "id": "DISCH",
+            "head_ft": 73.9
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "J1",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "N1",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "N2",
+            "elev_ft": 44.55
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S1",
+            "from": "N1",
+            "to": "HDR",
+            "length_ft": 188.7,
+            "diameter_in": 12.34,
+            "c_factor": 120
+          },
+          {
+            "id": "S2",
+            "from": "N2",
+            "to": "HDR",
+            "length_ft": 188.7,
+            "diameter_in": 12.34,
+            "c_factor": 120
+          },
+          {
+            "id": "PS18",
+            "from": "HDR",
+            "to": "J1",
+            "length_ft": 221.6,
+            "diameter_in": 18.49,
+            "c_factor": 120
+          },
+          {
+            "id": "FM18",
+            "from": "J1",
+            "to": "DISCH",
+            "length_ft": 14094.2,
+            "diameter_in": 18.24,
+            "c_factor": 85
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "WW",
+            "to": "N1",
+            "on": true,
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ]
+          },
+          {
+            "id": "P2",
+            "from": "WW",
+            "to": "N2",
+            "on": true,
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ]
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_gpm": 1640.4,
+            "tdh_ft": 123.43,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.0,
+            "motor_hp": null,
+            "electric_kw": 50.3
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_gpm": 1640.4,
+            "tdh_ft": 123.43,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.0,
+            "motor_hp": null,
+            "electric_kw": 50.3
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S1",
+            "flow_gpm": 1640.4,
+            "velocity_fps": 4.4
+          },
+          {
+            "id": "S2",
+            "flow_gpm": 1640.4,
+            "velocity_fps": 4.4
+          },
+          {
+            "id": "PS18",
+            "flow_gpm": 3280.8,
+            "velocity_fps": 3.92
+          },
+          {
+            "id": "FM18",
+            "flow_gpm": 3280.8,
+            "velocity_fps": 4.03
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 53.01
+          },
+          {
+            "id": "J1",
+            "pressure_psi": 52.69
+          },
+          {
+            "id": "N1",
+            "pressure_psi": 53.53
+          },
+          {
+            "id": "N2",
+            "pressure_psi": 53.53
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 3280.8,
+        "total_pumped_mgd": 4.724,
+        "total_electric_kw": 100.5,
+        "specific_energy_kwh_per_ml": 134.9
+      }
+    },
+    "BASE1": {
+      "purpose": "Single-pump existing conditions for calibration against 1-pump system head",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "id": "WW",
+            "head_ft": 44.55
+          },
+          {
+            "id": "DISCH",
+            "head_ft": 73.9
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "J1",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "N1",
+            "elev_ft": 44.55
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S1",
+            "from": "N1",
+            "to": "HDR",
+            "length_ft": 188.7,
+            "diameter_in": 12.34,
+            "c_factor": 120
+          },
+          {
+            "id": "PS18",
+            "from": "HDR",
+            "to": "J1",
+            "length_ft": 221.6,
+            "diameter_in": 18.49,
+            "c_factor": 120
+          },
+          {
+            "id": "FM18",
+            "from": "J1",
+            "to": "DISCH",
+            "length_ft": 14094.2,
+            "diameter_in": 18.24,
+            "c_factor": 85
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "WW",
+            "to": "N1",
+            "on": true,
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ]
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_gpm": 2847.6,
+            "tdh_ft": 104.16,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 93.8,
+            "motor_hp": null,
+            "electric_kw": 73.6
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S1",
+            "flow_gpm": 2847.6,
+            "velocity_fps": 7.64
+          },
+          {
+            "id": "PS18",
+            "flow_gpm": 2847.6,
+            "velocity_fps": 3.4
+          },
+          {
+            "id": "FM18",
+            "flow_gpm": 2847.6,
+            "velocity_fps": 3.5
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 43.71
+          },
+          {
+            "id": "J1",
+            "pressure_psi": 43.47
+          },
+          {
+            "id": "N1",
+            "pressure_psi": 45.17
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 2847.6,
+        "total_pumped_mgd": 4.101,
+        "total_electric_kw": 73.6,
+        "specific_energy_kwh_per_ml": 113.8
+      }
+    },
+    "BASE3": {
+      "purpose": "Installed capacity check with all 3 existing 17.25-in pumps on existing force main",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "id": "WW",
+            "head_ft": 44.55
+          },
+          {
+            "id": "DISCH",
+            "head_ft": 73.9
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "J1",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "N1",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "N2",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "N3",
+            "elev_ft": 44.55
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S1",
+            "from": "N1",
+            "to": "HDR",
+            "length_ft": 188.7,
+            "diameter_in": 12.34,
+            "c_factor": 120
+          },
+          {
+            "id": "S2",
+            "from": "N2",
+            "to": "HDR",
+            "length_ft": 188.7,
+            "diameter_in": 12.34,
+            "c_factor": 120
+          },
+          {
+            "id": "S3",
+            "from": "N3",
+            "to": "HDR",
+            "length_ft": 188.7,
+            "diameter_in": 12.34,
+            "c_factor": 120
+          },
+          {
+            "id": "PS18",
+            "from": "HDR",
+            "to": "J1",
+            "length_ft": 221.6,
+            "diameter_in": 18.49,
+            "c_factor": 120
+          },
+          {
+            "id": "FM18",
+            "from": "J1",
+            "to": "DISCH",
+            "length_ft": 14094.2,
+            "diameter_in": 18.24,
+            "c_factor": 85
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "WW",
+            "to": "N1",
+            "on": true,
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ]
+          },
+          {
+            "id": "P2",
+            "from": "WW",
+            "to": "N2",
+            "on": true,
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ]
+          },
+          {
+            "id": "P3",
+            "from": "WW",
+            "to": "N3",
+            "on": true,
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ]
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_gpm": 1149.0,
+            "tdh_ft": 131.74,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 47.9,
+            "motor_hp": null,
+            "electric_kw": 37.6
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_gpm": 1149.0,
+            "tdh_ft": 131.74,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 47.9,
+            "motor_hp": null,
+            "electric_kw": 37.6
+          },
+          {
+            "id": "P3",
+            "on": true,
+            "flow_gpm": 1149.0,
+            "tdh_ft": 131.74,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 47.9,
+            "motor_hp": null,
+            "electric_kw": 37.6
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S1",
+            "flow_gpm": 1149.0,
+            "velocity_fps": 3.08
+          },
+          {
+            "id": "S2",
+            "flow_gpm": 1149.0,
+            "velocity_fps": 3.08
+          },
+          {
+            "id": "S3",
+            "flow_gpm": 1149.0,
+            "velocity_fps": 3.08
+          },
+          {
+            "id": "PS18",
+            "flow_gpm": 3446.9,
+            "velocity_fps": 4.12
+          },
+          {
+            "id": "FM18",
+            "flow_gpm": 3446.9,
+            "velocity_fps": 4.23
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 56.86
+          },
+          {
+            "id": "J1",
+            "pressure_psi": 56.52
+          },
+          {
+            "id": "N1",
+            "pressure_psi": 57.13
+          },
+          {
+            "id": "N2",
+            "pressure_psi": 57.13
+          },
+          {
+            "id": "N3",
+            "pressure_psi": 57.13
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 3446.9,
+        "total_pumped_mgd": 4.964,
+        "total_electric_kw": 112.7,
+        "specific_energy_kwh_per_ml": 144.0
+      }
+    },
+    "ALT-PFM-EX": {
+      "purpose": "Existing 17.25-in pumps with parallel force main to test if friction reduction alone meets target",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "id": "WW",
+            "head_ft": 44.55
+          },
+          {
+            "id": "DISCH",
+            "head_ft": 73.9
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "J1",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "N1",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "N2",
+            "elev_ft": 44.55
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S1",
+            "from": "N1",
+            "to": "HDR",
+            "length_ft": 188.7,
+            "diameter_in": 12.34,
+            "c_factor": 120
+          },
+          {
+            "id": "S2",
+            "from": "N2",
+            "to": "HDR",
+            "length_ft": 188.7,
+            "diameter_in": 12.34,
+            "c_factor": 120
+          },
+          {
+            "id": "PS18",
+            "from": "HDR",
+            "to": "J1",
+            "length_ft": 221.6,
+            "diameter_in": 18.49,
+            "c_factor": 120
+          },
+          {
+            "id": "FM-E",
+            "from": "J1",
+            "to": "DISCH",
+            "length_ft": 14094.2,
+            "diameter_in": 18.24,
+            "c_factor": 85
+          },
+          {
+            "id": "FM-N",
+            "from": "J1",
+            "to": "DISCH",
+            "length_ft": 14094.2,
+            "diameter_in": 18.24,
+            "c_factor": 120
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "WW",
+            "to": "N1",
+            "on": true,
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ]
+          },
+          {
+            "id": "P2",
+            "from": "WW",
+            "to": "N2",
+            "on": true,
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ]
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_gpm": 3201.1,
+            "tdh_ft": 98.25,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 99.5,
+            "motor_hp": null,
+            "electric_kw": 78.1
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_gpm": 3201.1,
+            "tdh_ft": 98.25,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 99.5,
+            "motor_hp": null,
+            "electric_kw": 78.1
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S1",
+            "flow_gpm": 3201.1,
+            "velocity_fps": 8.59
+          },
+          {
+            "id": "S2",
+            "flow_gpm": 3201.1,
+            "velocity_fps": 8.59
+          },
+          {
+            "id": "PS18",
+            "flow_gpm": 6402.3,
+            "velocity_fps": 7.65
+          },
+          {
+            "id": "FM-E",
+            "flow_gpm": 2654.6,
+            "velocity_fps": 3.26
+          },
+          {
+            "id": "FM-N",
+            "flow_gpm": 3747.7,
+            "velocity_fps": 4.6
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 40.8
+          },
+          {
+            "id": "J1",
+            "pressure_psi": 39.73
+          },
+          {
+            "id": "N1",
+            "pressure_psi": 42.61
+          },
+          {
+            "id": "N2",
+            "pressure_psi": 42.61
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 6402.3,
+        "total_pumped_mgd": 9.219,
+        "total_electric_kw": 156.1,
+        "specific_energy_kwh_per_ml": 107.4
+      }
+    },
+    "ALT-PUMP-BIG": {
+      "purpose": "Test larger high-head pumps on existing single force main to reach 4960 gpm firm",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "id": "WW",
+            "head_ft": 44.55
+          },
+          {
+            "id": "DISCH",
+            "head_ft": 73.9
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "J1",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "N1",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "N2",
+            "elev_ft": 44.55
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S1",
+            "from": "N1",
+            "to": "HDR",
+            "length_ft": 188.7,
+            "diameter_in": 12.34,
+            "c_factor": 120
+          },
+          {
+            "id": "S2",
+            "from": "N2",
+            "to": "HDR",
+            "length_ft": 188.7,
+            "diameter_in": 12.34,
+            "c_factor": 120
+          },
+          {
+            "id": "PS18",
+            "from": "HDR",
+            "to": "J1",
+            "length_ft": 221.6,
+            "diameter_in": 18.49,
+            "c_factor": 120
+          },
+          {
+            "id": "FM18",
+            "from": "J1",
+            "to": "DISCH",
+            "length_ft": 14094.2,
+            "diameter_in": 18.24,
+            "c_factor": 85
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "WW",
+            "to": "N1",
+            "on": true,
+            "rated_gpm": 2500.0,
+            "rated_head_ft": 240.0,
+            "motor_hp": 250.0
+          },
+          {
+            "id": "P2",
+            "from": "WW",
+            "to": "N2",
+            "on": true,
+            "rated_gpm": 2500.0,
+            "rated_head_ft": 240.0,
+            "motor_hp": 250.0
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_gpm": 2524.6,
+            "tdh_ft": 238.42,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 190.3,
+            "motor_hp": 250.0,
+            "electric_kw": 149.4,
+            "pct_of_rated_flow": 101
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_gpm": 2524.6,
+            "tdh_ft": 238.42,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 190.3,
+            "motor_hp": 250.0,
+            "electric_kw": 149.4,
+            "pct_of_rated_flow": 101
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S1",
+            "flow_gpm": 2524.6,
+            "velocity_fps": 6.77
+          },
+          {
+            "id": "S2",
+            "flow_gpm": 2524.6,
+            "velocity_fps": 6.77
+          },
+          {
+            "id": "PS18",
+            "flow_gpm": 5049.2,
+            "velocity_fps": 6.03
+          },
+          {
+            "id": "FM18",
+            "flow_gpm": 5049.2,
+            "velocity_fps": 6.2
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 102.23
+          },
+          {
+            "id": "J1",
+            "pressure_psi": 101.54
+          },
+          {
+            "id": "N1",
+            "pressure_psi": 103.4
+          },
+          {
+            "id": "N2",
+            "pressure_psi": 103.4
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 5049.2,
+        "total_pumped_mgd": 7.271,
+        "total_electric_kw": 298.8,
+        "specific_energy_kwh_per_ml": 260.6
+      }
+    },
+    "ALT-PFM-NEWP": {
+      "purpose": "Combination parallel force main plus moderate replacement pumps sized for target head",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "id": "WW",
+            "head_ft": 44.55
+          },
+          {
+            "id": "DISCH",
+            "head_ft": 73.9
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "J1",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "N1",
+            "elev_ft": 44.55
+          },
+          {
+            "id": "N2",
+            "elev_ft": 44.55
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S1",
+            "from": "N1",
+            "to": "HDR",
+            "length_ft": 188.7,
+            "diameter_in": 12.34,
+            "c_factor": 120
+          },
+          {
+            "id": "S2",
+            "from": "N2",
+            "to": "HDR",
+            "length_ft": 188.7,
+            "diameter_in": 12.34,
+            "c_factor": 120
+          },
+          {
+            "id": "PS18",
+            "from": "HDR",
+            "to": "J1",
+            "length_ft": 221.6,
+            "diameter_in": 18.49,
+            "c_factor": 120
+          },
+          {
+            "id": "FM-E",
+            "from": "J1",
+            "to": "DISCH",
+            "length_ft": 14094.2,
+            "diameter_in": 18.24,
+            "c_factor": 85
+          },
+          {
+            "id": "FM-N",
+            "from": "J1",
+            "to": "DISCH",
+            "length_ft": 14094.2,
+            "diameter_in": 18.24,
+            "c_factor": 120
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "WW",
+            "to": "N1",
+            "on": true,
+            "rated_gpm": 2500.0,
+            "rated_head_ft": 105.0,
+            "motor_hp": 100.0
+          },
+          {
+            "id": "P2",
+            "from": "WW",
+            "to": "N2",
+            "on": true,
+            "rated_gpm": 2500.0,
+            "rated_head_ft": 105.0,
+            "motor_hp": 100.0
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_gpm": 2988.1,
+            "tdh_ft": 90.0,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 85.0,
+            "motor_hp": 100.0,
+            "electric_kw": 66.8,
+            "pct_of_rated_flow": 120
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_gpm": 2988.1,
+            "tdh_ft": 90.0,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 85.0,
+            "motor_hp": 100.0,
+            "electric_kw": 66.8,
+            "pct_of_rated_flow": 120
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S1",
+            "flow_gpm": 2988.1,
+            "velocity_fps": 8.02
+          },
+          {
+            "id": "S2",
+            "flow_gpm": 2988.1,
+            "velocity_fps": 8.02
+          },
+          {
+            "id": "PS18",
+            "flow_gpm": 5976.2,
+            "velocity_fps": 7.14
+          },
+          {
+            "id": "FM-E",
+            "flow_gpm": 2477.9,
+            "velocity_fps": 3.04
+          },
+          {
+            "id": "FM-N",
+            "flow_gpm": 3498.2,
+            "velocity_fps": 4.3
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 37.44
+          },
+          {
+            "id": "J1",
+            "pressure_psi": 36.49
+          },
+          {
+            "id": "N1",
+            "pressure_psi": 39.03
+          },
+          {
+            "id": "N2",
+            "pressure_psi": 39.03
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 5976.2,
+        "total_pumped_mgd": 8.606,
+        "total_electric_kw": 133.5,
+        "specific_energy_kwh_per_ml": 98.4
+      }
+    },
+    "BASE2-7": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          },
+          {
+            "elev_ft": 0,
+            "id": "FM0"
+          },
+          {
+            "elev_ft": 0,
+            "id": "N1"
+          },
+          {
+            "elev_ft": 0,
+            "id": "N2"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 12.34,
+            "from": "N1",
+            "id": "B1",
+            "length_ft": 188.7,
+            "to": "HDR"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 12.34,
+            "from": "N2",
+            "id": "B2",
+            "length_ft": 188.7,
+            "to": "HDR"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 18.49,
+            "from": "HDR",
+            "id": "PS18",
+            "length_ft": 221.6,
+            "to": "FM0"
+          },
+          {
+            "c_factor": 85,
+            "diameter_in": 18.24,
+            "from": "FM0",
+            "id": "FM",
+            "length_ft": 14094.2,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ],
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.95,
+            "to": "N1"
+          },
+          {
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ],
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.95,
+            "to": "N2"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 44.55,
+            "id": "SUCT"
+          },
+          {
+            "head_ft": 73.9,
+            "id": "DISCH"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_gpm": 1640.4,
+            "tdh_ft": 123.43,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.0,
+            "motor_hp": null,
+            "electric_kw": 50.3
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_gpm": 1640.4,
+            "tdh_ft": 123.43,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.0,
+            "motor_hp": null,
+            "electric_kw": 50.3
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_gpm": 1640.4,
+            "velocity_fps": 4.4
+          },
+          {
+            "id": "B2",
+            "flow_gpm": 1640.4,
+            "velocity_fps": 4.4
+          },
+          {
+            "id": "PS18",
+            "flow_gpm": 3280.8,
+            "velocity_fps": 3.92
+          },
+          {
+            "id": "FM",
+            "flow_gpm": 3280.8,
+            "velocity_fps": 4.03
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 72.33
+          },
+          {
+            "id": "FM0",
+            "pressure_psi": 72.01
+          },
+          {
+            "id": "N1",
+            "pressure_psi": 72.85
+          },
+          {
+            "id": "N2",
+            "pressure_psi": 72.85
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 3280.8,
+        "total_pumped_mgd": 4.724,
+        "total_electric_kw": 100.5,
+        "specific_energy_kwh_per_ml": 134.9
+      }
+    },
+    "BASE1-8": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          },
+          {
+            "elev_ft": 0,
+            "id": "FM0"
+          },
+          {
+            "elev_ft": 0,
+            "id": "N1"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 12.34,
+            "from": "N1",
+            "id": "B1",
+            "length_ft": 188.7,
+            "to": "HDR"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 18.49,
+            "from": "HDR",
+            "id": "PS18",
+            "length_ft": 221.6,
+            "to": "FM0"
+          },
+          {
+            "c_factor": 85,
+            "diameter_in": 18.24,
+            "from": "FM0",
+            "id": "FM",
+            "length_ft": 14094.2,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ],
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.95,
+            "to": "N1"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 44.55,
+            "id": "SUCT"
+          },
+          {
+            "head_ft": 73.9,
+            "id": "DISCH"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_gpm": 2847.6,
+            "tdh_ft": 104.16,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 93.8,
+            "motor_hp": null,
+            "electric_kw": 73.6
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_gpm": 2847.6,
+            "velocity_fps": 7.64
+          },
+          {
+            "id": "PS18",
+            "flow_gpm": 2847.6,
+            "velocity_fps": 3.4
+          },
+          {
+            "id": "FM",
+            "flow_gpm": 2847.6,
+            "velocity_fps": 3.5
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 63.03
+          },
+          {
+            "id": "FM0",
+            "pressure_psi": 62.79
+          },
+          {
+            "id": "N1",
+            "pressure_psi": 64.49
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 2847.6,
+        "total_pumped_mgd": 4.101,
+        "total_electric_kw": 73.6,
+        "specific_energy_kwh_per_ml": 113.8
+      }
+    },
+    "BASE3-3P": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          },
+          {
+            "elev_ft": 0,
+            "id": "FM0"
+          },
+          {
+            "elev_ft": 0,
+            "id": "N1"
+          },
+          {
+            "elev_ft": 0,
+            "id": "N2"
+          },
+          {
+            "elev_ft": 0,
+            "id": "N3"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 12.34,
+            "from": "N1",
+            "id": "B1",
+            "length_ft": 188.7,
+            "to": "HDR"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 12.34,
+            "from": "N2",
+            "id": "B2",
+            "length_ft": 188.7,
+            "to": "HDR"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 12.34,
+            "from": "N3",
+            "id": "B3",
+            "length_ft": 188.7,
+            "to": "HDR"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 18.49,
+            "from": "HDR",
+            "id": "PS18",
+            "length_ft": 221.6,
+            "to": "FM0"
+          },
+          {
+            "c_factor": 85,
+            "diameter_in": 18.24,
+            "from": "FM0",
+            "id": "FM",
+            "length_ft": 14094.2,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ],
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.95,
+            "to": "N1"
+          },
+          {
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ],
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.95,
+            "to": "N2"
+          },
+          {
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ],
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P3",
+            "motor_eff": 0.95,
+            "to": "N3"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 44.55,
+            "id": "SUCT"
+          },
+          {
+            "head_ft": 73.9,
+            "id": "DISCH"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_gpm": 1149.0,
+            "tdh_ft": 131.74,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 47.9,
+            "motor_hp": null,
+            "electric_kw": 37.6
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_gpm": 1149.0,
+            "tdh_ft": 131.74,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 47.9,
+            "motor_hp": null,
+            "electric_kw": 37.6
+          },
+          {
+            "id": "P3",
+            "on": true,
+            "flow_gpm": 1149.0,
+            "tdh_ft": 131.74,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 47.9,
+            "motor_hp": null,
+            "electric_kw": 37.6
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_gpm": 1149.0,
+            "velocity_fps": 3.08
+          },
+          {
+            "id": "B2",
+            "flow_gpm": 1149.0,
+            "velocity_fps": 3.08
+          },
+          {
+            "id": "B3",
+            "flow_gpm": 1149.0,
+            "velocity_fps": 3.08
+          },
+          {
+            "id": "PS18",
+            "flow_gpm": 3446.9,
+            "velocity_fps": 4.12
+          },
+          {
+            "id": "FM",
+            "flow_gpm": 3446.9,
+            "velocity_fps": 4.23
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 76.18
+          },
+          {
+            "id": "FM0",
+            "pressure_psi": 75.84
+          },
+          {
+            "id": "N1",
+            "pressure_psi": 76.45
+          },
+          {
+            "id": "N2",
+            "pressure_psi": 76.45
+          },
+          {
+            "id": "N3",
+            "pressure_psi": 76.45
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 3446.9,
+        "total_pumped_mgd": 4.964,
+        "total_electric_kw": 112.7,
+        "specific_energy_kwh_per_ml": 144.0
+      }
+    },
+    "ALT-A-HH2": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          },
+          {
+            "elev_ft": 0,
+            "id": "FM0"
+          },
+          {
+            "elev_ft": 0,
+            "id": "N1"
+          },
+          {
+            "elev_ft": 0,
+            "id": "N2"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 12.34,
+            "from": "N1",
+            "id": "B1",
+            "length_ft": 188.7,
+            "to": "HDR"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 12.34,
+            "from": "N2",
+            "id": "B2",
+            "length_ft": 188.7,
+            "to": "HDR"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 18.49,
+            "from": "HDR",
+            "id": "PS18",
+            "length_ft": 221.6,
+            "to": "FM0"
+          },
+          {
+            "c_factor": 85,
+            "diameter_in": 18.24,
+            "from": "FM0",
+            "id": "FM",
+            "length_ft": 14094.2,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.95,
+            "rated_gpm": 2500,
+            "rated_head_ft": 240,
+            "to": "N1"
+          },
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.95,
+            "rated_gpm": 2500,
+            "rated_head_ft": 240,
+            "to": "N2"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 44.55,
+            "id": "SUCT"
+          },
+          {
+            "head_ft": 73.9,
+            "id": "DISCH"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_gpm": 2524.6,
+            "tdh_ft": 238.42,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 190.3,
+            "motor_hp": null,
+            "electric_kw": 149.4,
+            "pct_of_rated_flow": 101
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_gpm": 2524.6,
+            "tdh_ft": 238.42,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 190.3,
+            "motor_hp": null,
+            "electric_kw": 149.4,
+            "pct_of_rated_flow": 101
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_gpm": 2524.6,
+            "velocity_fps": 6.77
+          },
+          {
+            "id": "B2",
+            "flow_gpm": 2524.6,
+            "velocity_fps": 6.77
+          },
+          {
+            "id": "PS18",
+            "flow_gpm": 5049.2,
+            "velocity_fps": 6.03
+          },
+          {
+            "id": "FM",
+            "flow_gpm": 5049.2,
+            "velocity_fps": 6.2
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 121.55
+          },
+          {
+            "id": "FM0",
+            "pressure_psi": 120.86
+          },
+          {
+            "id": "N1",
+            "pressure_psi": 122.72
+          },
+          {
+            "id": "N2",
+            "pressure_psi": 122.72
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 5049.2,
+        "total_pumped_mgd": 7.271,
+        "total_electric_kw": 298.8,
+        "specific_energy_kwh_per_ml": 260.6
+      }
+    },
+    "BASE2-C70": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          },
+          {
+            "elev_ft": 0,
+            "id": "FM0"
+          },
+          {
+            "elev_ft": 0,
+            "id": "N1"
+          },
+          {
+            "elev_ft": 0,
+            "id": "N2"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 12.34,
+            "from": "N1",
+            "id": "B1",
+            "length_ft": 188.7,
+            "to": "HDR"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 12.34,
+            "from": "N2",
+            "id": "B2",
+            "length_ft": 188.7,
+            "to": "HDR"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 18.49,
+            "from": "HDR",
+            "id": "PS18",
+            "length_ft": 221.6,
+            "to": "FM0"
+          },
+          {
+            "c_factor": 70,
+            "diameter_in": 18.24,
+            "from": "FM0",
+            "id": "FM",
+            "length_ft": 14094.2,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ],
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.95,
+            "to": "N1"
+          },
+          {
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ],
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.95,
+            "to": "N2"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 44.55,
+            "id": "SUCT"
+          },
+          {
+            "head_ft": 73.9,
+            "id": "DISCH"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_gpm": 1388.7,
+            "tdh_ft": 127.75,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 56.1,
+            "motor_hp": null,
+            "electric_kw": 44.0
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_gpm": 1388.7,
+            "tdh_ft": 127.75,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 56.1,
+            "motor_hp": null,
+            "electric_kw": 44.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_gpm": 1388.7,
+            "velocity_fps": 3.73
+          },
+          {
+            "id": "B2",
+            "flow_gpm": 1388.7,
+            "velocity_fps": 3.73
+          },
+          {
+            "id": "PS18",
+            "flow_gpm": 2777.3,
+            "velocity_fps": 3.32
+          },
+          {
+            "id": "FM",
+            "flow_gpm": 2777.3,
+            "velocity_fps": 3.41
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 74.33
+          },
+          {
+            "id": "FM0",
+            "pressure_psi": 74.11
+          },
+          {
+            "id": "N1",
+            "pressure_psi": 74.72
+          },
+          {
+            "id": "N2",
+            "pressure_psi": 74.72
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 2777.3,
+        "total_pumped_mgd": 3.999,
+        "total_electric_kw": 88.1,
+        "specific_energy_kwh_per_ml": 139.6
+      }
+    },
+    "ALT-B-PFM-EX": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          },
+          {
+            "elev_ft": 0,
+            "id": "FM0"
+          },
+          {
+            "elev_ft": 0,
+            "id": "N1"
+          },
+          {
+            "elev_ft": 0,
+            "id": "N2"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 12.34,
+            "from": "N1",
+            "id": "B1",
+            "length_ft": 188.7,
+            "to": "HDR"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 12.34,
+            "from": "N2",
+            "id": "B2",
+            "length_ft": 188.7,
+            "to": "HDR"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 18.49,
+            "from": "HDR",
+            "id": "PS18",
+            "length_ft": 221.6,
+            "to": "FM0"
+          },
+          {
+            "c_factor": 85,
+            "diameter_in": 18.24,
+            "from": "FM0",
+            "id": "FM-E",
+            "length_ft": 14094.2,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 18.24,
+            "from": "FM0",
+            "id": "FM-N",
+            "length_ft": 14094.2,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ],
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.95,
+            "to": "N1"
+          },
+          {
+            "curve": [
+              [
+                0,
+                152.68
+              ],
+              [
+                800,
+                137.48
+              ],
+              [
+                1000,
+                134.23
+              ],
+              [
+                1600,
+                124.22
+              ],
+              [
+                2000,
+                116.44
+              ],
+              [
+                2400,
+                111.47
+              ],
+              [
+                3000,
+                101.67
+              ],
+              [
+                3200,
+                98.27
+              ],
+              [
+                3600,
+                91.33
+              ],
+              [
+                4000,
+                85.17
+              ],
+              [
+                4800,
+                70.8
+              ],
+              [
+                5000,
+                67.46
+              ]
+            ],
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.95,
+            "to": "N2"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 44.55,
+            "id": "SUCT"
+          },
+          {
+            "head_ft": 73.9,
+            "id": "DISCH"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_gpm": 3201.1,
+            "tdh_ft": 98.25,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 99.5,
+            "motor_hp": null,
+            "electric_kw": 78.1
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_gpm": 3201.1,
+            "tdh_ft": 98.25,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 99.5,
+            "motor_hp": null,
+            "electric_kw": 78.1
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_gpm": 3201.1,
+            "velocity_fps": 8.59
+          },
+          {
+            "id": "B2",
+            "flow_gpm": 3201.1,
+            "velocity_fps": 8.59
+          },
+          {
+            "id": "PS18",
+            "flow_gpm": 6402.3,
+            "velocity_fps": 7.65
+          },
+          {
+            "id": "FM-E",
+            "flow_gpm": 2654.6,
+            "velocity_fps": 3.26
+          },
+          {
+            "id": "FM-N",
+            "flow_gpm": 3747.7,
+            "velocity_fps": 4.6
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 60.12
+          },
+          {
+            "id": "FM0",
+            "pressure_psi": 59.05
+          },
+          {
+            "id": "N1",
+            "pressure_psi": 61.93
+          },
+          {
+            "id": "N2",
+            "pressure_psi": 61.93
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 6402.3,
+        "total_pumped_mgd": 9.219,
+        "total_electric_kw": 156.1,
+        "specific_energy_kwh_per_ml": 107.4
+      }
+    },
+    "ALT-C-PFM-NP": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          },
+          {
+            "elev_ft": 0,
+            "id": "FM0"
+          },
+          {
+            "elev_ft": 0,
+            "id": "N1"
+          },
+          {
+            "elev_ft": 0,
+            "id": "N2"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 12.34,
+            "from": "N1",
+            "id": "B1",
+            "length_ft": 188.7,
+            "to": "HDR"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 12.34,
+            "from": "N2",
+            "id": "B2",
+            "length_ft": 188.7,
+            "to": "HDR"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 18.49,
+            "from": "HDR",
+            "id": "PS18",
+            "length_ft": 221.6,
+            "to": "FM0"
+          },
+          {
+            "c_factor": 85,
+            "diameter_in": 18.24,
+            "from": "FM0",
+            "id": "FM-E",
+            "length_ft": 14094.2,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 18.24,
+            "from": "FM0",
+            "id": "FM-N",
+            "length_ft": 14094.2,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.95,
+            "rated_gpm": 2500,
+            "rated_head_ft": 105,
+            "to": "N1"
+          },
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.95,
+            "rated_gpm": 2500,
+            "rated_head_ft": 105,
+            "to": "N2"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 44.55,
+            "id": "SUCT"
+          },
+          {
+            "head_ft": 73.9,
+            "id": "DISCH"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_gpm": 2988.1,
+            "tdh_ft": 90.0,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 85.0,
+            "motor_hp": null,
+            "electric_kw": 66.8,
+            "pct_of_rated_flow": 120
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_gpm": 2988.1,
+            "tdh_ft": 90.0,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 85.0,
+            "motor_hp": null,
+            "electric_kw": 66.8,
+            "pct_of_rated_flow": 120
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_gpm": 2988.1,
+            "velocity_fps": 8.02
+          },
+          {
+            "id": "B2",
+            "flow_gpm": 2988.1,
+            "velocity_fps": 8.02
+          },
+          {
+            "id": "PS18",
+            "flow_gpm": 5976.2,
+            "velocity_fps": 7.14
+          },
+          {
+            "id": "FM-E",
+            "flow_gpm": 2477.9,
+            "velocity_fps": 3.04
+          },
+          {
+            "id": "FM-N",
+            "flow_gpm": 3498.2,
+            "velocity_fps": 4.3
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 56.76
+          },
+          {
+            "id": "FM0",
+            "pressure_psi": 55.81
+          },
+          {
+            "id": "N1",
+            "pressure_psi": 58.35
+          },
+          {
+            "id": "N2",
+            "pressure_psi": 58.35
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 5976.2,
+        "total_pumped_mgd": 8.606,
+        "total_electric_kw": 133.5,
+        "specific_energy_kwh_per_ml": 98.4
+      }
+    }
+  }
+}

@@ -1,0 +1,126 @@
+[TITLE]
+
+[JUNCTIONS]
+;ID                      Elevation       Demand Pattern                 
+ J-SUP                             10               0                            ;
+ J-RET                             10               0                            ;
+ J-A-TIN                           10               0                            ;
+ J-B-TIN                           10               0                            ;
+
+[RESERVOIRS]
+;ID                                   Head                  Pattern
+ R-SUP                             10                            ;
+ R-RET                             10                            ;
+
+[TANKS]
+;ID                              Elevation           Init Level            Min Level            Max Level             Diameter           Min Volume Volume Curve         Overflow            
+
+[PIPES]
+;ID                   Node1                Node2                              Length             Diameter            Roughness           Minor Loss               Status
+ P-A-TUBES            J-A-TIN              J-RET                            111              12              80               8                 Open   ;
+ P-B-TUBES            J-B-TIN              J-RET                            111              12             120               8               Closed   ;
+ P-A-TIN              J-SUP                J-A-TIN                           50               8             120               3                 Open   ;
+ P-B-TIN              J-SUP                J-B-TIN                           50               8             120               3               Closed   ;
+ P-RET                J-RET                R-RET                            100              12             120               2                 Open   ;
+
+[PUMPS]
+;ID                   Node1                Node2                Properties          
+ QW-P1                R-SUP                J-SUP                HEAD     QW-P1_curve            ;
+
+[VALVES]
+;ID                   Node1                Node2                            Diameter Type              Setting           Minor Loss
+
+[TAGS]
+;type      name       tag       
+
+[DEMANDS]
+;ID        Demand     Pattern   
+
+[STATUS]
+;ID        Setting   
+
+[PATTERNS]
+;ID        Multipliers
+
+[CURVES]
+;ID         X-Value      Y-Value     
+;PUMP: QW-P1_curve
+ QW-P1_curve  4000.000228    60.000000   ;
+
+
+[CONTROLS]
+
+[RULES]
+
+[ENERGY]
+GLOBAL PRICE           0.0000
+
+[EMITTERS]
+;ID        Flow coefficient
+
+[QUALITY]
+
+[SOURCES]
+;Node      Type       Quality    Pattern   
+
+[REACTIONS]
+;Type           Pipe/Tank               Coefficient
+
+ ORDER BULK 1
+ ORDER TANK 1
+ ORDER WALL 1
+ GLOBAL BULK 0.0000    
+ GLOBAL WALL 0.0000    
+
+[MIXING]
+;Tank ID             Model Fraction
+
+[TIMES]
+DURATION             00:00:00
+HYDRAULIC TIMESTEP   01:00:00
+QUALITY TIMESTEP     00:06:00
+PATTERN TIMESTEP     01:00:00
+PATTERN START        00:00:00
+REPORT TIMESTEP      01:00:00
+REPORT START         00:00:00
+START CLOCKTIME      00:00:00 AM
+RULE TIMESTEP        00:06:00
+STATISTIC            NONE      
+
+[REPORT]
+
+[OPTIONS]
+UNITS                GPM                 
+HEADLOSS             H-W                 
+SPECIFIC GRAVITY     1
+VISCOSITY            1
+TRIALS               200
+ACCURACY             0.001
+CHECKFREQ            2
+MAXCHECK             10
+UNBALANCED           STOP                
+PATTERN              1                   
+DEMAND MULTIPLIER    1
+EMITTER EXPONENT     0.5
+QUALITY              NONE                
+DIFFUSIVITY          1
+TOLERANCE            0.01
+
+[COORDINATES]
+;Node      X-Coord    Y-Coord   
+R-SUP               0.000000000          0.000000000
+R-RET               0.000000000          0.000000000
+J-SUP               0.000000000          0.000000000
+J-RET               0.000000000          0.000000000
+J-A-TIN             0.000000000          0.000000000
+J-B-TIN             0.000000000          0.000000000
+
+[VERTICES]
+;Link      X-Coord    Y-Coord   
+
+[LABELS]
+
+[BACKDROP]
+UNITS    NONE
+
+[END]

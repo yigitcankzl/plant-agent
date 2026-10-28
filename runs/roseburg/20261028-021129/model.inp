@@ -1,0 +1,128 @@
+[TITLE]
+
+[JUNCTIONS]
+;ID                      Elevation       Demand Pattern                 
+ dis-hdr                          425               0                            ;
+
+[RESERVOIRS]
+;ID                                   Head                  Pattern
+ river                            420                            ;
+ basin-inlet                      466                            ;
+
+[TANKS]
+;ID                              Elevation           Init Level            Min Level            Max Level             Diameter           Min Volume Volume Curve         Overflow            
+
+[PIPES]
+;ID                   Node1                Node2                              Length             Diameter            Roughness           Minor Loss               Status
+ raw-30in             dis-hdr              basin-inlet                      800              30             120               0                 Open   ;
+
+[PUMPS]
+;ID                   Node1                Node2                Properties          
+ RP1-4mgd             river                dis-hdr              HEAD     RP1-4mgd_curve         ;
+ RP2-6mgd             river                dis-hdr              HEAD     RP2-6mgd_curve         ;
+ RP3-6mgd             river                dis-hdr              HEAD     RP3-6mgd_curve         ;
+ RP4-6mgd             river                dis-hdr              HEAD     RP4-6mgd_curve         ;
+
+[VALVES]
+;ID                   Node1                Node2                            Diameter Type              Setting           Minor Loss
+
+[TAGS]
+;type      name       tag       
+
+[DEMANDS]
+;ID        Demand     Pattern   
+
+[STATUS]
+;ID        Setting   
+
+[PATTERNS]
+;ID        Multipliers
+
+[CURVES]
+;ID         X-Value      Y-Value     
+;PUMP: RP1-4mgd_curve
+ RP1-4mgd_curve  2800.000160    49.000000   ;
+
+;PUMP: RP2-6mgd_curve
+ RP2-6mgd_curve  4200.000240    49.000000   ;
+
+;PUMP: RP3-6mgd_curve
+ RP3-6mgd_curve  4200.000240    49.000000   ;
+
+;PUMP: RP4-6mgd_curve
+ RP4-6mgd_curve  4200.000240    49.000000   ;
+
+
+[CONTROLS]
+
+[RULES]
+
+[ENERGY]
+GLOBAL PRICE           0.0000
+
+[EMITTERS]
+;ID        Flow coefficient
+
+[QUALITY]
+
+[SOURCES]
+;Node      Type       Quality    Pattern   
+
+[REACTIONS]
+;Type           Pipe/Tank               Coefficient
+
+ ORDER BULK 1
+ ORDER TANK 1
+ ORDER WALL 1
+ GLOBAL BULK 0.0000    
+ GLOBAL WALL 0.0000    
+
+[MIXING]
+;Tank ID             Model Fraction
+
+[TIMES]
+DURATION             00:00:00
+HYDRAULIC TIMESTEP   01:00:00
+QUALITY TIMESTEP     00:06:00
+PATTERN TIMESTEP     01:00:00
+PATTERN START        00:00:00
+REPORT TIMESTEP      01:00:00
+REPORT START         00:00:00
+START CLOCKTIME      00:00:00 AM
+RULE TIMESTEP        00:06:00
+STATISTIC            NONE      
+
+[REPORT]
+
+[OPTIONS]
+UNITS                GPM                 
+HEADLOSS             H-W                 
+SPECIFIC GRAVITY     1
+VISCOSITY            1
+TRIALS               200
+ACCURACY             0.001
+CHECKFREQ            2
+MAXCHECK             10
+UNBALANCED           STOP                
+PATTERN              1                   
+DEMAND MULTIPLIER    1
+EMITTER EXPONENT     0.5
+QUALITY              NONE                
+DIFFUSIVITY          1
+TOLERANCE            0.01
+
+[COORDINATES]
+;Node      X-Coord    Y-Coord   
+river               0.000000000          0.000000000
+basin-inlet          0.000000000          0.000000000
+dis-hdr             0.000000000          0.000000000
+
+[VERTICES]
+;Link      X-Coord    Y-Coord   
+
+[LABELS]
+
+[BACKDROP]
+UNITS    NONE
+
+[END]

@@ -1,0 +1,44 @@
+{
+  "case": "lbnl_gsa_dc",
+  "judge": "muse-wonder-1.0",
+  "agent_model": "muse-spark-1.3-contributor",
+  "score": 0.333,
+  "items": [
+    {
+      "id": "air_management",
+      "unit": "Data center air management / CAUs",
+      "verdict": "partially",
+      "note": "Agent finds overcooling, bypass/recirculation and proposes sealing, blanking, tile changes, raising intake toward 80F and standby CAUs, but omits hot-aisle containment/ceiling return and does not reach the 40 kW package savings."
+    },
+    {
+      "id": "chw_bypass_setpoint",
+      "unit": "Chilled water plant",
+      "verdict": "partially",
+      "note": "Agent proposes BAS calibration, CHWS reset and addressing low delta-T, but misses the >60% bypass recirculation control and the 43.6F to >=55F setpoint with its quantified savings."
+    },
+    {
+      "id": "glycol_pumps",
+      "unit": "Glycol primary and secondary pumps",
+      "verdict": "missed",
+      "note": "Agent addresses secondary chilled-water pumps only as an analog and does not propose running both glycol secondary pumps slower or VFDs with DP control on glycol primary pumps."
+    },
+    {
+      "id": "eliminate_dx_economizer",
+      "unit": "Cooling system architecture",
+      "verdict": "partially",
+      "note": "Agent favors CHW-first operation and DX lockout except at peak, but does not eliminate the glycol/DX system or propose higher-temperature CHW with water-side economizer heat exchangers."
+    },
+    {
+      "id": "minor_electrical_lighting",
+      "unit": "UPS, generator, lighting",
+      "verdict": "partially",
+      "note": "Agent proposes lighting occupancy/LED savings and UPS ECO/load-factor study, but not generator block-heater setpoint reset or >96% efficient UPS at replacement."
+    },
+    {
+      "id": "total",
+      "unit": "Whole data center",
+      "verdict": "missed",
+      "note": "Agent provides no aggregate package totaling about 92 kW, 929,000 kWh/yr, $65,000/yr, 1.2-year payback, or PUE improvement from 2.26 to 1.74."
+    }
+  ]
+}

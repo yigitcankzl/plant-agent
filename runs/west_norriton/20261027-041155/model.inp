@@ -1,0 +1,151 @@
+[TITLE]
+
+[JUNCTIONS]
+;ID                      Elevation       Demand Pattern                 
+ HDR                            44.55               0                            ;
+ J1                             44.55               0                            ;
+ N1                             44.55               0                            ;
+ N2                             44.55               0                            ;
+
+[RESERVOIRS]
+;ID                                   Head                  Pattern
+ WW                             44.55                            ;
+ DISCH                           73.9                            ;
+
+[TANKS]
+;ID                              Elevation           Init Level            Min Level            Max Level             Diameter           Min Volume Volume Curve         Overflow            
+
+[PIPES]
+;ID                   Node1                Node2                              Length             Diameter            Roughness           Minor Loss               Status
+ S1                   N1                   HDR                            188.7           12.34             120               0                 Open   ;
+ S2                   N2                   HDR                            188.7           12.34             120               0                 Open   ;
+ PS18                 HDR                  J1                             221.6           18.49             120               0                 Open   ;
+ FM18                 J1                   DISCH                        14094.2           18.24              85               0                 Open   ;
+
+[PUMPS]
+;ID                   Node1                Node2                Properties          
+ P1                   WW                   N1                   HEAD     P1_curve               ;
+ P2                   WW                   N2                   HEAD     P2_curve               ;
+
+[VALVES]
+;ID                   Node1                Node2                            Diameter Type              Setting           Minor Loss
+
+[TAGS]
+;type      name       tag       
+
+[DEMANDS]
+;ID        Demand     Pattern   
+
+[STATUS]
+;ID        Setting   
+
+[PATTERNS]
+;ID        Multipliers
+
+[CURVES]
+;ID         X-Value      Y-Value     
+;PUMP: P1_curve
+ P1_curve       0.000000   152.680000   ;
+ P1_curve     800.000046   137.480000   ;
+ P1_curve    1000.000057   134.230000   ;
+ P1_curve    1600.000091   124.220000   ;
+ P1_curve    2000.000114   116.440000   ;
+ P1_curve    2400.000137   111.470000   ;
+ P1_curve    3000.000171   101.670000   ;
+ P1_curve    3200.000183    98.270000   ;
+ P1_curve    3600.000205    91.330000   ;
+ P1_curve    4000.000228    85.170000   ;
+ P1_curve    4800.000274    70.800000   ;
+ P1_curve    5000.000285    67.460000   ;
+
+;PUMP: P2_curve
+ P2_curve       0.000000   152.680000   ;
+ P2_curve     800.000046   137.480000   ;
+ P2_curve    1000.000057   134.230000   ;
+ P2_curve    1600.000091   124.220000   ;
+ P2_curve    2000.000114   116.440000   ;
+ P2_curve    2400.000137   111.470000   ;
+ P2_curve    3000.000171   101.670000   ;
+ P2_curve    3200.000183    98.270000   ;
+ P2_curve    3600.000205    91.330000   ;
+ P2_curve    4000.000228    85.170000   ;
+ P2_curve    4800.000274    70.800000   ;
+ P2_curve    5000.000285    67.460000   ;
+
+
+[CONTROLS]
+
+[RULES]
+
+[ENERGY]
+GLOBAL PRICE           0.0000
+
+[EMITTERS]
+;ID        Flow coefficient
+
+[QUALITY]
+
+[SOURCES]
+;Node      Type       Quality    Pattern   
+
+[REACTIONS]
+;Type           Pipe/Tank               Coefficient
+
+ ORDER BULK 1
+ ORDER TANK 1
+ ORDER WALL 1
+ GLOBAL BULK 0.0000    
+ GLOBAL WALL 0.0000    
+
+[MIXING]
+;Tank ID             Model Fraction
+
+[TIMES]
+DURATION             00:00:00
+HYDRAULIC TIMESTEP   01:00:00
+QUALITY TIMESTEP     00:06:00
+PATTERN TIMESTEP     01:00:00
+PATTERN START        00:00:00
+REPORT TIMESTEP      01:00:00
+REPORT START         00:00:00
+START CLOCKTIME      00:00:00 AM
+RULE TIMESTEP        00:06:00
+STATISTIC            NONE      
+
+[REPORT]
+
+[OPTIONS]
+UNITS                GPM                 
+HEADLOSS             H-W                 
+SPECIFIC GRAVITY     1
+VISCOSITY            1
+TRIALS               200
+ACCURACY             0.001
+CHECKFREQ            2
+MAXCHECK             10
+UNBALANCED           STOP                
+PATTERN              1                   
+DEMAND MULTIPLIER    1
+EMITTER EXPONENT     0.5
+QUALITY              NONE                
+DIFFUSIVITY          1
+TOLERANCE            0.01
+
+[COORDINATES]
+;Node      X-Coord    Y-Coord   
+WW                  0.000000000          0.000000000
+DISCH               0.000000000          0.000000000
+HDR                 0.000000000          0.000000000
+J1                  0.000000000          0.000000000
+N1                  0.000000000          0.000000000
+N2                  0.000000000          0.000000000
+
+[VERTICES]
+;Link      X-Coord    Y-Coord   
+
+[LABELS]
+
+[BACKDROP]
+UNITS    NONE
+
+[END]

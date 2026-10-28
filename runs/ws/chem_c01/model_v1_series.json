@@ -1,0 +1,392 @@
+{
+ "label": "calibrated_model",
+ "spec": {
+  "compounds": [
+   "Water",
+   "Ethanol"
+  ],
+  "package": "NRTL",
+  "feeds": {
+   "Feed_47121": {
+    "T_C": 50,
+    "P_bar": 1.5,
+    "m3_h": 18.0,
+    "x": {
+     "Ethanol": 0.07,
+     "Water": 0.93
+    }
+   },
+   "CW_47130": {
+    "T_C": 25,
+    "P_bar": 4,
+    "m3_h": 20,
+    "x": {
+     "Water": 1.0
+    },
+    "utility": true
+   },
+   "CHW_47140": {
+    "T_C": 8,
+    "P_bar": 4,
+    "m3_h": 15,
+    "x": {
+     "Water": 1.0
+    },
+    "utility": true
+   }
+  },
+  "units": [
+   {
+    "id": "P4711",
+    "type": "pump",
+    "in": "Feed_47121",
+    "out": "S_47122",
+    "dP_bar": 1.0,
+    "eff_pct": 75
+   },
+   {
+    "id": "H1007",
+    "type": "hx",
+    "cold": [
+     "CW_47130",
+     "CW_47131"
+    ],
+    "hot": [
+     "S_47122",
+     "S_47123"
+    ],
+    "U_W_m2K": 600,
+    "area_m2": 46.8
+   },
+   {
+    "id": "T4750",
+    "type": "tank",
+    "in": "S_47123",
+    "out": "S_47124",
+    "volume_m3": 26
+   },
+   {
+    "id": "P4712",
+    "type": "pump",
+    "in": "S_47124",
+    "out": "S_47126",
+    "dP_bar": 3.5,
+    "eff_pct": 75
+   },
+   {
+    "id": "H1008",
+    "type": "hx",
+    "cold": [
+     "CHW_47140",
+     "CHW_47141"
+    ],
+    "hot": [
+     "S_47126",
+     "Product_Dispatch"
+    ],
+    "U_W_m2K": 600,
+    "area_m2": 46.8
+   }
+  ],
+  "limits": {
+   "P4711": {
+    "max_m3_h": 200,
+    "max_kW": 60
+   },
+   "P4712": {
+    "max_m3_h": 420,
+    "max_kW": 84
+   },
+   "H1007": {
+    "area_m2": 46.8,
+    "max_kW": 313,
+    "out_T_C": 35,
+    "side": "hot",
+    "max_area_m2": 60
+   },
+   "H1008": {
+    "area_m2": 46.8,
+    "max_kW": 313,
+    "out_T_C": 20,
+    "side": "hot"
+   },
+   "T4750": {
+    "min_residence_min": 60
+   },
+   "CW_47130": {
+    "max_m3_h": 30
+   },
+   "CHW_47140": {
+    "max_m3_h": 20
+   }
+  }
+ },
+ "result": {
+  "scale": 1.0,
+  "errors": [],
+  "streams": {
+   "Feed_47121": {
+    "T_C": 50.0,
+    "P_bar": 1.5,
+    "kg_h": 17415.6,
+    "m3_h": 18.0,
+    "vapour_frac": 0.0
+   },
+   "CW_47130": {
+    "T_C": 25.0,
+    "P_bar": 4.0,
+    "kg_h": 19927.5,
+    "m3_h": 20.0,
+    "vapour_frac": 0.0
+   },
+   "CHW_47140": {
+    "T_C": 8.0,
+    "P_bar": 4.0,
+    "kg_h": 14996.9,
+    "m3_h": 15.0,
+    "vapour_frac": 0.0
+   },
+   "S_47122": {
+    "T_C": 50.01,
+    "P_bar": 2.5,
+    "kg_h": 17415.6,
+    "m3_h": 18.0,
+    "vapour_frac": 0.0
+   },
+   "CW_47131": {
+    "T_C": 37.73,
+    "P_bar": 4.0,
+    "kg_h": 19927.5,
+    "m3_h": 20.08,
+    "vapour_frac": 0.0
+   },
+   "S_47123": {
+    "T_C": 33.94,
+    "P_bar": 2.5,
+    "kg_h": 17415.6,
+    "m3_h": 17.87,
+    "vapour_frac": 0.0
+   },
+   "S_47124": {
+    "T_C": 33.94,
+    "P_bar": 2.5,
+    "kg_h": 17415.6,
+    "m3_h": 17.87,
+    "vapour_frac": 0.0
+   },
+   "S_47126": {
+    "T_C": 33.97,
+    "P_bar": 6.0,
+    "kg_h": 17415.6,
+    "m3_h": 17.86,
+    "vapour_frac": 0.0
+   },
+   "CHW_47141": {
+    "T_C": 24.21,
+    "P_bar": 4.0,
+    "kg_h": 14996.9,
+    "m3_h": 15.05,
+    "vapour_frac": 0.0
+   },
+   "Product_Dispatch": {
+    "T_C": 18.41,
+    "P_bar": 6.0,
+    "kg_h": 17415.6,
+    "m3_h": 17.77,
+    "vapour_frac": 0.0
+   }
+  },
+  "units": {
+   "P4711": {
+    "type": "pump",
+    "m3_h": 18.0,
+    "head_m": 10.54,
+    "dP_bar": 1.0,
+    "eff_pct": 75.0,
+    "kW": 0.67,
+    "npsha_m": 13.67
+   },
+   "H1007": {
+    "type": "hx",
+    "duty_kW": 295.4,
+    "lmtd_C": 10.52,
+    "U_W_m2K": 600.0,
+    "area_m2": 46.8
+   },
+   "T4750": {
+    "type": "tank",
+    "residence_min": 87.32,
+    "volume_m3": 26.0
+   },
+   "P4712": {
+    "type": "pump",
+    "m3_h": 17.87,
+    "head_m": 36.6,
+    "dP_bar": 3.5,
+    "eff_pct": 75.0,
+    "kW": 2.32,
+    "npsha_m": 25.2
+   },
+   "H1008": {
+    "type": "hx",
+    "duty_kW": 283.1,
+    "lmtd_C": 10.08,
+    "U_W_m2K": 600.0,
+    "area_m2": 46.8
+   }
+  },
+  "checks": [
+   {
+    "id": "H1007",
+    "check": "duty vs design",
+    "value": 295.4,
+    "limit": 313,
+    "unit": "kW",
+    "utilisation": 0.944
+   },
+   {
+    "id": "H1008",
+    "check": "duty vs design",
+    "value": 283.1,
+    "limit": 313,
+    "unit": "kW",
+    "utilisation": 0.904
+   },
+   {
+    "id": "H1007",
+    "check": "area needed for hot outlet 35 C",
+    "value": 40.02,
+    "limit": 46.8,
+    "unit": "m2",
+    "utilisation": 0.855
+   },
+   {
+    "id": "H1007",
+    "check": "installed area vs frame",
+    "value": 46.8,
+    "limit": 60,
+    "unit": "m2",
+    "utilisation": 0.78
+   },
+   {
+    "id": "H1008",
+    "check": "area needed for hot outlet 20 C",
+    "value": 36.23,
+    "limit": 46.8,
+    "unit": "m2",
+    "utilisation": 0.774
+   },
+   {
+    "id": "CHW_47140",
+    "check": "flow vs available",
+    "value": 15.0,
+    "limit": 20,
+    "unit": "m3/h",
+    "utilisation": 0.75
+   },
+   {
+    "id": "T4750",
+    "check": "residence time",
+    "value": 87.32,
+    "limit": 60,
+    "unit": "min",
+    "utilisation": 0.687
+   },
+   {
+    "id": "CW_47130",
+    "check": "flow vs available",
+    "value": 20.0,
+    "limit": 30,
+    "unit": "m3/h",
+    "utilisation": 0.667
+   },
+   {
+    "id": "P4711",
+    "check": "flow vs rated",
+    "value": 18.0,
+    "limit": 200,
+    "unit": "m3/h",
+    "utilisation": 0.09
+   },
+   {
+    "id": "P4712",
+    "check": "flow vs rated",
+    "value": 17.87,
+    "limit": 420,
+    "unit": "m3/h",
+    "utilisation": 0.043
+   },
+   {
+    "id": "P4712",
+    "check": "shaft power vs motor",
+    "value": 2.32,
+    "limit": 84,
+    "unit": "kW",
+    "utilisation": 0.028
+   },
+   {
+    "id": "P4711",
+    "check": "shaft power vs motor",
+    "value": 0.67,
+    "limit": 60,
+    "unit": "kW",
+    "utilisation": 0.011
+   }
+  ]
+ },
+ "mapping": [
+  {
+   "modelled_as": "pump P4711",
+   "source": "P&ID CentrifugalPump-1",
+   "tag": "P4711"
+  },
+  {
+   "modelled_as": "hx H1007 (hot=product, cold=cooling water)",
+   "source": "P&ID PlateHeatExchanger-1",
+   "tag": "H1007"
+  },
+  {
+   "modelled_as": "tank T4750",
+   "source": "P&ID Tank-1",
+   "tag": "T4750"
+  },
+  {
+   "modelled_as": "pump P4712",
+   "source": "P&ID ReciprocatingPump-1",
+   "tag": "P4712"
+  },
+  {
+   "modelled_as": "hx H1008 (hot=product, cold=chilled water)",
+   "source": "P&ID TubularHeatExchanger-1",
+   "tag": "H1008"
+  }
+ ],
+ "calibration": [
+  {
+   "item": "H1007 outlet to tank T4750",
+   "measured": "34 C (data sheet Current operation: H1007 outlet to tank T4750)",
+   "simulated": "33.94 C (calibrated_model:S_47123)",
+   "source": "data sheet vs calibrated_model run"
+  },
+  {
+   "item": "Product to dispatch after H1008",
+   "measured": "18 C (data sheet Current operation: Product to dispatch after H1008)",
+   "simulated": "18.41 C (calibrated_model:Product_Dispatch)",
+   "source": "data sheet vs calibrated_model run"
+  }
+ ],
+ "assumptions": [
+  "Property package NRTL assumed for polar water-ethanol mixture (engineering choice, not on P&ID/data sheet)",
+  "Product feed 18.0 m3/h 50 C 1.5 bar(a) 7 mol% ethanol / balance water from data sheet Current operation rows",
+  "Cooling water 20 m3/h 25 C 4 bar(a) and chilled water 15 m3/h 8 C 4 bar(a) from data sheet; both modelled as pure Water with utility:true (composition not specified)",
+  "P4711 dP 1.0 bar and P4712 dP 3.5 bar from data sheet Current operation rows; pump efficiency assumed 75% (not given)",
+  "H1007/H1008 U=600 W/m2K from data sheet Equipment performance 2024 fouled-service test; area 46.8 m2 each from P&ID H1007/H1008 DesignHeatTransferArea",
+  "T4750 volume 26 m3 from P&ID T4750 NominalCapacity(Volume); modelled as adiabatic tank (no heat loss)",
+  "HX pressure drops and valve drops (e.g. HV4750.01 0.3 bar open) neglected; pump dP lumps circuit",
+  "All duties/temperatures/areas/residence from simulator (calibrated_model), not hand arithmetic"
+ ],
+ "model": "muse-spark-1.3-contributor",
+ "seconds": 136,
+ "cost_usd": 0.0063,
+ "at": "2026-10-28 14:04"
+}

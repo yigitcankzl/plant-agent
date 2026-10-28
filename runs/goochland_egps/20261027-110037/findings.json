@@ -1,0 +1,51 @@
+[
+  {
+    "evidence": "Run S1-1-2P-RICH-MINWW: total 11888.9 gpm, 17.12 MGD total_pumped_mgd, TDH 162.23 ft; run S12-2P-HEN-MINWW: total 11230.9 gpm, 16.17 MGD (tool), TDH 174.91 ft. Required now 14.06 MGD total (1.06+13.0) (p.31 viewed). Both duty runs at 123-130% of rated flow (tool warnings).",
+    "limiting_value": "16.17 MGD Henrico duty (min) vs 14.06 MGD required (p.31) - passes duty; but 123-130% runout flags pump-curve uncertainty",
+    "limits_target": false,
+    "modification": "Accept duty passes; require check of actual Appendix B pump curves and motor runout before reliance on 123-130% operation. Generic single-point curve ASSUMPTION: rated 4583 gpm/210 ft (p.29 read excerpt) used - Appendix B curves not on available pages.",
+    "unit": "EGPS 2-duty current to Richmond/Henrico"
+  },
+  {
+    "evidence": "Run S1F-1P-RICH-MINWW: 6335.2 gpm, 9.123 MGD total_pumped_mgd, TDH 146.24 ft at 138% rated. Firm definition = largest unit out. Required 14.06 MGD (p.31).",
+    "limiting_value": "9.123 MGD firm (1 of 2) vs 14.06 MGD (p.31); FRP 1.07 fps < 2.0 fps minimum (p.38 viewed)",
+    "limits_target": true,
+    "modification": "Report as non-firm now for strict firm definition; no pipeline change fixes it - needs standby/pumping philosophy decision if firm required now.",
+    "unit": "EGPS firm current (1 of 2)"
+  },
+  {
+    "evidence": "Run S2-1-5P-RICH-MINWW: 5x4463.8 gpm, 32.139 MGD total_pumped_mgd, TDH 213.59 ft at 97% rated; run S2-2-5P-HEN-MINWW: 5x4210.0 gpm, 30.312 MGD total_pumped_mgd, TDH 220.93 ft at 92% rated. Required 2045 27.09 MGD (14.09+13.0) (p.31 viewed). Consistent geometry in all new runs: HDPE 37.76-in 10755 ft + FRP 36070 ft + DI 2435 ft per Table 3-1 (p.29 read excerpt).",
+    "limiting_value": "30.312 MGD Henrico duty and 32.139 MGD Richmond duty vs 27.09 MGD (p.31) - passes duty near rated point (92-97%), robust to curve uncertainty",
+    "limits_target": false,
+    "modification": "No duty-capacity modification needed; smaller 37.76-in ID HDPE still meets 2045 duty in Richmond and Henrico modes without GM.",
+    "unit": "EGPS 5-duty 2045 Richmond/Henrico"
+  },
+  {
+    "evidence": "Run S2-1F-4P-RICH-MINWW: 4x4942.5 gpm, 28.469 MGD total_pumped_mgd, TDH 198.59 ft at 108% rated vs 27.09 MGD (p.31) passes. Run S2-2F-4P-HEN-MINWW: 4x4663.7 gpm, 26.863 MGD total_pumped_mgd, TDH 207.51 ft at 102% rated vs 27.09 MGD (p.31) short by 0.23 MGD (~0.8%). Run S2-3P-HEN-MINWW staging: 3x5147.1 gpm, 22.236 MGD, TDH 191.71 ft.",
+    "limiting_value": "26.863 MGD firm (4 of 5) to Henrico vs 27.09 MGD (p.31) - marginal shortfall at 102% rated, within generic-curve uncertainty",
+    "limits_target": true,
+    "modification": "Recommended A2: provide 6th pump position (5-firm) and/or verify/uprate against true pump curves; 5-firm hydraulics = run S2-2-5P-HEN-MINWW 30.312 MGD which passes. Do not assert definitive failure on 0.8% margin from generic curve alone.",
+    "unit": "EGPS firm 2045 (4 of 5) Henrico vs Richmond"
+  },
+  {
+    "evidence": "Steady discharge J-DIS: 92.63 psi (S2-1-5P-RICH-MINWW) to 95.81 psi (S2-2-5P-HEN-MINWW); velocities HDPE 5.34-6.39 fps, FRP 3.16-3.78 fps in 4-/5-pump runs, all <10.0 fps and >2.0 fps (p.38 viewed). Allowables: DI 660 psig, FRP 100 psig, DR-21 HDPE 200 psig max; mins -10/-10/-7/-10 psig (p.38 viewed).",
+    "limiting_value": "Steady < ratings; FRP steady up to ~81 psi at HDPE exit / ~68 psi FRP exit in S2-2-5P-HEN-MINWW, leaving ~19-32 psi margin to 100 psig (p.38) before any transient rise",
+    "limits_target": false,
+    "modification": "No steady-pressure/velocity modification for HDPE/DI; FRP margin adequate steady but must be protected transiently (below).",
+    "unit": "Steady pressures/velocities Section B HDPE + remaining FRP/DI"
+  },
+  {
+    "evidence": "PER S3.1 reported: HDPE max 91 psi min -2 psi, FRP max 94 psi min -2 psi, HDPE 4.16 fps FRP 2.46 fps (p.41 viewed Fig 3-9 text); within Table 3-6 (p.38). Scenarios S3.1-S4.3 cover 2- and 5-duty trip at max WW, Richmond/Henrico +/-GM (p.41 viewed Table 3-9). Analyst run_surge T-S1-1-2P-RICH-TRIP failed IndexError - no independent transient computed per rules. Transient C=150 worst-case (p.38 viewed text); S3.2-S4.3 results not on available pages.",
+    "limiting_value": "S3.1 passes per PER; S3.2/S3.3/S4.1/S4.2/S4.3 and 3-/4-duty growth trips unverified on available pages; FRP 100 psig (p.38) is binding",
+    "limits_target": true,
+    "modification": "Recommended B1: full Hammer re-run for all trip cases including 3-/4-duty and max WW before operating 5 pumps to Henrico; verify 23 EGFM + GM/Maple air valves (p.38/p.40 viewed) and relief setpoints. Interim: do not operate 5-pump Henrico without verified surge protection.",
+    "unit": "Pump-station trip transient"
+  },
+  {
+    "evidence": "No Gambles Mill pump/pipe/diameter/length/C/duty data on available pages [9,28,29,31,38,39,40,41,56]; prior GM-active runs withdrawn. Table 3-4 S1.3/S2.3 and Table 3-9 S3.3/S4.3 list Henrico+Active GM modes (p.31/p.41 viewed) but inputs not verifiable.",
+    "limiting_value": "Henrico+GM combined flows/heads/pressures unverifiable - no GM basis",
+    "limits_target": true,
+    "modification": "Obtain Henrico GM pump curves, FM geometry, controls and modeling assumptions; re-verify S1.3/S2.3/S3.3/S4.3 before committing Henrico+GM firm capacity.",
+    "unit": "Henrico while Gambles Mill pumps"
+  }
+]

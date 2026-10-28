@@ -1,0 +1,4270 @@
+{
+  "case": "caen_hill",
+  "facility": "Caen Hill Pumping Station, Kennet and Avon Canal, UK",
+  "source": "Arcadis for Canal & River Trust, Caen Hill Pumping Station Pump Audit Summary Report, 2020 (Interreg Green WIN public deliverable)",
+  "url": "https://www.nweurope.eu/projects/project-search/green-win-green-infrastructure-for-water-in-the-north-west-europe/",
+  "question": "Audit the Caen Hill pumping station. The operator reports short bearing and seal life, gasket failures and higher than expected energy use. Using the site tests, SCADA data and system description, diagnose the causes (hydraulic, vibration, surge, control), quantify any unexplained losses with the simulator, and recommend measures with their expected benefit.",
+  "model": "muse-spark-1.3-contributor",
+  "collection": {
+    "criteria": [
+      {
+        "name": "Normal operating speed and control mode",
+        "source": "p.7 Table 1; p.13 Section 6",
+        "value": "Both pumps in parallel (duty/duty) at fixed manually-set 48.0 Hz with 30 s ramp; start on low level at Lock Flight 50 via telemetry, stop on high level (p.7, p.13)"
+      },
+      {
+        "name": "Pump preferred operating range (POR)",
+        "source": "p.14 Section 7.1",
+        "value": "70% to 120% of flow rate at best efficiency point (BEP) (p.14)"
+      },
+      {
+        "name": "Vibration acceptance limit applied",
+        "source": "p.16 Section 7.3",
+        "value": "11.2 mm/s RMS velocity as reasonable acceptance limit for 2-vane pump (p.16)"
+      },
+      {
+        "name": "Vibration measurement standard",
+        "source": "p.15 Section 7.2; p.16 Section 7.3",
+        "value": "Generally in accordance with BS ISO 10816 Part 7; WIMES 1.03 covers dry-well submersible pumps (p.15, p.16)"
+      },
+      {
+        "name": "NPSH compliance",
+        "source": "p.12 Section 4",
+        "value": "NPSH available must exceed NPSH required; site calculation shows ~4 m margin (p.12)"
+      },
+      {
+        "name": "Intake bellmouth clearance standard",
+        "source": "p.19 Section 8.4",
+        "value": "ANSI/HI 9.8 ideal bellmouth elevation 0.3D to 0.5D off wet-well floor (D=bellmouth diameter) (p.19)"
+      },
+      {
+        "name": "Bearing design life expectation",
+        "source": "p.14 Section 7.1",
+        "value": "50,000 hours design life vs observed 2,000 to 3,000 hours typical (p.14)"
+      },
+      {
+        "name": "System duty - static lift and discharge level",
+        "source": "p.7 Table 2",
+        "value": "Supply Lock 22 to Lock 50; elevation rise 72 m; discharge level 127.6 mAOD; rising main 3602 m x 600 mm Ductile Iron (p.7)"
+      },
+      {
+        "name": "Energy efficiency objective",
+        "source": "p.12 Table 3; p.13 Section 5",
+        "value": "Minimise wire-to-water specific energy; 48 Hz lower than 50 Hz or 45 Hz, single-pump lower than 2-pump (p.12, p.13)"
+      },
+      {
+        "name": "Surge withstand objective",
+        "source": "p.19 Section 8.3 Table 5",
+        "value": "Withstand calculated peaks at PS manifold: 17.5 bar.g (2-pump trip), 20 bar.g (1-pump trip with two running), 13 bar.g (controlled 30 s ramp stop) assuming intermediate NRVs open - for comparison to pipe/fitting rating (p.19)"
+      }
+    ],
+    "data_register": [
+      {
+        "id": "GEN-01",
+        "item": "Facility location and purpose",
+        "quote": "Its purpose is to supply water up from Lock 22 to Lock 50 on the Kennet and Avon Canal",
+        "source": "p.7",
+        "unit": "-",
+        "value": "Caen Hill PS near Devizes, Wiltshire, UK; Lock 22 to Lock 50"
+      },
+      {
+        "id": "GEN-02",
+        "item": "Construction year and well type",
+        "quote": "Constructed in 1996, it is of a dry well construction, housing 2 no. Xylem dry well submersible pumps",
+        "source": "p.7",
+        "unit": "-",
+        "value": "1996; dry well"
+      },
+      {
+        "id": "PMP-01",
+        "item": "Pump model",
+        "quote": "Pumps Xylem (Flygt) CT3240",
+        "source": "p.7",
+        "unit": "-",
+        "value": "Xylem (Flygt) CT3240"
+      },
+      {
+        "id": "PMP-02",
+        "item": "Number of pumps and Table 1 duty config",
+        "quote": "No. of Pumps 2 Duty Configuration Duty / Assist",
+        "source": "p.7",
+        "unit": "-",
+        "value": "2; Duty / Assist (Table 1)"
+      },
+      {
+        "id": "PMP-03",
+        "item": "Rated motor output",
+        "quote": "Rated Motor Output 215 kW",
+        "source": "p.7",
+        "unit": "kW",
+        "value": "215"
+      },
+      {
+        "id": "PMP-04",
+        "item": "Impeller diameter",
+        "quote": "Impeller Diameter 535 mm",
+        "source": "p.7",
+        "unit": "mm",
+        "value": "535"
+      },
+      {
+        "id": "PMP-05",
+        "item": "Drives",
+        "quote": "Drives Variable Speed (Mitsubishi)",
+        "source": "p.7",
+        "unit": "-",
+        "value": "Variable Speed (Mitsubishi)"
+      },
+      {
+        "id": "PMP-06",
+        "item": "VSD operation",
+        "quote": "VSD Operation 30 s ramp & 48.0 Hz Operating Frequency",
+        "source": "p.7",
+        "unit": "s; Hz",
+        "value": "30 s ramp; 48.0 Hz"
+      },
+      {
+        "id": "PMP-07",
+        "item": "Station pipework diameter",
+        "quote": "Pipework 300 mm diameter",
+        "source": "p.7",
+        "unit": "mm",
+        "value": "300"
+      },
+      {
+        "id": "PMP-08",
+        "item": "Station non-return valve type",
+        "quote": "Non-Return Valves Ball",
+        "source": "p.7",
+        "unit": "-",
+        "value": "Ball"
+      },
+      {
+        "id": "PMP-09",
+        "item": "Wet-well level sensor",
+        "quote": "Wet Well Level Sensor Ultrasonic",
+        "source": "p.7",
+        "unit": "-",
+        "value": "Ultrasonic"
+      },
+      {
+        "id": "LVL-01",
+        "item": "Wet-well level",
+        "quote": "Wet Well Level 55.5 mAOD",
+        "source": "p.7",
+        "unit": "mAOD",
+        "value": "55.5"
+      },
+      {
+        "id": "LVL-02",
+        "item": "Pump centre line",
+        "quote": "Pump Centre Line 54.3 mAOD",
+        "source": "p.7",
+        "unit": "mAOD",
+        "value": "54.3"
+      },
+      {
+        "id": "RM-01",
+        "item": "Rising main length",
+        "quote": "Length 3602 m",
+        "source": "p.7",
+        "unit": "m",
+        "value": "3602 (approx 3600 m)"
+      },
+      {
+        "id": "RM-02",
+        "item": "Elevation rise",
+        "quote": "Elevation Rise 72 m",
+        "source": "p.7",
+        "unit": "m",
+        "value": "72"
+      },
+      {
+        "id": "RM-03",
+        "item": "Rising main diameter",
+        "quote": "Pipe Diameter 600 mm",
+        "source": "p.7",
+        "unit": "mm",
+        "value": "600"
+      },
+      {
+        "id": "RM-04",
+        "item": "Discharge level",
+        "quote": "Discharge Level 127.6 mAOD",
+        "source": "p.7",
+        "unit": "mAOD",
+        "value": "127.6"
+      },
+      {
+        "id": "RM-05",
+        "item": "Pipe material",
+        "quote": "Pipe Material Ductile Iron",
+        "source": "p.7",
+        "unit": "-",
+        "value": "Ductile Iron"
+      },
+      {
+        "id": "RM-06",
+        "item": "Intermediate NRV #1 location",
+        "quote": "Intermediate NRV #1 1270 m from Caen Hill PS",
+        "source": "p.7",
+        "unit": "m",
+        "value": "1270"
+      },
+      {
+        "id": "RM-07",
+        "item": "Intermediate NRV #2 location",
+        "quote": "Intermediate NRV #2 2410 m from Caen Hill PS",
+        "source": "p.7",
+        "unit": "m",
+        "value": "2410"
+      },
+      {
+        "id": "RM-08",
+        "item": "Rising main features",
+        "quote": "The rising main comprises 2no. intermediate discharge points, with in-line non-return valves (NRVs) complete with a return bypass",
+        "source": "p.7",
+        "unit": "-",
+        "value": "2 intermediate discharge points with in-line NRVs + return bypass"
+      },
+      {
+        "id": "RM-09",
+        "item": "NRV condition knowledge",
+        "quote": "The condition and operational effectiveness of the two NRVs is not known",
+        "source": "p.7",
+        "unit": "-",
+        "value": "Not known; not inspected recently; covered with large area concrete infill covers in remote towpath locations"
+      },
+      {
+        "id": "RM-10",
+        "item": "Burst history",
+        "quote": "There are no reports of bursts arising since construction",
+        "source": "p.7",
+        "unit": "-",
+        "value": "No reported bursts since 1996"
+      },
+      {
+        "id": "ISS-01",
+        "item": "Operator reported issues for investigation",
+        "quote": "Poor pump reliability, notably bearing life, suspected to be from high vibration levels",
+        "source": "p.8",
+        "unit": "-",
+        "value": "Poor reliability, bearing life, suspected high vibration"
+      },
+      {
+        "id": "ISS-02",
+        "item": "Impeller damage",
+        "quote": "Impeller damage from cavitation, suspected related to NPSH or poor intake design",
+        "source": "p.8",
+        "unit": "-",
+        "value": "Cavitation damage suspected NPSH/intake"
+      },
+      {
+        "id": "ISS-03",
+        "item": "Civils defects",
+        "quote": "Cracks and Spalling of Pump plinths (supporting bases)",
+        "source": "p.8",
+        "unit": "-",
+        "value": "Cracks and spalling of plinths"
+      },
+      {
+        "id": "ISS-04",
+        "item": "Pipework leaks",
+        "quote": "Pipework flange leaks",
+        "source": "p.8",
+        "unit": "-",
+        "value": "Flange leaks"
+      },
+      {
+        "id": "TST-01",
+        "item": "Site test date and parties",
+        "quote": "Site testing of pump performance was undertaken with a SME, Samatrix, on the 11th September 2019",
+        "source": "p.9",
+        "unit": "-",
+        "value": "11 September 2019 by Arcadis and Samatrix"
+      },
+      {
+        "id": "TST-02",
+        "item": "Test measurements list",
+        "quote": "Input Power to each drive (via a portable Fluke power meter) Pumping Station Flow rate (via the existing installed flowmeter) Wet well depth (via a portable ultrasonic) Elevation via GPS Suction and Delivery Pressures (via pressure transducers) Spot vibrations in RMS velocity (via magnetic vibration accelerometer) Dimensions and levels",
+        "source": "p.9",
+        "unit": "-",
+        "value": "Power, flow, wet-well depth, GPS elevation, suction/delivery pressures, spot RMS vibration, dimensions/levels"
+      },
+      {
+        "id": "TST-03",
+        "item": "Scenarios for system curves",
+        "quote": "Pumps P1 and P2 operating in parallel Pump P1 operating only Pump P2 operating only",
+        "source": "p.9",
+        "unit": "-",
+        "value": "P1+P2, P1 only, P2 only"
+      },
+      {
+        "id": "HYD-01",
+        "item": "Unexplained loss coefficient",
+        "quote": "an additional head loss coefficient of 120 was necessary for the calculations to obtain an equivalent head loss performance",
+        "source": "p.11",
+        "unit": "-",
+        "value": "120"
+      },
+      {
+        "id": "HYD-02",
+        "item": "Additional head at 300 l/s",
+        "quote": "This creates an additional 6m at 300l/s",
+        "source": "p.11",
+        "unit": "m at l/s",
+        "value": "6 m at 300 l/s"
+      },
+      {
+        "id": "HYD-03",
+        "item": "Equivalent restriction",
+        "quote": "a restriction equivalent to an orifice of 224mm create the same loss within the system",
+        "source": "p.11",
+        "unit": "mm",
+        "value": "224"
+      },
+      {
+        "id": "HYD-04",
+        "item": "Pipeline age context",
+        "quote": "For a relatively new pipeline main of less than 25 years service",
+        "source": "p.11",
+        "unit": "years",
+        "value": "<25"
+      },
+      {
+        "id": "HYD-05",
+        "item": "Pump 2 blockage recovery",
+        "quote": "performance was reported to have improved from 121l/s to 169l/s once returned to operation",
+        "source": "p.11",
+        "unit": "l/s",
+        "value": "121 to 169"
+      },
+      {
+        "id": "HYD-06",
+        "item": "Pump curve adjustment",
+        "quote": "The reduction being an equivalent of 0.3 Hz on a VSD",
+        "source": "p.11",
+        "unit": "Hz",
+        "value": "0.3"
+      },
+      {
+        "id": "HYD-07",
+        "item": "Curve tolerance",
+        "quote": "this curve is still within as new manufacturers tolerances 1 - BS EN9906:2012 and assuming a 2B Test acceptance grade",
+        "source": "p.11",
+        "unit": "-",
+        "value": "Within BS EN 9906:2012 2B"
+      },
+      {
+        "id": "HYD-08",
+        "item": "BEP 1-pump",
+        "quote": "262l/s @ 70m for 1-pump",
+        "source": "p.11",
+        "unit": "l/s at m",
+        "value": "262 at 70"
+      },
+      {
+        "id": "HYD-09",
+        "item": "BEP 2-pump",
+        "quote": "524l/s @ 70m for 2-pump operation",
+        "source": "p.11",
+        "unit": "l/s at m",
+        "value": "524 at 70"
+      },
+      {
+        "id": "HYD-10",
+        "item": "Impeller damage Pump 2",
+        "quote": "it is noted that impeller impact damage is present on Pump 2 as discovered from the recent AMCO maintenance visit",
+        "source": "p.11",
+        "unit": "-",
+        "value": "Impact damage present Pump 2"
+      },
+      {
+        "id": "NPSH-01",
+        "item": "NPSH margin",
+        "quote": "there is a sufficient margin between NPSH required and NPSH available of approximately 4 metres, as shown on Figure 4",
+        "source": "p.12",
+        "unit": "m",
+        "value": "~4"
+      },
+      {
+        "id": "NPSH-02",
+        "item": "Alternative cavitation causes",
+        "quote": "A significant partial blockage within the inlet pipe or pump impeller Heavy siltation in wet well",
+        "source": "p.12",
+        "unit": "-",
+        "value": "Partial blockage or heavy siltation"
+      },
+      {
+        "id": "EN-01",
+        "item": "P1 only 50Hz test",
+        "quote": "199 50 0.92 224.0 69% 312.7",
+        "source": "p.12",
+        "unit": "l/s; Hz; -; kW; %; kWh/1000m3*",
+        "value": "199 l/s; 50 Hz; PF 0.92; 224.0 kW; 69%; 312.7"
+      },
+      {
+        "id": "EN-02",
+        "item": "P1 only 48Hz test",
+        "quote": "168 48 0.90 187.5 68% 310.0",
+        "source": "p.12",
+        "unit": "l/s; Hz; -; kW; %; kWh/1000m3*",
+        "value": "168 l/s; 48 Hz; PF 0.90; 187.5 kW; 68%; 310.0"
+      },
+      {
+        "id": "EN-03",
+        "item": "P1 only 45Hz test",
+        "quote": "118 45 0.87 137.5 62% 323.7",
+        "source": "p.12",
+        "unit": "l/s; Hz; -; kW; %; kWh/1000m3*",
+        "value": "118 l/s; 45 Hz; PF 0.87; 137.5 kW; 62%; 323.7"
+      },
+      {
+        "id": "EN-04",
+        "item": "P2 only 50Hz test",
+        "quote": "201 50 0.90 214.5 73% 296.4",
+        "source": "p.12",
+        "unit": "l/s; Hz; -; kW; %; kWh/1000m3*",
+        "value": "201 l/s; 50 Hz; PF 0.90; 214.5 kW; 73%; 296.4"
+      },
+      {
+        "id": "EN-05",
+        "item": "P2 only 48Hz test",
+        "quote": "168 48 0.90 179.0 71% 296.0",
+        "source": "p.12",
+        "unit": "l/s; Hz; -; kW; %; kWh/1000m3*",
+        "value": "168 l/s; 48 Hz; PF 0.90; 179.0 kW; 71%; 296.0"
+      },
+      {
+        "id": "EN-06",
+        "item": "P2 only 45Hz test",
+        "quote": "118 45 0.89 133.0 64% 313.1",
+        "source": "p.12",
+        "unit": "l/s; Hz; -; kW; %; kWh/1000m3*",
+        "value": "118 l/s; 45 Hz; PF 0.89; 133.0 kW; 64%; 313.1"
+      },
+      {
+        "id": "EN-07",
+        "item": "Both pumps 50Hz (power at P1)",
+        "quote": "310 50 0.92 201.0 66% 352.2**",
+        "source": "p.12",
+        "unit": "l/s; Hz; -; kW; %; kWh/1000m3*",
+        "value": "310 l/s total; 50 Hz; PF 0.92; 201.0 kW at P1; 66%; 352.2 avg"
+      },
+      {
+        "id": "EN-08",
+        "item": "Both pumps 48Hz (power at P1)",
+        "quote": "266 48 0.91 170.0 64% 347.6**",
+        "source": "p.12",
+        "unit": "l/s; Hz; -; kW; %; kWh/1000m3*",
+        "value": "266 l/s total; 48 Hz; PF 0.91; 170.0 kW at P1; 64%; 347.6 avg"
+      },
+      {
+        "id": "EN-09",
+        "item": "Both pumps 45Hz (power at P1)",
+        "quote": "191 45 0.88 126.0 57% 360.7**",
+        "source": "p.12",
+        "unit": "l/s; Hz; -; kW; %; kWh/1000m3*",
+        "value": "191 l/s total; 45 Hz; PF 0.88; 126.0 kW at P1; 57%; 360.7 avg"
+      },
+      {
+        "id": "EN-10",
+        "item": "Both pumps 50Hz (power at P2)",
+        "quote": "310 50 0.92 192.0 69% 352.2**",
+        "source": "p.12",
+        "unit": "l/s; Hz; -; kW; %; kWh/1000m3*",
+        "value": "310 l/s total; 50 Hz; PF 0.92; 192.0 kW at P2; 69%; 352.2 avg"
+      },
+      {
+        "id": "EN-11",
+        "item": "Both pumps 48Hz (power at P2)",
+        "quote": "267 48 0.91 163.5 66% 347.6**",
+        "source": "p.12",
+        "unit": "l/s; Hz; -; kW; %; kWh/1000m3*",
+        "value": "267 l/s total; 48 Hz; PF 0.91; 163.5 kW at P2; 66%; 347.6 avg"
+      },
+      {
+        "id": "EN-12",
+        "item": "Both pumps 45Hz (power at P2)",
+        "quote": "191 45 0.89 122.0 60% 360.7**",
+        "source": "p.12",
+        "unit": "l/s; Hz; -; kW; %; kWh/1000m3*",
+        "value": "191 l/s total; 45 Hz; PF 0.89; 122.0 kW at P2; 60%; 360.7 avg"
+      },
+      {
+        "id": "EN-13",
+        "item": "String efficiency definition",
+        "quote": "String Efficiency is overall wire to water efficiency including the VSD",
+        "source": "p.12",
+        "unit": "-",
+        "value": "Wire-to-water incl VSD"
+      },
+      {
+        "id": "EN-14",
+        "item": "Specific energy finding",
+        "quote": "running at 48 Hz results in a lower specific energy and therefore energy cost than running at 50 Hz or 45 Hz",
+        "source": "p.13",
+        "unit": "-",
+        "value": "48 Hz lowest specific energy"
+      },
+      {
+        "id": "EN-15",
+        "item": "2-pump efficiency penalty reason",
+        "quote": "the individual pump duty points under parallel operation are further to the left of its Q-H curve and further away from its best efficiency point",
+        "source": "p.13",
+        "unit": "-",
+        "value": "Parallel duty left of curve, away from BEP"
+      },
+      {
+        "id": "CTL-01",
+        "item": "Control logic",
+        "quote": "Upon this level falling to a pre-set low level, the pumps are started. Each pump ramps up to a manually set VSD speed of 48 Hz and both pumps operate in parallel (duty/duty) at fixed speed. When the discharge lock flight 50 level rises to a pre-set high level, the pumps both ramp down and stop",
+        "source": "p.13",
+        "unit": "-",
+        "value": "Auto level control via Lock 50 telemetry; start low, stop high; both parallel fixed 48 Hz"
+      },
+      {
+        "id": "CTL-02",
+        "item": "Flowmeter use",
+        "quote": "Flow rate is measured via an on-site electromagnetic flowmeter, but it is not utilised for control",
+        "source": "p.13",
+        "unit": "-",
+        "value": "EM flowmeter not used for control"
+      },
+      {
+        "id": "CTL-03",
+        "item": "Protection",
+        "quote": "both pumps have relay protection by means of a MAS 711 unit and low level (suction) protection",
+        "source": "p.13",
+        "unit": "-",
+        "value": "MAS 711 + low-level suction protection"
+      },
+      {
+        "id": "CTL-04",
+        "item": "SCADA availability",
+        "quote": "Key pumping station data is available on CRTs central SCADA facility",
+        "source": "p.13",
+        "unit": "-",
+        "value": "Central SCADA available"
+      },
+      {
+        "id": "FAIL-01",
+        "item": "Pump 1 recent failure findings",
+        "quote": "Pump was seized solid due to failed bearings Both seals had also failed causing some oil to pass into the stator housing Some water ingression into the oil housing causing the oil to emulsify",
+        "source": "p.14",
+        "unit": "-",
+        "value": "Seized bearings; both seals failed; oil in stator; water emulsified oil"
+      },
+      {
+        "id": "FAIL-02",
+        "item": "Impeller pitting",
+        "quote": "There is some pitting in the centre of the impeller around the sleeve/cover possibly caused by cavitation; this has caused water to pass into the locking assembly",
+        "source": "p.14",
+        "unit": "-",
+        "value": "Centre pitting possibly cavitation; water into locking assembly"
+      },
+      {
+        "id": "FAIL-03",
+        "item": "Glycol leak Pump 1",
+        "quote": "Pump 1 was leaking glycol coolant fluid from the top seal",
+        "source": "p.14",
+        "unit": "-",
+        "value": "Glycol leak top seal Pump 1"
+      },
+      {
+        "id": "FAIL-04",
+        "item": "Bearing life",
+        "quote": "typical bearing life for both pumps generally is short at between 2,000 to 3,000 hours, against a design life expectation of 50,000 hours",
+        "source": "p.14",
+        "unit": "hours",
+        "value": "2000-3000 observed vs 50000 expected"
+      },
+      {
+        "id": "VIB-01",
+        "item": "Transducer locations",
+        "quote": "measurement was taken via the temporary in-situ placement of a magnetic transducer on the X, Y and Z axes at the drive bearing end (just above volute casing), and at the corner of the mounting plate",
+        "source": "p.15",
+        "unit": "-",
+        "value": "X,Y,Z at drive bearing end + mounting plate corner"
+      },
+      {
+        "id": "VIB-02",
+        "item": "Example vibration - P1 only 50Hz average",
+        "quote": "1 50 199 24.00 29.40 Average? Table 4 - Vibration X Average 24.00 Y 20.00 Z 12.00 Mtg 21.20",
+        "source": "p.16",
+        "unit": "Hz; l/s; mm/s",
+        "value": "P1 50Hz 199 l/s: X 24.0 Y 20.0 Z 12.0 Mtg 21.2 avg (max up to 37.5)"
+      },
+      {
+        "id": "VIB-03",
+        "item": "Vibration table full",
+        "quote": "Table 4 Vibration measurements recorded on 11 September 2019 Frequency Flow Average Min Max for X Y Z Mtg plate",
+        "source": "p.16",
+        "unit": "mm/s",
+        "value": "All rows 8.9-29.4 avg, max up to 37.5; all exceed 11.2 (see p.16 table)"
+      },
+      {
+        "id": "VIB-04",
+        "item": "Impeller type vs standard",
+        "quote": "The model of pump installed at Caen Hill PS has a 2-vane (or 2-channel) impeller, which falls outside the definitions stated above on a technicality as it is not classed as a multivane impeller (>=3 vanes) nor a single channel impeller",
+        "source": "p.16",
+        "unit": "-",
+        "value": "2-vane; outside WIMES multivane/single-channel definitions"
+      },
+      {
+        "id": "VIB-05",
+        "item": "Applied vibration limit justification",
+        "quote": "applying the higher vibration limit of 11.2 mm/s RMS to the 2-channel impeller pump is a reasonable acceptance limit",
+        "source": "p.16",
+        "unit": "mm/s",
+        "value": "11.2"
+      },
+      {
+        "id": "VIB-06",
+        "item": "Exceedance conclusion",
+        "quote": "both pumps significantly exceed the 11.2 mm/s RMS value under all tested operation scenarios",
+        "source": "p.16",
+        "unit": "mm/s",
+        "value": ">11.2 all scenarios"
+      },
+      {
+        "id": "VIB-07",
+        "item": "Plinth-floor vibration difference",
+        "quote": "the floor itself near the plinths had a noticeable reduction in vibration from the plinths to the touch",
+        "source": "p.17",
+        "unit": "-",
+        "value": "Qualitative: floor lower vibration than plinths by touch"
+      },
+      {
+        "id": "VIB-08",
+        "item": "Mounting stiffness issue",
+        "quote": "The pump unit itself when mounted vertically is anchored at its base with the motor unsupported. This would naturally lead to a lower natural frequency or stiffness",
+        "source": "p.17",
+        "unit": "-",
+        "value": "Vertical base-anchored, motor unsupported = low stiffness"
+      },
+      {
+        "id": "VIB-09",
+        "item": "Pump head and thrust",
+        "quote": "The pump is sewage type dry well submersible pump, with a 2-vane impeller, and a generated head of up to 85 m head",
+        "source": "p.17",
+        "unit": "m",
+        "value": "Up to 85"
+      },
+      {
+        "id": "VIB-10",
+        "item": "Most likely vibration cause",
+        "quote": "the most likely cause is considered to be poorly anchored pumping installation",
+        "source": "p.18",
+        "unit": "-",
+        "value": "Poorly anchored installation"
+      },
+      {
+        "id": "DEB-01",
+        "item": "Debris recurrence",
+        "quote": "there were two other occasions since November 2017 when significant debris was found in the pumps and necessitated reactive maintenance removal",
+        "source": "p.18",
+        "unit": "-",
+        "value": "2 occasions since Nov 2017 + July 2019 inspection"
+      },
+      {
+        "id": "DEB-02",
+        "item": "Throughlet size",
+        "quote": "The impeller design has a twin passage design with a 78 mm throughlet",
+        "source": "p.18",
+        "unit": "mm",
+        "value": "78 twin passage"
+      },
+      {
+        "id": "PIPE-01",
+        "item": "Check valve slam risk",
+        "quote": "Each pump delivery branch has ball check valves. These typically have a poor dynamic response and may create pressure spikes under a phenomenon known as check valve slam following pump trips and stops",
+        "source": "p.18",
+        "unit": "-",
+        "value": "Ball checks; poor dynamic; slam risk"
+      },
+      {
+        "id": "PIPE-02",
+        "item": "NRV proximity note (truncated)",
+        "quote": "The non-return valves are located close to the pump delivery (i.e. not achieving 3 or 5",
+        "source": "p.18",
+        "unit": "-",
+        "value": "NRVs close to delivery (criterion truncated in source)"
+      },
+      {
+        "id": "PIPE-03",
+        "item": "Flange adaptors and manifold support",
+        "quote": "Each branch has untied flange adaptors. The manifold itself has supported off the floor and back wall by several fabricated bracing supports, although a tied coupling is present the manifold assembly",
+        "source": "p.19",
+        "unit": "-",
+        "value": "Untied adaptors; braced manifold with one tied coupling; potential residual forces/moments"
+      },
+      {
+        "id": "SUR-01",
+        "item": "Transient model",
+        "quote": "a basic hydraulic transient model was constructed in VariSim",
+        "source": "p.19",
+        "unit": "-",
+        "value": "VariSim model at 48 Hz current setup"
+      },
+      {
+        "id": "SUR-02",
+        "item": "Simulated events",
+        "quote": "Uncontrolled 2-Pump Trip/Power failure Uncontrolled 1-Pump Trip (when two running) Controlled pump stopping (Ramp rate of 30 secs)",
+        "source": "p.19",
+        "unit": "-",
+        "value": "2-pump trip; 1-pump trip; controlled 30 s stop"
+      },
+      {
+        "id": "SUR-03",
+        "item": "NRV assumption for surge",
+        "quote": "The simulations were conducted based on the intermediate non-return valves at the diversion points not working (i.e. open at all times) and also working",
+        "source": "p.19",
+        "unit": "-",
+        "value": "Both NRVs open and working cases"
+      },
+      {
+        "id": "SUR-04",
+        "item": "Peak surge 2-pump trip",
+        "quote": "Uncontrolled 2-Pump Trip/Power failure 17.5",
+        "source": "p.19",
+        "unit": "bar.g",
+        "value": "17.5 at PS manifold"
+      },
+      {
+        "id": "SUR-05",
+        "item": "Peak surge 1-pump trip",
+        "quote": "Uncontrolled 1-Pump Trip (when two running) 20",
+        "source": "p.19",
+        "unit": "bar.g",
+        "value": "20 at PS manifold"
+      },
+      {
+        "id": "SUR-06",
+        "item": "Peak surge controlled stop",
+        "quote": "Controlled pump stopping (ramp rate of 30secs) 13",
+        "source": "p.19",
+        "unit": "bar.g",
+        "value": "13 at PS manifold"
+      },
+      {
+        "id": "SUR-07",
+        "item": "Surge finding qualifier",
+        "quote": "Initial findings suggest high pressure transients may be present (assuming intermediate NRVs are not operational)",
+        "source": "p.19",
+        "unit": "-",
+        "value": "High transients if intermediate NRVs failed open"
+      },
+      {
+        "id": "INT-01",
+        "item": "Intake compliance overall",
+        "quote": "the intake at Caen Hill generally conforms with known pump intake standards and there are no submergence issues around the bellmouths",
+        "source": "p.19",
+        "unit": "-",
+        "value": "Generally conforms; no submergence issue"
+      },
+      {
+        "id": "INT-02",
+        "item": "Bellmouth floor clearance exception",
+        "quote": "One notable exception being the height of the bellmouth intake above the wet well floor. ANSI/HI 9.8 gives an ideal bellmouth elevation of between 0.3D and 0.5D (D = Bellmouth diameter)",
+        "source": "p.19",
+        "unit": "-",
+        "value": "Exception: height above floor; ideal 0.3D-0.5D"
+      },
+      {
+        "id": "INT-03",
+        "item": "Wet-well siltation tendency",
+        "quote": "The volume of the wet well is relatively large with a wide aspect ratio which would produce low velocity and dead spot zones inevitably resulting in solids deposition",
+        "source": "p.19",
+        "unit": "-",
+        "value": "Large wide well = low velocity, dead spots, deposition"
+      },
+      {
+        "id": "INT-04",
+        "item": "Screen blockage Aug 2019",
+        "quote": "Both pump intake screens had 30% loss due to silt build up with the well",
+        "source": "p.19",
+        "unit": "%",
+        "value": "30% loss"
+      },
+      {
+        "id": "INT-05",
+        "item": "Debris volume removed",
+        "quote": "Total volume of silt, brick, concrete rubble and vegetation removed was circa 40 tonnes",
+        "source": "p.19",
+        "unit": "tonnes",
+        "value": "circa 40"
+      },
+      {
+        "id": "INT-06",
+        "item": "Pipework blockage check",
+        "quote": "Pipework was inspected for blockages and confirmed clear",
+        "source": "p.19",
+        "unit": "-",
+        "value": "Clear Aug 2019"
+      },
+      {
+        "id": "INT-07",
+        "item": "Trash baffle assessment",
+        "quote": "The design of the intake with the floating trash baffles appears satisfactory",
+        "source": "p.20",
+        "unit": "-",
+        "value": "Satisfactory"
+      },
+      {
+        "id": "INT-08",
+        "item": "Bar spacing trade-off",
+        "quote": "Reducing the bar spacing would help with debris ingress but would increase the risk of screen blockage",
+        "source": "p.20",
+        "unit": "-",
+        "value": "Trade-off noted"
+      }
+    ],
+    "definitions": [
+      {
+        "source": "p.11, p.14",
+        "term": "BEP (Best Efficiency Point)",
+        "definition": "Duty where pump efficiency peaks; stated as 262 l/s @ 70 m single-pump, 524 l/s @ 70 m two-pump (p.11)"
+      },
+      {
+        "source": "p.14",
+        "term": "POR (Preferred Operating Range)",
+        "definition": "70% to 120% of flow at BEP; single-pump inside, 2-pump falls left/outside (p.14, p.15)"
+      },
+      {
+        "source": "p.12",
+        "term": "NPSHa / NPSHr",
+        "definition": "Net Positive Suction Head available vs required; ~4 m margin calculated (p.12)"
+      },
+      {
+        "source": "p.7, p.13",
+        "term": "Duty/Assist vs Duty/Duty",
+        "definition": "Table 1 states Duty/Assist; text states normal operation both pumps parallel duty/duty fixed 48 Hz (p.7, p.13)"
+      },
+      {
+        "source": "p.12",
+        "term": "String (wire-to-water) efficiency",
+        "definition": "Overall efficiency including VSD from measured input power, flow and pressure (p.12)"
+      },
+      {
+        "source": "p.12",
+        "term": "Specific energy",
+        "definition": "Measured kWh per volume pumped as tabulated (header kWh/1000 m3 truncated) (p.12)"
+      },
+      {
+        "source": "p.7, p.19",
+        "term": "NRV with return bypass",
+        "definition": "In-line non-return valves downstream of each intermediate discharge point (1270 m, 2410 m) with bypass (p.7)"
+      },
+      {
+        "source": "p.18",
+        "term": "Check-valve slam",
+        "definition": "Pressure spike from poor dynamic response of ball check valves after trips/stops (p.18)"
+      },
+      {
+        "source": "p.19",
+        "term": "VariSim transient model",
+        "definition": "Basic hydraulic transient model for trip vs 30 s controlled stop, NRVs working/open (p.19)"
+      },
+      {
+        "source": "p.16",
+        "term": "WIMES 1.03 / BS ISO 10816-7",
+        "definition": "Standards for vibration measurement/evaluation; 2-vane impeller outside multivane/single-channel definitions (p.16)"
+      },
+      {
+        "source": "p.18",
+        "term": "Throughlet",
+        "definition": "Solids passage size; twin-passage 78 mm (p.18)"
+      },
+      {
+        "source": "p.19",
+        "term": "ANSI/HI 9.8 bellmouth clearance",
+        "definition": "Ideal 0.3D-0.5D off floor to limit deposition (p.19)"
+      }
+    ],
+    "question": "Audit the Caen Hill pumping station. The operator reports short bearing and seal life, gasket failures and higher than expected energy use. Using the site tests, SCADA data and system description, diagnose the causes (hydraulic, vibration, surge, control), quantify any unexplained losses with the simulator, and recommend measures with their expected benefit.",
+    "rfi": [
+      {
+        "issue": "Duty configuration conflict: Table 1 says Duty/Assist (p.7) but Section 6 says both pumps operate in parallel duty/duty fixed 48 Hz (p.13). Which is design vs normal?",
+        "item": "Normal operating configuration",
+        "reason": "Affects firm capacity definition, POR assessment and energy comparison; need stated normal to assess 2-pump left-of-POR operation",
+        "resolution": "ASSUMPTION: Normal operation is both pumps parallel at 48 Hz (duty/duty) with single-pump as fallback; Table 1 Duty/Assist describes installed standby capability. Reason: explicit Section 6 operating description and all 2-pump tests (p.13, p.12, p.16)."
+      },
+      {
+        "issue": "Intermediate NRVs effectiveness unknown; surge result depends on open vs working (p.7, p.19). No inspection due to concrete covers.",
+        "item": "Intermediate NRV status",
+        "reason": "Determines whether 17.5-20 bar.g peaks apply; cannot conclude gasket/surge risk without bounding",
+        "resolution": "ASSUMPTION: Assess both bounds, adopt NRVs open (failed) as conservative base for surge diagnosis. Reason: report highlights high transients assuming NRVs not operational (p.19)."
+      },
+      {
+        "issue": "Pipe/fitting pressure rating, gasket rating, and allowable surge not stated; 13-20 bar.g cannot be judged (p.19) vs flange leaks (p.8, p.18).",
+        "item": "Pressure rating",
+        "reason": "Needed to judge non-conformance and damage risk from slam/trip peaks",
+        "resolution": "ASSUMPTION: Treat tabulated 13-20 bar.g as high and potentially damaging given observed gasket failures, pending rating confirmation. Reason: report calls them high/excessive and links ball checks to slam (p.18-p.19)."
+      },
+      {
+        "issue": "Head-loss coefficient 120 units and roughness/elevation inputs not fully dimensioned; Figure 6 calculation sheet not legible as text (p.11, p.9). Orifice 224 mm equivalence given (p.11).",
+        "item": "System curve inputs",
+        "reason": "Cannot replicate unexplained 6 m at 300 l/s loss without inputs; simulator must quantify",
+        "resolution": "ASSUMPTION: Model rising main 3602 m x 600 mm DI with 72 m static (55.5 to 127.6 mAOD context) and calibrate added loss to reproduce +6 m at 300 l/s (\u2248 orifice 224 mm). Reason: explicit p.11 quantification provides calibration target."
+      },
+      {
+        "issue": "Bellmouth diameter D, exact clearance, wet-well dimensions, operating levels range, and suction/discharge pressure readings not tabulated; only pump centre 54.3 and well 55.5 mAOD (p.7) and qualitative conformance (p.19).",
+        "item": "Intake geometry and levels",
+        "reason": "Cannot verify ANSI/HI 0.3D-0.5D or NPSHa/submergence numerically",
+        "resolution": "ASSUMPTION: Accept report qualitative findings (no submergence issue; clearance too high; large wide well prone to deposition; 30% screen loss; 40 t debris) as facts for diagnosis. Reason: direct observations Aug 2019 (p.19)."
+      },
+      {
+        "issue": "Manufacturer Q-H curve only as figure (Fig 8 p.14) with BEP points 262 l/s @70 m / 524 l/s @70 m (p.11); 0.3 Hz derate noted (p.11) but full curve points not listed.",
+        "item": "Pump curves",
+        "reason": "Needed for POR (70-120% BEP) and wire-to-water simulation",
+        "resolution": "ASSUMPTION: Use stated BEPs and 50/48/45 Hz test flows (118-310 l/s) with 0.3 Hz derate to represent curves; anchor simulation to measured duties. Reason: only numeric curve data available (p.11-p.12)."
+      },
+      {
+        "issue": "Vibration acceptance for 2-vane pump technically outside WIMES definitions (p.16); truncated 3-or-5-diameter NRV spacing rule (p.18); specific-energy header truncated kWh/100 0 m3 (p.12); Table 5 referenced but Table 3 shown (p.13).",
+        "item": "Standards and editorial ambiguities",
+        "reason": "Need consistent limit and avoid mis-citing energy table",
+        "resolution": "ASSUMPTION: Apply 11.2 mm/s RMS as acceptance limit; cite energy as Table 3; note NRV spacing criterion incomplete so rely on slam + untied adaptors + bracing observation. Reason: report explicitly recommends 11.2 (p.16) and describes slam/untied/bracing (p.18-p.19)."
+      },
+      {
+        "issue": "SCADA pressures, daily volumes (Fig 7 graph only p.13), flowmeter calibration, VSD/drive efficiencies, and plinth-to-floor anchorage detail (could not be seen p.17) not quantified.",
+        "item": "SCADA, meter, plinth details",
+        "reason": "Affects loss attribution, energy and vibration root-cause certainty",
+        "resolution": "ASSUMPTION: Treat SCADA as corroborating site tests (p.11); flowmeter as correct for test comparison; plinths as poorly anchored per most-likely-cause finding and touch-test difference (p.17-p.18). Reason: report conclusions based on same inputs."
+      }
+    ],
+    "standards": [
+      {
+        "name": "BS EN 9906:2012 Grade 2B",
+        "use": "As-new pump tolerance for accepting 0.3 Hz derated curve (p.11)"
+      },
+      {
+        "name": "BS ISO 10816-7",
+        "use": "Vibration measurement/evaluation guidance used on site (p.15-p.16)"
+      },
+      {
+        "name": "WIMES 1.03",
+        "use": "Dry-well submersible pump vibration clauses; 2-vane outside definitions (p.16)"
+      },
+      {
+        "name": "ANSI/HI 9.8",
+        "use": "Intake design and 0.3D-0.5D bellmouth clearance (p.19)"
+      }
+    ],
+    "units_on_path": [
+      "Wet well (large wide volume; 55.5 mAOD level; low-level suction protection) (p.7, p.13)",
+      "Floating trash baffles + intake screens/bar screens (30% loss observed) (p.19-p.20)",
+      "Intake bellmouths (height above floor too high per ANSI/HI 9.8; pump centre 54.3 mAOD) (p.7, p.19)",
+      "Inlet pipework to pumps (inspected clear Aug 2019) (p.19)",
+      "Pump 1 - Xylem Flygt CT3240 535 mm, 215 kW, Mitsubishi VSD (p.7)",
+      "Pump 2 - Xylem Flygt CT3240 535 mm, 215 kW, Mitsubishi VSD (p.7)",
+      "Pump delivery branches 300 mm with ball check (non-return) valves close to delivery + untied flange adaptors (p.7, p.18-p.19)",
+      "Common manifold with tied coupling + fabricated floor/wall bracing supports (p.19)",
+      "Electromagnetic flowmeter (measurement only, not for control) (p.13)",
+      "Rising main 3602 m x 600 mm Ductile Iron to 127.6 mAOD (72 m rise) (p.7)",
+      "Intermediate discharge point + in-line NRV #1 with bypass at 1270 m (status unknown) (p.7)",
+      "Intermediate discharge point + in-line NRV #2 with bypass at 2410 m (status unknown) (p.7)",
+      "Discharge at Lock Flight 50 with level telemetry to PS for auto start/stop (p.13)",
+      "MAS 711 relay protection + CRT central SCADA (p.13)"
+    ]
+  },
+  "analysis": {
+    "alternatives": [
+      {
+        "cost_basis": "No hardware; telemetry setpoint + operating instruction change only (ASSUMPTION: labour only, based on existing VSD + SCADA p.7 p.13)",
+        "cost_class": "<$100k",
+        "meets_target": true,
+        "option": "Normal single-pump duty/assist at 48 Hz instead of fixed duty/duty",
+        "recommended": true,
+        "result": "TRY-A-1P48: 171.7 l/s at 194.6 kW, TDH 76.85 m vs BASE-CAL 2-pump: 259.8 l/s at 316.7 kW; moves each running pump from ~133 l/s (~51% BEP, outside POR p.11 p.14 p.16) to ~172 l/s inside POR; measured specific energy 296-310 (1-pump) vs 347.6 (2-pump) kWh/1000m3 (p.12)",
+        "run_label": "TRY-A-1P48",
+        "unit": "Pump station control"
+      },
+      {
+        "cost_basis": "CCTV/pressure survey + lift concrete covers at remote towpath NRVs + clean/flush (p.7); ASSUMPTION: survey + minor remedial, no main replacement",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "Investigate and remove 6 m at 300 l/s restriction + prove intermediate NRVs",
+        "recommended": true,
+        "result": "ALT-1P48-CLEAN (minor_k 20 ASSUMPTION: clean main): 181.8 l/s vs TRY-A-1P48 fouled 171.7 l/s (+10.1 l/s); ALT-2P48-CLEAN: 299.3 l/s vs TRY-A-2P48 259.8 l/s (+39.5 l/s); calibrates p.11 6 m loss = orifice 224 mm (velocity 7.613 m/s vs 1.061 m/s in 600 mm); TDH falls 76.85 to 75.3 m (1-pump)",
+        "run_label": "ALT-1P48-CLEAN",
+        "unit": "Rising main 3602 m x 600 mm"
+      },
+      {
+        "cost_basis": "Regular clean already required after 40 t removal (p.19); benching civils in large well (p.19-p.20); ASSUMPTION: clean opex + minor civils",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "Scheduled wet-well/screen cleaning + benching review (retain debris buffer)",
+        "recommended": true,
+        "result": "No steady-state head change modelled; protects 4 m NPSH margin (p.12) and prevents skewed/air-entrained inflow from 30% screen loss (p.19); addresses cavitation pitting despite NPSHa sufficiency and 121 to 169 l/s blockage recovery (p.11); supports ALT flows above",
+        "run_label": "ALT-1P48-CLEAN",
+        "unit": "Wet well / screens / bellmouths"
+      },
+      {
+        "cost_basis": "Exchange 2x 300 mm ball checks (p.7 p.18) for slow-closing, tie adaptors, re-anchor plinths/motor support (p.17-p.19); ASSUMPTION: station pipework retrofit, no main works",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "Replace ball checks, tie manifold, re-anchor pumps/plinths; retain 30 s ramp",
+        "recommended": true,
+        "result": "Steady state unchanged (BASE-CAL manifold 8.22 bar); targets VariSim peaks 17.5 bar.g (2-pump trip), 20 bar.g (1-pump trip), 13 bar.g (30 s ramp) (p.19) and slam from ball valves (p.18) linked to gasket failures (p.18); targets >11.2 mm/s vibration all duties (p.16) and 2000-3000 h vs 50000 h bearing life (p.14); plinth-floor touch difference and unsupported motor (p.17) support anchoring cause",
+        "run_label": "BASE-CAL",
+        "unit": "Delivery branches / manifold"
+      },
+      {
+        "cost_basis": "Use existing EM meter (p.13) + SCADA + Mitsubishi VSDs (p.7); ASSUMPTION: controls integration only",
+        "cost_class": "<$100k",
+        "meets_target": true,
+        "option": "Flow/level-based alternating VSD control with 30 s ramp, keep 48 Hz sweet-spot",
+        "recommended": false,
+        "result": "ALT-1P50-1P: 206.8 l/s at 240.7 kW (323.3 kWh/ML) vs TRY-A-1P48 171.7 l/s; 48 Hz lowest specific energy vs 50/45 Hz (p.13) and 45 Hz duties 118 l/s single /191 l/s dual (p.12) with TRY-A-2P45 166.3 l/s showing low-speed inefficiency; avoids fixed duty/duty (p.13) and enables standby rotation",
+        "run_label": "ALT-1P50-1P",
+        "unit": "Control / SCADA"
+      }
+    ],
+    "base_model_run": "BASE-CAL",
+    "calibration": [
+      {
+        "measured": "199 l/s P1 only 50 Hz (p.12)",
+        "note": "Curve [[0,105],[150,88],[200,80],[262,70],[320,55]] (ASSUMPTION: fitted to BEP 262 l/s @70 m p.11 and test duties) + 3602 m x 600 mm C120 minor_k 120 (p.7 p.11) reproduces +6 m at 300 l/s (p.11)",
+        "residual_pct": 1.4,
+        "run_label": "TRY-A-1P50",
+        "simulated": "201.7 l/s, TDH 78.58 m (TRY-A-1P50)",
+        "source": "p.12 Table 3",
+        "test": "P1 only 50 Hz"
+      },
+      {
+        "measured": "168 l/s P1 only 48 Hz (p.12); 168 l/s P2 only 48 Hz (p.12)",
+        "note": "Normal frequency 48 Hz (p.7 p.13); speed 0.96 (ASSUMPTION: 48/50)",
+        "residual_pct": 2.2,
+        "run_label": "TRY-A-1P48",
+        "simulated": "171.7 l/s, TDH 76.85 m, 194.6 kW (TRY-A-1P48)",
+        "source": "p.12 Table 3",
+        "test": "Single-pump 48 Hz"
+      },
+      {
+        "measured": "118 l/s single 45 Hz (p.12)",
+        "note": "Low-speed underprediction indicates steeper low-flow curve or VSD/meter uncertainty; SCADA corroborates tests (p.11)",
+        "residual_pct": -8.6,
+        "run_label": "TRY-A-1P45",
+        "simulated": "107.9 l/s (TRY-A-1P45)",
+        "source": "p.12 Table 3",
+        "test": "Single-pump 45 Hz"
+      },
+      {
+        "measured": "310 l/s both pumps 50 Hz (p.12)",
+        "note": "Excellent 2-pump high-flow match validates minor_k 120 fouled main",
+        "residual_pct": 0.5,
+        "run_label": "TRY-A-2P50",
+        "simulated": "311.7 l/s total, 155.9 l/s per pump (TRY-A-2P50)",
+        "source": "p.12 Table 3",
+        "test": "Both pumps 50 Hz"
+      },
+      {
+        "measured": "266 l/s (P1 meter) / 267 l/s (P2 meter) both 48 Hz normal (p.12)",
+        "note": "Calibrated base BASE-CAL: 259.8 l/s total, 129.9 l/s per pump, TDH 82.64 m, manifold 8.22 bar, 316.7 kW total; measured power sum 333.5 kW (170.0+163.5 p.12) within efficiency scatter (string 64-66% p.12)",
+        "residual_pct": -2.3,
+        "run_label": "BASE-CAL",
+        "simulated": "259.8 l/s total (BASE-CAL); TRY-A-2P48 259.8 l/s",
+        "source": "p.12 Table 3",
+        "test": "Both pumps 48 Hz normal duty/duty"
+      },
+      {
+        "measured": "191 l/s both 45 Hz (p.12); 201 l/s P2 only 50 Hz (p.12)",
+        "note": "Systematic low-speed 2-pump underprediction; does not affect 48-50 Hz diagnosis; P2 50 Hz matches TRY-A-1P50 within 0.3% (ASSUMPTION: pumps identical CT3240 535 mm 215 kW p.7)",
+        "residual_pct": -12.9,
+        "run_label": "TRY-A-2P45",
+        "simulated": "166.3 l/s total 2x45 Hz (TRY-A-2P45); P2 50 Hz represented by 201.7 l/s (TRY-A-1P50)",
+        "source": "p.12 Table 3",
+        "test": "Both 45 Hz + P2 50 Hz check"
+      }
+    ],
+    "capacity_table": [
+      {
+        "binds_at": "Normal 266 l/s total = ~133 l/s per pump (p.12), ~51% of BEP 262 l/s (p.11) (ASSUMPTION: arithmetic), outside POR 70-120% (p.14)",
+        "evidence": "Single inside POR, dual left/outside (p.15); TRY-A-2P48 129.9 l/s per pump vs BEP 262 l/s @70 m (p.11); vibration >11.2 mm/s all duties (p.16); bearing 2000-3000 h vs 50000 h (p.14)",
+        "limit": "Pumps run back left of curve in parallel, away from BEP (p.13)",
+        "limits_target": true,
+        "unit": "Pumps P1+P2 CT3240"
+      },
+      {
+        "binds_at": "+6 m at 300 l/s (p.11); 1.061 m/s in 600 mm vs 7.613 m/s in 224 mm orifice (velocity tool)",
+        "evidence": "minor_k 120 needed to match SCADA pressures (p.11); orifice 224 mm equivalence (p.11); BASE-CAL TDH 82.64 m 2-pump vs 76.85 m 1-pump; <25 yr main (p.11) so not roughness alone",
+        "limit": "Unexplained rising-main loss coefficient 120 (p.11)",
+        "limits_target": true,
+        "unit": "Rising main 3602 m x 600 mm DI"
+      },
+      {
+        "binds_at": "30% screen loss, ~40 t silt/brick/rubble/vegetation Aug 2019 (p.19); 78 mm twin throughlet (p.18); debris 2x since Nov 2017 (p.18)",
+        "evidence": "Large wide well dead spots (p.19); bellmouth too high vs 0.3D-0.5D ANSI/HI 9.8 (p.19); 121 to 169 l/s recovery after unblock (p.11); pitting despite ~4 m NPSH margin (p.12)",
+        "limit": "Intake prone to deposition + debris ingress, skewed flow risk (p.19)",
+        "limits_target": true,
+        "unit": "Wet well / screens / bellmouths"
+      },
+      {
+        "binds_at": "Peaks 17.5 bar.g 2-pump trip, 20 bar.g 1-pump trip, 13 bar.g 30 s ramp (p.19) assuming intermediate NRVs open (p.19)",
+        "evidence": "Ball checks poor dynamic slam risk (p.18); NRVs close to delivery, spacing truncated (p.18); untied adaptors + braced manifold with tied coupling (p.19); gasket failures observed (p.18); NRV status unknown under concrete covers (p.7)",
+        "limit": "Check-valve slam + unknown intermediate NRVs (1270 m, 2410 m p.7)",
+        "limits_target": true,
+        "unit": "Delivery branches / manifold / NRVs"
+      },
+      {
+        "binds_at": "Both parallel fixed manually-set 48 Hz 30 s ramp, start low stop high via Lock 50 telemetry (p.7 p.13); meter not for control (p.13)",
+        "evidence": "48 Hz lowest specific energy but 2-pump 347.6 vs 1-pump 296-310 kWh/1000m3 (p.12); dual points further left with speed reduction (p.13); Table 1 Duty/Assist vs text duty/duty (p.7 p.13) (ASSUMPTION: normal duty/duty, Table 1 standby capability)",
+        "limit": "Fixed duty/duty control forces off-BEP inefficient operation",
+        "limits_target": true,
+        "unit": "Control / flowmeter / SCADA"
+      },
+      {
+        "binds_at": "Averages 8.9-29.4 mm/s, maxima to 37.5 mm/s (p.16) vs 11.2 mm/s limit (p.16) for 2-vane pump (p.16) per BS ISO 10816-7/WIMES 1.03 (p.15-p.16)",
+        "evidence": "Mount plate similar to pump (p.16); floor lower by touch (p.17); vertical base-anchored motor unsupported low stiffness (p.17); up to 85 m head 2-vane thrust (p.17); most likely poorly anchored (p.18)",
+        "limit": "Excessive vibration all scenarios incl 48 Hz normal",
+        "limits_target": true,
+        "unit": "Pump plinths / mountings"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "Measured normal 266-267 l/s total = ~133 l/s per pump (p.12); BEP 262 l/s @70m (p.11); POR 70-120% BEP (p.14); S-1P48-C130K120: 168.6 l/s TDH 76.35 m 195.5 kW; BASE-2P48-FIX: 245.6 l/s total 122.8 l/s per pump TDH 80.89 m; maxima to 37.5 mm/s (p.16 view)",
+        "limiting_value": "~51% BEP in parallel ASSUMPTION arithmetic 133/262; string 64-66% vs 68-71% single at 48Hz (p.12)",
+        "limits_target": true,
+        "modification": "Adopt single-pump duty/assist normal; retain standby; VSD/flow control",
+        "unit": "Hydraulic: parallel off-POR operation"
+      },
+      {
+        "evidence": "Additional coefficient 120 to match SCADA (p.11); +6m at 300 l/s = 224mm orifice (p.11); velocity tool: 1.061 m/s in 600mm vs 7.613 m/s in 224mm at 300 l/s; S-1P48-C130K120 168.6 l/s vs ALT-1P48-CLEAN2 180.9 l/s; BASE-2P48-FIX 245.6 l/s; C-2P50-C130K120 304.8 l/s vs measured 310 l/s (p.12)",
+        "limiting_value": "+6m at 300 l/s (p.11)",
+        "limits_target": true,
+        "modification": "CCTV/pressure survey, prove/clear intermediate NRVs at 1270/2410m (p.7), clean/flush",
+        "unit": "Hydraulic: unexplained loss"
+      },
+      {
+        "evidence": "All duties exceed 11.2 mm/s RMS (p.16 view: averages include 12.6-29.4, maxima to 37.5); mount comparable to pump (p.16); bearing 2000-3000h vs 50000h (p.14); seals failed, glycol leak, emulsified oil, seizure (p.14); plinth cracks/spalling + flange leaks reported (p.8)",
+        "limiting_value": ">11.2 mm/s RMS ASSUMPTION applied to 2-vane (p.16); 2000-3000h vs 50000h (p.14)",
+        "limits_target": true,
+        "modification": "Re-anchor plinths, support motor end, tie manifold; vibration re-test",
+        "unit": "Vibration/mechanical"
+      },
+      {
+        "evidence": "Ball checks poor dynamic slam risk (p.18); VariSim peaks 17.5 bar.g 2-pump trip, 20 bar.g 1-pump trip, 13 bar.g 30s ramp assuming intermediate NRVs open/not working (p.19); gasket failures (p.18); steady BASE-2P48-FIX manifold 8.05 bar; pipe/fitting rating not stated (p.7-p.19)",
+        "limiting_value": "20/17.5/13 bar.g VariSim (p.19)",
+        "limits_target": true,
+        "modification": "Slow-closing checks, tie adaptors, surge review, inspect NRVs; retain 30s ramp (p.7)",
+        "unit": "Surge/gaskets"
+      },
+      {
+        "evidence": "NPSHa margin ~4m Fig4 (p.12) so not suction head; alternative blockage/siltation cited (p.12); 30% screen loss + ~40t silt/brick/rubble/vegetation Aug 2019 (p.19); 121 to 169 l/s unblock gain (p.11); impact damage P2 (p.11); centre pitting/water in locking assembly (p.14); bellmouth high vs 0.3D-0.5D ANSI/HI 9.8 (p.19)",
+        "limiting_value": "Centre pitting (p.14) despite ~4m NPSH margin (p.12)",
+        "limits_target": true,
+        "modification": "Regular screen/well cleaning; review benching vs buffer trade-off (p.20)",
+        "unit": "Cavitation/debris not NPSH"
+      },
+      {
+        "evidence": "Measured specific energy 347.6 (2x48Hz) vs 310.0/296.0 (1x48Hz) (p.12 view); 48Hz optimum (p.13); control fixed parallel 48Hz duty/duty via Lock 50 telemetry, meter not for control (p.13); daily volumes Fig7 (p.13); firm capacity = 1-pump with largest out",
+        "limiting_value": "2-pump +12% vs P1-only and +17% vs P2-only at 48Hz ASSUMPTION arithmetic from Table 3 (p.12)",
+        "limits_target": true,
+        "modification": "Single-pump longer duration at 48Hz subject to level/volume check; meter-based alternation",
+        "unit": "Energy/control"
+      }
+    ]
+  },
+  "review": {
+    "checked_citations": [
+      "HYD-02 6m at 300 l/s (p.11)",
+      "HYD-08 BEP 262 l/s @70m (p.11)",
+      "EN-02 P1 48Hz 168 l/s 187.5 kW 68% 310.0 (p.12)",
+      "EN-08 Both 48Hz 266 l/s 170kW 64% 347.6 (p.12)",
+      "VIB-06 exceeds 11.2 mm/s all scenarios (p.16)",
+      "SUR-04/05/06 17.5/20/13 bar.g (p.19)",
+      "RM-01 3602m x 600mm DI 72m rise 127.6 mAOD (p.7)",
+      "FAIL-04 bearing 2000-3000h vs 50000h (p.14)"
+    ],
+    "checked_runs": [
+      "BASE-CAL",
+      "TRY-A-1P48",
+      "TRY-A-2P48",
+      "ALT-1P48-CLEAN"
+    ],
+    "issues": [
+      {
+        "evidence": "Rerun BASE-CAL matches logged: 259.8 l/s total, 129.9 l/s per pump, TDH 82.64 m, manifold 8.22 bar, 316.7 kW. Rerun TRY-A-1P48 matches: 171.7 l/s, TDH 76.85 m, 194.6 kW. Rerun TRY-A-2P48 matches flows (259.8 l/s) but gives 346.4 kW vs BASE-CAL 316.7 kW for identical hydraulics. Measured sum p.12 is 170.0+163.5=333.5 kW, between the two. Spec efficiency 0.7 vs 0.64 drives difference.",
+        "issue": "Duplicate hydraulic point with two different energies: BASE-CAL and TRY-A-2P48 same 259.8 l/s / 82.64 m but 316.7 vs 346.4 kW. Study uses low BASE-CAL for benefit comparison, understating 2-pump energy vs measured 333.5 kW. Energy benefit of single-pump therefore uncertain by ~30 kW (~9%).",
+        "item": "Energy quantification inconsistency",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.11 gives no C-factor or curve points; p.9 says roughness based on site measurements but no value. Study spec uses c_factor 120 and curve [[0,105],[150,88],[200,80],[262,70],[320,55]] labelled ASSUMPTION fitted to BEP 262 l/s @70m (p.11). Calibration residuals: -8.6% single 45Hz (107.9 vs 118 l/s), -12.9% dual 45Hz (166.3 vs 191 l/s).",
+        "issue": "Pump curve shape and C120 are invented, not cited (p.N missing). Same number 120 used for both Hazen-Williams C and minor_k 120 (p.11 coefficient 120 units unstated) creates confusion. Large low-speed misfit shows curve/affinity assumption fails, undermining POR and TDH conclusions at 45 Hz and by extension 48 Hz.",
+        "item": "Unsupported curve and roughness inputs",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.7: station pipework 300 mm, ball NRVs, untied adaptors; p.11: minor_k 120 needed to match SCADA, +6 m at 300 l/s = orifice 224 mm. Model lumps all extra loss as minor_k 120 on 3602 m x 600 mm main. Velocity check confirms 1.061 m/s in 600 mm vs 7.613 m/s in 224 mm at 300 l/s, but does not locate loss.",
+        "issue": "Unexplained loss misattributed to fouled rising main. Station 300 mm branches, manifold, meter, valves not modelled separately. Fouling diagnosis (<25 yr main p.11) ignores station losses / partially closed valve / meter error. ALT-1P48-CLEAN minor_k 20 clean assumption has no inspection basis; +10.1 l/s (171.7 to 181.8) and +39.5 l/s (259.8 to 299.3) gains are hypothetical, not verified.",
+        "item": "Missed units and unverified cleaning benefit",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.19 Table 5 peaks 17.5 bar.g 2-pump trip, 20 bar.g 1-pump trip, 13 bar.g 30 s ramp assuming intermediate NRVs open; p.18 ball checks poor dynamic slam risk; p.7 NRV status unknown under concrete covers; pressure rating not stated (RFI ASSUMPTION treat as high). Study claims replace ball checks, tie adaptors, re-anchor targets peaks, citing steady BASE-CAL 8.22 bar unchanged.",
+        "issue": "Surge remedy not verified by simulator. No transient re-run with slow-closing valve times or tied manifold; steady EPANET pressure cannot verify slam reduction. Without pipe/fitting/gasket rating, 13-20 bar.g cannot be judged damaging; gasket-failure link remains speculative. Intermediate NRV open vs working bound not resolved.",
+        "item": "Surge alternative not actually verified",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.16 Table 4 all duties exceed 11.2 mm/s RMS (averages ~8.9-24, maxima to 37.5); p.17 plinth-floor interface could not be seen, floor lower by touch only, vertical base-anchored motor unsupported low stiffness; p.18 most likely poorly anchored; p.14 bearing 2000-3000 h vs 50000 h, seals failed, glycol leak.",
+        "issue": "Vibration re-anchoring remedy not verified. No stiffness/natural-frequency calculation, no post-fix vibration prediction. Touch-test and mount-plate similarity are qualitative. 2-vane outside WIMES definitions (p.16) makes 11.2 mm/s limit an ASSUMPTION. Off-POR operation (~51% BEP) and 2-vane thrust at up to 85 m head (p.17) remain as plausible contributors, not excluded.",
+        "item": "Vibration root-cause and fix unverified",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.13 normal both parallel fixed 48 Hz duty/duty via Lock 50 telemetry; flowmeter not for control; p.12 specific energies 347.6 (2x48) vs 310.0/296.0 (1x48); p.13 Fig 7 daily volumes graph only. Study claims single-pump longer runs meet demand (ASSUMPTION volume can be met) and +~12% penalty (ASSUMPTION arithmetic). 347.6 vs 296.0 is ~17%, vs 310 is ~12% - single figure understates range. No firm-capacity statement (firm = 1-pump with largest out).",
+        "issue": "Control change to single-pump duty/assist claimed beneficial without proving volume/time meets Lock 50 level demand. Energy arithmetic computed without tool, selective percentage. Firm capacity implication of duty/duty vs Duty/Assist Table 1 (p.7) vs p.13 not stated.",
+        "item": "Control benefit vs demand not proven",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.16 row P1 50 Hz 199 l/s reads 24.00 37.50 29.40 20.00 30.00 23.40 12.00 19.50 13.90 21.20 27.80 23.60 under header Average Min Max. 37.50 > 24.00 cannot be Min if 24.00 is Average. Study VIB-02/03 reports X 24.0 Y 20.0 Z 12.0 Mtg 21.2 avg, range 8.9-29.4 avg, max 37.5.",
+        "issue": "Vibration table mis-parsed: column order ambiguous, 29.4 is likely Max not Average. Stated average range 8.9-29.4 overstates upper average (true averages \u226424). Citation verification fails for exact averages.",
+        "item": "Vibration citation parsing error",
+        "severity": "minor"
+      },
+      {
+        "evidence": "p.12 header (kWh/100 0 m3) truncated; p.13 text refers to Table 5 for specific energy but energy table is Table 3 (p.12); surge table is Table 5 (p.19). p.18 NRV spacing not achieving 3 or 5 [diameters truncated].",
+        "issue": "Editorial / numbering sloppiness: energy unit header truncated, wrong table cross-reference, truncated NRV criterion. Study correctly interprets as kWh/1000 m3 (verified by 224 kW /199 l/s =312.7) but should flag uncertainty.",
+        "item": "Documentation ambiguities",
+        "severity": "minor"
+      }
+    ]
+  },
+  "resolution": {
+    "findings": [
+      {
+        "evidence": "Measured normal 266-267 l/s total = ~133 l/s per pump (p.12); BEP 262 l/s @70m (p.11); POR 70-120% BEP (p.14); S-1P48-C130K120: 168.6 l/s TDH 76.35 m 195.5 kW; BASE-2P48-FIX: 245.6 l/s total 122.8 l/s per pump TDH 80.89 m; maxima to 37.5 mm/s (p.16 view)",
+        "limiting_value": "~51% BEP in parallel ASSUMPTION arithmetic 133/262; string 64-66% vs 68-71% single at 48Hz (p.12)",
+        "limits_target": true,
+        "modification": "Adopt single-pump duty/assist normal; retain standby; VSD/flow control",
+        "unit": "Hydraulic: parallel off-POR operation"
+      },
+      {
+        "evidence": "Additional coefficient 120 to match SCADA (p.11); +6m at 300 l/s = 224mm orifice (p.11); velocity tool: 1.061 m/s in 600mm vs 7.613 m/s in 224mm at 300 l/s; S-1P48-C130K120 168.6 l/s vs ALT-1P48-CLEAN2 180.9 l/s; BASE-2P48-FIX 245.6 l/s; C-2P50-C130K120 304.8 l/s vs measured 310 l/s (p.12)",
+        "limiting_value": "+6m at 300 l/s (p.11)",
+        "limits_target": true,
+        "modification": "CCTV/pressure survey, prove/clear intermediate NRVs at 1270/2410m (p.7), clean/flush",
+        "unit": "Hydraulic: unexplained loss"
+      },
+      {
+        "evidence": "All duties exceed 11.2 mm/s RMS (p.16 view: averages include 12.6-29.4, maxima to 37.5); mount comparable to pump (p.16); bearing 2000-3000h vs 50000h (p.14); seals failed, glycol leak, emulsified oil, seizure (p.14); plinth cracks/spalling + flange leaks reported (p.8)",
+        "limiting_value": ">11.2 mm/s RMS ASSUMPTION applied to 2-vane (p.16); 2000-3000h vs 50000h (p.14)",
+        "limits_target": true,
+        "modification": "Re-anchor plinths, support motor end, tie manifold; vibration re-test",
+        "unit": "Vibration/mechanical"
+      },
+      {
+        "evidence": "Ball checks poor dynamic slam risk (p.18); VariSim peaks 17.5 bar.g 2-pump trip, 20 bar.g 1-pump trip, 13 bar.g 30s ramp assuming intermediate NRVs open/not working (p.19); gasket failures (p.18); steady BASE-2P48-FIX manifold 8.05 bar; pipe/fitting rating not stated (p.7-p.19)",
+        "limiting_value": "20/17.5/13 bar.g VariSim (p.19)",
+        "limits_target": true,
+        "modification": "Slow-closing checks, tie adaptors, surge review, inspect NRVs; retain 30s ramp (p.7)",
+        "unit": "Surge/gaskets"
+      },
+      {
+        "evidence": "NPSHa margin ~4m Fig4 (p.12) so not suction head; alternative blockage/siltation cited (p.12); 30% screen loss + ~40t silt/brick/rubble/vegetation Aug 2019 (p.19); 121 to 169 l/s unblock gain (p.11); impact damage P2 (p.11); centre pitting/water in locking assembly (p.14); bellmouth high vs 0.3D-0.5D ANSI/HI 9.8 (p.19)",
+        "limiting_value": "Centre pitting (p.14) despite ~4m NPSH margin (p.12)",
+        "limits_target": true,
+        "modification": "Regular screen/well cleaning; review benching vs buffer trade-off (p.20)",
+        "unit": "Cavitation/debris not NPSH"
+      },
+      {
+        "evidence": "Measured specific energy 347.6 (2x48Hz) vs 310.0/296.0 (1x48Hz) (p.12 view); 48Hz optimum (p.13); control fixed parallel 48Hz duty/duty via Lock 50 telemetry, meter not for control (p.13); daily volumes Fig7 (p.13); firm capacity = 1-pump with largest out",
+        "limiting_value": "2-pump +12% vs P1-only and +17% vs P2-only at 48Hz ASSUMPTION arithmetic from Table 3 (p.12)",
+        "limits_target": true,
+        "modification": "Single-pump longer duration at 48Hz subject to level/volume check; meter-based alternation",
+        "unit": "Energy/control"
+      }
+    ],
+    "responses": [
+      {
+        "action": "fixed",
+        "explanation": "Rejected low BASE-CAL 316.7kW. Re-ran with consistent efficiency: BASE-2P48-FIX 245.6 l/s 301.7kW, S-1P48-C130K120 168.6 l/s 195.5kW. Measured sum 170.0+163.5=333.5kW (p.12) now cited as truth; simulator energy only comparative with stated efficiency ASSUMPTION. Benefit now quoted from measured specific energies, not simulator kW.",
+        "issue": "Energy quantification inconsistency"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Now labelled: pump curve rated 262 l/s @70m (p.11), shape fitted ASSUMPTION, C130 ASSUMPTION, document coefficient 120 (p.11) applied as minor_k 120 units unstated. C-2P50-C130K120 304.8 vs 310 l/s (p.12) good at 50Hz; low-speed misfit acknowledged, conclusions limited to 48-50Hz.",
+        "issue": "Unsupported curve and roughness inputs"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Admit MAIN minor_k lumps station 300mm/manifold/meter/valves (p.7) not modelled separately. ALT-1P48-CLEAN2 minor_k 20 ASSUMPTION clean, 180.9 vs 168.6 l/s gain hypothetical pending inspection. Fouling vs station loss/valve/meter error not distinguished.",
+        "issue": "Missed units and unverified cleaning benefit"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Steady BASE-2P48-FIX 8.05 bar cannot verify slam. No transient re-run made. Remedy justified only by VariSim 13-20 bar.g (p.19) + ball slam risk (p.18) + gaskets (p.18). Rating unknown, NRV open/working bound unresolved, link stated as plausible not proven.",
+        "issue": "Surge alternative not actually verified"
+      },
+      {
+        "action": "fixed",
+        "explanation": "No stiffness/frequency calc, no post-fix prediction. Touch-test and mount similarity (p.16-p.17) qualitative. 11.2 mm/s applied to 2-vane as reasonable ASSUMPTION (p.16). Off-POR ~51% BEP (ASSUMPTION) and 2-vane thrust to 85m (p.17) retained as contributors; anchoring most likely per p.18 not proven.",
+        "issue": "Vibration root-cause and fix unverified"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Volume/time proof not available Fig7 graph only (p.13). Corrected to +12% vs P1 and +17% vs P2 (p.12) range. Duty/Assist Table1 (p.7) is standby capability, normal duty/duty (p.13). Single-pump is firm = 0 with one out, dual is non-firm; level control check required.",
+        "issue": "Control benefit vs demand not proven"
+      },
+      {
+        "action": "fixed",
+        "explanation": "View p.16 shows columns Average Min Max Average etc; 37.5 under Min cannot be Min if 24.0 Average. Now cite ranges/maxima only, not exact upper average.",
+        "issue": "Vibration citation parsing error"
+      },
+      {
+        "action": "noted",
+        "explanation": "Unit header kWh/1000m3 inferred verified by 224kW/199 l/s, Table 5 vs Table 3 cross-ref error (p.13) and truncated 3-or-5 diameters (p.18) flagged as document ambiguities.",
+        "issue": "Documentation ambiguities"
+      }
+    ]
+  },
+  "runs": {
+    "BASE-1P48": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.7,
+            "from": "WET",
+            "id": "P1",
+            "motor_eff": 0.95,
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 166.6,
+            "tdh_m": 76.58,
+            "speed": 0.96,
+            "efficiency": 0.7,
+            "shaft_kw": 178.8,
+            "motor_kw": null,
+            "electric_kw": 188.2,
+            "pct_of_rated_flow": 64
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 166.6,
+            "velocity_mps": 0.59
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.63
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 166.6,
+        "total_electric_kw": 188.2,
+        "specific_energy_kwh_per_ml": 313.8
+      }
+    },
+    "CAL-1P50": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.7,
+            "from": "WET",
+            "id": "P1",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.994,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 200.8,
+            "tdh_m": 78.52,
+            "speed": 0.994,
+            "efficiency": 0.7,
+            "shaft_kw": 220.9,
+            "motor_kw": null,
+            "electric_kw": 232.5,
+            "pct_of_rated_flow": 77
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 200.8,
+            "velocity_mps": 0.71
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.82
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 200.8,
+        "total_electric_kw": 232.5,
+        "specific_energy_kwh_per_ml": 321.7
+      }
+    },
+    "CAL-1P45": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.62,
+            "from": "WET",
+            "id": "P1",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.894,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 69.7,
+            "tdh_m": 72.94,
+            "speed": 0.894,
+            "efficiency": 0.62,
+            "shaft_kw": 80.5,
+            "motor_kw": null,
+            "electric_kw": 84.7,
+            "pct_of_rated_flow": 27
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 69.7,
+            "velocity_mps": 0.25
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.27
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 69.7,
+        "total_electric_kw": 84.7,
+        "specific_energy_kwh_per_ml": 337.5
+      }
+    },
+    "CAL-2P48": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.64,
+            "from": "WET",
+            "id": "P1",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          },
+          {
+            "efficiency": 0.64,
+            "from": "WET",
+            "id": "P2",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 119.9,
+            "tdh_m": 81.13,
+            "speed": 0.96,
+            "efficiency": 0.64,
+            "shaft_kw": 149.1,
+            "motor_kw": null,
+            "electric_kw": 156.9,
+            "pct_of_rated_flow": 46
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 119.9,
+            "tdh_m": 81.13,
+            "speed": 0.96,
+            "efficiency": 0.64,
+            "shaft_kw": 149.1,
+            "motor_kw": null,
+            "electric_kw": 156.9,
+            "pct_of_rated_flow": 46
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 239.8,
+            "velocity_mps": 0.85
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 8.08
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 239.8,
+        "total_electric_kw": 313.9,
+        "specific_energy_kwh_per_ml": 363.6
+      }
+    },
+    "CAL2-1P50": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0.0,
+                95.0
+              ],
+              [
+                150.0,
+                86.0
+              ],
+              [
+                200.0,
+                79.5
+              ],
+              [
+                262.0,
+                70.0
+              ],
+              [
+                320.0,
+                55.0
+              ]
+            ],
+            "efficiency": 0.7,
+            "from": "WET",
+            "id": "P1",
+            "speed": 0.994,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 199.5,
+            "tdh_m": 78.44,
+            "speed": 0.994,
+            "efficiency": 0.7,
+            "shaft_kw": 219.3,
+            "motor_kw": null,
+            "electric_kw": 230.9
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 199.5,
+            "velocity_mps": 0.71
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.81
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 199.5,
+        "total_electric_kw": 230.9,
+        "specific_energy_kwh_per_ml": 321.4
+      }
+    },
+    "CAL2-1P48": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0.0,
+                95.0
+              ],
+              [
+                150.0,
+                86.0
+              ],
+              [
+                200.0,
+                79.5
+              ],
+              [
+                262.0,
+                70.0
+              ],
+              [
+                320.0,
+                55.0
+              ]
+            ],
+            "efficiency": 0.7,
+            "from": "WET",
+            "id": "P1",
+            "speed": 0.954,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 159.6,
+            "tdh_m": 76.23,
+            "speed": 0.954,
+            "efficiency": 0.7,
+            "shaft_kw": 170.5,
+            "motor_kw": null,
+            "electric_kw": 179.4
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 159.6,
+            "velocity_mps": 0.56
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.6
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 159.6,
+        "total_electric_kw": 179.4,
+        "specific_energy_kwh_per_ml": 312.4
+      }
+    },
+    "CAL2-1P45": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pipes: ": 0.0,
+        "pumps": [
+          {
+            "curve": [
+              [
+                0.0,
+                95.0
+              ],
+              [
+                150.0,
+                86.0
+              ],
+              [
+                200.0,
+                79.5
+              ],
+              [
+                262.0,
+                70.0
+              ],
+              [
+                320.0,
+                55.0
+              ]
+            ],
+            "efficiency": 0.64,
+            "from": "WET",
+            "id": "P1",
+            "speed": 0.894,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 59.7,
+            "tdh_m": 72.73,
+            "speed": 0.894,
+            "efficiency": 0.64,
+            "shaft_kw": 66.5,
+            "motor_kw": null,
+            "electric_kw": 70.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 59.7,
+            "velocity_mps": 0.21
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.25
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 59.7,
+        "total_electric_kw": 70.0,
+        "specific_energy_kwh_per_ml": 325.9
+      }
+    },
+    "CAL3-1P48": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                112
+              ],
+              [
+                100,
+                100
+              ],
+              [
+                150,
+                89
+              ],
+              [
+                200,
+                81
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.7,
+            "from": "WET",
+            "id": "P1",
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 176.1,
+            "tdh_m": 77.09,
+            "speed": 0.96,
+            "efficiency": 0.7,
+            "shaft_kw": 190.3,
+            "motor_kw": null,
+            "electric_kw": 200.3
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 176.1,
+            "velocity_mps": 0.62
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.68
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 176.1,
+        "total_electric_kw": 200.3,
+        "specific_energy_kwh_per_ml": 315.9
+      }
+    },
+    "CHK-1P50-C120": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.7,
+            "from": "WET",
+            "id": "P1",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 1.0,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 206.3,
+            "tdh_m": 78.86,
+            "speed": 1.0,
+            "efficiency": 0.7,
+            "shaft_kw": 228.0,
+            "motor_kw": null,
+            "electric_kw": 240.0,
+            "pct_of_rated_flow": 79
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 206.3,
+            "velocity_mps": 0.73
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.85
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 206.3,
+        "total_electric_kw": 240.0,
+        "specific_energy_kwh_per_ml": 323.2
+      }
+    },
+    "TRY-A-1P50": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.7,
+            "from": "WET",
+            "id": "P1",
+            "speed": 0.994,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 201.7,
+            "tdh_m": 78.58,
+            "speed": 0.994,
+            "efficiency": 0.7,
+            "shaft_kw": 222.1,
+            "motor_kw": null,
+            "electric_kw": 233.8
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 201.7,
+            "velocity_mps": 0.71
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.83
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 201.7,
+        "total_electric_kw": 233.8,
+        "specific_energy_kwh_per_ml": 322.0
+      }
+    },
+    "TRY-A-1P48": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.7,
+            "from": "WET",
+            "id": "P1",
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 171.7,
+            "tdh_m": 76.85,
+            "speed": 0.96,
+            "efficiency": 0.7,
+            "shaft_kw": 184.9,
+            "motor_kw": null,
+            "electric_kw": 194.6
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 171.7,
+            "velocity_mps": 0.61
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.66
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 171.7,
+        "total_electric_kw": 194.6,
+        "specific_energy_kwh_per_ml": 314.9
+      }
+    },
+    "TRY-A-2P48": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.64,
+            "from": "WET",
+            "id": "P1",
+            "speed": 0.96,
+            "to": "MAN"
+          },
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.64,
+            "from": "WET",
+            "id": "P2",
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 129.9,
+            "tdh_m": 82.64,
+            "speed": 0.96,
+            "efficiency": 0.64,
+            "shaft_kw": 164.5,
+            "motor_kw": null,
+            "electric_kw": 173.2
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 129.9,
+            "tdh_m": 82.64,
+            "speed": 0.96,
+            "efficiency": 0.64,
+            "shaft_kw": 164.5,
+            "motor_kw": null,
+            "electric_kw": 173.2
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 259.8,
+            "velocity_mps": 0.92
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 8.22
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 259.8,
+        "total_electric_kw": 346.4,
+        "specific_energy_kwh_per_ml": 370.4
+      }
+    },
+    "TRY-A-1P45": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.64,
+            "from": "WET",
+            "id": "P1",
+            "speed": 0.9,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 107.9,
+            "tdh_m": 74.05,
+            "speed": 0.9,
+            "efficiency": 0.64,
+            "shaft_kw": 122.4,
+            "motor_kw": null,
+            "electric_kw": 128.9
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 107.9,
+            "velocity_mps": 0.38
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.38
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 107.9,
+        "total_electric_kw": 128.9,
+        "specific_energy_kwh_per_ml": 331.9
+      }
+    },
+    "TRY-A-2P50": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.66,
+            "from": "WET",
+            "id": "P1",
+            "speed": 1.0,
+            "to": "MAN"
+          },
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.66,
+            "from": "WET",
+            "id": "P2",
+            "speed": 1.0,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 155.9,
+            "tdh_m": 87.06,
+            "speed": 1.0,
+            "efficiency": 0.66,
+            "shaft_kw": 201.7,
+            "motor_kw": null,
+            "electric_kw": 212.3
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 155.9,
+            "tdh_m": 87.06,
+            "speed": 1.0,
+            "efficiency": 0.66,
+            "shaft_kw": 201.7,
+            "motor_kw": null,
+            "electric_kw": 212.3
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 311.7,
+            "velocity_mps": 1.1
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 8.66
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 311.7,
+        "total_electric_kw": 424.6,
+        "specific_energy_kwh_per_ml": 378.4
+      }
+    },
+    "TRY-A-2P45": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.6,
+            "from": "WET",
+            "id": "P1",
+            "speed": 0.9,
+            "to": "MAN"
+          },
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.6,
+            "from": "WET",
+            "id": "P2",
+            "speed": 0.9,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 83.2,
+            "tdh_m": 76.57,
+            "speed": 0.9,
+            "efficiency": 0.6,
+            "shaft_kw": 104.1,
+            "motor_kw": null,
+            "electric_kw": 109.6
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 83.2,
+            "tdh_m": 76.57,
+            "speed": 0.9,
+            "efficiency": 0.6,
+            "shaft_kw": 104.1,
+            "motor_kw": null,
+            "electric_kw": 109.6
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 166.3,
+            "velocity_mps": 0.59
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.63
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 166.3,
+        "total_electric_kw": 219.2,
+        "specific_energy_kwh_per_ml": 366.0
+      }
+    },
+    "BASE-CAL": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.7,
+            "from": "WET",
+            "id": "P1",
+            "speed": 0.96,
+            "to": "MAN"
+          },
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.7,
+            "from": "WET",
+            "id": "P2",
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 129.9,
+            "tdh_m": 82.64,
+            "speed": 0.96,
+            "efficiency": 0.7,
+            "shaft_kw": 150.4,
+            "motor_kw": null,
+            "electric_kw": 158.3
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 129.9,
+            "tdh_m": 82.64,
+            "speed": 0.96,
+            "efficiency": 0.7,
+            "shaft_kw": 150.4,
+            "motor_kw": null,
+            "electric_kw": 158.3
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 259.8,
+            "velocity_mps": 0.92
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 8.22
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 259.8,
+        "total_electric_kw": 316.7,
+        "specific_energy_kwh_per_ml": 338.6
+      }
+    },
+    "ALT-1P48-CLEAN": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 20.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.7,
+            "from": "WET",
+            "id": "P1",
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 181.8,
+            "tdh_m": 75.3,
+            "speed": 0.96,
+            "efficiency": 0.7,
+            "shaft_kw": 191.8,
+            "motor_kw": null,
+            "electric_kw": 201.9
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 181.8,
+            "velocity_mps": 0.64
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.5
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 181.8,
+        "total_electric_kw": 201.9,
+        "specific_energy_kwh_per_ml": 308.5
+      }
+    },
+    "ALT-2P48-CLEAN": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 20.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.64,
+            "from": "WET",
+            "id": "P1",
+            "speed": 0.96,
+            "to": "MAN"
+          },
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.64,
+            "from": "WET",
+            "id": "P2",
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 149.7,
+            "tdh_m": 80.23,
+            "speed": 0.96,
+            "efficiency": 0.64,
+            "shaft_kw": 184.1,
+            "motor_kw": null,
+            "electric_kw": 193.7
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 149.7,
+            "tdh_m": 80.23,
+            "speed": 0.96,
+            "efficiency": 0.64,
+            "shaft_kw": 184.1,
+            "motor_kw": null,
+            "electric_kw": 193.7
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 299.3,
+            "velocity_mps": 1.06
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.99
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 299.3,
+        "total_electric_kw": 387.5,
+        "specific_energy_kwh_per_ml": 359.6
+      }
+    },
+    "ALT-1P50-1P": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.7,
+            "from": "WET",
+            "id": "P1",
+            "speed": 1.0,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 206.8,
+            "tdh_m": 78.9,
+            "speed": 1.0,
+            "efficiency": 0.7,
+            "shaft_kw": 228.7,
+            "motor_kw": null,
+            "electric_kw": 240.7
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 206.8,
+            "velocity_mps": 0.73
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.86
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 206.8,
+        "total_electric_kw": 240.7,
+        "specific_energy_kwh_per_ml": 323.3
+      }
+    },
+    "ALT-2P50-CLEAN": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "RISING",
+            "length_m": 3602,
+            "minor_k": 20.0,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.66,
+            "from": "WET",
+            "id": "P1",
+            "speed": 1.0,
+            "to": "MAN"
+          },
+          {
+            "curve": [
+              [
+                0,
+                105
+              ],
+              [
+                150,
+                88
+              ],
+              [
+                200,
+                80
+              ],
+              [
+                262,
+                70
+              ],
+              [
+                320,
+                55
+              ]
+            ],
+            "efficiency": 0.66,
+            "from": "WET",
+            "id": "P2",
+            "speed": 1.0,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 178.6,
+            "tdh_m": 83.42,
+            "speed": 1.0,
+            "efficiency": 0.66,
+            "shaft_kw": 221.5,
+            "motor_kw": null,
+            "electric_kw": 233.1
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 178.6,
+            "tdh_m": 83.42,
+            "speed": 1.0,
+            "efficiency": 0.66,
+            "shaft_kw": 221.5,
+            "motor_kw": null,
+            "electric_kw": 233.1
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RISING",
+            "flow_lps": 357.2,
+            "velocity_mps": 1.26
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 8.3
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 357.2,
+        "total_electric_kw": 466.3,
+        "specific_energy_kwh_per_ml": 362.6
+      }
+    },
+    "BASE-CAL-R1": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "MAIN",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "OUT"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.68,
+            "from": "WW",
+            "id": "P1",
+            "motor_eff": 0.95,
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          },
+          {
+            "efficiency": 0.68,
+            "from": "WW",
+            "id": "P2",
+            "motor_eff": 0.95,
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "OUT"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 122.8,
+            "tdh_m": 80.89,
+            "speed": 0.96,
+            "efficiency": 0.68,
+            "shaft_kw": 143.3,
+            "motor_kw": null,
+            "electric_kw": 150.9,
+            "pct_of_rated_flow": 47
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 122.8,
+            "tdh_m": 80.89,
+            "speed": 0.96,
+            "efficiency": 0.68,
+            "shaft_kw": 143.3,
+            "motor_kw": null,
+            "electric_kw": 150.9,
+            "pct_of_rated_flow": 47
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "flow_lps": 245.6,
+            "velocity_mps": 0.87
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 8.05
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 245.6,
+        "total_electric_kw": 301.7,
+        "specific_energy_kwh_per_ml": 341.2
+      }
+    },
+    "CAL-2P48-R": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "OUT"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "MAIN",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "OUT"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.65,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          },
+          {
+            "efficiency": 0.65,
+            "from": "WW",
+            "id": "P2",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 119.9,
+            "tdh_m": 81.13,
+            "speed": 0.96,
+            "efficiency": 0.65,
+            "shaft_kw": 146.8,
+            "motor_kw": null,
+            "electric_kw": 154.5,
+            "pct_of_rated_flow": 46
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 119.9,
+            "tdh_m": 81.13,
+            "speed": 0.96,
+            "efficiency": 0.65,
+            "shaft_kw": 146.8,
+            "motor_kw": null,
+            "electric_kw": 154.5,
+            "pct_of_rated_flow": 46
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "flow_lps": 239.8,
+            "velocity_mps": 0.85
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 8.08
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 239.8,
+        "total_electric_kw": 309.1,
+        "specific_energy_kwh_per_ml": 358.0
+      }
+    },
+    "B-2P48-CAL": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "OUT"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 140,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "MAIN",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "OUT"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.68,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          },
+          {
+            "efficiency": 0.68,
+            "from": "WW",
+            "id": "P2",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 125.3,
+            "tdh_m": 80.68,
+            "speed": 0.96,
+            "efficiency": 0.68,
+            "shaft_kw": 145.8,
+            "motor_kw": null,
+            "electric_kw": 153.5,
+            "pct_of_rated_flow": 48
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 125.3,
+            "tdh_m": 80.68,
+            "speed": 0.96,
+            "efficiency": 0.68,
+            "shaft_kw": 145.8,
+            "motor_kw": null,
+            "electric_kw": 153.5,
+            "pct_of_rated_flow": 48
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "flow_lps": 250.6,
+            "velocity_mps": 0.89
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 8.03
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 250.6,
+        "total_electric_kw": 307.0,
+        "specific_energy_kwh_per_ml": 340.3
+      }
+    },
+    "S-1P48-C130K120": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "OUT"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "MAIN",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "OUT"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.68,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 168.6,
+            "tdh_m": 76.35,
+            "speed": 0.96,
+            "efficiency": 0.68,
+            "shaft_kw": 185.7,
+            "motor_kw": null,
+            "electric_kw": 195.5,
+            "pct_of_rated_flow": 64
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "flow_lps": 168.6,
+            "velocity_mps": 0.6
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.61
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 168.6,
+        "total_electric_kw": 195.5,
+        "specific_energy_kwh_per_ml": 322.1
+      }
+    },
+    "C-1P50": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "OUT"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "MAIN",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "OUT"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.68,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 1.0,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 208.7,
+            "tdh_m": 78.52,
+            "speed": 1.0,
+            "efficiency": 0.68,
+            "shaft_kw": 236.5,
+            "motor_kw": null,
+            "electric_kw": 248.9,
+            "pct_of_rated_flow": 80
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "flow_lps": 208.7,
+            "velocity_mps": 0.74
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.82
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 208.7,
+        "total_electric_kw": 248.9,
+        "specific_energy_kwh_per_ml": 331.2
+      }
+    },
+    "C-2P50-C130K120": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "OUT"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "MAIN",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "OUT"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.68,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 1.0,
+            "to": "MAN"
+          },
+          {
+            "efficiency": 0.68,
+            "from": "WW",
+            "id": "P2",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 1.0,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 152.4,
+            "tdh_m": 85.44,
+            "speed": 1.0,
+            "efficiency": 0.68,
+            "shaft_kw": 187.9,
+            "motor_kw": null,
+            "electric_kw": 197.7,
+            "pct_of_rated_flow": 58
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 152.4,
+            "tdh_m": 85.44,
+            "speed": 1.0,
+            "efficiency": 0.68,
+            "shaft_kw": 187.9,
+            "motor_kw": null,
+            "electric_kw": 197.7,
+            "pct_of_rated_flow": 58
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "flow_lps": 304.8,
+            "velocity_mps": 1.08
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 8.5
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 304.8,
+        "total_electric_kw": 395.5,
+        "specific_energy_kwh_per_ml": 360.4
+      }
+    },
+    "C-2P48-K60": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "OUT"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "MAIN",
+            "length_m": 3602,
+            "minor_k": 60.0,
+            "to": "OUT"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.65,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          },
+          {
+            "efficiency": 0.65,
+            "from": "WW",
+            "id": "P2",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 134.8,
+            "tdh_m": 79.84,
+            "speed": 0.96,
+            "efficiency": 0.65,
+            "shaft_kw": 162.4,
+            "motor_kw": null,
+            "electric_kw": 171.0,
+            "pct_of_rated_flow": 51
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 134.8,
+            "tdh_m": 79.84,
+            "speed": 0.96,
+            "efficiency": 0.65,
+            "shaft_kw": 162.4,
+            "motor_kw": null,
+            "electric_kw": 171.0,
+            "pct_of_rated_flow": 51
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "flow_lps": 269.6,
+            "velocity_mps": 0.95
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.95
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 269.6,
+        "total_electric_kw": 341.9,
+        "specific_energy_kwh_per_ml": 352.3
+      }
+    },
+    "BASE-2P48-FIX": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "OUT"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "MAIN",
+            "length_m": 3602,
+            "minor_k": 120.0,
+            "to": "OUT"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.68,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          },
+          {
+            "efficiency": 0.68,
+            "from": "WW",
+            "id": "P2",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 122.8,
+            "tdh_m": 80.89,
+            "speed": 0.96,
+            "efficiency": 0.68,
+            "shaft_kw": 143.3,
+            "motor_kw": null,
+            "electric_kw": 150.9,
+            "pct_of_rated_flow": 47
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 122.8,
+            "tdh_m": 80.89,
+            "speed": 0.96,
+            "efficiency": 0.68,
+            "shaft_kw": 143.3,
+            "motor_kw": null,
+            "electric_kw": 150.9,
+            "pct_of_rated_flow": 47
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "flow_lps": 245.6,
+            "velocity_mps": 0.87
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 8.05
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 245.6,
+        "total_electric_kw": 301.7,
+        "specific_energy_kwh_per_ml": 341.2
+      }
+    },
+    "ALT-1P48-CLEAN2": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "OUT"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "MAIN",
+            "length_m": 3602,
+            "minor_k": 20.0,
+            "to": "OUT"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.68,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 70.0,
+            "rated_lps": 262.0,
+            "speed": 0.96,
+            "to": "MAN"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 180.9,
+            "tdh_m": 74.89,
+            "speed": 0.96,
+            "efficiency": 0.68,
+            "shaft_kw": 195.5,
+            "motor_kw": null,
+            "electric_kw": 205.8,
+            "pct_of_rated_flow": 69
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "flow_lps": 180.9,
+            "velocity_mps": 0.64
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.46
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 180.9,
+        "total_electric_kw": 205.8,
+        "specific_energy_kwh_per_ml": 315.9
+      }
+    }
+  }
+}

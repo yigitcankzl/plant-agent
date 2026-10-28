@@ -1,0 +1,3095 @@
+{
+  "case": "kstate_chw",
+  "facility": "Kansas State University campus chilled water system, Manhattan, Kansas",
+  "source": "Stanley Consultants, Kansas State University Chilled Water Master Plan, March 2013 (public university document)",
+  "url": "https://www.k-state.edu/facilities/campus/master-plan/pdf/pdf-2012/20130308-Final%20CHW%20Report.pdf",
+  "question": "The campus chilled water load is projected to grow to about 11,384 tons by 2025. Does the existing chilled water production and distribution (chillers, pumps, loops, cross-connections) maintain N+1 capacity through 2025? What limits it, when, and what should be built or upgraded (chillers, plants, piping), with order-of-magnitude costs?",
+  "model": "muse-spark-1.3-contributor",
+  "collection": {
+    "criteria": [
+      {
+        "name": "N+1 reliability requirement",
+        "source": "p.20",
+        "value": "Maintain N+1 reliability for chilled water production; N+1 attained when design capacity is met with largest chiller out of service"
+      },
+      {
+        "name": "Firm (N+1) cooling capacity - existing",
+        "source": "p.13",
+        "value": "7300 tons total, 6050 tons N+1; flow-limited N+1 5840 tons if largest pump lost"
+      },
+      {
+        "name": "Diversity factor for peak",
+        "source": "p.20",
+        "value": "0.75 applied to connected total to get estimated peak load"
+      },
+      {
+        "name": "Chilled water design temperatures",
+        "source": "p.15",
+        "value": "40 degF supply, 54 degF return (14F delta)"
+      },
+      {
+        "name": "Design specific flow",
+        "source": "p.18",
+        "value": "2 gpm per ton at design temperatures"
+      },
+      {
+        "name": "Low delta-T check flow",
+        "source": "p.18",
+        "value": "3.5 gpm per ton assuming 8F delta, most likely during low load"
+      },
+      {
+        "name": "Local chillers excluded from loop capacity",
+        "source": "p.18",
+        "value": "University does not desire to use local chillers to supply campus loop, nor viable backup; not used to calculate loop capacity"
+      },
+      {
+        "name": "Pump N+1 redundancy target",
+        "source": "p.18",
+        "value": "Add pump redundancy to achieve N+1 pumping capacity >= corresponding flow through chillers at N+1 cooling capacity"
+      },
+      {
+        "name": "Distribution piping basis for new lines",
+        "source": "p.24",
+        "value": "For line sizes in Appendix B, assumed all distribution originates from existing Cooling Plant location; most existing piping sized sufficiently at 2 gpm/ton with some expansion capacity"
+      }
+    ],
+    "definitions": [
+      {
+        "definition": "Cooling capacity in tons of refrigeration serving campus loop",
+        "source": "p.13",
+        "term": "tons"
+      },
+      {
+        "definition": "Flow in gallons per minute; 2 gpm/ton at 40F/54F design, 3.5 gpm/ton at 8F low delta-T",
+        "source": "p.18",
+        "term": "gpm"
+      },
+      {
+        "definition": "Design capacity met with largest chiller out of service",
+        "source": "p.20",
+        "term": "N+1 reliability"
+      },
+      {
+        "definition": "Capacity with largest unit of station out of service",
+        "source": "p.20",
+        "term": "Firm capacity"
+      },
+      {
+        "definition": "0.75 factor to account for not all buildings at full load simultaneously",
+        "source": "p.17",
+        "term": "Diversity factor"
+      },
+      {
+        "definition": "Cooling Plant primary-secondary with three sub-loops: North, South, Chem-Biochem, fed from common header by secondary pumps; tertiary at buildings",
+        "source": "p.14-p.15",
+        "term": "Primary-secondary-tertiary pumping"
+      },
+      {
+        "definition": "Entering and leaving water temperature for condenser cooling towers",
+        "source": "p.15",
+        "term": "EWT/LWT"
+      },
+      {
+        "definition": "Square feet per ton cooling load by occupancy type from ASHRAE data",
+        "source": "p.16",
+        "term": "SF/Ton"
+      }
+    ],
+    "question": "The campus chilled water load is projected to grow to about 11,384 tons by 2025. Does the existing chilled water production and distribution (chillers, pumps, loops, cross-connections) maintain N+1 capacity through 2025? What limits it, when, and what should be built or upgraded (chillers, plants, piping), with order-of-magnitude costs?",
+    "standards": [
+      {
+        "name": "ASHRAE median service life and SF/ton loads",
+        "use": "Useful service life estimates using ASHRAE data; occupancy SF/ton loads taken from ASHRAE data"
+      },
+      {
+        "name": "2010 Facility Conservation Improvement Program report",
+        "use": "Source for existing building cooling loads"
+      },
+      {
+        "name": "Building Summary Report Dec 5 2011 + construction drawings Dec 16 2010 + field verification",
+        "use": "Net square footage (total minus Structural Area ZZZ) and chiller/pump/tower design info basis"
+      }
+    ],
+    "data_register": [
+      {
+        "id": "CH-TOT",
+        "item": "Existing campus loop total chiller capacity",
+        "quote": "These seven chillers provide a capacity of 7,300 tons",
+        "source": "p.13",
+        "unit": "tons",
+        "value": "7300"
+      },
+      {
+        "id": "CH-FIRM",
+        "item": "Existing N+1 cooling capacity",
+        "quote": "and an N+1 cooling capacity of 6,050 tons",
+        "source": "p.13",
+        "unit": "tons",
+        "value": "6050"
+      },
+      {
+        "id": "CH-FIRM-FLOWLIM",
+        "item": "Flow-limited N+1 if largest pump lost",
+        "quote": "reducing the N+1 cooling capacity from 6,050 tons to 5,840 tons",
+        "source": "p.14",
+        "unit": "tons",
+        "value": "5840"
+      },
+      {
+        "id": "CH1",
+        "item": "Chiller #1 York electric centrifugal at CHW Plant 2004",
+        "quote": "Chiller #1 York Electric Centrifugal 900 CHW Plant 2004",
+        "source": "p.13",
+        "unit": "tons",
+        "value": "900"
+      },
+      {
+        "id": "CH2",
+        "item": "Chiller #2 York electric centrifugal at CHW Plant 2011",
+        "quote": "Chiller #2 York Electric Centrifugal 1,250 CHW Plant 2011",
+        "source": "p.13",
+        "unit": "tons",
+        "value": "1250"
+      },
+      {
+        "id": "CH3",
+        "item": "Chiller #3 York electric centrifugal at CHW Plant 2011",
+        "quote": "Chiller #3 York Electric Centrifugal 1,250 CHW Plant 2011",
+        "source": "p.13",
+        "unit": "tons",
+        "value": "1250"
+      },
+      {
+        "id": "CH4",
+        "item": "Chiller #4 York electric centrifugal at CHW Plant 2011",
+        "quote": "Chiller #4 York Electric Centrifugal 1,250 CHW Plant 2011",
+        "source": "p.13",
+        "unit": "tons",
+        "value": "1250"
+      },
+      {
+        "id": "CH5",
+        "item": "Chiller #5 York steam absorption at CHW Plant 1998",
+        "quote": "Chiller #5 York Steam Absorption 1,250 CHW Plant 1998",
+        "source": "p.13",
+        "unit": "tons",
+        "value": "1250"
+      },
+      {
+        "id": "CH6",
+        "item": "Chiller #6 York steam absorption at Power Plant 1997",
+        "quote": "Chiller #6 York Steam Absorption 1,000 Power Plant 1997",
+        "source": "p.13",
+        "unit": "tons",
+        "value": "1000"
+      },
+      {
+        "id": "CH7",
+        "item": "Chiller #7 York electric centrifugal at Power Plant mid-1990s",
+        "quote": "Chiller #7 York Electric Centrifugal 400 Power Plant Mid 1990s",
+        "source": "p.13",
+        "unit": "tons",
+        "value": "400"
+      },
+      {
+        "id": "CH5-6-LIFE",
+        "item": "Chillers #5 and #6 end of life timing",
+        "quote": "Chillers #5 and #6 are seldom used and will be nearing the end of their service life by 2020",
+        "source": "p.14",
+        "unit": "year",
+        "value": "2020"
+      },
+      {
+        "id": "CH7-LIFE",
+        "item": "Chiller #7 end of life timing",
+        "quote": "Chiller #7 is seldom used and will be nearing end of service life by 2025",
+        "source": "p.14",
+        "unit": "year",
+        "value": "2025"
+      },
+      {
+        "id": "SP-TOT",
+        "item": "Secondary pumping total capacity",
+        "quote": "The total pumping capacity is 14,600 gpm",
+        "source": "p.14",
+        "unit": "gpm",
+        "value": "14600"
+      },
+      {
+        "id": "SP-FIRM",
+        "item": "Secondary pumping N+1 capacity",
+        "quote": "existing secondary pump configuration results in an N+1 capacity of 11,680 gpm",
+        "source": "p.14",
+        "unit": "gpm",
+        "value": "11680"
+      },
+      {
+        "id": "PP-FIRM",
+        "item": "Primary pumping N+1 capacity",
+        "quote": "existing primary pump configuration results in an N+1 capacity of 11,800 gpm",
+        "source": "p.14",
+        "unit": "gpm",
+        "value": "11800"
+      },
+      {
+        "id": "PP-SCHED",
+        "item": "Primary pumps PP-1 to PP-6 flows",
+        "quote": "PP-1 1,800 ... PP-2 2,500 PP-3 2,500 PP-4 2,500 PP-5 2,500 PP-6 2,800",
+        "source": "p.14",
+        "unit": "gpm",
+        "value": "1800, 2500x4, 2800"
+      },
+      {
+        "id": "SP-SCHED",
+        "item": "Secondary pumps SP-1 to SP-5 flows",
+        "quote": "SP-1 Secondary ... 2,920 ... SP-2 2,920 SP-3 2,920 SP-4 2,920 SP-5 2,920",
+        "source": "p.14",
+        "unit": "gpm",
+        "value": "2920 each"
+      },
+      {
+        "id": "PUMP-LIFE",
+        "item": "Chilled water pumps median service life",
+        "quote": "The chilled water pumps have an estimated median service life of 20 years",
+        "source": "p.14",
+        "unit": "years",
+        "value": "20"
+      },
+      {
+        "id": "CT-TOT",
+        "item": "Cooling towers CT-1 to CT-10 capacities and flows",
+        "quote": "CT-1 TEI 3,500 ... 1,460 ... CT-5 2,200 ... 918 ... CT-7 1,168 ... 487 ... CT-10 1,200 ... 501",
+        "source": "p.15",
+        "unit": "tons/gpm",
+        "value": "CT1-4 1460 tons each at 3500 gpm; CT5-6 918 tons at 2200 gpm; CT7-9 487 tons at 1168 gpm; CT10 501 tons at 1200 gpm; EWT 95F LWT 85F"
+      },
+      {
+        "id": "CT-LIFE",
+        "item": "Cooling tower life / refurbishment",
+        "quote": "Cooling towers 1-4 were modified in 2011 ... fill and/or mechanical internals of these cooling towers may require replacement before 2025",
+        "source": "p.15",
+        "unit": "year",
+        "value": "CT1-4 beyond study; CT5-10 internals before 2025"
+      },
+      {
+        "id": "CHW-TEMP",
+        "item": "CHW supply and return temperatures",
+        "quote": "chilled water supply is distributed at 40F and returned at 54F",
+        "source": "p.15",
+        "unit": "degF",
+        "value": "40 supply, 54 return"
+      },
+      {
+        "id": "BLD-COUNT",
+        "item": "Buildings served by three loops",
+        "quote": "31 buildings are served by these three loops",
+        "source": "p.15",
+        "unit": "count",
+        "value": "31"
+      },
+      {
+        "id": "LOAD-EXIST-TOT",
+        "item": "Existing connected cooling load total",
+        "quote": "The existing cooling loads total 7,307 tons",
+        "source": "p.17",
+        "unit": "tons",
+        "value": "7307"
+      },
+      {
+        "id": "LOAD-EXIST-PEAK",
+        "item": "Existing estimated peak with diversity",
+        "quote": "Using a diversity factor of 0.75 ... estimated peak load would be 5,480 tons",
+        "source": "p.17",
+        "unit": "tons",
+        "value": "5480"
+      },
+      {
+        "id": "LOAD-PEAK-CHECK",
+        "item": "2011 peak-day chiller operation check",
+        "quote": "Chillers #2, #3, #4, #5 and #7 were in operation ... would indicate a campus peak demand of approximately 5,400 tons",
+        "source": "p.17",
+        "unit": "tons",
+        "value": "5400"
+      },
+      {
+        "id": "EXCESS-NOW",
+        "item": "Current excess N+1 capacity",
+        "quote": "there is sufficient N+1 capacity ... with an excess capacity of approximately 570 tons",
+        "source": "p.17",
+        "unit": "tons",
+        "value": "570"
+      },
+      {
+        "id": "FLOW-DESIGN",
+        "item": "Design flow per ton",
+        "quote": "At design chilled water temperatures (40F supply, 54F return), a flow rate of 2 gpm per ton is expected",
+        "source": "p.18",
+        "unit": "gpm/ton",
+        "value": "2"
+      },
+      {
+        "id": "FLOW-LOWDT",
+        "item": "Low delta-T flow assumption",
+        "quote": "Considering a low delta-T scenario (assume 8F), 3.5 gpm per ton can be expected",
+        "source": "p.18",
+        "unit": "gpm/ton",
+        "value": "3.5 at 8F delta"
+      },
+      {
+        "id": "FLOW-NOW",
+        "item": "Current loads require flow",
+        "quote": "The current loads require approximately 10,960 gpm",
+        "source": "p.20",
+        "unit": "gpm",
+        "value": "10960"
+      },
+      {
+        "id": "LOAD-2017-TOT",
+        "item": "2017 total connected load after additions",
+        "quote": "would increase the total load to approximately 11,928 tons",
+        "source": "p.22",
+        "unit": "tons",
+        "value": "11928"
+      },
+      {
+        "id": "LOAD-2017-PEAK",
+        "item": "2017 estimated peak with diversity",
+        "quote": "estimated peak load would be approximately 8,946 tons",
+        "source": "p.22",
+        "unit": "tons",
+        "value": "8946"
+      },
+      {
+        "id": "LOAD-2025-TOT",
+        "item": "2025 total connected load after additions",
+        "quote": "would increase the total load to approximately 15,178 tons",
+        "source": "p.23",
+        "unit": "tons",
+        "value": "15178"
+      },
+      {
+        "id": "LOAD-2025-PEAK",
+        "item": "2025 estimated peak with diversity",
+        "quote": "estimated peak load would be approximately 11,384 tons",
+        "source": "p.24",
+        "unit": "tons",
+        "value": "11384"
+      },
+      {
+        "id": "PLANT-SPACE",
+        "item": "Existing Cooling Plant expansion space",
+        "quote": "The Cooling Plant does not have space for any additional chillers",
+        "source": "p.24",
+        "unit": "none",
+        "value": "no space"
+      },
+      {
+        "id": "NEW-PLANT-SIZE",
+        "item": "Satellite plant size shown on drawings",
+        "quote": "plant size shown on the drawings represents a six chiller plant with total capacity of approximately 12,000 tons",
+        "source": "p.24",
+        "unit": "tons",
+        "value": "12000"
+      },
+      {
+        "id": "NEW-CHILLER-SIZE",
+        "item": "New chiller unit size assumption for scenarios",
+        "quote": "All new chillers (except those replacing Chillers #5 and #6 in Scenario 1) were assumed to be 2,000 ton capacity",
+        "source": "p.27",
+        "unit": "tons",
+        "value": "2000"
+      },
+      {
+        "id": "SCEN1-ADD",
+        "item": "Scenario 1 new + replacement capacity",
+        "quote": "assumes total addition of 8,000 tons of new chiller capacity, as well as replacement of 1,250 tons of existing capacity ... largest chiller ... 2,000 tons",
+        "source": "p.26",
+        "unit": "tons",
+        "value": "8000 new + 1250 replacement; largest 2000"
+      },
+      {
+        "id": "SCEN2-ADD",
+        "item": "Scenario 2 new capacity and retirements",
+        "quote": "assumes total addition of 10,000 tons of new chiller capacity, and 2,650 tons of capacity removed ... largest chiller ... 2,000 tons",
+        "source": "p.27",
+        "unit": "tons",
+        "value": "10000 new, 2650 removed; largest 2000"
+      },
+      {
+        "id": "XCONN-1",
+        "item": "Proposed Chem/Biochem to South Loop cross-connect",
+        "quote": "Proposed 18 Cross-Connect Chem/BioChem to South Loop",
+        "source": "p.46-view",
+        "unit": "inches",
+        "value": "18"
+      },
+      {
+        "id": "XCONN-2",
+        "item": "Proposed North Loop to Chem/Biochem cross-connect",
+        "quote": "Proposed 18 Cross-Connect North Loop to Chem/Biochem",
+        "source": "p.47-view",
+        "unit": "inches",
+        "value": "18"
+      },
+      {
+        "id": "DIST-LIFE",
+        "item": "Distribution piping service life and condition",
+        "quote": "useful service life of the chilled water distribution piping is anticipated to last beyond the timeframe ... generally considered to be in reliable condition with no known leaks",
+        "source": "p.18",
+        "unit": "none",
+        "value": "beyond 2025, no known leaks"
+      }
+    ],
+    "rfi": [
+      {
+        "issue": "No metered peak or historical plant data to verify JCI 2010 + SF/ton load estimates",
+        "item": "LOAD-EXIST-PEAK",
+        "reason": "Report states no historical data or metering exists; peak inferred from staff interviews of 2011 operation (p.15,p.17)",
+        "resolution": "ASSUMPTION: Accept reported 5480 tons peak (7307 x 0.75) and 5400-ton operating check as baseline, with metering to be used later to verify; reason is document directs future verification with new metering data"
+      },
+      {
+        "issue": "Withheld recommendation clauses likely contain costs/schedule; no capital costs in available pages",
+        "item": "NEW-PLANT-SIZE",
+        "reason": "Cost to build/upgrade chillers, plants, piping not stated in pages 11-27,41-49",
+        "resolution": "ASSUMPTION: Note costs as missing and to be developed in later steps from industry benchmarks; do not invent costs in register; reason is no source data available"
+      },
+      {
+        "issue": "2017 and 2025 summed tables vs reported totals differ (~100-300 tons)",
+        "item": "LOAD-2017-TOT",
+        "reason": "Table sums exceed reported 11928 and 15178, likely due to Kramer/Marlatt/Goodnow removals and rounding",
+        "resolution": "ASSUMPTION: Use reported totals 11928 tons (2017) and 15178 tons (2025) and peaks 8946 and 11384 tons as governing; reason is report explicitly states those totals with diversity"
+      },
+      {
+        "issue": "Primary/secondary pump head adequacy for expanded distant loops unknown",
+        "item": "PP-FIRM",
+        "reason": "Report warns frictional losses may grow to exceed design head (p.25) but gives only flow/head per pump (40-90 ft), no system curves",
+        "resolution": "ASSUMPTION: Treat 90 ft secondary and 40/70 ft primary heads as nameplate only; flag head/friction analysis as further study; reason is insufficient hydraulic data"
+      },
+      {
+        "issue": "Ages/refurbishment history for CT5-10 and condenser water pumps unknown",
+        "item": "CT-LIFE",
+        "reason": "Only states age similar to Chillers #5-7 and 20-year median life for pumps",
+        "resolution": "ASSUMPTION: Assume CT5-10 internals need replacement before 2025 and condenser pumps need review at 20 years; reason follows report guidance"
+      },
+      {
+        "issue": "Throckmorton CHW line noted undersized; other bottleneck sizes not quantified",
+        "item": "XCONN-1",
+        "reason": "Appendix A notes Throckmorton line undersized; drawings show upsizes (e.g., Increase CHW to 18in) but no calculations",
+        "resolution": "ASSUMPTION: List upsizes and 18-in cross-connects as proposed mitigations to be hydraulically verified later; reason is drawings are planning-level"
+      }
+    ],
+    "units_on_path": [
+      "Chiller #1 (900 tons)",
+      "Chiller #2 (1250 tons)",
+      "Chiller #3 (1250 tons)",
+      "Chiller #4 (1250 tons)",
+      "Chiller #5 steam absorption (1250 tons)",
+      "Chiller #6 steam absorption Power Plant (1000 tons)",
+      "Chiller #7 electric Power Plant (400 tons)",
+      "Primary pumps PP-1 (1800 gpm) PP-2 to PP-5 (2500 gpm each) PP-6 (2800 gpm)",
+      "Secondary pumps SP-1 to SP-5 (2920 gpm each)",
+      "Cooling towers CT-1 to CT-4 (1460 tons each)",
+      "Cooling towers CT-5 to CT-6 (918 tons each)",
+      "Cooling towers CT-7 to CT-9 (487 tons each)",
+      "Cooling tower CT-10 (501 tons)",
+      "Common header / North Loop",
+      "South Loop",
+      "Chem-Biochem Loop",
+      "Proposed 18-in cross-connect Chem/Biochem to South Loop",
+      "Proposed 18-in cross-connect North Loop to Chem/Biochem",
+      "Distribution piping to 31 buildings + 2017/2025 additions"
+    ]
+  },
+  "analysis": {
+    "alternatives": [
+      {
+        "cost_basis": "ASSUMPTION: >$10M for 5x2000-ton chillers + satellite 12000-ton plant shown (p.24) + towers/electrical near Wind Erosion Lab (p.24); no capital costs in pp.11-27,41-49. Basis is 10000 tons new (p.27) displacing 2650 tons retired (p.27) with 2000-ton largest (p.27).",
+        "cost_class": ">$10M",
+        "meets_target": true,
+        "option": "Scenario 2 - Add 2000 tons in 2017, retire Chillers #5 (1250 tons), #6 (1000 tons), #7 (400 tons) (p.13) in 2020 (2650 tons removed p.27) + add 2000 tons in 2020/2021 to total 10000 tons new (p.27); 2000-ton units (p.27)",
+        "recommended": true,
+        "result": "Arithmetic N+1 12650 tons [7300 tons (p.13)-2650 tons (p.27)+10000 tons (p.27)-2000 tons largest (p.27)] exceeds 2025 peak 11384 tons (p.24). Flow proxy ALT-SEC-2025-FIRM delivers 26473.8 gpm firm (run output) exceeding 2025 need 22768 gpm (ASSUMPTION: 11384 tons p.24 x2 gpm/ton p.18)",
+        "run_label": "ALT-SEC-2025-FIRM",
+        "unit": "Chiller #6 steam absorption Power Plant (1000 tons)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: >$10M for 4x2000-ton chillers + towers + pumps + satellite building/electrical; no costs in pp.11-27,41-49. Basis is 8000 tons new (p.26) +1250-ton replacement (p.26) and p.24 high electrical cost note.",
+        "cost_class": ">$10M",
+        "meets_target": true,
+        "option": "Scenario 1 - Replace Chiller #5 (1250 tons p.13) in 2020 + add 8000 tons (4x2000 tons p.26-p.27) phased 2014/2018/2020/2023 per Fig 3-1 (p.26)",
+        "recommended": false,
+        "result": "Arithmetic N+1 ~13300 tons [(7300 tons p.13+8000 tons p.26)-2000 tons largest p.26] exceeds 2017 peak 8946 tons (p.22) and 2025 peak 11384 tons (p.24); flow proxy FUT17-FULL delivers 22432.7 gpm full (run output) = ~11216 tons at 2 gpm/ton (p.18)",
+        "run_label": "FUT17-FULL",
+        "unit": "Chiller #5 steam absorption at CHW Plant (1250 tons)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: $1M-$10M for 4x4000 gpm 90-ft secondary pumps + headers/controls in new satellite; pump schedule 2920 gpm 90 ft 100 hp (p.14) as basis; no costs in pages.",
+        "cost_class": "$1M-$10M",
+        "meets_target": true,
+        "option": "Add secondary pumping: 1x4000 gpm by 2017 (firm 18503.7 gpm FUT-SEC-2017-FIRM) then total 4x4000 gpm installed by 2025 (firm 26473.8 gpm ALT-SEC-2025-FIRM) to raise firm above 11680 gpm (p.14)",
+        "recommended": true,
+        "result": "FUT-SEC-2017-FIRM 18503.7 gpm (run output) exceeds 2017 need 17892 gpm (ASSUMPTION: 8946 tons p.22 x2 gpm/ton p.18); ALT-SEC-2025-FIRM 26473.8 gpm firm (run output) exceeds 2025 need 22768 gpm (ASSUMPTION: 11384 tons p.24 x2)",
+        "run_label": "ALT-SEC-2025-FIRM",
+        "unit": "Secondary pumps SP-1 to SP-5 (2920 gpm each)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: $100k-$1M for primary pump additions/replacement (2500-2800 gpm 40-70 ft per p.14) and tower internals; towers CT5-10 internals may need replacement before 2025 (p.15), pumps 20-yr life (p.14).",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "Add/upgrade primary pumps to match secondary/chiller N+1 and replace CT5-10 fill/internals + condenser pumps as needed",
+        "recommended": true,
+        "result": "BASE-PRI-FIRM calibrates 11740.8 gpm (run output) vs 11800 gpm N+1 (p.14); future primary must track secondary 26473.8 gpm (ALT-SEC-2025-FIRM) to avoid flow-limiting N+1 to 5840 tons (p.14)",
+        "run_label": "BASE-PRI-FIRM",
+        "unit": "Primary pumps PP-1 (1800 gpm) PP-2 to PP-5 (2500 gpm each) PP-6 (2800 gpm)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: $1M-$10M for buried 18-in loop cross-connects, tunnel 10-in replacement (12-18-in), Throckmorton upsize and 24-in feed to new north loads; routing/sizes per Sheet 1-2 drawings (viewed p.46-47).",
+        "cost_class": "$1M-$10M",
+        "meets_target": true,
+        "option": "Build Proposed 18-in Chem/Biochem to South Loop + 18-in North Loop to Chem/Biochem cross-connects (p.46-view,p.47-view), Increase CHW to 18-in at Hale/Willard/Waters (Sheet 1-2), Replace 10-in in Tunnel with Larger (12-18-in)",
+        "recommended": true,
+        "result": "velocity 18-in adequacy not proven hydraulically; confirmed velocity 10-in at 3.312 mgd = 9.395 fps (velocity tool) for 2300 gpm Throckmorton 1150 tons (p.42) x2 (p.18) and 10-in at 3.456 mgd = 9.804 fps for 2400 gpm Union 1200 tons (p.42-43) x2; cross-connects provide loop redundancy/operational flexibility (p.25)",
+        "run_label": "ALT-SEC-2025-FIRM",
+        "unit": "Proposed 18-in cross-connect Chem/BioChem to South Loop"
+      }
+    ],
+    "assumptions": [
+      "ASSUMPTION: Future flows 17892 gpm (2017) = 8946 tons (p.22) x 2 gpm/ton (p.18) and 22768 gpm (2025) = 11384 tons (p.24) x 2 gpm/ton; reason is report gives only tons, design flow per p.18.",
+      "ASSUMPTION: Costs are order-of-magnitude only; reason is capital costs withheld/not in pp.11-27,41-49.",
+      "ASSUMPTION: Throckmorton 2300 gpm = 1150 tons (p.42) x2 (p.18) = 3.312 mgd for velocity check; Union 2400 gpm = 1200 tons (p.42-43) x2 = 3.456 mgd; reason is to test 10-in adequacy noted undersized (p.42).",
+      "ASSUMPTION: Chiller/plant N+1 verified via flow proxy (gpm/tons at 2 gpm/ton p.18) because run_hydraulics models pumps; reason is chiller tons convert directly to required primary/secondary flow."
+    ],
+    "base_model_run": "BASE-SEC-FIRM",
+    "calibration": [
+      {
+        "measured": "14600 gpm total (p.14)",
+        "note": "5x2920 gpm (p.14) in parallel to low-loss header; matches nameplate within model tolerance",
+        "residual_pct": -0.33,
+        "run_label": "BASE-SEC-FULL",
+        "simulated": "14551.6 gpm total pumped",
+        "source": "p.14",
+        "test": "Secondary full capacity"
+      },
+      {
+        "measured": "11680 gpm N+1 (p.14)",
+        "note": "4x2920 gpm largest out; confirms firm secondary governs vs 11800 gpm primary",
+        "residual_pct": -0.22,
+        "run_label": "BASE-SEC-FIRM",
+        "simulated": "11654.3 gpm total pumped",
+        "source": "p.14",
+        "test": "Secondary N+1 capacity"
+      },
+      {
+        "measured": "11800 gpm N+1 (p.14) with PP-6 (2800 gpm 70 ft p.14) out",
+        "note": "5x pumps (1800+4x2500 p.14) uniform 40 ft; full 6-pump run over-pumps (15919 gpm, PP-6 at 151% rated) due to single-point curve with mismatched heads, so firm run used for calibration",
+        "residual_pct": -0.5,
+        "run_label": "BASE-PRI-FIRM",
+        "simulated": "11740.8 gpm total pumped",
+        "source": "p.14",
+        "test": "Primary N+1 capacity"
+      }
+    ],
+    "capacity_table": [
+      {
+        "binds_at": "Existing peak 5480 tons (p.17) leaves 570 tons excess (p.17); binds ~2013-2014 when load curve crosses N+1 (p.25-p.26 Fig 3-1), fails 2017 peak 8946 tons (p.22) and 2025 peak 11384 tons (p.24)",
+        "evidence": "BASE-SEC-FIRM 11654.3 gpm firm vs 10960 gpm current (p.20); chiller N+1 6050 tons (p.13) flow-limited to 5840 tons if largest pump lost (p.14)",
+        "limit": "6050 tons N+1, 5840 tons flow-limited (p.13-p.14); largest chiller 1250 tons now, 2000 tons new (p.26-p.27)",
+        "limits_target": true,
+        "unit": "Chiller #1 (900 tons)"
+      },
+      {
+        "binds_at": "Same as production: fails by 2017 (8946 tons p.22 needs 17892 gpm ASSUMPTION per p.22,p.18)",
+        "evidence": "BASE-SEC-FULL 14551.6 gpm vs 14600 gpm (p.14); BASE-SEC-FIRM 11654.3 gpm vs 11680 gpm (p.14); 2017 need exceeds firm, 2025 need 22768 gpm (ASSUMPTION per p.24,p.18) ~2x firm",
+        "limit": "Secondary N+1 11680 gpm (p.14) = ~5840 tons at 2 gpm/ton (p.18)",
+        "limits_target": true,
+        "unit": "Secondary pumps SP-1 to SP-5 (2920 gpm each)"
+      },
+      {
+        "binds_at": "Fails by 2017 alongside secondary; secondary binds first (11680 vs 11800 p.14)",
+        "evidence": "BASE-PRI-FIRM 11740.8 gpm vs 11800 gpm N+1 (p.14); report warns add pump redundancy >= flow through chillers at N+1 (p.18)",
+        "limit": "Primary N+1 11800 gpm (p.14) = ~5900 tons at 2 gpm/ton (p.18)",
+        "limits_target": true,
+        "unit": "Primary pumps PP-1 (1800 gpm) PP-2 to PP-5 (2500 gpm each) PP-6 (2800 gpm)"
+      },
+      {
+        "binds_at": "Existing 1150 tons / 2300 gpm (p.42); already noted undersized (p.42)",
+        "evidence": "velocity 9.395 fps in 10-in at 3.312 mgd (velocity tool) for 2300 gpm (p.42,p.18); Sheet 2 shows Increase CHW to 18-in at Waters/Cardwell (viewed p.47)",
+        "limit": "10-in lateral hydraulically limited; most piping sized sufficiently with some expansion (p.18) except this segment",
+        "limits_target": true,
+        "unit": "Distribution piping to 31 buildings + 2017/2025 additions"
+      },
+      {
+        "binds_at": "Existing Union 610 tons (p.17) growing to 1200 tons (p.42-43) + Kedzie; tunnel limits South Loop expansion to 2025",
+        "evidence": "velocity 9.804 fps in 10-in at 3.456 mgd (velocity tool) for 2400 gpm Union alone (p.42,p.18); Sheet 1 Replace 10-in in Tunnel with Larger (12-18-in) (viewed p.46)",
+        "limit": "10-in tunnel to Union/Kedzie via steam tunnel (p.18)",
+        "limits_target": true,
+        "unit": "Common header / North Loop"
+      },
+      {
+        "binds_at": "No cross-connection existing; needed by 2017 to share backup and by 2025 for 15178-ton connected / 11384-ton peak (p.23-p.24)",
+        "evidence": "Sheets 1-2 Propose 18-in Chem/BioChem to South + 18-in North to Chem/BioChem (viewed p.46-47); text requires cross-connection between loops + operational flexibility to isolate without compromising delivery (p.25)",
+        "limit": "0 gpm isolated loops; frictional losses with expanded distance may exceed 90-ft secondary / 40-70-ft primary heads (p.14-p.15,p.25)",
+        "limits_target": true,
+        "unit": "Proposed 18-in cross-connect Chem/BioChem to South Loop"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "N+1 6050 tons (p.13), flow-limited 5840 tons (p.14) vs peaks 5480 tons existing (p.17,p.20), 8946 tons 2017 (p.22), 11384 tons 2025 (p.24); Chillers #5-6 end of life by 2020, #7 by 2025 (p.14); plant has no space (p.24)",
+        "limiting_value": "6050 tons (5840 flow-limited) (p.13-p.14)",
+        "limits_target": true,
+        "modification": "Build satellite plant near Wind Erosion Lab (p.24) 12000-ton ultimate (p.24) with 2000-ton units (p.27); Scenario 2 phased 2000-ton adds preferred, retire steam absorbers",
+        "unit": "Chiller #5 steam absorption at CHW Plant (1250 tons)"
+      },
+      {
+        "evidence": "Firm 11680 gpm (p.14) vs 10960 gpm now (p.20), 17892 gpm 2017 and 22768 gpm 2025 (ASSUMPTION per p.22,p.24,p.18); BASE-SEC-FULL2 14551.6 gpm (run output) vs 14600 gpm (p.14); BASE-SEC-FIRM 11654.3 gpm (run output) vs 11680 gpm (p.14); ALT-SEC-2025-FIRM 26473.8 gpm meets 2025",
+        "limiting_value": "11680 gpm N+1 (p.14)",
+        "limits_target": true,
+        "modification": "Add 1x4000 gpm secondary by 2017 (18503.7 gpm FUT-SEC-2017-FIRM run output) and total 4x4000 gpm installed by 2025 (26473.8 gpm ALT-SEC-2025-FIRM) with N+1 >= chiller flow (p.18)",
+        "unit": "Secondary pumps SP-1 to SP-5 (2920 gpm each)"
+      },
+      {
+        "evidence": "Firm 11800 gpm (p.14); BASE-PRI-FIRM 11740.8 gpm (run output); must stay >= chiller N+1 flow (p.18) else limits to 5840 tons (p.14)",
+        "limiting_value": "11800 gpm N+1 (p.14)",
+        "limits_target": true,
+        "modification": "Add primary pumps with new chillers + replace 20-yr life pumps (p.14) and CT5-10 internals before 2025 (p.15)",
+        "unit": "Primary pumps PP-1 (1800 gpm) PP-2 to PP-5 (2500 gpm each) PP-6 (2800 gpm)"
+      },
+      {
+        "evidence": "Throckmorton 10-in 2300 gpm (p.42) = 9.395 fps (velocity tool at 3.312 mgd ASSUMPTION per p.42,p.18) noted undersized (p.42); Union tunnel 10-in 2400 gpm (p.42-43) = 9.804 fps (velocity tool at 3.456 mgd ASSUMPTION); Sheet 2 shows Increase CHW to 18-in at Waters/Cardwell (viewed p.47)",
+        "limiting_value": "10-in Throckmorton + 10-in tunnel (p.18,p.42, viewed p.46)",
+        "limits_target": true,
+        "modification": "Increase CHW to 18-in at Hale/Willard/Waters + Fiedler 8-in + Architecture 8-in + tunnel 12-18-in + 24-in north feed per Sheets 1-2 (viewed p.46-47)",
+        "unit": "Distribution piping to 31 buildings + 2017/2025 additions"
+      },
+      {
+        "evidence": "Isolated North/South/Chem-Biochem fed from common header by 5x2920 gpm (p.14-p.15); cross-connects 18-in proposed Sheets 1-2 (viewed p.46-47) to provide flexibility (p.25); expanded distance friction may exceed 90-ft secondary / 40/70-ft primary heads (p.14-p.15,p.25)",
+        "limiting_value": "No existing cross-connection (0 gpm inter-loop)",
+        "limits_target": true,
+        "modification": "Build both 18-in cross-connects as loop backbone for satellite plant and redundancy; verify head/loss with detailed loop model",
+        "unit": "Proposed 18-in cross-connect North Loop to Chem/Biochem"
+      }
+    ]
+  },
+  "review": {
+    "checked_citations": [
+      "CH-TOT p.13 7300 tons verified",
+      "CH-FIRM p.13 6050 tons verified",
+      "CH-FIRM-FLOWLIM p.14 5840 tons verified",
+      "SP-TOT p.14 14600 gpm verified",
+      "SP-FIRM p.14 11680 gpm verified",
+      "PP-FIRM p.14 11800 gpm verified",
+      "CHW-TEMP p.15 40F/54F verified",
+      "LOAD-EXIST-TOT p.17 7307 tons verified",
+      "LOAD-EXIST-PEAK p.17 5480 tons verified",
+      "FLOW-DESIGN p.18 2 gpm/ton verified",
+      "LOAD-2017-PEAK p.22 8946 tons verified",
+      "LOAD-2025-PEAK p.24 11384 tons verified",
+      "PLANT-SPACE p.24 no space verified",
+      "NEW-PLANT-SIZE p.24 12000 tons verified",
+      "XCONN-1 p.46-view 18-in Chem/Biochem to South Loop verified",
+      "XCONN-2 p.47-view 18-in North Loop to Chem/Biochem verified"
+    ],
+    "checked_runs": [
+      "BASE-SEC-FIRM rerun matches 11654.3 gpm",
+      "BASE-SEC-FULL rerun matches 14551.6 gpm",
+      "BASE-PRI-FIRM rerun matches 11740.8 gpm",
+      "FUT-SEC-2017-FIRM rerun matches 22432.7 gpm",
+      "ALT-SEC-2025-FIRM rerun matches 26334.6 gpm"
+    ],
+    "issues": [
+      {
+        "evidence": "No future pump sizes/flows in pp.11-27,41-49; pp.14 gives only existing 5x2920 gpm secondary, p.18 requires N+1 >= chiller flow but gives no 4000-gpm selection",
+        "issue": "Future secondary additions 2x4000 gpm by 2017 and 4x4000 gpm by 2025 are ASSUMPTIONs without source; firm totals 22432 gpm and 26334 gpm are therefore planning proxies, not document-verified requirements.",
+        "item": "ALT-SEC-2025-FIRM / FUT-SEC-2017-FIRM",
+        "severity": "major"
+      },
+      {
+        "evidence": "RFI notes no capital costs in pp.11-27,41-49; p.24 notes high electrical cost but no dollars; all cost_basis entries labelled ASSUMPTION",
+        "issue": "Order-of-magnitude costs (>$10M chillers/plants, $1M-$10M pumping/piping) are invented benchmarks with no source data; study conclusion on what should be built cannot be cost-justified from available pages.",
+        "item": "SCEN1-ADD / SCEN2-ADD / piping alternatives",
+        "severity": "major"
+      },
+      {
+        "evidence": "Runs use reservoirs 0 ft to 90 ft / 40 ft with 100-ft 36-in low-loss header (e.g., BASE-SEC-FIRM spec); p.25 warns frictional losses with expanded distance may exceed design head of pumps (90-ft secondary p.14, 40/70-ft primary p.14)",
+        "issue": "Hydraulic models verify nameplate summation only (e.g., 11654.3 vs 11680 gpm -0.22%, 11740.8 vs 11800 gpm -0.5%), not loop friction/head for satellite plant near Wind Erosion Lab (p.24) and extended distances; future firm adequacy through 2025 not hydraulically proven.",
+        "item": "Secondary/Primary future firm capacity",
+        "severity": "major"
+      },
+      {
+        "evidence": "Future needs 17892 gpm (8946 tons p.22 x 2 gpm/ton p.18) and 22768 gpm (11384 tons p.24 x 2) assume design delta-T; p.18 also gives 3.5 gpm/ton at 8F delta which would be ~31311 gpm in 2017 and ~39844 gpm in 2025, exceeding 22432/26334 gpm firm proxies",
+        "issue": "Peak flow proxy assumes 2 gpm/ton maintained; low delta-T risk at peak not evaluated. If delta-T degrades, even expanded pumping is undersized. Report says low delta-T most likely at low load (p.18), but no peak delta-T verification with metering (p.15).",
+        "item": "FLOW-DESIGN / FLOW-LOWDT",
+        "severity": "major"
+      },
+      {
+        "evidence": "Rerun BASE-PRI-FIRM matches; study calibration notes full 6-pump run over-pumps (15919 gpm, PP-6 at 151% rated) due to single-point curve with mismatched heads (40 ft vs 70 ft p.14)",
+        "issue": "Primary full-capacity calibration invalid due to single-point pump-curve simplification; only firm (PP-6 out) calibration is usable. Model cannot verify full primary capacity.",
+        "item": "PP-FIRM",
+        "severity": "minor"
+      },
+      {
+        "evidence": "p.15 no historical/metering data, peak from staff interview of 2011 operation (Chillers #2,3,4,5,7 ~5400 tons p.17); p.16 SF/ton from ASHRAE + 2010 FCIP report; RFI notes 2017/2025 table sums exceed reported 11928/15178 tons by ~100-300 tons",
+        "issue": "Baseline and projections carry unquantified uncertainty; reported totals 11928/15178 and peaks 8946/11384 tons used as governing (ASSUMPTION) but error bars unknown. Future metering verification still required per p.15,p.19.",
+        "item": "LOAD-EXIST-PEAK / LOAD-2025-PEAK",
+        "severity": "minor"
+      },
+      {
+        "evidence": "velocity 9.395 fps in 10-in at 3.312 mgd (2300 gpm Throckmorton 1150 tons p.42 x2 p.18) and 9.804 fps at 3.456 mgd (2400 gpm Union 1200 tons p.42-43); 18-in at 8.0 mgd =7.004 fps quoted with no source for 8.0 mgd in document",
+        "issue": "Throckmorton/tunnel 10-in inadequacy confirmed and noted undersized (p.42), but 18-in adequacy check uses undocumented 8.0 mgd flow; 7 fps is still high and suggests single 18-in may be inadequate for full 2025 flow without parallel mains. Piping upsizes (Increase to 18-in, tunnel 12-18-in, 24-in north feed viewed p.46-47) are planning-level without hydraulic calculations.",
+        "item": "Distribution piping / XCONN-1 / XCONN-2",
+        "severity": "minor"
+      },
+      {
+        "evidence": "CT totals: 4x1460 +2x918 +3x487 +501 =9638 tons (p.15) vs 7300 tons chillers; p.15 says CT1-4 last beyond study, CT5-10 internals may need replacement before 2025; p.14 pumps 20-yr life; Sheet 1 Replace Pumps/Tower Internals As Needed (viewed p.46)",
+        "issue": "Condenser-water/tower and primary-pump adequacy for 8000-10000 tons new + 2000-ton largest (p.26-p.27) not modeled; replacement timing (Chillers #5-6 by 2020, #7 by 2025 p.14) and tower/pump renewals not tied to phased hydraulic verification.",
+        "item": "CT-LIFE / PUMP-LIFE",
+        "severity": "minor"
+      }
+    ]
+  },
+  "resolution": {
+    "alternatives": [
+      {
+        "cost_basis": "ASSUMPTION: >$10M for 5x2000-ton chillers + satellite 12000-ton plant shown (p.24) + towers/electrical near Wind Erosion Lab (p.24); no capital costs in pp.11-27,41-49. Basis is 10000 tons new (p.27) displacing 2650 tons retired (p.27) with 2000-ton largest (p.27).",
+        "cost_class": ">$10M",
+        "meets_target": true,
+        "option": "Scenario 2 - Add 2000 tons in 2017, retire Chillers #5 (1250 tons), #6 (1000 tons), #7 (400 tons) (p.13) in 2020 (2650 tons removed p.27) + add 2000 tons in 2020/2021 to total 10000 tons new (p.27); 2000-ton units (p.27)",
+        "recommended": true,
+        "result": "Arithmetic N+1 12650 tons [7300 tons (p.13)-2650 tons (p.27)+10000 tons (p.27)-2000 tons largest (p.27)] exceeds 2025 peak 11384 tons (p.24). Flow proxy ALT-SEC-2025-FIRM delivers 26473.8 gpm firm (run output) exceeding 2025 need 22768 gpm (ASSUMPTION: 11384 tons p.24 x2 gpm/ton p.18)",
+        "run_label": "ALT-SEC-2025-FIRM",
+        "unit": "Chiller #6 steam absorption Power Plant (1000 tons)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: >$10M for 4x2000-ton chillers + towers + pumps + satellite building/electrical; no costs in pp.11-27,41-49. Basis is 8000 tons new (p.26) +1250-ton replacement (p.26) and p.24 high electrical cost note.",
+        "cost_class": ">$10M",
+        "meets_target": true,
+        "option": "Scenario 1 - Replace Chiller #5 (1250 tons p.13) in 2020 + add 8000 tons (4x2000 tons p.26-p.27) phased 2014/2018/2020/2023 per Fig 3-1 (p.26)",
+        "recommended": false,
+        "result": "Arithmetic N+1 ~13300 tons [(7300 tons p.13+8000 tons p.26)-2000 tons largest p.26] exceeds 2017 peak 8946 tons (p.22) and 2025 peak 11384 tons (p.24); flow proxy FUT17-FULL delivers 22432.7 gpm full (run output) = ~11216 tons at 2 gpm/ton (p.18)",
+        "run_label": "FUT17-FULL",
+        "unit": "Chiller #5 steam absorption at CHW Plant (1250 tons)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: $1M-$10M for 4x4000 gpm 90-ft secondary pumps + headers/controls in new satellite; pump schedule 2920 gpm 90 ft 100 hp (p.14) as basis; no costs in pages.",
+        "cost_class": "$1M-$10M",
+        "meets_target": true,
+        "option": "Add secondary pumping: 1x4000 gpm by 2017 (firm 18503.7 gpm FUT-SEC-2017-FIRM) then total 4x4000 gpm installed by 2025 (firm 26473.8 gpm ALT-SEC-2025-FIRM) to raise firm above 11680 gpm (p.14)",
+        "recommended": true,
+        "result": "FUT-SEC-2017-FIRM 18503.7 gpm (run output) exceeds 2017 need 17892 gpm (ASSUMPTION: 8946 tons p.22 x2 gpm/ton p.18); ALT-SEC-2025-FIRM 26473.8 gpm firm (run output) exceeds 2025 need 22768 gpm (ASSUMPTION: 11384 tons p.24 x2)",
+        "run_label": "ALT-SEC-2025-FIRM",
+        "unit": "Secondary pumps SP-1 to SP-5 (2920 gpm each)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: $100k-$1M for primary pump additions/replacement (2500-2800 gpm 40-70 ft per p.14) and tower internals; towers CT5-10 internals may need replacement before 2025 (p.15), pumps 20-yr life (p.14).",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "Add/upgrade primary pumps to match secondary/chiller N+1 and replace CT5-10 fill/internals + condenser pumps as needed",
+        "recommended": true,
+        "result": "BASE-PRI-FIRM calibrates 11740.8 gpm (run output) vs 11800 gpm N+1 (p.14); future primary must track secondary 26473.8 gpm (ALT-SEC-2025-FIRM) to avoid flow-limiting N+1 to 5840 tons (p.14)",
+        "run_label": "BASE-PRI-FIRM",
+        "unit": "Primary pumps PP-1 (1800 gpm) PP-2 to PP-5 (2500 gpm each) PP-6 (2800 gpm)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: $1M-$10M for buried 18-in loop cross-connects, tunnel 10-in replacement (12-18-in), Throckmorton upsize and 24-in feed to new north loads; routing/sizes per Sheet 1-2 drawings (viewed p.46-47).",
+        "cost_class": "$1M-$10M",
+        "meets_target": true,
+        "option": "Build Proposed 18-in Chem/Biochem to South Loop + 18-in North Loop to Chem/Biochem cross-connects (p.46-view,p.47-view), Increase CHW to 18-in at Hale/Willard/Waters (Sheet 1-2), Replace 10-in in Tunnel with Larger (12-18-in)",
+        "recommended": true,
+        "result": "velocity 18-in adequacy not proven hydraulically; confirmed velocity 10-in at 3.312 mgd = 9.395 fps (velocity tool) for 2300 gpm Throckmorton 1150 tons (p.42) x2 (p.18) and 10-in at 3.456 mgd = 9.804 fps for 2400 gpm Union 1200 tons (p.42-43) x2; cross-connects provide loop redundancy/operational flexibility (p.25)",
+        "run_label": "ALT-SEC-2025-FIRM",
+        "unit": "Proposed 18-in cross-connect Chem/BioChem to South Loop"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "N+1 6050 tons (p.13), flow-limited 5840 tons (p.14) vs peaks 5480 tons existing (p.17,p.20), 8946 tons 2017 (p.22), 11384 tons 2025 (p.24); Chillers #5-6 end of life by 2020, #7 by 2025 (p.14); plant has no space (p.24)",
+        "limiting_value": "6050 tons (5840 flow-limited) (p.13-p.14)",
+        "limits_target": true,
+        "modification": "Build satellite plant near Wind Erosion Lab (p.24) 12000-ton ultimate (p.24) with 2000-ton units (p.27); Scenario 2 phased 2000-ton adds preferred, retire steam absorbers",
+        "unit": "Chiller #5 steam absorption at CHW Plant (1250 tons)"
+      },
+      {
+        "evidence": "Firm 11680 gpm (p.14) vs 10960 gpm now (p.20), 17892 gpm 2017 and 22768 gpm 2025 (ASSUMPTION per p.22,p.24,p.18); BASE-SEC-FULL2 14551.6 gpm (run output) vs 14600 gpm (p.14); BASE-SEC-FIRM 11654.3 gpm (run output) vs 11680 gpm (p.14); ALT-SEC-2025-FIRM 26473.8 gpm meets 2025",
+        "limiting_value": "11680 gpm N+1 (p.14)",
+        "limits_target": true,
+        "modification": "Add 1x4000 gpm secondary by 2017 (18503.7 gpm FUT-SEC-2017-FIRM run output) and total 4x4000 gpm installed by 2025 (26473.8 gpm ALT-SEC-2025-FIRM) with N+1 >= chiller flow (p.18)",
+        "unit": "Secondary pumps SP-1 to SP-5 (2920 gpm each)"
+      },
+      {
+        "evidence": "Firm 11800 gpm (p.14); BASE-PRI-FIRM 11740.8 gpm (run output); must stay >= chiller N+1 flow (p.18) else limits to 5840 tons (p.14)",
+        "limiting_value": "11800 gpm N+1 (p.14)",
+        "limits_target": true,
+        "modification": "Add primary pumps with new chillers + replace 20-yr life pumps (p.14) and CT5-10 internals before 2025 (p.15)",
+        "unit": "Primary pumps PP-1 (1800 gpm) PP-2 to PP-5 (2500 gpm each) PP-6 (2800 gpm)"
+      },
+      {
+        "evidence": "Throckmorton 10-in 2300 gpm (p.42) = 9.395 fps (velocity tool at 3.312 mgd ASSUMPTION per p.42,p.18) noted undersized (p.42); Union tunnel 10-in 2400 gpm (p.42-43) = 9.804 fps (velocity tool at 3.456 mgd ASSUMPTION); Sheet 2 shows Increase CHW to 18-in at Waters/Cardwell (viewed p.47)",
+        "limiting_value": "10-in Throckmorton + 10-in tunnel (p.18,p.42, viewed p.46)",
+        "limits_target": true,
+        "modification": "Increase CHW to 18-in at Hale/Willard/Waters + Fiedler 8-in + Architecture 8-in + tunnel 12-18-in + 24-in north feed per Sheets 1-2 (viewed p.46-47)",
+        "unit": "Distribution piping to 31 buildings + 2017/2025 additions"
+      },
+      {
+        "evidence": "Isolated North/South/Chem-Biochem fed from common header by 5x2920 gpm (p.14-p.15); cross-connects 18-in proposed Sheets 1-2 (viewed p.46-47) to provide flexibility (p.25); expanded distance friction may exceed 90-ft secondary / 40/70-ft primary heads (p.14-p.15,p.25)",
+        "limiting_value": "No existing cross-connection (0 gpm inter-loop)",
+        "limits_target": true,
+        "modification": "Build both 18-in cross-connects as loop backbone for satellite plant and redundancy; verify head/loss with detailed loop model",
+        "unit": "Proposed 18-in cross-connect North Loop to Chem/Biochem"
+      }
+    ],
+    "responses": [
+      {
+        "action": "fixed",
+        "explanation": "Corrected: future 4000-gpm selections are ASSUMPTION (no future pump sizes in pp.11-27,41-49; only 5x2920 gpm secondary p.14 and N+1 >= chiller flow rule p.18). FUT17-FULL 22432.7 gpm (run output) is full (5x2920 p.14 +2x4000 ASSUMPTION). Firm FUT-SEC-2017-FIRM is 18503.7 gpm (run output) (5x2920+1x4000) exceeding 17892 gpm 2017 need (ASSUMPTION: 8946 tons p.22 x2 p.18). ALT-SEC-2025-FIRM 26473.8 gpm (run output) is firm of 5x2920+4x4000 installed (8 running, largest out). Runs are planning proxies, not document-verified.",
+        "issue": "Future secondary additions 2x4000 gpm by 2017 and 4x4000 gpm by 2025 are ASSUMPTIONs without source; firm totals 22432 gpm and 26334 gpm are therefore planning proxies, not document-verified requirements."
+      },
+      {
+        "action": "noted",
+        "explanation": "Agreed: no capital costs in pp.11-27,41-49; p.24 notes high electrical cost but no dollars. All cost_basis retained as ASSUMPTION order-of-magnitude ranges only for planning comparison. Recommendation to build is based on N+1 shortfall (6050 tons p.13 vs 8946 tons p.22 and 11384 tons p.24), not on cost justification; detailed cost estimate required.",
+        "issue": "Order-of-magnitude costs (>$10M chillers/plants, $1M-$10M pumping/piping) are invented benchmarks with no source data; study conclusion on what should be built cannot be cost-justified from available pages."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Agreed and scope limited: BASE-SEC-FULL2 14551.6 gpm (run output) vs 14600 gpm (p.14) -0.33%, BASE-SEC-FIRM 11654.3 gpm vs 11680 gpm (p.14) -0.22%, BASE-PRI-FIRM 11740.8 gpm vs 11800 gpm (p.14) -0.51% verify header nameplate summation only. They do not prove satellite near Wind Erosion Lab (p.24) or extended-loop head adequacy. p.25 warns frictional losses may exceed design head (90-ft secondary p.14, 40/70-ft primary p.14). Detailed loop hydraulic model still required.",
+        "issue": "Hydraulic models verify nameplate summation only (e.g., 11654.3 vs 11680 gpm -0.22%, 11740.8 vs 11800 gpm -0.5%), not loop friction/head for satellite plant near Wind Erosion Lab (p.24) and extended distances; future firm adequacy through 2025 not hydraulically proven."
+      },
+      {
+        "action": "noted",
+        "explanation": "Retained 2 gpm/ton (p.18) for peak sizing; 17892 gpm 2017 (ASSUMPTION: 8946 tons p.22 x2) and 22768 gpm 2025 (ASSUMPTION: 11384 tons p.24 x2). Low-delta 3.5 gpm/ton (p.18) would be ~31311 gpm in 2017 and ~39844 gpm in 2025 (ASSUMPTION arithmetic), exceeding proxies 18503.7 gpm and 26473.8 gpm. Report states low delta-T most likely at low load (p.18). No peak delta-T verification; metering project (p.15) must verify per p.15,p.19 before final pump sizing.",
+        "issue": "Peak flow proxy assumes 2 gpm/ton maintained; low delta-T risk at peak not evaluated. If delta-T degrades, even expanded pumping is undersized. Report says low delta-T most likely at low load (p.18), but no peak delta-T verification with metering (p.15)."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Rejected full-capacity use: single-point curve with mismatched heads (40 ft vs 70 ft p.14) over-pumps, so full 6-pump run not used for verification. Retained only firm BASE-PRI-FIRM 11740.8 gpm (run output) vs 11800 gpm N+1 with PP-6 (2800 gpm 70 ft p.14) out (p.14) -0.51%, using uniform 40-ft pumps PP-1 (1800 gpm) PP-2 to PP-5 (2500 gpm) (p.14).",
+        "issue": "Primary full-capacity calibration invalid due to single-point pump-curve simplification; only firm (PP-6 out) calibration is usable. Model cannot verify full primary capacity."
+      },
+      {
+        "action": "noted",
+        "explanation": "Agreed: baseline from 2010 FCIP + SF/ton (p.16) with no historical/metering data (p.15), peak from staff interview 2011 operation Chillers #2,3,4,5,7 ~5400 tons (p.17) vs 5480 tons estimate (p.17,p.20) leaving 570 tons excess (p.17); totals 11928 tons/8946 tons 2017 (p.22) and 15178 tons/11384 tons 2025 (p.23-p.24) with diversity 0.75 (p.17,p.22,p.24) used as governing ASSUMPTION with unknown error. Future metering verification required per p.15,p.19.",
+        "issue": "Baseline and projections carry unquantified uncertainty; reported totals 11928/15178 and peaks 8946/11384 tons used as governing (ASSUMPTION) but error bars unknown. Future metering verification still required per p.15,p.19."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Rejected undocumented 8.0 mgd 18-in check. Retained only document flows: Throckmorton 2300 gpm 1150 tons (p.42) x2 (p.18)=3.312 mgd (ASSUMPTION conversion) velocity 9.395 fps (velocity tool) confirming undersized note (p.42); Union 2400 gpm 1200 tons (p.42-43) x2=3.456 mgd (ASSUMPTION) velocity 9.804 fps (velocity tool) in 10-in tunnel (p.18). 18-in upsizes, tunnel 12-18-in, 24-in north feed per Sheets 1-2 (viewed p.46-47) are planning-level without hydraulic calculation; single 18-in adequacy not proven.",
+        "issue": "Throckmorton/tunnel 10-in inadequacy confirmed and noted undersized (p.42), but 18-in adequacy check uses undocumented 8.0 mgd flow; 7 fps is still high and suggests single 18-in may be inadequate for full 2025 flow without parallel mains. Piping upsizes (Increase to 18-in, tunnel 12-18-in, 24-in north feed viewed p.46-47) are planning-level without hydraulic calculations."
+      },
+      {
+        "action": "noted",
+        "explanation": "Agreed: condenser/tower and primary-pump adequacy for 8000-10000 tons new +2000-ton largest (p.26-p.27) not modeled. CT totals 9638 tons [4x1460+2x918+3x487+501 (p.15)] vs 7300 tons chillers (p.13); CT1-4 last beyond study, CT5-10 internals may need replacement before 2025 (p.15); pumps 20-yr life (p.14); Sheet 1 Replace Pumps/Tower Internals As Needed (viewed p.46). Phased renewals tied to retirements Chillers #5-6 by 2020, #7 by 2025 (p.14) require detailed design verification.",
+        "issue": "Condenser-water/tower and primary-pump adequacy for 8000-10000 tons new + 2000-ton largest (p.26-p.27) not modeled; replacement timing (Chillers #5-6 by 2020, #7 by 2025 p.14) and tower/pump renewals not tied to phased hydraulic verification."
+      }
+    ]
+  },
+  "runs": {
+    "BASE-SEC-FULL": {
+      "purpose": "Calibrate secondary full capacity 14600 gpm vs document",
+      "spec": {
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "SRC"
+          },
+          {
+            "head_ft": 90,
+            "id": "SINK"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 36,
+            "from": "HDR",
+            "id": "P-HDR-SINK",
+            "length_ft": 100,
+            "to": "SINK"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "SRC",
+            "id": "SP-1",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-2",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-3",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-4",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-5",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SP-1",
+            "on": true,
+            "flow_gpm": 2910.3,
+            "tdh_ft": 90.2,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": null,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-2",
+            "on": true,
+            "flow_gpm": 2910.3,
+            "tdh_ft": 90.2,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": null,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-3",
+            "on": true,
+            "flow_gpm": 2910.3,
+            "tdh_ft": 90.2,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": null,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-4",
+            "on": true,
+            "flow_gpm": 2910.3,
+            "tdh_ft": 90.2,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": null,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-5",
+            "on": true,
+            "flow_gpm": 2910.3,
+            "tdh_ft": 90.2,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": null,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          }
+        ],
+        "pipes": [
+          {
+            "id": "P-HDR-SINK",
+            "flow_gpm": 14551.6,
+            "velocity_fps": 4.59
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 39.12
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 14551.6,
+        "total_pumped_mgd": 20.954,
+        "total_electric_kw": 325.8,
+        "specific_energy_kwh_per_ml": 98.6
+      }
+    },
+    "BASE-SEC-FIRM": {
+      "purpose": "Calibrate secondary N+1 11680 gpm with largest pump out",
+      "spec": {
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "SRC"
+          },
+          {
+            "head_ft": 90,
+            "id": "SINK"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 36,
+            "from": "HDR",
+            "id": "P-HDR-SINK",
+            "length_ft": 100,
+            "to": "SINK"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "SRC",
+            "id": "SP-1",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-2",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-3",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-4",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SP-1",
+            "on": true,
+            "flow_gpm": 2913.6,
+            "tdh_ft": 90.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": null,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-2",
+            "on": true,
+            "flow_gpm": 2913.6,
+            "tdh_ft": 90.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": null,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-3",
+            "on": true,
+            "flow_gpm": 2913.6,
+            "tdh_ft": 90.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": null,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-4",
+            "on": true,
+            "flow_gpm": 2913.6,
+            "tdh_ft": 90.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": null,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          }
+        ],
+        "pipes": [
+          {
+            "id": "P-HDR-SINK",
+            "flow_gpm": 11654.3,
+            "velocity_fps": 3.67
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 39.09
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 11654.3,
+        "total_pumped_mgd": 16.782,
+        "total_electric_kw": 260.7,
+        "specific_energy_kwh_per_ml": 98.5
+      }
+    },
+    "BASE-PRI-FULL": {
+      "purpose": "Calibrate primary full capacity 14600 gpm",
+      "spec": {
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "SRC"
+          },
+          {
+            "head_ft": 40,
+            "id": "SINK"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 36,
+            "from": "HDR",
+            "id": "P-HDR-SINK",
+            "length_ft": 100,
+            "to": "SINK"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "SRC",
+            "id": "PP-1",
+            "rated_gpm": 1800,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "PP-2",
+            "rated_gpm": 2500,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "PP-3",
+            "rated_gpm": 2500,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "PP-4",
+            "rated_gpm": 2500,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "PP-5",
+            "rated_gpm": 2500,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "PP-6",
+            "rated_gpm": 2800,
+            "rated_head_ft": 70,
+            "to": "HDR"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "PP-1",
+            "on": true,
+            "flow_gpm": 1784.1,
+            "tdh_ft": 40.23,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 22.7,
+            "motor_hp": null,
+            "electric_kw": 17.8,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "PP-2",
+            "on": true,
+            "flow_gpm": 2477.9,
+            "tdh_ft": 40.23,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 31.5,
+            "motor_hp": null,
+            "electric_kw": 24.7,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "PP-3",
+            "on": true,
+            "flow_gpm": 2477.9,
+            "tdh_ft": 40.23,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 31.5,
+            "motor_hp": null,
+            "electric_kw": 24.7,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "PP-4",
+            "on": true,
+            "flow_gpm": 2477.9,
+            "tdh_ft": 40.23,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 31.5,
+            "motor_hp": null,
+            "electric_kw": 24.7,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "PP-5",
+            "on": true,
+            "flow_gpm": 2477.9,
+            "tdh_ft": 40.23,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 31.5,
+            "motor_hp": null,
+            "electric_kw": 24.7,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "PP-6",
+            "on": true,
+            "flow_gpm": 4223.9,
+            "tdh_ft": 40.23,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 53.7,
+            "motor_hp": null,
+            "electric_kw": 42.2,
+            "pct_of_rated_flow": 151
+          }
+        ],
+        "pipes": [
+          {
+            "id": "P-HDR-SINK",
+            "flow_gpm": 15919.7,
+            "velocity_fps": 5.02
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 17.45
+          }
+        ],
+        "warnings": [
+          "PP-6: 151% of rated flow (far right on curve)"
+        ],
+        "total_pumped_gpm": 15919.7,
+        "total_pumped_mgd": 22.924,
+        "total_electric_kw": 159.0,
+        "specific_energy_kwh_per_ml": 44.0
+      }
+    },
+    "BASE-PRI-FIRM": {
+      "purpose": "Calibrate primary N+1 11800 gpm with PP-6 out",
+      "spec": {
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "SRC"
+          },
+          {
+            "head_ft": 40,
+            "id": "SINK"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 36,
+            "from": "HDR",
+            "id": "P-HDR-SINK",
+            "length_ft": 100,
+            "to": "SINK"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "SRC",
+            "id": "PP-1",
+            "rated_gpm": 1800,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "PP-2",
+            "rated_gpm": 2500,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "PP-3",
+            "rated_gpm": 2500,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "PP-4",
+            "rated_gpm": 2500,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "PP-5",
+            "rated_gpm": 2500,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "PP-1",
+            "on": true,
+            "flow_gpm": 1791.0,
+            "tdh_ft": 40.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 22.7,
+            "motor_hp": null,
+            "electric_kw": 17.8,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "PP-2",
+            "on": true,
+            "flow_gpm": 2487.5,
+            "tdh_ft": 40.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 31.6,
+            "motor_hp": null,
+            "electric_kw": 24.8,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "PP-3",
+            "on": true,
+            "flow_gpm": 2487.5,
+            "tdh_ft": 40.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 31.6,
+            "motor_hp": null,
+            "electric_kw": 24.8,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "PP-4",
+            "on": true,
+            "flow_gpm": 2487.5,
+            "tdh_ft": 40.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 31.6,
+            "motor_hp": null,
+            "electric_kw": 24.8,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "PP-5",
+            "on": true,
+            "flow_gpm": 2487.5,
+            "tdh_ft": 40.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 31.6,
+            "motor_hp": null,
+            "electric_kw": 24.8,
+            "pct_of_rated_flow": 99
+          }
+        ],
+        "pipes": [
+          {
+            "id": "P-HDR-SINK",
+            "flow_gpm": 11740.8,
+            "velocity_fps": 3.7
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 17.4
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 11740.8,
+        "total_pumped_mgd": 16.907,
+        "total_electric_kw": 117.0,
+        "specific_energy_kwh_per_ml": 43.9
+      }
+    },
+    "FUT-SEC-2017-REQ": {
+      "purpose": "Show 2017 peak flow requirement 17892 gpm vs existing firm",
+      "spec": {
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "SRC"
+          },
+          {
+            "head_ft": 90,
+            "id": "SINK"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 36,
+            "from": "HDR",
+            "id": "P-HDR-SINK",
+            "length_ft": 100,
+            "to": "SINK"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "SRC",
+            "id": "SP-1",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-2",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-3",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-4",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-NEW1",
+            "rated_gpm": 3500,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-NEW2",
+            "rated_gpm": 3500,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SP-1",
+            "on": true,
+            "flow_gpm": 2904.8,
+            "tdh_ft": 90.31,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": null,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-2",
+            "on": true,
+            "flow_gpm": 2904.8,
+            "tdh_ft": 90.31,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": null,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-3",
+            "on": true,
+            "flow_gpm": 2904.8,
+            "tdh_ft": 90.31,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": null,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-4",
+            "on": true,
+            "flow_gpm": 2904.8,
+            "tdh_ft": 90.31,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": null,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-NEW1",
+            "on": true,
+            "flow_gpm": 3481.7,
+            "tdh_ft": 90.31,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 99.4,
+            "motor_hp": null,
+            "electric_kw": 78.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-NEW2",
+            "on": true,
+            "flow_gpm": 3481.7,
+            "tdh_ft": 90.31,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 99.4,
+            "motor_hp": null,
+            "electric_kw": 78.1,
+            "pct_of_rated_flow": 99
+          }
+        ],
+        "pipes": [
+          {
+            "id": "P-HDR-SINK",
+            "flow_gpm": 18582.5,
+            "velocity_fps": 5.86
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 39.17
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 18582.5,
+        "total_pumped_mgd": 26.759,
+        "total_electric_kw": 416.6,
+        "specific_energy_kwh_per_ml": 98.7
+      }
+    },
+    "FUT-SEC-2017-FIRM": {
+      "purpose": "Future 2017 N+1 with 2x4000 gpm added firm (5x2920+2x4000 running)",
+      "spec": {
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "SRC"
+          },
+          {
+            "head_ft": 90,
+            "id": "SINK"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 36,
+            "from": "HDR",
+            "id": "P-HDR-SINK",
+            "length_ft": 100,
+            "to": "SINK"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "SRC",
+            "id": "SP-1",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-2",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-3",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-4",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-5",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-N1",
+            "rated_gpm": 4000,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-N2",
+            "rated_gpm": 4000,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SP-1",
+            "on": true,
+            "flow_gpm": 2898.4,
+            "tdh_ft": 90.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.9,
+            "motor_hp": null,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-2",
+            "on": true,
+            "flow_gpm": 2898.4,
+            "tdh_ft": 90.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.9,
+            "motor_hp": null,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-3",
+            "on": true,
+            "flow_gpm": 2898.4,
+            "tdh_ft": 90.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.9,
+            "motor_hp": null,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-4",
+            "on": true,
+            "flow_gpm": 2898.4,
+            "tdh_ft": 90.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.9,
+            "motor_hp": null,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-5",
+            "on": true,
+            "flow_gpm": 2898.4,
+            "tdh_ft": 90.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.9,
+            "motor_hp": null,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-N1",
+            "on": true,
+            "flow_gpm": 3970.4,
+            "tdh_ft": 90.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 113.6,
+            "motor_hp": null,
+            "electric_kw": 89.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-N2",
+            "on": true,
+            "flow_gpm": 3970.4,
+            "tdh_ft": 90.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 113.6,
+            "motor_hp": null,
+            "electric_kw": 89.1,
+            "pct_of_rated_flow": 99
+          }
+        ],
+        "pipes": [
+          {
+            "id": "P-HDR-SINK",
+            "flow_gpm": 22432.7,
+            "velocity_fps": 7.07
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 39.22
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 22432.7,
+        "total_pumped_mgd": 32.303,
+        "total_electric_kw": 503.6,
+        "specific_energy_kwh_per_ml": 98.8
+      }
+    },
+    "ALT-SEC-2025-FIRM": {
+      "purpose": "2025 firm with 4x4000 gpm new secondary pumps, one 4000 out",
+      "spec": {
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "SRC"
+          },
+          {
+            "head_ft": 90,
+            "id": "SINK"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 36,
+            "from": "HDR",
+            "id": "P-HDR-SINK",
+            "length_ft": 100,
+            "to": "SINK"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "SRC",
+            "id": "SP-1",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-2",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-3",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-4",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-5",
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-N1",
+            "rated_gpm": 4000,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-N2",
+            "rated_gpm": 4000,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SRC",
+            "id": "SP-N3",
+            "rated_gpm": 4000,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SP-1",
+            "on": true,
+            "flow_gpm": 2890.9,
+            "tdh_ft": 90.6,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.8,
+            "motor_hp": null,
+            "electric_kw": 65.0,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-2",
+            "on": true,
+            "flow_gpm": 2890.9,
+            "tdh_ft": 90.6,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.8,
+            "motor_hp": null,
+            "electric_kw": 65.0,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-3",
+            "on": true,
+            "flow_gpm": 2890.9,
+            "tdh_ft": 90.6,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.8,
+            "motor_hp": null,
+            "electric_kw": 65.0,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-4",
+            "on": true,
+            "flow_gpm": 2890.9,
+            "tdh_ft": 90.6,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.8,
+            "motor_hp": null,
+            "electric_kw": 65.0,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-5",
+            "on": true,
+            "flow_gpm": 2890.9,
+            "tdh_ft": 90.6,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.8,
+            "motor_hp": null,
+            "electric_kw": 65.0,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-N1",
+            "on": true,
+            "flow_gpm": 3960.1,
+            "tdh_ft": 90.6,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 113.4,
+            "motor_hp": null,
+            "electric_kw": 89.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-N2",
+            "on": true,
+            "flow_gpm": 3960.1,
+            "tdh_ft": 90.6,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 113.4,
+            "motor_hp": null,
+            "electric_kw": 89.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-N3",
+            "on": true,
+            "flow_gpm": 3960.1,
+            "tdh_ft": 90.6,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 113.4,
+            "motor_hp": null,
+            "electric_kw": 89.1,
+            "pct_of_rated_flow": 99
+          }
+        ],
+        "pipes": [
+          {
+            "id": "P-HDR-SINK",
+            "flow_gpm": 26334.6,
+            "velocity_fps": 8.3
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 39.29
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 26334.6,
+        "total_pumped_mgd": 37.922,
+        "total_electric_kw": 592.2,
+        "specific_energy_kwh_per_ml": 99.0
+      }
+    },
+    "BASE-SEC-FULL2": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 36,
+            "from": "HDR",
+            "id": "HDR-P",
+            "length_ft": 100,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "SUCT",
+            "id": "SP-1",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-2",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-3",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-4",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-5",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "SUCT"
+          },
+          {
+            "head_ft": 90,
+            "id": "DISCH"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SP-1",
+            "on": true,
+            "flow_gpm": 2910.3,
+            "tdh_ft": 90.2,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-2",
+            "on": true,
+            "flow_gpm": 2910.3,
+            "tdh_ft": 90.2,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-3",
+            "on": true,
+            "flow_gpm": 2910.3,
+            "tdh_ft": 90.2,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-4",
+            "on": true,
+            "flow_gpm": 2910.3,
+            "tdh_ft": 90.2,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-5",
+            "on": true,
+            "flow_gpm": 2910.3,
+            "tdh_ft": 90.2,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          }
+        ],
+        "pipes": [
+          {
+            "id": "HDR-P",
+            "flow_gpm": 14551.6,
+            "velocity_fps": 4.59
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 39.12
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 14551.6,
+        "total_pumped_mgd": 20.954,
+        "total_electric_kw": 325.8,
+        "specific_energy_kwh_per_ml": 98.6
+      }
+    },
+    "BASE-SEC-FIRM-9": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 36,
+            "from": "HDR",
+            "id": "HDR-P",
+            "length_ft": 100,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "SUCT",
+            "id": "SP-1",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-2",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-3",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-4",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "SUCT"
+          },
+          {
+            "head_ft": 90,
+            "id": "DISCH"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SP-1",
+            "on": true,
+            "flow_gpm": 2913.6,
+            "tdh_ft": 90.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-2",
+            "on": true,
+            "flow_gpm": 2913.6,
+            "tdh_ft": 90.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-3",
+            "on": true,
+            "flow_gpm": 2913.6,
+            "tdh_ft": 90.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-4",
+            "on": true,
+            "flow_gpm": 2913.6,
+            "tdh_ft": 90.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.2,
+            "pct_of_rated_flow": 100
+          }
+        ],
+        "pipes": [
+          {
+            "id": "HDR-P",
+            "flow_gpm": 11654.3,
+            "velocity_fps": 3.67
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 39.09
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 11654.3,
+        "total_pumped_mgd": 16.782,
+        "total_electric_kw": 260.7,
+        "specific_energy_kwh_per_ml": 98.5
+      }
+    },
+    "BASE-PRI-FIRM-10": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 36,
+            "from": "HDR",
+            "id": "HDR-P",
+            "length_ft": 100,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "SUCT",
+            "id": "PP-1",
+            "motor_hp": 25,
+            "rated_gpm": 1800,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "PP-2",
+            "motor_hp": 40,
+            "rated_gpm": 2500,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "PP-3",
+            "motor_hp": 40,
+            "rated_gpm": 2500,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "PP-4",
+            "motor_hp": 40,
+            "rated_gpm": 2500,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "PP-5",
+            "motor_hp": 40,
+            "rated_gpm": 2500,
+            "rated_head_ft": 40,
+            "to": "HDR"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "SUCT"
+          },
+          {
+            "head_ft": 40,
+            "id": "DISCH"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "PP-1",
+            "on": true,
+            "flow_gpm": 1791.0,
+            "tdh_ft": 40.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 22.7,
+            "motor_hp": 25,
+            "electric_kw": 17.8,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "PP-2",
+            "on": true,
+            "flow_gpm": 2487.5,
+            "tdh_ft": 40.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 31.6,
+            "motor_hp": 40,
+            "electric_kw": 24.8,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "PP-3",
+            "on": true,
+            "flow_gpm": 2487.5,
+            "tdh_ft": 40.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 31.6,
+            "motor_hp": 40,
+            "electric_kw": 24.8,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "PP-4",
+            "on": true,
+            "flow_gpm": 2487.5,
+            "tdh_ft": 40.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 31.6,
+            "motor_hp": 40,
+            "electric_kw": 24.8,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "PP-5",
+            "on": true,
+            "flow_gpm": 2487.5,
+            "tdh_ft": 40.13,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 31.6,
+            "motor_hp": 40,
+            "electric_kw": 24.8,
+            "pct_of_rated_flow": 99
+          }
+        ],
+        "pipes": [
+          {
+            "id": "HDR-P",
+            "flow_gpm": 11740.8,
+            "velocity_fps": 3.7
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 17.4
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 11740.8,
+        "total_pumped_mgd": 16.907,
+        "total_electric_kw": 117.0,
+        "specific_energy_kwh_per_ml": 43.9
+      }
+    },
+    "FUT17-FULL": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 36,
+            "from": "HDR",
+            "id": "HDR-P",
+            "length_ft": 100,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "SUCT",
+            "id": "SP-1",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-2",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-3",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-4",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-5",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-6N",
+            "motor_hp": 150,
+            "rated_gpm": 4000,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-7N",
+            "motor_hp": 150,
+            "rated_gpm": 4000,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "SUCT"
+          },
+          {
+            "head_ft": 90,
+            "id": "DISCH"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SP-1",
+            "on": true,
+            "flow_gpm": 2898.4,
+            "tdh_ft": 90.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.9,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-2",
+            "on": true,
+            "flow_gpm": 2898.4,
+            "tdh_ft": 90.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.9,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-3",
+            "on": true,
+            "flow_gpm": 2898.4,
+            "tdh_ft": 90.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.9,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-4",
+            "on": true,
+            "flow_gpm": 2898.4,
+            "tdh_ft": 90.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.9,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-5",
+            "on": true,
+            "flow_gpm": 2898.4,
+            "tdh_ft": 90.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 82.9,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-6N",
+            "on": true,
+            "flow_gpm": 3970.4,
+            "tdh_ft": 90.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 113.6,
+            "motor_hp": 150,
+            "electric_kw": 89.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-7N",
+            "on": true,
+            "flow_gpm": 3970.4,
+            "tdh_ft": 90.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 113.6,
+            "motor_hp": 150,
+            "electric_kw": 89.1,
+            "pct_of_rated_flow": 99
+          }
+        ],
+        "pipes": [
+          {
+            "id": "HDR-P",
+            "flow_gpm": 22432.7,
+            "velocity_fps": 7.07
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 39.22
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 22432.7,
+        "total_pumped_mgd": 32.303,
+        "total_electric_kw": 503.6,
+        "specific_energy_kwh_per_ml": 98.8
+      }
+    },
+    "FUT-SEC-2017-FIRM-12": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 36,
+            "from": "HDR",
+            "id": "HDR-P",
+            "length_ft": 100,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "SUCT",
+            "id": "SP-1",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-2",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-3",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-4",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-5",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-6N",
+            "motor_hp": 150,
+            "rated_gpm": 4000,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "SUCT"
+          },
+          {
+            "head_ft": 90,
+            "id": "DISCH"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SP-1",
+            "on": true,
+            "flow_gpm": 2904.9,
+            "tdh_ft": 90.31,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-2",
+            "on": true,
+            "flow_gpm": 2904.9,
+            "tdh_ft": 90.31,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-3",
+            "on": true,
+            "flow_gpm": 2904.9,
+            "tdh_ft": 90.31,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-4",
+            "on": true,
+            "flow_gpm": 2904.9,
+            "tdh_ft": 90.31,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-5",
+            "on": true,
+            "flow_gpm": 2904.9,
+            "tdh_ft": 90.31,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "SP-6N",
+            "on": true,
+            "flow_gpm": 3979.3,
+            "tdh_ft": 90.31,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 113.6,
+            "motor_hp": 150,
+            "electric_kw": 89.2,
+            "pct_of_rated_flow": 99
+          }
+        ],
+        "pipes": [
+          {
+            "id": "HDR-P",
+            "flow_gpm": 18503.7,
+            "velocity_fps": 5.83
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 39.17
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 18503.7,
+        "total_pumped_mgd": 26.645,
+        "total_electric_kw": 414.8,
+        "specific_energy_kwh_per_ml": 98.7
+      }
+    },
+    "ALT-SEC-2025-FIRM-13": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "HDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 42,
+            "from": "HDR",
+            "id": "HDR-P",
+            "length_ft": 100,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "SUCT",
+            "id": "SP-1",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-2",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-3",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-4",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-5",
+            "motor_hp": 100,
+            "rated_gpm": 2920,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-6N",
+            "motor_hp": 150,
+            "rated_gpm": 4000,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-7N",
+            "motor_hp": 150,
+            "rated_gpm": 4000,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          },
+          {
+            "from": "SUCT",
+            "id": "SP-8N",
+            "motor_hp": 150,
+            "rated_gpm": 4000,
+            "rated_head_ft": 90,
+            "to": "HDR"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "SUCT"
+          },
+          {
+            "head_ft": 90,
+            "id": "DISCH"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SP-1",
+            "on": true,
+            "flow_gpm": 2906.2,
+            "tdh_ft": 90.28,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-2",
+            "on": true,
+            "flow_gpm": 2906.2,
+            "tdh_ft": 90.28,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-3",
+            "on": true,
+            "flow_gpm": 2906.2,
+            "tdh_ft": 90.28,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-4",
+            "on": true,
+            "flow_gpm": 2906.2,
+            "tdh_ft": 90.28,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-5",
+            "on": true,
+            "flow_gpm": 2906.2,
+            "tdh_ft": 90.28,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 83.0,
+            "motor_hp": 100,
+            "electric_kw": 65.1,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-6N",
+            "on": true,
+            "flow_gpm": 3981.0,
+            "tdh_ft": 90.28,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 113.7,
+            "motor_hp": 150,
+            "electric_kw": 89.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-7N",
+            "on": true,
+            "flow_gpm": 3981.0,
+            "tdh_ft": 90.28,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 113.7,
+            "motor_hp": 150,
+            "electric_kw": 89.2,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "SP-8N",
+            "on": true,
+            "flow_gpm": 3981.0,
+            "tdh_ft": 90.28,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 113.7,
+            "motor_hp": 150,
+            "electric_kw": 89.2,
+            "pct_of_rated_flow": 100
+          }
+        ],
+        "pipes": [
+          {
+            "id": "HDR-P",
+            "flow_gpm": 26473.8,
+            "velocity_fps": 6.13
+          }
+        ],
+        "junctions": [
+          {
+            "id": "HDR",
+            "pressure_psi": 39.15
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 26473.8,
+        "total_pumped_mgd": 38.122,
+        "total_electric_kw": 593.3,
+        "specific_energy_kwh_per_ml": 98.7
+      }
+    }
+  }
+}

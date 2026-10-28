@@ -1,0 +1,11 @@
+# Step 2 - Requests for information and assumptions
+
+| item | issue | resolution | reason |
+|---|---|---|---|
+| Actual IT kW per DC | IT load kW not tabulated; only percentages and UPS display assumption | ASSUMPTION: adopt report end-use % with PUE 2.20 as baseline; IT ~46% DC1 /43% DC2 of total; reason: only consistent meter+estimate available p.11 p.13-p.14 | ATS10/11 readings spot only; need baseline for PUE/savings |
+| Cooling split and true CHWS/CHWR | Chilled-water vs DX cooling split unknown; conflicting CHWS (56F text vs 52-58.3F BAS display) and erroneous BAS temps | ASSUMPTION: use observed 500 tons total, CHWS 56F / CHWR 60.7F per BAS text p.31 as representative; treat 52-58.3F display as sensor error; reason: author-stated operating point | Cannot meter separately p.31; BAS sensors erroneous p.22 |
+| Data-center share of ATS5/7 | Glycol dry-cooler/pump power includes non-data-center loads on ATS5/7 | ASSUMPTION: use report allocation 16-17% dry/pumps per Figs 3-4 p.13-p.14; reason: only LBNL estimate available | ATS5/7 serve other systems p.11; apportionment not metered |
+| UPS/PDU loss kW | UPS efficiency and PDU loss values not numeric in available pages (curves withheld) | ASSUMPTION: use report splits UPS 4-5% + PDU/trans 2% p.13-p.14 and single-UPS no-redundancy note p.21; reason: preserves reported totals | Need for electrical savings; factory curves Fig10 only graphical p.21 |
+| CAU coil type, tons, motor hp | CAU types/capacities and pump/motor nameplates incomplete in excerpts | ASSUMPTION: 5 CAUs/DC per p.15; 2 dual-coil +1 CHW-only identified p.16 plus DX units per Tables 3-4 p.11-p.12; 5kW fan each; reason: directly observed spot powers | Table 6 types and nameplates needed for firm capacity and pump affinity |
+| $/kWh and hr/yr | Electric rate and operating hours not in excerpts | ASSUMPTION: $0.07/kWh per task and 8760 hr/yr continuous; reason: task instruction and 24/7 data-center duty | Required for $/yr and payback |
+| Measure costs and savings | Recommendation cost/payback tables withheld from available pages | ASSUMPTION: future savings must be computed with run_hydraulics/velocity tools and quoted, not hand-calculated; reason: study rule | Must reach own conclusions from facts per engineering rules |

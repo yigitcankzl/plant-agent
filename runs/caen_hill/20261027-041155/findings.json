@@ -1,0 +1,44 @@
+[
+  {
+    "evidence": "Measured normal 266-267 l/s total = ~133 l/s per pump (p.12); BEP 262 l/s @70m (p.11); POR 70-120% BEP (p.14); S-1P48-C130K120: 168.6 l/s TDH 76.35 m 195.5 kW; BASE-2P48-FIX: 245.6 l/s total 122.8 l/s per pump TDH 80.89 m; maxima to 37.5 mm/s (p.16 view)",
+    "limiting_value": "~51% BEP in parallel ASSUMPTION arithmetic 133/262; string 64-66% vs 68-71% single at 48Hz (p.12)",
+    "limits_target": true,
+    "modification": "Adopt single-pump duty/assist normal; retain standby; VSD/flow control",
+    "unit": "Hydraulic: parallel off-POR operation"
+  },
+  {
+    "evidence": "Additional coefficient 120 to match SCADA (p.11); +6m at 300 l/s = 224mm orifice (p.11); velocity tool: 1.061 m/s in 600mm vs 7.613 m/s in 224mm at 300 l/s; S-1P48-C130K120 168.6 l/s vs ALT-1P48-CLEAN2 180.9 l/s; BASE-2P48-FIX 245.6 l/s; C-2P50-C130K120 304.8 l/s vs measured 310 l/s (p.12)",
+    "limiting_value": "+6m at 300 l/s (p.11)",
+    "limits_target": true,
+    "modification": "CCTV/pressure survey, prove/clear intermediate NRVs at 1270/2410m (p.7), clean/flush",
+    "unit": "Hydraulic: unexplained loss"
+  },
+  {
+    "evidence": "All duties exceed 11.2 mm/s RMS (p.16 view: averages include 12.6-29.4, maxima to 37.5); mount comparable to pump (p.16); bearing 2000-3000h vs 50000h (p.14); seals failed, glycol leak, emulsified oil, seizure (p.14); plinth cracks/spalling + flange leaks reported (p.8)",
+    "limiting_value": ">11.2 mm/s RMS ASSUMPTION applied to 2-vane (p.16); 2000-3000h vs 50000h (p.14)",
+    "limits_target": true,
+    "modification": "Re-anchor plinths, support motor end, tie manifold; vibration re-test",
+    "unit": "Vibration/mechanical"
+  },
+  {
+    "evidence": "Ball checks poor dynamic slam risk (p.18); VariSim peaks 17.5 bar.g 2-pump trip, 20 bar.g 1-pump trip, 13 bar.g 30s ramp assuming intermediate NRVs open/not working (p.19); gasket failures (p.18); steady BASE-2P48-FIX manifold 8.05 bar; pipe/fitting rating not stated (p.7-p.19)",
+    "limiting_value": "20/17.5/13 bar.g VariSim (p.19)",
+    "limits_target": true,
+    "modification": "Slow-closing checks, tie adaptors, surge review, inspect NRVs; retain 30s ramp (p.7)",
+    "unit": "Surge/gaskets"
+  },
+  {
+    "evidence": "NPSHa margin ~4m Fig4 (p.12) so not suction head; alternative blockage/siltation cited (p.12); 30% screen loss + ~40t silt/brick/rubble/vegetation Aug 2019 (p.19); 121 to 169 l/s unblock gain (p.11); impact damage P2 (p.11); centre pitting/water in locking assembly (p.14); bellmouth high vs 0.3D-0.5D ANSI/HI 9.8 (p.19)",
+    "limiting_value": "Centre pitting (p.14) despite ~4m NPSH margin (p.12)",
+    "limits_target": true,
+    "modification": "Regular screen/well cleaning; review benching vs buffer trade-off (p.20)",
+    "unit": "Cavitation/debris not NPSH"
+  },
+  {
+    "evidence": "Measured specific energy 347.6 (2x48Hz) vs 310.0/296.0 (1x48Hz) (p.12 view); 48Hz optimum (p.13); control fixed parallel 48Hz duty/duty via Lock 50 telemetry, meter not for control (p.13); daily volumes Fig7 (p.13); firm capacity = 1-pump with largest out",
+    "limiting_value": "2-pump +12% vs P1-only and +17% vs P2-only at 48Hz ASSUMPTION arithmetic from Table 3 (p.12)",
+    "limits_target": true,
+    "modification": "Single-pump longer duration at 48Hz subject to level/volume check; meter-based alternation",
+    "unit": "Energy/control"
+  }
+]

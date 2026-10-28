@@ -1,0 +1,9 @@
+# Step 3 - Calibration against field data
+
+| test | source | measured | simulated | residual_pct | run_label | note |
+|---|---|---|---|---|---|---|
+| Current-condition head observation | p.115 | HSPS large pumps ~3,300 gpm each under current head (p.115) | 3,319.2 gpm each (P2/P3/P4) in HSPS-EXIST | 0.58 | HSPS-EXIST | Validates pump-curve screening; residual as % of measured flow |
+| Table 4-3 headloss table | p.117 Table 4-3; p.116 ID 29.25-in | 30-in finished main 5.97 fps at 18 mgd Table 4-3 (p.117) | 5.968 fps by velocity tool (29.25-in, 18 mgd) | -0.03 | HSPS-EXIST | Independent velocity check; validates diameter 29.25-in ID (p.116) |
+| Drawing WS + operating band | dwg p.136; p.112 | Filter WS 464.0 ft labelled (dwg p.136); controlled 463-464 ft (p.112) | 464.0 ft at 9.1, 11.5, 12.0, 18.0 mgd in WTP-PROF-CAL | 0.0 | WTP-PROF-CAL | Control holds level; residual 0 ft = 0% of 13.38 ft valve drop at 18 mgd; not used to fit loss |
+| Sept 14 2006 9.1 mgd waste test calibration + 11.5 mgd validation | dwg p.136; p.111; p.113 | Rapid-mix WS 466.0 ft (dwg p.136) at 22 MGD ultimate; field 11.5 mgd warm flow (p.111) | 465.93 ft at 12 mgd (residual -0.07 ft); 465.86 ft at 11.5 mgd (residual -0.14 ft); 467.96 ft at 22 mgd | -14.0 | WTP-PROF-CAL | Settled-pipe calibrated at 9.1 mgd (0.15 ft, p.113 waste test); 11.5-12 mgd points validate: residual -0.14 ft at 11.5 mgd = -45% of 0.312 ft floc drop; -0.07 ft at 12 mgd = -14% of 0.5 ft RM drop; 22 mgd residual +1.96 ft shows Q^2 extrapolation beyond rating |
+| Drawing WS vs model | dwg p.136; p.111 | Sed WS 464.83 ft, OF WEIR 465.00 ft, MAX 465.98 ft (dwg p.136); basin rated 12 mgd (p.111) | 465.09 ft at 12 mgd (residual +0.26 ft); 465.12 ft at 18 mgd margin 0.86 ft to MAX | 33.1 | WTP-PROF-CAL | Treatment rating binds (12.0 mgd) before hydraulic MAX (32.93 mgd); residual as % of 0.786 ft launder drop at 12 mgd |

@@ -1,0 +1,22 @@
+[
+  {
+    "evidence": "Offline 16 months (p.6); A flow dropped gradually past day (p.11) from oily fouling reducing flow+heat transfer (p.8); supervisor opened B quench ~08:33 (p.11); rupture ~3 min later (p.11). Shell fluid ~95% propane balance propylene+C4s (p.9) heated from ~130F inlet (p.9) by ~185F quench (p.9) / ~187F brief. Valves can isolate shell from top PRV (p.9); gates added 2001, single PRV claimed to protect column+both shells (p.10). SHELL-CLOSED-V2 0.0 gpm both gates vs SHELL-OPEN-V2 957.5 gpm open proves blocked topology. bubble_pressure (95/5 mole ASSUMPTION, C4s omitted, mol vs wt unspecified p.9): 19.19 bar at 54.44C, 34.96 bar at 85C, 35.67 bar at 86.11C absolute. fluid_properties: 440.6 kg/m3 liquid vap frac 0.0 at 19.19 bar 54.44C, 42.28 kg/m3 vap frac 1.0 at 21.7 bar 85C - at MAWP pressure fluid must vaporize/expand; liquid thermal expansion drives higher still. MAWP 300 psig + hydro 450 psig are ASSUMPTIONS from brief only (no pressure in p.6-13) - provisional: 300 psig = ~21.7 bara, 450 psig = ~32.0 bara, so 35.67 bara exceeds both if ratings correct. Rupture launched portion to pipe rack ~30 ft overhead vertical height (p.11, corrected), 2 dead +167 injured (p.12), >30,000 lb +3.5-h fire (p.12), down 18 mo to Jan 2015 (p.12). Shell burst, not tube leak.",
+    "limiting_value": "Bubble 35.67 bar abs at 86.11C vs MAWP 300 psig ASSUMPTION (~21.7 bara) + hydro 450 psig ASSUMPTION (~32.0 bara); SHELL-CLOSED-V2 0.0 gpm relief",
+    "limits_target": true,
+    "modification": "ROOT CAUSE fix OPT-1 + OPT-2 + layup/SOP. Verify MAWP/PRV via nameplate/U-1 before final sizing.",
+    "unit": "Reboiler B shell overpressure rupture"
+  },
+  {
+    "evidence": "2001 gates between shells and single top PRV (p.10); legend claims one PRV protects column+both shells yet valves can isolate (p.9). SHELL-CLOSED-V2 J-SHELL 20.6 psi trapped 0.0 gpm; SHELL-OPEN-V2 J-SHELL 21.25 psi 957.5 gpm; SHELL-PSV-V2 gates 0.0 gpm but PSV branch J-PSV 13.01 psi = J-SHELL, open status retained. Heads are ASSUMPTION datum, water proxy - topology only, not relief sizing. No dedicated thermal relief evident; 3-min rupture proves inadequacy. Ten States water standards NOT applicable - ASME VIII/API 521 govern; no standards_check claimed.",
+    "limiting_value": "0.0 gpm relief when gates closed (SHELL-CLOSED-V2) vs open branch retained (SHELL-PSV-V2)",
+    "limits_target": true,
+    "modification": "DESIGN: dedicated shell PSV(s) to flare per API 521 + CSO-lock/interlock 2001 gates + shell PT alarm; MOC/PHA revalidate 2001 change.",
+    "unit": "Overpressure protection path"
+  },
+  {
+    "evidence": "One-reboiler operation with other isolated standby (p.9) left B standby tubes closed (QW screening withdrawn - absolute gpm uncalibrated). Fouling regime screening only: velocity tool 0.656 fps for B-branch-corrected 0.0013 mgd/tube through 0.75-in (3020 tubes p.9, OD as ID ASSUMPTION for screening, displacement unknown). Opening hot water to unknown blocked inventory was ad-hoc troubleshooting at morning meeting (p.11). Layup reportedly nitrogen behind single blocks (brief) vs propane leakage unverified; geometry ~18.5 ft x >5 ft ID APPROXIMATE (p.9 fn, verify via fab drawing).",
+    "limiting_value": "16 mo standby (p.6); 3-min heat-up (p.11); per-tube ~0.66 fps screening",
+    "limits_target": false,
+    "modification": "CONTRIBUTING fixes: defined layup (drain/depressure/inert/blind/level-verified), leak-check, written switch SOP (prove relief open, drain/vent, slow warmup, monitor P/T), fouling monitoring, training+MOC, resolve tag EA-425B vs EA-435A/B."
+  }
+]

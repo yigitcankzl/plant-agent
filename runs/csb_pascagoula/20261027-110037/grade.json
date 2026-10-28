@@ -1,0 +1,44 @@
+{
+  "case": "csb_pascagoula",
+  "judge": "muse-wonder-1.0",
+  "agent_model": "muse-spark-1.3-contributor",
+  "score": 0.667,
+  "items": [
+    {
+      "id": "initial_failure",
+      "unit": "A-Train cold side reboiler (ACSR) BAHX",
+      "verdict": "found",
+      "note": "Agent places ACSR metal and both-pass dP failure at 11:20-11:22 before AWSR and fire spread, identifying ACSR as first failure."
+    },
+    {
+      "id": "thermal_fatigue",
+      "unit": "ACSR core",
+      "verdict": "partially",
+      "note": "Agent identifies accumulated thermal fatigue, ROC limits and 2007-2015 leaks, but adds a that-night thermal-shock/curtailment final trigger the engineers ruled out."
+    },
+    {
+      "id": "blocked_unvented_layers",
+      "unit": "2015 repair (layers 1, 2, 98, 99)",
+      "verdict": "partially",
+      "note": "Agent discusses sealed vents trapping fluid in blocked layers, but calls ACSR vent state unknown and omits the 2015 layers 1/2/98/99, 97-to-98 leak, warming expansion to ~705 psig and cap-sheet separation scenario."
+    },
+    {
+      "id": "vent_blocked_layers",
+      "unit": "Repair practice",
+      "verdict": "found",
+      "note": "Agent requires MOC/manufacturer approval for blocking and states vent holes must be left open or silicone-filled, never welded sealed."
+    },
+    {
+      "id": "leak_before_break",
+      "unit": "Mechanical integrity / hazard assessment",
+      "verdict": "partially",
+      "note": "Agent warns against operating on leak history and considers retirement/replacement, but proposes implementing an LBB programme rather than rejecting leak-before-break as insufficient with hierarchy-of-controls and preemptive-replacement criteria."
+    },
+    {
+      "id": "monitoring",
+      "unit": "Instrumentation and data",
+      "verdict": "partially",
+      "note": "Agent addresses ROC monitoring and the ~10x metal under-reading, but prioritises metal-T alarms with stream only qualitative and omits the 14.25 F/min alarm, sensor-placement clarification, lifetime data retention and industry-wide data sharing."
+    }
+  ]
+}

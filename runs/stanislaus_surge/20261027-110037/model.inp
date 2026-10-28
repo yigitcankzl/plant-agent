@@ -1,0 +1,125 @@
+[TITLE]
+
+[JUNCTIONS]
+;ID                      Elevation       Demand Pattern                 
+ SUC                              107               0                            ;
+ DIS                              107               0                            ;
+ MID                              120               0                            ;
+ HIGH                             141               0                            ;
+
+[RESERVOIRS]
+;ID                                   Head                  Pattern
+ CLEAR                            114                            ;
+ TANK_T                           198                            ;
+
+[TANKS]
+;ID                              Elevation           Init Level            Min Level            Max Level             Diameter           Min Volume Volume Curve         Overflow            
+
+[PIPES]
+;ID                   Node1                Node2                              Length             Diameter            Roughness           Minor Loss               Status
+ SUC_PIPE             CLEAR                SUC                              100              60             140               0                 Open   ;
+ MAIN1                DIS                  MID                            15000              42             140               0                 Open   ;
+ MAIN2                MID                  HIGH                           13000              42             140               0                 Open   ;
+ MAIN3                HIGH                 TANK_T                         13000              42             140               0                 Open   ;
+
+[PUMPS]
+;ID                   Node1                Node2                Properties          
+ P_TURL_P1            SUC                  DIS                  HEAD     P_TURL_P1_curve        ;
+
+[VALVES]
+;ID                   Node1                Node2                            Diameter Type              Setting           Minor Loss
+
+[TAGS]
+;type      name       tag       
+
+[DEMANDS]
+;ID        Demand     Pattern   
+
+[STATUS]
+;ID        Setting   
+
+[PATTERNS]
+;ID        Multipliers
+
+[CURVES]
+;ID         X-Value      Y-Value     
+;PUMP: P_TURL_P1_curve
+ P_TURL_P1_curve  7000.000399    92.000000   ;
+
+
+[CONTROLS]
+
+[RULES]
+
+[ENERGY]
+GLOBAL PRICE           0.0000
+
+[EMITTERS]
+;ID        Flow coefficient
+
+[QUALITY]
+
+[SOURCES]
+;Node      Type       Quality    Pattern   
+
+[REACTIONS]
+;Type           Pipe/Tank               Coefficient
+
+ ORDER BULK 1
+ ORDER TANK 1
+ ORDER WALL 1
+ GLOBAL BULK 0.0000    
+ GLOBAL WALL 0.0000    
+
+[MIXING]
+;Tank ID             Model Fraction
+
+[TIMES]
+DURATION             00:00:00
+HYDRAULIC TIMESTEP   01:00:00
+QUALITY TIMESTEP     00:06:00
+PATTERN TIMESTEP     01:00:00
+PATTERN START        00:00:00
+REPORT TIMESTEP      01:00:00
+REPORT START         00:00:00
+START CLOCKTIME      00:00:00 AM
+RULE TIMESTEP        00:06:00
+STATISTIC            NONE      
+
+[REPORT]
+
+[OPTIONS]
+UNITS                GPM                 
+HEADLOSS             H-W                 
+SPECIFIC GRAVITY     1
+VISCOSITY            1
+TRIALS               200
+ACCURACY             0.001
+CHECKFREQ            2
+MAXCHECK             10
+UNBALANCED           STOP                
+PATTERN              1                   
+DEMAND MULTIPLIER    1
+EMITTER EXPONENT     0.5
+QUALITY              NONE                
+DIFFUSIVITY          1
+TOLERANCE            0.01
+
+[COORDINATES]
+;Node      X-Coord    Y-Coord   
+CLEAR               0.000000000          0.000000000
+TANK_T              0.000000000          0.000000000
+SUC                 0.000000000          0.000000000
+DIS                 0.000000000          0.000000000
+MID                 0.000000000          0.000000000
+HIGH                0.000000000          0.000000000
+
+[VERTICES]
+;Link      X-Coord    Y-Coord   
+
+[LABELS]
+
+[BACKDROP]
+UNITS    NONE
+
+[END]

@@ -1,0 +1,37 @@
+[
+  {
+    "evidence": "Nominal 0.6 m3/s (p.5, p.7) vs Table 1 CT3400/736 Design 610 l/s, 95.4 kW, 77.5%, 43.5 kWh/1000m3 (p.12); Fig.6 intersection ~600 l/s at Design Lift River 172.4 mNGF (p.11); 172.4 lies inside 85% band 172.1-173.1 mNGF (p.9). Illustrative FIX-DES-610 gives 633.7 l/s, 11.05 m TDH, 93.3 kW electric, 1.65 m/s, 40.9 kWh/ML (FIX-DES-610 run output) - order-of-magnitude check only, pipe L=20m C=120 minor_k=3.0 rated_head 11.35m ASSUMPTION (reason: no pipe geometry in pages [5,6,7,8,9,10,11,12,14]). Table 4 (p.14): 880,000 m3/year = 400 basins/year ~408 h/year at 600 l/s (p.14) x 43.5 (p.12) = 38,280 kWh/yr new vs 880 x 52.4 (p.14) = 46,112 kWh/yr old, saving 7,832 kWh/yr quoted directly from Table 4 (p.14). Old baseline Table 3: 880 l/s, 166 kW input, 99 kW hydraulic, 60%, 52.4 kWh/1000m3 (p.14). Document notes running costs typically low given use (p.14).",
+    "limiting_value": "Design 610 l/s at 77.5% (p.12) vs nominal 600 l/s (p.5); annual Table 4: 38,280 vs 46,112 kWh/yr (p.14)",
+    "limits_target": false,
+    "modification": "Approve CT3400/736 for nominal duty - good match at design lift covering 85% operating time. Proceed fixed-speed DOL; do not install VSD for energy saving.",
+    "unit": "Pump-system match + annual energy"
+  },
+  {
+    "evidence": "River varies six metres (p.8); levels Saone high 177.48, low 171.45, pump 170.353, backflow 182.963 mNGF (p.8 Fig.3); System curves Highest BWL 171.45 / Design 172.4 / Lowest TWL 177.48 mNGF (p.11); runout ~800 l/s at minimum lift under fixed speed (p.11) with Table 1 Minimum 803 l/s, 96.2 kW, 67.3%, 33.3 kWh/1000m3, NPSHr 8.22m vs Design NPSHr 4.25m (p.12). Illustrative FIX-MIN-ILLUS gives 921.2 l/s, 6.51 m, 91.9 kW, 2.39 m/s, 151% rated warning (FIX-MIN-ILLUS run output) - overpredicts Table 1 803 l/s (p.12), proving single-point constant-efficiency model invalid far from BEP; do not use sim specific 27.7 kWh/ML, use Table 1 33.3 (p.12). VSD can maintain ~600 l/s regardless of lift (p.12 s.4.2). Illustrative FIX-VSD08-ILLUS at speed 0.80 gives 607.6 l/s, 5.93 m, 55.3 kW, 1.58 m/s (FIX-VSD08-ILLUS run output) with manually set 67.3% (p.12) - limiter illustration only, not affinity prediction. Batch on/off via intermediate + far upstream sensors (p.6) + automation (p.5, p.7) + 85% in 1m band (p.9) + static-dominated = VSD little annual benefit.",
+    "limiting_value": "803 l/s runout at 67.3% NPSHr 8.22m (p.12) vs 610 l/s at 77.5% (p.12); ~6m variation (p.8)",
+    "limits_target": true,
+    "modification": "If runout must be hard-capped, use VSD as limiter only (~0.80 speed to hold ~600 l/s) with no energy payback; otherwise accept free extra flow. Do not justify VSD on energy.",
+    "unit": "River variation / VSD"
+  },
+  {
+    "evidence": "Brief-only arrangement: DN700 riser, DN600 meter, automated gate valve (p.7) directly upstream with zero straights - ASSUMPTION (reason: diameters/arrangement/straights not in pages [5,6,7,8,9,10,11,12,14]; brief states valve directly upstream of DN600 meter, Fig.2 illegible). Limit 2.2 m/s + 5D/3D practice - ASSUMPTION per brief/industry norm (reason: not in pages). Velocity tool outputs: 600 l/s in DN600 = 2.122 m/s, 803 l/s (p.12) in DN600 = 2.84 m/s FAIL, 880 l/s (p.14) in DN600 = 3.112 m/s FAIL; 600 l/s in DN700 = 1.559 m/s PASS, 803 l/s in DN700 = 2.087 m/s PASS. FIX-DES-610 1.65 m/s and FIX-VSD08-ILLUS 1.58 m/s in DN700 (run outputs) confirm design compliance in large pipe. Zero straights violates meter accuracy regardless of velocity.",
+    "limiting_value": "2.84 m/s in DN600 at 803 l/s (p.12) vs ASSUMPTION 2.2 m/s limit; 0D vs ASSUMPTION 5D/3D",
+    "limits_target": true,
+    "modification": "CONDITIONAL on brief: B1 - upsize meter to DN700 and relocate gate valve downstream with 5D/3D straights. Retain DN700 riser. If DN600 retained, enforce flow cap and accept meter disturbance.",
+    "unit": "Pipework velocity + meter accuracy"
+  },
+  {
+    "evidence": "Available pumps have IE2 motors, no IE3 option for these models (p.12) vs target IE3 or IE4 (p.5); CT3400 8-pole pf 0.8-0.82 vs 12-pole alternative pf ~0.52-0.6 (p.12); NPSH margin stated suitable for both (p.12) but suction geometry/levels insufficient to verify - static differences pump 170.353 vs Saone 171.45/177.48 mNGF (p.8) cited without NPSHa calc; submersible monoblock target (p.5). Source naming inconsistent: CT3531/806 ~1240 710mm (p.11) vs CT3500/806 3-1240 710mm Table 1 (p.12) vs CP3531 text (p.12). Smart monitoring + automation/supervision (p.5) + duty/standby level control precedent (p.6) enables verification.",
+    "limiting_value": "IE2 (p.12) vs IE3/IE4 target (p.5); pf 0.8-0.82 vs 0.52-0.6 (p.12)",
+    "limits_target": true,
+    "modification": "Flag IE non-compliance; require IE3/IE4-compliant equivalent or derogation (prefer CT3400 on pf). Commission with smart energy monitoring: log flow/power/river level to verify 43.5 vs 52.4 (p.12, p.14). Designer to verify NPSHa vs 4.25/8.22m NPSHr (p.12). Note naming inconsistency in procurement.",
+    "unit": "Motor + monitoring + NPSH"
+  },
+  {
+    "evidence": "Existing 2x RATEAU ID BV 57 (p.6) duty/standby via intermediate + far upstream sensors (p.6) replaced by one new pump nominal 0.6 m3/s (p.5, p.7). With largest (only) unit out, firm capacity zero per definition.",
+    "limiting_value": "1 x 600 l/s installed, 0 l/s firm",
+    "limits_target": true,
+    "modification": "Advise VNF: accept single point of failure or provide standby/mobile provision + maintenance plan for canal level risk. Not quantified - no standby costs/levels in pages.",
+    "unit": "Firm capacity / resilience"
+  }
+]

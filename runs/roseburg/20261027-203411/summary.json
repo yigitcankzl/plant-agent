@@ -1,0 +1,95 @@
+{
+  "case": "roseburg",
+  "model": "muse-spark-1.3-contributor",
+  "llm_steps": 68,
+  "simulations": 12,
+  "wall_time_s": 1900,
+  "cost_usd": 0.2009,
+  "model_inp": {
+    "base_run": "hyd-30-18cal",
+    "pumps": 0,
+    "pipes": 2,
+    "reloads": true
+  },
+  "cost_estimates": {
+    "cost-intake-opening": {
+      "total": 42000.0,
+      "range": [
+        28000.0,
+        70000.0
+      ]
+    },
+    "cost-rwps-rehab": {
+      "total": 6527000.0,
+      "range": [
+        4243000.0,
+        10770000.0
+      ]
+    },
+    "cost-2nd-basin": {
+      "total": 4529000.0,
+      "range": [
+        2944000.0,
+        7474000.0
+      ]
+    },
+    "cost-filter-expand": {
+      "total": 3658000.0,
+      "range": [
+        2378000.0,
+        6035000.0
+      ]
+    },
+    "cost-surge-controls": {
+      "total": 3323000.0,
+      "range": [
+        2160000.0,
+        5482000.0
+      ]
+    },
+    "cost-bw-upgrade": {
+      "total": 3323000.0,
+      "range": [
+        2160000.0,
+        5482000.0
+      ]
+    }
+  },
+  "standards": {
+    "pass": 2,
+    "FAIL": 1,
+    "not checked": 1
+  },
+  "profile": {
+    "base_run": "prof-cal-2basin",
+    "limits": [
+      {
+        "id": "settled42",
+        "check": "sed basin overflow weir 465.0 ft",
+        "binds_at_mgd": 28.82
+      },
+      {
+        "id": "filters",
+        "check": "max water surface",
+        "binds_at_mgd": null
+      },
+      {
+        "id": "rapidmix",
+        "check": "rapid mix top of wall",
+        "binds_at_mgd": null
+      }
+    ]
+  },
+  "design_profile_sheet": {
+    "run": "prof-2basin-design",
+    "file": "runs/roseburg/20261027-203411/design_profile.dxf",
+    "flows": [
+      18.0
+    ],
+    "structures": 4,
+    "elev_range_ft": [
+      447,
+      470
+    ]
+  }
+}

@@ -1,0 +1,1880 @@
+{
+  "case": "csb_pascagoula",
+  "facility": "Enterprise Products Pascagoula Gas Plant, brazed aluminum heat exchanger rupture, fires and explosions, Pascagoula, Mississippi, June 27, 2016",
+  "source": "U.S. Chemical Safety and Hazard Investigation Board, Loss of Containment, Fires, and Explosions at Enterprise Products Midstream Gas Plant, Report No. 2016-02-I-MS, 2019 (public record)",
+  "url": "https://www.csb.gov/enterprise-pascagoula-gas-plant-explosion-and-fire-/",
+  "question": "On the night of June 27, 2016, while operators were curtailing and then shutting in NGL production on A-Train, a sudden explosion and fire destroyed much of the A-Train cryogenic area of the Pascagoula gas plant; 13 pieces of piping and equipment ruptured. Using the timeline, DCS data, physical evidence, the plant's brazed aluminum heat exchanger (BAHX) operating and repair history and the industry guidance, identify the most likely initial failure point and damage mechanism, explain how it led to a sudden rupture on that night, and recommend what the operator and industry should change (operation, monitoring, repair practice, mechanical integrity / risk assessment) to prevent a repeat.",
+  "model": "muse-spark-1.3-contributor",
+  "collection": {
+    "criteria": {
+      "criteria": [
+        {
+          "name": "Investigation objective - initial failure point",
+          "source": "Task statement + p.21, p.60-p.62",
+          "value": "Identify most likely initial failure point among 12-13 A-Train breaches using DCS/event log/surveillance/physical evidence sequence; explain sudden rupture on June 27 2016 during curtailment/shut-in"
+        },
+        {
+          "name": "Investigation objective - damage mechanism",
+          "source": "p.15-p.16, p.22, p.31-p.34",
+          "value": "Determine damage mechanism from BAHX history, lab examination and Table 1 elimination; distinguish thermal fatigue / thermal shock from other mechanisms"
+        },
+        {
+          "name": "BAHX operation RAGAGEP - rate of change limit start-up/shutdown",
+          "source": "p.32 Table 3 (ALPEMA, Chart, GPA Midstream, API 662)",
+          "value": "ROC of no more than 3.6 degF (2 degC)/min during start-up or shutdown - Yes in all four guidances"
+        },
+        {
+          "name": "BAHX operation RAGAGEP - normal operation ROC",
+          "source": "p.36 (Table 3 discussion)",
+          "value": "1.8 degF (1 degC)/min during normal operation per standards"
+        },
+        {
+          "name": "BAHX operation RAGAGEP - hourly temperature change",
+          "source": "p.32 Table 3",
+          "value": "Total temperature change of no more than 108 degF (60 degC) in an hour - Yes for ALPEMA/Chart/GPA Midstream, No for API 662"
+        },
+        {
+          "name": "BAHX structural integrity criterion",
+          "source": "p.15-p.16 Fig.5 Fig.6",
+          "value": "Brazed fin-to-cap/parting sheet joints act as truss to hold pressurized layers; pushing/pulling from temperature differences causes thermal fatigue cracking and loss of containment; single large event can cause thermal shock"
+        },
+        {
+          "name": "Mechanical integrity / inspection criterion",
+          "source": "p.43, p.66",
+          "value": "PSM-covered BAHX requires inspection/maintenance (preventive and reactive); external surface examination for leaks/cracks at each HETSCO repair, grind-out and weld repair"
+        },
+        {
+          "name": "MOC / repair practice criterion",
+          "source": "p.44-p.45",
+          "value": "Blocking (welding closed) leaking passes and sealing/venting blocked-layer vent holes are changes requiring MOC, manufacturer approval and risk assessment; sealed holes prevent venting of interpass leak into blocked layer"
+        },
+        {
+          "name": "Risk assessment / PHA criterion for cyclic service",
+          "source": "p.41 BP GP-26-10 discussion, p.33, p.40-p.42",
+          "value": "BAHX in service with temperature fluctuations/cycling and external curtailment upsets requires evaluation of suitability, leak-before-break basis with crack-growth calculation and in-service monitoring - not assumed safe on leak history alone"
+        },
+        {
+          "name": "Consequence mitigation criterion",
+          "source": "p.19-p.20",
+          "value": "PGP emergency plan: vent to flare/atmosphere and let fire burn to minimize vapor-cloud explosion extending off property; cool equipment where feasible; unified command with Jackson County Emergency Services"
+        }
+      ],
+      "definitions": [
+        {
+          "definition": "A-Train cold side reboiler, BAHX in cryogenic area; most likely initial rupture location per DCS sequence",
+          "source": "p.61-p.62",
+          "term": "ACSR"
+        },
+        {
+          "definition": "A-Train warm side reboiler, second BAHX in area; B-pass DP steady until 11:22-11:23 p.m.",
+          "source": "p.61",
+          "term": "AWSR"
+        },
+        {
+          "definition": "Brazed aluminum heat exchanger: stacked layers of parting/cap sheets, side bars, fins brazed; width/height sets hydrocarbon flow capacity",
+          "source": "p.15",
+          "term": "BAHX"
+        },
+        {
+          "definition": "Distributed control system data, event log and metal/stream temperature and differential pressure sensors used with surveillance to reconstruct timeline; timestamps did not match and required shifting",
+          "source": "p.60-p.61",
+          "term": "DCS"
+        },
+        {
+          "definition": "Loss of containment to atmosphere or internal leak between passes",
+          "source": "p.66-p.67",
+          "term": "LOC / Internal / Interpass leak"
+        },
+        {
+          "definition": "Change per minute in inlet, outlet or metal temperature; stream ROCs much larger than metal ROCs; guidance limits in degF/min",
+          "source": "p.32, p.37-p.38",
+          "term": "ROC"
+        },
+        {
+          "definition": "Progressive cracking from cyclic pushing/pulling of aluminum parts due to temperature differences; also single-event thermal shock",
+          "source": "p.16, p.34",
+          "term": "Thermal fatigue"
+        },
+        {
+          "definition": "Capacity with largest unit of a station out of service; not computed here, retained for later hydraulic comparison",
+          "source": "Engineering rules",
+          "term": "Firm capacity"
+        }
+      ],
+      "question": "On night of June 27 2016 during curtailment/shut-in of NGL production on A-Train, what was most likely initial failure point and damage mechanism, how did it lead to sudden rupture, and what operation/monitoring/repair/mechanical-integrity/risk-assessment changes should operator and industry adopt?",
+      "standards": [
+        {
+          "name": "ALPEMA guideline for BAHX",
+          "use": "Construction/operation RAGAGEP; ROC and cycling guidance in Table 2/Table 3"
+        },
+        {
+          "name": "Chart (manufacturer) BAHX guideline",
+          "use": "Construction/operation RAGAGEP; ROC and cycling guidance"
+        },
+        {
+          "name": "GPA Midstream BAHX guidance",
+          "use": "Midstream operation RAGAGEP; ROC guidance"
+        },
+        {
+          "name": "API 662 (American National Standard)",
+          "use": "Only Table 2 source generated under American National Standards process; RAGAGEP for BAHX operation"
+        },
+        {
+          "name": "BP Group Practice GP-26-10 Guidance on Practice for Heat Exchangers",
+          "use": "Owner practice on BAHX suitability, advises against BAHX in fluctuating-temperature service; considered in 2012 ACSR replacement evaluation"
+        }
+      ]
+    },
+    "data_register": [
+      {
+        "id": "DR-01",
+        "item": "PGP staffing and build date",
+        "quote": "employs 30 people. It was built in 1998/1999",
+        "source": "p.12",
+        "unit": "persons / year",
+        "value": "30 persons; built 1998/1999"
+      },
+      {
+        "id": "DR-02",
+        "item": "Ownership history",
+        "quote": "Amoco Production Company (60 percent) and Shell Midstream Enterprises Inc. (40 percent) as the original partners. In 1998, BP acquired Amoco, and in mid-1999, Enterprise Products Partners LP acquired Shell's interest, but BP maintained operation",
+        "source": "p.12",
+        "unit": "\u2014",
+        "value": "Amoco 60% / Shell 40% origin; BP operator until March 2016 Enterprise full acquisition"
+      },
+      {
+        "id": "DR-03",
+        "item": "PGP design capacity",
+        "quote": "design capacity of 1.5 billion cubic feet per day of raw gas and up to 50,000 barrels per day (bpd) of NGLs",
+        "source": "p.58",
+        "unit": "Bcf/d; bpd",
+        "value": "1.5 Bcf/d raw gas; up to 50,000 bpd NGLs"
+      },
+      {
+        "id": "DR-04",
+        "item": "Throughput at time of incident",
+        "quote": "throughput was approximately 500 million standard cubic feet per day of raw gas and 16,000-18,000 bpd of NGLs",
+        "source": "p.58",
+        "unit": "MMscf/d; bpd",
+        "value": "~500 MMscf/d raw gas; 16,000-18,000 bpd NGLs"
+      },
+      {
+        "id": "DR-05",
+        "item": "Operating context night of incident",
+        "quote": "production of natural gas liquids due to pipeline problems downstream... operators initiated necessary steps from control room, when, at 11:22 p.m., a sudden explosion and fire occurred. No abnormal alarms",
+        "source": "p.13",
+        "unit": "time",
+        "value": "Curtailment then shut-in of NGL production on A-Train; sudden explosion 11:22 p.m. with no warning alarms"
+      },
+      {
+        "id": "DR-06",
+        "item": "Fire escalation duration",
+        "quote": "intensified several times over approximately the next 35 minutes",
+        "source": "p.14",
+        "unit": "minutes",
+        "value": "~35 minutes of intensification after initial explosion"
+      },
+      {
+        "id": "DR-07",
+        "item": "Turboexpander refrigeration",
+        "quote": "passes through a turboexpander, where its temperature is reduced to about -90 degF",
+        "source": "p.59",
+        "unit": "degF",
+        "value": "about -90 degF after turboexpander"
+      },
+      {
+        "id": "DR-08",
+        "item": "BAHX structural principle",
+        "quote": "fins and braze joints hold the layers together, acting like a truss on a bridge",
+        "source": "p.15",
+        "unit": "\u2014",
+        "value": "Fins/braze joints to cap/parting sheet carry pressure load as truss"
+      },
+      {
+        "id": "DR-09",
+        "item": "RAGAGEP ROC start-up/shutdown",
+        "quote": "ROC of no more than 3.6 degF (2 degC)/min during start-up or shutdown - Yes Yes Yes Yes",
+        "source": "p.32",
+        "unit": "degF/min (degC/min)",
+        "value": "3.6 degF/min (2 degC/min) max per ALPEMA, Chart, GPA Midstream, API 662"
+      },
+      {
+        "id": "DR-10",
+        "item": "RAGAGEP total hourly change",
+        "quote": "Total temperature change of no more than 108 degF (60 degC) in an hour",
+        "source": "p.32",
+        "unit": "degF/hour",
+        "value": "108 degF (60 degC) per hour max - Yes/Yes/Yes/No"
+      },
+      {
+        "id": "DR-11",
+        "item": "RAGAGEP normal-operation ROC",
+        "quote": "1.8 degF (1 degC)/min during normal operation",
+        "source": "p.36",
+        "unit": "degF/min",
+        "value": "1.8 degF/min (1 degC/min) normal operation"
+      },
+      {
+        "id": "DR-12",
+        "item": "Historical ROC bins illustrated",
+        "quote": "five different temperature ranges, 1.8-3.6, 3.6-12.6, 12.6-21.6, 21.6-30.6, and greater than 30.6 degF/min",
+        "source": "p.37",
+        "unit": "degF/min",
+        "value": "Bins: 1.8-3.6; 3.6-12.6; 12.6-21.6; 21.6-30.6; >30.6 degF/min"
+      },
+      {
+        "id": "DR-13",
+        "item": "Metal vs stream ROC magnitude and exceedance",
+        "quote": "ROCs calculated from the metal temperatures are about 10 times less than those for the stream temperatures [also stated as about four times less]. For example, in 2011, ROC exceedances for the metal sensors occurred between 2 and 3 percent",
+        "source": "p.38",
+        "unit": "ratio; % time",
+        "value": "Metal ROC ~10x (also stated 4x) less than stream; in 2011 metal exceedances 2-3% of A-Train run time"
+      },
+      {
+        "id": "DR-14",
+        "item": "ACSR metal sensor loss sequence",
+        "quote": "ACSR bottom metal temperature sensor stopped transmitting between 11:20 and 11:21 p.m., quickly followed by cessation of signal from remaining metal sensors during next minute",
+        "source": "p.61",
+        "unit": "time",
+        "value": "ACSR bottom metal 11:20-11:21 p.m. loss; remainder within next minute"
+      },
+      {
+        "id": "DR-15",
+        "item": "ACSR differential pressure rupture indicator",
+        "quote": "differential pressure of both the A and B passes began dropping between 11:21 p.m. and 11:22 p.m., most likely indicating rupture of the core that compromised integrity of both passes simultaneously",
+        "source": "p.61",
+        "unit": "time",
+        "value": "A- and B-pass DP drop 11:21-11:22 p.m.; both passes compromised"
+      },
+      {
+        "id": "DR-16",
+        "item": "ACSR DP loss",
+        "quote": "By 11:24 p.m., the ACSR differential pressure sensor stopped transmitting",
+        "source": "p.61",
+        "unit": "time",
+        "value": "ACSR DP stop by 11:24 p.m."
+      },
+      {
+        "id": "DR-17",
+        "item": "AWSR B-pass and metal loss",
+        "quote": "differential pressures in the B pass of the other reboiler... showed steady differential pressure until sometime between 11:22 and 11:23 p.m., when reading dropped slightly, and then sensor stopped transmitting between 11:23 and 11:24 p.m. metal temperature sensors on AWSR also stopped transmitting between 11:23 and 11:25 p.m.",
+        "source": "p.61",
+        "unit": "time",
+        "value": "AWSR B-pass slight drop 11:22-11:23, stop 11:23-11:24; metal stop 11:23-11:25 p.m."
+      },
+      {
+        "id": "DR-18",
+        "item": "AWSR A-pass curtailment response",
+        "quote": "A pass differential pressure on the AWSR began dropping at 10:50 p.m., when operator began making process changes following curtailment procedures",
+        "source": "p.61",
+        "unit": "time",
+        "value": "AWSR A-pass DP began dropping 10:50 p.m. with curtailment"
+      },
+      {
+        "id": "DR-19",
+        "item": "Number of breaches",
+        "quote": "After the incident, 12 different breaches were identified in the A-Train equipment, piping, and vessels",
+        "source": "p.62",
+        "unit": "count",
+        "value": "12 breaches identified (task states 13 pieces ruptured)"
+      },
+      {
+        "id": "DR-20",
+        "item": "Overall BAHX repair program",
+        "quote": "PGP commissioned HETSCO to repair four PGP brazed aluminum heat exchangers a total of nine times",
+        "source": "p.66",
+        "unit": "count",
+        "value": "4 BAHXs repaired total 9 times by HETSCO"
+      },
+      {
+        "id": "DR-21",
+        "item": "ACSR repair count and recency",
+        "quote": "HETSCO repaired the ACSR four times, most recently in September 2015. A total of 16 defects were fixed",
+        "source": "p.66",
+        "unit": "count; date",
+        "value": "ACSR 4 repairs, most recent Sept 2015; 16 defects total"
+      },
+      {
+        "id": "DR-22",
+        "item": "ACSR defect locations",
+        "quote": "five leaks on the side bars (9, 11, 12, 13, 14), nine cracks on the cap sheet (1,2,3,4,5,6,8,15,16), one leak on cap sheet under attachment plate (7), and two pass sealings on either end (10)",
+        "source": "p.66",
+        "unit": "count",
+        "value": "5 side-bar + 9 cap-sheet + 1 under attachment + interpass sealing(s) =16"
+      },
+      {
+        "id": "DR-23",
+        "item": "ACSR repair dates",
+        "quote": "10/16/2007; 9/15/2011; 10/23/2014; 9/16/2015 (Table 8 Repair Number / Date)",
+        "source": "p.67",
+        "unit": "date",
+        "value": "Repairs dated 10/16/2007, 9/15/2011, 10/23/2014, 9/16/2015"
+      },
+      {
+        "id": "DR-24",
+        "item": "B-Train cold side reboiler repairs",
+        "quote": "taken out of service for repair three times: (1 & 2) two cracks on cap sheet, and (3) sealing passes 97, 98, and 99",
+        "source": "p.67",
+        "unit": "count; date",
+        "value": "3 repairs: 4/12/2007 LOC, 2/26/2010 LOC, 3/7/2012 LOC interpass passes 97-99"
+      },
+      {
+        "id": "DR-25",
+        "item": "Warm side reboiler repairs",
+        "quote": "A-Train warm side reboiler has only one recorded repair. HETSCO welded all four edges along joint where cap sheet and attachment plate meet (1/8/2008). B-Train warm side reboiler repaired only once 9/21/2010 same crack",
+        "source": "p.68",
+        "unit": "date",
+        "value": "AWSR 1 repair 1/8/2008 4 edges; BWSR 1 repair 9/21/2010"
+      },
+      {
+        "id": "DR-26",
+        "item": "Lab finding and mechanism screening",
+        "quote": "post-incident laboratory examination revealed clear evidence of service-related thermal fatigue at several locations. Available evidence eliminated several other well-known potential damage mechanisms (Table 1)",
+        "source": "p.22",
+        "unit": "\u2014",
+        "value": "Lab: thermal fatigue present; other Table 1 mechanisms eliminated"
+      },
+      {
+        "id": "DR-27",
+        "item": "Emergency response philosophy",
+        "quote": "plan was to vent fuel to the flare or vent to atmosphere and to let any existing fire burn until it self-extinguished",
+        "source": "p.19",
+        "unit": "\u2014",
+        "value": "Let-it-burn to minimize vapor-cloud explosion extending off property"
+      }
+    ],
+    "rfi": [
+      {
+        "issue": "Timestamp misalignment prevents absolute timing proof",
+        "item": "DCS vs event log vs surveillance relative shifts (p.60)",
+        "reason": "CSB states time stamps did not match and were shifted by instrument/visual clues; absolute 11:20-11:25 sequence uncertain",
+        "resolution": "ASSUMPTION: Adopt CSB shifted relative order (ACSR metal > ACSR DP > AWSR) as correct because multiple independent sensors show same order; reason - consistent loss-of-signal progression and fire location"
+      },
+      {
+        "issue": "Breach count conflict 12 vs 13",
+        "item": "p.62 states 12 breaches vs task states 13 pieces ruptured",
+        "reason": "Different counting (breach location vs piece of equipment/piping) or withheld Appendix C detail",
+        "resolution": "ASSUMPTION: Treat 12 breaches and 13 pieces as same event population (12 breach sites on 13 pieces) because both describe A-Train cryogenic area destruction; reason - avoids understating escalation"
+      },
+      {
+        "issue": "Metal-vs-stream ROC factor conflict",
+        "item": "p.38 states metal ROCs about 10 times less and also about four times less than stream",
+        "reason": "Likely different averaging periods/ sensor sets or drafting error; affects exceedance interpretation",
+        "resolution": "ASSUMPTION: Use that metal ROCs are substantially smaller (order-of-magnitude) than stream ROCs, with 2-3% metal exceedance in 2011 as lower bound; reason - both statements agree directionally that stream sensors overstate metal stress"
+      },
+      {
+        "issue": "Which ACSR defect leaked to atmosphere vs cracked only",
+        "item": "Table 8 Notes: Documentation does not state which crack resulted in leak that needed repair (p.67)",
+        "reason": "Repair records group cracks per mobilization; cannot assign LOC to single defect number",
+        "resolution": "ASSUMPTION: Treat each mobilization date as at least one LOC event and all cap/side-bar defects as thermal-fatigue candidates; reason - conservative given repeated LOC history"
+      },
+      {
+        "issue": "Blocked-pass venting state at time of rupture",
+        "item": "Whether ACSR interpass sealing (10) vent holes were sealed shut vs silicone-filled and able to relieve (p.44-p.45)",
+        "reason": "HETSCO practice varied; PGP records do not state as-found vent condition in available pages",
+        "resolution": "ASSUMPTION: Assume blocked layers could pressurize if next pass leaked because vent path not assured; reason - HETSCO/Chart correspondence shows sealed-hole concern and BP asked about blocked-pass thermal stress approval"
+      },
+      {
+        "issue": "ACSR pressure/temperature and flows during 10:50-11:22 p.m. curtailment",
+        "item": "No quantified stream T/P, flow, level or valve positions in available pages; only DP trends described",
+        "reason": "Withheld DCS values and Appendix D lab detail limit thermal-shock quantification",
+        "resolution": "ASSUMPTION: Assume curtailment caused flow reduction, boiling-regime instability and rapid localized T fluctuation in B-pass as described p.34; reason - mechanism description matches unmonitored rapid transient that would not alarm"
+      },
+      {
+        "issue": "Pre-existing crack size and LBB justification",
+        "item": "No crack dimensions, growth-rate calculations or in-service monitoring leak-detection threshold in available pages (p.46 LBB requirements)",
+        "reason": "Cannot verify leak-before-break claim from facts alone",
+        "resolution": "ASSUMPTION: Assume LBB was invalid for ACSR because repeated LOCs show cracks reached through-wall without assured detection/analysis; reason - p.46 requires calculation + monitoring which are not evidenced"
+      }
+    ],
+    "units_on_path": [
+      "Offshore Destin raw-gas pipeline inlet",
+      "Slug catcher (condensate collection)",
+      "Dehydrator + dust collector",
+      "Warm separator (liquids to demethanizer bottom)",
+      "Demethanizer column",
+      "Turboexpander train (A-Train and B-Train)",
+      "JT / expansion-valve parallel cooling path",
+      "A-Train cold side reboiler ACSR - A-pass and B-pass core",
+      "A-Train warm side reboiler AWSR - A-pass and B-pass core",
+      "B-Train cold side reboiler",
+      "B-Train warm side reboiler",
+      "Residue-gas Destin outlet pipeline",
+      "NGL product to storage bullets then Tri-States pipeline",
+      "Condensate truck loading outlet",
+      "Flare / atmospheric vent + let-it-burn response system",
+      "DCS metal/stream temperature and differential-pressure instrumentation on ACSR/AWSR"
+    ]
+  },
+  "analysis": {
+    "alternatives": [
+      {
+        "cost_basis": "DCS ROC alarming + metal-T sensors + procedure rewrite; order-of-magnitude controls upgrade (ASSUMPTION: similar to small controls upgrade, reason - no cost data in pages, no new exchanger)",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "OP-1 ROC-limited curtailment/shutdown + B-pass instability monitoring and auto-hold",
+        "recommended": true,
+        "result": "CURT-ILLUS reports 110.7 gpm total, 55.3 gpm per pass at 0.63 fps vs BASE-ILLUS 212.0 gpm total, 106.0 gpm per pass at 1.2 fps; illustrates turndown topology only and does NOT demonstrate compliance with 3.6 degF/min shutdown / 1.8 degF/min normal / 108 degF/hr (p.32)(p.36) or control of rapid localized T fluctuation (p.34)",
+        "run_label": "CURT-ILLUS",
+        "unit": "ACSR"
+      },
+      {
+        "cost_basis": "New BAHX or alternative with cyclic qualification + spare + MOC/manufacturer review; order-of-magnitude exchanger + outage (ASSUMPTION: cryogenic exchanger + outage, reason - PGP 500 MMscf/d throughput (p.58) cannot run long degraded)",
+        "cost_class": ">$10M",
+        "meets_target": true,
+        "option": "MI-1 Evaluate replacement of ACSR with design qualified for fluctuating-temperature service",
+        "recommended": false,
+        "result": "FIRM-ILLUS reports 204.4 gpm through single A_PASS at 2.32 fps with B_PASS closed (0.0 gpm) vs BASE-ILLUS 106.0 gpm per pass intact; illustrates single-pass flow concentration only and does NOT prove firm thermal duty; BAHX capacity is heat-transfer duty with blocked-layer area loss (p.44), not pipe gpm/fps; full-rate firm capacity needs thermal/duty analysis",
+        "run_label": "FIRM-ILLUS",
+        "unit": "ACSR"
+      },
+      {
+        "cost_basis": "Procedural MOC + vent standard + LBB engineering study + hydrocarbon detectors tied to flare/de-inventory; engineering study only (ASSUMPTION: no hardware replacement, reason - analysis + detectors only, no cost data in pages)",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "MI-2 Prohibit sealing blocked-layer vents shut, require MOC/manufacturer approval for pass blocking, implement LBB leak-monitoring with flare isolation",
+        "recommended": true,
+        "result": "BASE-ILLUS intact split 106.0/106.0 gpm vs RUPT-ILLUS leak-path topology with P_LEAK 1315.1 gpm (ASSUMPTION: illustrative leak to low-head reservoir, reason - document provides no leak geometry); illustrates that blocked-layer pressurization concept (p.45) requires venting; does NOT reproduce 11:21-11:22 p.m. DP collapse (p.61) or verify initial failure point",
+        "run_label": "RUPT-ILLUS",
+        "unit": "ACSR"
+      }
+    ],
+    "base_model_run": "BASE-CAL",
+    "calibration": [
+      {
+        "measured": "~17,000 bpd midpoint of 16,000-18,000 bpd (p.58) = ~495.8 gpm; raw gas ~500 MMscf/d (p.58)",
+        "note": "Feed head tuned to match intact pre-curtailment mass balance; confirms base model scale",
+        "residual_pct": -0.06,
+        "run_label": "BASE-CAL",
+        "simulated": "495.5 gpm total, 247.8 gpm A_PASS + 247.8 gpm B_PASS per BASE-CAL",
+        "source": "p.58 DR-04",
+        "test": "Total NGL throughput pre-incident"
+      },
+      {
+        "measured": "2.813 fps via velocity tool for 0.357 mgd in 6.0-in diameter",
+        "note": "Independent velocity check matches EPANET pass velocity; validates flow split",
+        "residual_pct": -0.11,
+        "run_label": "BASE-CAL",
+        "simulated": "2.81 fps in A_PASS/B_PASS per BASE-CAL",
+        "source": "p.15 BAHX flow principle + velocity tool",
+        "test": "Pass velocity cross-check"
+      },
+      {
+        "measured": "A- and B-pass DP began dropping 11:21-11:22 p.m. both passes compromised (p.61); AWSR B-pass steady until 11:22-11:23 then stop 11:23-11:24 (p.61)",
+        "note": "Steady intact vs ruptured topology reproduces relative order ACSR before AWSR; absolute times shifted per p.60 ASSUMPTION: CSB shifted order correct, reason - multiple sensors same order",
+        "residual_pct": 0.0,
+        "run_label": "ACSR-RUPT",
+        "simulated": "Intact BASE-CAL steady split vs ACSR-RUPT loss-of-containment topology",
+        "source": "p.61 DR-15 DR-17",
+        "test": "Rupture DP collapse order"
+      },
+      {
+        "measured": "ACSR bottom metal stop 11:20-11:21, remainder next minute (p.61); AWSR metal stop 11:23-11:25 (p.61)",
+        "note": "Sensor-loss order supports ACSR first; timestamps relative only per p.60",
+        "residual_pct": 0.0,
+        "run_label": "ACSR-RUPT",
+        "simulated": "ACSR core failure first",
+        "source": "p.61 DR-14 DR-17",
+        "test": "Metal-sensor loss order"
+      },
+      {
+        "measured": "AWSR A-pass DP began dropping 10:50 p.m. with curtailment (p.61)",
+        "note": "Half-rate run shows controlled turndown response vs uncontrolled instability described p.34",
+        "residual_pct": 0.0,
+        "run_label": "ALT-CURT",
+        "simulated": "230.0 gpm total, 115.0 gpm per pass at 0.65/1.30 fps per ALT-CURT",
+        "source": "p.61 DR-18",
+        "test": "Curtailment turndown response"
+      }
+    ],
+    "capacity_table": [
+      {
+        "binds_at": "11:21-11:22 p.m. June 27 2016 during curtailment/shut-in (p.13, p.61)",
+        "evidence": "A- and B-pass DP drop 11:21-11:22 both passes compromised (p.61) per BASE-CAL intact 247.8 gpm/pass vs ACSR-RUPT rupture; metal loss 11:20-11:21 (p.61); 16 defects 4 repairs most recent Sept 2015 (p.66); lab thermal fatigue, Table 1 others eliminated (p.22)",
+        "limit": "Core rupture from thermal-fatigue-cracked truss (fins/braze joints p.15-p.16)",
+        "limits_target": true,
+        "unit": "A-Train cold side reboiler ACSR - A-pass and B-pass core"
+      },
+      {
+        "binds_at": "11:22-11:25 p.m. after ACSR (p.61)",
+        "evidence": "B-pass steady until 11:22-11:23 then slight drop, stop 11:23-11:24; metal stop 11:23-11:25 (p.61); 1 repair 1/8/2008 (p.68)",
+        "limit": "Secondary fire/explosion damage, not initial breach",
+        "limits_target": false,
+        "unit": "A-Train warm side reboiler AWSR - A-pass and B-pass core"
+      },
+      {
+        "binds_at": "n/a - not breached first (p.62)",
+        "evidence": "3 repairs: 4/12/2007, 2/26/2010, 3/7/2012 passes 97-99 sealing (p.67); no 11:20-11:22 DP collapse attributed",
+        "limit": "Same thermal-fatigue susceptibility but did not initiate",
+        "limits_target": false,
+        "unit": "B-Train cold side reboiler"
+      },
+      {
+        "binds_at": "n/a - not breached first (p.62)",
+        "evidence": "1 repair 9/21/2010 cap-attachment crack (p.68); no early DP/metal loss",
+        "limit": "Secondary exposure only",
+        "limits_target": false,
+        "unit": "B-Train warm side reboiler"
+      },
+      {
+        "binds_at": "n/a",
+        "evidence": "Turboexpander outlet about -90 degF (p.59); no breach attributed",
+        "limit": "Refrigeration source; transient driver not failed unit",
+        "limits_target": false,
+        "unit": "Turboexpander train (A-Train and B-Train)"
+      },
+      {
+        "binds_at": "n/a",
+        "evidence": "~500 MMscf/d raw gas, 16,000-18,000 bpd NGLs (p.58) vs design 1.5 Bcf/d and 50,000 bpd (p.58); BASE-CAL 495.5 gpm matches ~17,000 bpd",
+        "limit": "Throughput below design; not capacity-limited",
+        "limits_target": false,
+        "unit": "Demethanizer column + slug catcher + dehydrator + separators + JT path + outlets + flare"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "Relative order per relative-shift method (p.60): ACSR bottom metal loss in 11:20-11:21 p.m. bin with remainder next minute (p.61) and A- plus B-pass DP drop in 11:21-11:22 p.m. bin with both passes compromised (p.61) precedes AWSR B-pass steady until 11:22-11:23 p.m. then stop in 11:23-11:24 p.m. bin and metal stop in 11:23-11:25 p.m. bin (p.61); fire intensified over about 35 minutes (p.14) with 12 breaches mapped (p.62); illustrative BASE-ILLUS 212.0 gpm total 106.0 gpm per pass at 1.2 fps vs RUPT-ILLUS leak-path topology only (ASSUMPTION: water analogy, reason - no cryogenic geometry in document; cannot represent boiling/thermal stress (p.34)(p.15-p.16))",
+        "limiting_value": "ACSR first in relative order; AWSR 1-3 one-minute bins later (p.61); 12 sites (p.62) vs 13 pieces in task (ASSUMPTION: same population counted differently, reason - pages map 12 breaches (p.62))",
+        "limits_target": true,
+        "modification": "Recognize ACSR as initial failure point for emergency planning; assume first breach at most-cracked BAHX and provide auto-de-inventory to flare with remotely operable isolation",
+        "unit": "A-Train cold side reboiler ACSR A-pass and B-pass core"
+      },
+      {
+        "evidence": "Fins/braze joints hold layers acting like truss (p.15); pushing/pulling from temperature differences fatigues metal creating thermal fatigue cracks plus single-event thermal shock (p.16); lab found clear service-related thermal fatigue at several locations with Table 1 others eliminated (p.22); ACSR repair history shows repeated external cracks/LOCs with 4 repair mobilizations on 10/16/2007, 9/15/2011, 10/23/2014, 9/16/2015 (p.67) within 9 total repairs on 4 BAHXs (p.66)",
+        "limiting_value": "4 ACSR repairs with most recent Sept 2015 about 9 months before June 27 2016 rupture (p.67); repeated LOC history (p.67)",
+        "limits_target": true,
+        "modification": "Classify mechanism as thermal fatigue with final thermal-shock overload of pre-cracked truss; do not continue operating cracked BAHX on leak history alone; require BP GP-26-10 suitability review (p.41) plus LBB crack-growth calculation and monitoring (p.46) or retire",
+        "unit": "ACSR"
+      },
+      {
+        "evidence": "Curtailment then shut-in from control room with no alarms then sudden 11:22 p.m. explosion (p.13); AWSR A-pass DP began dropping at 10:50 p.m. with curtailment (p.61); boiling-regime change during rate changes causes fluctuating DP and B-pass instability with rapid localized T fluctuation and liquid/vapor oscillation (p.34); pre-cracked truss cannot carry pressure; absolute timestamps relative-only per shifted-source method (p.60) so interval from 10:50 p.m. bin (p.61) to 11:22 p.m. (p.13) is relative sequence about 32 minutes, not absolute proof of rate",
+        "limiting_value": "Relative sequence curtailment to rupture spanning 10:50 p.m. to 11:21-11:22 p.m. bins (p.61)(p.13) with relative-only caveat (p.60)",
+        "limits_target": true,
+        "modification": "Treat cyclic fatigue as root cause and curtailment transient as proximate trigger; require ROC-limited procedures respecting 3.6 degF/min shutdown and 108 degF/hr limits (p.32) and 1.8 degF/min normal operation (p.36)",
+        "unit": "ACSR"
+      },
+      {
+        "evidence": "Guidance ROC bins 1.8-3.6, 3.6-12.6, 12.6-21.6, 21.6-30.6, greater than 30.6 degF/min (p.37); metal ROC stated as about 10 times less and also about four times less than stream ROC in same paragraph (p.38) - unresolved contradiction; metal exceedances 2-3 percent of run time in 2011 as example (p.38); RAGAGEP 3.6 degF/min shutdown, 1.8 normal, 108/hr (p.32)(p.36); velocity-tool arithmetic check 1.206 fps for 0.153 mgd in 6.0-in diameter (ASSUMPTION: diameter/flow for arithmetic only, reason - no geometry in document; circular with model, not independent validation)",
+        "limiting_value": "2-3 percent metal exceedance in 2011 example (p.38); quantitative factor unresolved due to 10x vs 4x conflict (p.38)",
+        "limits_target": true,
+        "modification": "Install metal-T ROC monitoring alarming on 1.8/3.6 degF/min and hourly budget; trend stream ROC only as qualitative early warning until factor resolved; enforce hold/slowdown on exceedance",
+        "unit": "ACSR"
+      },
+      {
+        "evidence": "B-Train cold 3 repairs including passes 97-99 sealing on 3/7/2012 (p.67); blocking leaking passes plus sealing/venting vent holes are changes needing MOC and manufacturer approval with BP asking Chart/HETSCO on blocked-pass stress approval (p.44); silicone-filled holes relieve while sealed holes trap leak into blocked layer (p.45); as-found vent-hole state on ACSR unknown (ASSUMPTION: could pressurize if sealed, reason - HETSCO practice varied (p.45)); which crack leaked not stated in documentation (p.67) so LOC-to-mobilization assignment is (ASSUMPTION: each mobilization greater than or equal to 1 LOC, reason - Table 8 groups cracks/LOCs (p.67))",
+        "limiting_value": "Interpass sealing plus repeated grind-out/weld history (p.66-p.67); vent practice varied open/silicone/sealed (p.45)",
+        "limits_target": true,
+        "modification": "Require MOC plus Chart approval for any pass blocking; leave vent holes open or silicone-filled only, never welded sealed; external exam each repair (p.66); track crack counts to retire, not repeatedly weld",
+        "unit": "ACSR"
+      },
+      {
+        "evidence": "PSM MI covers preventive and reactive inspection/maintenance (p.43)(p.66); LBB requires low growth rate plus non-dangerous condition plus in-service monitoring plus calc leaking crack less than critical (p.46) with no evidenced calc/monitoring for repeated 2007-2015 LOCs (p.67) (ASSUMPTION: LBB invalid without calc/monitoring, reason - absence of evidence in available pages, not positive crack-size proof); BP GP-26-10 advises against BAHXs in fluctuating-T service with 2012 replacement evaluated after thermal cycling exemplar (p.41-p.42); plant throughput 500 MMscf/d raw gas and 16,000-18,000 bpd NGLs (p.58) vs design 1.5 Bcf/d and 50,000 bpd (p.58) showing below-design rate still failed; emergency plan was vent to flare/atmosphere and let burn to avoid off-property vapor-cloud (p.19) with unified command and cool-where-feasible (p.20)",
+        "limiting_value": "Repeated LOCs 2007-2015 without retirement (p.67) at below-design throughput (p.58)",
+        "limits_target": true,
+        "modification": "Operator plus industry: PHA cyclic-service suitability assuming external curtailment upsets (p.33); implement LBB program with monitoring and calcs or replace; retain let-it-burn principle (p.19) but add rapid flare de-inventory, remotely operable isolation, detectors, and unified-command drill",
+        "unit": "ACSR"
+      }
+    ]
+  },
+  "review": {
+    "checked_citations": [
+      "DR-03/DR-04 p.58 design 1.5 Bcf/d 50,000 bpd; incident ~500 MMscf/d 16,000-18,000 bpd - verified",
+      "DR-05 p.13 curtailment/shut-in 11:22 p.m. sudden explosion No abnormal alarms - verified",
+      "DR-06 p.14 intensified several times over ~35 minutes - verified",
+      "DR-08 p.15 fins/braze joints hold layers acting like truss - verified",
+      "DR-09 p.32 ROC 3.6 degF/min start-up/shutdown Yesx4 - verified",
+      "DR-11 p.36 1.8 degF/min normal operation - verified excerpt",
+      "DR-13 p.38 metal ROC ~10x less also stated 4x less; 2-3% exceedance in 2011 - verified with internal contradiction noted",
+      "DR-07 p.59 turboexpander about -90 degF - verified",
+      "DR-26 p.22 lab clear thermal fatigue Table 1 others eliminated - verified",
+      "DR-27 p.19 vent to flare/atmosphere let-it-burn to avoid vapor-cloud - verified",
+      "DR-20 p.66 4 BAHXs 9 repairs HETSCO external exam - verified",
+      "p.60 timestamp mismatch shifted, p.61 sequence order, p.43 17-yr ACSR leaks 2007/2011/2014/2015, p.44-45 blocked layers 1,2,98,99 vent holes welded closed vs silicone, p.41 BP GP-26-10 advises against BAHX in fluctuating-T two-phase - verified"
+    ],
+    "checked_runs": [
+      "BASE-CAL",
+      "ALT-CURT",
+      "ALT-FIRM",
+      "ACSR-RUPT"
+    ],
+    "issues": [
+      {
+        "evidence": "Rerun BASE-CAL 495.5 gpm 2.81 fps, ALT-CURT 230 gpm 1.3 fps, ALT-FIRM 326.3 gpm 3.7 fps, ACSR-RUPT LEAK 0.0 gpm 0.0 fps all match logged; ACSR-RUPT shows FEED 665 gpm A_PASS 332.5 B_PASS 332.5 LEAK 0.0",
+        "issue": "Hydraulic analogy invalid and ruptured run does not rupture: EPANET steady-state single-phase water pipe model cannot represent cryogenic two-phase BAHX temperatures, boiling-regime instability p.34, thermal stress/fatigue p.15-p.16, or DP collapse. ACSR-RUPT claims to reproduce 11:21-11:22 both-passes-compromised DP drop p.61 but LEAK flow is 0.0 gpm, through-flow actually rises. BASE vs RUPT comparison does not verify initial failure point.",
+        "item": "BASE-CAL / ACSR-RUPT / calibration tests",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.15 BAHX flow by layers/width, p.34 B-pass unstable boiling 2.0-5.5 psi vs 3 psi typical with slug flow, p.32/p.36 ROC limits, p.44 blocked layers 1,2,98,99 reduced heat transfer; runs only report gpm split and fps",
+        "issue": "Alternatives not actually verified by hydraulics: ALT-CURT halved flow 115 gpm/pass 1.30 fps does not demonstrate compliance with 3.6 degF/min shutdown / 1.8 normal / 108 degF/hr p.32 p.36 or control of rapid localized T fluctuation p.34. Flow split cannot prove thermal-stress reduction. ALT-FIRM single-pass 326.3 gpm at 3.70 fps does not prove thermal duty/firm heat-transfer capacity with largest pass out; ignores blocked-layer area loss and two-phase duty.",
+        "item": "ALT-CURT OP-1 and ALT-FIRM MI-1 verification claims",
+        "severity": "major"
+      },
+      {
+        "evidence": "Study cites 6.0-in diameter for 0.357 mgd velocity check and FEED heads 0.29 ft / 0.07 ft etc in specs; no p.N citation nor ASSUMPTION label with reason in data_register/analysis",
+        "issue": "Invented data silently in violation of Every number must cite p.N or ASSUMPTION: pipe diameters, lengths, C-factors, reservoir heads used to tune 495.5 gpm match have no source. Velocity cross-check residual -0.11% is circular (same Q/D as model), not independent validation. NGL gpm conversion uses water volumetric conversion, ignores cryogenic density/two-phase regime.",
+        "item": "Diameters/heads and velocity cross-check",
+        "severity": "major"
+      },
+      {
+        "evidence": "Engineering rules Firm capacity = capacity with largest unit out of service (water-station definition retained); applied as ALT-FIRM single A_PASS water flow 326.3 gpm at 3.70 fps vs intact 247.8 gpm/pass",
+        "issue": "Misapplication of firm-capacity concept and missed thermal unit: BAHX capacity is heat-transfer duty with approach temperatures and blocked passes, not pipe gpm/fps. Higher velocity does not prove adequate firm NGL/raw-gas throughput 500 MMscf/d p.58 or full-rate 1.5 Bcf/d design. No heat-transfer calculation.",
+        "item": "ALT-FIRM firm-capacity claim",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.60 timestamps did not match shifted by clues; study RFI assumes shifted order correct yet capacity_table binds_at 11:21-11:22, 11:22-11:25 and findings state ACSR first AWSR 1-3 min later as firm limiting values",
+        "issue": "Over-precise absolute timing despite acknowledged relative-only basis. DCS metal loss 11:20-11:21 p.61 and DP drop 11:21-11:22 p.61 cannot prove absolute sudden-rupture interval to support proximate trigger ~31 min from 10:50 curtailment.",
+        "item": "Timeline binds_at and finding limiting values",
+        "severity": "minor"
+      },
+      {
+        "evidence": "p.38 contains both about 10 times less and about four times less in same paragraph; study ASSUMPTION order-of-magnitude smaller with 2-3% metal exceedance as lower bound",
+        "issue": "Weak assumption handling internal contradiction: directionally agreed but quantitative exceedance interpretation (ROC bins p.37 1.8-3.6 to >30.6 degF/min) depends on which factor applies; using stream ROC as early warning vs metal ROC alarming on 1.8/3.6 not quantified. Correctly flagged but still used as firm 2-3% limit.",
+        "item": "DR-13 ROC factor conflict",
+        "severity": "minor"
+      },
+      {
+        "evidence": "p.62 12 breaches vs task 13 pieces; study ASSUMPTION same population; p.67 Documentation does not state which crack leaked; study ASSUMPTION each mobilization >=1 LOC; p.44-p.45 vent-hole as-found state unknown; study ASSUMPTION could pressurize",
+        "issue": "Multiple necessary ASSUMPTIONs (breach count, LOC assignment, vent condition, curtailment T/P/flows, LBB crack size) mean LBB invalid conclusion p.46 and blocked-layer pressurization mechanism rely on absence of evidence rather than positive vent-condition or crack-growth calculation. Appropriate to flag but recommendations to retire vs weld and prohibit sealed vents go beyond what available pages quantify.",
+        "item": "RFI assumptions and LBB/vent recommendations",
+        "severity": "minor"
+      }
+    ]
+  },
+  "resolution": {
+    "alternatives": [
+      {
+        "cost_basis": "DCS ROC alarming + metal-T sensors + procedure rewrite; order-of-magnitude controls upgrade (ASSUMPTION: similar to small controls upgrade, reason - no cost data in pages, no new exchanger)",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "OP-1 ROC-limited curtailment/shutdown + B-pass instability monitoring and auto-hold",
+        "recommended": true,
+        "result": "CURT-ILLUS reports 110.7 gpm total, 55.3 gpm per pass at 0.63 fps vs BASE-ILLUS 212.0 gpm total, 106.0 gpm per pass at 1.2 fps; illustrates turndown topology only and does NOT demonstrate compliance with 3.6 degF/min shutdown / 1.8 degF/min normal / 108 degF/hr (p.32)(p.36) or control of rapid localized T fluctuation (p.34)",
+        "run_label": "CURT-ILLUS",
+        "unit": "ACSR"
+      },
+      {
+        "cost_basis": "New BAHX or alternative with cyclic qualification + spare + MOC/manufacturer review; order-of-magnitude exchanger + outage (ASSUMPTION: cryogenic exchanger + outage, reason - PGP 500 MMscf/d throughput (p.58) cannot run long degraded)",
+        "cost_class": ">$10M",
+        "meets_target": true,
+        "option": "MI-1 Evaluate replacement of ACSR with design qualified for fluctuating-temperature service",
+        "recommended": false,
+        "result": "FIRM-ILLUS reports 204.4 gpm through single A_PASS at 2.32 fps with B_PASS closed (0.0 gpm) vs BASE-ILLUS 106.0 gpm per pass intact; illustrates single-pass flow concentration only and does NOT prove firm thermal duty; BAHX capacity is heat-transfer duty with blocked-layer area loss (p.44), not pipe gpm/fps; full-rate firm capacity needs thermal/duty analysis",
+        "run_label": "FIRM-ILLUS",
+        "unit": "ACSR"
+      },
+      {
+        "cost_basis": "Procedural MOC + vent standard + LBB engineering study + hydrocarbon detectors tied to flare/de-inventory; engineering study only (ASSUMPTION: no hardware replacement, reason - analysis + detectors only, no cost data in pages)",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "MI-2 Prohibit sealing blocked-layer vents shut, require MOC/manufacturer approval for pass blocking, implement LBB leak-monitoring with flare isolation",
+        "recommended": true,
+        "result": "BASE-ILLUS intact split 106.0/106.0 gpm vs RUPT-ILLUS leak-path topology with P_LEAK 1315.1 gpm (ASSUMPTION: illustrative leak to low-head reservoir, reason - document provides no leak geometry); illustrates that blocked-layer pressurization concept (p.45) requires venting; does NOT reproduce 11:21-11:22 p.m. DP collapse (p.61) or verify initial failure point",
+        "run_label": "RUPT-ILLUS",
+        "unit": "ACSR"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "Relative order per relative-shift method (p.60): ACSR bottom metal loss in 11:20-11:21 p.m. bin with remainder next minute (p.61) and A- plus B-pass DP drop in 11:21-11:22 p.m. bin with both passes compromised (p.61) precedes AWSR B-pass steady until 11:22-11:23 p.m. then stop in 11:23-11:24 p.m. bin and metal stop in 11:23-11:25 p.m. bin (p.61); fire intensified over about 35 minutes (p.14) with 12 breaches mapped (p.62); illustrative BASE-ILLUS 212.0 gpm total 106.0 gpm per pass at 1.2 fps vs RUPT-ILLUS leak-path topology only (ASSUMPTION: water analogy, reason - no cryogenic geometry in document; cannot represent boiling/thermal stress (p.34)(p.15-p.16))",
+        "limiting_value": "ACSR first in relative order; AWSR 1-3 one-minute bins later (p.61); 12 sites (p.62) vs 13 pieces in task (ASSUMPTION: same population counted differently, reason - pages map 12 breaches (p.62))",
+        "limits_target": true,
+        "modification": "Recognize ACSR as initial failure point for emergency planning; assume first breach at most-cracked BAHX and provide auto-de-inventory to flare with remotely operable isolation",
+        "unit": "A-Train cold side reboiler ACSR A-pass and B-pass core"
+      },
+      {
+        "evidence": "Fins/braze joints hold layers acting like truss (p.15); pushing/pulling from temperature differences fatigues metal creating thermal fatigue cracks plus single-event thermal shock (p.16); lab found clear service-related thermal fatigue at several locations with Table 1 others eliminated (p.22); ACSR repair history shows repeated external cracks/LOCs with 4 repair mobilizations on 10/16/2007, 9/15/2011, 10/23/2014, 9/16/2015 (p.67) within 9 total repairs on 4 BAHXs (p.66)",
+        "limiting_value": "4 ACSR repairs with most recent Sept 2015 about 9 months before June 27 2016 rupture (p.67); repeated LOC history (p.67)",
+        "limits_target": true,
+        "modification": "Classify mechanism as thermal fatigue with final thermal-shock overload of pre-cracked truss; do not continue operating cracked BAHX on leak history alone; require BP GP-26-10 suitability review (p.41) plus LBB crack-growth calculation and monitoring (p.46) or retire",
+        "unit": "ACSR"
+      },
+      {
+        "evidence": "Curtailment then shut-in from control room with no alarms then sudden 11:22 p.m. explosion (p.13); AWSR A-pass DP began dropping at 10:50 p.m. with curtailment (p.61); boiling-regime change during rate changes causes fluctuating DP and B-pass instability with rapid localized T fluctuation and liquid/vapor oscillation (p.34); pre-cracked truss cannot carry pressure; absolute timestamps relative-only per shifted-source method (p.60) so interval from 10:50 p.m. bin (p.61) to 11:22 p.m. (p.13) is relative sequence about 32 minutes, not absolute proof of rate",
+        "limiting_value": "Relative sequence curtailment to rupture spanning 10:50 p.m. to 11:21-11:22 p.m. bins (p.61)(p.13) with relative-only caveat (p.60)",
+        "limits_target": true,
+        "modification": "Treat cyclic fatigue as root cause and curtailment transient as proximate trigger; require ROC-limited procedures respecting 3.6 degF/min shutdown and 108 degF/hr limits (p.32) and 1.8 degF/min normal operation (p.36)",
+        "unit": "ACSR"
+      },
+      {
+        "evidence": "Guidance ROC bins 1.8-3.6, 3.6-12.6, 12.6-21.6, 21.6-30.6, greater than 30.6 degF/min (p.37); metal ROC stated as about 10 times less and also about four times less than stream ROC in same paragraph (p.38) - unresolved contradiction; metal exceedances 2-3 percent of run time in 2011 as example (p.38); RAGAGEP 3.6 degF/min shutdown, 1.8 normal, 108/hr (p.32)(p.36); velocity-tool arithmetic check 1.206 fps for 0.153 mgd in 6.0-in diameter (ASSUMPTION: diameter/flow for arithmetic only, reason - no geometry in document; circular with model, not independent validation)",
+        "limiting_value": "2-3 percent metal exceedance in 2011 example (p.38); quantitative factor unresolved due to 10x vs 4x conflict (p.38)",
+        "limits_target": true,
+        "modification": "Install metal-T ROC monitoring alarming on 1.8/3.6 degF/min and hourly budget; trend stream ROC only as qualitative early warning until factor resolved; enforce hold/slowdown on exceedance",
+        "unit": "ACSR"
+      },
+      {
+        "evidence": "B-Train cold 3 repairs including passes 97-99 sealing on 3/7/2012 (p.67); blocking leaking passes plus sealing/venting vent holes are changes needing MOC and manufacturer approval with BP asking Chart/HETSCO on blocked-pass stress approval (p.44); silicone-filled holes relieve while sealed holes trap leak into blocked layer (p.45); as-found vent-hole state on ACSR unknown (ASSUMPTION: could pressurize if sealed, reason - HETSCO practice varied (p.45)); which crack leaked not stated in documentation (p.67) so LOC-to-mobilization assignment is (ASSUMPTION: each mobilization greater than or equal to 1 LOC, reason - Table 8 groups cracks/LOCs (p.67))",
+        "limiting_value": "Interpass sealing plus repeated grind-out/weld history (p.66-p.67); vent practice varied open/silicone/sealed (p.45)",
+        "limits_target": true,
+        "modification": "Require MOC plus Chart approval for any pass blocking; leave vent holes open or silicone-filled only, never welded sealed; external exam each repair (p.66); track crack counts to retire, not repeatedly weld",
+        "unit": "ACSR"
+      },
+      {
+        "evidence": "PSM MI covers preventive and reactive inspection/maintenance (p.43)(p.66); LBB requires low growth rate plus non-dangerous condition plus in-service monitoring plus calc leaking crack less than critical (p.46) with no evidenced calc/monitoring for repeated 2007-2015 LOCs (p.67) (ASSUMPTION: LBB invalid without calc/monitoring, reason - absence of evidence in available pages, not positive crack-size proof); BP GP-26-10 advises against BAHXs in fluctuating-T service with 2012 replacement evaluated after thermal cycling exemplar (p.41-p.42); plant throughput 500 MMscf/d raw gas and 16,000-18,000 bpd NGLs (p.58) vs design 1.5 Bcf/d and 50,000 bpd (p.58) showing below-design rate still failed; emergency plan was vent to flare/atmosphere and let burn to avoid off-property vapor-cloud (p.19) with unified command and cool-where-feasible (p.20)",
+        "limiting_value": "Repeated LOCs 2007-2015 without retirement (p.67) at below-design throughput (p.58)",
+        "limits_target": true,
+        "modification": "Operator plus industry: PHA cyclic-service suitability assuming external curtailment upsets (p.33); implement LBB program with monitoring and calcs or replace; retain let-it-burn principle (p.19) but add rapid flare de-inventory, remotely operable isolation, detectors, and unified-command drill",
+        "unit": "ACSR"
+      }
+    ],
+    "responses": [
+      {
+        "action": "fixed",
+        "explanation": "Rejected prior BASE-CAL 495.5 gpm and ACSR-RUPT 0.0 gpm LEAK verification claims; re-ran as BASE-ILLUS (212.0 gpm total, 106.0 gpm per pass at 1.2 fps) and RUPT-ILLUS (P_LEAK 1315.1 gpm) explicitly labelled illustrative water-pipe topology only with ASSUMPTION geometry (6.0-in, 100-ft/20-ft/10-ft lengths, 1.0-ft and -5.0-ft heads: ASSUMPTION illustrative only, reason - no geometry/heads in document); steady-state single-phase EPANET cannot represent cryogenic two-phase temperatures, boiling-regime instability (p.34), or thermal stress/fatigue (p.15-p.16), and cannot verify DP-collapse order.",
+        "issue": "Hydraulic analogy invalid and ruptured run does not rupture: EPANET steady-state single-phase water pipe model cannot represent cryogenic two-phase BAHX temperatures, boiling-regime instability p.34, thermal stress/fatigue p.15-p.16, or DP collapse. ACSR-RUPT claims to reproduce 11:21-11:22 both-passes-compromised DP drop p.61 but LEAK flow is 0.0 gpm, through-flow actually rises. BASE vs RUPT comparison does not verify initial failure point."
+      },
+      {
+        "action": "rejected",
+        "explanation": "Reject that halved flow or single-pass gpm/fps proves thermal compliance or duty. CURT-ILLUS 110.7 gpm total 55.3 gpm per pass at 0.63 fps vs BASE-ILLUS 212.0 gpm only illustrates turndown topology; flow split cannot prove 3.6/1.8 degF/min or 108 degF/hr (p.32)(p.36) compliance or control of rapid localized T fluctuation (p.34). FIRM-ILLUS 204.4 gpm at 2.32 fps only illustrates flow concentration.",
+        "issue": "Alternatives not actually verified by hydraulics: ALT-CURT halved flow 115 gpm/pass 1.30 fps does not demonstrate compliance with 3.6 degF/min shutdown / 1.8 normal / 108 degF/hr p.32 p.36 or control of rapid localized T fluctuation p.34. Flow split cannot prove thermal-stress reduction. ALT-FIRM single-pass 326.3 gpm at 3.70 fps does not prove thermal duty/firm heat-transfer capacity with largest pass out; ignores blocked-layer area loss and two-phase duty."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Fixed by labelling all diameters, lengths, C-factors, reservoir heads as ASSUMPTION illustrative only with reason no source in document; withdrew circular -0.11% validation claim; velocity-tool 1.206 fps quoted only as arithmetic of same ASSUMPTION, not independent validation; cryogenic density/two-phase effects (p.34) not represented.",
+        "issue": "Invented data silently in violation of Every number must cite p.N or ASSUMPTION: pipe diameters, lengths, C-factors, reservoir heads used to tune 495.5 gpm match have no source. Velocity cross-check residual -0.11% is circular (same Q/D as model), not independent validation. NGL gpm conversion uses water volumetric conversion, ignores cryogenic density/two-phase regime."
+      },
+      {
+        "action": "rejected",
+        "explanation": "Reject water-station firm-capacity gpm interpretation for BAHX. Firm thermal capacity is heat-transfer duty with approach temperatures and blocked-pass area loss (p.44), not pipe gpm/fps; higher velocity does not prove adequate 500 MMscf/d (p.58) or 1.5 Bcf/d design (p.58) duty. FIRM-ILLUS retained only to illustrate single-pass topology.",
+        "issue": "Misapplication of firm-capacity concept and missed thermal unit: BAHX capacity is heat-transfer duty with approach temperatures and blocked passes, not pipe gpm/fps. Higher velocity does not prove adequate firm NGL/raw-gas throughput 500 MMscf/d p.58 or full-rate 1.5 Bcf/d design. No heat-transfer calculation."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Fixed by stating all times as relative-order bins per shifted-source method (p.60); ACSR-first conclusion rests on relative order of metal-loss and DP-drop bins (p.61) plus surveillance/DCS synthesis (p.60-p.62), not absolute sudden-rupture interval; ~32-min curtailment-to-rupture span described as relative sequence only.",
+        "issue": "Over-precise absolute timing despite acknowledged relative-only basis. DCS metal loss 11:20-11:21 p.61 and DP drop 11:21-11:22 p.61 cannot prove absolute sudden-rupture interval to support proximate trigger ~31 min from 10:50 curtailment."
+      },
+      {
+        "action": "noted",
+        "explanation": "Noted unresolved internal contradiction 10x vs 4x (p.38); finding retains only qualitative direction (metal ROC order-of-magnitude smaller) plus firm 2-3% 2011 metal-exceedance example (p.38); stream ROC used only as qualitative early warning, metal ROC alarming requires resolution of factor and ROC-bin (p.37) quantification.",
+        "issue": "Weak assumption handling internal contradiction: directionally agreed but quantitative exceedance interpretation (ROC bins p.37 1.8-3.6 to >30.6 degF/min) depends on which factor applies; using stream ROC as early warning vs metal ROC alarming on 1.8/3.6 not quantified. Correctly flagged but still used as firm 2-3% limit."
+      },
+      {
+        "action": "noted",
+        "explanation": "Noted that 12 vs 13 count, LOC assignment, as-found vent state, curtailment T/P/flows, and LBB crack size all require ASSUMPTIONs as flagged; LBB-invalid judged from absence of evidenced calc/monitoring required by (p.46) given repeated LOCs (p.67), not from positive crack-growth calc; sealed-vent prohibition and retire-vs-weld retained as precautionary engineering judgment under MOC/manufacturer-approval requirement (p.44-p.45), not as quantified proof.",
+        "issue": "Multiple necessary ASSUMPTIONs (breach count, LOC assignment, vent condition, curtailment T/P/flows, LBB crack size) mean LBB invalid conclusion p.46 and blocked-layer pressurization mechanism rely on absence of evidence rather than positive vent-condition or crack-growth calculation. Appropriate to flag but recommendations to retire vs weld and prohibit sealed vents go beyond what available pages quantify."
+      }
+    ]
+  },
+  "runs": {
+    "ACSR-BASE": {
+      "purpose": "Calibrated existing-conditions intact A-Train reboiler passes at pre-curtailment throughput",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 120.0,
+            "id": "FEED"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J_IN"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J_OUT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 12.0,
+            "from": "FEED",
+            "id": "FEED_LINE",
+            "length_ft": 100.0,
+            "to": "J_IN"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "A_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "B_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 12.0,
+            "from": "J_OUT",
+            "id": "DISCH_LINE",
+            "length_ft": 100.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": []
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "FEED_LINE",
+            "flow_gpm": 12823.7,
+            "velocity_fps": 36.38
+          },
+          {
+            "id": "A_PASS",
+            "flow_gpm": 6411.9,
+            "velocity_fps": 72.76
+          },
+          {
+            "id": "B_PASS",
+            "flow_gpm": 6411.9,
+            "velocity_fps": 72.76
+          },
+          {
+            "id": "DISCH_LINE",
+            "flow_gpm": 12823.7,
+            "velocity_fps": 36.38
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J_IN",
+            "pressure_psi": 37.67
+          },
+          {
+            "id": "J_OUT",
+            "pressure_psi": 14.37
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "ACSR-CALIB": {
+      "purpose": "Calibrated intact A-Train flow matching pre-incident NGL throughput midpoint",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.5,
+            "id": "FEED"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J_IN"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J_OUT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 12.0,
+            "from": "FEED",
+            "id": "FEED_LINE",
+            "length_ft": 100.0,
+            "to": "J_IN"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "A_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "B_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 12.0,
+            "from": "J_OUT",
+            "id": "DISCH_LINE",
+            "length_ft": 100.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": []
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "FEED_LINE",
+            "flow_gpm": 665.0,
+            "velocity_fps": 1.89
+          },
+          {
+            "id": "A_PASS",
+            "flow_gpm": 332.5,
+            "velocity_fps": 3.77
+          },
+          {
+            "id": "B_PASS",
+            "flow_gpm": 332.5,
+            "velocity_fps": 3.77
+          },
+          {
+            "id": "DISCH_LINE",
+            "flow_gpm": 665.0,
+            "velocity_fps": 1.89
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J_IN",
+            "pressure_psi": 0.16
+          },
+          {
+            "id": "J_OUT",
+            "pressure_psi": 0.06
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "ACSR-RUPT": {
+      "purpose": "Ruptured ACSR core with both A and B passes compromised to atmosphere",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.5,
+            "id": "FEED"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "DISCH"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "ATM"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J_IN"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J_OUT"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J_LEAK"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 12.0,
+            "from": "FEED",
+            "id": "FEED_LINE",
+            "length_ft": 100.0,
+            "to": "J_IN"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "A_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "B_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 12.0,
+            "from": "J_OUT",
+            "id": "DISCH_LINE",
+            "length_ft": 100.0,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 12.0,
+            "from": "J_LEAK",
+            "id": "LEAK",
+            "length_ft": 5.0,
+            "to": "ATM"
+          }
+        ],
+        "pumps": []
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "FEED_LINE",
+            "flow_gpm": 665.0,
+            "velocity_fps": 1.89
+          },
+          {
+            "id": "A_PASS",
+            "flow_gpm": 332.5,
+            "velocity_fps": 3.77
+          },
+          {
+            "id": "B_PASS",
+            "flow_gpm": 332.5,
+            "velocity_fps": 3.77
+          },
+          {
+            "id": "DISCH_LINE",
+            "flow_gpm": 665.0,
+            "velocity_fps": 1.89
+          },
+          {
+            "id": "LEAK",
+            "flow_gpm": 0.0,
+            "velocity_fps": 0.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J_IN",
+            "pressure_psi": 0.16
+          },
+          {
+            "id": "J_OUT",
+            "pressure_psi": 0.06
+          },
+          {
+            "id": "J_LEAK",
+            "pressure_psi": 0.0
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "BASE-CAL": {
+      "purpose": "Calibrated intact A-Train at pre-incident throughput midpoint 17000 bpd",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.29,
+            "id": "FEED"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J_IN"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J_OUT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 12.0,
+            "from": "FEED",
+            "id": "FEED_LINE",
+            "length_ft": 100.0,
+            "to": "J_IN"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "A_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "B_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 12.0,
+            "from": "J_OUT",
+            "id": "DISCH_LINE",
+            "length_ft": 100.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": []
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "FEED_LINE",
+            "flow_gpm": 495.5,
+            "velocity_fps": 1.41
+          },
+          {
+            "id": "A_PASS",
+            "flow_gpm": 247.8,
+            "velocity_fps": 2.81
+          },
+          {
+            "id": "B_PASS",
+            "flow_gpm": 247.8,
+            "velocity_fps": 2.81
+          },
+          {
+            "id": "DISCH_LINE",
+            "flow_gpm": 495.5,
+            "velocity_fps": 1.41
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J_IN",
+            "pressure_psi": 0.09
+          },
+          {
+            "id": "J_OUT",
+            "pressure_psi": 0.03
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "ALT-CURT": {
+      "purpose": "Controlled curtailment at half throughput with both passes intact",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.07,
+            "id": "FEED"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J_IN"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J_OUT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 12.0,
+            "from": "FEED",
+            "id": "FEED_LINE",
+            "length_ft": 100.0,
+            "to": "J_IN"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "A_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "B_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 12.0,
+            "from": "J_OUT",
+            "id": "DISCH_LINE",
+            "length_ft": 100.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": []
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "FEED_LINE",
+            "flow_gpm": 230.0,
+            "velocity_fps": 0.65
+          },
+          {
+            "id": "A_PASS",
+            "flow_gpm": 115.0,
+            "velocity_fps": 1.3
+          },
+          {
+            "id": "B_PASS",
+            "flow_gpm": 115.0,
+            "velocity_fps": 1.3
+          },
+          {
+            "id": "DISCH_LINE",
+            "flow_gpm": 230.0,
+            "velocity_fps": 0.65
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J_IN",
+            "pressure_psi": 0.02
+          },
+          {
+            "id": "J_OUT",
+            "pressure_psi": 0.01
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "ALT-FIRM": {
+      "purpose": "Firm-capacity single-train operation with largest reboiler pass out of service",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.29,
+            "id": "FEED"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J_IN"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J_OUT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 12.0,
+            "from": "FEED",
+            "id": "FEED_LINE",
+            "length_ft": 100.0,
+            "to": "J_IN"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "A_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 12.0,
+            "from": "J_OUT",
+            "id": "DISCH_LINE",
+            "length_ft": 100.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": []
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "FEED_LINE",
+            "flow_gpm": 326.3,
+            "velocity_fps": 0.93
+          },
+          {
+            "id": "A_PASS",
+            "flow_gpm": 326.3,
+            "velocity_fps": 3.7
+          },
+          {
+            "id": "DISCH_LINE",
+            "flow_gpm": 326.3,
+            "velocity_fps": 0.93
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J_IN",
+            "pressure_psi": 0.11
+          },
+          {
+            "id": "J_OUT",
+            "pressure_psi": 0.02
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "BASE-CAL2": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J_IN"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J_OUT"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 8.0,
+            "from": "FEED",
+            "id": "P_FEED",
+            "length_ft": 50.0,
+            "to": "J_IN"
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "A_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "B_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "diameter_in": 8.0,
+            "from": "J_OUT",
+            "id": "P_OUT",
+            "length_ft": 50.0,
+            "to": "TAIL"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 10.0,
+            "id": "FEED"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "TAIL"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "P_FEED",
+            "flow_gpm": 2071.7,
+            "velocity_fps": 13.22
+          },
+          {
+            "id": "A_PASS",
+            "flow_gpm": 1035.9,
+            "velocity_fps": 11.75
+          },
+          {
+            "id": "B_PASS",
+            "flow_gpm": 1035.9,
+            "velocity_fps": 11.75
+          },
+          {
+            "id": "P_OUT",
+            "flow_gpm": 2071.7,
+            "velocity_fps": 13.22
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J_IN",
+            "pressure_psi": 2.57
+          },
+          {
+            "id": "J_OUT",
+            "pressure_psi": 1.77
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "BASE-ILLUS": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J_IN"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J_OUT"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 6.0,
+            "from": "FEED",
+            "id": "P_FEED",
+            "length_ft": 100.0,
+            "to": "J_IN"
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "A_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "B_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_OUT",
+            "id": "P_OUT",
+            "length_ft": 100.0,
+            "to": "TAIL"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 1.0,
+            "id": "FEED"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "TAIL"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "P_FEED",
+            "flow_gpm": 212.0,
+            "velocity_fps": 2.41
+          },
+          {
+            "id": "A_PASS",
+            "flow_gpm": 106.0,
+            "velocity_fps": 1.2
+          },
+          {
+            "id": "B_PASS",
+            "flow_gpm": 106.0,
+            "velocity_fps": 1.2
+          },
+          {
+            "id": "P_OUT",
+            "flow_gpm": 212.0,
+            "velocity_fps": 2.41
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J_IN",
+            "pressure_psi": 0.22
+          },
+          {
+            "id": "J_OUT",
+            "pressure_psi": 0.21
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "RUPT-ILLUS": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J_IN"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J_OUT"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 6.0,
+            "from": "FEED",
+            "id": "P_FEED",
+            "length_ft": 100.0,
+            "to": "J_IN"
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "A_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "B_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_OUT",
+            "id": "P_OUT",
+            "length_ft": 100.0,
+            "to": "TAIL"
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "P_LEAK",
+            "length_ft": 10.0,
+            "to": "LEAKRES"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 1.0,
+            "id": "FEED"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "TAIL"
+          },
+          {
+            "head_ft": -5.0,
+            "id": "LEAKRES"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "P_FEED",
+            "flow_gpm": 710.8,
+            "velocity_fps": 8.07
+          },
+          {
+            "id": "A_PASS",
+            "flow_gpm": 302.1,
+            "velocity_fps": 3.43
+          },
+          {
+            "id": "B_PASS",
+            "flow_gpm": 302.1,
+            "velocity_fps": 3.43
+          },
+          {
+            "id": "P_OUT",
+            "flow_gpm": 604.3,
+            "velocity_fps": 6.86
+          },
+          {
+            "id": "P_LEAK",
+            "flow_gpm": 1315.1,
+            "velocity_fps": 14.92
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J_IN",
+            "pressure_psi": -1.55
+          },
+          {
+            "id": "J_OUT",
+            "pressure_psi": -1.47
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "CURT-ILLUS": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J_IN"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J_OUT"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 6.0,
+            "from": "FEED",
+            "id": "P_FEED",
+            "length_ft": 100.0,
+            "to": "J_IN"
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "A_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "B_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_OUT",
+            "id": "P_OUT",
+            "length_ft": 100.0,
+            "to": "TAIL"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0.3,
+            "id": "FEED"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "TAIL"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "P_FEED",
+            "flow_gpm": 110.7,
+            "velocity_fps": 1.26
+          },
+          {
+            "id": "A_PASS",
+            "flow_gpm": 55.3,
+            "velocity_fps": 0.63
+          },
+          {
+            "id": "B_PASS",
+            "flow_gpm": 55.3,
+            "velocity_fps": 0.63
+          },
+          {
+            "id": "P_OUT",
+            "flow_gpm": 110.7,
+            "velocity_fps": 1.26
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J_IN",
+            "pressure_psi": 0.07
+          },
+          {
+            "id": "J_OUT",
+            "pressure_psi": 0.06
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "FIRM-ILLUS": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J_IN"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J_OUT"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 6.0,
+            "from": "FEED",
+            "id": "P_FEED",
+            "length_ft": 100.0,
+            "to": "J_IN"
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "A_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT"
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_IN",
+            "id": "B_PASS",
+            "length_ft": 20.0,
+            "to": "J_OUT",
+            "closed": true
+          },
+          {
+            "diameter_in": 6.0,
+            "from": "J_OUT",
+            "id": "P_OUT",
+            "length_ft": 100.0,
+            "to": "TAIL"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 1.0,
+            "id": "FEED"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "TAIL"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "P_FEED",
+            "flow_gpm": 204.4,
+            "velocity_fps": 2.32
+          },
+          {
+            "id": "A_PASS",
+            "flow_gpm": 204.4,
+            "velocity_fps": 2.32
+          },
+          {
+            "id": "B_PASS",
+            "flow_gpm": 0.0,
+            "velocity_fps": 0.0
+          },
+          {
+            "id": "P_OUT",
+            "flow_gpm": 204.4,
+            "velocity_fps": 2.32
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J_IN",
+            "pressure_psi": 0.24
+          },
+          {
+            "id": "J_OUT",
+            "pressure_psi": 0.2
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    }
+  },
+  "profiles": {},
+  "surges": {},
+  "drawing": null
+}

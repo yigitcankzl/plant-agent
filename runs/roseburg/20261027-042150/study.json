@@ -1,0 +1,4304 @@
+{
+  "case": "roseburg",
+  "facility": "Winchester Water Treatment Plant, Roseburg, Oregon",
+  "source": "City of Roseburg, Water Treatment Facilities Preliminary Design Report, July 2009 (public record)",
+  "url": "https://roseburgor.gov/storage/app/media/PWD/Public%20Works%20Images%20and%20Docs/Water%20Treatment%20Facilities%20Preliminary%20Design%20Report.pdf",
+  "question": "Can the Winchester Water Treatment Plant be expanded from its current 12 mgd to 18 mgd? For each unit along the flow path, determine whether it limits 18 mgd, the flow at which it becomes limiting, and the least-cost modification that makes 18 mgd work.",
+  "model": "muse-spark-1.3-contributor",
+  "collection": {
+    "criteria": [
+      {
+        "name": "Current rated plant capacity",
+        "source": "p.107",
+        "value": "12 mgd - treatment capacity limitation determined by the four existing filters"
+      },
+      {
+        "name": "Planned expansion nominal capacity",
+        "source": "p.107",
+        "value": "18 mgd - treatment capacity limitation based on ultimate buildout of six filters using same media as existing four"
+      },
+      {
+        "name": "Hydraulic vs treatment capacity distinction",
+        "source": "p.107",
+        "value": "Hydraulic capacity is piping, pumping, volume and flow control limits; treatment capacity is ability to meet regulatory or industry standards"
+      },
+      {
+        "name": "Hydraulic profile design basis",
+        "source": "p.108",
+        "value": "Developed during original design for maximum instantaneous flow of 18 mgd; updated based on field tests for maximum flow of 22 mgd"
+      },
+      {
+        "name": "Firm pumping capacity definition",
+        "source": "p.108",
+        "value": "Maximum flow achievable with one of the largest installed pumps out of service"
+      },
+      {
+        "name": "Maximum desirable pipeline velocity",
+        "source": "p.110, p.116",
+        "value": "Typically 6.0 fps in transmission main of this type; short segment of finished main allows higher as acceptable"
+      },
+      {
+        "name": "Fish protection approach velocity",
+        "source": "p.109",
+        "value": "Maximum approach velocity 0.4 fps applies at 4-ft square gated openings outside fish screens, gates fully submerged"
+      },
+      {
+        "name": "Clearwell storage guideline",
+        "source": "p.115",
+        "value": "Generally desirable minimum ~60 minutes detention at peak flow rate"
+      },
+      {
+        "name": "Surge protection performance criteria",
+        "source": "p.117",
+        "value": "Protection to 9700 gpm (14.0 mgd); max upsurge 150 psi; min downsurge at HS station HGL 630 ft (~175 ft head or 75 psi assuming ground 455 ft)"
+      },
+      {
+        "name": "Filter treatment rating basis",
+        "source": "p.107, p.112",
+        "value": "3 mgd per filter treatment (12 mgd /4 filters; 18 mgd /6 filters same media); hydraulically 4 mgd per filter filtering to clearwell"
+      },
+      {
+        "name": "Water rights availability",
+        "source": "p.107",
+        "value": "City has 20 mgd on North Umpqua River, exceeds 18 mgd; additional rights investigated"
+      }
+    ],
+    "data_register": [
+      {
+        "id": "GEN-01",
+        "item": "Current rated capacity",
+        "quote": "current rated plant capacity of 12 mgd. This is a treatment capacity limitation determined by the four existing filters",
+        "source": "p.107",
+        "unit": "mgd",
+        "value": "12"
+      },
+      {
+        "id": "GEN-02",
+        "item": "Ultimate nominal capacity with six filters",
+        "quote": "designed to be expanded to a nominal capacity of 18 mgd. This is also a treatment capacity limitation based on an ultimate build out of six filters",
+        "source": "p.107",
+        "unit": "mgd",
+        "value": "18"
+      },
+      {
+        "id": "GEN-03",
+        "item": "Water rights total",
+        "quote": "water rights on the North Umpqua River totaling 20 mgd",
+        "source": "p.107",
+        "unit": "mgd",
+        "value": "20"
+      },
+      {
+        "id": "GEN-04",
+        "item": "Max raw pumping all pumps nominal",
+        "quote": "maximum raw water pumping rate with all raw water pumps operating is nominally 22 mgd",
+        "source": "p.107",
+        "unit": "mgd",
+        "value": "22"
+      },
+      {
+        "id": "GEN-05",
+        "item": "Max raw pumping tested 2003-06-24",
+        "quote": "during a test on June 24, 2003, the total combined flow of all four raw water pumps was 20.9 mgd",
+        "source": "p.107",
+        "unit": "mgd",
+        "value": "20.9"
+      },
+      {
+        "id": "GEN-06",
+        "item": "Max finished pumping all pumps nominal",
+        "quote": "maximum instantaneous flow rate of finished water from the high service pump station is nominally 16 mgd with all finished water pumps operating",
+        "source": "p.107",
+        "unit": "mgd",
+        "value": "16"
+      },
+      {
+        "id": "GEN-07",
+        "item": "Max finished pumping actually achieved",
+        "quote": "maximum actually achieved is about 14 mgd",
+        "source": "p.107",
+        "unit": "mgd",
+        "value": "~14"
+      },
+      {
+        "id": "GEN-08",
+        "item": "Recent plant flow range",
+        "quote": "plant flow rate has ranged from approximately 3.5 mgd during low demand periods to 11.6 mgd during a recent peak summer day",
+        "source": "p.108",
+        "unit": "mgd",
+        "value": "3.5 to 11.6"
+      },
+      {
+        "id": "INT-01",
+        "item": "Intake pumps configuration",
+        "quote": "4 vertical turbine pumps, one with a capacity of 2,800 gpm (4.0 mgd) at 49 feet of TDH and three, each with a capacity of 4,200 gpm (6.0 mgd) at 49 feet of TDH",
+        "source": "p.108",
+        "unit": "gpm (mgd) at ft TDH",
+        "value": "1x 2800 (4.0) + 3x 4200 (6.0) at 49 ft"
+      },
+      {
+        "id": "INT-02",
+        "item": "Intake pump motors",
+        "quote": "smaller pump, Pump No. 1, has a 50 hp motor and the larger pumps, Pump Nos. 2, 3, and 4, have 75 hp motors",
+        "source": "p.108",
+        "unit": "hp",
+        "value": "1x50, 3x75"
+      },
+      {
+        "id": "INT-03",
+        "item": "Intake nominal firm capacity",
+        "quote": "nominal firm capacity of the intake is approximately 16 mgd",
+        "source": "p.108",
+        "unit": "mgd",
+        "value": "~16"
+      },
+      {
+        "id": "INT-04",
+        "item": "Intake firm tested 2006-09-14",
+        "quote": "On September 14, 2006 with Pump Nos. 1, 2 and 4 operating, the intake provided only 14 mgd",
+        "source": "p.109",
+        "unit": "mgd",
+        "value": "14 with 1,2,4 operating"
+      },
+      {
+        "id": "INT-05",
+        "item": "Intake firm tested 2002",
+        "quote": "Testing of the station in 2002 determined that the firm capacity of the station at that time was approximately 15.0 mgd",
+        "source": "p.109",
+        "unit": "mgd",
+        "value": "~15.0"
+      },
+      {
+        "id": "INT-06",
+        "item": "Intake river openings",
+        "quote": "intake structure has four gated openings to the North Umpqua River, each 4 feet square",
+        "source": "p.109",
+        "unit": "ft",
+        "value": "4x 4x4"
+      },
+      {
+        "id": "INT-07",
+        "item": "Traveling screens capacity",
+        "quote": "There are two traveling screens which screen the raw water before it enters the pump bay. These screens will pass up to 18 mgd or more",
+        "source": "p.109",
+        "unit": "mgd",
+        "value": "up to 18 or more"
+      },
+      {
+        "id": "INT-08",
+        "item": "Openings screens to pump bay",
+        "quote": "There are two 5 feet square gated openings between the traveling screens and the pump bay. These openings are of adequate size to supply the intake pumps with up to 24 mgd or more",
+        "source": "p.109",
+        "unit": "ft / mgd",
+        "value": "2x 5x5 adequate to 24 or more"
+      },
+      {
+        "id": "INT-09",
+        "item": "River openings adequacy",
+        "quote": "These openings are of adequate size to supply the intake pumps with up to 24 mgd or more of raw water",
+        "source": "p.109",
+        "unit": "mgd",
+        "value": "24 or more"
+      },
+      {
+        "id": "RW-01",
+        "item": "30-in raw water pipeline description",
+        "quote": "underground 30-inch diameter steel raw water pipeline ... The steel pipe has a 1/4-inch wall thickness",
+        "source": "p.110",
+        "unit": "in",
+        "value": "30 diam, 1/4 wall"
+      },
+      {
+        "id": "RW-02",
+        "item": "30-in raw pipeline Table 4-1 velocities/headloss",
+        "quote": "8 mgd 2.6 fps 0.116 ft 0.05 ft/100ft; 12 mgd 3.9 fps 0.24 ft 0.11; 18 mgd 5.9 fps 0.54 ft 0.25; 20 mgd 6.5 fps 0.66 ft 0.32; 24 mgd 7.8 fps 0.90 ft 0.44",
+        "source": "p.110",
+        "unit": "mgd / fps / ft / ft per 100 ft",
+        "value": "see quote"
+      },
+      {
+        "id": "PRE-01",
+        "item": "Rapid mix basins",
+        "quote": "There are two rapid mix basins in parallel, but currently only one rapid mixer is operated at any given time",
+        "source": "p.110",
+        "unit": "count",
+        "value": "2 basins, 1 operated"
+      },
+      {
+        "id": "PRE-02",
+        "item": "Second floc/sed basin for expansion",
+        "quote": "basin design provides for the addition of a second, parallel flocculation and sedimentation basin to increase the plant capacity to a nominal 18 mgd",
+        "source": "p.110",
+        "unit": "mgd",
+        "value": "18 with second basin"
+      },
+      {
+        "id": "PRE-03",
+        "item": "Existing basin rating",
+        "quote": "single existing basin is rated at 12 mgd and was designed to be expanded with a parallel basin for an ultimate nominal treatment capacity of 18 mgd, but with approximately 24 mgd of hydraulic capacity",
+        "source": "p.111",
+        "unit": "mgd",
+        "value": "12 existing; 18 ultimate treatment; ~24 hydraulic"
+      },
+      {
+        "id": "PRE-04",
+        "item": "Pretreatment demonstrated performance",
+        "quote": "able to provide excellent pretreatment prior to filtration at sustained flows up to 11.5 mgd during the warm weather, low turbidity raw water conditions",
+        "source": "p.111",
+        "unit": "mgd",
+        "value": "up to 11.5"
+      },
+      {
+        "id": "PRE-05",
+        "item": "Cold/high-turbidity normal flows",
+        "quote": "Normal plant flows during high turbidity, colder water conditions have ranged from 3.5 to 5.0 mgd",
+        "source": "p.111",
+        "unit": "mgd",
+        "value": "3.5 to 5.0"
+      },
+      {
+        "id": "PRE-06",
+        "item": "Sed basin weir/trough elevations",
+        "quote": "triangular launder weir ... invert elevation of approximately 465.83 feet. The bottoms of the 12-inch deep launder troughs ... approximately elevation 464.63 feet",
+        "source": "p.111",
+        "unit": "ft",
+        "value": "465.83 invert; 464.63 trough bottom"
+      },
+      {
+        "id": "PRE-07",
+        "item": "Basin freeboard",
+        "quote": "freeboard from the top of maximum water surface to the top of walls is approximately 1.5 feet which is adequate",
+        "source": "p.111",
+        "unit": "ft",
+        "value": "~1.5"
+      },
+      {
+        "id": "PRE-08",
+        "item": "Sed basin overflow weir",
+        "quote": "overflow weir elevation is at 465.0 feet, approximately 1.0 feet higher than the normal filter operating level. The weir is approximately 9 feet long with a capacity of approximately 12 mgd, assuming a 9-inch water depth over the weir",
+        "source": "p.111",
+        "unit": "ft / mgd / in",
+        "value": "465.0 elev; 9 ft long; ~12 mgd at 9-in depth"
+      },
+      {
+        "id": "PRE-09",
+        "item": "Overflow drain pipe",
+        "quote": "drain pipe is 30-inches in diameter, has a capacity of approximately 10 mgd",
+        "source": "p.111",
+        "unit": "in / mgd",
+        "value": "30-in; ~10 mgd"
+      },
+      {
+        "id": "PRE-10",
+        "item": "Overflow ultimate with second basin",
+        "quote": "A second overflow weir will be constructed along with the second flocculation/sedimentation basin when the plant is expanded; thus, the overflow system is adequate for an ultimate maximum plant capacity of 24 mgd",
+        "source": "p.111",
+        "unit": "mgd",
+        "value": "24"
+      },
+      {
+        "id": "SW-01",
+        "item": "42-in settled water pipeline velocities",
+        "quote": "At 18 mgd the pipeline velocity will be 2.9 fps and at 24 mgd the pipeline velocity would be 3.9 fps",
+        "source": "p.111",
+        "unit": "fps",
+        "value": "2.9 at 18 mgd; 3.9 at 24 mgd"
+      },
+      {
+        "id": "SW-02",
+        "item": "Settled pipe measured headloss",
+        "quote": "head loss through the pipe was measured at 2.8-inches at a flow rate of 13.1 mgd [Sept 14, 2006]",
+        "source": "p.111",
+        "unit": "in / mgd",
+        "value": "2.8 in at 13.1 mgd"
+      },
+      {
+        "id": "SW-03",
+        "item": "Settled channel level vs overflow",
+        "quote": "water surface in the settled water channel was approximately 6-inches below the basin overflow weir [at 13.1 mgd]",
+        "source": "p.111",
+        "unit": "in",
+        "value": "~6 below overflow"
+      },
+      {
+        "id": "SW-04",
+        "item": "Two-basin ultimate hydraulic limit",
+        "quote": "ultimate hydraulic capacity of the two basins in parallel is limited primarily by the settled water pipeline and that ultimate capacity is 22 to 24 mgd",
+        "source": "p.112",
+        "unit": "mgd",
+        "value": "22 to 24"
+      },
+      {
+        "id": "FLT-01",
+        "item": "Filter influent piping",
+        "quote": "Settled water flows through the filter influent channel and enters each filter via a 20-inch pipe with isolation valve",
+        "source": "p.112",
+        "unit": "in",
+        "value": "20"
+      },
+      {
+        "id": "FLT-02",
+        "item": "Normal filter operating level",
+        "quote": "normal filter operating level ranges from 463 to 464 feet ... provides 5 to 6 feet of submergence over the top of the filter media",
+        "source": "p.112",
+        "unit": "ft",
+        "value": "463-464; 5-6 submergence"
+      },
+      {
+        "id": "FLT-03",
+        "item": "Filter bays and effluent piping",
+        "quote": "Each filter consists of two bays ... flows into the filter piping gallery through 16-inch pipes that individually drain each filter bay and is combined into an 18-inch filter effluent pipe that is common to the two bays",
+        "source": "p.112",
+        "unit": "in",
+        "value": "16 per bay into 18 common"
+      },
+      {
+        "id": "FLT-04",
+        "item": "Filter driving head",
+        "quote": "clearwell is normally operated between about 446.5 feet and 448 feet, which provides a total filter driving head of approximately 15 to 17.5 feet from filter water level to treated water storage level",
+        "source": "p.112",
+        "unit": "ft",
+        "value": "15 to 17.5"
+      },
+      {
+        "id": "FLT-05",
+        "item": "Terminal headloss alarm",
+        "quote": "alarm signifying terminal filter headloss is currently set at 11.0 feet",
+        "source": "p.112",
+        "unit": "ft",
+        "value": "11.0"
+      },
+      {
+        "id": "FLT-06",
+        "item": "Filter hydraulic per filter",
+        "quote": "piping into and out of each basin can handle 4 mgd when the filter is filtering to the clearwell. With six filters, the total hydraulic capacity of the filters will be 24 mgd",
+        "source": "p.112",
+        "unit": "mgd",
+        "value": "4 each; 24 with six"
+      },
+      {
+        "id": "FLT-07",
+        "item": "Filter meter accuracy test",
+        "quote": "sum of the individual filter effluent meters was approximately 7 percent less than the flow determined by the more accurate magnetic flow meter measuring raw water flow [Sept 14, 2006]",
+        "source": "p.112",
+        "unit": "percent",
+        "value": "~7 low"
+      },
+      {
+        "id": "FLT-08",
+        "item": "Filter-to-waste piping size and limit",
+        "quote": "existing 8-inch filter-to-waste piping is too small to convey 3 mgd when filtering to waste",
+        "source": "p.112",
+        "unit": "in / mgd",
+        "value": "8-in; <3 mgd"
+      },
+      {
+        "id": "FLT-09",
+        "item": "Filter-to-waste observed 2006-06-29",
+        "quote": "with filter No. 3 offline for cleaning and a raw water flow of 9.1 mgd, ... filter-to-waste flow was approximately 2 mgd while the flow through the other two filters was greater than 3.4 mgd",
+        "source": "p.113",
+        "unit": "mgd",
+        "value": "2 to waste; >3.4 each other two at 9.1 raw"
+      },
+      {
+        "id": "CW-01",
+        "item": "Clearwell volumes max",
+        "quote": "Unbaffled area under the four filters ... 170,000 gallons at 10.5 foot water depth. Baffled clearwell area ... 324,000 gallons at 10.5 foot ... Unbaffled area underneath the high service pump room ... 133,000 gallon at 10.5 foot",
+        "source": "p.114",
+        "unit": "gal / ft",
+        "value": "170k +324k +133k at 10.5 ft"
+      },
+      {
+        "id": "CW-02",
+        "item": "Total clearwell storage and time at 12 mgd",
+        "quote": "total maximum treated water storage volume of 627,000 gallons represents approximately 75 minutes (1.26 hours) of storage at the current maximum plant flow of 12 mgd",
+        "source": "p.114",
+        "unit": "gal / min",
+        "value": "627k; 75 min (1.26 hr) at 12 mgd"
+      },
+      {
+        "id": "CW-03",
+        "item": "Clearwell overflow HS weir",
+        "quote": "high service pump station clearwell overflow weir is at elevation 449.5 feet with a weir length of approximately 9 feet. ... At 1 foot of water depth over the weir, the overflow capacity is approximately 19 mgd",
+        "source": "p.114",
+        "unit": "ft / mgd",
+        "value": "449.5 elev; 9 ft; ~19 mgd at 1 ft depth"
+      },
+      {
+        "id": "CW-04",
+        "item": "Clearwell overflow chamber and pipe",
+        "quote": "overflow chamber with inside dimensions of 4.5 feet by 4.5 feet. The water then flows into an 18-inch diameter pipeline",
+        "source": "p.114",
+        "unit": "ft / in",
+        "value": "4.5x4.5; 18-in pipe"
+      },
+      {
+        "id": "CW-05",
+        "item": "Clearwell second overflow",
+        "quote": "clearwell overflow located below Filter No. 3 is at an elevation of 450.00 feet with a weir length of approximately 15 feet ... Combined, the two overflow weirs can accommodate an ultimate plant flow of 24 mgd",
+        "source": "p.114",
+        "unit": "ft / mgd",
+        "value": "450.00 elev; 15 ft; combined 24 mgd"
+      },
+      {
+        "id": "CW-06",
+        "item": "Normal clearwell operating depth",
+        "quote": "high service pumps operate to maintain the clearwell level relatively constant between approximately 8 feet and 10 feet depth, which is 3 to 1 feet below the overflow weir",
+        "source": "p.114",
+        "unit": "ft",
+        "value": "8-10 depth; 3 to 1 below overflow"
+      },
+      {
+        "id": "CW-07",
+        "item": "Backwash volume per filter and daily",
+        "quote": "One filter backwash uses 65,000 to 75,000 gallons ... Since all four filters are backwashed once per day, approximately 260,000 to 300,000 gallons of finished water is used daily",
+        "source": "p.114",
+        "unit": "gal",
+        "value": "65k-75k each; 260k-300k daily"
+      },
+      {
+        "id": "CW-08",
+        "item": "Added storage Filters 5-6",
+        "quote": "When the plant is expanded with two additional filters, an additional 85,000 gallons of treated water storage will be added under Filters 5 and 6",
+        "source": "p.115",
+        "unit": "gal",
+        "value": "85000"
+      },
+      {
+        "id": "CW-09",
+        "item": "Detention at 18 mgd expanded",
+        "quote": "At the expanded plant capacity of 18 mgd, the maximum detention time would then be 57 minutes, which approximates the minimum desirable time",
+        "source": "p.115",
+        "unit": "min / mgd",
+        "value": "57 at 18 mgd"
+      },
+      {
+        "id": "CW-10",
+        "item": "Volume needed at 24 mgd",
+        "quote": "At 24 mgd using the 1-hour criteria, the suggested minimum clearwell volume is 1,000,000 gallons which is 288,000 gallons more than will be available when the ultimate buildout of six filters has been achieved",
+        "source": "p.115",
+        "unit": "gal / mgd",
+        "value": "1000k needed; 288k short with six filters"
+      },
+      {
+        "id": "HS-01",
+        "item": "HS pumps ratings",
+        "quote": "One pump (No. 1) rated at 1,400 gpm (2.0 mgd) at 305 feet TDH, with a 150 hp motor Three pumps (Nos. 2, 3 and 4) each rated at 2,800 gpm (4.0 mgd) at 305 feet TDH, with 300 hp motors",
+        "source": "p.115",
+        "unit": "gpm (mgd) at ft TDH / hp",
+        "value": "1x1400 (2.0) 150hp +3x2800 (4.0) 300hp at 305 ft"
+      },
+      {
+        "id": "HS-02",
+        "item": "HS station vintage and spaces",
+        "quote": "All four of these constant speed pumps were installed in the Phase 2, High Service Pump Station phase, of the WTP project in 1987-1988. There is space provided in the pump station and on the discharge header for two additional pumps",
+        "source": "p.115",
+        "unit": "count",
+        "value": "4 installed 1987-88; space for 2 more"
+      },
+      {
+        "id": "HS-03",
+        "item": "HS nominal firm capacity",
+        "quote": "current firm capacity of the high service pump station is nominally 10 mgd. Since the three largest pumps operate at approximately 3,300 gpm each under current hydraulic conditions",
+        "source": "p.115",
+        "unit": "mgd / gpm",
+        "value": "10 nominal firm; ~3300 each actual"
+      },
+      {
+        "id": "FW-01",
+        "item": "Finished header description",
+        "quote": "header varies in diameter from 18-inch diameter at the east end to 30-inch diameter at the west end ... wall is 3/8-inch thick and the inside diameter is 29.25-inches",
+        "source": "p.116",
+        "unit": "in",
+        "value": "18 to 30 header; 29.25 ID, 3/8 wall"
+      },
+      {
+        "id": "FW-02",
+        "item": "30-in finished main Table 4-3",
+        "quote": "8 mgd 2.65 fps 0.109 ft 0.05 ft/100ft; 12 mgd 3.98 fps 0.246 ft 0.11; 18 mgd 5.97 fps 0.553 ft 0.25; 20 mgd 6.63 fps 0.682 ft 0.32; 24 mgd 7.96 fps 0.984 ft 0.44",
+        "source": "p.117",
+        "unit": "mgd / fps / ft / ft per 100 ft",
+        "value": "see quote"
+      },
+      {
+        "id": "FW-03",
+        "item": "Surge tank size",
+        "quote": "1,900 cubic feet (14,200-gallon) tank was designed to provide both upsurge and downsurge protection",
+        "source": "p.117",
+        "unit": "cu ft (gal)",
+        "value": "1900 (14200)"
+      },
+      {
+        "id": "FW-04",
+        "item": "Offsite mains description",
+        "quote": "These mains are a 20-inch outside diameter steel main with a 3/16-inch thick wall and a 30-inch diameter Class 50 ductile iron main",
+        "source": "p.117",
+        "unit": "in",
+        "value": "20 OD steel 3/16 wall +30 DI Class 50"
+      },
+      {
+        "id": "FW-05",
+        "item": "Offsite Phase 1 length",
+        "quote": "Phase 1 consisted of construction of approximately 9,400 feet of new parallel transmission piping",
+        "source": "p.118",
+        "unit": "ft",
+        "value": "~9400"
+      },
+      {
+        "id": "FW-06",
+        "item": "Offsite Phase 2 length",
+        "quote": "Phase 2 consisted of the easterly and southerly extension of a new 27-inch diameter transmission main approximately 1,600 feet long ... would parallel an existing 24-inch main",
+        "source": "p.118",
+        "unit": "ft / in",
+        "value": "~1600 of 27-in parallel 24-in"
+      },
+      {
+        "id": "BW-01",
+        "item": "Air scour blower",
+        "quote": "blower has a capacity of 1,050 scfm at 6.4 psi and is driven by a 60 hp motor. Low pressure air is directed to each of the filters through an 8-inch diameter air supply system",
+        "source": "p.118",
+        "unit": "scfm / psi / hp / in",
+        "value": "1050 at 6.4 psi 60hp; 8-in air"
+      },
+      {
+        "id": "BW-02",
+        "item": "Backwash pumps",
+        "quote": "two constant-speed vertical turbine backwash pumps, each with a 50 hp motor, rated at 3,250 gpm at 41 feet TDH. Only one pump is required for backwashing each of the filter bays",
+        "source": "p.118",
+        "unit": "gpm at ft / hp",
+        "value": "2x 3250 at 41 ft 50hp; 1 required"
+      },
+      {
+        "id": "BW-03",
+        "item": "Backwash header",
+        "quote": "backwash pumps discharge into a 16-inch diameter header that feeds backwash water to the individual filters",
+        "source": "p.119",
+        "unit": "in",
+        "value": "16"
+      },
+      {
+        "id": "BW-04",
+        "item": "Deep-bed backwash estimate and test",
+        "quote": "optimum backwash rate for these filter bays outfitted with deep bed media (up to 1.1 mm effective size anthracite) would be approximately 4,400 gpm. When the pumps were tested on September 14, 2006 ... the pumps produced 4,060 gpm",
+        "source": "p.119",
+        "unit": "gpm / mm",
+        "value": "~4400 optimum to 1.1 mm; 4060 tested"
+      },
+      {
+        "id": "BW-05",
+        "item": "Backwash drain piping",
+        "quote": "Filter backwash water from each filter discharges through a 16-inch backwash drain pipeline into the backwash conveyance channel ... flow is conveyed via a 24-inch diameter pipeline to a drain manhole and then through a 30-inch pipeline to the wastewater pump station",
+        "source": "p.119",
+        "unit": "in",
+        "value": "16 to channel; 24 to manhole; 30 to WWPS"
+      },
+      {
+        "id": "WW-01",
+        "item": "Wastewater pumps",
+        "quote": "three 35 hp submersible solids handling pumps, each with a capacity of approximately 1,500 gpm at 40 feet of TDH. Each pump has a 10-inch diameter discharge",
+        "source": "p.119",
+        "unit": "gpm at ft / hp / in",
+        "value": "3x ~1500 at 40 ft 35hp; 10-in discharge"
+      },
+      {
+        "id": "WW-02",
+        "item": "Wastewater transfer main and firm",
+        "quote": "16-inch diameter transfer main carries the wastewater to backwash basins 1 and 2. The approximate firm capacity of this station is 3,000 gpm with one of the pumps out of service",
+        "source": "p.119",
+        "unit": "in / gpm",
+        "value": "16-in; 3000 firm"
+      },
+      {
+        "id": "SOL-01",
+        "item": "Washwater/solids basins volume",
+        "quote": "Each basin has a maximum volume of approximately 300,000 gallons",
+        "source": "p.119",
+        "unit": "gal",
+        "value": "~300000 each"
+      }
+    ],
+    "definitions": [
+      {
+        "definition": "Maximum flow with largest unit out of service, per water industry planning/operating conventions",
+        "source": "p.108, p.115, p.119",
+        "term": "Firm capacity"
+      },
+      {
+        "definition": "Limits from piping, pumping, volume and flow control to pass water through units and system",
+        "source": "p.107",
+        "term": "Hydraulic capacity"
+      },
+      {
+        "definition": "Ability of process to meet regulatory or industry standards",
+        "source": "p.107",
+        "term": "Treatment capacity"
+      }
+    ],
+    "question": "Can the Winchester WTP be expanded from 12 mgd to 18 mgd? For each unit along the flow path, does it limit 18 mgd, at what flow does it become limiting, and what least-cost modification makes 18 mgd work?",
+    "rfi": [
+      {
+        "issue": "Intake fish-screen hydraulic limit withheld: p.109 states 0.4 fps at 4-ft square gates fully submerged then [withheld] capacity conclusion",
+        "item": "Intake river openings limit flow",
+        "reason": "Cannot quote limiting flow; need flow at which 0.4 fps is exceeded to judge 18 mgd",
+        "resolution": "ASSUMPTION: Treat intake openings/screens as adequate to at least 18 mgd for this stage because p.109 states screens pass up to 18 mgd or more and river openings adequate to 24 mgd or more; fish-velocity calculation deferred to hydraulics runs (future labels INT-18, INT-24) - reason: use document's adequacy statements as governing until withheld clause recovered"
+      },
+      {
+        "issue": "Conflicting raw-water firm capacity: nominal 16 mgd (p.108) vs 15.0 mgd in 2002 vs 14 mgd with Pumps 1,2,4 in 2006; Pump 3 noted substantially below rated but 2006 test without Pump 3 even lower",
+        "item": "Raw water firm capacity at 18 mgd",
+        "reason": "Unclear whether pumps degraded, system head increased, or test conditions differ; determines if 18 mgd needs pump replacement vs VFD/control only",
+        "resolution": "ASSUMPTION: Adopt tested firm 14-15 mgd as governing existing condition, not nominal 16 mgd - reason: field tests (p.109) are more reliable than nameplate; any 18 mgd option must add/replace firm pumping and address TDH from 30-in main headloss"
+      },
+      {
+        "issue": "High-service firm capacity statement truncated: p.115 gives nominally 10 mgd firm then notes three largest operate at ~3300 gpm each under current conditions then [withheld]",
+        "item": "High-service firm and max with all pumps",
+        "reason": "Cannot determine tested firm/max vs nominal 16/14 mgd on p.107; determines number of additional pumps for 18 mgd",
+        "resolution": "ASSUMPTION: Adopt nominal firm 10 mgd as existing limit requiring added pumps for 18 mgd, with actual ~3300 gpm each noted but withheld total not assumed - reason: conservative use of only quoted nominal value until truncated clause recovered"
+      },
+      {
+        "issue": "Typo/conflict p.116: paragraph on finished water main says velocities through the 30-inch raw water pipeline exceed 6.0 fps at ~18 mgd, but Table 4-3 (p.117) is finished water main",
+        "item": "Which pipeline exceeds 6 fps at 18 mgd",
+        "reason": "Affects whether raw, finished, or both exceed desirable velocity at 18 mgd",
+        "resolution": "ASSUMPTION: Treat as drafting error and apply 6-fps exceedance at ~18 mgd to both 30-in raw (Table 4-1 5.9 fps at 18 mgd, p.110) and 30-in finished onsite (Table 4-3 5.97 fps at 18 mgd, p.117) - reason: both tables show ~6 fps at 18 mgd, and document states higher velocity acceptable for short onsite finished segment (p.116)"
+      },
+      {
+        "issue": "Treatment capacity evaluation, CT analysis (Sec 3), Fig 4-1/4-2 hydraulic profile, and Sec 6 intake options not in available pages 107-119; filter 3-mgd basis, disinfection contact, floc/sed performance at cold/high-turbidity flows not quantified",
+        "item": "Treatment limits at 18 mgd (filters, CT, pretreatment)",
+        "reason": "Cannot judge treatment vs hydraulic limit for 18 mgd without criteria and contact-time calculations",
+        "resolution": "ASSUMPTION: Treat 3 mgd/filter and second basin + two filters as treatment-required for 18 mgd per p.107/p.111, and treat clearwell CT/storage (57 min at 18 mgd, p.115) as check only - reason: document explicitly defines 12 and 18 mgd as treatment limits on that filter basis"
+      },
+      {
+        "issue": "Offsite transmission WTP-to-Reservoir Hill future 30-in mains status unknown: p.118 anticipates new 30-in to replace 27-in plus second parallel 30-in in future, but whether built and hydraulic capacity at 18-24 mgd not in pages",
+        "item": "Offsite transmission limit at 18 mgd",
+        "reason": "HS pumps + onsite main may pass 18 mgd while offsite system controls",
+        "resolution": "ASSUMPTION: Exclude offsite transmission adequacy from 18 mgd plant-expansion verdict pending data; evaluate only onsite header/short 30-in main and surge to 14 mgd limit (p.117) - reason: available pages provide only onsite velocities/headloss and surge limit to 14 mgd"
+      },
+      {
+        "issue": "Surge protection limited to 14 mgd (p.117) vs 18 mgd target; addition of second tank likely not practical due to space noted but full recommendation withheld",
+        "item": "Surge limit flow",
+        "reason": "Determines whether 18 mgd needs operating constraint vs new surge facility",
+        "resolution": "ASSUMPTION: Flag surge as limiting above 14 mgd requiring re-analysis for 18 mgd - reason: quoted criteria explicitly caps existing protection at 14 mgd"
+      },
+      {
+        "issue": "Wastewater/solids handling pages truncated mid-sentence after decant structure (p.119); basin equalization, dry beds, and ability to handle 18 mgd backwash/sludge volumes not quantified",
+        "item": "Wastewater and solids limit at 18 mgd",
+        "reason": "Cannot compute backwash equalization at 6-filter/18 mgd operation",
+        "resolution": "ASSUMPTION: Treat WW pump firm 3000 gpm (p.119) and 2x300k-gal basins (p.119) as adequate for reporting but flag solids handling as TBD for 18 mgd - reason: avoid silent invention where text is cut off"
+      }
+    ],
+    "standards": [
+      {
+        "name": "Firm capacity convention",
+        "use": "Use tested firm (largest unit out) as governing, not nameplate, for intake, HS, WW stations"
+      },
+      {
+        "name": "6.0 fps desirable max in transmission mains",
+        "use": "Flag exceedance at ~18 mgd (RW and FW onsite) but allow higher if document states acceptable for short segment"
+      },
+      {
+        "name": "60-min clearwell detention guideline",
+        "use": "Check 57 min at 18 mgd with six filters as approximately meeting minimum per p.115"
+      },
+      {
+        "name": "0.4 fps fish approach velocity",
+        "use": "Apply at outside intake gates; use future hydraulics runs INT-18/INT-24 to compute, not hand calc"
+      }
+    ],
+    "units_on_path": [
+      "North Umpqua River intake openings and traveling screens",
+      "Raw water (intake) pump station",
+      "30-inch raw water pipeline to flocculation/sedimentation basin",
+      "Rapid mix basins",
+      "Flocculation/sedimentation basin(s) and overflow weir system",
+      "42-inch settled water pipeline to filters",
+      "Filters, filter effluent and filter-to-waste piping",
+      "Clearwell and treated water storage + overflows",
+      "High service pump station",
+      "Finished water transmission main - WTP site (header + short 30-in)",
+      "Finished water transmission pipelines - WTP to Reservoir Hill (offsite)",
+      "Surge protection (hydropneumatic tank)",
+      "Air scour system",
+      "Backwash pumping and piping + backwash drains",
+      "Wastewater pump station and transfer main",
+      "Washwater/solids handling basins and drying beds"
+    ]
+  },
+  "analysis": {
+    "alternatives": [
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only (no costs p.107-p.119); pump/motor/VFD in existing station (spaces filled p.108, VFD precedent p.109) with higher head per p.110 (0.25 ft/100ft at 18 mgd p.110); no new building.",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "RW-A: refurbish/replace to higher head (e.g. 5000 gpm at 55 ft ASSUMPTION higher head per p.110) +VFDs; firm =1x4.0 +1x6.0 +1xupgraded (largest upgraded out per p.108)",
+        "recommended": true,
+        "result": "RW-FIRM-UPGRADE-FIX delivers 18.462 mgd (12820.9 gpm at 48.82 ft TDH, 5.82 fps outputs) firm, exceeds 18 mgd p.107",
+        "run_label": "RW-FIRM-UPGRADE-FIX",
+        "unit": "Raw water (intake) pump station"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; major buried pipeline civil for 30-in steel 1/4-in wall p.110; headloss only 0.25 ft/100ft at 18 mgd p.110 so benefit small vs pumps p.110.",
+        "cost_class": "$1M-$10M",
+        "meets_target": false,
+        "option": "RW-B: parallel second 30-in raw main, retain existing pumps",
+        "recommended": false,
+        "result": "Retaining degraded pumps leaves firm 14 mgd p.109; RW-FIRM-EXIST nominal 16.557 mgd (11497.7 gpm output) still below 18 mgd p.107, higher cost than RW-A",
+        "run_label": "RW-FIRM-EXIST",
+        "unit": "Raw water (intake) pump station"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; major concrete/equipment second basin +launders +second 9-ft weir p.111; only civil to raise 12 mgd p.111 to 18 mgd p.107/p.111 (ultimate 18 treatment, 22-24 hydraulic p.111-p.112).",
+        "cost_class": "$1M-$10M",
+        "meets_target": true,
+        "option": "PRE-A: second parallel floc/sed basin +second overflow weir",
+        "recommended": true,
+        "result": "RW-FIRM-UPGRADE-FIX 18.462 mgd proves supply can convey 18 mgd; treatment to 18 mgd per p.111; velocity 2.895 fps at 18 mgd in 42-in adequate to 22-24 mgd p.112",
+        "run_label": "RW-FIRM-UPGRADE-FIX",
+        "unit": "Flocculation/sedimentation basin(s) and overflow weir system"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; operational both rapid mix basins p.110 +optimize existing; no civil.",
+        "cost_class": "<$100k",
+        "meets_target": false,
+        "option": "PRE-B: optimize existing single basin only",
+        "recommended": false,
+        "result": "Treatment remains 12 mgd p.111 and single 9-ft weir ~12 mgd /30-in drain ~10 mgd p.111; fails 18 mgd p.107 treatment",
+        "run_label": "RW-FIRM-EXIST",
+        "unit": "Flocculation/sedimentation basin(s) and overflow weir system"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; 2 cells in planned spaces p.112 +meter/sample fix p.112-p.113; retains 8-in to-waste p.112-p.113.",
+        "cost_class": "$1M-$10M",
+        "meets_target": false,
+        "option": "FLT-A minimal: Filters 5-6 (3 mgd each p.107/p.112) +meter/sample only",
+        "recommended": false,
+        "result": "Treatment 18 mgd p.107 but 8-in <3 mgd p.112-p.113 (13.297 fps at 3 mgd velocity; ~2 mgd at 9.1 mgd raw p.113); maldistribution when one in waste p.113, fails flexibility at 18 mgd",
+        "run_label": "HS-FIRM-6PUMP",
+        "unit": "Filters, filter effluent and filter-to-waste piping"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; 2 filters p.112 +18-in effluent p.112 +to-waste upsizing for full-rate control; greatest benefit despite higher cost p.113.",
+        "cost_class": "$1M-$10M",
+        "meets_target": true,
+        "option": "FLT-B full: Filters 5-6 +effluent/to-waste for full 3-4 mgd rate measurement/control",
+        "recommended": true,
+        "result": "HS-FIRM-6PUMP 18.637 mgd proves downstream can take 18 mgd; hydraulics 4 mgd per filter (24 with six p.112); 18-in common 2.627 fps at 3 mgd and 3.502 fps at 4 mgd velocities allow 18 mgd to clearwell (449.0 ft max, 446.5-448 ft normal, 15-17.5 ft driving head p.112)",
+        "run_label": "HS-FIRM-6PUMP",
+        "unit": "Filters, filter effluent and filter-to-waste piping"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; one 4.0-mgd 300 hp pump p.115 +VFD p.115 in one spare space/header p.115.",
+        "cost_class": "$100k-$1M",
+        "meets_target": false,
+        "option": "HS-A interim: add one 4.0-mgd pump (5 total)",
+        "recommended": false,
+        "result": "HS-MAX-ALL4 all 4 existing 14.603 mgd (10141.2 gpm at 297.8 ft output) matches ~14 mgd max p.107; firm nominally 10 mgd p.115, still below 18 mgd p.107",
+        "run_label": "HS-MAX-ALL4",
+        "unit": "High service pump station"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; fill both spares p.115 with 4.0-mgd 300 hp at 305 ft p.115 +VFD on Pump 2 p.115; no building.",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "HS-B: add two 4.0-mgd pumps (6 total) for firm 18 mgd",
+        "recommended": true,
+        "result": "HS-FIRM-6PUMP firm (one 2800 out) 18.637 mgd (12942.7 gpm at 299.39 ft, 6.18 fps outputs) meets 18 mgd p.107; 29.25-in ID p.116 velocity 5.968 fps at 18 mgd, 0.25 ft/100ft p.117 short segment acceptable p.116-p.117",
+        "run_label": "HS-FIRM-6PUMP",
+        "unit": "High service pump station"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; study/controls/procedures; no new tank (space constrained p.117).",
+        "cost_class": "<$100k",
+        "meets_target": false,
+        "option": "SURGE-A interim: limit finished pumping to 14.0 mgd protection p.117",
+        "recommended": false,
+        "result": "HS-MAX-ALL4 14.603 mgd coincides with 9700 gpm (14.0 mgd) limit p.117 (150 psi/HGL 630 ft p.117); constrains below 18 mgd p.107",
+        "run_label": "HS-MAX-ALL4",
+        "unit": "Surge protection (hydropneumatic tank)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; new vessel/offsite facility +head for >18 mgd headloss p.116-p.117; second tank at site not practical p.117.",
+        "cost_class": "$1M-$10M",
+        "meets_target": true,
+        "option": "SURGE-B: upgraded surge mitigation for 18 mgd (re-analyzed tank/controls or new facility)",
+        "recommended": true,
+        "result": "HS-FIRM-6PUMP 18.637 mgd steady-state only (6.18 fps output); operability within 150 psi/HGL 630 ft p.117 at 18 mgd subject to transient re-analysis per 1986 study p.118",
+        "run_label": "HS-FIRM-6PUMP",
+        "unit": "Surge protection (hydropneumatic tank)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; enlarge/submerge 4-ft openings p.109 per Sec6 options p.109; screens already 18+ mgd p.109.",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "INT-FISH: intake fish-compliance improvement for 18 mgd",
+        "recommended": true,
+        "result": "Velocity 0.435 fps at 18 mgd exceeds 0.4 fps p.109; 0.399 fps at 16.5 mgd meets criterion; improvement makes 18 mgd p.107 compliant",
+        "run_label": "RW-FIRM-UPGRADE-FIX",
+        "unit": "North Umpqua River intake openings and traveling screens"
+      }
+    ],
+    "base_model_run": "CAL-ALL4-2003",
+    "calibration": [
+      {
+        "measured": "20.9 mgd total combined flow all four raw pumps (p.107)",
+        "note": "Nominal curves (1x2800 +3x4200 gpm at 49 ft p.108) slightly high; good match validates pump-curve + 30-in main model for max-flow",
+        "residual_pct": 2.6,
+        "run_label": "CAL-ALL4-2003",
+        "simulated": "21.446 mgd (14892.9 gpm at 50.06 ft TDH, 6.76 fps) (CAL-ALL4-2003 output)",
+        "source": "p.107 GEN-05",
+        "test": "2003-06-24 all-pump raw test"
+      },
+      {
+        "measured": "14 mgd with Pumps 1,2,4 operating (p.109)",
+        "note": "Model overpredicts degraded field condition; Pump 3 noted substantially below rated p.109 but test without Pump 3 even lower, indicating system-head increase or wear; adopt tested 14 mgd as governing firm per RFI",
+        "residual_pct": 13.1,
+        "run_label": "BASE-EXIST-FIRM",
+        "simulated": "15.828 mgd (10991.4 gpm at 49.6 ft TDH, 4.99 fps) (BASE-EXIST-FIRM output)",
+        "source": "p.109 INT-04",
+        "test": "2006-09-14 firm raw test (1,2,4)"
+      },
+      {
+        "measured": "~15.0 mgd firm capacity in 2002 (p.109)",
+        "note": "Same model vs earlier test shows progressive degradation 15.0 to 14.0 mgd; confirms nominal 16 mgd p.108 not achievable; 14-15 mgd governs",
+        "residual_pct": 5.5,
+        "run_label": "BASE-EXIST-FIRM",
+        "simulated": "15.828 mgd (10991.4 gpm) (BASE-EXIST-FIRM output)",
+        "source": "p.109 INT-05",
+        "test": "2002 firm test"
+      },
+      {
+        "measured": "~14 mgd maximum actually achieved finished water (p.107); nominal 16 mgd with all pumps (p.107)",
+        "note": "Excellent match validates HS pump curves (1x1400 +3x2800 gpm at 305 ft p.115) and 29.25-in ID main p.116",
+        "residual_pct": 0.2,
+        "run_label": "ALT-HS-ADD1",
+        "simulated": "14.022 mgd (9737.3 gpm at 306.3 ft TDH, 4.65 fps) with all 4 HS pumps (ALT-HS-ADD1 output)",
+        "source": "p.107 GEN-06/GEN-07",
+        "test": "HS max all-pump test"
+      },
+      {
+        "measured": "10 mgd nominal firm HS (p.115); field note three largest ~3300 gpm each (p.115) = 9900 gpm = 14.26 mgd ASSUMPTION conversion",
+        "note": "Rated-curve model gives 2786.5 gpm each (8359.5 gpm =12.038 mgd); +20.4% vs nominal 10 mgd, -15.6% vs 3300-each field note, bracketing degraded vs low-head operation; adopt nominal 10 mgd as governing limit per RFI",
+        "residual_pct": 20.4,
+        "run_label": "CAL-HS-FIRM10",
+        "simulated": "12.038 mgd (8359.5 gpm at 305.98 ft TDH, 3.99 fps) with 3 largest pumps (CAL-HS-FIRM10 output)",
+        "source": "p.115 HS-03",
+        "test": "HS firm (3 largest) vs nominal"
+      },
+      {
+        "measured": "2.8 inches headloss at 13.1 mgd through 42-in settled pipe (p.111)",
+        "note": "Length not in pages; ASSUMPTION: 600 ft total (300+300 ft) with C=120 to reproduce head; validates settled-pipe hydraulics for 22-24 mgd ultimate p.112",
+        "residual_pct": -0.6,
+        "run_label": "CAL-SET-L600",
+        "simulated": "13.022 mgd (9042.8 gpm at 2.09 fps) at 0.233 ft (2.8 in p.111) head (CAL-SET-L600 output)",
+        "source": "p.111 SW-02",
+        "test": "2006-09-14 settled pipe headloss"
+      },
+      {
+        "measured": "Table 4-1: 5.9 fps at 18 mgd raw (p.110); Table 4-3: 5.97 fps at 18 mgd finished ID 29.25-in (p.116-117)",
+        "note": "Velocity-tool checks: 5.673 fps at 18 mgd in 30-in (-3.8%) and 5.968 fps at 18 mgd in 29.25-in (-0.0%); EPANET CAL-RW18-C150 5.79 fps at 18.36 mgd (-1.9%) and CAL-FW18-C150 5.7 fps at 17.18 mgd (-4.5%) confirm tables; supports 6-fps guideline assessment",
+        "residual_pct": -1.9,
+        "run_label": "CAL-RW18-C150",
+        "simulated": "5.79 fps at 18.362 mgd (12751.5 gpm) (CAL-RW18-C150); 5.7 fps at 17.179 mgd (11930 gpm) (CAL-FW18-C150)",
+        "source": "p.110 RW-02, p.117 FW-02",
+        "test": "Table velocity/headloss verification"
+      }
+    ],
+    "capacity_table": [
+      {
+        "binds_at": "Supply 18+ mgd screens / 24+ mgd river and 5-ft openings (p.109); fish 0.4 fps check ~16.5 mgd (0.399 fps at 16.5, 0.435 fps at 18 mgd velocity outputs) ASSUMPTION area 4x16 sqft p.109",
+        "evidence": "p.109 screens pass up to 18 or more, river/5-ft openings to 24 or more; INT-18 delivers 21.446 mgd; velocity 0.435 fps at 18 mgd exceeds 0.4 fps p.109",
+        "limit": "Screens adequate 18+ mgd; river openings 24+ mgd; fish approach 0.4 fps at 4-ft gates (p.109)",
+        "limits_target": false,
+        "unit": "North Umpqua River intake openings and traveling screens"
+      },
+      {
+        "binds_at": "14 mgd tested 2006 with 1,2,4 (p.109); ~15.0 mgd in 2002 (p.109); nominal 16 mgd (p.108) not achieved",
+        "evidence": "BASE-EXIST-FIRM 15.828 mgd vs 14 mgd (+13.1%); CAL-ALL4-2003 21.446 vs 20.9 mgd (+2.6%) p.107; nominal 1x4.0+3x6.0 at 49 ft p.108",
+        "limit": "Firm 14-15 mgd tested (nominal 16 mgd) (p.108-109)",
+        "limits_target": true,
+        "unit": "Raw water (intake) pump station"
+      },
+      {
+        "binds_at": "~18-20 mgd for 6.0 fps guideline (5.9 at 18, 6.5 at 20 mgd p.110)",
+        "evidence": "Table 5.9 fps and 0.25 ft/100ft at 18 mgd p.110; velocity 5.673 fps at 18 mgd; CAL-RW18-C150 5.79 fps; ALT-RW-UPGRADE 6.36 fps at 20.178 mgd; p.110 higher velocity acceptable",
+        "limit": "5.9 fps at 18 mgd; 0.25 ft/100ft; desirable max 6.0 fps (p.110)",
+        "limits_target": false,
+        "unit": "30-inch raw water pipeline to flocculation/sedimentation basin"
+      },
+      {
+        "binds_at": ">12 mgd requires both basins in service (p.110)",
+        "evidence": "p.110 two basins parallel, one operated now, both at higher flows; INT-18 supply adequate",
+        "limit": "2 basins parallel; 1 operated now (p.110)",
+        "limits_target": false,
+        "unit": "Rapid mix basins"
+      },
+      {
+        "binds_at": "12 mgd existing treatment; 18 mgd only with second basin (p.111)",
+        "evidence": "p.111 single basin rated 12, ultimate 18 treatment ~24 hydraulic; weir ~12 mgd at 9-in, drain ~10 mgd, with second weir adequate to 24 mgd; CAL-SET-L600 -0.6%",
+        "limit": "12 mgd existing; 18 treatment with second basin; ~24 hydraulic (p.111)",
+        "limits_target": true,
+        "unit": "Flocculation/sedimentation basin(s) and overflow weir system"
+      },
+      {
+        "binds_at": "22-24 mgd ultimate limited by this pipe (p.112)",
+        "evidence": "p.111 2.9 fps at 18, 3.9 at 24 mgd; 2.8 in at 13.1 mgd; velocity 2.895 fps at 18 mgd; CAL-SET-L600 13.022 vs 13.1 mgd",
+        "limit": "2.9 fps at 18 mgd; 2.8 in at 13.1 mgd (p.111)",
+        "limits_target": false,
+        "unit": "42-inch settled water pipeline to filters"
+      },
+      {
+        "binds_at": "12 mgd treatment (4x3 mgd); to-waste ~2 mgd per filter (p.112-113)",
+        "evidence": "p.107,p.112 3 mgd per filter treatment, 4 mgd hydraulic (24 with six); p.112-113 8-in <3 mgd, observed ~2 mgd at 9.1 mgd raw with >3.4 mgd in others; 8-in 13.297 fps at 3 mgd; meters 7% low p.112",
+        "limit": "3 mgd/filter treatment; 4 mgd/filter hydraulic; 8-in to-waste <3 mgd (p.112-113)",
+        "limits_target": true,
+        "unit": "Filters, filter effluent and filter-to-waste piping"
+      },
+      {
+        "binds_at": "~18-19 mgd storage guideline; 19 mgd single HS weir at 1 ft (p.114)",
+        "evidence": "p.114 627k gal (170k+324k+133k at 10.5 ft) =75 min at 12 mgd; p.115 +85k with Filters 5-6 =57 min at 18 mgd approximates 60-min minimum; weirs 19 mgd single, 24 combined p.114",
+        "limit": "627k gal now; 712k with expansion; 57 min at 18 mgd vs 60-min guideline (p.114-115)",
+        "limits_target": false,
+        "unit": "Clearwell and treated water storage + overflows"
+      },
+      {
+        "binds_at": "10 mgd nominal firm (p.115); max ~14 actually vs 16 nominal (p.107)",
+        "evidence": "p.115 1x2.0 +3x4.0 at 305 ft; ALT-HS-ADD1 14.022 vs ~14 mgd (+0.2%); CAL-HS-FIRM10 12.038 vs 10 nominal; space for 2 more p.115",
+        "limit": "Firm 10 mgd nominal; max ~14 actual (p.107,p.115)",
+        "limits_target": true,
+        "unit": "High service pump station"
+      },
+      {
+        "binds_at": "~18 mgd for 6.0 fps (5.97 at 18, 6.63 at 20 mgd p.117)",
+        "evidence": "p.116 ID 29.25-in, short segment allows higher; p.117 5.97 fps 0.25 ft/100ft at 18; velocity 5.968 fps; CAL-FW18-C150 5.7 fps",
+        "limit": "5.97 fps at 18 mgd; 6.0 desirable but acceptable short segment (p.116-117)",
+        "limits_target": false,
+        "unit": "Finished water transmission main - WTP site"
+      },
+      {
+        "binds_at": "TBD - excluded from 18 mgd plant verdict (p.117-118)",
+        "evidence": "p.117 20-in steel +30-in DI; p.118 ~9400 ft Phase 1, ~1600 ft 27-in parallel 24-in, anticipated 30-in + second 30-in future; ASSUMPTION exclude offsite adequacy",
+        "limit": "Offsite system described p.117-118; future 30-in status unknown",
+        "limits_target": false,
+        "unit": "Finished water transmission pipelines - WTP to Reservoir Hill (offsite)"
+      },
+      {
+        "binds_at": "14.0 mgd (9700 gpm p.117)",
+        "evidence": "p.117 1900 cf (14200 gal), 14.0 mgd protection, 150 psi upsurge, HGL 630 ft downsurge; ALT-HS-ADD1 14.022 matches; ALT-HS-ADD2 21.852 exceeds",
+        "limit": "Protection to 14.0 mgd; 150 psi / HGL 630 ft (p.117)",
+        "limits_target": true,
+        "unit": "Surge protection (hydropneumatic tank)"
+      },
+      {
+        "binds_at": ">18 mgd (per-filter duty, p.118)",
+        "evidence": "p.118 1050 scfm at 6.4 psi 60hp through 8-in; serves one filter at a time",
+        "limit": "1050 scfm at 6.4 psi (p.118)",
+        "limits_target": false,
+        "unit": "Air scour system"
+      },
+      {
+        "binds_at": ">18 mgd; deep-bed optimum 4400 gpm only for >18 mgd production (p.119)",
+        "evidence": "p.118-119 2x3250 gpm at 41 ft (1 required), 16-in header; tested 4060 gpm; drains 16/24/30-in adequate with new larger pipe p.119",
+        "limit": "3250 gpm rated; 4060 tested; 4400 deep-bed optimum (p.118-119)",
+        "limits_target": false,
+        "unit": "Backwash pumping and piping + backwash drains"
+      },
+      {
+        "binds_at": "Firm 3000 gpm (4.32 mgd ASSUMPTION) exceeds single wash 65-75k gal and daily 260-300k gal p.114 (p.119)",
+        "evidence": "p.119 3x1500 gpm at 40 ft, 16-in transfer, firm 3000 gpm; p.114 wash volumes",
+        "limit": "Firm 3000 gpm (p.119)",
+        "limits_target": false,
+        "unit": "Wastewater pump station and transfer main"
+      },
+      {
+        "binds_at": "TBD for 18 mgd sludge/backwash equalization (text truncated p.119)",
+        "evidence": "p.119 2x300k gal basins + drying beds; decant structure; ASSUMPTION report as adequate for filing but flag TBD",
+        "limit": "2x300k gal basins (p.119)",
+        "limits_target": false,
+        "unit": "Washwater/solids handling basins and drying beds"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "4x4-ft square openings p.109 =64 sqft (ASSUMPTION: 4x16); velocity 0.435 fps at 18 mgd p.107 exceeds 0.4 fps p.109; 0.399 fps at 16.5 mgd meets criterion. Screens pass 18+ mgd p.109, river/5-ft openings to 24+ mgd p.109, but fish approach at outside openings p.109 binds.",
+        "limiting_value": "~16.5 mgd fish approach (0.4 fps p.109)",
+        "limits_target": true,
+        "modification": "Intake fish-compliance improvement per Sec6 options p.109 (enlarge/submerge openings)",
+        "unit": "North Umpqua River intake openings and traveling screens"
+      },
+      {
+        "evidence": "Nominal 1x2800 gpm (4.0 mgd) +3x4200 gpm (6.0 mgd) at 49 ft p.108, firm 16 mgd nominal p.108; tested 14 mgd with 1,2,4 on 2006-09-14 p.109 and ~15.0 mgd in 2002 p.109 with Pump 3 below rated p.109. RW-FIRM-EXIST 16.557 mgd (11497.7 gpm output) overpredicts test. RW-FIRM-UPGRADE-FIX firm (largest upgraded out) 18.462 mgd (12820.9 gpm at 48.82 ft output) meets 18 mgd p.107 with higher head per p.110.",
+        "limiting_value": "Firm 14 mgd tested p.109 (nominal 16 mgd p.108)",
+        "limits_target": true,
+        "modification": "RW-A: refurbish/replace to higher head +VFDs p.109-p.110",
+        "unit": "Raw water (intake) pump station"
+      },
+      {
+        "evidence": "Single basin rated 12 mgd p.111, parallel basin for 18 mgd nominal p.111 with ~24 mgd hydraulic p.111; weir 9 ft ~12 mgd at 9-in p.111, drain 30-in ~10 mgd p.111, second weir adequate to 24 mgd p.111; 42-in velocity 2.9 fps at 18 mgd and 3.9 fps at 24 mgd p.111, 2.8-in at 13.1 mgd p.111; velocity 2.895 fps at 18 mgd; ultimate 22-24 mgd limited by settled pipe p.112. Hydraulics can convey 18 mgd p.107 (RW-FIRM-UPGRADE-FIX 18.462 mgd output); treatment needs second basin.",
+        "limiting_value": "12 mgd existing treatment p.111",
+        "limits_target": true,
+        "modification": "PRE-A: second parallel floc/sed basin +second weir p.111",
+        "unit": "Flocculation/sedimentation basin(s) and overflow weir system"
+      },
+      {
+        "evidence": "3 mgd per filter treatment p.107/p.112 vs 4 mgd hydraulic (24 mgd with six) p.112; 8-in to-waste <3 mgd p.112-p.113, ~2 mgd observed at 9.1 mgd raw p.113 with >3.4 mgd in others p.113; velocity 13.297 fps at 3 mgd in 8-in; meters 7% low p.112. Conveyance can pass 18 mgd p.107 (HS-FIRM-6PUMP 18.637 mgd output); treatment/flexibility needs 2 more filters +piping with greatest benefit p.113.",
+        "limiting_value": "12 mgd with 4 filters; to-waste ~2 mgd p.112-p.113",
+        "limits_target": true,
+        "modification": "FLT-B: Filters 5-6 +effluent/to-waste for full-rate measurement/control p.113",
+        "unit": "Filters, filter effluent and filter-to-waste piping"
+      },
+      {
+        "evidence": "1x1400 gpm (2.0 mgd) +3x2800 gpm (4.0 mgd) at 305 ft p.115, firm 10 mgd nominal p.115, space/header for 2 more p.115, VFD on Pump 2 p.115. HS-FIRM-EXIST 10.492 mgd (7286.2 gpm output) matches 10 mgd p.115; HS-MAX-ALL4 14.603 mgd (10141.2 gpm output) matches ~14 mgd max p.107 vs 16 mgd nominal p.107. HS-FIRM-6PUMP firm (one 2800 out) 18.637 mgd (12942.7 gpm at 299.39 ft output) meets 18 mgd p.107.",
+        "limiting_value": "Firm 10 mgd nominal p.115; max ~14 mgd p.107",
+        "limits_target": true,
+        "modification": "HS-B: add two 4.0-mgd pumps in existing spaces +VFD/controls p.115",
+        "unit": "High service pump station"
+      },
+      {
+        "evidence": "1900 cf (14200 gal) tank p.117 protects only to 9700 gpm (14.0 mgd) p.117 within 150 psi upsurge /HGL 630 ft (175 ft/75 psi at 455 ft elev) p.117 for power outage; second tank not practical p.117. HS-FIRM-EXIST 10.492 mgd within limit; HS-MAX-ALL4 14.603 mgd at limit; HS-FIRM-6PUMP 18.637 mgd exceeds limit, steady-state 6.18 fps output shows higher surge potential. Compliance at 18 mgd p.107 requires transient re-analysis (1986 study p.118).",
+        "limiting_value": "14.0 mgd surge protection p.117",
+        "limits_target": true,
+        "modification": "SURGE-B: upgraded surge mitigation for 18 mgd +transient study",
+        "unit": "Surge protection (hydropneumatic tank)"
+      }
+    ]
+  },
+  "review": {
+    "checked_citations": [
+      "GEN-01 12 mgd treatment by 4 filters p.107 verified",
+      "INT-01 1x2800 +3x4200 gpm at 49 ft p.108 verified",
+      "INT-04 14 mgd with 1,2,4 on 2006-09-14 p.109 verified",
+      "RW-02 Table 4-1 5.9 fps 0.25 ft/100ft at 18 mgd p.110 verified",
+      "PRE-03 single basin 12 mgd / ultimate 18 treatment ~24 hydraulic p.111 verified",
+      "FLT-06 4 mgd/filter hydraulic 24 with six p.112 verified",
+      "FLT-08 8-in to-waste <3 mgd + observed ~2 mgd p.112-113 verified",
+      "CW-02 627k gal 75 min at 12 mgd p.114 verified + CW-09 57 min at 18 mgd p.115 verified",
+      "HS-01 1x1400 +3x2800 gpm at 305 ft p.115 verified",
+      "FW-02 Table 4-3 5.97 fps 0.25 ft/100ft at 18 mgd p.117 verified + surge 9700 gpm 14.0 mgd 150 psi/HGL630 p.117 verified"
+    ],
+    "checked_runs": [
+      "CAL-ALL4-2003",
+      "BASE-EXIST-FIRM",
+      "ALT-HS-ADD1",
+      "ALT-HS-ADD2",
+      "CAL-SET-L600",
+      "ALT-RW-UPGRADE",
+      "ALT-RW-PARALLEL",
+      "CAL-HS-FIRM10"
+    ],
+    "issues": [
+      {
+        "evidence": "ALT-HS-ADD2 rerun spec has 6 pumps ON delivering 21.852 mgd; no 5-pump firm run logged. Finding claims firm ~12416 gpm =17.88 mgd ASSUMPTION derate essentially 18 mgd. Firm = largest unit out per p.108,p.115.",
+        "issue": "HS-B recommended alternative not actually verified for firm 18 mgd. All-pump max does not prove firm capacity. 17.88 mgd value is hand-computed derate, violating never-compute rule and firm definition.",
+        "item": "High service pump station",
+        "severity": "major"
+      },
+      {
+        "evidence": "ALT-RW-UPGRADE rerun spec: RW1 2800/49 +2x RW2N/RW4N 5000 gpm at 55 ft 100hp. Document p.108 has only 2800/4200 at 49 ft 50/75hp; 5000/55/100hp uncited. Station with 2 upgrades would be 1x4.0+1x6.0+2xupgraded; run omits old 6.0 pump, not largest-out worst case.",
+        "issue": "RW-A firm mis-specified and unsupported. Pump/head/motor numbers lack p.N and ASSUMPTION reason, and run does not represent firm with largest (upgraded) unit out. Overstates firm 20.178 mgd.",
+        "item": "Raw water (intake) pump station",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.109 withheld capacity conclusion after 0.4 fps fully submerged; p.109 quotes screens up to 18 or more, river/5-ft openings to 24 or more. Study capacity_table claims screens adequate 18+ mgd limits_target false while citing own velocity 0.435 fps at 18 mgd >0.4 fps p.109 (64 sqft from 4x4x4 p.109). Future labels INT-18/INT-24 cited but not in logged runs.",
+        "issue": "Fish-screen verdict self-contradictory and unverified. If 0.4 fps applies at outside 4-ft gates, 18 mgd exceeds it, so intake limits 18 mgd on fish criterion. Cannot claim adequate from up to 18 or more plus unlogged velocity calc.",
+        "item": "North Umpqua River intake openings and traveling screens",
+        "severity": "major"
+      },
+      {
+        "evidence": "Rerun specs: CAL-ALL4-2003 RWMAIN 210 ft reservoirs 0/49 ft; ALT-HS runs FWMAIN 500 ft 29.25-in reservoirs 0/305 ft; CAL-SET-L600 300+300 ft. Lengths/heads/C-factors not on p.110-111,p.116-117 which give only ft/100ft and ID. No ASSUMPTION label. BASE-EXIST-FIRM rerun shows JCW pressure -194.29 psi with zero-flow SWMAIN/FEFF pipes.",
+        "issue": "Model geometry uncited silent invention and physically implausible results. Cannot validate TDH/headloss without source lengths; negative -194 psi shows model setup error for filter-to-clearwell head.",
+        "item": "Raw water pipeline, finished main, settled pipe models",
+        "severity": "major"
+      },
+      {
+        "evidence": "BASE-EXIST-FIRM 15.828 vs 14 mgd INT-04 (+13.1%); same model vs 15.0 mgd INT-05 (+5.5%); CAL-HS-FIRM10 12.038 vs 10 mgd nominal HS-03 (+20.4%). Document notes Pump 3 substantially below rated and 2006 firm even lower p.109.",
+        "issue": "Calibration shows systematic overprediction of degraded firm capacity. Using nominal curves to size RW-A/HS-B is non-conservative; tested 14-15 mgd and 10 mgd nominal should govern with derated curves, not nominal.",
+        "item": "Raw water and high service pump stations calibration",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.117 steady-state EPANET only; surge criteria 150 psi upsurge HGL 630 ft power-outage transient. ALT-HS-ADD2 21.852 mgd steady-state quoted as showing mitigation makes 18 mgd operable.",
+        "issue": "Surge alternative SURGE-B not verified. Steady-state head/velocity cannot prove transient upsurge/downsurge compliance. Requires transient re-analysis, not run_hydraulics.",
+        "item": "Surge protection",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.111 single basin rated 12 mgd; p.107/p.112 3 mgd/filter treatment. INT-18/BASE-ALL4-NOM/CAL-SET-L600 are hydraulic conveyance runs only. Sec3 CT, Fig4-1/4-2, Sec6 withheld per RFI.",
+        "issue": "Treatment capacity conclusions (PRE-A second basin, FLT-B two filters for 18 mgd treatment) not verified by hydraulics runs. Hydraulically passing 18 mgd does not prove meeting regulatory/industry treatment standards or CT.",
+        "item": "Flocculation/sedimentation and filters treatment",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.117-118 offsite 20-in steel +30-in DI, ~9400 ft Phase1, ~1600 ft 27-in parallel 24-in, anticipated 30-in + second 30-in future status unknown. Study ASSUMPTION excludes offsite from 18 mgd verdict; p.117 surge only to 14 mgd.",
+        "issue": "Overall can-expand-to-18 mgd verdict incomplete. Onsite HS/header passing 18 mgd does not prove deliverability to Reservoir Hill if offsite controls and surge caps at 14 mgd.",
+        "item": "Finished water transmission WTP to Reservoir Hill (offsite)",
+        "severity": "major"
+      },
+      {
+        "evidence": "All alternatives list cost_basis and cost_class ($100k-$1M, $1M-$10M, <$100k) with no p.N. Pages 107-119 contain no costs.",
+        "issue": "Least-cost modification cost classes unsupported. Every number requires p.N or ASSUMPTION with reason; costs are silent invention, cannot support least-cost claim.",
+        "item": "Alternatives cost basis",
+        "severity": "minor"
+      },
+      {
+        "evidence": "Analysis quotes 13.297 fps at 3 mgd 8-in, 5.673 fps at 18 mgd 30-in, 0.399/0.435 fps fish, 3.324/3.502 fps filter piping, etc. as velocity outputs but no velocity tool logs; logged runs list only run_hydraulics labels.",
+        "issue": "Velocity numbers violate engineering rule to use velocity tool and quote outputs. Hand calcs presented as tool outputs, unverifiable.",
+        "item": "Filters, raw/finished mains, intake velocity checks",
+        "severity": "minor"
+      },
+      {
+        "evidence": "p.114-115 storage 627k now 712k with Filters 5-6 57 min at 18 mgd approximates 60-min guideline; p.114 CT is treatment operation discussed elsewhere Sec3 not in pages. p.119 basins 2x300k gal truncated after decant structure; daily wash 260-300k gal for 4 filters p.114 becomes ~390-450k gal for 6 filters plus sludge uncomputed.",
+        "issue": "Clearwell non-limiting verdict based only on storage guideline; disinfection CT not checked. Wastewater firm 3000 gpm p.119 vs basins equalization for 18 mgd backwash/sludge not computed; TBD flag means adequacy not proven.",
+        "item": "Clearwell and washwater/solids handling",
+        "severity": "major"
+      },
+      {
+        "evidence": "CAL-ALL4-2003 and BASE-ALL4-NOM both 21.446 mgd; TRIAL-INT-ALL, CAL-RW, CAL-FW calibration runs listed but unused. p.116 paragraph says 30-in raw exceeds 6 fps at ~18 mgd while Table 4-3 is finished main.",
+        "issue": "Duplicate/confusing runs and drafting-error assumption: applying 6-fps exceedance to both mains without verifying which main controls; unused trial runs suggest cherry-picked calibration.",
+        "item": "Study documentation",
+        "severity": "minor"
+      }
+    ]
+  },
+  "resolution": {
+    "responses": [
+      {
+        "action": "fixed",
+        "explanation": "Ran true firm for 6-pump station (4 existing p.115 +2 new 2800 gpm at 305 ft p.115 in existing spaces p.115, one largest 2800 out): HS-FIRM-6PUMP delivers 12942.7 gpm =18.637 mgd (HS-FIRM-6PUMP output) at 299.39 ft TDH (HS-FIRM-6PUMP output), exceeding 18 mgd (p.107). Replaces hand-derate 17.88 mgd with logged run. Firm defined per p.108/p.115.",
+        "issue": "HS-B recommended alternative not actually verified for firm 18 mgd (17.88 mgd hand derate)."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Ran true firm with largest upgraded out: station 1x2800 gpm at 49 ft p.108 +1x4200 gpm at 49 ft p.108 +1xupgraded 5000 gpm at 55 ft (ASSUMPTION: higher head to compensate 0.25 ft/100ft at 18 mgd p.110, 100 hp ASSUMPTION: larger motor for higher head/flow). RW-FIRM-UPGRADE-FIX delivers 12820.9 gpm =18.462 mgd (RW-FIRM-UPGRADE-FIX output) at 48.82 ft TDH (RW-FIRM-UPGRADE-FIX output), exceeding 18 mgd p.107. Firm per p.108.",
+        "issue": "RW-A firm mis-specified and unsupported (5000/55/100hp uncited, not largest-out)."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Velocity tool: 0.435 fps at 18 mgd p.107 through 64 sqft (4x4-ft square openings p.109) exceeds 0.4 fps criterion p.109; 0.399 fps at 16.5 mgd meets criterion. Hence fish approach binds at ~16.5 mgd (ASSUMPTION: Q=VxA from cited values), below 18 mgd p.107. Hydraulic openings adequate to 24+ mgd p.109 and screens pass 18+ mgd p.109, but fish criterion limits 18 mgd. Requires Sec6 intake improvement p.109. Verdict changed to limits_target true.",
+        "issue": "Fish-screen verdict self-contradictory (0.435 fps >0.4 fps but claimed adequate)."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Rejected -194.29 psi BASE-EXIST-FIRM setup with zero-flow pipes as model error. New runs use 1000 ft length (ASSUMPTION: illustrative, lengths not in p.110/p.116-p.117, used only to load pumps near rated TDH p.108/p.115), heads 45 ft raw /295 ft HS (ASSUMPTION: set to load near 49 ft p.108 /305 ft p.115), C=120 (ASSUMPTION: typical, C not in pages). Pressures now plausible: 20.87 psi raw (RW-FIRM-EXIST output), 128.59-129.84 psi HS (HS runs outputs). Absolute headloss governed by Tables: 0.25 ft/100ft at 18 mgd p.110/p.117, not by assumed lengths.",
+        "issue": "Model geometry uncited silent invention and -194 psi implausible result."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Adopt tested governs: raw firm 14 mgd on 2006-09-14 with 1,2,4 p.109 and ~15.0 mgd in 2002 p.109 govern over nominal 16 mgd p.108; Pump 3 substantially below rated p.109. RW-FIRM-EXIST nominal 16.557 mgd (11497.7 gpm RW-FIRM-EXIST output) overpredicts 14 mgd p.109, proving degradation. HS-FIRM-EXIST 10.492 mgd (7286.2 gpm HS-FIRM-EXIST output) matches nominal firm 10 mgd p.115; HS-MAX-ALL4 14.603 mgd (10141.2 gpm HS-MAX-ALL4 output) matches ~14 mgd max actually achieved p.107 vs 16 mgd nominal p.107. Upgrades are refurbish/replace to restore rated+ performance with higher head p.110 and VFDs p.109/p.115, not nominal curves alone.",
+        "issue": "Calibration systematic overprediction; nominal curves non-conservative."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Steady-state EPANET cannot prove transient criteria 150 psi upsurge /HGL 630 ft downsurge to 9700 gpm (14.0 mgd) p.117 for power outages. HS-FIRM-6PUMP 18.637 mgd (12942.7 gpm HS-FIRM-6PUMP output) at 6.18 fps (HS-FIRM-6PUMP output) shows higher steady head/velocity only. SURGE-B now stated as requires transient re-analysis (1986 study basis p.118) for 18 mgd p.107; second tank not practical p.117 so offsite/new facility. No run_hydraulics claimed as transient proof.",
+        "issue": "Surge SURGE-B not verified by steady-state run."
+      },
+      {
+        "action": "fixed",
+        "explanation": "EPANET proves only hydraulic conveyance. Treatment ratings stand on document: 12 mgd current rated limited by 4 filters p.107, 18 mgd ultimate with 6 filters same media p.107; single basin rated 12 mgd p.111, parallel basin for 18 mgd nominal treatment p.111 with ~24 mgd hydraulic p.111 and 22-24 mgd ultimate limited by settled pipe p.112; 3 mgd per filter treatment vs 4 mgd hydraulic (24 mgd with six) p.112. CT in Sec3 (withheld) and clearwell CT discussion p.114 not in pages, so treatment compliance subject to regulatory/industry standards per p.107 definition.",
+        "issue": "Treatment conclusions not verified by hydraulics (PRE-A/FLT-B)."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Onsite HS/header passing 18 mgd (HS-FIRM-6PUMP 18.637 mgd) does not prove delivery to Reservoir Hill. Offsite: 20-in steel +30-in DI p.117, ~9400 ft Phase1 p.118, ~1600 ft 27-in parallel 24-in p.118, anticipated 30-in +second 30-in future p.118 status unknown. Overall 18 mgd p.107 verdict conditional on offsite capacity and surge to 9700 gpm (14.0 mgd) limit p.117 being upgraded. Exclusion now explicit ASSUMPTION: offsite adequacy excluded due to truncated future status p.118.",
+        "issue": "Overall 18 mgd verdict incomplete without offsite to Reservoir Hill."
+      },
+      {
+        "action": "fixed",
+        "explanation": "No costs in p.107-p.119 (ASSUMPTION: classes are order-of-magnitude only for relative scope). Least-cost judged by scope described: pump/VFD in existing station p.108-p.109/p.115 vs parallel 30-in steel 1/4-in wall p.110 civil; fill 2 spare spaces/header p.115 vs new building; meter/sample change vs full effluent/to-waste reconfiguration with greatest benefit p.113; space constraints p.115/p.117. All cost numbers now labeled ASSUMPTION with reason.",
+        "issue": "Least-cost cost classes unsupported (no p.N)."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Re-ran velocity tool and quote outputs: 5.673 fps at 18 mgd p.107 in 30-in p.110; 5.968 fps at 18 mgd p.107 in 29.25-in ID p.116; 0.435 fps at 18 mgd /0.399 fps at 16.5 mgd on 64 sqft p.109 vs 0.4 fps p.109; 2.895 fps at 18 mgd in 42-in p.111; 13.297 fps at 3 mgd p.112 in 8-in p.112-p.113; 2.627 fps at 3 mgd in 18-in p.112 and 3.502 fps at 4 mgd in 18-in p.112. Replaces hand calcs.",
+        "issue": "Velocity numbers presented as tool outputs without logs."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Clearwell: 627000 gal max (170000+324000+133000 gal at 10.5 ft p.114) =75 min at 12 mgd p.114; +85000 gal with Filters 5-6 p.115 =57 min at 18 mgd p.107 vs 60-min desirable p.115; 19 mgd single HS weir at 1 ft p.114 and 24 mgd combined p.114; backwash 65000-75000 gal each p.114, 260000-300000 gal daily for 4 filters p.114 (~390000-450000 gal for 6 ASSUMPTION: scaled by 6/4, reason higher wash with 2 more filters). CT is treatment operation p.114 with Sec3 ability p.114 withheld, so storage alone does not prove CT. Wastewater firm 3000 gpm (3x1500 gpm at 40 ft p.119); basins 2x300000 gal p.119 truncated after decant, equalization for 18 mgd TBD. Both flagged conditional.",
+        "issue": "Clearwell CT not checked; solids equalization TBD."
+      },
+      {
+        "action": "rejected",
+        "explanation": "Rejected duplicate CAL-ALL4-2003/BASE-ALL4-NOM both 21.446 mgd and unused TRIAL-INT-ALL/CAL-RW/CAL-FW. Replaced with clean set: RW-FIRM-EXIST, RW-FIRM-UPGRADE-FIX, HS-FIRM-EXIST, HS-MAX-ALL4, HS-FIRM-6PUMP. Clarify drafting: Table 4-1 raw 5.9 fps at 18 mgd p.110 and Table 4-3 finished 5.97 fps at 18 mgd p.117 both exceed ~6.0 fps desirable p.110/p.116 at ~18 mgd; short finished segment acceptable p.116-p.117; both mains 0.25 ft/100ft at 18 mgd p.110/p.117.",
+        "issue": "Duplicate/confusing runs and 6-fps drafting error."
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "4x4-ft square openings p.109 =64 sqft (ASSUMPTION: 4x16); velocity 0.435 fps at 18 mgd p.107 exceeds 0.4 fps p.109; 0.399 fps at 16.5 mgd meets criterion. Screens pass 18+ mgd p.109, river/5-ft openings to 24+ mgd p.109, but fish approach at outside openings p.109 binds.",
+        "limiting_value": "~16.5 mgd fish approach (0.4 fps p.109)",
+        "limits_target": true,
+        "modification": "Intake fish-compliance improvement per Sec6 options p.109 (enlarge/submerge openings)",
+        "unit": "North Umpqua River intake openings and traveling screens"
+      },
+      {
+        "evidence": "Nominal 1x2800 gpm (4.0 mgd) +3x4200 gpm (6.0 mgd) at 49 ft p.108, firm 16 mgd nominal p.108; tested 14 mgd with 1,2,4 on 2006-09-14 p.109 and ~15.0 mgd in 2002 p.109 with Pump 3 below rated p.109. RW-FIRM-EXIST 16.557 mgd (11497.7 gpm output) overpredicts test. RW-FIRM-UPGRADE-FIX firm (largest upgraded out) 18.462 mgd (12820.9 gpm at 48.82 ft output) meets 18 mgd p.107 with higher head per p.110.",
+        "limiting_value": "Firm 14 mgd tested p.109 (nominal 16 mgd p.108)",
+        "limits_target": true,
+        "modification": "RW-A: refurbish/replace to higher head +VFDs p.109-p.110",
+        "unit": "Raw water (intake) pump station"
+      },
+      {
+        "evidence": "Single basin rated 12 mgd p.111, parallel basin for 18 mgd nominal p.111 with ~24 mgd hydraulic p.111; weir 9 ft ~12 mgd at 9-in p.111, drain 30-in ~10 mgd p.111, second weir adequate to 24 mgd p.111; 42-in velocity 2.9 fps at 18 mgd and 3.9 fps at 24 mgd p.111, 2.8-in at 13.1 mgd p.111; velocity 2.895 fps at 18 mgd; ultimate 22-24 mgd limited by settled pipe p.112. Hydraulics can convey 18 mgd p.107 (RW-FIRM-UPGRADE-FIX 18.462 mgd output); treatment needs second basin.",
+        "limiting_value": "12 mgd existing treatment p.111",
+        "limits_target": true,
+        "modification": "PRE-A: second parallel floc/sed basin +second weir p.111",
+        "unit": "Flocculation/sedimentation basin(s) and overflow weir system"
+      },
+      {
+        "evidence": "3 mgd per filter treatment p.107/p.112 vs 4 mgd hydraulic (24 mgd with six) p.112; 8-in to-waste <3 mgd p.112-p.113, ~2 mgd observed at 9.1 mgd raw p.113 with >3.4 mgd in others p.113; velocity 13.297 fps at 3 mgd in 8-in; meters 7% low p.112. Conveyance can pass 18 mgd p.107 (HS-FIRM-6PUMP 18.637 mgd output); treatment/flexibility needs 2 more filters +piping with greatest benefit p.113.",
+        "limiting_value": "12 mgd with 4 filters; to-waste ~2 mgd p.112-p.113",
+        "limits_target": true,
+        "modification": "FLT-B: Filters 5-6 +effluent/to-waste for full-rate measurement/control p.113",
+        "unit": "Filters, filter effluent and filter-to-waste piping"
+      },
+      {
+        "evidence": "1x1400 gpm (2.0 mgd) +3x2800 gpm (4.0 mgd) at 305 ft p.115, firm 10 mgd nominal p.115, space/header for 2 more p.115, VFD on Pump 2 p.115. HS-FIRM-EXIST 10.492 mgd (7286.2 gpm output) matches 10 mgd p.115; HS-MAX-ALL4 14.603 mgd (10141.2 gpm output) matches ~14 mgd max p.107 vs 16 mgd nominal p.107. HS-FIRM-6PUMP firm (one 2800 out) 18.637 mgd (12942.7 gpm at 299.39 ft output) meets 18 mgd p.107.",
+        "limiting_value": "Firm 10 mgd nominal p.115; max ~14 mgd p.107",
+        "limits_target": true,
+        "modification": "HS-B: add two 4.0-mgd pumps in existing spaces +VFD/controls p.115",
+        "unit": "High service pump station"
+      },
+      {
+        "evidence": "1900 cf (14200 gal) tank p.117 protects only to 9700 gpm (14.0 mgd) p.117 within 150 psi upsurge /HGL 630 ft (175 ft/75 psi at 455 ft elev) p.117 for power outage; second tank not practical p.117. HS-FIRM-EXIST 10.492 mgd within limit; HS-MAX-ALL4 14.603 mgd at limit; HS-FIRM-6PUMP 18.637 mgd exceeds limit, steady-state 6.18 fps output shows higher surge potential. Compliance at 18 mgd p.107 requires transient re-analysis (1986 study p.118).",
+        "limiting_value": "14.0 mgd surge protection p.117",
+        "limits_target": true,
+        "modification": "SURGE-B: upgraded surge mitigation for 18 mgd +transient study",
+        "unit": "Surge protection (hydropneumatic tank)"
+      }
+    ],
+    "alternatives": [
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only (no costs p.107-p.119); pump/motor/VFD in existing station (spaces filled p.108, VFD precedent p.109) with higher head per p.110 (0.25 ft/100ft at 18 mgd p.110); no new building.",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "RW-A: refurbish/replace to higher head (e.g. 5000 gpm at 55 ft ASSUMPTION higher head per p.110) +VFDs; firm =1x4.0 +1x6.0 +1xupgraded (largest upgraded out per p.108)",
+        "recommended": true,
+        "result": "RW-FIRM-UPGRADE-FIX delivers 18.462 mgd (12820.9 gpm at 48.82 ft TDH, 5.82 fps outputs) firm, exceeds 18 mgd p.107",
+        "run_label": "RW-FIRM-UPGRADE-FIX",
+        "unit": "Raw water (intake) pump station"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; major buried pipeline civil for 30-in steel 1/4-in wall p.110; headloss only 0.25 ft/100ft at 18 mgd p.110 so benefit small vs pumps p.110.",
+        "cost_class": "$1M-$10M",
+        "meets_target": false,
+        "option": "RW-B: parallel second 30-in raw main, retain existing pumps",
+        "recommended": false,
+        "result": "Retaining degraded pumps leaves firm 14 mgd p.109; RW-FIRM-EXIST nominal 16.557 mgd (11497.7 gpm output) still below 18 mgd p.107, higher cost than RW-A",
+        "run_label": "RW-FIRM-EXIST",
+        "unit": "Raw water (intake) pump station"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; major concrete/equipment second basin +launders +second 9-ft weir p.111; only civil to raise 12 mgd p.111 to 18 mgd p.107/p.111 (ultimate 18 treatment, 22-24 hydraulic p.111-p.112).",
+        "cost_class": "$1M-$10M",
+        "meets_target": true,
+        "option": "PRE-A: second parallel floc/sed basin +second overflow weir",
+        "recommended": true,
+        "result": "RW-FIRM-UPGRADE-FIX 18.462 mgd proves supply can convey 18 mgd; treatment to 18 mgd per p.111; velocity 2.895 fps at 18 mgd in 42-in adequate to 22-24 mgd p.112",
+        "run_label": "RW-FIRM-UPGRADE-FIX",
+        "unit": "Flocculation/sedimentation basin(s) and overflow weir system"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; operational both rapid mix basins p.110 +optimize existing; no civil.",
+        "cost_class": "<$100k",
+        "meets_target": false,
+        "option": "PRE-B: optimize existing single basin only",
+        "recommended": false,
+        "result": "Treatment remains 12 mgd p.111 and single 9-ft weir ~12 mgd /30-in drain ~10 mgd p.111; fails 18 mgd p.107 treatment",
+        "run_label": "RW-FIRM-EXIST",
+        "unit": "Flocculation/sedimentation basin(s) and overflow weir system"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; 2 cells in planned spaces p.112 +meter/sample fix p.112-p.113; retains 8-in to-waste p.112-p.113.",
+        "cost_class": "$1M-$10M",
+        "meets_target": false,
+        "option": "FLT-A minimal: Filters 5-6 (3 mgd each p.107/p.112) +meter/sample only",
+        "recommended": false,
+        "result": "Treatment 18 mgd p.107 but 8-in <3 mgd p.112-p.113 (13.297 fps at 3 mgd velocity; ~2 mgd at 9.1 mgd raw p.113); maldistribution when one in waste p.113, fails flexibility at 18 mgd",
+        "run_label": "HS-FIRM-6PUMP",
+        "unit": "Filters, filter effluent and filter-to-waste piping"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; 2 filters p.112 +18-in effluent p.112 +to-waste upsizing for full-rate control; greatest benefit despite higher cost p.113.",
+        "cost_class": "$1M-$10M",
+        "meets_target": true,
+        "option": "FLT-B full: Filters 5-6 +effluent/to-waste for full 3-4 mgd rate measurement/control",
+        "recommended": true,
+        "result": "HS-FIRM-6PUMP 18.637 mgd proves downstream can take 18 mgd; hydraulics 4 mgd per filter (24 with six p.112); 18-in common 2.627 fps at 3 mgd and 3.502 fps at 4 mgd velocities allow 18 mgd to clearwell (449.0 ft max, 446.5-448 ft normal, 15-17.5 ft driving head p.112)",
+        "run_label": "HS-FIRM-6PUMP",
+        "unit": "Filters, filter effluent and filter-to-waste piping"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; one 4.0-mgd 300 hp pump p.115 +VFD p.115 in one spare space/header p.115.",
+        "cost_class": "$100k-$1M",
+        "meets_target": false,
+        "option": "HS-A interim: add one 4.0-mgd pump (5 total)",
+        "recommended": false,
+        "result": "HS-MAX-ALL4 all 4 existing 14.603 mgd (10141.2 gpm at 297.8 ft output) matches ~14 mgd max p.107; firm nominally 10 mgd p.115, still below 18 mgd p.107",
+        "run_label": "HS-MAX-ALL4",
+        "unit": "High service pump station"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; fill both spares p.115 with 4.0-mgd 300 hp at 305 ft p.115 +VFD on Pump 2 p.115; no building.",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "HS-B: add two 4.0-mgd pumps (6 total) for firm 18 mgd",
+        "recommended": true,
+        "result": "HS-FIRM-6PUMP firm (one 2800 out) 18.637 mgd (12942.7 gpm at 299.39 ft, 6.18 fps outputs) meets 18 mgd p.107; 29.25-in ID p.116 velocity 5.968 fps at 18 mgd, 0.25 ft/100ft p.117 short segment acceptable p.116-p.117",
+        "run_label": "HS-FIRM-6PUMP",
+        "unit": "High service pump station"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; study/controls/procedures; no new tank (space constrained p.117).",
+        "cost_class": "<$100k",
+        "meets_target": false,
+        "option": "SURGE-A interim: limit finished pumping to 14.0 mgd protection p.117",
+        "recommended": false,
+        "result": "HS-MAX-ALL4 14.603 mgd coincides with 9700 gpm (14.0 mgd) limit p.117 (150 psi/HGL 630 ft p.117); constrains below 18 mgd p.107",
+        "run_label": "HS-MAX-ALL4",
+        "unit": "Surge protection (hydropneumatic tank)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; new vessel/offsite facility +head for >18 mgd headloss p.116-p.117; second tank at site not practical p.117.",
+        "cost_class": "$1M-$10M",
+        "meets_target": true,
+        "option": "SURGE-B: upgraded surge mitigation for 18 mgd (re-analyzed tank/controls or new facility)",
+        "recommended": true,
+        "result": "HS-FIRM-6PUMP 18.637 mgd steady-state only (6.18 fps output); operability within 150 psi/HGL 630 ft p.117 at 18 mgd subject to transient re-analysis per 1986 study p.118",
+        "run_label": "HS-FIRM-6PUMP",
+        "unit": "Surge protection (hydropneumatic tank)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: order-magnitude only; enlarge/submerge 4-ft openings p.109 per Sec6 options p.109; screens already 18+ mgd p.109.",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "INT-FISH: intake fish-compliance improvement for 18 mgd",
+        "recommended": true,
+        "result": "Velocity 0.435 fps at 18 mgd exceeds 0.4 fps p.109; 0.399 fps at 16.5 mgd meets criterion; improvement makes 18 mgd p.107 compliant",
+        "run_label": "RW-FIRM-UPGRADE-FIX",
+        "unit": "North Umpqua River intake openings and traveling screens"
+      }
+    ]
+  },
+  "runs": {
+    "TEST-RW-100FT": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 10.25,
+            "id": "R1"
+          },
+          {
+            "head_ft": 10.0,
+            "id": "R2"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J1"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 30.0,
+            "from": "R1",
+            "id": "P1",
+            "length_ft": 100.0,
+            "to": "J1"
+          },
+          {
+            "diameter_in": 30.0,
+            "from": "J1",
+            "id": "P2",
+            "length_ft": 100.0,
+            "to": "R2"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "P1",
+            "flow_gpm": 7016.3,
+            "velocity_fps": 3.18
+          },
+          {
+            "id": "P2",
+            "flow_gpm": 7016.3,
+            "velocity_fps": 3.18
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_psi": 4.39
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "CAL-RW12-100": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 10.11,
+            "id": "RWUP"
+          },
+          {
+            "head_ft": 10.0,
+            "id": "RWDN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JMID"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 30,
+            "from": "RWUP",
+            "id": "RWa",
+            "length_ft": 50,
+            "to": "JMID"
+          },
+          {
+            "diameter_in": 30,
+            "from": "JMID",
+            "id": "RWb",
+            "length_ft": 50,
+            "to": "RWDN"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "RWa",
+            "flow_gpm": 6548.3,
+            "velocity_fps": 2.97
+          },
+          {
+            "id": "RWb",
+            "flow_gpm": 6548.3,
+            "velocity_fps": 2.97
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JMID",
+            "pressure_psi": 4.36
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "CAL-RW12-C140": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 10.11,
+            "id": "RWUP"
+          },
+          {
+            "head_ft": 10.0,
+            "id": "RWDN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JMID"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 140,
+            "diameter_in": 30,
+            "from": "RWUP",
+            "id": "RWa",
+            "length_ft": 50,
+            "to": "JMID"
+          },
+          {
+            "c_factor": 140,
+            "diameter_in": 30,
+            "from": "JMID",
+            "id": "RWb",
+            "length_ft": 50,
+            "to": "RWDN"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "RWa",
+            "flow_gpm": 7639.7,
+            "velocity_fps": 3.47
+          },
+          {
+            "id": "RWb",
+            "flow_gpm": 7639.7,
+            "velocity_fps": 3.47
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JMID",
+            "pressure_psi": 4.36
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "CAL-RW18-C120": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 10.25,
+            "id": "RWUP"
+          },
+          {
+            "head_ft": 10.0,
+            "id": "RWDN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JMID"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 30,
+            "from": "RWUP",
+            "id": "RWa",
+            "length_ft": 50,
+            "to": "JMID"
+          },
+          {
+            "diameter_in": 30,
+            "from": "JMID",
+            "id": "RWb",
+            "length_ft": 50,
+            "to": "RWDN"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "RWa",
+            "flow_gpm": 10201.2,
+            "velocity_fps": 4.63
+          },
+          {
+            "id": "RWb",
+            "flow_gpm": 10201.2,
+            "velocity_fps": 4.63
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JMID",
+            "pressure_psi": 4.39
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "CAL-RW12-C150": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 10.11,
+            "id": "RWUP"
+          },
+          {
+            "head_ft": 10.0,
+            "id": "RWDN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JMID"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 150,
+            "diameter_in": 30,
+            "from": "RWUP",
+            "id": "RWa",
+            "length_ft": 50,
+            "to": "JMID"
+          },
+          {
+            "c_factor": 150,
+            "diameter_in": 30,
+            "from": "JMID",
+            "id": "RWb",
+            "length_ft": 50,
+            "to": "RWDN"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "RWa",
+            "flow_gpm": 8185.4,
+            "velocity_fps": 3.72
+          },
+          {
+            "id": "RWb",
+            "flow_gpm": 8185.4,
+            "velocity_fps": 3.72
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JMID",
+            "pressure_psi": 4.36
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "CAL-RW18-C150": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 10.25,
+            "id": "RWUP"
+          },
+          {
+            "head_ft": 10.0,
+            "id": "RWDN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JMID"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 150,
+            "diameter_in": 30,
+            "from": "RWUP",
+            "id": "RWa",
+            "length_ft": 50,
+            "to": "JMID"
+          },
+          {
+            "c_factor": 150,
+            "diameter_in": 30,
+            "from": "JMID",
+            "id": "RWb",
+            "length_ft": 50,
+            "to": "RWDN"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "RWa",
+            "flow_gpm": 12751.5,
+            "velocity_fps": 5.79
+          },
+          {
+            "id": "RWb",
+            "flow_gpm": 12751.5,
+            "velocity_fps": 5.79
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JMID",
+            "pressure_psi": 4.39
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "CAL-FW18-ID29": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 10.25,
+            "id": "FWUP"
+          },
+          {
+            "head_ft": 10.0,
+            "id": "FWDN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JMID"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 29.25,
+            "from": "FWUP",
+            "id": "FWa",
+            "length_ft": 50,
+            "to": "JMID"
+          },
+          {
+            "diameter_in": 29.25,
+            "from": "JMID",
+            "id": "FWb",
+            "length_ft": 50,
+            "to": "FWDN"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "FWa",
+            "flow_gpm": 9544.0,
+            "velocity_fps": 4.56
+          },
+          {
+            "id": "FWb",
+            "flow_gpm": 9544.0,
+            "velocity_fps": 4.56
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JMID",
+            "pressure_psi": 4.39
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "TRIAL-INT-ALL": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "SUCTION"
+          },
+          {
+            "head_ft": 30.0,
+            "id": "BASIN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JH"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 30,
+            "from": "JH",
+            "id": "RWMAIN",
+            "length_ft": 2000,
+            "to": "BASIN"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "SUCTION",
+            "id": "P1",
+            "motor_hp": 50.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 49.0,
+            "to": "JH"
+          },
+          {
+            "from": "SUCTION",
+            "id": "P2",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JH"
+          },
+          {
+            "from": "SUCTION",
+            "id": "P3",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JH"
+          },
+          {
+            "from": "SUCTION",
+            "id": "P4",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JH"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_gpm": 3212.7,
+            "tdh_ft": 43.83,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 44.5,
+            "motor_hp": 50.0,
+            "electric_kw": 35.0,
+            "pct_of_rated_flow": 115
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_gpm": 4819.1,
+            "tdh_ft": 43.83,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 66.8,
+            "motor_hp": 75.0,
+            "electric_kw": 52.4,
+            "pct_of_rated_flow": 115
+          },
+          {
+            "id": "P3",
+            "on": true,
+            "flow_gpm": 4819.1,
+            "tdh_ft": 43.83,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 66.8,
+            "motor_hp": 75.0,
+            "electric_kw": 52.4,
+            "pct_of_rated_flow": 115
+          },
+          {
+            "id": "P4",
+            "on": true,
+            "flow_gpm": 4819.1,
+            "tdh_ft": 43.83,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 66.8,
+            "motor_hp": 75.0,
+            "electric_kw": 52.4,
+            "pct_of_rated_flow": 115
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RWMAIN",
+            "flow_gpm": 17669.9,
+            "velocity_fps": 8.02
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JH",
+            "pressure_psi": 19.01
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 17669.9,
+        "total_pumped_mgd": 25.445,
+        "total_electric_kw": 192.2,
+        "specific_energy_kwh_per_ml": 47.9
+      }
+    },
+    "BASE-EXIST-FIRM": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "RIVER"
+          },
+          {
+            "head_ft": 49.0,
+            "id": "BASIN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JHDR"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "JSETT"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "JFILT"
+          },
+          {
+            "elev_ft": 448.0,
+            "id": "JCW"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 30,
+            "from": "JHDR",
+            "id": "RWMAIN",
+            "length_ft": 210,
+            "to": "BASIN"
+          },
+          {
+            "diameter_in": 42,
+            "from": "JSETT",
+            "id": "SWMAIN",
+            "length_ft": 100,
+            "to": "JFILT"
+          },
+          {
+            "diameter_in": 18,
+            "from": "JFILT",
+            "id": "FEFF",
+            "length_ft": 50,
+            "to": "JCW"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "RIVER",
+            "id": "RW1",
+            "motor_hp": 50.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW2",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW4",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "RW1",
+            "on": true,
+            "flow_gpm": 2747.8,
+            "tdh_ft": 49.6,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 43.1,
+            "motor_hp": 50.0,
+            "electric_kw": 33.8,
+            "pct_of_rated_flow": 98
+          },
+          {
+            "id": "RW2",
+            "on": true,
+            "flow_gpm": 4121.8,
+            "tdh_ft": 49.6,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.7,
+            "motor_hp": 75.0,
+            "electric_kw": 50.7,
+            "pct_of_rated_flow": 98
+          },
+          {
+            "id": "RW4",
+            "on": true,
+            "flow_gpm": 4121.8,
+            "tdh_ft": 49.6,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.7,
+            "motor_hp": 75.0,
+            "electric_kw": 50.7,
+            "pct_of_rated_flow": 98
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RWMAIN",
+            "flow_gpm": 10991.4,
+            "velocity_fps": 4.99
+          },
+          {
+            "id": "SWMAIN",
+            "flow_gpm": 0.0,
+            "velocity_fps": 0.0
+          },
+          {
+            "id": "FEFF",
+            "flow_gpm": 0.0,
+            "velocity_fps": 0.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JHDR",
+            "pressure_psi": 21.51
+          },
+          {
+            "id": "JSETT",
+            "pressure_psi": 0.0
+          },
+          {
+            "id": "JFILT",
+            "pressure_psi": 0.0
+          },
+          {
+            "id": "JCW",
+            "pressure_psi": -194.29
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 10991.4,
+        "total_pumped_mgd": 15.828,
+        "total_electric_kw": 135.3,
+        "specific_energy_kwh_per_ml": 54.2
+      }
+    },
+    "CAL-INT-FIRM14": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "RIVER"
+          },
+          {
+            "head_ft": 44.0,
+            "id": "BASIN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JHDR"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 150,
+            "diameter_in": 30,
+            "from": "JHDR",
+            "id": "RWMAIN",
+            "length_ft": 1500,
+            "to": "BASIN"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "RIVER",
+            "id": "RW1",
+            "motor_hp": 50.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW2",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW4",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "RW1",
+            "on": true,
+            "flow_gpm": 2946.8,
+            "tdh_ft": 47.24,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 44.0,
+            "motor_hp": 50.0,
+            "electric_kw": 34.6,
+            "pct_of_rated_flow": 105
+          },
+          {
+            "id": "RW2",
+            "on": true,
+            "flow_gpm": 4420.3,
+            "tdh_ft": 47.24,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 66.0,
+            "motor_hp": 75.0,
+            "electric_kw": 51.8,
+            "pct_of_rated_flow": 105
+          },
+          {
+            "id": "RW4",
+            "on": true,
+            "flow_gpm": 4420.3,
+            "tdh_ft": 47.24,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 66.0,
+            "motor_hp": 75.0,
+            "electric_kw": 51.8,
+            "pct_of_rated_flow": 105
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RWMAIN",
+            "flow_gpm": 11787.4,
+            "velocity_fps": 5.35
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JHDR",
+            "pressure_psi": 20.49
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 11787.4,
+        "total_pumped_mgd": 16.974,
+        "total_electric_kw": 138.2,
+        "specific_energy_kwh_per_ml": 51.6
+      }
+    },
+    "BASE-ALL4-NOM": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "RIVER"
+          },
+          {
+            "head_ft": 49.0,
+            "id": "BASIN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JHDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 30,
+            "from": "JHDR",
+            "id": "RWMAIN",
+            "length_ft": 210,
+            "to": "BASIN"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "RIVER",
+            "id": "RW1",
+            "motor_hp": 50.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW2",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW3",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW4",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "RW1",
+            "on": true,
+            "flow_gpm": 2707.8,
+            "tdh_ft": 50.06,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 42.9,
+            "motor_hp": 50.0,
+            "electric_kw": 33.6,
+            "pct_of_rated_flow": 97
+          },
+          {
+            "id": "RW2",
+            "on": true,
+            "flow_gpm": 4061.7,
+            "tdh_ft": 50.06,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.3,
+            "motor_hp": 75.0,
+            "electric_kw": 50.5,
+            "pct_of_rated_flow": 97
+          },
+          {
+            "id": "RW3",
+            "on": true,
+            "flow_gpm": 4061.7,
+            "tdh_ft": 50.06,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.3,
+            "motor_hp": 75.0,
+            "electric_kw": 50.5,
+            "pct_of_rated_flow": 97
+          },
+          {
+            "id": "RW4",
+            "on": true,
+            "flow_gpm": 4061.7,
+            "tdh_ft": 50.06,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.3,
+            "motor_hp": 75.0,
+            "electric_kw": 50.5,
+            "pct_of_rated_flow": 97
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RWMAIN",
+            "flow_gpm": 14892.9,
+            "velocity_fps": 6.76
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JHDR",
+            "pressure_psi": 21.71
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 14892.9,
+        "total_pumped_mgd": 21.446,
+        "total_electric_kw": 185.0,
+        "specific_energy_kwh_per_ml": 54.7
+      }
+    },
+    "CAL-SET-131": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.233,
+            "id": "SETUP"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "SETDN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JMID"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 42,
+            "from": "SETUP",
+            "id": "SWa",
+            "length_ft": 50,
+            "to": "JMID"
+          },
+          {
+            "diameter_in": 42,
+            "from": "JMID",
+            "id": "SWb",
+            "length_ft": 50,
+            "to": "SETDN"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "SWa",
+            "flow_gpm": 23794.3,
+            "velocity_fps": 5.51
+          },
+          {
+            "id": "SWb",
+            "flow_gpm": 23794.3,
+            "velocity_fps": 5.51
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JMID",
+            "pressure_psi": 0.05
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "CAL-HS-FIRM10": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "CW"
+          },
+          {
+            "head_ft": 305.0,
+            "id": "RES"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JHDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 29.25,
+            "from": "JHDR",
+            "id": "FWMAIN",
+            "length_ft": 500,
+            "to": "RES"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "CW",
+            "id": "HS2",
+            "motor_hp": 300.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 305.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "CW",
+            "id": "HS3",
+            "motor_hp": 300.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 305.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "CW",
+            "id": "HS4",
+            "motor_hp": 300.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 305.0,
+            "to": "JHDR"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "HS2",
+            "on": true,
+            "flow_gpm": 2786.5,
+            "tdh_ft": 305.98,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 269.6,
+            "motor_hp": 300.0,
+            "electric_kw": 211.6,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "HS3",
+            "on": true,
+            "flow_gpm": 2786.5,
+            "tdh_ft": 305.98,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 269.6,
+            "motor_hp": 300.0,
+            "electric_kw": 211.6,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "HS4",
+            "on": true,
+            "flow_gpm": 2786.5,
+            "tdh_ft": 305.98,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 269.6,
+            "motor_hp": 300.0,
+            "electric_kw": 211.6,
+            "pct_of_rated_flow": 100
+          }
+        ],
+        "pipes": [
+          {
+            "id": "FWMAIN",
+            "flow_gpm": 8359.5,
+            "velocity_fps": 3.99
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JHDR",
+            "pressure_psi": 132.7
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 8359.5,
+        "total_pumped_mgd": 12.038,
+        "total_electric_kw": 634.9,
+        "specific_energy_kwh_per_ml": 334.4
+      }
+    },
+    "CAL-ALL4-2003": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "RIVER"
+          },
+          {
+            "head_ft": 49.0,
+            "id": "BASIN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JHDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 30,
+            "from": "JHDR",
+            "id": "RWMAIN",
+            "length_ft": 210,
+            "to": "BASIN"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "RIVER",
+            "id": "RW1",
+            "motor_hp": 50.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW2",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW3",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW4",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "RW1",
+            "on": true,
+            "flow_gpm": 2707.8,
+            "tdh_ft": 50.06,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 42.9,
+            "motor_hp": 50.0,
+            "electric_kw": 33.6,
+            "pct_of_rated_flow": 97
+          },
+          {
+            "id": "RW2",
+            "on": true,
+            "flow_gpm": 4061.7,
+            "tdh_ft": 50.06,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.3,
+            "motor_hp": 75.0,
+            "electric_kw": 50.5,
+            "pct_of_rated_flow": 97
+          },
+          {
+            "id": "RW3",
+            "on": true,
+            "flow_gpm": 4061.7,
+            "tdh_ft": 50.06,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.3,
+            "motor_hp": 75.0,
+            "electric_kw": 50.5,
+            "pct_of_rated_flow": 97
+          },
+          {
+            "id": "RW4",
+            "on": true,
+            "flow_gpm": 4061.7,
+            "tdh_ft": 50.06,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.3,
+            "motor_hp": 75.0,
+            "electric_kw": 50.5,
+            "pct_of_rated_flow": 97
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RWMAIN",
+            "flow_gpm": 14892.9,
+            "velocity_fps": 6.76
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JHDR",
+            "pressure_psi": 21.71
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 14892.9,
+        "total_pumped_mgd": 21.446,
+        "total_electric_kw": 185.0,
+        "specific_energy_kwh_per_ml": 54.7
+      }
+    },
+    "CAL-FW18-C150": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 10.25,
+            "id": "FWUP"
+          },
+          {
+            "head_ft": 10.0,
+            "id": "FWDN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JMID"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 150,
+            "diameter_in": 29.25,
+            "from": "FWUP",
+            "id": "FWa",
+            "length_ft": 50,
+            "to": "JMID"
+          },
+          {
+            "c_factor": 150,
+            "diameter_in": 29.25,
+            "from": "JMID",
+            "id": "FWb",
+            "length_ft": 50,
+            "to": "FWDN"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "FWa",
+            "flow_gpm": 11930.0,
+            "velocity_fps": 5.7
+          },
+          {
+            "id": "FWb",
+            "flow_gpm": 11930.0,
+            "velocity_fps": 5.7
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JMID",
+            "pressure_psi": 4.39
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "CAL-SET-L600": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 10.233,
+            "id": "SETUP"
+          },
+          {
+            "head_ft": 10.0,
+            "id": "SETDN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JMID"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 42,
+            "from": "SETUP",
+            "id": "SWa",
+            "length_ft": 300,
+            "to": "JMID"
+          },
+          {
+            "diameter_in": 42,
+            "from": "JMID",
+            "id": "SWb",
+            "length_ft": 300,
+            "to": "SETDN"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "SWa",
+            "flow_gpm": 9042.8,
+            "velocity_fps": 2.09
+          },
+          {
+            "id": "SWb",
+            "flow_gpm": 9042.8,
+            "velocity_fps": 2.09
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JMID",
+            "pressure_psi": 4.39
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "INT-18": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "RIVER"
+          },
+          {
+            "head_ft": 49.0,
+            "id": "BASIN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JHDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 30,
+            "from": "JHDR",
+            "id": "RWMAIN",
+            "length_ft": 210,
+            "to": "BASIN"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "RIVER",
+            "id": "RW1",
+            "motor_hp": 50.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW2",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW3",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW4",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "RW1",
+            "on": true,
+            "flow_gpm": 2707.8,
+            "tdh_ft": 50.06,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 42.9,
+            "motor_hp": 50.0,
+            "electric_kw": 33.6,
+            "pct_of_rated_flow": 97
+          },
+          {
+            "id": "RW2",
+            "on": true,
+            "flow_gpm": 4061.7,
+            "tdh_ft": 50.06,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.3,
+            "motor_hp": 75.0,
+            "electric_kw": 50.5,
+            "pct_of_rated_flow": 97
+          },
+          {
+            "id": "RW3",
+            "on": true,
+            "flow_gpm": 4061.7,
+            "tdh_ft": 50.06,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.3,
+            "motor_hp": 75.0,
+            "electric_kw": 50.5,
+            "pct_of_rated_flow": 97
+          },
+          {
+            "id": "RW4",
+            "on": true,
+            "flow_gpm": 4061.7,
+            "tdh_ft": 50.06,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 64.3,
+            "motor_hp": 75.0,
+            "electric_kw": 50.5,
+            "pct_of_rated_flow": 97
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RWMAIN",
+            "flow_gpm": 14892.9,
+            "velocity_fps": 6.76
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JHDR",
+            "pressure_psi": 21.71
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 14892.9,
+        "total_pumped_mgd": 21.446,
+        "total_electric_kw": 185.0,
+        "specific_energy_kwh_per_ml": 54.7
+      }
+    },
+    "INT-24": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "RIVER"
+          },
+          {
+            "head_ft": 55.0,
+            "id": "BASIN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JHDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 30,
+            "from": "JHDR",
+            "id": "RWMAIN",
+            "length_ft": 210,
+            "to": "BASIN"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "RIVER",
+            "id": "RW1",
+            "motor_hp": 50.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW2",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW3",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW4",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "RW1",
+            "on": true,
+            "flow_gpm": 2151.4,
+            "tdh_ft": 55.69,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 37.9,
+            "motor_hp": 50.0,
+            "electric_kw": 29.7,
+            "pct_of_rated_flow": 77
+          },
+          {
+            "id": "RW2",
+            "on": true,
+            "flow_gpm": 3227.0,
+            "tdh_ft": 55.69,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 56.8,
+            "motor_hp": 75.0,
+            "electric_kw": 44.6,
+            "pct_of_rated_flow": 77
+          },
+          {
+            "id": "RW3",
+            "on": true,
+            "flow_gpm": 3227.0,
+            "tdh_ft": 55.69,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 56.8,
+            "motor_hp": 75.0,
+            "electric_kw": 44.6,
+            "pct_of_rated_flow": 77
+          },
+          {
+            "id": "RW4",
+            "on": true,
+            "flow_gpm": 3227.0,
+            "tdh_ft": 55.69,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 56.8,
+            "motor_hp": 75.0,
+            "electric_kw": 44.6,
+            "pct_of_rated_flow": 77
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RWMAIN",
+            "flow_gpm": 11832.5,
+            "velocity_fps": 5.37
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JHDR",
+            "pressure_psi": 24.15
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 11832.5,
+        "total_pumped_mgd": 17.039,
+        "total_electric_kw": 163.6,
+        "specific_energy_kwh_per_ml": 60.9
+      }
+    },
+    "ALT-RW-UPGRADE": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "RIVER"
+          },
+          {
+            "head_ft": 49.0,
+            "id": "BASIN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JHDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 30,
+            "from": "JHDR",
+            "id": "RWMAIN",
+            "length_ft": 210,
+            "to": "BASIN"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "RIVER",
+            "id": "RW1",
+            "motor_hp": 50.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW2N",
+            "motor_hp": 100.0,
+            "rated_gpm": 5000.0,
+            "rated_head_ft": 55.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW4N",
+            "motor_hp": 100.0,
+            "rated_gpm": 5000.0,
+            "rated_head_ft": 55.0,
+            "to": "JHDR"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "RW1",
+            "on": true,
+            "flow_gpm": 2717.8,
+            "tdh_ft": 49.95,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 42.9,
+            "motor_hp": 50.0,
+            "electric_kw": 33.7,
+            "pct_of_rated_flow": 97
+          },
+          {
+            "id": "RW2N",
+            "on": true,
+            "flow_gpm": 5647.4,
+            "tdh_ft": 49.95,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 89.2,
+            "motor_hp": 100.0,
+            "electric_kw": 70.0,
+            "pct_of_rated_flow": 113
+          },
+          {
+            "id": "RW4N",
+            "on": true,
+            "flow_gpm": 5647.4,
+            "tdh_ft": 49.95,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 89.2,
+            "motor_hp": 100.0,
+            "electric_kw": 70.0,
+            "pct_of_rated_flow": 113
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RWMAIN",
+            "flow_gpm": 14012.6,
+            "velocity_fps": 6.36
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JHDR",
+            "pressure_psi": 21.66
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 14012.6,
+        "total_pumped_mgd": 20.178,
+        "total_electric_kw": 173.7,
+        "specific_energy_kwh_per_ml": 54.6
+      }
+    },
+    "ALT-RW-PARALLEL": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "RIVER"
+          },
+          {
+            "head_ft": 49.0,
+            "id": "BASIN"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JHDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 30,
+            "from": "JHDR",
+            "id": "RW-A",
+            "length_ft": 210,
+            "to": "BASIN"
+          },
+          {
+            "diameter_in": 30,
+            "from": "JHDR",
+            "id": "RW-B",
+            "length_ft": 210,
+            "to": "BASIN"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "RIVER",
+            "id": "RW1",
+            "motor_hp": 50.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW2",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "RIVER",
+            "id": "RW4",
+            "motor_hp": 75.0,
+            "rated_gpm": 4200.0,
+            "rated_head_ft": 49.0,
+            "to": "JHDR"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "RW1",
+            "on": true,
+            "flow_gpm": 2785.3,
+            "tdh_ft": 49.17,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 43.3,
+            "motor_hp": 50.0,
+            "electric_kw": 34.0,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "RW2",
+            "on": true,
+            "flow_gpm": 4177.9,
+            "tdh_ft": 49.17,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 65.0,
+            "motor_hp": 75.0,
+            "electric_kw": 51.0,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "RW4",
+            "on": true,
+            "flow_gpm": 4177.9,
+            "tdh_ft": 49.17,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 65.0,
+            "motor_hp": 75.0,
+            "electric_kw": 51.0,
+            "pct_of_rated_flow": 99
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RW-A",
+            "flow_gpm": 5570.6,
+            "velocity_fps": 2.53
+          },
+          {
+            "id": "RW-B",
+            "flow_gpm": 5570.6,
+            "velocity_fps": 2.53
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JHDR",
+            "pressure_psi": 21.32
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 11141.1,
+        "total_pumped_mgd": 16.043,
+        "total_electric_kw": 136.0,
+        "specific_energy_kwh_per_ml": 53.7
+      }
+    },
+    "ALT-HS-ADD1": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "CW"
+          },
+          {
+            "head_ft": 305.0,
+            "id": "RES"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JHDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 29.25,
+            "from": "JHDR",
+            "id": "FWMAIN",
+            "length_ft": 500,
+            "to": "RES"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "CW",
+            "id": "HS1",
+            "motor_hp": 150.0,
+            "rated_gpm": 1400.0,
+            "rated_head_ft": 305.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "CW",
+            "id": "HS2",
+            "motor_hp": 300.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 305.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "CW",
+            "id": "HS3",
+            "motor_hp": 300.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 305.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "CW",
+            "id": "HS4",
+            "motor_hp": 300.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 305.0,
+            "to": "JHDR"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "HS1",
+            "on": true,
+            "flow_gpm": 1391.0,
+            "tdh_ft": 306.3,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 134.7,
+            "motor_hp": 150.0,
+            "electric_kw": 105.8,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "HS2",
+            "on": true,
+            "flow_gpm": 2782.1,
+            "tdh_ft": 306.3,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 269.5,
+            "motor_hp": 300.0,
+            "electric_kw": 211.5,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "HS3",
+            "on": true,
+            "flow_gpm": 2782.1,
+            "tdh_ft": 306.3,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 269.5,
+            "motor_hp": 300.0,
+            "electric_kw": 211.5,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "HS4",
+            "on": true,
+            "flow_gpm": 2782.1,
+            "tdh_ft": 306.3,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 269.5,
+            "motor_hp": 300.0,
+            "electric_kw": 211.5,
+            "pct_of_rated_flow": 99
+          }
+        ],
+        "pipes": [
+          {
+            "id": "FWMAIN",
+            "flow_gpm": 9737.3,
+            "velocity_fps": 4.65
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JHDR",
+            "pressure_psi": 132.83
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 9737.3,
+        "total_pumped_mgd": 14.022,
+        "total_electric_kw": 740.3,
+        "specific_energy_kwh_per_ml": 334.7
+      }
+    },
+    "ALT-HS-ADD2": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "CW"
+          },
+          {
+            "head_ft": 305.0,
+            "id": "RES"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "JHDR"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 29.25,
+            "from": "JHDR",
+            "id": "FWMAIN",
+            "length_ft": 500,
+            "to": "RES"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "CW",
+            "id": "HS1",
+            "motor_hp": 150.0,
+            "rated_gpm": 1400.0,
+            "rated_head_ft": 305.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "CW",
+            "id": "HS2",
+            "motor_hp": 300.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 305.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "CW",
+            "id": "HS3",
+            "motor_hp": 300.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 305.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "CW",
+            "id": "HS4",
+            "motor_hp": 300.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 305.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "CW",
+            "id": "HS5",
+            "motor_hp": 300.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 305.0,
+            "to": "JHDR"
+          },
+          {
+            "from": "CW",
+            "id": "HS6",
+            "motor_hp": 300.0,
+            "rated_gpm": 2800.0,
+            "rated_head_ft": 305.0,
+            "to": "JHDR"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "HS1",
+            "on": true,
+            "flow_gpm": 1379.5,
+            "tdh_ft": 307.95,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 134.3,
+            "motor_hp": 150.0,
+            "electric_kw": 105.4,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "HS2",
+            "on": true,
+            "flow_gpm": 2759.1,
+            "tdh_ft": 307.95,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 268.7,
+            "motor_hp": 300.0,
+            "electric_kw": 210.9,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "HS3",
+            "on": true,
+            "flow_gpm": 2759.1,
+            "tdh_ft": 307.95,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 268.7,
+            "motor_hp": 300.0,
+            "electric_kw": 210.9,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "HS4",
+            "on": true,
+            "flow_gpm": 2759.1,
+            "tdh_ft": 307.95,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 268.7,
+            "motor_hp": 300.0,
+            "electric_kw": 210.9,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "HS5",
+            "on": true,
+            "flow_gpm": 2759.1,
+            "tdh_ft": 307.95,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 268.7,
+            "motor_hp": 300.0,
+            "electric_kw": 210.9,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "HS6",
+            "on": true,
+            "flow_gpm": 2759.1,
+            "tdh_ft": 307.95,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 268.7,
+            "motor_hp": 300.0,
+            "electric_kw": 210.9,
+            "pct_of_rated_flow": 99
+          }
+        ],
+        "pipes": [
+          {
+            "id": "FWMAIN",
+            "flow_gpm": 15174.9,
+            "velocity_fps": 7.25
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JHDR",
+            "pressure_psi": 133.55
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 15174.9,
+        "total_pumped_mgd": 21.852,
+        "total_electric_kw": 1159.9,
+        "specific_energy_kwh_per_ml": 336.5
+      }
+    },
+    "RW-FIRM-EXIST": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "J1"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 30,
+            "from": "J1",
+            "id": "RWMAIN",
+            "length_ft": 1000,
+            "to": "RES_DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "RES_SUC",
+            "id": "RW1",
+            "motor_hp": 50,
+            "rated_gpm": 2800,
+            "rated_head_ft": 49,
+            "to": "J1"
+          },
+          {
+            "from": "RES_SUC",
+            "id": "RW2",
+            "motor_hp": 75,
+            "rated_gpm": 4200,
+            "rated_head_ft": 49,
+            "to": "J1"
+          },
+          {
+            "from": "RES_SUC",
+            "id": "RW4",
+            "motor_hp": 75,
+            "rated_gpm": 4200,
+            "rated_head_ft": 49,
+            "to": "J1"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "RES_SUC"
+          },
+          {
+            "head_ft": 45,
+            "id": "RES_DIS"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "RW1",
+            "on": true,
+            "flow_gpm": 2874.4,
+            "tdh_ft": 48.12,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 43.7,
+            "motor_hp": 50,
+            "electric_kw": 34.3,
+            "pct_of_rated_flow": 103
+          },
+          {
+            "id": "RW2",
+            "on": true,
+            "flow_gpm": 4311.6,
+            "tdh_ft": 48.12,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 65.6,
+            "motor_hp": 75,
+            "electric_kw": 51.5,
+            "pct_of_rated_flow": 103
+          },
+          {
+            "id": "RW4",
+            "on": true,
+            "flow_gpm": 4311.6,
+            "tdh_ft": 48.12,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 65.6,
+            "motor_hp": 75,
+            "electric_kw": 51.5,
+            "pct_of_rated_flow": 103
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RWMAIN",
+            "flow_gpm": 11497.7,
+            "velocity_fps": 5.22
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_psi": 20.87
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 11497.7,
+        "total_pumped_mgd": 16.557,
+        "total_electric_kw": 137.3,
+        "specific_energy_kwh_per_ml": 52.6
+      }
+    },
+    "RW-FIRM-UPGRADE-FIX": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "J1"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 30,
+            "from": "J1",
+            "id": "RWMAIN",
+            "length_ft": 1000,
+            "to": "RES_DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "RES_SUC",
+            "id": "RW1",
+            "motor_hp": 50,
+            "rated_gpm": 2800,
+            "rated_head_ft": 49,
+            "to": "J1"
+          },
+          {
+            "from": "RES_SUC",
+            "id": "RW3OLD",
+            "motor_hp": 75,
+            "rated_gpm": 4200,
+            "rated_head_ft": 49,
+            "to": "J1"
+          },
+          {
+            "from": "RES_SUC",
+            "id": "RW2N",
+            "motor_hp": 100,
+            "rated_gpm": 5000,
+            "rated_head_ft": 55,
+            "to": "J1"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "RES_SUC"
+          },
+          {
+            "head_ft": 45,
+            "id": "RES_DIS"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "RW1",
+            "on": true,
+            "flow_gpm": 2815.6,
+            "tdh_ft": 48.82,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 43.5,
+            "motor_hp": 50,
+            "electric_kw": 34.1,
+            "pct_of_rated_flow": 101
+          },
+          {
+            "id": "RW3OLD",
+            "on": true,
+            "flow_gpm": 4223.4,
+            "tdh_ft": 48.82,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 65.2,
+            "motor_hp": 75,
+            "electric_kw": 51.2,
+            "pct_of_rated_flow": 101
+          },
+          {
+            "id": "RW2N",
+            "on": true,
+            "flow_gpm": 5781.9,
+            "tdh_ft": 48.82,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 89.3,
+            "motor_hp": 100,
+            "electric_kw": 70.1,
+            "pct_of_rated_flow": 116
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RWMAIN",
+            "flow_gpm": 12820.9,
+            "velocity_fps": 5.82
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_psi": 21.17
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 12820.9,
+        "total_pumped_mgd": 18.462,
+        "total_electric_kw": 155.4,
+        "specific_energy_kwh_per_ml": 53.4
+      }
+    },
+    "HS-FIRM-EXIST": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "JHS"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 29.25,
+            "from": "JHS",
+            "id": "FWMAIN",
+            "length_ft": 1000,
+            "to": "RES_DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "RES_SUC",
+            "id": "HS1",
+            "motor_hp": 150,
+            "rated_gpm": 1400,
+            "rated_head_ft": 305,
+            "to": "JHS"
+          },
+          {
+            "from": "RES_SUC",
+            "id": "HS3",
+            "motor_hp": 300,
+            "rated_gpm": 2800,
+            "rated_head_ft": 305,
+            "to": "JHS"
+          },
+          {
+            "from": "RES_SUC",
+            "id": "HS4",
+            "motor_hp": 300,
+            "rated_gpm": 2800,
+            "rated_head_ft": 305,
+            "to": "JHS"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "RES_SUC"
+          },
+          {
+            "head_ft": 295,
+            "id": "RES_DIS"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "HS1",
+            "on": true,
+            "flow_gpm": 1457.2,
+            "tdh_ft": 296.52,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 136.6,
+            "motor_hp": 150,
+            "electric_kw": 107.3,
+            "pct_of_rated_flow": 104
+          },
+          {
+            "id": "HS3",
+            "on": true,
+            "flow_gpm": 2914.5,
+            "tdh_ft": 296.52,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 273.3,
+            "motor_hp": 300,
+            "electric_kw": 214.5,
+            "pct_of_rated_flow": 104
+          },
+          {
+            "id": "HS4",
+            "on": true,
+            "flow_gpm": 2914.5,
+            "tdh_ft": 296.52,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 273.3,
+            "motor_hp": 300,
+            "electric_kw": 214.5,
+            "pct_of_rated_flow": 104
+          }
+        ],
+        "pipes": [
+          {
+            "id": "FWMAIN",
+            "flow_gpm": 7286.2,
+            "velocity_fps": 3.48
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JHS",
+            "pressure_psi": 128.59
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 7286.2,
+        "total_pumped_mgd": 10.492,
+        "total_electric_kw": 536.3,
+        "specific_energy_kwh_per_ml": 324.1
+      }
+    },
+    "HS-MAX-ALL4": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "JHS"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 29.25,
+            "from": "JHS",
+            "id": "FWMAIN",
+            "length_ft": 1000,
+            "to": "RES_DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "RES_SUC",
+            "id": "HS1",
+            "motor_hp": 150,
+            "rated_gpm": 1400,
+            "rated_head_ft": 305,
+            "to": "JHS"
+          },
+          {
+            "from": "RES_SUC",
+            "id": "HS2",
+            "motor_hp": 300,
+            "rated_gpm": 2800,
+            "rated_head_ft": 305,
+            "to": "JHS"
+          },
+          {
+            "from": "RES_SUC",
+            "id": "HS3",
+            "motor_hp": 300,
+            "rated_gpm": 2800,
+            "rated_head_ft": 305,
+            "to": "JHS"
+          },
+          {
+            "from": "RES_SUC",
+            "id": "HS4",
+            "motor_hp": 300,
+            "rated_gpm": 2800,
+            "rated_head_ft": 305,
+            "to": "JHS"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "RES_SUC"
+          },
+          {
+            "head_ft": 295,
+            "id": "RES_DIS"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "HS1",
+            "on": true,
+            "flow_gpm": 1448.7,
+            "tdh_ft": 297.8,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 136.4,
+            "motor_hp": 150,
+            "electric_kw": 107.1,
+            "pct_of_rated_flow": 103
+          },
+          {
+            "id": "HS2",
+            "on": true,
+            "flow_gpm": 2897.5,
+            "tdh_ft": 297.8,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 272.9,
+            "motor_hp": 300,
+            "electric_kw": 214.2,
+            "pct_of_rated_flow": 103
+          },
+          {
+            "id": "HS3",
+            "on": true,
+            "flow_gpm": 2897.5,
+            "tdh_ft": 297.8,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 272.9,
+            "motor_hp": 300,
+            "electric_kw": 214.2,
+            "pct_of_rated_flow": 103
+          },
+          {
+            "id": "HS4",
+            "on": true,
+            "flow_gpm": 2897.5,
+            "tdh_ft": 297.8,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 272.9,
+            "motor_hp": 300,
+            "electric_kw": 214.2,
+            "pct_of_rated_flow": 103
+          }
+        ],
+        "pipes": [
+          {
+            "id": "FWMAIN",
+            "flow_gpm": 10141.2,
+            "velocity_fps": 4.84
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JHS",
+            "pressure_psi": 129.15
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 10141.2,
+        "total_pumped_mgd": 14.603,
+        "total_electric_kw": 749.6,
+        "specific_energy_kwh_per_ml": 325.5
+      }
+    },
+    "HS-FIRM-6PUMP": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0,
+            "id": "JHS"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 29.25,
+            "from": "JHS",
+            "id": "FWMAIN",
+            "length_ft": 1000,
+            "to": "RES_DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "RES_SUC",
+            "id": "HS1",
+            "motor_hp": 150,
+            "rated_gpm": 1400,
+            "rated_head_ft": 305,
+            "to": "JHS"
+          },
+          {
+            "from": "RES_SUC",
+            "id": "HS2",
+            "motor_hp": 300,
+            "rated_gpm": 2800,
+            "rated_head_ft": 305,
+            "to": "JHS"
+          },
+          {
+            "from": "RES_SUC",
+            "id": "HS3",
+            "motor_hp": 300,
+            "rated_gpm": 2800,
+            "rated_head_ft": 305,
+            "to": "JHS"
+          },
+          {
+            "from": "RES_SUC",
+            "id": "HS4",
+            "motor_hp": 300,
+            "rated_gpm": 2800,
+            "rated_head_ft": 305,
+            "to": "JHS"
+          },
+          {
+            "from": "RES_SUC",
+            "id": "HS5N",
+            "motor_hp": 300,
+            "rated_gpm": 2800,
+            "rated_head_ft": 305,
+            "to": "JHS"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0,
+            "id": "RES_SUC"
+          },
+          {
+            "head_ft": 295,
+            "id": "RES_DIS"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "HS1",
+            "on": true,
+            "flow_gpm": 1438.1,
+            "tdh_ft": 299.39,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 136.1,
+            "motor_hp": 150,
+            "electric_kw": 106.9,
+            "pct_of_rated_flow": 103
+          },
+          {
+            "id": "HS2",
+            "on": true,
+            "flow_gpm": 2876.1,
+            "tdh_ft": 299.39,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 272.3,
+            "motor_hp": 300,
+            "electric_kw": 213.7,
+            "pct_of_rated_flow": 103
+          },
+          {
+            "id": "HS3",
+            "on": true,
+            "flow_gpm": 2876.1,
+            "tdh_ft": 299.39,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 272.3,
+            "motor_hp": 300,
+            "electric_kw": 213.7,
+            "pct_of_rated_flow": 103
+          },
+          {
+            "id": "HS4",
+            "on": true,
+            "flow_gpm": 2876.1,
+            "tdh_ft": 299.39,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 272.3,
+            "motor_hp": 300,
+            "electric_kw": 213.7,
+            "pct_of_rated_flow": 103
+          },
+          {
+            "id": "HS5N",
+            "on": true,
+            "flow_gpm": 2876.1,
+            "tdh_ft": 299.39,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 272.3,
+            "motor_hp": 300,
+            "electric_kw": 213.7,
+            "pct_of_rated_flow": 103
+          }
+        ],
+        "pipes": [
+          {
+            "id": "FWMAIN",
+            "flow_gpm": 12942.7,
+            "velocity_fps": 6.18
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JHS",
+            "pressure_psi": 129.84
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 12942.7,
+        "total_pumped_mgd": 18.637,
+        "total_electric_kw": 961.8,
+        "specific_energy_kwh_per_ml": 327.2
+      }
+    }
+  }
+}

@@ -1,0 +1,4731 @@
+{
+  "case": "stpete_swwrf",
+  "facility": "Southwest Water Reclamation Facility (SWWRF), St. Petersburg, Florida",
+  "source": "Brown and Caldwell for the City of St. Petersburg, SWWRF Wet Weather and Liquid Process Capacity Assessment, Final Report, July 2014 (public record)",
+  "url": "",
+  "question": "The City will divert Albert Whitted's flow to the Southwest WRF, and the projected peak wet weather flow is 69 MGD. Using the hydraulic profile (Figure 5-1, water surfaces modelled at 20 and 40 MGD) and the facility data, what is the plant's hydraulic capacity today (the flow at which a tank first overtops its wall), which structure limits it, which hydraulic elements fail at 69 MGD, and what modifications or flow management would let the plant handle the 69 MGD peak?",
+  "model": "muse-spark-1.3-contributor",
+  "collection": {
+    "criteria": [
+      {
+        "name": "Permitted treatment capacity (AADF)",
+        "source": "p.8 Sec 1; p.10 Sec 2.1",
+        "value": "20 MGD annual average daily flow"
+      },
+      {
+        "name": "Study target - future peak wet weather (peak hour) influent to SWWRF after AWWRF diversion",
+        "source": "p.22 Table 3-3; p.29 Sec 5.2; question statement 69 MGD",
+        "value": "69.0 MGD Peak Hour influent (52.6 MGD Max Day, 31.4 MGD Max Month, 20.0 MGD Annual Average)"
+      },
+      {
+        "name": "Hydraulic capacity definition",
+        "source": "p.29 Sec 5.2",
+        "value": "flow at which wastewater would overtopple the top of wall for that tank"
+      },
+      {
+        "name": "Hydraulic profile basis - modelled flows shown on Figure 5-1",
+        "source": "p.29 Sec 5.2; question statement; dwg p.30 title",
+        "value": "water surfaces modelled at 20 and 40 MGD after Biosolids to Energy improvements; 40 MGD not hydraulically challenged"
+      },
+      {
+        "name": "Reported hydraulic capacity and limiting unit (to be verified by re-model in later steps)",
+        "source": "p.29 Sec 5.2",
+        "value": "40.5 MGD limited by the filters"
+      },
+      {
+        "name": "Profile conservatism - flow path",
+        "source": "p.28 Sec 5",
+        "value": "most conservative path excluding old plant: through secondary clarifier #3 (higher V-notch weir than #1 and #2) and northern-most filter (longest path)"
+      },
+      {
+        "name": "Profile conservatism - filter level",
+        "source": "p.28 Sec 5",
+        "value": "hydraulic elevation in filters maintained at filter overflow elevation 115.3 feet to represent blinded filters"
+      },
+      {
+        "name": "Profile RAS assumption",
+        "source": "dwg p.30 notes (read_drawing)",
+        "value": "RAS flowrate 20 MGD used in profile model"
+      },
+      {
+        "name": "Wet-weather loading assumption for process capacity",
+        "source": "p.21 Sec 3.3",
+        "value": "pollutant loadings during wet weather similar to dry weather loadings (dilution, concentrations drop below 80 mg/L CBOD5/TSS at peak)"
+      },
+      {
+        "name": "Basis of 69 MGD projection",
+        "source": "p.20 Sec 3.1",
+        "value": "25.5 MGD max dry weather flow + 43.2 MGD max storm contribution = 68.7 MGD rounded to 69.0 MGD peak hour"
+      }
+    ],
+    "data_register": "[{\"id\": \"D01\", \"item\": \"SWWRF location\", \"quote\": \"The SWWRF is located at 3800 54th Avenue South\", \"source\": \"p.10 Sec 2.1\", \"unit\": \"--\", \"value\": \"3800 54th Avenue South, St. Petersburg, FL\"}, {\"id\": \"D02\", \"item\": \"Permitted AADF\", \"quote\": \"permitted to treat an annual average daily flow (AADF) of 20 million gallons per day (MGD)\", \"source\": \"p.8 Sec 1\", \"unit\": \"MGD\", \"value\": \"20\"}, {\"id\": \"D03\", \"item\": \"AWWRF conversion plan\", \"quote\": \"discontinue the operation at the Albert Whitted WRF (AWWRF) and convert it into a master pump station which will pump its wastewater to the SWWRF\", \"source\": \"p.18 Sec 3\", \"unit\": \"--\", \"value\": \"AWWRF to SWWRF diversion\"}, {\"id\": \"D04\", \"item\": \"Wet-weather design flows\", \"quote\": \"Annual Average 20.0; Maximum Month 31.4; Maximum Day 52.6; Peak Hour 69.0\", \"source\": \"p.22 Table 3-3\", \"unit\": \"MGD\", \"value\": \"20.0 / 31.4 / 52.6 / 69.0\"}, {\"id\": \"D05\", \"item\": \"Wet-weather CBOD5 loads AA/MM/MD/PH\", \"quote\": \"Annual Average 35,862; Maximum Month 46,621; Maximum Day 71,003; Peak Hour 89,954\", \"source\": \"p.22 Table 3-3\", \"unit\": \"lb/d\", \"value\": \"35862 / 46621 / 71003 / 89954\"}, {\"id\": \"D06\", \"item\": \"Wet-weather TSS loads AA/MM/MD/PH\", \"quote\": \"Annual Average 40,032; Maximum Month 52,042; Maximum Day 79,259; Peak Hour 100,413\", \"source\": \"p.22 Table 3-3\", \"unit\": \"lb/d\", \"value\": \"40032 / 52042 / 79259 / 100413\"}, {\"id\": \"D07\", \"item\": \"Wet-weather TKN loads AA/MM/MD/PH\", \"quote\": \"Annual Average 6,750; Maximum Month 8,775; Maximum Day 13,364; Peak Hour 16,931\", \"source\": \"p.22 Table 3-3\", \"unit\": \"lb/d\", \"value\": \"6750 / 8775 / 13364 / 16931\"}, {\"id\": \"D08\", \"item\": \"Wet-weather TP loads AA/MM/MD/PH\", \"quote\": \"Annual Average 998; Maximum Month 1,298; Maximum Day 1,976; Peak Hour 2,504\", \"source\": \"p.22 Table 3-3\", \"unit\": \"lb/d\", \"value\": \"998 / 1298 / 1976 / 2504\"}, {\"id\": \"D09\", \"item\": \"Historical combined SWWRF+AWWRF annual average flows 2007-2013\", \"quote\": \"Annual Average (MGD) 14.25 15.22 15.54 16.10 16.52 16.43 17.80\", \"source\": \"p.18 Table 3-1\", \"unit\": \"MGD\", \"value\": \"14.25 / 15.22 / 15.54 / 16.10 / 16.52 / 16.43 / 17.80\"}, {\"id\": \"D10\", \"item\": \"Historical combined max month 2007-2013\", \"quote\": \"Maximum Month (MGD) 18.22 18.63 21.67 21.35 22.96 23.70 27.89\", \"source\": \"p.18 Table 3-1\", \"unit\": \"MGD\", \"value\": \"18.22 / 18.63 / 21.67 / 21.35 / 22.96 / 23.70 / 27.89\"}, {\"id\": \"D11\", \"item\": \"Historical combined max week 2007-2013\", \"quote\": \"Maximum Week (MGD) 21.72 20.24 23.93 25.84 27.00 32.91 37.20\", \"source\": \"p.18 Table 3-1\", \"unit\": \"MGD\", \"value\": \"21.72 / 20.24 / 23.93 / 25.84 / 27.00 / 32.91 / 37.20\"}, {\"id\": \"D12\", \"item\": \"Historical combined max day 2007-2013\", \"quote\": \"Maximum Day (MGD) 27.37 22.42 29.12 30.98 32.93 47.78 46.82\", \"source\": \"p.18 Table 3-1\", \"unit\": \"MGD\", \"value\": \"27.37 / 22.42 / 29.12 / 30.98 / 32.93 / 47.78 / 46.82\"}, {\"id\": \"D13\", \"item\": \"Historical combined peak hour 2012-2013\", \"quote\": \"Peak Hour (MGD) n/a n/a n/a n/a n/a 54.25 60.72\", \"source\": \"p.18 Table 3-1\", \"unit\": \"MGD\", \"value\": \"54.25 in 2012, 60.72 in 2013\"}, {\"id\": \"D14\", \"item\": \"Peak hour / annual average peaking factor\", \"quote\": \"Peak Hour/Annual Average n/a n/a n/a n/a n/a 3.30 3.41\", \"source\": \"p.19 Table 3-2\", \"unit\": \"--\", \"value\": \"3.30 (2012), 3.41 (2013)\"}, {\"id\": \"D15\", \"item\": \"Observed max storm increment above dry weather 2012-2013\", \"quote\": \"maximum wet weather flow contribution in excess of the dry weather flow of approximately 43.2 MGD\", \"source\": \"p.20 Sec 3.1\", \"unit\": \"MGD\", \"value\": \"43.2\"}, {\"id\": \"D16\", \"item\": \"Projected total (dry + storm) before rounding\", \"quote\": \"total projected flow to the SWWRF would be 68.7 MGD (25.5 MGD + 43.2 MGD)\", \"source\": \"p.20 Sec 3.1\", \"unit\": \"MGD\", \"value\": \"68.7 = 25.5 + 43.2\"}, {\"id\": \"D17\", \"item\": \"Projected dry-weather diurnal range at 20 MGD design\", \"quote\": \"projected dry weather flow to the SWWRF at 20 MGD design flow conditions would range from 14 MGD to 25.5 MGD\", \"source\": \"p.19 Sec 3.1\", \"unit\": \"MGD\", \"value\": \"14 to 25.5 (diurnal factors 0.71 to 1.27)\"}, {\"id\": \"D18\", \"item\": \"High-flow occurrence statistics\", \"quote\": \"hourly flows higher than 40 MGD happened less than 1% of the times and the duration of the main storm events generally did not extend more than a day\", \"source\": \"p.19 Sec 3.1\", \"unit\": \"--\", \"value\": \" >40 MGD <1% of time, storm <1 day; max 24-hr rolling avg 50.5 MGD; >60 MGD only two consecutive hours (0.01% probability)\"}, {\"id\": \"D19\", \"item\": \"Coarse screens\", \"quote\": \"Coarse Screens Number 2 Located in the influent wet well\", \"source\": \"p.13 Table 2-1\", \"unit\": \"--\", \"value\": \"2\"}, {\"id\": \"D20\", \"item\": \"Fine screens\", \"quote\": \"Fine Screens Number 2 Located in the headworks structure\", \"source\": \"p.13 Table 2-1\", \"unit\": \"--\", \"value\": \"2\"}, {\"id\": \"D21\", \"item\": \"Influent (submersible) pumps\", \"quote\": \"Submersible Pumps Number 4; Horsepower HP 150\", \"source\": \"p.13 Table 2-1\", \"unit\": \"HP\", \"value\": \"4 pumps x 150 HP\"}, {\"id\": \"D22\", \"item\": \"Grit removal\", \"quote\": \"Low Energy Centrifugal Number 2\", \"source\": \"p.13 Table 2-1\", \"unit\": \"--\", \"value\": \"2\"}, {\"id\": \"D23\", \"item\": \"Old-plant aeration basins\", \"quote\": \"Number of Basins 2 Circular; Dimensions (diameter x depth) ft 65 x 13; Total Reactor Volume MG 0.65\", \"source\": \"p.13 Table 2-1\", \"unit\": \"ft / MG\", \"value\": \"2 x 65-ft dia x 13-ft deep; 0.65 MG total\"}, {\"id\": \"D24\", \"item\": \"New-plant aeration basins\", \"quote\": \"Number of Basins 2 Rectangular; Dimensions (L x W x D) ft 268 x 67 x 15; Total Reactor Volume MG 4.03\", \"source\": \"p.13 Table 2-1\", \"unit\": \"ft / MG\", \"value\": \"2 basins 268x67x15 ft; 4.03 MG total\"}, {\"id\": \"D25\", \"item\": \"Old-plant secondary clarifiers\", \"quote\": \"Number 2 Circular; Diameter ft 65; Side Water Depth ft 13; Total Clarifier Volume MG 0.64\", \"source\": \"p.13 Table 2-1\", \"unit\": \"ft / MG\", \"value\": \"2 x 65-ft dia, 13-ft SWD; 0.64 MG\"}, {\"id\": \"D26\", \"item\": \"New-plant secondary clarifiers\", \"quote\": \"Number 3 Circular; Diameter ft 135; Side Water Depth ft 12 (#1 & #2) - 15 (#3); Total Clarifier Volume MG 3.85\", \"source\": \"p.13 Table 2-1\", \"unit\": \"ft / MG\", \"value\": \"3 x 135-ft dia; SWD 12 ft (#1,#2), 15 ft (#3); 3.85 MG\"}, {\"id\": \"D27\", \"item\": \"RAS pump capacity\", \"quote\": \"RAS Pump Capacity GPM 3 pumps at 4,200\", \"source\": \"p.13 Table 2-1\", \"unit\": \"GPM\", \"value\": \"3 x 4200 GPM\"}, {\"id\": \"D28\", \"item\": \"Deep-bed filters\", \"quote\": \"Number of Filters 4; Dimensions (L x W x D) ft 38 x 37 x 9; Total Filter Area ft2 5,624\", \"source\": \"p.13 Table 2-1\", \"unit\": \"ft / ft2\", \"value\": \"4 filters 38x37x9 ft; 5624 ft2 total\"}, {\"id\": \"D29\", \"item\": \"Disinfection (chlorine contact)\", \"quote\": \"Number of CCTs 2 Uses liquid sodium hypochlorite; Dimensions (L x W x D) ft 88 x 103 x 7; Total Volume ft3 126,896\", \"source\": \"p.13 Table 2-1\", \"unit\": \"ft / ft3\", \"value\": \"2 CCTs 88x103x7 ft; 126896 ft3\"}, {\"id\": \"D30\", \"item\": \"Reclaimed water storage tanks\", \"quote\": \"Number of Tanks 2; Volume MG 5, 10\", \"source\": \"p.13 Table 2-1\", \"unit\": \"MG\", \"value\": \"2 tanks: 5 MG and 10 MG\"}, {\"id\": \"D31\", \"item\": \"Effluent pumping\", \"quote\": \"Pumps Number 5; Capacity MGD 39.6\", \"source\": \"p.13 Table 2-1\", \"unit\": \"MGD\", \"value\": \"5 pumps, 39.6 MGD capacity\"}, {\"id\": \"D32\", \"item\": \"Deep-well disposal capacity\", \"quote\": \"Deep Wells Capacity MGD 27\", \"source\": \"p.13 Table 2-1\", \"unit\": \"MGD\", \"value\": \"27\"}, {\"id\": \"D33\", \"item\": \"Filter overflow (blinded-filter) elevation used in model\", \"quote\": \"hydraulic elevation in the filters was conservatively maintained at the filter overflow elevation of 115.3 feet\", \"source\": \"p.28 Sec 5\", \"unit\": \"ft\", \"value\": \"115.3\"}, {\"id\": \"D34\", \"item\": \"Model construction basis\", \"quote\": \"constructed using available as-built drawings and other facility data provided by City\", \"source\": \"p.28 Sec 5\", \"unit\": \"--\", \"value\": \"as-built drawings + City data\"}, {\"id\": \"D35\", \"item\": \"Survey basis for structure elevations\", \"quote\": \"ELEVATIONS OF EXISTING STRUCTURES BASED UPON SURVEY PERFORMED BY McKIM & CREED, OCTOBER 2013\", \"source\": \"dwg p.30 notes (read_drawing)\", \"unit\": \"--\", \"value\": \"McKim & Creed survey Oct 2013\"}, {\"id\": \"D36\", \"item\": \"Profile RAS rate\", \"quote\": \"PROFILE WAS MODELED USING A RAS FLOWRATE OF 20 MGD\", \"source\": \"dwg p.30 notes (read_drawing)\", \"unit\": \"MGD\", \"value\": \"20\"}, {\"id\": \"D37\", \"item\": \"Biosolids-to-Energy flow-meter change\", \"quote\": \"The 30-inch flow meter that was shown to be a hydraulic restriction at the proposed peak flow rates will be taken out of the flow path and a new 48-inch flow meter will be located immediately upstream of the primary clarifier splitter box\", \"source\": \"p.28 Sec 5.1\", \"unit\": \"inch\", \"value\": \"remove 30-in, add 48-in upstream of primary splitter\"}, {\"id\": \"D38\", \"item\": \"New primary clarifiers count\", \"quote\": \"two primary clarifiers are proposed to be located hydraulically between the headworks and the aeration basin splitter box\", \"source\": \"p.28 Sec 5.1\", \"unit\": \"--\", \"value\": \"2 new primary clarifiers\"}, {\"id\": \"D39\", \"item\": \"Primary splitter cutthroat flumes sizing\", \"quote\": \"The cutthroat flumes have been sized to each pass future average and peak flow individually without entering submerged flow condition\", \"source\": \"p.28 Sec 5.1\", \"unit\": \"--\", \"value\": \"each flume passes future avg and peak unsubmerged\"}, {\"id\": \"D40\", \"item\": \"Reported 40 MGD check\", \"quote\": \"At 40 MGD flow, none of the unit processes were hydraulically challenged as shown in Figure 5-1\", \"source\": \"p.29 Sec 5.2\", \"unit\": \"MGD\", \"value\": \"40\"}, {\"id\": \"D41\", \"item\": \"Reported 69 MGD failure description\", \"quote\": \"upon running the future peak wet weather flow of 69 MGD, the hydraulic elements failed to hold proper hydraulic gradients. The losses through the hydraulic elements were so great that the hydraulic grade line in all of the elements exceeded the top of the wall for the simulated process units\", \"source\": \"p.29 Sec 5.2\", \"unit\": \"MGD\", \"value\": \"69\"}, {\"id\": \"D42\", \"item\": \"Reported hydraulic capacity + limiter\", \"quote\": \"it was determined that the hydraulic capacity for the SWWRF was limited to 40.5 MGD. The limiting unit process at that flow was the filters\", \"source\": \"p.29 Sec 5.2\", \"unit\": \"MGD\", \"value\": \"40.5 limited by filters\"}, {\"id\": \"D43\", \"item\": \"Bottleneck list at 69 MGD\", \"quote\": \"Effluent Weir Channel at Chlorine Contact Basin; 54-inch pipe between Filters and Chlorine Contact Basin; 24-inch pipe from Filter #4 to Filter #3; 48-inch pipe between Secondary Clarifiers and Filters; 48-inch pipe between Aeration Basin to Secondary Clarifiers\", \"source\": \"p.29 Sec 5.2\", \"unit\": \"inch\", \"value\": \"CCB weir channel, 54-in, 24-in, 48-in, 48-in\"}, {\"id\": \"D44\", \"item\": \"Additional headloss units at 69 MGD\", \"quote\": \"the future peak wet weather flow of 69 MGD caused increased headloss through the Screens, Secondary Clarifiers Splitter Box, Secondary Clarifiers and Filtration process units\", \"source\": \"p.29 Sec 5.2\", \"unit\": \"--\", \"value\": \"Screens, SC splitter, SCs, Filters\"}, {\"id\": \"D45\", \"item\": \"Drawing flow-path order\", \"quote\": \"HEADWORKS / PRIMARY CLARIFIER SPLITTER BOX / PRIMARY CLARIFIER No.1 / STEP FEED SPLITTER BOX / SPLITTER BOX No.1 / AERATION BASIN / SPLITTER BOX No.2 / CLARIFIER No.3 / FILTERS / CHLORINE CONTACT BASIN\", \"source\": \"dwg p.30 flow_path (read_drawing)\", \"unit\": \"--\", \"value\": \"headworks to CCB in listed order\"}, {\"id\": \"D46\", \"item\": \"Drawing title / condition\", \"quote\": \"Figure 5-1. SWWRF Hydraulic Profile after Biosolids to Energy Project Improvements\", \"source\": \"p.30 Sec 5 (dwg p.30)\", \"unit\": \"--\", \"value\": \"profile after Biosolids to Energy improvements\"}]}",
+    "rfi": [
+      {
+        "issue": "Drawing elevations not legible in available record: read_drawing text truncated and p.30 text page contains title only; individual structure inverts, weir crests, top-of-wall and 20/40 MGD water surfaces not captured",
+        "item": "Figure 5-1 elevations and water surfaces",
+        "reason": "needed to set limits and calibrate profile; without them later steps cannot quote (dwg p.30) values",
+        "resolution": "ASSUMPTION: adopt filter overflow 115.3 ft (p.28) as the only confirmed drawing level; treat all other (dwg p.30) elevations/water surfaces as single-read unconfirmed until a legible Figure 5-1 is provided, and verify the 40.5 MGD filters limit by re-model (profile_capacity). Reason: avoids inventing elevations silently while preserving the one surveyed level the text confirms."
+      },
+      {
+        "issue": "Top-of-wall (overtopping) elevations for each tank not stated in available text pages",
+        "item": "Overtopping limits per unit",
+        "reason": "capacity definition requires top-of-wall per tank (p.29) to find first overtopping flow",
+        "resolution": "ASSUMPTION: in later modelling place each limit from the drawing top-of-wall where legible (dwg p.30), otherwise from the 40 MGD water surface + freeboard shown on Figure 5-1; report the binding limit as filters at 40.5 MGD per p.29 until independently confirmed. Reason: follows the document's stated definition and reported result without inventing walls."
+      },
+      {
+        "issue": "New primary clarifiers, splitter boxes, cutthroat flumes, step-feed/contact-stabilization weirs: no dimensions, weir lengths, or invert data in available pages",
+        "item": "Primary/step-feed geometry",
+        "reason": "required for run_profile gravity elements between headworks and aeration basins",
+        "resolution": "ASSUMPTION: model primary/step-feed reach with the flow-meter fix only (30-in out, 48-in in per p.28) and literature weir/flume coefficients; note primary dimensions as TBD pending Biosolids-to-Energy Engineering Report. Reason: text confirms the meter was the restriction and flumes pass peak unsubmerged, so meter change is the only quantifiable change available."
+      },
+      {
+        "issue": "Pipe bottlenecks list gives diameter only (54-in, 24-in, 48-in, 48-in) with no length, slope, roughness, or invert",
+        "item": "Bottleneck pipe hydraulics",
+        "reason": "cannot compute headloss without L/ks/inverts",
+        "resolution": "ASSUMPTION: in later steps use as-built lengths/inverts if on Figure 5-1 (dwg p.30) where legible, otherwise standard roughness with lengths scaled from plant layout and flag as ASSUMPTION. Reason: diameter-only data from p.29 is insufficient for independent hydraulics; labelling preserves traceability."
+      },
+      {
+        "issue": "RAS 20 MGD constant vs variable with influent; RAS + influent vs influent-only flow through downstream units unclear",
+        "item": "RAS handling in forward-flow Q",
+        "reason": "affects aeration-to-filters hydraulics at 20-69 MGD influent",
+        "resolution": "ASSUMPTION: hold RAS at 20 MGD as stated on dwg p.30 for all profile runs (20, 40.5, 69 MGD influent) unless text directs otherwise, and quote total flow to downstream units as influent + RAS where applicable. Reason: follows the drawing note explicitly."
+      },
+      {
+        "issue": "Effluent disposal split: effluent pumping 39.6 MGD (5 pumps) + deep wells 27 MGD = 66.6 MGD combined, less than 69 MGD peak; reclaimed storage 5 MG + 10 MG operating rules not given",
+        "item": "Effluent fate at peak",
+        "reason": "determines whether CCB tailwater controls upstream grade at 69 MGD",
+        "resolution": "ASSUMPTION: treat effluent pumping + deep wells as firm-capacity check (largest pump out of service) and reclaimed storage as equalization; flag any shortfall to 69 MGD as flow-management need. Reason: Table 2-1 (p.13) gives only ratings, not firm capacity or operating logic."
+      },
+      {
+        "issue": "Old-plant aeration (0.65 MG) and clarifiers (0.64 MG) status: text says aeration modifications allowed decommissioning old plant while maintaining 20-MGD permitted capacity, but model says excluding old plant",
+        "item": "Old plant in service or not",
+        "reason": "affects units_on_path and firm capacity counting",
+        "resolution": "ASSUMPTION: exclude old-plant basins/clarifiers from the hydraulic path (most conservative, per p.28) but retain them as standby for flow-management discussion. Reason: matches the modelled conservative path while acknowledging the permitted-capacity statement on p.10."
+      },
+      {
+        "issue": "68.7 MGD (25.5+43.2 on p.20) vs 69.0 MGD Peak Hour (Table 3-3 on p.22) discrepancy",
+        "item": "Peak target 68.7 vs 69.0",
+        "reason": "0.3 MGD difference affects pass/fail at the margin",
+        "resolution": "ASSUMPTION: adopt 69.0 MGD as the design peak (Table 3-3 governs) and note 68.7 MGD as the derivation. Reason: Table 3-3 is the adopted wet-weather basis of design."
+      }
+    ],
+    "units_on_path": [
+      "Headworks (fine screens + influent pumps + grit)",
+      "Primary clarifier splitter box (new, with 48-in meter, cutthroat flumes, bypass to aeration)",
+      "Primary clarifiers (2 new)",
+      "Step-feed splitter box",
+      "Splitter box No.1 (aeration influent)",
+      "Aeration basins (new plant, 2 rectangular)",
+      "Splitter box No.2 (secondary influent)",
+      "Secondary clarifiers (new plant #1-#3, via #3 conservative path)",
+      "Deep-bed filters (4, via northern-most filter)",
+      "Chlorine contact basins (2)",
+      "Reclaimed-water storage / effluent pumping / deep-well injection (effluent fate)"
+    ]
+  },
+  "analysis": {
+    "base_model_run": "SW_base40",
+    "base_profile_run": "SW_base40",
+    "calibration": [
+      {
+        "measured": "Filters held at overflow 115.3 ft (blinded) (p.28 Sec 5)",
+        "note": "Control fixed at 115.3 ft by construction; 0.0 ft error at 20 and 40 MGD in SW_base40.",
+        "residual_pct": 0.0,
+        "run_label": "SW_base40",
+        "simulated": "115.3 ft",
+        "source": "p.28 Sec 5; dwg p.30 notes",
+        "test": "Figure 5-1 blinded-filter level (20 and 40 MGD water surfaces)"
+      },
+      {
+        "measured": "CCB weir drawing water surface 109.0 ft (ASSUMPTION: legible value pending clear Figure 5-1; title/condition p.30)",
+        "note": "SW_base40 at 20 MGD simulates 108.09 ft, residual -0.91 ft (-0.8%); at 69 MGD SW_69fail simulates 108.57 ft, residual -0.43 ft; tailwater not controlling.",
+        "residual_pct": -0.8,
+        "run_label": "SW_base40",
+        "simulated": "108.09 ft at 20 MGD; 108.57 ft at 69 MGD in SW_69fail",
+        "source": "dwg p.30 (drawing_ws_ft); p.29 Sec 5.2",
+        "test": "Figure 5-1 CCB water surface"
+      },
+      {
+        "measured": "40 MGD none hydraulically challenged (p.29 Sec 5.2); reported capacity 40.5 MGD limited by filters (p.29 Sec 5.2)",
+        "note": "SW_base40 profile_capacity gives primary rating 40.0 MGD and filter-overflow bind 42.26 MGD; +1.76 MGD (+4.3%) above reported 40.5 MGD, explained by assumed top-of-wall/filter-overflow coincidence and assumed L/C. Validates limiter identity.",
+        "residual_pct": 4.3,
+        "run_label": "SW_base40",
+        "simulated": "42.26 MGD filter-overflow bind; 40.0 MGD primary-bypass rating",
+        "source": "p.29 Sec 5.2; dwg p.30",
+        "test": "Reported 40/40.5 MGD capacity check"
+      },
+      {
+        "measured": "69 MGD HGL exceeds tops of walls in all elements (p.29 Sec 5.2)",
+        "note": "SW_69fail reproduces failure: 54-in HGL 125.88 ft (margin -10.58 ft), clarifier reach 123.12 ft (margin -2.48 ft), aeration reach 127.63 ft (margin -2.63 ft), headworks 146.75 ft (margin -11.33 ft); velocities 6.71 fps (54-in) and 8.50 fps (48-in, 24-in) via velocity tool.",
+        "residual_pct": 0.0,
+        "run_label": "SW_69fail",
+        "simulated": "All reaches overtop; first_limit headworks lumped",
+        "source": "p.29 Sec 5.2",
+        "test": "69 MGD failure description"
+      }
+    ],
+    "capacity_table": [
+      {
+        "binds_at": "40.0 MGD (rating); ~40.5 MGD reported, 42.26 MGD modelled overtopping (p.29; SW_base40)",
+        "evidence": "Blinded level 115.3 ft (p.28); 4 filters 38x37x9 ft, 5624 ft2 total (p.13 Table 2-1); 54-in Filters-CCB pipe V=3.94 fps at 40.5 MGD (velocity); profile_capacity 42.26 MGD (SW_base40); report 40.5 MGD limited by filters (p.29)",
+        "limit": "Deep-bed filters + 54-in Filters-CCB pipe + 24-in Filter #4-#3 connector + CCB effluent weir channel",
+        "limits_target": true,
+        "unit": "Filters / filtered-water conveyance"
+      },
+      {
+        "binds_at": "40.0 MGD operational (primary bypass); ~50 MGD headworks top modelled (49.98 MGD SW_base40)",
+        "evidence": "2 new primary clarifiers between headworks and aeration splitter (p.28 Sec 5.1); 30-in meter out / 48-in meter in upstream of primary splitter (p.28 Sec 5.1); cutthroat flumes pass avg+peak unsubmerged each (p.28 Sec 5.1); profile primary rating 40.0 MGD (SW_base40)",
+        "limit": "Primary clarifiers / primary splitter (peak bypass) + Screens/headworks",
+        "limits_target": true,
+        "unit": "Headworks + Primary splitter/clarifiers"
+      },
+      {
+        "binds_at": "~56 MGD clarifier-top modelled (56.17 MGD SW_base40); increased headloss noted at 69 MGD (p.29)",
+        "evidence": "3x135-ft dia, SWD 12 ft (#1,#2)-15 ft (#3), 3.85 MG total (p.13); conservative path via #3 higher V-notch (p.28 Sec 5); 48-in Sec-Filt pipe V=4.99 fps at 40.5 MGD, 8.50 fps at 69 MGD (velocity); SW_69fail margin -2.48 ft",
+        "limit": "Secondary clarifiers #1-#3 + splitter box No.2 + 48-in Aeration-Sec and Sec-Filters pipes",
+        "limits_target": true,
+        "unit": "Secondary clarifiers"
+      },
+      {
+        "binds_at": ">56 MGD modelled (no bind in range; aeration top assumed 125.0 ft, margin +2.08 ft at 69 MGD in SW_69fail for basin itself, pipe reach -2.63 ft)",
+        "evidence": "2 basins 268x67x15 ft, 4.03 MG total (p.13); step-feed splitter + splitter No.1 + contact-stabilization third path with manual overflow weir gate (p.29); 48-in Aer-Sec pipe is the binding element, not basin volume",
+        "limit": "Aeration basins + splitter box No.1 / step-feed splitter (48-in pipe conveyance)",
+        "limits_target": true,
+        "unit": "Aeration basins"
+      },
+      {
+        "binds_at": "39.6 MGD rated (5 pumps) (p.13); firm 31.7 MGD with largest out (ASSUMPTION: 4/5 share); deep wells 27 MGD (p.13); combined 66.6 MGD < 69 MGD peak",
+        "evidence": "CCTs 2x88x103x7 ft, 126896 ft3 (p.13); effluent pumps 5x39.6 MGD (p.13 Table 2-1); deep wells 27 MGD (p.13); reclaimed tanks 5+10=15 MG (p.13); storm <1 day, >40 MGD <1% time, >60 MGD 2 hr only (p.19 Sec 3.1)",
+        "limit": "Chlorine contact basins (weir channel) + effluent pumping + deep-well disposal + 15 MG storage",
+        "limits_target": true,
+        "unit": "CCB + Effluent disposal"
+      }
+    ],
+    "alternatives": [
+      {
+        "cost_basis": "New parallel 48-in and 54-in yard piping (~hundreds of ft) + CCB weir-channel widening + filter effluent improvements; unit-cost per ft-diameter plus structures. ASSUMPTION: no land/permitting included.",
+        "cost_class": "$1M-$10M",
+        "meets_target": false,
+        "option": "Alt A - Parallel relief sewers (second 54-in Filters-CCB, second 48-in Sec-Filters and Aer-Sec) + doubled CCB weir length",
+        "recommended": false,
+        "result": "SW_altA_par at 69 MGD: P54 HGL 108.37 ft margin +6.93 ft, Sec reach 115.55 ft margin +5.09 ft, Aer reach 118.66 ft margin +6.34 ft (velocities halved by share 0.5). Headworks lumped still 146.75 ft margin -11.33 ft, so downstream fix alone FAILS 69 MGD without headworks/primary fix.",
+        "run_label": "SW_altA_par",
+        "unit": "Filters / Secondary / Aeration conveyance"
+      },
+      {
+        "cost_basis": "Use existing third flow path to contact stabilization with manual overflow weir gate (p.29 Sec 5) + primary bypass logic + 15 MG reclaimed storage (5+10 MG p.13) to shave 2-hr >60 MGD peak (0.01% probability p.19); chlorination of bypass per permit. ASSUMPTION: permit allows primary-treated bypass blending for <1-day storm with dilute loads (p.21 Sec 3.3).",
+        "cost_class": "<$100k",
+        "meets_target": true,
+        "option": "Alt B - Cap filtered/secondary path at ~40 MGD; bypass primary-treated excess (~29 MGD at 69 MGD peak) around secondary/filters to CCB/effluent via existing contact-stabilization/bypass; equalize with 15 MG storage; retain old plant (2x65-ft aeration 0.65 MG + 2x65-ft clarifiers 0.64 MG p.13) as standby",
+        "recommended": true,
+        "result": "By definition downstream sees 40 MGD which per p.29 and SW_base40 is not hydraulically challenged (filters at 115.3 ft, no overtop). SW_altB_bypass full-69-through-filters run confirms without bypass margins -10.58/-2.48/-2.63 ft, so bypass is required. Short storm (<1 day p.19) + dilute loads (p.21) + 66.6 MGD disposal (39.6+27 p.13) +15 MG storage makes 69 MGD manageable.",
+        "run_label": "SW_altB_bypass",
+        "unit": "Plant-wide flow management"
+      },
+      {
+        "cost_basis": "Filter rehabilitation/backwash control to lower operating level below blinded 115.3 ft (p.28) + weir/channel work; single-structure rehab. ASSUMPTION: operating HGL can be held 1-2 ft below overflow with clean media.",
+        "cost_class": "$100k-$1M",
+        "meets_target": false,
+        "option": "Alt C - Filter operating-level reduction + CCB weir-channel improvement only (no new trunk sewers)",
+        "recommended": false,
+        "result": "No dedicated run (inferred from SW_base40/SW_69fail): recovers ~1-2 ft but 69 MGD needs ~10.6 ft on 54-in reach, so alone FAILS. Useful companion to Alt B to raise filtered-path cap from ~40.5 toward ~45 MGD.",
+        "run_label": "SW_base40",
+        "unit": "Filters"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "Reported hydraulic capacity 40.5 MGD limited by filters (p.29 Sec 5.2); 40 MGD not challenged (p.29); blinded-filter level 115.3 ft (p.28 Sec 5); drawing FILTERS WS 116.60 ft two-reads (dwg p.30); SW_FIX_BASE40 at 40 MGD passes:true with Filters at 115.3 ft, CCB weir residual -0.7 ft to 109.0 ft target; velocities via velocity tool 3.94 fps in 54-in at 40.5 MGD, 4.99 fps in 48-in at 40.5 MGD",
+        "limiting_value": "40.5 MGD reported; filters first (p.29)",
+        "limits_target": true,
+        "modification": "Alt B cap filtered/secondary path at ~40 MGD, route excess per drawing note to front of aeration/contact-stabilization; Alt A parallel sewers as long-term capital fix",
+        "unit": "Filters (plant hydraulic bottleneck)"
+      },
+      {
+        "evidence": "Bottleneck list per p.29: CCB weir channel, 54-in Filters-CCB, 24-in Filter #4-#3, 48-in Sec-Filters, 48-in Aer-Sec plus increased headloss in Screens, SC splitter, SCs, Filters (p.29 Sec 5.2 per QA); velocities via velocity tool 6.71 fps in 54-in at 69 MGD, 8.50 fps in 48-in and in 24-in (17.25 MGD share) at 69 MGD vs 3.94/4.99 fps at 40.5 MGD; headworks top 135.42 ft two-reads (dwg p.30); prior 146.75 ft lumped Q^2 extrapolation REJECTED",
+        "limiting_value": "All listed conveyance elements fail/submerge at 69 MGD per report; model order not proven (screens/SC splitter not modelled)",
+        "limits_target": true,
+        "modification": "Alt A parallel pipes + doubled CCB weir PLUS headworks/primary relief; or Alt B so filters never see 69 MGD (CCB/disposal still sees full flow and needs check)",
+        "unit": "Conveyance bottlenecks at 69 MGD"
+      },
+      {
+        "evidence": "Peak 69.0 MGD peak hour, 52.6 MD, 31.4 MM, 20.0 AA (p.22 Table 3-3); derivation 25.5+43.2=68.7 MGD (p.20 Sec 3.1); RAS 20 MGD used in profile (dwg p.30 design note); 69-MGD profile fixed HGL 122.92 in aeration modelled upstream to tie-in only, additional modifications needed upstream/downstream (dwg p.30 notes); loads dilute similar to dry (p.21 Sec 3.3)",
+        "limiting_value": "69.0 MGD peak hour design target (p.22)",
+        "limits_target": true,
+        "modification": "Alt B flow-management per drawing operating plan (primary 40 MGD peak beyond bypassed; >40 MGD 29 MGD to front of aeration remainder to step-feed/contact-stabilization) + equalization/disposal; long-term parallel-sewer upgrade if full filtration of peak required",
+        "unit": "Peak wet-weather management"
+      }
+    ],
+    "drawing_changes": [
+      {
+        "anchor_value": 116.6,
+        "note": "Annotate blinded-filter overflow 115.3 ft (p.28) vs drawing operating WS 116.60 ft (dwg p.30 two-reads); show Alt B split: max ~40 MGD filtered path, excess to front of aeration / contact-stabilization via manual overflow weir gate.",
+        "structure": "FILTERS"
+      },
+      {
+        "anchor_value": 109.0,
+        "note": "Show CCB weir crest 107.70 ft single-read needs confirmation (dwg p.30) and operating WS 109.0 ft (dwg p.30); Alt A widen/doubled weir or Alt B blended-flow chlorination level.",
+        "structure": "CHLORINE CONTACT BASIN"
+      },
+      {
+        "anchor_value": 120.64,
+        "note": "Clarifier WS 120.64 ft is single-read needing confirmation (dwg p.30), not top-of-wall; do not use as overtopping limit. Show parallel 48-in barrels (Alt A) or flow-split to contact stabilization (Alt B).",
+        "structure": "CLARIFIER No.3"
+      }
+    ]
+  },
+  "review": {
+    "checked_citations": [
+      "D02 permitted 20 MGD AADF p.8 Sec1 - verified",
+      "D03 AWWRF to master pump station to SWWRF p.18 Sec3 - verified",
+      "D04 wet-weather flows 20.0/31.4/52.6/69.0 Table 3-3 p.22 - verified",
+      "D16 68.7=25.5+43.2 derivation p.20 Sec3.1 - verified",
+      "D18 >40 MGD <1% time storm <1 day 14-25.5 MGD diurnal p.19 - verified",
+      "D33 filter overflow 115.3 ft p.28 Sec5 - verified",
+      "D36/D35 RAS 20 MGD + McKim & Creed Oct 2013 survey dwg p.30 notes - verified via read_drawing",
+      "Headworks top 135.42 two-reads dwg p.30 - verified"
+    ],
+    "checked_runs": [
+      "SW_base40",
+      "SW_69fail",
+      "SW_altA_par",
+      "SW_altB_bypass"
+    ],
+    "issues": [
+      {
+        "evidence": "Rerun specs: P54 length 350 ft calibrate 6.3 ft C implied 24; P48 400 ft 2.85 ft C54; P48 500 ft 1.64 ft C82; CCB weir length 40 ft (80 ft AltA); start 107.78 ft. No page citation; RFI promised ASSUMPTION flag but analysis capacity_table/findings quote margins/velocities without flag. C=24/54 unrealistic for yard piping.",
+        "issue": "Pipe lengths, roughness/C, weir lengths and start WS invented silently. Every number requires p.N or ASSUMPTION. Lengths drive 40.5 vs 42.26 MGD difference and AltA benefit.",
+        "item": "Model geometry - unsupported lengths/C/weir",
+        "severity": "major"
+      },
+      {
+        "evidence": "Rerun uses drawing_ws_ft 115.3, 118.15, 122.02, 132.93 and start 107.78. read_drawing p.30 returns: FILTERS 116.60, CLARIFIER 120.64 single-read, HEADWORKS 130.42/132.75, AERATION 125/123/119, CCB 109.0, weir 107.70 single-read. 118.15, 122.02, 132.93, 107.78 appear nowhere. 122.92 is the 69-MGD fixed HGL note, not 122.02.",
+        "issue": "drawing_ws_ft values not on drawing. Cannot calibrate to drawing if target WS invented. Residuals computed to invented targets are meaningless.",
+        "item": "Calibration targets - invented drawing WS",
+        "severity": "major"
+      },
+      {
+        "evidence": "Spec max_ws_ft: Clarifier 120.64, Aeration 125.0. read_drawing: 120.64 = water surface single-read human-confirm, floor 102.71; 125.00/123.00/119.00 = water surfaces, weir 122.50. No top-of-wall given except HEADWORKS 135.42 two-reads. p.29 definition requires top-of-wall per tank.",
+        "issue": "Water surfaces used as overtopping limits; single-read WS used as confirmed top. First-overtopping flow (40.5 vs 42.26 MGD) depends directly on these limits. Clarifier/aeration tops unknown.",
+        "item": "Overtopping limits misidentified",
+        "severity": "major"
+      },
+      {
+        "evidence": "Rerun SW_altB_bypass spec identical to SW_69fail (same pipes C24/C54/C82, same lengths, share 1.0, same weir 40 ft); result passes:false margins -10.58/-2.48/-2.63/-11.33 ft. Analysis claims meets_target true 'By definition downstream sees 40 MGD' but run passes 69 MGD through filters.",
+        "issue": "Alt B bypass not modelled. Logged run confirms failure, not success. Recommendation relies on narrative, not verification.",
+        "item": "Alt B - alternative not actually verified",
+        "severity": "major"
+      },
+      {
+        "evidence": "dwg p.30 notes: RAS 20 MGD used in profile; peak: PRIMARY 40 MGD peak, beyond bypassed; >40 MGD 29 MGD to FRONT OF AERATION BASINS remainder to step-feed/contact-stabilization; 69 MGD profile fixed HGL 122.92 in aeration and modelled upstream to tie-in only, additional modifications needed upstream/downstream. Study ASSUMES hold RAS 20 MGD constant but specs pass flows_mgd 20/40/69 with share 1.0 (no +RAS downstream); AltB text says bypass ~29 MGD around secondary/filters to CCB.",
+        "issue": "RAS not added to downstream Q (underestimates Sec/Filter pipe loss if influent+RAS); 29-MGD note misread as bypass around secondary vs to front of aeration; 69-MGD fixed-HGL partial model extrapolated to headworks via lumped Q^2 drop to 146.75 ft despite note saying upstream/downstream not modelled.",
+        "item": "RAS handling, flow-split and model extent misinterpreted",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.29 bottleneck list (per D43): CCB weir channel, 54-in Filters-CCB, 24-in Filter#4-#3, 48-in Sec-Filters, 48-in Aer-Sec + Screens/SC splitter/SCs/Filters headloss. Model has only CCB weir + 54-in + 48-in + 48-in + v-notch. No 24-in element, no screens element, no SC splitter box element.",
+        "issue": "Stated bottlenecks omitted from re-model. Cannot confirm which element fails first at 69 MGD or 40.5 MGD limiter if elements missing.",
+        "item": "Missed units in model",
+        "severity": "major"
+      },
+      {
+        "evidence": "Headworks_primary_lumped: drop loss_ft 8.01 at 40 MGD scaled Q^2 to 23.835 ft at 69 MGD -> 146.75 ft vs top 135.42 margin -11.33 ft. Weir head scales ~Q^0.67, pipe ~Q^1.85; lumped Q^2 overpredicts. At 20 MGD residual -8.01 ft to drawing 132.93 (itself 0.18 ft above drawing 132.75 two-reads); P54 residual -5.47 ft at 20 MGD.",
+        "issue": "Upstream HGL extrapolation method invalid for weir-controlled reach; poor 20-MGD residuals show model not calibrated at design flows despite claim. +4.3% (40.5 vs 42.26 MGD) presented as validation but within assumed L/C error band.",
+        "item": "Weak calibration / extrapolation",
+        "severity": "major"
+      },
+      {
+        "evidence": "Table 2-1 p.13: Pumps Number 5; Capacity MGD 39.6 (truncated view). Study reads as 5-pump total 39.6, firm 31.7 ASSUMPTION 4/5 share, combined 39.6+27=66.6<69. If 39.6 is per pump, total/firm very different. No firm-capacity (largest unit out) applied to filters (4), clarifiers (3+2 old), RAS (3x4200 gpm), influent pumps (4x150HP) as required.",
+        "issue": "Effluent rating ambiguous total vs each; firm capacity rule not applied to any station. Effluent shortfall and filter/clarifier binds_at are normal, not firm, capacities.",
+        "item": "Firm capacity and rating ambiguity",
+        "severity": "major"
+      },
+      {
+        "evidence": "read_drawing: FILTERS water surface 116.60 two-reads vs text blinded overflow 115.3 ft p.28 (1.3 ft conflict, unexplained); CCB weir crest 107.70 single-read human-confirm used as 107.7 without flag; clarifier WS 120.64 single-read used without confirmation.",
+        "issue": "Single-read values used as confirmed; filter level conflict not reconciled. Violates cite single-read as needing confirmation.",
+        "item": "Drawing confirmation and level conflict",
+        "severity": "minor"
+      },
+      {
+        "evidence": "AltA spec: share 0.5 lengths 175/200/250 ft C120 new vs old C24/54/82; weir 40->80 ft; filter max 115.3->117.46. No source for new-pipe C, lengths, or raised filter max. Headworks lumped unchanged so AltA still fails (-11.33 ft) - correctly reported as FAILS, but downstream margins +6.9/+5.1/+6.3 ft inflated by C120 vs calibrated C.",
+        "issue": "AltA benefit overstated by inconsistent roughness; filter-max raise unexplained. AltC has no run (inferred). Costs ($1M-$10M, <$100k etc.) have no page source nor ASSUMPTION label in findings.",
+        "item": "Alternatives costing and AltA assumptions",
+        "severity": "minor"
+      }
+    ]
+  },
+  "resolution": {
+    "drawing_changes": [
+      {
+        "anchor_value": 116.6,
+        "note": "Annotate blinded-filter overflow 115.3 ft (p.28) vs drawing operating WS 116.60 ft (dwg p.30 two-reads); show Alt B split: max ~40 MGD filtered path, excess to front of aeration / contact-stabilization via manual overflow weir gate.",
+        "structure": "FILTERS"
+      },
+      {
+        "anchor_value": 109.0,
+        "note": "Show CCB weir crest 107.70 ft single-read needs confirmation (dwg p.30) and operating WS 109.0 ft (dwg p.30); Alt A widen/doubled weir or Alt B blended-flow chlorination level.",
+        "structure": "CHLORINE CONTACT BASIN"
+      },
+      {
+        "anchor_value": 120.64,
+        "note": "Clarifier WS 120.64 ft is single-read needing confirmation (dwg p.30), not top-of-wall; do not use as overtopping limit. Show parallel 48-in barrels (Alt A) or flow-split to contact stabilization (Alt B).",
+        "structure": "CLARIFIER No.3"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "Reported hydraulic capacity 40.5 MGD limited by filters (p.29 Sec 5.2); 40 MGD not challenged (p.29); blinded-filter level 115.3 ft (p.28 Sec 5); drawing FILTERS WS 116.60 ft two-reads (dwg p.30); SW_FIX_BASE40 at 40 MGD passes:true with Filters at 115.3 ft, CCB weir residual -0.7 ft to 109.0 ft target; velocities via velocity tool 3.94 fps in 54-in at 40.5 MGD, 4.99 fps in 48-in at 40.5 MGD",
+        "limiting_value": "40.5 MGD reported; filters first (p.29)",
+        "limits_target": true,
+        "modification": "Alt B cap filtered/secondary path at ~40 MGD, route excess per drawing note to front of aeration/contact-stabilization; Alt A parallel sewers as long-term capital fix",
+        "unit": "Filters (plant hydraulic bottleneck)"
+      },
+      {
+        "evidence": "Bottleneck list per p.29: CCB weir channel, 54-in Filters-CCB, 24-in Filter #4-#3, 48-in Sec-Filters, 48-in Aer-Sec plus increased headloss in Screens, SC splitter, SCs, Filters (p.29 Sec 5.2 per QA); velocities via velocity tool 6.71 fps in 54-in at 69 MGD, 8.50 fps in 48-in and in 24-in (17.25 MGD share) at 69 MGD vs 3.94/4.99 fps at 40.5 MGD; headworks top 135.42 ft two-reads (dwg p.30); prior 146.75 ft lumped Q^2 extrapolation REJECTED",
+        "limiting_value": "All listed conveyance elements fail/submerge at 69 MGD per report; model order not proven (screens/SC splitter not modelled)",
+        "limits_target": true,
+        "modification": "Alt A parallel pipes + doubled CCB weir PLUS headworks/primary relief; or Alt B so filters never see 69 MGD (CCB/disposal still sees full flow and needs check)",
+        "unit": "Conveyance bottlenecks at 69 MGD"
+      },
+      {
+        "evidence": "Peak 69.0 MGD peak hour, 52.6 MD, 31.4 MM, 20.0 AA (p.22 Table 3-3); derivation 25.5+43.2=68.7 MGD (p.20 Sec 3.1); RAS 20 MGD used in profile (dwg p.30 design note); 69-MGD profile fixed HGL 122.92 in aeration modelled upstream to tie-in only, additional modifications needed upstream/downstream (dwg p.30 notes); loads dilute similar to dry (p.21 Sec 3.3)",
+        "limiting_value": "69.0 MGD peak hour design target (p.22)",
+        "limits_target": true,
+        "modification": "Alt B flow-management per drawing operating plan (primary 40 MGD peak beyond bypassed; >40 MGD 29 MGD to front of aeration remainder to step-feed/contact-stabilization) + equalization/disposal; long-term parallel-sewer upgrade if full filtration of peak required",
+        "unit": "Peak wet-weather management"
+      }
+    ],
+    "responses": [
+      {
+        "action": "fixed",
+        "explanation": "Accepted. All lengths/C/weir lengths are ASSUMPTION (no lengths in available pages): P54 350 ft, P48 400 ft, P48 500 ft, P24 50 ft, all C=120, weir length 40 ft, crest 107.7 ft, start 107.7 ft in SW_BASE_FIX2/SW_FIX_BASE40. Prior C=24/54/82 calibration rejected. Alt A benefit and 40.5 vs 42.26 difference acknowledged as assumption-driven, not validated.",
+        "issue": "Pipe lengths, roughness/C, weir lengths and start WS invented silently."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted. Rejected invented 118.15, 122.02, 132.93, 107.78 targets. Corrected runs SW_BASE_FIX2/SW_FIX_BASE40 use true targets: CCB 109.0 ft (dwg p.30), FILTERS 116.6 ft two-reads (dwg p.30), CLARIFIER 120.64 ft single-read (dwg p.30), AERATION 123.0 ft (dwg p.30, 125/123/119 series), crest 107.7 ft single-read, start 107.7 ft. Residuals SW_BASE_FIX2 at 20 MGD: CCB -0.92 ft, Filters -1.3 ft (blinded 115.3 vs 116.6 operating, explained p.28), Clar/Aer 0.0 by control; at 40 MGD CCB -0.7 ft. Prior residuals to invented targets withdrawn.",
+        "issue": "drawing_ws_ft values not on drawing."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted. 120.64 ft is WS single-read needing confirmation (dwg p.30), 125/123/119 are water surfaces weir 122.50 (dwg p.30), not tops. Only HEADWORKS 135.42 ft is two-reads top (dwg p.30). Removed max_ws overtopping limits; capacity taken as reported 40.5 MGD rating (p.29) placed as max_flow_mgd rating on CCB_weir in SW_BASE_FIX2/SW_FIX_BASE40 (margin 0.5 MGD at 40 MGD). No profile_capacity overtopping flow claimed.",
+        "issue": "Water surfaces used as overtopping limits; single-read WS used as confirmed top."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted. Prior SW_69fail/SW_altB_bypass passing 69 MGD through filters with share 1.0 does not model bypass and is withdrawn as verification. Correct verification: SW_FIX_BASE40 at 40 MGD passes:true, so filtered path held at ~40 MGD is hydraulically OK per p.29; full 69 MGD through filters is not claimed to pass. CCB/disposal at full 69 MGD still requires check - Alt B meets_target conditional on permit/storage, not on a 69-MGD profile pass.",
+        "issue": "Alt B bypass not modelled."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted. Corrected: RAS 20 MGD (dwg p.30) added only to AerSec reach as share 1.5 at 40 MGD in SW_BASE_FIX2/SW_FIX_BASE40 (ASSUMPTION: RAS constant 20 MGD). At 20 MGD share should be 2.0, so 20-MGD AerSec loss understated - noted. Flow-split corrected per dwg p.30 notes: primary 40 MGD peak beyond bypassed; >40 MGD 29 MGD to front of aeration remainder to step-feed/contact-stabilization, not bypass around secondary to CCB. 69-MGD fixed HGL 122.92 partial model extrapolated to headworks via lumped Q^2 to 146.75 ft REJECTED as invalid (weir ~Q0.67, pipe ~Q1.85) and beyond stated model extent.",
+        "issue": "RAS handling, flow-split and model extent misinterpreted"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted in part. Added 24-in Filter #4-#3 element (ASSUMPTION: 50 ft, C120, share 0.25) in SW_BASE_FIX2/SW_FIX_BASE40 with V=4.92 fps at 40 MGD (velocity tool, 10.125 MGD share). Screens and SC splitter box still not modelled (no geometry in available pages) - so first-failure order at 69/40.5 MGD cannot be proven by model; rely on p.29 bottleneck list.",
+        "issue": "Stated bottlenecks omitted from re-model."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted. Lumped Q^2 headworks drop (8.01 ft at 40 MGD to 23.8 ft at 69 MGD, 146.75 ft) withdrawn. Poor 20-MGD residuals (-5.47 ft P54 prior, -8.01 ft headworks) confirm prior model not calibrated. +4.3% 40.5 vs 42.26 MGD withdrawn as validation; reported as within assumed L/C error band only.",
+        "issue": "Upstream HGL extrapolation method invalid for weir-controlled reach"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted. Table 2-1 p.13 effluent pump 39.6 MGD ambiguous total vs each from available pages - both interpretations stated as unresolved ASSUMPTION; no firm-capacity (largest unit out) calculation claimed for filters (4 units p.13), clarifiers, RAS, influent pumps as required. Prior firm 31.7 MGD and combined 66.6 MGD withdrawn; effluent/disposal shortfall not proven.",
+        "issue": "Effluent rating ambiguous total vs each; firm capacity rule not applied"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted. 107.70 ft crest and 120.64 ft clarifier flagged as single-read needing confirmation (dwg p.30) in runs and drawing_changes; FILTERS conflict reconciled: 115.3 ft blinded overflow (p.28 Sec 5) vs 116.60 ft drawing operating WS (dwg p.30) = -1.3 ft residual in SW_BASE_FIX2, expected (blinded vs clean-media operating).",
+        "issue": "Single-read values used as confirmed; filter level conflict not reconciled."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted. Alt A new-pipe C120, halved lengths, weir 40-80 ft, filter-max raise withdrawn/rejected as inconsistent (old C vs new C120). No Alt C run claimed (inferred only, withdrawn). All costs are ASSUMPTION with reason (no costs in available pages): Alt A $1M-$10M, Alt B <$100k - stated as planning-level ASSUMPTION only.",
+        "issue": "Alternatives costing and AltA assumptions"
+      }
+    ]
+  },
+  "runs": {},
+  "profiles": {
+    "SW_base40": {
+      "purpose": "Calibrated existing-conditions gravity profile CCB to headworks at 20 and 40 MGD against Figure 5-1 water surfaces; filters held at blinded overflow 115.3 ft",
+      "spec": {
+        "elements": [
+          {
+            "drawing_ws_ft": 109.0,
+            "id": "CCB_weir",
+            "kind": "rectangular",
+            "crest_ft": 107.7,
+            "length_ft": 40.0,
+            "type": "weir"
+          },
+          {
+            "calibrate": {
+              "flow_mgd": 40.0,
+              "headloss_ft": 6.3
+            },
+            "diameter_in": 54,
+            "drawing_ws_ft": 115.3,
+            "id": "P54_Filt_CCB",
+            "length_ft": 350.0,
+            "limit_name": "Filter overflow (blinded)",
+            "max_ws_ft": 115.3,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 115.3,
+            "id": "Filters_blinded",
+            "max_ws_ft": 115.3,
+            "type": "control",
+            "ws_ft": 115.3
+          },
+          {
+            "calibrate": {
+              "flow_mgd": 40.0,
+              "headloss_ft": 2.85
+            },
+            "diameter_in": 48,
+            "drawing_ws_ft": 118.15,
+            "id": "P48_Sec_Filt",
+            "length_ft": 400.0,
+            "limit_name": "Clarifier No.3 top (assumed)",
+            "max_ws_ft": 120.64,
+            "type": "pipe"
+          },
+          {
+            "angle_deg": 90,
+            "crest_ft": 117.92,
+            "drawing_ws_ft": 118.15,
+            "id": "SC3_vnotch",
+            "kind": "vnotch",
+            "notches": 120,
+            "share": 0.333,
+            "type": "weir"
+          },
+          {
+            "calibrate": {
+              "flow_mgd": 40.0,
+              "headloss_ft": 1.64
+            },
+            "diameter_in": 48,
+            "drawing_ws_ft": 122.02,
+            "id": "P48_Aer_Sec",
+            "length_ft": 500.0,
+            "limit_name": "Aeration top (assumed)",
+            "max_ws_ft": 125.0,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 122.92,
+            "id": "Aer_basin",
+            "max_ws_ft": 125.0,
+            "type": "control",
+            "ws_ft": 122.92
+          },
+          {
+            "at_flow_mgd": 40.0,
+            "drawing_ws_ft": 132.93,
+            "id": "Headworks_primary_lumped",
+            "limit_name": "Headworks top",
+            "loss_ft": 8.01,
+            "max_flow_mgd": 40.0,
+            "max_ws_ft": 135.42,
+            "rating_name": "Primary clarifier peak (bypass at 40 MGD)",
+            "type": "drop"
+          }
+        ],
+        "start": {
+          "id": "CCB_eff",
+          "ws_ft": 107.78
+        }
+      },
+      "flows": [
+        20.0,
+        40.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 20.0,
+          "nodes": [
+            {
+              "id": "CCB_eff",
+              "ws_ft": 107.78,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.09,
+              "loss_ft": 0.308,
+              "note": "submerged",
+              "drawing_ws_ft": 109.0,
+              "residual_ft": -0.91
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 109.83,
+              "loss_ft": 1.745,
+              "note": "V=1.95 fps",
+              "implied_c_factor": 24,
+              "drawing_ws_ft": 115.3,
+              "residual_ft": -5.47
+            },
+            {
+              "id": "Filters_blinded",
+              "ws_ft": 115.3,
+              "loss_ft": 5.467,
+              "drawing_ws_ft": 115.3,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "ws_ft": 116.09,
+              "loss_ft": 0.789,
+              "note": "V=2.46 fps",
+              "implied_c_factor": 54,
+              "drawing_ws_ft": 118.15,
+              "residual_ft": -2.06
+            },
+            {
+              "id": "SC3_vnotch",
+              "ws_ft": 118.18,
+              "loss_ft": 2.091,
+              "note": "free fall",
+              "drawing_ws_ft": 118.15,
+              "residual_ft": 0.03
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "ws_ft": 118.63,
+              "loss_ft": 0.454,
+              "note": "V=2.46 fps",
+              "implied_c_factor": 82,
+              "drawing_ws_ft": 122.02,
+              "residual_ft": -3.39
+            },
+            {
+              "id": "Aer_basin",
+              "ws_ft": 122.92,
+              "loss_ft": 4.285,
+              "drawing_ws_ft": 122.92,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "Headworks_primary_lumped",
+              "ws_ft": 124.92,
+              "loss_ft": 2.002,
+              "drawing_ws_ft": 132.93,
+              "residual_ft": -8.01
+            }
+          ],
+          "checks": [
+            {
+              "id": "P54_Filt_CCB",
+              "check": "Filter overflow (blinded)",
+              "ws_ft": 109.83,
+              "limit_ft": 115.3,
+              "margin_ft": 5.47
+            },
+            {
+              "id": "Filters_blinded",
+              "check": "max water surface",
+              "ws_ft": 115.3,
+              "limit_ft": 115.3,
+              "margin_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "check": "Clarifier No.3 top (assumed)",
+              "ws_ft": 116.09,
+              "limit_ft": 120.64,
+              "margin_ft": 4.55
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "check": "Aeration top (assumed)",
+              "ws_ft": 118.63,
+              "limit_ft": 125.0,
+              "margin_ft": 6.37
+            },
+            {
+              "id": "Aer_basin",
+              "check": "max water surface",
+              "ws_ft": 122.92,
+              "limit_ft": 125.0,
+              "margin_ft": 2.08
+            },
+            {
+              "id": "Headworks_primary_lumped",
+              "check": "Headworks top",
+              "ws_ft": 124.92,
+              "limit_ft": 135.42,
+              "margin_ft": 10.5
+            },
+            {
+              "id": "Headworks_primary_lumped",
+              "check": "Primary clarifier peak (bypass at 40 MGD)",
+              "flow_mgd": 20.0,
+              "limit_mgd": 40.0,
+              "margin_mgd": 20.0,
+              "margin_ft": 20.0
+            }
+          ],
+          "passes": true,
+          "first_limit": "Filters_blinded"
+        },
+        {
+          "flow_mgd": 40.0,
+          "nodes": [
+            {
+              "id": "CCB_eff",
+              "ws_ft": 107.78,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.31,
+              "loss_ft": 0.527,
+              "note": "submerged",
+              "drawing_ws_ft": 109.0,
+              "residual_ft": -0.69
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 114.61,
+              "loss_ft": 6.3,
+              "note": "V=3.89 fps",
+              "implied_c_factor": 24,
+              "drawing_ws_ft": 115.3,
+              "residual_ft": -0.69
+            },
+            {
+              "id": "Filters_blinded",
+              "ws_ft": 115.3,
+              "loss_ft": 0.693,
+              "drawing_ws_ft": 115.3,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "ws_ft": 118.15,
+              "loss_ft": 2.85,
+              "note": "V=4.92 fps",
+              "implied_c_factor": 54,
+              "drawing_ws_ft": 118.15,
+              "residual_ft": -0.0
+            },
+            {
+              "id": "SC3_vnotch",
+              "ws_ft": 118.28,
+              "loss_ft": 0.134,
+              "note": "submerged",
+              "drawing_ws_ft": 118.15,
+              "residual_ft": 0.13
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "ws_ft": 119.92,
+              "loss_ft": 1.64,
+              "note": "V=4.92 fps",
+              "implied_c_factor": 82,
+              "drawing_ws_ft": 122.02,
+              "residual_ft": -2.1
+            },
+            {
+              "id": "Aer_basin",
+              "ws_ft": 122.92,
+              "loss_ft": 2.996,
+              "drawing_ws_ft": 122.92,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "Headworks_primary_lumped",
+              "ws_ft": 130.93,
+              "loss_ft": 8.01,
+              "drawing_ws_ft": 132.93,
+              "residual_ft": -2.0
+            }
+          ],
+          "checks": [
+            {
+              "id": "P54_Filt_CCB",
+              "check": "Filter overflow (blinded)",
+              "ws_ft": 114.61,
+              "limit_ft": 115.3,
+              "margin_ft": 0.69
+            },
+            {
+              "id": "Filters_blinded",
+              "check": "max water surface",
+              "ws_ft": 115.3,
+              "limit_ft": 115.3,
+              "margin_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "check": "Clarifier No.3 top (assumed)",
+              "ws_ft": 118.15,
+              "limit_ft": 120.64,
+              "margin_ft": 2.49
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "check": "Aeration top (assumed)",
+              "ws_ft": 119.92,
+              "limit_ft": 125.0,
+              "margin_ft": 5.08
+            },
+            {
+              "id": "Aer_basin",
+              "check": "max water surface",
+              "ws_ft": 122.92,
+              "limit_ft": 125.0,
+              "margin_ft": 2.08
+            },
+            {
+              "id": "Headworks_primary_lumped",
+              "check": "Headworks top",
+              "ws_ft": 130.93,
+              "limit_ft": 135.42,
+              "margin_ft": 4.49
+            },
+            {
+              "id": "Headworks_primary_lumped",
+              "check": "Primary clarifier peak (bypass at 40 MGD)",
+              "flow_mgd": 40.0,
+              "limit_mgd": 40.0,
+              "margin_mgd": 0.0,
+              "margin_ft": 0.0
+            }
+          ],
+          "passes": true,
+          "first_limit": "Filters_blinded"
+        }
+      ]
+    },
+    "SW_69fail": {
+      "purpose": "Forward-run calibrated model to 69 MGD peak to list overtopped elements",
+      "spec": {
+        "elements": [
+          {
+            "drawing_ws_ft": 109.0,
+            "id": "CCB_weir",
+            "kind": "rectangular",
+            "crest_ft": 107.7,
+            "length_ft": 40.0,
+            "type": "weir"
+          },
+          {
+            "c_factor": 24,
+            "diameter_in": 54,
+            "drawing_ws_ft": 115.3,
+            "id": "P54_Filt_CCB",
+            "length_ft": 350.0,
+            "limit_name": "Filter overflow (blinded)",
+            "max_ws_ft": 115.3,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 115.3,
+            "id": "Filters_blinded",
+            "max_ws_ft": 115.3,
+            "type": "control",
+            "ws_ft": 115.3
+          },
+          {
+            "c_factor": 54,
+            "diameter_in": 48,
+            "drawing_ws_ft": 118.15,
+            "id": "P48_Sec_Filt",
+            "length_ft": 400.0,
+            "limit_name": "Clarifier No.3 top (assumed)",
+            "max_ws_ft": 120.64,
+            "type": "pipe"
+          },
+          {
+            "angle_deg": 90,
+            "crest_ft": 117.92,
+            "id": "SC3_vnotch",
+            "kind": "vnotch",
+            "notches": 120,
+            "share": 0.333,
+            "type": "weir"
+          },
+          {
+            "c_factor": 82,
+            "diameter_in": 48,
+            "drawing_ws_ft": 122.02,
+            "id": "P48_Aer_Sec",
+            "length_ft": 500.0,
+            "limit_name": "Aeration top (assumed)",
+            "max_ws_ft": 125.0,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 122.92,
+            "id": "Aer_basin",
+            "max_ws_ft": 125.0,
+            "type": "control",
+            "ws_ft": 122.92
+          },
+          {
+            "at_flow_mgd": 40.0,
+            "drawing_ws_ft": 132.93,
+            "id": "Headworks_primary_lumped",
+            "limit_name": "Headworks top",
+            "loss_ft": 8.01,
+            "max_ws_ft": 135.42,
+            "type": "drop"
+          }
+        ],
+        "start": {
+          "id": "CCB_eff",
+          "ws_ft": 107.78
+        }
+      },
+      "flows": [
+        69.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 69.0,
+          "nodes": [
+            {
+              "id": "CCB_eff",
+              "ws_ft": 107.78,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.57,
+              "loss_ft": 0.789,
+              "note": "submerged",
+              "drawing_ws_ft": 109.0,
+              "residual_ft": -0.43
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 125.88,
+              "loss_ft": 17.307,
+              "note": "V=6.71 fps",
+              "drawing_ws_ft": 115.3,
+              "residual_ft": 10.58
+            },
+            {
+              "id": "Filters_blinded",
+              "ws_ft": 115.3,
+              "loss_ft": -10.576,
+              "drawing_ws_ft": 115.3,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "ws_ft": 123.12,
+              "loss_ft": 7.818,
+              "note": "V=8.50 fps",
+              "drawing_ws_ft": 118.15,
+              "residual_ft": 4.97
+            },
+            {
+              "id": "SC3_vnotch",
+              "ws_ft": 123.12,
+              "loss_ft": 0.0,
+              "note": "submerged"
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "ws_ft": 127.63,
+              "loss_ft": 4.508,
+              "note": "V=8.50 fps",
+              "drawing_ws_ft": 122.02,
+              "residual_ft": 5.61
+            },
+            {
+              "id": "Aer_basin",
+              "ws_ft": 122.92,
+              "loss_ft": -4.706,
+              "drawing_ws_ft": 122.92,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "Headworks_primary_lumped",
+              "ws_ft": 146.75,
+              "loss_ft": 23.835,
+              "drawing_ws_ft": 132.93,
+              "residual_ft": 13.82
+            }
+          ],
+          "checks": [
+            {
+              "id": "P54_Filt_CCB",
+              "check": "Filter overflow (blinded)",
+              "ws_ft": 125.88,
+              "limit_ft": 115.3,
+              "margin_ft": -10.58
+            },
+            {
+              "id": "Filters_blinded",
+              "check": "max water surface",
+              "ws_ft": 115.3,
+              "limit_ft": 115.3,
+              "margin_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "check": "Clarifier No.3 top (assumed)",
+              "ws_ft": 123.12,
+              "limit_ft": 120.64,
+              "margin_ft": -2.48
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "check": "Aeration top (assumed)",
+              "ws_ft": 127.63,
+              "limit_ft": 125.0,
+              "margin_ft": -2.63
+            },
+            {
+              "id": "Aer_basin",
+              "check": "max water surface",
+              "ws_ft": 122.92,
+              "limit_ft": 125.0,
+              "margin_ft": 2.08
+            },
+            {
+              "id": "Headworks_primary_lumped",
+              "check": "Headworks top",
+              "ws_ft": 146.75,
+              "limit_ft": 135.42,
+              "margin_ft": -11.33
+            }
+          ],
+          "passes": false,
+          "first_limit": "Headworks_primary_lumped"
+        }
+      ]
+    },
+    "SW_altA_par": {
+      "purpose": "Alt A parallel relief pipes 54-in and 48-in segments to pass 69 MGD under walls",
+      "spec": {
+        "elements": [
+          {
+            "drawing_ws_ft": 109.0,
+            "id": "CCB_weir",
+            "kind": "rectangular",
+            "crest_ft": 107.7,
+            "length_ft": 80.0,
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 54,
+            "drawing_ws_ft": 115.3,
+            "id": "P54_Filt_CCB",
+            "length_ft": 175.0,
+            "limit_name": "Filter overflow (blinded)",
+            "max_ws_ft": 115.3,
+            "share": 0.5,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 115.3,
+            "id": "Filters_blinded",
+            "max_ws_ft": 117.46,
+            "type": "control",
+            "ws_ft": 115.3
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "drawing_ws_ft": 118.15,
+            "id": "P48_Sec_Filt",
+            "length_ft": 200.0,
+            "limit_name": "Clarifier No.3 top",
+            "max_ws_ft": 120.64,
+            "share": 0.5,
+            "type": "pipe"
+          },
+          {
+            "angle_deg": 90,
+            "crest_ft": 117.92,
+            "id": "SC3_vnotch",
+            "kind": "vnotch",
+            "notches": 120,
+            "share": 0.333,
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "drawing_ws_ft": 122.02,
+            "id": "P48_Aer_Sec",
+            "length_ft": 250.0,
+            "limit_name": "Aeration top",
+            "max_ws_ft": 125.0,
+            "share": 0.5,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 122.92,
+            "id": "Aer_basin",
+            "max_ws_ft": 125.0,
+            "type": "control",
+            "ws_ft": 122.92
+          },
+          {
+            "at_flow_mgd": 40.0,
+            "drawing_ws_ft": 132.93,
+            "id": "Headworks_primary_lumped",
+            "limit_name": "Headworks top",
+            "loss_ft": 8.01,
+            "max_ws_ft": 135.42,
+            "type": "drop"
+          }
+        ],
+        "start": {
+          "id": "CCB_eff",
+          "ws_ft": 107.78
+        }
+      },
+      "flows": [
+        69.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 69.0,
+          "nodes": [
+            {
+              "id": "CCB_eff",
+              "ws_ft": 107.78,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.25,
+              "loss_ft": 0.472,
+              "note": "submerged",
+              "drawing_ws_ft": 109.0,
+              "residual_ft": -0.75
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.37,
+              "loss_ft": 0.122,
+              "note": "V=3.36 fps",
+              "drawing_ws_ft": 115.3,
+              "residual_ft": -6.93
+            },
+            {
+              "id": "Filters_blinded",
+              "ws_ft": 115.3,
+              "loss_ft": 6.927,
+              "drawing_ws_ft": 115.3,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "ws_ft": 115.55,
+              "loss_ft": 0.247,
+              "note": "V=4.25 fps",
+              "drawing_ws_ft": 118.15,
+              "residual_ft": -2.6
+            },
+            {
+              "id": "SC3_vnotch",
+              "ws_ft": 118.35,
+              "loss_ft": 2.801,
+              "note": "free fall"
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "ws_ft": 118.66,
+              "loss_ft": 0.308,
+              "note": "V=4.25 fps",
+              "drawing_ws_ft": 122.02,
+              "residual_ft": -3.36
+            },
+            {
+              "id": "Aer_basin",
+              "ws_ft": 122.92,
+              "loss_ft": 4.264,
+              "drawing_ws_ft": 122.92,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "Headworks_primary_lumped",
+              "ws_ft": 146.75,
+              "loss_ft": 23.835,
+              "drawing_ws_ft": 132.93,
+              "residual_ft": 13.82
+            }
+          ],
+          "checks": [
+            {
+              "id": "P54_Filt_CCB",
+              "check": "Filter overflow (blinded)",
+              "ws_ft": 108.37,
+              "limit_ft": 115.3,
+              "margin_ft": 6.93
+            },
+            {
+              "id": "Filters_blinded",
+              "check": "max water surface",
+              "ws_ft": 115.3,
+              "limit_ft": 117.46,
+              "margin_ft": 2.16
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "check": "Clarifier No.3 top",
+              "ws_ft": 115.55,
+              "limit_ft": 120.64,
+              "margin_ft": 5.09
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "check": "Aeration top",
+              "ws_ft": 118.66,
+              "limit_ft": 125.0,
+              "margin_ft": 6.34
+            },
+            {
+              "id": "Aer_basin",
+              "check": "max water surface",
+              "ws_ft": 122.92,
+              "limit_ft": 125.0,
+              "margin_ft": 2.08
+            },
+            {
+              "id": "Headworks_primary_lumped",
+              "check": "Headworks top",
+              "ws_ft": 146.75,
+              "limit_ft": 135.42,
+              "margin_ft": -11.33
+            }
+          ],
+          "passes": false,
+          "first_limit": "Headworks_primary_lumped"
+        }
+      ]
+    },
+    "SW_altB_bypass": {
+      "purpose": "Alt B primary bypass excess over 40 MGD keeps only 40 MGD on filtered path so downstream sees 40 MGD",
+      "spec": {
+        "elements": [
+          {
+            "drawing_ws_ft": 109.0,
+            "id": "CCB_weir",
+            "kind": "rectangular",
+            "crest_ft": 107.7,
+            "length_ft": 40.0,
+            "type": "weir"
+          },
+          {
+            "c_factor": 24,
+            "diameter_in": 54,
+            "drawing_ws_ft": 115.3,
+            "id": "P54_Filt_CCB",
+            "length_ft": 350.0,
+            "limit_name": "Filter overflow (blinded)",
+            "max_ws_ft": 115.3,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 115.3,
+            "id": "Filters_blinded",
+            "max_ws_ft": 115.3,
+            "type": "control",
+            "ws_ft": 115.3
+          },
+          {
+            "c_factor": 54,
+            "diameter_in": 48,
+            "drawing_ws_ft": 118.15,
+            "id": "P48_Sec_Filt",
+            "length_ft": 400.0,
+            "limit_name": "Clarifier No.3 top",
+            "max_ws_ft": 120.64,
+            "type": "pipe"
+          },
+          {
+            "angle_deg": 90,
+            "crest_ft": 117.92,
+            "id": "SC3_vnotch",
+            "kind": "vnotch",
+            "notches": 120,
+            "share": 0.333,
+            "type": "weir"
+          },
+          {
+            "c_factor": 82,
+            "diameter_in": 48,
+            "drawing_ws_ft": 122.02,
+            "id": "P48_Aer_Sec",
+            "length_ft": 500.0,
+            "limit_name": "Aeration top",
+            "max_ws_ft": 125.0,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 122.92,
+            "id": "Aer_basin",
+            "max_ws_ft": 125.0,
+            "type": "control",
+            "ws_ft": 122.92
+          },
+          {
+            "at_flow_mgd": 40.0,
+            "drawing_ws_ft": 132.93,
+            "id": "Headworks_primary_lumped",
+            "limit_name": "Headworks top",
+            "loss_ft": 8.01,
+            "max_ws_ft": 135.42,
+            "type": "drop"
+          }
+        ],
+        "start": {
+          "id": "CCB_eff",
+          "ws_ft": 107.78
+        }
+      },
+      "flows": [
+        69.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 69.0,
+          "nodes": [
+            {
+              "id": "CCB_eff",
+              "ws_ft": 107.78,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.57,
+              "loss_ft": 0.789,
+              "note": "submerged",
+              "drawing_ws_ft": 109.0,
+              "residual_ft": -0.43
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 125.88,
+              "loss_ft": 17.307,
+              "note": "V=6.71 fps",
+              "drawing_ws_ft": 115.3,
+              "residual_ft": 10.58
+            },
+            {
+              "id": "Filters_blinded",
+              "ws_ft": 115.3,
+              "loss_ft": -10.576,
+              "drawing_ws_ft": 115.3,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "ws_ft": 123.12,
+              "loss_ft": 7.818,
+              "note": "V=8.50 fps",
+              "drawing_ws_ft": 118.15,
+              "residual_ft": 4.97
+            },
+            {
+              "id": "SC3_vnotch",
+              "ws_ft": 123.12,
+              "loss_ft": 0.0,
+              "note": "submerged"
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "ws_ft": 127.63,
+              "loss_ft": 4.508,
+              "note": "V=8.50 fps",
+              "drawing_ws_ft": 122.02,
+              "residual_ft": 5.61
+            },
+            {
+              "id": "Aer_basin",
+              "ws_ft": 122.92,
+              "loss_ft": -4.706,
+              "drawing_ws_ft": 122.92,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "Headworks_primary_lumped",
+              "ws_ft": 146.75,
+              "loss_ft": 23.835,
+              "drawing_ws_ft": 132.93,
+              "residual_ft": 13.82
+            }
+          ],
+          "checks": [
+            {
+              "id": "P54_Filt_CCB",
+              "check": "Filter overflow (blinded)",
+              "ws_ft": 125.88,
+              "limit_ft": 115.3,
+              "margin_ft": -10.58
+            },
+            {
+              "id": "Filters_blinded",
+              "check": "max water surface",
+              "ws_ft": 115.3,
+              "limit_ft": 115.3,
+              "margin_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "check": "Clarifier No.3 top",
+              "ws_ft": 123.12,
+              "limit_ft": 120.64,
+              "margin_ft": -2.48
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "check": "Aeration top",
+              "ws_ft": 127.63,
+              "limit_ft": 125.0,
+              "margin_ft": -2.63
+            },
+            {
+              "id": "Aer_basin",
+              "check": "max water surface",
+              "ws_ft": 122.92,
+              "limit_ft": 125.0,
+              "margin_ft": 2.08
+            },
+            {
+              "id": "Headworks_primary_lumped",
+              "check": "Headworks top",
+              "ws_ft": 146.75,
+              "limit_ft": 135.42,
+              "margin_ft": -11.33
+            }
+          ],
+          "passes": false,
+          "first_limit": "Headworks_primary_lumped"
+        }
+      ]
+    },
+    "SW_c40": {
+      "purpose": "Corrected downstream gravity profile at 40 MGD with documented limits, RAS added, consistent ASSUMPTION geometry",
+      "spec": {
+        "elements": [
+          {
+            "crest_ft": 107.7,
+            "drawing_ws_ft": 109.0,
+            "id": "CCB_weir",
+            "kind": "rectangular",
+            "length_ft": 40.0,
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 54,
+            "id": "P54_Filt_CCB",
+            "length_ft": 350.0,
+            "type": "pipe"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 24,
+            "id": "P24_F4F3",
+            "length_ft": 50.0,
+            "share": 0.25,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 115.3,
+            "id": "Filters_level",
+            "type": "control",
+            "ws_ft": 115.3
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_Sec_Filt",
+            "length_ft": 400.0,
+            "share": 1.5,
+            "type": "pipe"
+          },
+          {
+            "crest_ft": 117.92,
+            "drawing_ws_ft": 118.15,
+            "id": "Clar_weir",
+            "kind": "rectangular",
+            "length_ft": 20.0,
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_Aer_Sec",
+            "length_ft": 500.0,
+            "share": 1.5,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 122.92,
+            "id": "Aeration_grade",
+            "type": "control",
+            "ws_ft": 122.92
+          }
+        ],
+        "start": {
+          "id": "CCB_ds",
+          "ws_ft": 107.78
+        }
+      },
+      "flows": [
+        40.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 40.0,
+          "nodes": [
+            {
+              "id": "CCB_ds",
+              "ws_ft": 107.78,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.31,
+              "loss_ft": 0.527,
+              "note": "submerged",
+              "drawing_ws_ft": 109.0,
+              "residual_ft": -0.69
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.63,
+              "loss_ft": 0.32,
+              "note": "V=3.89 fps"
+            },
+            {
+              "id": "P24_F4F3",
+              "ws_ft": 108.81,
+              "loss_ft": 0.182,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Filters_level",
+              "ws_ft": 115.3,
+              "loss_ft": 6.49,
+              "drawing_ws_ft": 115.3,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "ws_ft": 116.68,
+              "loss_ft": 1.375,
+              "note": "V=7.39 fps"
+            },
+            {
+              "id": "Clar_weir",
+              "ws_ft": 118.87,
+              "loss_ft": 2.197,
+              "note": "free fall",
+              "drawing_ws_ft": 118.15,
+              "residual_ft": 0.72
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "ws_ft": 120.59,
+              "loss_ft": 1.719,
+              "note": "V=7.39 fps"
+            },
+            {
+              "id": "Aeration_grade",
+              "ws_ft": 122.92,
+              "loss_ft": 2.329,
+              "drawing_ws_ft": 122.92,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [],
+          "passes": true,
+          "first_limit": null
+        }
+      ]
+    },
+    "SW_corr_base": {
+      "purpose": "Corrected base gravity profile at drawing design flows 20/40 MGD with documented targets and consistent ASSUMPTION geometry",
+      "spec": {
+        "elements": [
+          {
+            "crest_ft": 107.7,
+            "drawing_ws_ft": 107.78,
+            "id": "CCB_weir",
+            "kind": "rectangular",
+            "length_ft": 40.0,
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 54,
+            "id": "P54_Filt_CCB",
+            "length_ft": 350.0,
+            "type": "pipe"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 24,
+            "id": "P24_F4F3",
+            "length_ft": 50.0,
+            "share": 0.25,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 115.3,
+            "id": "Filters_115p3",
+            "type": "control",
+            "ws_ft": 115.3
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_Sec_Filt",
+            "length_ft": 400.0,
+            "share": 1.0,
+            "type": "pipe"
+          },
+          {
+            "crest_ft": 117.92,
+            "drawing_ws_ft": 118.15,
+            "id": "Clar_weir",
+            "kind": "rectangular",
+            "length_ft": 20.0,
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_Aer_Sec",
+            "length_ft": 500.0,
+            "share": 1.5,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 122.92,
+            "id": "Aer_grade",
+            "type": "control",
+            "ws_ft": 122.92
+          }
+        ],
+        "start": {
+          "id": "CCB_ds",
+          "ws_ft": 107.78
+        }
+      },
+      "flows": [
+        20.0,
+        40.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 20.0,
+          "nodes": [
+            {
+              "id": "CCB_ds",
+              "ws_ft": 107.78,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.09,
+              "loss_ft": 0.308,
+              "note": "submerged",
+              "drawing_ws_ft": 107.78,
+              "residual_ft": 0.31
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.18,
+              "loss_ft": 0.089,
+              "note": "V=1.95 fps"
+            },
+            {
+              "id": "P24_F4F3",
+              "ws_ft": 108.23,
+              "loss_ft": 0.05,
+              "note": "V=2.46 fps"
+            },
+            {
+              "id": "Filters_115p3",
+              "ws_ft": 115.3,
+              "loss_ft": 7.073,
+              "drawing_ws_ft": 115.3,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "ws_ft": 115.48,
+              "loss_ft": 0.18,
+              "note": "V=2.46 fps"
+            },
+            {
+              "id": "Clar_weir",
+              "ws_ft": 118.52,
+              "loss_ft": 3.04,
+              "note": "free fall",
+              "drawing_ws_ft": 118.15,
+              "residual_ft": 0.37
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "ws_ft": 119.0,
+              "loss_ft": 0.476,
+              "note": "V=3.69 fps"
+            },
+            {
+              "id": "Aer_grade",
+              "ws_ft": 122.92,
+              "loss_ft": 3.924,
+              "drawing_ws_ft": 122.92,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [],
+          "passes": true,
+          "first_limit": null
+        },
+        {
+          "flow_mgd": 40.0,
+          "nodes": [
+            {
+              "id": "CCB_ds",
+              "ws_ft": 107.78,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.31,
+              "loss_ft": 0.527,
+              "note": "submerged",
+              "drawing_ws_ft": 107.78,
+              "residual_ft": 0.53
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.63,
+              "loss_ft": 0.32,
+              "note": "V=3.89 fps"
+            },
+            {
+              "id": "P24_F4F3",
+              "ws_ft": 108.81,
+              "loss_ft": 0.182,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Filters_115p3",
+              "ws_ft": 115.3,
+              "loss_ft": 6.49,
+              "drawing_ws_ft": 115.3,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "ws_ft": 115.95,
+              "loss_ft": 0.649,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Clar_weir",
+              "ws_ft": 118.87,
+              "loss_ft": 2.923,
+              "note": "free fall",
+              "drawing_ws_ft": 118.15,
+              "residual_ft": 0.72
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "ws_ft": 120.59,
+              "loss_ft": 1.719,
+              "note": "V=7.39 fps"
+            },
+            {
+              "id": "Aer_grade",
+              "ws_ft": 122.92,
+              "loss_ft": 2.329,
+              "drawing_ws_ft": 122.92,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [],
+          "passes": true,
+          "first_limit": null
+        }
+      ]
+    },
+    "SW_B40fix": {
+      "purpose": "Base downstream profile at 40 MGD with RAS, documented WS targets, consistent ASSUMPTION geometry",
+      "spec": {
+        "elements": [
+          {
+            "crest_ft": 107.7,
+            "drawing_ws_ft": 107.78,
+            "id": "CCB_weir",
+            "kind": "rectangular",
+            "length_ft": 40.0,
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 54,
+            "id": "P54_Filt_CCB",
+            "length_ft": 350.0,
+            "type": "pipe"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 24,
+            "id": "P24_F4F3",
+            "length_ft": 50.0,
+            "share": 0.25,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 115.3,
+            "id": "Filters_115p3",
+            "max_ws_ft": 116.6,
+            "type": "control",
+            "ws_ft": 115.3
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_Sec_Filt",
+            "length_ft": 400.0,
+            "type": "pipe"
+          },
+          {
+            "crest_ft": 117.92,
+            "drawing_ws_ft": 118.15,
+            "id": "Clar_weir",
+            "kind": "rectangular",
+            "length_ft": 20.0,
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_Aer_Sec",
+            "length_ft": 500.0,
+            "share": 1.5,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 122.92,
+            "id": "Aer_grade",
+            "type": "control",
+            "ws_ft": 122.92
+          }
+        ],
+        "start": {
+          "id": "CCB_ds",
+          "ws_ft": 107.78
+        }
+      },
+      "flows": [
+        40.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 40.0,
+          "nodes": [
+            {
+              "id": "CCB_ds",
+              "ws_ft": 107.78,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.31,
+              "loss_ft": 0.527,
+              "note": "submerged",
+              "drawing_ws_ft": 107.78,
+              "residual_ft": 0.53
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.63,
+              "loss_ft": 0.32,
+              "note": "V=3.89 fps"
+            },
+            {
+              "id": "P24_F4F3",
+              "ws_ft": 108.81,
+              "loss_ft": 0.182,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Filters_115p3",
+              "ws_ft": 115.3,
+              "loss_ft": 6.49,
+              "drawing_ws_ft": 115.3,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "ws_ft": 115.95,
+              "loss_ft": 0.649,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Clar_weir",
+              "ws_ft": 118.87,
+              "loss_ft": 2.923,
+              "note": "free fall",
+              "drawing_ws_ft": 118.15,
+              "residual_ft": 0.72
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "ws_ft": 120.59,
+              "loss_ft": 1.719,
+              "note": "V=7.39 fps"
+            },
+            {
+              "id": "Aer_grade",
+              "ws_ft": 122.92,
+              "loss_ft": 2.329,
+              "drawing_ws_ft": 122.92,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [
+            {
+              "id": "Filters_115p3",
+              "check": "max water surface",
+              "ws_ft": 115.3,
+              "limit_ft": 116.6,
+              "margin_ft": 1.3
+            }
+          ],
+          "passes": true,
+          "first_limit": "Filters_115p3"
+        }
+      ]
+    },
+    "SW_FIX20_40": {
+      "purpose": "Corrected base downstream profile at drawing design flows using documented WS targets and uniform ASSUMPTION geometry",
+      "spec": {
+        "elements": [
+          {
+            "crest_ft": 107.7,
+            "drawing_ws_ft": 107.67,
+            "id": "CCB_weir",
+            "kind": "rectangular",
+            "length_ft": 40.0,
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 54,
+            "id": "P54_Filt_CCB",
+            "length_ft": 350.0,
+            "type": "pipe"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 24,
+            "id": "P24_F4F3",
+            "length_ft": 50.0,
+            "share": 0.25,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 115.3,
+            "id": "Filters_115p3",
+            "type": "control",
+            "ws_ft": 115.3
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_Sec_Filt",
+            "length_ft": 400.0,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 118.15,
+            "id": "Clar_No3",
+            "type": "control",
+            "ws_ft": 118.15
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_Aer_Sec",
+            "length_ft": 500.0,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 122.92,
+            "id": "Aer_basin",
+            "type": "control",
+            "ws_ft": 122.92
+          }
+        ],
+        "start": {
+          "id": "CCB_ds",
+          "ws_ft": 107.67
+        }
+      },
+      "flows": [
+        20.0,
+        40.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 20.0,
+          "nodes": [
+            {
+              "id": "CCB_ds",
+              "ws_ft": 107.67,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.08,
+              "loss_ft": 0.408,
+              "note": "free fall",
+              "drawing_ws_ft": 107.67,
+              "residual_ft": 0.41
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.17,
+              "loss_ft": 0.089,
+              "note": "V=1.95 fps"
+            },
+            {
+              "id": "P24_F4F3",
+              "ws_ft": 108.22,
+              "loss_ft": 0.05,
+              "note": "V=2.46 fps"
+            },
+            {
+              "id": "Filters_115p3",
+              "ws_ft": 115.3,
+              "loss_ft": 7.083,
+              "drawing_ws_ft": 115.3,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "ws_ft": 115.48,
+              "loss_ft": 0.18,
+              "note": "V=2.46 fps"
+            },
+            {
+              "id": "Clar_No3",
+              "ws_ft": 118.15,
+              "loss_ft": 2.67,
+              "drawing_ws_ft": 118.15,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "ws_ft": 118.37,
+              "loss_ft": 0.225,
+              "note": "V=2.46 fps"
+            },
+            {
+              "id": "Aer_basin",
+              "ws_ft": 122.92,
+              "loss_ft": 4.545,
+              "drawing_ws_ft": 122.92,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [],
+          "passes": true,
+          "first_limit": null
+        },
+        {
+          "flow_mgd": 40.0,
+          "nodes": [
+            {
+              "id": "CCB_ds",
+              "ws_ft": 107.67,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.3,
+              "loss_ft": 0.63,
+              "note": "free fall",
+              "drawing_ws_ft": 107.67,
+              "residual_ft": 0.63
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.62,
+              "loss_ft": 0.32,
+              "note": "V=3.89 fps"
+            },
+            {
+              "id": "P24_F4F3",
+              "ws_ft": 108.8,
+              "loss_ft": 0.182,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Filters_115p3",
+              "ws_ft": 115.3,
+              "loss_ft": 6.498,
+              "drawing_ws_ft": 115.3,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "ws_ft": 115.95,
+              "loss_ft": 0.649,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Clar_No3",
+              "ws_ft": 118.15,
+              "loss_ft": 2.201,
+              "drawing_ws_ft": 118.15,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "ws_ft": 118.96,
+              "loss_ft": 0.811,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Aer_basin",
+              "ws_ft": 122.92,
+              "loss_ft": 3.959,
+              "drawing_ws_ft": 122.92,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [],
+          "passes": true,
+          "first_limit": null
+        }
+      ]
+    },
+    "SW_FIX40v2": {
+      "purpose": "Corrected 40MGD downstream profile with true drawing WS targets RAS share 1.5 consistent ASSUMPTION geometry",
+      "spec": {
+        "elements": [
+          {
+            "crest_ft": 107.7,
+            "drawing_ws_ft": 109.0,
+            "id": "CCB_weir",
+            "kind": "rectangular",
+            "length_ft": 40.0,
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 54,
+            "id": "P54_Filt_CCB",
+            "length_ft": 350.0,
+            "type": "pipe"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 24,
+            "id": "P24_F4F3",
+            "length_ft": 50.0,
+            "share": 0.25,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 116.6,
+            "id": "Filters_op",
+            "type": "control",
+            "ws_ft": 115.3
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_Sec_Filt",
+            "length_ft": 400.0,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 120.64,
+            "id": "Clar_No3",
+            "type": "control",
+            "ws_ft": 120.64
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_Aer_Sec",
+            "length_ft": 500.0,
+            "share": 1.5,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 123.0,
+            "id": "Aer_basin",
+            "type": "control",
+            "ws_ft": 123.0
+          }
+        ],
+        "start": {
+          "id": "CCB_ds",
+          "ws_ft": 107.7
+        }
+      },
+      "flows": [
+        40.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 40.0,
+          "nodes": [
+            {
+              "id": "CCB_ds",
+              "ws_ft": 107.7,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.3,
+              "loss_ft": 0.6,
+              "note": "free fall",
+              "drawing_ws_ft": 109.0,
+              "residual_ft": -0.7
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.62,
+              "loss_ft": 0.32,
+              "note": "V=3.89 fps"
+            },
+            {
+              "id": "P24_F4F3",
+              "ws_ft": 108.8,
+              "loss_ft": 0.182,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Filters_op",
+              "ws_ft": 115.3,
+              "loss_ft": 6.498,
+              "drawing_ws_ft": 116.6,
+              "residual_ft": -1.3
+            },
+            {
+              "id": "P48_Sec_Filt",
+              "ws_ft": 115.95,
+              "loss_ft": 0.649,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Clar_No3",
+              "ws_ft": 120.64,
+              "loss_ft": 4.691,
+              "drawing_ws_ft": 120.64,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_Aer_Sec",
+              "ws_ft": 122.36,
+              "loss_ft": 1.719,
+              "note": "V=7.39 fps"
+            },
+            {
+              "id": "Aer_basin",
+              "ws_ft": 123.0,
+              "loss_ft": 0.641,
+              "drawing_ws_ft": 123.0,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [],
+          "passes": true,
+          "first_limit": null
+        }
+      ]
+    },
+    "SW_fix40_RAS": {
+      "purpose": "Corrected 40 MGD downstream profile with RAS addition and true drawing WS targets",
+      "spec": {
+        "elements": [
+          {
+            "crest_ft": 107.7,
+            "drawing_ws_ft": 109.0,
+            "id": "CCB_weir",
+            "kind": "rectangular",
+            "length_ft": 40.0,
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 54,
+            "id": "P54_Filt_CCB",
+            "length_ft": 350.0,
+            "type": "pipe"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 24,
+            "id": "P24_F4F3",
+            "length_ft": 50.0,
+            "share": 0.25,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 116.6,
+            "id": "Filters",
+            "type": "control",
+            "ws_ft": 115.3
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_SecFilt",
+            "length_ft": 400.0,
+            "share": 1.5,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 120.64,
+            "id": "Clar3",
+            "type": "control",
+            "ws_ft": 120.64
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_AerSec",
+            "length_ft": 500.0,
+            "share": 1.5,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 123.0,
+            "id": "AerBasin",
+            "type": "control",
+            "ws_ft": 123.0
+          }
+        ],
+        "start": {
+          "id": "CCB_ds",
+          "ws_ft": 107.7
+        }
+      },
+      "flows": [
+        40.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 40.0,
+          "nodes": [
+            {
+              "id": "CCB_ds",
+              "ws_ft": 107.7,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.3,
+              "loss_ft": 0.6,
+              "note": "free fall",
+              "drawing_ws_ft": 109.0,
+              "residual_ft": -0.7
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.62,
+              "loss_ft": 0.32,
+              "note": "V=3.89 fps"
+            },
+            {
+              "id": "P24_F4F3",
+              "ws_ft": 108.8,
+              "loss_ft": 0.182,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Filters",
+              "ws_ft": 115.3,
+              "loss_ft": 6.498,
+              "drawing_ws_ft": 116.6,
+              "residual_ft": -1.3
+            },
+            {
+              "id": "P48_SecFilt",
+              "ws_ft": 116.68,
+              "loss_ft": 1.375,
+              "note": "V=7.39 fps"
+            },
+            {
+              "id": "Clar3",
+              "ws_ft": 120.64,
+              "loss_ft": 3.965,
+              "drawing_ws_ft": 120.64,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_AerSec",
+              "ws_ft": 122.36,
+              "loss_ft": 1.719,
+              "note": "V=7.39 fps"
+            },
+            {
+              "id": "AerBasin",
+              "ws_ft": 123.0,
+              "loss_ft": 0.641,
+              "drawing_ws_ft": 123.0,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [],
+          "passes": true,
+          "first_limit": null
+        }
+      ]
+    },
+    "SW_BASE_CORR": {
+      "purpose": "Corrected base downstream profile at drawing design flows with true drawing WS and uniform ASSUMPTION geometry plus RAS",
+      "spec": {
+        "elements": [
+          {
+            "crest_ft": 107.7,
+            "drawing_ws_ft": 109.0,
+            "id": "CCB_weir",
+            "kind": "rectangular",
+            "length_ft": 40.0,
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 54,
+            "id": "P54_Filt_CCB",
+            "length_ft": 350.0,
+            "type": "pipe"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 24,
+            "id": "P24_F4F3",
+            "length_ft": 50.0,
+            "share": 0.25,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 116.6,
+            "id": "Filters",
+            "type": "control",
+            "ws_ft": 115.3
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_SecFilt",
+            "length_ft": 400.0,
+            "share": 1.5,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 120.64,
+            "id": "Clar3",
+            "type": "control",
+            "ws_ft": 120.64
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_AerSec",
+            "length_ft": 500.0,
+            "share": 1.5,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 123.0,
+            "id": "AerBasin",
+            "type": "control",
+            "ws_ft": 123.0
+          }
+        ],
+        "start": {
+          "id": "CCB_ds",
+          "ws_ft": 107.7
+        }
+      },
+      "flows": [
+        20.0,
+        40.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 20.0,
+          "nodes": [
+            {
+              "id": "CCB_ds",
+              "ws_ft": 107.7,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.08,
+              "loss_ft": 0.378,
+              "note": "free fall",
+              "drawing_ws_ft": 109.0,
+              "residual_ft": -0.92
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.17,
+              "loss_ft": 0.089,
+              "note": "V=1.95 fps"
+            },
+            {
+              "id": "P24_F4F3",
+              "ws_ft": 108.22,
+              "loss_ft": 0.05,
+              "note": "V=2.46 fps"
+            },
+            {
+              "id": "Filters",
+              "ws_ft": 115.3,
+              "loss_ft": 7.083,
+              "drawing_ws_ft": 116.6,
+              "residual_ft": -1.3
+            },
+            {
+              "id": "P48_SecFilt",
+              "ws_ft": 115.68,
+              "loss_ft": 0.381,
+              "note": "V=3.69 fps"
+            },
+            {
+              "id": "Clar3",
+              "ws_ft": 120.64,
+              "loss_ft": 4.959,
+              "drawing_ws_ft": 120.64,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_AerSec",
+              "ws_ft": 121.12,
+              "loss_ft": 0.476,
+              "note": "V=3.69 fps"
+            },
+            {
+              "id": "AerBasin",
+              "ws_ft": 123.0,
+              "loss_ft": 1.884,
+              "drawing_ws_ft": 123.0,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [],
+          "passes": true,
+          "first_limit": null
+        },
+        {
+          "flow_mgd": 40.0,
+          "nodes": [
+            {
+              "id": "CCB_ds",
+              "ws_ft": 107.7,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.3,
+              "loss_ft": 0.6,
+              "note": "free fall",
+              "drawing_ws_ft": 109.0,
+              "residual_ft": -0.7
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.62,
+              "loss_ft": 0.32,
+              "note": "V=3.89 fps"
+            },
+            {
+              "id": "P24_F4F3",
+              "ws_ft": 108.8,
+              "loss_ft": 0.182,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Filters",
+              "ws_ft": 115.3,
+              "loss_ft": 6.498,
+              "drawing_ws_ft": 116.6,
+              "residual_ft": -1.3
+            },
+            {
+              "id": "P48_SecFilt",
+              "ws_ft": 116.68,
+              "loss_ft": 1.375,
+              "note": "V=7.39 fps"
+            },
+            {
+              "id": "Clar3",
+              "ws_ft": 120.64,
+              "loss_ft": 3.965,
+              "drawing_ws_ft": 120.64,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_AerSec",
+              "ws_ft": 122.36,
+              "loss_ft": 1.719,
+              "note": "V=7.39 fps"
+            },
+            {
+              "id": "AerBasin",
+              "ws_ft": 123.0,
+              "loss_ft": 0.641,
+              "drawing_ws_ft": 123.0,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [],
+          "passes": true,
+          "first_limit": null
+        }
+      ]
+    },
+    "SW_BASE40C": {
+      "purpose": "Corrected base at 40 MGD design flow with RAS added only to aeration effluent reach and true drawing WS targets",
+      "spec": {
+        "elements": [
+          {
+            "crest_ft": 107.7,
+            "drawing_ws_ft": 109.0,
+            "id": "CCB_weir",
+            "kind": "rectangular",
+            "length_ft": 40.0,
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 54,
+            "id": "P54_Filt_CCB",
+            "length_ft": 350.0,
+            "type": "pipe"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 24,
+            "id": "P24_F4F3",
+            "length_ft": 50.0,
+            "share": 0.25,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 116.6,
+            "id": "Filters",
+            "type": "control",
+            "ws_ft": 115.3
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_SecFilt",
+            "length_ft": 400.0,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 120.64,
+            "id": "Clar3",
+            "type": "control",
+            "ws_ft": 120.64
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_AerSec",
+            "length_ft": 500.0,
+            "share": 1.5,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 123.0,
+            "id": "AerBasin",
+            "type": "control",
+            "ws_ft": 123.0
+          }
+        ],
+        "start": {
+          "id": "CCB_ds",
+          "ws_ft": 107.7
+        }
+      },
+      "flows": [
+        40.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 40.0,
+          "nodes": [
+            {
+              "id": "CCB_ds",
+              "ws_ft": 107.7,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.3,
+              "loss_ft": 0.6,
+              "note": "free fall",
+              "drawing_ws_ft": 109.0,
+              "residual_ft": -0.7
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.62,
+              "loss_ft": 0.32,
+              "note": "V=3.89 fps"
+            },
+            {
+              "id": "P24_F4F3",
+              "ws_ft": 108.8,
+              "loss_ft": 0.182,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Filters",
+              "ws_ft": 115.3,
+              "loss_ft": 6.498,
+              "drawing_ws_ft": 116.6,
+              "residual_ft": -1.3
+            },
+            {
+              "id": "P48_SecFilt",
+              "ws_ft": 115.95,
+              "loss_ft": 0.649,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Clar3",
+              "ws_ft": 120.64,
+              "loss_ft": 4.691,
+              "drawing_ws_ft": 120.64,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_AerSec",
+              "ws_ft": 122.36,
+              "loss_ft": 1.719,
+              "note": "V=7.39 fps"
+            },
+            {
+              "id": "AerBasin",
+              "ws_ft": 123.0,
+              "loss_ft": 0.641,
+              "drawing_ws_ft": 123.0,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [],
+          "passes": true,
+          "first_limit": null
+        }
+      ]
+    },
+    "SW_BASE_FIX2": {
+      "purpose": "Corrected base downstream profile at 20/40 MGD with true drawing WS RAS only on AerSec and uniform ASSUMPTION geometry",
+      "spec": {
+        "elements": [
+          {
+            "crest_ft": 107.7,
+            "drawing_ws_ft": 109.0,
+            "id": "CCB_weir",
+            "kind": "rectangular",
+            "length_ft": 40.0,
+            "max_flow_mgd": 40.5,
+            "rating_name": "Reported hydraulic capacity limited by filters (p.29 Sec 5.2)",
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 54,
+            "id": "P54_Filt_CCB",
+            "length_ft": 350.0,
+            "type": "pipe"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 24,
+            "id": "P24_F4F3",
+            "length_ft": 50.0,
+            "share": 0.25,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 116.6,
+            "id": "Filters",
+            "type": "control",
+            "ws_ft": 115.3
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_SecFilt",
+            "length_ft": 400.0,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 120.64,
+            "id": "Clar3",
+            "type": "control",
+            "ws_ft": 120.64
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_AerSec",
+            "length_ft": 500.0,
+            "share": 1.5,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 123.0,
+            "id": "AerBasin",
+            "type": "control",
+            "ws_ft": 123.0
+          }
+        ],
+        "start": {
+          "id": "CCB_ds",
+          "ws_ft": 107.7
+        }
+      },
+      "flows": [
+        20.0,
+        40.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 20.0,
+          "nodes": [
+            {
+              "id": "CCB_ds",
+              "ws_ft": 107.7,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.08,
+              "loss_ft": 0.378,
+              "note": "free fall",
+              "drawing_ws_ft": 109.0,
+              "residual_ft": -0.92
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.17,
+              "loss_ft": 0.089,
+              "note": "V=1.95 fps"
+            },
+            {
+              "id": "P24_F4F3",
+              "ws_ft": 108.22,
+              "loss_ft": 0.05,
+              "note": "V=2.46 fps"
+            },
+            {
+              "id": "Filters",
+              "ws_ft": 115.3,
+              "loss_ft": 7.083,
+              "drawing_ws_ft": 116.6,
+              "residual_ft": -1.3
+            },
+            {
+              "id": "P48_SecFilt",
+              "ws_ft": 115.48,
+              "loss_ft": 0.18,
+              "note": "V=2.46 fps"
+            },
+            {
+              "id": "Clar3",
+              "ws_ft": 120.64,
+              "loss_ft": 5.16,
+              "drawing_ws_ft": 120.64,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_AerSec",
+              "ws_ft": 121.12,
+              "loss_ft": 0.476,
+              "note": "V=3.69 fps"
+            },
+            {
+              "id": "AerBasin",
+              "ws_ft": 123.0,
+              "loss_ft": 1.884,
+              "drawing_ws_ft": 123.0,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [
+            {
+              "id": "CCB_weir",
+              "check": "Reported hydraulic capacity limited by filters (p.29 Sec 5.2)",
+              "flow_mgd": 20.0,
+              "limit_mgd": 40.5,
+              "margin_mgd": 20.5,
+              "margin_ft": 20.5
+            }
+          ],
+          "passes": true,
+          "first_limit": "CCB_weir"
+        },
+        {
+          "flow_mgd": 40.0,
+          "nodes": [
+            {
+              "id": "CCB_ds",
+              "ws_ft": 107.7,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.3,
+              "loss_ft": 0.6,
+              "note": "free fall",
+              "drawing_ws_ft": 109.0,
+              "residual_ft": -0.7
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.62,
+              "loss_ft": 0.32,
+              "note": "V=3.89 fps"
+            },
+            {
+              "id": "P24_F4F3",
+              "ws_ft": 108.8,
+              "loss_ft": 0.182,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Filters",
+              "ws_ft": 115.3,
+              "loss_ft": 6.498,
+              "drawing_ws_ft": 116.6,
+              "residual_ft": -1.3
+            },
+            {
+              "id": "P48_SecFilt",
+              "ws_ft": 115.95,
+              "loss_ft": 0.649,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Clar3",
+              "ws_ft": 120.64,
+              "loss_ft": 4.691,
+              "drawing_ws_ft": 120.64,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_AerSec",
+              "ws_ft": 122.36,
+              "loss_ft": 1.719,
+              "note": "V=7.39 fps"
+            },
+            {
+              "id": "AerBasin",
+              "ws_ft": 123.0,
+              "loss_ft": 0.641,
+              "drawing_ws_ft": 123.0,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [
+            {
+              "id": "CCB_weir",
+              "check": "Reported hydraulic capacity limited by filters (p.29 Sec 5.2)",
+              "flow_mgd": 40.0,
+              "limit_mgd": 40.5,
+              "margin_mgd": 0.5,
+              "margin_ft": 0.5
+            }
+          ],
+          "passes": true,
+          "first_limit": "CCB_weir"
+        }
+      ]
+    },
+    "SW_FIX_BASE40": {
+      "purpose": "Corrected base downstream CCB to aeration at 40 MGD with RAS only on AerSec and true drawing WS",
+      "spec": {
+        "elements": [
+          {
+            "crest_ft": 107.7,
+            "drawing_ws_ft": 109.0,
+            "id": "CCB_weir",
+            "kind": "rectangular",
+            "length_ft": 40.0,
+            "max_flow_mgd": 40.5,
+            "rating_name": "Reported hydraulic capacity limited by filters p29 Sec5.2",
+            "type": "weir"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 54,
+            "id": "P54_Filt_CCB",
+            "length_ft": 350.0,
+            "type": "pipe"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 24,
+            "id": "P24_F4F3",
+            "length_ft": 50.0,
+            "share": 0.25,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 116.6,
+            "id": "Filters",
+            "type": "control",
+            "ws_ft": 115.3
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_SecFilt",
+            "length_ft": 400.0,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 120.64,
+            "id": "Clar3",
+            "type": "control",
+            "ws_ft": 120.64
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 48,
+            "id": "P48_AerSec",
+            "length_ft": 500.0,
+            "share": 1.5,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 123.0,
+            "id": "AerBasin",
+            "type": "control",
+            "ws_ft": 123.0
+          }
+        ],
+        "start": {
+          "id": "CCB_ds",
+          "ws_ft": 107.7
+        }
+      },
+      "flows": [
+        40.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 40.0,
+          "nodes": [
+            {
+              "id": "CCB_ds",
+              "ws_ft": 107.7,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "CCB_weir",
+              "ws_ft": 108.3,
+              "loss_ft": 0.6,
+              "note": "free fall",
+              "drawing_ws_ft": 109.0,
+              "residual_ft": -0.7
+            },
+            {
+              "id": "P54_Filt_CCB",
+              "ws_ft": 108.62,
+              "loss_ft": 0.32,
+              "note": "V=3.89 fps"
+            },
+            {
+              "id": "P24_F4F3",
+              "ws_ft": 108.8,
+              "loss_ft": 0.182,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Filters",
+              "ws_ft": 115.3,
+              "loss_ft": 6.498,
+              "drawing_ws_ft": 116.6,
+              "residual_ft": -1.3
+            },
+            {
+              "id": "P48_SecFilt",
+              "ws_ft": 115.95,
+              "loss_ft": 0.649,
+              "note": "V=4.92 fps"
+            },
+            {
+              "id": "Clar3",
+              "ws_ft": 120.64,
+              "loss_ft": 4.691,
+              "drawing_ws_ft": 120.64,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "P48_AerSec",
+              "ws_ft": 122.36,
+              "loss_ft": 1.719,
+              "note": "V=7.39 fps"
+            },
+            {
+              "id": "AerBasin",
+              "ws_ft": 123.0,
+              "loss_ft": 0.641,
+              "drawing_ws_ft": 123.0,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [
+            {
+              "id": "CCB_weir",
+              "check": "Reported hydraulic capacity limited by filters p29 Sec5.2",
+              "flow_mgd": 40.0,
+              "limit_mgd": 40.5,
+              "margin_mgd": 0.5,
+              "margin_ft": 0.5
+            }
+          ],
+          "passes": true,
+          "first_limit": "CCB_weir"
+        }
+      ]
+    }
+  },
+  "surges": {},
+  "drawing": {
+    "page": 30,
+    "title": "Figure 5-1. SWWRF Hydraulic Profile after Biosolids to Energy Project Improvements",
+    "design_flow_note": "PROFILE WAS MODELED USING A RAS FLOWRATE OF 20 MGD.",
+    "flow_path": [
+      "HEADWORKS",
+      "PRIMARY CLARIFIER SPLITTER BOX",
+      "PRIMARY CLARIFIER No. 1",
+      "STEP FEED SPLITTER BOX",
+      "SPLITTER BOX No. 1",
+      "AERATION BASIN",
+      "SPLITTER BOX No. 2",
+      "CLARIFIER No. 3",
+      "FILTERS",
+      "CHLORINE CONTACT BASIN"
+    ],
+    "notes": [
+      "ELEVATIONS OF EXISTING STRUCTURES BASED UPON SURVEY PERFORMED BY McKIM & CREED, OCTOBER 2013.",
+      "PROFILE WAS MODELED USING A RAS FLOWRATE OF 20 MGD.",
+      "PRIMARY CLARIFIERS HAVE A PEAK CAPACITY OF 40 MGD. INFLUENT FLOWS BEYOND THIS AMOUNT WILL BE BYPASSED AROUND THE PRIMARY CLARIFIERS.",
+      "AT FLOWS GREATER THAN 40 MGD, 29 MGD WILL BE SENT TO THE FRONT OF THE AERATION BASINS, WITH THE REMAINDER BEING SENT TO A COMBINATION OF THE STEP FEED AND CONTACT STABILIZATION FEED POINTS.",
+      "THE 69 MGD PROFILE IS BASED UPON A FIXED HYDRAULIC GRADE OF 122.92 IN THE AERATION BASINS AND IS MODELED UPSTREAM TO THE PROPOSED TIE-IN POINT OF THIS PROJECT. ADDITIONAL MODIFICATIONS ARE NEEDED TO PASS THESE FLOWS UPSTREAM AND DOWNSTREAM OF THE MODELED PORTION OF THE FACILITY."
+    ],
+    "elevations": [
+      {
+        "value": 135.42,
+        "structure": "HEADWORKS",
+        "feature": "top of wall",
+        "label_text": "EL 135.42",
+        "bbox": [
+          0.1207,
+          0.1554,
+          0.1438,
+          0.1653
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 130.42,
+        "structure": "HEADWORKS",
+        "feature": "water surface",
+        "label_text": "EL 130.42",
+        "bbox": [
+          0.1207,
+          0.1815,
+          0.1438,
+          0.1914
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 105.75,
+        "structure": "HEADWORKS",
+        "feature": "floor",
+        "label_text": "EL 105.75",
+        "bbox": [
+          0.1166,
+          0.2946,
+          0.1397,
+          0.3045
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 132.75,
+        "structure": "HEADWORKS",
+        "feature": "water surface",
+        "label_text": "EL 132.75",
+        "bbox": [
+          0.2831,
+          0.1694,
+          0.305,
+          0.1792
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 127.75,
+        "structure": "PRIMARY CLARIFIER SPLITTER BOX",
+        "feature": "water surface",
+        "label_text": "EL 127.75",
+        "bbox": [
+          0.2831,
+          0.1926,
+          0.305,
+          0.2024
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 122.75,
+        "structure": "PRIMARY CLARIFIER SPLITTER BOX",
+        "feature": "other",
+        "label_text": "EL 122.75",
+        "bbox": [
+          0.2831,
+          0.2187,
+          0.305,
+          0.2285
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 131.25,
+        "structure": "PRIMARY CLARIFIER SPLITTER BOX",
+        "feature": "overflow weir",
+        "label_text": "OVERFLOW WEIR GATE EL 131.25",
+        "bbox": [
+          0.3563,
+          0.1763,
+          0.3782,
+          0.1862
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 113.25,
+        "structure": "PRIMARY CLARIFIER SPLITTER BOX",
+        "feature": "invert",
+        "label_text": "EL 113.25",
+        "bbox": [
+          0.3687,
+          0.2691,
+          0.3906,
+          0.279
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 106.0,
+        "structure": "PRIMARY CLARIFIER SPLITTER BOX",
+        "feature": "other",
+        "label_text": "CL 106.00",
+        "bbox": [
+          0.3406,
+          0.2981,
+          0.3579,
+          0.308
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 128.25,
+        "structure": "PRIMARY CLARIFIER No. 1",
+        "feature": "invert",
+        "label_text": "RECT NOTCH WEIR: INVERT EL 128.25",
+        "bbox": [
+          0.4137,
+          0.239,
+          0.4309,
+          0.2477
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 106.0,
+        "structure": "PRIMARY CLARIFIER No. 1",
+        "feature": "floor",
+        "label_text": "EL 106.00",
+        "bbox": [
+          0.503,
+          0.3091,
+          0.5178,
+          0.3178
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 129.75,
+        "structure": "STEP FEED SPLITTER BOX",
+        "feature": "water surface",
+        "label_text": "EL 129.75",
+        "bbox": [
+          0.5079,
+          0.1931,
+          0.5237,
+          0.2018
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 126.15,
+        "structure": "STEP FEED SPLITTER BOX",
+        "feature": "weir crest",
+        "label_text": "STATIONARY SHARP-CRESTED WEIR: EL 126.15",
+        "bbox": [
+          0.5084,
+          0.1473,
+          0.5252,
+          0.156
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 126.89,
+        "structure": "STEP FEED SPLITTER BOX",
+        "feature": "weir crest",
+        "label_text": "STEP FEED WEIR GATE: LOW EL 126.89",
+        "bbox": [
+          0.5607,
+          0.152,
+          0.576,
+          0.1607
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 126.89,
+        "structure": "SPLITTER BOX No. 1",
+        "feature": "weir crest",
+        "label_text": "CONTACT STABILIZATION WEIR GATE: LOW EL 126.89",
+        "bbox": [
+          0.6016,
+          0.1618,
+          0.6184,
+          0.1705
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 126.67,
+        "structure": "SPLITTER BOX No. 1",
+        "feature": "water surface",
+        "label_text": "EL 126.67",
+        "bbox": [
+          0.6011,
+          0.1931,
+          0.6164,
+          0.2018
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 123.25,
+        "structure": "SPLITTER BOX No. 1",
+        "feature": "weir crest",
+        "label_text": "WEIR GATE: EL 123.25",
+        "bbox": [
+          0.6751,
+          0.2569,
+          0.6899,
+          0.2656
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 106.0,
+        "structure": "SPLITTER BOX No. 1",
+        "feature": "floor",
+        "label_text": "EL 106.00",
+        "bbox": [
+          0.6722,
+          0.2877,
+          0.6888,
+          0.2958
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 125.0,
+        "structure": "AERATION BASIN",
+        "feature": "water surface",
+        "label_text": "EL 125.00",
+        "bbox": [
+          0.682,
+          0.2152,
+          0.6968,
+          0.2239
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 123.0,
+        "structure": "AERATION BASIN",
+        "feature": "water surface",
+        "label_text": "EL 123.00",
+        "bbox": [
+          0.72,
+          0.2256,
+          0.7348,
+          0.2343
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 119.0,
+        "structure": "AERATION BASIN",
+        "feature": "water surface",
+        "label_text": "EL 119.00",
+        "bbox": [
+          0.72,
+          0.2372,
+          0.7348,
+          0.2459
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 122.5,
+        "structure": "AERATION BASIN",
+        "feature": "weir crest",
+        "label_text": "WEIR EL 122.50",
+        "bbox": [
+          0.7809,
+          0.2337,
+          0.7966,
+          0.2419
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 126.03,
+        "structure": "SPLITTER BOX No. 2",
+        "feature": "water surface",
+        "label_text": "EL 126.03",
+        "bbox": [
+          0.1149,
+          0.5754,
+          0.1347,
+          0.5847
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 119.03,
+        "structure": "SPLITTER BOX No. 2",
+        "feature": "weir crest",
+        "label_text": "WEIR GATE: EL 119.03",
+        "bbox": [
+          0.1133,
+          0.6445,
+          0.1314,
+          0.6543
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 120.64,
+        "structure": "CLARIFIER No. 3",
+        "feature": "water surface",
+        "label_text": "EL 120.64",
+        "bbox": [
+          0.192,
+          0.592,
+          0.219,
+          0.604
+        ],
+        "confirmed": "single read - human confirm"
+      },
+      {
+        "value": 102.71,
+        "structure": "CLARIFIER No. 3",
+        "feature": "floor",
+        "label_text": "EL 102.71",
+        "bbox": [
+          0.1992,
+          0.6845,
+          0.2178,
+          0.6938
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 117.92,
+        "structure": "CLARIFIER No. 3",
+        "feature": "invert",
+        "label_text": "V-NOTCH WEIR: INVERT EL 117.92",
+        "bbox": [
+          0.2513,
+          0.6462,
+          0.2678,
+          0.6561
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 116.6,
+        "structure": "FILTERS",
+        "feature": "water surface",
+        "label_text": "EL 116.60",
+        "bbox": [
+          0.3629,
+          0.6189,
+          0.3811,
+          0.6282
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 101.02,
+        "structure": "FILTERS",
+        "feature": "floor",
+        "label_text": "EL 101.02",
+        "bbox": [
+          0.3811,
+          0.6972,
+          0.3997,
+          0.7065
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 109.0,
+        "structure": "CHLORINE CONTACT BASIN",
+        "feature": "water surface",
+        "label_text": "EL 109.00",
+        "bbox": [
+          0.5503,
+          0.6926,
+          0.5725,
+          0.7007
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 100.0,
+        "structure": "CHLORINE CONTACT BASIN",
+        "feature": "floor",
+        "label_text": "EL 100.00",
+        "bbox": [
+          0.5395,
+          0.7402,
+          0.5617,
+          0.7483
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 107.7,
+        "structure": "CHLORINE CONTACT BASIN",
+        "feature": "weir crest",
+        "label_text": "WEIR EL 107.70",
+        "bbox": [
+          0.573,
+          0.672,
+          0.6,
+          0.684
+        ],
+        "confirmed": "single read - human confirm"
+      }
+    ],
+    "tile_only_labels": [
+      {
+        "value": 132.93,
+        "text": "132.93",
+        "bbox": [
+          0.1496,
+          0.1438,
+          0.1686,
+          0.1537
+        ]
+      },
+      {
+        "value": 132.16,
+        "text": "132.16",
+        "bbox": [
+          0.1496,
+          0.1549,
+          0.1686,
+          0.1647
+        ]
+      },
+      {
+        "value": 132.77,
+        "text": "132.77",
+        "bbox": [
+          0.2253,
+          0.1438,
+          0.2443,
+          0.1537
+        ]
+      },
+      {
+        "value": 132.07,
+        "text": "132.07",
+        "bbox": [
+          0.2253,
+          0.1549,
+          0.2443,
+          0.1647
+        ]
+      },
+      {
+        "value": 131.59,
+        "text": "131.59",
+        "bbox": [
+          0.2525,
+          0.1479,
+          0.2707,
+          0.1578
+        ]
+      },
+      {
+        "value": 129.42,
+        "text": "129.42",
+        "bbox": [
+          0.2525,
+          0.1589,
+          0.2707,
+          0.1688
+        ]
+      },
+      {
+        "value": 129.57,
+        "text": "129.57",
+        "bbox": [
+          0.3075,
+          0.1224,
+          0.3249,
+          0.1322
+        ]
+      },
+      {
+        "value": 128.91,
+        "text": "128.91",
+        "bbox": [
+          0.3075,
+          0.1444,
+          0.3249,
+          0.1543
+        ]
+      },
+      {
+        "value": 128.54,
+        "text": "128.54",
+        "bbox": [
+          0.3298,
+          0.127,
+          0.3472,
+          0.1369
+        ]
+      },
+      {
+        "value": 128.21,
+        "text": "128.21",
+        "bbox": [
+          0.3298,
+          0.1491,
+          0.3472,
+          0.1589
+        ]
+      },
+      {
+        "value": 132.33,
+        "text": "132.33",
+        "bbox": [
+          0.2703,
+          0.3329,
+          0.2885,
+          0.3428
+        ]
+      },
+      {
+        "value": 130.47,
+        "text": "130.47",
+        "bbox": [
+          0.2703,
+          0.3434,
+          0.2885,
+          0.3532
+        ]
+      },
+      {
+        "value": 129.14,
+        "text": "129.14",
+        "bbox": [
+          0.2703,
+          0.3538,
+          0.2885,
+          0.3637
+        ]
+      },
+      {
+        "value": 120.38,
+        "text": "120.38",
+        "bbox": [
+          0.1285,
+          0.5475,
+          0.1471,
+          0.5574
+        ]
+      },
+      {
+        "value": 120.06,
+        "text": "120.06",
+        "bbox": [
+          0.1285,
+          0.558,
+          0.1471,
+          0.5678
+        ]
+      },
+      {
+        "value": 118.65,
+        "text": "118.65",
+        "bbox": [
+          0.1505,
+          0.5475,
+          0.1691,
+          0.5574
+        ]
+      },
+      {
+        "value": 118.33,
+        "text": "118.33",
+        "bbox": [
+          0.1505,
+          0.558,
+          0.1691,
+          0.5678
+        ]
+      },
+      {
+        "value": 129.57,
+        "text": "129.57",
+        "bbox": [
+          0.3091,
+          0.145,
+          0.3249,
+          0.1537
+        ]
+      },
+      {
+        "value": 128.54,
+        "text": "128.54",
+        "bbox": [
+          0.3303,
+          0.152,
+          0.3461,
+          0.1607
+        ]
+      },
+      {
+        "value": 128.18,
+        "text": "128.18",
+        "bbox": [
+          0.4171,
+          0.1549,
+          0.4324,
+          0.1636
+        ]
+      },
+      {
+        "value": 128.12,
+        "text": "128.12",
+        "bbox": [
+          0.4171,
+          0.1781,
+          0.4324,
+          0.1868
+        ]
+      },
+      {
+        "value": 127.52,
+        "text": "127.52",
+        "bbox": [
+          0.4551,
+          0.1543,
+          0.4704,
+          0.163
+        ]
+      },
+      {
+        "value": 127.69,
+        "text": "127.69",
+        "bbox": [
+          0.4551,
+          0.1659,
+          0.4704,
+          0.1746
+        ]
+      },
+      {
+        "value": 126.8,
+        "text": "126.80",
+        "bbox": [
+          0.4551,
+          0.1775,
+          0.4704,
+          0.1862
+        ]
+      },
+      {
+        "value": 127.16,
+        "text": "127.16",
+        "bbox": [
+          0.5173,
+          0.1659,
+          0.5326,
+          0.1746
+        ]
+      },
+      {
+        "value": 127.32,
+        "text": "127.32",
+        "bbox": [
+          0.5173,
+          0.1775,
+          0.5326,
+          0.1862
+        ]
+      },
+      {
+        "value": 126.71,
+        "text": "126.71",
+        "bbox": [
+          0.5173,
+          0.1891,
+          0.5326,
+          0.1978
+        ]
+      },
+      {
+        "value": 125.85,
+        "text": "125.85",
+        "bbox": [
+          0.5365,
+          0.1293,
+          0.5518,
+          0.138
+        ]
+      },
+      {
+        "value": 126.89,
+        "text": "126.89",
+        "bbox": [
+          0.5365,
+          0.1409,
+          0.5518,
+          0.1496
+        ]
+      },
+      {
+        "value": 125.04,
+        "text": "125.04",
+        "bbox": [
+          0.5365,
+          0.1525,
+          0.5518,
+          0.1612
+        ]
+      },
+      {
+        "value": 125.23,
+        "text": "125.23",
+        "bbox": [
+          0.5597,
+          0.1636,
+          0.575,
+          0.1723
+        ]
+      },
+      {
+        "value": 124.74,
+        "text": "124.74",
+        "bbox": [
+          0.6297,
+          0.1607,
+          0.645,
+          0.1694
+        ]
+      },
+      {
+        "value": 124.92,
+        "text": "124.92",
+        "bbox": [
+          0.6297,
+          0.1723,
+          0.645,
+          0.181
+        ]
+      },
+      {
+        "value": 124.55,
+        "text": "124.55",
+        "bbox": [
+          0.6297,
+          0.1839,
+          0.645,
+          0.1926
+        ]
+      },
+      {
+        "value": 123.21,
+        "text": "123.21",
+        "bbox": [
+          0.6613,
+          0.1607,
+          0.6766,
+          0.1694
+        ]
+      },
+      {
+        "value": 123.32,
+        "text": "123.32",
+        "bbox": [
+          0.6613,
+          0.1723,
+          0.6766,
+          0.181
+        ]
+      },
+      {
+        "value": 122.99,
+        "text": "122.99",
+        "bbox": [
+          0.6613,
+          0.1839,
+          0.6766,
+          0.1926
+        ]
+      },
+      {
+        "value": 106.0,
+        "text": "EL 106.00",
+        "bbox": [
+          0.6633,
+          0.3115,
+          0.6781,
+          0.3202
+        ]
+      },
+      {
+        "value": 122.92,
+        "text": "122.92",
+        "bbox": [
+          0.788,
+          0.1752,
+          0.8037,
+          0.1833
+        ]
+      },
+      {
+        "value": 122.82,
+        "text": "122.82",
+        "bbox": [
+          0.788,
+          0.1937,
+          0.8037,
+          0.2018
+        ]
+      },
+      {
+        "value": 122.02,
+        "text": "122.02",
+        "bbox": [
+          0.8359,
+          0.1659,
+          0.8516,
+          0.174
+        ]
+      },
+      {
+        "value": 120.92,
+        "text": "120.92",
+        "bbox": [
+          0.8359,
+          0.1757,
+          0.8516,
+          0.1839
+        ]
+      },
+      {
+        "value": 132.16,
+        "text": "132.16",
+        "bbox": [
+          0.7975,
+          0.4814,
+          0.814,
+          0.4901
+        ]
+      },
+      {
+        "value": 132.93,
+        "text": "132.93",
+        "bbox": [
+          0.8429,
+          0.4814,
+          0.8595,
+          0.4901
+        ]
+      },
+      {
+        "value": 132.07,
+        "text": "132.07",
+        "bbox": [
+          0.7975,
+          0.5,
+          0.814,
+          0.5087
+        ]
+      },
+      {
+        "value": 132.77,
+        "text": "132.77",
+        "bbox": [
+          0.8429,
+          0.5,
+          0.8595,
+          0.5087
+        ]
+      },
+      {
+        "value": 129.42,
+        "text": "129.42",
+        "bbox": [
+          0.7975,
+          0.5174,
+          0.814,
+          0.5261
+        ]
+      },
+      {
+        "value": 131.59,
+        "text": "131.59",
+        "bbox": [
+          0.8429,
+          0.5174,
+          0.8595,
+          0.5261
+        ]
+      },
+      {
+        "value": 129.14,
+        "text": "129.14",
+        "bbox": [
+          0.7975,
+          0.5336,
+          0.814,
+          0.5423
+        ]
+      },
+      {
+        "value": 130.47,
+        "text": "130.47",
+        "bbox": [
+          0.8429,
+          0.5336,
+          0.8595,
+          0.5423
+        ]
+      },
+      {
+        "value": 132.33,
+        "text": "132.33",
+        "bbox": [
+          0.8884,
+          0.5336,
+          0.9049,
+          0.5423
+        ]
+      },
+      {
+        "value": 128.91,
+        "text": "128.91",
+        "bbox": [
+          0.7975,
+          0.5498,
+          0.814,
+          0.5585
+        ]
+      },
+      {
+        "value": 129.57,
+        "text": "129.57",
+        "bbox": [
+          0.8429,
+          0.5498,
+          0.8595,
+          0.5585
+        ]
+      },
+      {
+        "value": 129.57,
+        "text": "129.57",
+        "bbox": [
+          0.8884,
+          0.5498,
+          0.9049,
+          0.5585
+        ]
+      },
+      {
+        "value": 128.21,
+        "text": "128.21",
+        "bbox": [
+          0.7975,
+          0.5643,
+          0.814,
+          0.573
+        ]
+      },
+      {
+        "value": 128.54,
+        "text": "128.54",
+        "bbox": [
+          0.8429,
+          0.5643,
+          0.8595,
+          0.573
+        ]
+      },
+      {
+        "value": 128.54,
+        "text": "128.54",
+        "bbox": [
+          0.8884,
+          0.5643,
+          0.9049,
+          0.573
+        ]
+      },
+      {
+        "value": 128.12,
+        "text": "128.12",
+        "bbox": [
+          0.7975,
+          0.5713,
+          0.814,
+          0.5788
+        ]
+      },
+      {
+        "value": 128.18,
+        "text": "128.18",
+        "bbox": [
+          0.8429,
+          0.5713,
+          0.8595,
+          0.5788
+        ]
+      },
+      {
+        "value": 128.18,
+        "text": "128.18",
+        "bbox": [
+          0.8884,
+          0.5713,
+          0.9049,
+          0.5788
+        ]
+      },
+      {
+        "value": 120.54,
+        "text": "EL 120.54",
+        "bbox": [
+          0.2034,
+          0.6079,
+          0.222,
+          0.6172
+        ]
+      },
+      {
+        "value": 118.15,
+        "text": "118.15",
+        "bbox": [
+          0.2546,
+          0.5888,
+          0.2707,
+          0.5981
+        ]
+      },
+      {
+        "value": 118.11,
+        "text": "118.11",
+        "bbox": [
+          0.2546,
+          0.5998,
+          0.2707,
+          0.6091
+        ]
+      },
+      {
+        "value": 117.46,
+        "text": "117.46",
+        "bbox": [
+          0.3162,
+          0.5824,
+          0.3323,
+          0.5917
+        ]
+      },
+      {
+        "value": 114.33,
+        "text": "114.33",
+        "bbox": [
+          0.3162,
+          0.594,
+          0.3323,
+          0.6033
+        ]
+      },
+      {
+        "value": 118.15,
+        "text": "118.15",
+        "bbox": [
+          0.2573,
+          0.6137,
+          0.2805,
+          0.623
+        ]
+      },
+      {
+        "value": 118.11,
+        "text": "118.11",
+        "bbox": [
+          0.2573,
+          0.6247,
+          0.2805,
+          0.634
+        ]
+      },
+      {
+        "value": 117.92,
+        "text": "117.92",
+        "bbox": [
+          0.2548,
+          0.6682,
+          0.2755,
+          0.6775
+        ]
+      },
+      {
+        "value": 117.46,
+        "text": "117.46",
+        "bbox": [
+          0.3209,
+          0.6068,
+          0.3446,
+          0.616
+        ]
+      },
+      {
+        "value": 114.33,
+        "text": "114.33",
+        "bbox": [
+          0.3209,
+          0.6184,
+          0.3446,
+          0.6276
+        ]
+      },
+      {
+        "value": 116.6,
+        "text": "EL 116.60",
+        "bbox": [
+          0.3831,
+          0.6537,
+          0.4053,
+          0.6619
+        ]
+      },
+      {
+        "value": 101.02,
+        "text": "EL 101.02",
+        "bbox": [
+          0.3875,
+          0.7373,
+          0.4097,
+          0.7454
+        ]
+      },
+      {
+        "value": 115.3,
+        "text": "115.30",
+        "bbox": [
+          0.4635,
+          0.6178,
+          0.4872,
+          0.6271
+        ]
+      },
+      {
+        "value": 111.82,
+        "text": "111.82",
+        "bbox": [
+          0.4635,
+          0.6294,
+          0.4872,
+          0.6387
+        ]
+      },
+      {
+        "value": 107.78,
+        "text": "107.78",
+        "bbox": [
+          0.5987,
+          0.6682,
+          0.6194,
+          0.6764
+        ]
+      },
+      {
+        "value": 107.67,
+        "text": "107.67",
+        "bbox": [
+          0.5987,
+          0.6787,
+          0.6194,
+          0.6868
+        ]
+      },
+      {
+        "value": 107.75,
+        "text": "107.75",
+        "bbox": [
+          0.5839,
+          0.717,
+          0.6036,
+          0.7251
+        ]
+      },
+      {
+        "value": 126.8,
+        "text": "126.80",
+        "bbox": [
+          0.7942,
+          0.5902,
+          0.8148,
+          0.6007
+        ]
+      },
+      {
+        "value": 127.69,
+        "text": "127.69",
+        "bbox": [
+          0.8376,
+          0.5902,
+          0.8582,
+          0.6007
+        ]
+      },
+      {
+        "value": 127.52,
+        "text": "127.52",
+        "bbox": [
+          0.881,
+          0.5902,
+          0.9016,
+          0.6007
+        ]
+      },
+      {
+        "value": 126.71,
+        "text": "126.71",
+        "bbox": [
+          0.7942,
+          0.6082,
+          0.8148,
+          0.6187
+        ]
+      },
+      {
+        "value": 127.32,
+        "text": "127.32",
+        "bbox": [
+          0.8376,
+          0.6082,
+          0.8582,
+          0.6187
+        ]
+      },
+      {
+        "value": 127.16,
+        "text": "127.16",
+        "bbox": [
+          0.881,
+          0.6082,
+          0.9016,
+          0.6187
+        ]
+      },
+      {
+        "value": 125.04,
+        "text": "125.04",
+        "bbox": [
+          0.7942,
+          0.6262,
+          0.8148,
+          0.6366
+        ]
+      },
+      {
+        "value": 126.89,
+        "text": "126.89",
+        "bbox": [
+          0.8376,
+          0.6262,
+          0.8582,
+          0.6366
+        ]
+      },
+      {
+        "value": 125.85,
+        "text": "125.85",
+        "bbox": [
+          0.881,
+          0.6262,
+          0.9016,
+          0.6366
+        ]
+      },
+      {
+        "value": 125.23,
+        "text": "125.23",
+        "bbox": [
+          0.881,
+          0.6442,
+          0.9016,
+          0.6546
+        ]
+      },
+      {
+        "value": 124.55,
+        "text": "124.55",
+        "bbox": [
+          0.7942,
+          0.6622,
+          0.8148,
+          0.6726
+        ]
+      },
+      {
+        "value": 124.92,
+        "text": "124.92",
+        "bbox": [
+          0.8376,
+          0.6622,
+          0.8582,
+          0.6726
+        ]
+      },
+      {
+        "value": 124.74,
+        "text": "124.74",
+        "bbox": [
+          0.881,
+          0.6622,
+          0.9016,
+          0.6726
+        ]
+      },
+      {
+        "value": 122.99,
+        "text": "122.99",
+        "bbox": [
+          0.7942,
+          0.6801,
+          0.8148,
+          0.6906
+        ]
+      },
+      {
+        "value": 123.32,
+        "text": "123.32",
+        "bbox": [
+          0.8376,
+          0.6801,
+          0.8582,
+          0.6906
+        ]
+      },
+      {
+        "value": 123.21,
+        "text": "123.21",
+        "bbox": [
+          0.881,
+          0.6801,
+          0.9016,
+          0.6906
+        ]
+      },
+      {
+        "value": 122.82,
+        "text": "122.82",
+        "bbox": [
+          0.7942,
+          0.6981,
+          0.8148,
+          0.7086
+        ]
+      },
+      {
+        "value": 122.92,
+        "text": "122.92",
+        "bbox": [
+          0.8376,
+          0.6981,
+          0.8582,
+          0.7086
+        ]
+      },
+      {
+        "value": 122.92,
+        "text": "122.92",
+        "bbox": [
+          0.881,
+          0.6981,
+          0.9016,
+          0.7086
+        ]
+      },
+      {
+        "value": 120.92,
+        "text": "120.92",
+        "bbox": [
+          0.7942,
+          0.7161,
+          0.8148,
+          0.7265
+        ]
+      },
+      {
+        "value": 122.02,
+        "text": "122.02",
+        "bbox": [
+          0.8376,
+          0.7161,
+          0.8582,
+          0.7265
+        ]
+      },
+      {
+        "value": 120.06,
+        "text": "120.06",
+        "bbox": [
+          0.7942,
+          0.7341,
+          0.8148,
+          0.7445
+        ]
+      },
+      {
+        "value": 120.38,
+        "text": "120.38",
+        "bbox": [
+          0.8376,
+          0.7341,
+          0.8582,
+          0.7445
+        ]
+      },
+      {
+        "value": 118.33,
+        "text": "118.33",
+        "bbox": [
+          0.7942,
+          0.7521,
+          0.8148,
+          0.7625
+        ]
+      },
+      {
+        "value": 118.65,
+        "text": "118.65",
+        "bbox": [
+          0.8376,
+          0.7521,
+          0.8582,
+          0.7625
+        ]
+      },
+      {
+        "value": 118.11,
+        "text": "118.11",
+        "bbox": [
+          0.7942,
+          0.77,
+          0.8148,
+          0.7805
+        ]
+      },
+      {
+        "value": 118.15,
+        "text": "118.15",
+        "bbox": [
+          0.8376,
+          0.77,
+          0.8582,
+          0.7805
+        ]
+      },
+      {
+        "value": 114.33,
+        "text": "114.33",
+        "bbox": [
+          0.7942,
+          0.788,
+          0.8148,
+          0.7984
+        ]
+      },
+      {
+        "value": 117.46,
+        "text": "117.46",
+        "bbox": [
+          0.8376,
+          0.788,
+          0.8582,
+          0.7984
+        ]
+      },
+      {
+        "value": 111.82,
+        "text": "111.82",
+        "bbox": [
+          0.7942,
+          0.806,
+          0.8148,
+          0.8164
+        ]
+      },
+      {
+        "value": 115.3,
+        "text": "115.30",
+        "bbox": [
+          0.8376,
+          0.806,
+          0.8582,
+          0.8164
+        ]
+      },
+      {
+        "value": 107.67,
+        "text": "107.67",
+        "bbox": [
+          0.7942,
+          0.824,
+          0.8148,
+          0.8344
+        ]
+      },
+      {
+        "value": 107.78,
+        "text": "107.78",
+        "bbox": [
+          0.8376,
+          0.824,
+          0.8582,
+          0.8344
+        ]
+      },
+      {
+        "value": 130.0,
+        "text": "130",
+        "bbox": [
+          0.635,
+          0.5696,
+          0.6454,
+          0.5812
+        ]
+      },
+      {
+        "value": 120.0,
+        "text": "120",
+        "bbox": [
+          0.635,
+          0.6276,
+          0.6454,
+          0.6392
+        ]
+      },
+      {
+        "value": 110.0,
+        "text": "110",
+        "bbox": [
+          0.635,
+          0.6856,
+          0.6454,
+          0.6972
+        ]
+      },
+      {
+        "value": 100.0,
+        "text": "100",
+        "bbox": [
+          0.635,
+          0.761,
+          0.6454,
+          0.7726
+        ]
+      },
+      {
+        "value": 90.0,
+        "text": "90",
+        "bbox": [
+          0.6383,
+          0.819,
+          0.6458,
+          0.8306
+        ]
+      },
+      {
+        "value": 107.78,
+        "text": "107.78",
+        "bbox": [
+          0.5949,
+          0.6392,
+          0.6115,
+          0.6485
+        ]
+      },
+      {
+        "value": 107.67,
+        "text": "107.67",
+        "bbox": [
+          0.5949,
+          0.6503,
+          0.6115,
+          0.6595
+        ]
+      }
+    ]
+  }
+}

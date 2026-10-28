@@ -1,0 +1,44 @@
+{
+  "case": "goochland_egps",
+  "judge": "muse-wonder-1.0",
+  "agent_model": "muse-spark-1.3-contributor",
+  "score": 0.583,
+  "items": [
+    {
+      "id": "current_capacity",
+      "unit": "EGPS, 2 duty pumps",
+      "verdict": "partially",
+      "note": "Agent shows 2-pump duty passes 14.06 MGD for Richmond/Henrico, but with lower flows/heads, generic-curve uncertainty, and no Gambles Mill worst case."
+    },
+    {
+      "id": "future_capacity",
+      "unit": "EGPS, 5 duty pumps",
+      "verdict": "partially",
+      "note": "Agent shows 5-pump duty passes 27.09 MGD for Richmond/Henrico without Gambles Mill, but does not verify the 27.8 MGD Henrico-with-Gambles-Mill worst case."
+    },
+    {
+      "id": "steady_pressure_velocity",
+      "unit": "EGFM steady state",
+      "verdict": "found",
+      "note": "Agent confirms steady velocities within 2-10 ft/s and steady pressures below pipe ratings, requiring no steady-state modification."
+    },
+    {
+      "id": "transient_current",
+      "unit": "Pump trip, 2 duty pumps",
+      "verdict": "partially",
+      "note": "Agent confirms only S3.1 at HDPE 91/-2 psi and FRP 94/-2 psi, leaving other 2-pump Henrico/Gambles Mill trips unverified."
+    },
+    {
+      "id": "transient_future",
+      "unit": "Pump trip, 3-5 duty pumps",
+      "verdict": "partially",
+      "note": "Agent flags the FRP 100 psi limit and bars unverified 5-pump Henrico operation, but gives no 102-103 psi exceedances, locations, or 3-pump trigger."
+    },
+    {
+      "id": "recommendations",
+      "unit": "Surge protection and future upgrades",
+      "verdict": "partially",
+      "note": "Agent recommends transient re-runs, air-valve verification, relief lowering plus a surge vessel or FRP replacement, but triggers study before 5 pumps rather than before the 3rd pump."
+    }
+  ]
+}

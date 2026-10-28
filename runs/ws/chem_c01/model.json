@@ -1,0 +1,767 @@
+{
+ "label": "v2-calibrated",
+ "spec": {
+  "compounds": [
+   "Water",
+   "Ethanol"
+  ],
+  "package": "NRTL",
+  "feeds": {
+   "s47121": {
+    "T_C": 50,
+    "P_bar": 1.5,
+    "m3_h": 18.0,
+    "x": {
+     "Water": 0.93,
+     "Ethanol": 0.07
+    }
+   },
+   "s47130": {
+    "T_C": 25,
+    "P_bar": 4.0,
+    "m3_h": 20.0,
+    "x": {
+     "Water": 1.0
+    },
+    "utility": true
+   },
+   "s47140": {
+    "T_C": 7,
+    "P_bar": 4.0,
+    "m3_h": 15.0,
+    "x": {
+     "Water": 1.0
+    },
+    "utility": true
+   }
+  },
+  "units": [
+   {
+    "id": "P4711",
+    "type": "pump",
+    "in": "s47121",
+    "out": "s47122",
+    "dP_bar": 1.0,
+    "kind": "centrifugal"
+   },
+   {
+    "id": "H1007",
+    "type": "hx",
+    "hot": [
+     "s47122",
+     "s47123a"
+    ],
+    "cold": [
+     "s47130",
+     "s47131"
+    ],
+    "U_W_m2K": 600,
+    "area_m2": 46.8,
+    "U_ref_flows_m3_h": [
+     18,
+     20
+    ],
+    "dP_ref_bar": [
+     0.3,
+     0.5
+    ]
+   },
+   {
+    "id": "47123/C1",
+    "type": "valve",
+    "in": "s47123a",
+    "out": "s47123",
+    "P_out_bar": 1.013
+   },
+   {
+    "id": "MIX_TANK",
+    "type": "mixer",
+    "in": [
+     "s47123",
+     "s47127_r"
+    ],
+    "out": "sTankIn"
+   },
+   {
+    "id": "T4750",
+    "type": "tank",
+    "in": "sTankIn",
+    "out": "s47124",
+    "volume_m3": 20.8,
+    "P_bar": 1.013,
+    "residence_basis": "sDispatch"
+   },
+   {
+    "id": "P4712",
+    "type": "pump",
+    "in": "s47124",
+    "out": "s47126a",
+    "dP_bar": 3.5,
+    "kind": "positive_displacement"
+   },
+   {
+    "id": "SPLIT_47126",
+    "type": "splitter",
+    "in": "s47126a",
+    "out": [
+     "s47126c",
+     "sDispatch"
+    ],
+    "fixed_kg_h": {
+     "s47126c": 22020
+    }
+   },
+   {
+    "id": "H1008",
+    "type": "hx",
+    "hot": [
+     "s47126c",
+     "s47127a"
+    ],
+    "cold": [
+     "s47140",
+     "s47141a"
+    ],
+    "U_W_m2K": 600,
+    "area_m2": 46.8,
+    "U_ref_flows_m3_h": [
+     22.5,
+     15
+    ]
+   },
+   {
+    "id": "47127/C1",
+    "type": "valve",
+    "in": "s47127a",
+    "out": "s47127",
+    "dP_bar": 2.5
+   },
+   {
+    "id": "47141/C1",
+    "type": "valve",
+    "in": "s47141a",
+    "out": "s47141",
+    "dP_bar": 0.3
+   },
+   {
+    "id": "RECYC",
+    "type": "recycle",
+    "in": "s47127",
+    "out": "s47127_r",
+    "guess": {
+     "T_C": 15,
+     "kg_h": 22020
+    }
+   }
+  ],
+  "limits": {
+   "P4711": {
+    "max_m3_h": 25,
+    "min_m3_h": 8,
+    "max_kW": 2.2,
+    "max_head_m": 12,
+    "npshr_m": 2.5
+   },
+   "P4712": {
+    "max_m3_h": 50,
+    "max_kW": 7.5,
+    "max_head_m": 40,
+    "psv_set_barg": 6
+   },
+   "H1007": {
+    "area_m2": 46.8,
+    "out_T_C": 35,
+    "side": "hot",
+    "max_area_m2": 60,
+    "max_dP_cold_bar": 1.0
+   },
+   "H1008": {
+    "area_m2": 46.8
+   },
+   "T4750": {
+    "min_residence_min": 60
+   },
+   "s47123": {
+    "max_T_C": 35
+   },
+   "sDispatch": {
+    "max_T_C": 25
+   },
+   "s47130": {
+    "max_m3_h": 30
+   },
+   "s47140": {
+    "max_m3_h": 20
+   }
+  }
+ },
+ "result": {
+  "scale": 1.0,
+  "errors": [],
+  "streams": {
+   "s47121": {
+    "T_C": 50.0,
+    "P_bar": 1.5,
+    "kg_h": 17415.6,
+    "m3_h": 18.0,
+    "vapour_frac": 0.0
+   },
+   "s47130": {
+    "T_C": 25.0,
+    "P_bar": 4.0,
+    "kg_h": 19927.5,
+    "m3_h": 20.0,
+    "vapour_frac": 0.0
+   },
+   "s47140": {
+    "T_C": 7.0,
+    "P_bar": 4.0,
+    "kg_h": 14998.8,
+    "m3_h": 15.0,
+    "vapour_frac": 0.0
+   },
+   "s47122": {
+    "T_C": 50.01,
+    "P_bar": 2.5,
+    "kg_h": 17415.6,
+    "m3_h": 18.0,
+    "vapour_frac": 0.0
+   },
+   "s47131": {
+    "T_C": 37.74,
+    "P_bar": 3.5,
+    "kg_h": 19927.5,
+    "m3_h": 20.08,
+    "vapour_frac": 0.0
+   },
+   "s47123a": {
+    "T_C": 33.94,
+    "P_bar": 2.2,
+    "kg_h": 17415.6,
+    "m3_h": 17.87,
+    "vapour_frac": 0.0
+   },
+   "s47123": {
+    "T_C": 33.98,
+    "P_bar": 1.013,
+    "kg_h": 17415.6,
+    "m3_h": 17.87,
+    "vapour_frac": 0.0
+   },
+   "s47127_r": {
+    "T_C": 15.31,
+    "P_bar": 2.013,
+    "kg_h": 22020.0,
+    "m3_h": 22.44,
+    "vapour_frac": 0.0
+   },
+   "sTankIn": {
+    "T_C": 23.59,
+    "P_bar": 1.013,
+    "kg_h": 39435.6,
+    "m3_h": 40.3,
+    "vapour_frac": 0.0
+   },
+   "T4750-in": {
+    "T_C": 23.59,
+    "P_bar": 1.013,
+    "kg_h": 39435.6,
+    "m3_h": 40.3,
+    "vapour_frac": 0.0
+   },
+   "s47124": {
+    "T_C": 23.59,
+    "P_bar": 1.013,
+    "kg_h": 39435.6,
+    "m3_h": 40.3,
+    "vapour_frac": 0.0
+   },
+   "s47126a": {
+    "T_C": 23.63,
+    "P_bar": 4.513,
+    "kg_h": 39435.6,
+    "m3_h": 40.3,
+    "vapour_frac": 0.0
+   },
+   "s47126c": {
+    "T_C": 23.63,
+    "P_bar": 4.513,
+    "kg_h": 22020.0,
+    "m3_h": 22.5,
+    "vapour_frac": 0.0
+   },
+   "sDispatch": {
+    "T_C": 23.63,
+    "P_bar": 4.513,
+    "kg_h": 17415.6,
+    "m3_h": 17.8,
+    "vapour_frac": 0.0
+   },
+   "s47141a": {
+    "T_C": 18.01,
+    "P_bar": 4.0,
+    "kg_h": 14998.8,
+    "m3_h": 15.03,
+    "vapour_frac": 0.0
+   },
+   "s47127a": {
+    "T_C": 15.24,
+    "P_bar": 4.513,
+    "kg_h": 22020.0,
+    "m3_h": 22.44,
+    "vapour_frac": 0.0
+   },
+   "s47127": {
+    "T_C": 15.31,
+    "P_bar": 2.013,
+    "kg_h": 22020.0,
+    "m3_h": 22.44,
+    "vapour_frac": 0.0
+   },
+   "s47141": {
+    "T_C": 18.02,
+    "P_bar": 3.7,
+    "kg_h": 14998.8,
+    "m3_h": 15.03,
+    "vapour_frac": 0.0
+   }
+  },
+  "units": {
+   "P4711": {
+    "type": "pump",
+    "m3_h": 18.0,
+    "head_m": 10.54,
+    "dP_bar": 1.0,
+    "eff_pct": 70.0,
+    "kW": 0.71,
+    "npsha_m": 13.67,
+    "discharge_barg": 1.487,
+    "kind": "centrifugal"
+   },
+   "H1007": {
+    "type": "hx",
+    "duty_kW": 295.4,
+    "lmtd_C": 10.52,
+    "U_W_m2K": 600.0,
+    "area_m2": 46.8,
+    "dP_hot_bar": 0.3,
+    "dP_cold_bar": 0.5
+   },
+   "47123/C1": {
+    "type": "valve",
+    "dP_bar": 1.187
+   },
+   "MIX_TANK": {
+    "type": "mixer"
+   },
+   "T4750": {
+    "type": "tank",
+    "residence_min": 70.13,
+    "volume_m3": 20.8,
+    "residence_basis": "sDispatch"
+   },
+   "P4712": {
+    "type": "pump",
+    "m3_h": 40.3,
+    "head_m": 36.46,
+    "dP_bar": 3.5,
+    "eff_pct": 70.0,
+    "kW": 5.6,
+    "npsha_m": 10.02,
+    "discharge_barg": 3.5,
+    "kind": "positive_displacement"
+   },
+   "SPLIT_47126": {
+    "type": "splitter"
+   },
+   "H1008": {
+    "type": "hx",
+    "duty_kW": 192.3,
+    "lmtd_C": 6.85,
+    "U_W_m2K": 600.0,
+    "area_m2": 46.8,
+    "dP_hot_bar": 0.0,
+    "dP_cold_bar": 0.0
+   },
+   "47127/C1": {
+    "type": "valve",
+    "dP_bar": 2.5
+   },
+   "47141/C1": {
+    "type": "valve",
+    "dP_bar": 0.3
+   },
+   "RECYC": {
+    "type": "recycle"
+   }
+  },
+  "checks": [
+   {
+    "id": "s47123",
+    "check": "temperature vs design",
+    "value": 33.98,
+    "limit": 35,
+    "unit": "C",
+    "utilisation": 0.971
+   },
+   {
+    "id": "sDispatch",
+    "check": "temperature vs design",
+    "value": 23.63,
+    "limit": 25,
+    "unit": "C",
+    "utilisation": 0.945
+   },
+   {
+    "id": "P4712",
+    "check": "head vs rated",
+    "value": 36.46,
+    "limit": 40,
+    "unit": "m",
+    "utilisation": 0.911
+   },
+   {
+    "id": "P4711",
+    "check": "head vs rated",
+    "value": 10.54,
+    "limit": 12,
+    "unit": "m",
+    "utilisation": 0.878
+   },
+   {
+    "id": "H1007",
+    "check": "area needed for hot outlet 35 C",
+    "value": 40.08,
+    "limit": 46.8,
+    "unit": "m2",
+    "utilisation": 0.856
+   },
+   {
+    "id": "T4750",
+    "check": "residence time",
+    "value": 70.13,
+    "limit": 60,
+    "unit": "min",
+    "utilisation": 0.856
+   },
+   {
+    "id": "s47140",
+    "check": "flow vs 90 % of available supply",
+    "value": 15.0,
+    "limit": 18.0,
+    "unit": "m3/h",
+    "utilisation": 0.833
+   },
+   {
+    "id": "P4712",
+    "check": "flow vs rated",
+    "value": 40.3,
+    "limit": 50,
+    "unit": "m3/h",
+    "utilisation": 0.806
+   },
+   {
+    "id": "H1007",
+    "check": "installed area vs frame",
+    "value": 46.8,
+    "limit": 60,
+    "unit": "m2",
+    "utilisation": 0.78
+   },
+   {
+    "id": "P4712",
+    "check": "shaft power vs motor",
+    "value": 5.6,
+    "limit": 7.5,
+    "unit": "kW",
+    "utilisation": 0.747
+   },
+   {
+    "id": "s47130",
+    "check": "flow vs 90 % of available supply",
+    "value": 20.0,
+    "limit": 27.0,
+    "unit": "m3/h",
+    "utilisation": 0.741
+   },
+   {
+    "id": "P4711",
+    "check": "flow vs rated",
+    "value": 18.0,
+    "limit": 25,
+    "unit": "m3/h",
+    "utilisation": 0.72
+   },
+   {
+    "id": "P4712",
+    "check": "discharge vs 90 % of relief set",
+    "value": 3.5,
+    "limit": 5.4,
+    "unit": "barg",
+    "utilisation": 0.648
+   },
+   {
+    "id": "H1007",
+    "check": "cold-side pressure drop vs available",
+    "value": 0.5,
+    "limit": 1.0,
+    "unit": "bar",
+    "utilisation": 0.5
+   },
+   {
+    "id": "P4711",
+    "check": "flow vs minimum continuous",
+    "value": 18.0,
+    "limit": 8,
+    "unit": "m3/h",
+    "utilisation": 0.444
+   },
+   {
+    "id": "P4711",
+    "check": "shaft power vs motor",
+    "value": 0.71,
+    "limit": 2.2,
+    "unit": "kW",
+    "utilisation": 0.323
+   },
+   {
+    "id": "P4711",
+    "check": "NPSH available vs 1.3 x required",
+    "value": 13.67,
+    "limit": 3.25,
+    "unit": "m",
+    "utilisation": 0.238
+   }
+  ]
+ },
+ "mapping": [
+  {
+   "tag": "P4711",
+   "modelled_as": "pump P4711 (centrifugal, dP 1.0 bar)",
+   "source": "P&ID P4711; site datasheet (rated 25 m3/h at 12 m, motor 2.2 kW, min 8 m3/h, NPSHr 2.5 m supersedes P&ID 200 m3/h/10 m/60 kW template)"
+  },
+  {
+   "tag": "H1007",
+   "modelled_as": "hx H1007 (hot s47122->s47123a, cold s47130->s47131, U 600 W/m2K, area 46.8 m2)",
+   "source": "P&ID H1007 DesignHeatTransferArea 46.8 m2; site datasheet U 600 W/m2K fouled test + dP 0.3/0.5 bar"
+  },
+  {
+   "tag": "47123/C1",
+   "modelled_as": "valve 47123/C1 (HV4750.01, P_out 1.013 bar to tank)",
+   "source": "P&ID line 47123 GlobeValve 47123/C1 + control HV4750.01_YC"
+  },
+  {
+   "tag": "T4750",
+   "modelled_as": "mixer MIX_TANK + tank T4750 (volume 20.8 m3, P 1.013 bar, residence on sDispatch)",
+   "source": "P&ID T4750 NominalCapacity 26 m3; data sheet T4750 level 80% working 20.8 m3 atmospheric"
+  },
+  {
+   "tag": "P4712",
+   "modelled_as": "pump P4712 (positive_displacement, dP 3.5 bar)",
+   "source": "P&ID P4712 DesignPressureHead 40 m; site datasheet max stroke 50 m3/h motor 7.5 kW; PSV 47125 set 6 barg"
+  },
+  {
+   "tag": "47126 branch",
+   "modelled_as": "splitter SPLIT_47126 (fixed recirc 22020 kg/h = 22.5 m3/h, rest to dispatch)",
+   "source": "P&ID line 47126 to dispatch off-page + to H1008; data sheet recirc 22.5 m3/h, total 40 m3/h"
+  },
+  {
+   "tag": "H1008",
+   "modelled_as": "hx H1008 (hot s47126c->s47127a, cold s47140->s47141a, U 600 W/m2K, area 46.8 m2)",
+   "source": "P&ID H1008 DesignHeatTransferArea 46.8 m2; site datasheet U 600 W/m2K"
+  },
+  {
+   "tag": "47127/C1",
+   "modelled_as": "valve 47127/C1 (PV4712.02, dP 2.5 bar)",
+   "source": "P&ID line 47127 GlobeValve 47127/C1 + control PV4712.02_YC, data sheet drop 2.5 bar"
+  },
+  {
+   "tag": "47141/C1",
+   "modelled_as": "valve 47141/C1 (chilled-water outlet, dP 0.3 bar)",
+   "source": "P&ID line 47141 GlobeValve 47141/C1 + control TV4750.03_YC"
+  },
+  {
+   "tag": "RECYC loop",
+   "modelled_as": "recycle RECYC (s47127 -> s47127_r to tank mixer)",
+   "source": "P&ID H1008->T4750 line 47127 recirculation"
+  },
+  {
+   "tag": "47125/SpringLoadedGlobeSafetyValve",
+   "modelled_as": "excluded - standby relief P4712 discharge -> T4750, no normal flow",
+   "source": "P&ID lines 47126+47125 relief_path; ops description PSV relieves back to tank only on overpressure"
+  },
+  {
+   "tag": "47124/C1,C2,C3,C4 suction trim",
+   "modelled_as": "excluded/lumped - fully-open isolation/check/reducer, negligible steady-state dP",
+   "source": "P&ID line 47124 inline Butterfly/Check/Reducer/Ball, not control valves"
+  },
+  {
+   "tag": "47126/C7 etc",
+   "modelled_as": "excluded/lumped - fully-open isolation ball valves on discharge",
+   "source": "P&ID line 47126 inline BallValves, normal flow maintained"
+  }
+ ],
+ "calibration": [
+  {
+   "item": "Product feed 47121 flow",
+   "measured": "18.0 m3/h",
+   "simulated": "18.0 m3/h (s47121, run v2-calibrated)",
+   "source": "data sheet Current operation Product feed row"
+  },
+  {
+   "item": "Product feed T",
+   "measured": "50 C",
+   "simulated": "50.0 C (s47121)",
+   "source": "data sheet Product feed row"
+  },
+  {
+   "item": "Product feed P",
+   "measured": "1.5 bar(a)",
+   "simulated": "1.5 bar (s47121 feed)",
+   "source": "data sheet Product feed row"
+  },
+  {
+   "item": "P4711 differential pressure",
+   "measured": "1.0 bar",
+   "simulated": "1.0 bar (P4711 dP)",
+   "source": "data sheet P4711 dP row"
+  },
+  {
+   "item": "H1007 product outlet to T4750",
+   "measured": "34.0 C",
+   "simulated": "33.98 C (s47123)",
+   "source": "data sheet H1007 product outlet row"
+  },
+  {
+   "item": "Cooling water to H1007 flow/supply/return/P",
+   "measured": "20 m3/h, 25 C / 37.7 C, 4 bar(a)",
+   "simulated": "20.0 m3/h, 25.0 C / 37.74 C, 4.0 bar (s47130/s47131)",
+   "source": "data sheet Cooling water row"
+  },
+  {
+   "item": "H1007 dP cold / hot",
+   "measured": "0.5 bar at 20 m3/h / 0.3 bar at 18 m3/h",
+   "simulated": "0.5 bar / 0.3 bar (H1007 dP_cold/dP_hot)",
+   "source": "data sheet H1007 pressure drop row"
+  },
+  {
+   "item": "T4750 level/volume/P",
+   "measured": "80% (20.8 m3), atmospheric",
+   "simulated": "20.8 m3, 1.013 bar (T4750)",
+   "source": "data sheet T4750 level row"
+  },
+  {
+   "item": "T4750 temperature (= dispatch)",
+   "measured": "23.6 C",
+   "simulated": "23.63 C (sDispatch) / 23.59 C tank",
+   "source": "data sheet T4750 temperature row"
+  },
+  {
+   "item": "P4712 total discharge flow",
+   "measured": "40 m3/h (stroke)",
+   "simulated": "40.3 m3/h (P4712)",
+   "source": "data sheet P4712 total discharge row; 0.3 m3/h high from feed-volume shrinkage on cooling, mass balanced"
+  },
+  {
+   "item": "P4712 differential pressure",
+   "measured": "3.5 bar",
+   "simulated": "3.5 bar (P4712)",
+   "source": "data sheet P4712 row"
+  },
+  {
+   "item": "Recirculation 47127 flow",
+   "measured": "22.5 m3/h",
+   "simulated": "22.5 m3/h (s47126c/s47127)",
+   "source": "data sheet Recirculation row (fixed_kg_h 22020)"
+  },
+  {
+   "item": "PV4712.02 drop",
+   "measured": "2.5 bar",
+   "simulated": "2.5 bar (47127/C1)",
+   "source": "data sheet Recirculation row"
+  },
+  {
+   "item": "Chilled water to H1008 flow/supply/return/P",
+   "measured": "15 m3/h, 7 C / 18.0 C, 4 bar(a)",
+   "simulated": "15.0 m3/h, 7.0 C / 18.02 C, 4.0 bar (s47140/s47141)",
+   "source": "data sheet Chilled water row"
+  }
+ ],
+ "assumptions": [
+  "Site datasheets supersede P&ID where stated: P4711 rated 25 m3/h at 12 m, motor 2.2 kW, min 8 m3/h, NPSHr 2.5 m used; P&ID 200 m3/h/10 m/60 kW is template error per P&ID data_quality warning.",
+  "P4712 P&ID 420 m3/h/84 kW is same template error; site max stroke 50 m3/h + motor 7.5 kW used, P&ID DesignPressureHead 40 m retained (no site head given), PSV set 6 barg from P&ID valve set_pressure + site confirmation.",
+  "T4750 P&ID DN20000x4 m (=1257 m3) inconsistent with 26 m3 nominal per data_quality warning; site nominal 26 m3 used, working volume 20.8 m3 at current 80% level per Current operation row (tank volume_m3 is working volume).",
+  "H1007/H1008 U=600 W/m2K fouled 2024 test used at current flows (U_ref [18,20] and [22.5,15] m3/h); clean 900 W/m2K not used - normal fouled operation.",
+  "H1007/H1008 installed area 46.8 m2 from P&ID DesignHeatTransferArea; H1007 frame limit 60 m2, CW available dP 1.0 bar and supply limits 30/20 m3/h (90% planning margin enforced by simulator) from site datasheets.",
+  "Product 7 mol% ethanol modelled as Water 0.93 / Ethanol 0.07 mole, NRTL package for polar liquids.",
+  "T4750 modelled as well-mixed tank at 1.013 bar; two inlets (H1007 product + H1008 recirc) combined in MIX_TANK mixer upstream (DWSIM tank has one inlet); residence_basis sDispatch (product leaving for good) per 60-min QC requirement.",
+  "Discharge branch modelled as splitter fixing recirc branch 22020 kg/h (=22.5 m3/h) letting dispatch take rest, reproducing stroke/recirc operations; PSV line 47125 excluded (standby relief, check_coverage relief_path, no normal flow).",
+  "47124 suction trim and 47126 isolation ball valves lumped as fully open (no dP); only flow-carrying control valves 47123/C1, 47127/C1, 47141/C1 modelled explicitly with P&ID tags.",
+  "No H1008 dP_ref given in data sheet so none imposed (never invent); 47141/C1 dP 0.3 bar assumed small outlet loss to close chilled-water pressure balance (utility return not measured)."
+ ],
+ "model": "muse-spark-1.3-contributor",
+ "coverage": {
+  "connections": [
+   {
+    "from": "P4711",
+    "to": "H1007",
+    "lines": [
+     "47122"
+    ],
+    "relief_path": false,
+    "modelled": true
+   },
+   {
+    "from": "H1007",
+    "to": "T4750",
+    "lines": [
+     "47123"
+    ],
+    "relief_path": false,
+    "modelled": true
+   },
+   {
+    "from": "T4750",
+    "to": "P4712",
+    "lines": [
+     "47124"
+    ],
+    "relief_path": false,
+    "modelled": true
+   },
+   {
+    "from": "P4712",
+    "to": "H1008",
+    "lines": [
+     "47126"
+    ],
+    "relief_path": false,
+    "modelled": true
+   },
+   {
+    "from": "P4712",
+    "to": "T4750",
+    "lines": [
+     "47126",
+     "47125"
+    ],
+    "relief_path": true,
+    "modelled": false
+   },
+   {
+    "from": "H1008",
+    "to": "T4750",
+    "lines": [
+     "47127"
+    ],
+    "relief_path": false,
+    "modelled": true
+   }
+  ],
+  "missing_connections": [],
+  "missing_equipment": []
+ },
+ "seconds": 221,
+ "cost_usd": 0.0095,
+ "at": "2026-10-28 15:46"
+}

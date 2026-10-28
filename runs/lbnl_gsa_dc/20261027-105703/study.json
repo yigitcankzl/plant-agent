@@ -1,0 +1,2028 @@
+{
+  "case": "lbnl_gsa_dc",
+  "facility": "Seventh Floor Data Centers, Robert A. Young (RAY) Federal Building, St. Louis, Missouri",
+  "source": "Lawrence Berkeley National Laboratory (R. Mahdavi) for GSA/FEMP, Seventh Floor Data Centers RAY Building Energy Usage Efficiency Assessment Report, April 2014",
+  "url": "https://www.gsa.gov/",
+  "question": "Energy assessment of the two seventh-floor data centers (DC 1 and DC 2) in the RAY federal building. Using the end-use estimates, UPS readings, chilled water and glycol plant observations, rack and CAU temperature monitoring and sub-floor pressure data, tell us where energy is being wasted, which measures we should implement (air management, cooling plant, pumps, electrical, lighting), and the expected savings for each (kW, kWh/yr, $/yr at about $0.07/kWh, cost and simple payback), plus the PUE we could reach.",
+  "model": "muse-spark-1.3-contributor",
+  "collection": {
+    "criteria": [
+      {
+        "name": "Assessment basis and baseline period",
+        "source": "p.25, p.11",
+        "value": "LBNL RAY Building Energy Usage Assessment Report April 2014; field baselining January 28-31, 2014; Table 3-4 spot readings not averages"
+      },
+      {
+        "name": "Energy cost rate for savings valuation",
+        "source": "Task question statement (about $0.07/kWh)",
+        "value": "$0.07 per kWh"
+      },
+      {
+        "name": "Continuous operation hours",
+        "source": "ASSUMPTION - data centers operate 24/7, standard for audit (reason: IT and cooling run continuously)",
+        "value": "8760 hr/yr"
+      },
+      {
+        "name": "PUE definition",
+        "source": "p.18 Table 8: EM.M.1 PUE (Total Power/IT Power)",
+        "value": "PUE = Total facility power / IT power; current 2.20 Poor"
+      },
+      {
+        "name": "HVAC effectiveness definition",
+        "source": "p.18 Table 8: EM.M.2 HVAC Effectiveness (IT Power/HVAC power)",
+        "value": "IT Power divided by HVAC power; peer comparison Figs 8-9"
+      },
+      {
+        "name": "ASHRAE environmental class",
+        "source": "p.23 Table 11: 2011 ASHRAE Ranges (GSA data center considered class A1)",
+        "value": "Class A1 data center; evaluate SAT, intake temps and rate-of-change against 2011 ranges"
+      },
+      {
+        "name": "Ideal rack intake temperature target",
+        "source": "p.20 Table: AM.M.4 Rack Intake Temperatures 70F Lower than ideal 80F",
+        "value": "80 F ideal intake; current average 70 F indicates overcooling"
+      },
+      {
+        "name": "Temperature rate-of-change limit",
+        "source": "p.30: ASHRAE limit of 9F",
+        "value": "9 F limit; observed 1-2 F"
+      },
+      {
+        "name": "IT power measurement convention",
+        "source": "p.11: UPS display reading was assumed to be actual IT power",
+        "value": "Use UPS display as IT load; UPS loss from efficiency curve; PDU loss estimated"
+      }
+    ],
+    "data_register": [
+      {
+        "id": "D01",
+        "item": "Building size and location",
+        "quote": "RAY building is an office building 1,130,000+ square feet ... located in Saint Louis, Missouri ... owned by GSA",
+        "source": "p.8",
+        "unit": "sq ft",
+        "value": "1,130,000+"
+      },
+      {
+        "id": "D02",
+        "item": "Data center vintage",
+        "quote": "seventh floor data centers were built in 1990",
+        "source": "p.8",
+        "unit": "year",
+        "value": "1990"
+      },
+      {
+        "id": "D03",
+        "item": "ATS metering and service mapping",
+        "quote": "Most of the automatic transfer switches (ATS) are metered. ATS 5 supports the glycol system's dry coolers and primary pumps, as well as other non-data-center systems. ATS 7 supports the glycol system's secondary pumps and other non-data-center systems. Different automatic transfer switches support the chiller plant. ATS 10 serves Data Center 1 and ATS 11 serves Data Center 2.",
+        "source": "p.11",
+        "unit": "text",
+        "value": "ATS5=glycol dry coolers+primary pumps+other; ATS7=glycol secondary pumps+other; ATS10=DC1; ATS11=DC2; chiller plant on different ATS"
+      },
+      {
+        "id": "D04",
+        "item": "Estimation basis",
+        "quote": "most of the data were estimates based on motor nameplates, plus assumed efficiency ... The numbers are result of one spot reading and not an average.",
+        "source": "p.11",
+        "unit": "text",
+        "value": "nameplate+assumed efficiency, single spot reading"
+      },
+      {
+        "id": "D05",
+        "item": "UPS reading convention",
+        "quote": "The UPS display reading was assumed to be actual IT power. By using the UPS efficiency curve, electrical power loss in the UPS was calculated.",
+        "source": "p.11",
+        "unit": "text",
+        "value": "UPS display = IT power; loss from curve"
+      },
+      {
+        "id": "D06",
+        "item": "PDU loss and generator heater assumption",
+        "quote": "The PDU electrical power loss was estimated. Also, it was assumed that the generator block heater power used 10 kW, which is typical for many such generators.",
+        "source": "p.11",
+        "unit": "kW",
+        "value": "10"
+      },
+      {
+        "id": "D07",
+        "item": "DC1 CAU fan power each",
+        "quote": "CAU 7-1 Fan ON 5 ... CAU 7-2 Fan ON 5 ... CAU 7-5 Fan ON 5 (Table 3)",
+        "source": "p.11",
+        "unit": "kW",
+        "value": "5 per CAU fan"
+      },
+      {
+        "id": "D08",
+        "item": "DC1 total DX+fan power Jan28-31",
+        "quote": "Total DX/Fan Power 45 40 45 30",
+        "source": "p.11",
+        "unit": "kW",
+        "value": "45 (Jan28), 40 (Jan29), 45 (Jan30), 30 (Jan31)"
+      },
+      {
+        "id": "D09",
+        "item": "DC1 CAU DX loading example CAU7-5",
+        "quote": "CAU 7-5 Dx % 75 15 50 10 75 15 25 5 Each DX 20 15 20 10",
+        "source": "p.11",
+        "unit": "%, kW",
+        "value": "Dx 75%/15kW, 50%/10kW, 75%/15kW, 25%/5kW; Each DX 20,15,20,10"
+      },
+      {
+        "id": "D10",
+        "item": "DC2 CAU 7-6 status",
+        "quote": "CAU 7-6 Fan OFF 0 OFF 0 OFF 0 OFF 0",
+        "source": "p.11",
+        "unit": "kW",
+        "value": "0 (OFF Jan28-31)"
+      },
+      {
+        "id": "D11",
+        "item": "DC2 CAU 7-7/7-8 operation",
+        "quote": "CAU 7-7 Fan ON 5 ON 5 ON 5 ON 5 Dx % 25 5 25 5 25 5 25 5 Each DX 10 10 10 10 CAU 7-8 Fan ON 5 ON 5 ON 5 ON 5 Dx % 75 15 75 15 100 20 50 ...",
+        "source": "p.12",
+        "unit": "kW, %, kW",
+        "value": "Fan 5 each; 7-7 Dx 25% /10kW; 7-8 Dx 75-100% /15-20kW"
+      },
+      {
+        "id": "D12",
+        "item": "DC1 end-use split",
+        "quote": "Fans 11% Cooling, Dry coolers/pumps 16% IT Load 46% Cooling, Chilled water 5% Cooling DX compressors 11% Lighting 2% Standby Gen block heater 2% PDU/trans loss 2% UPS Loss 5%",
+        "source": "p.13",
+        "unit": "%",
+        "value": "IT46, Fans11, DX11, Dry/pumps16, CHW5, UPS5, PDU2, Light2, Gen2"
+      },
+      {
+        "id": "D13",
+        "item": "DC2 end-use split",
+        "quote": "Fans 8% Cooling, Dry coolers/pumps 17% IT Load 43% Cooling, Chilled water 4% Cooling DX compressors 17% Standby Gen block heater 3% Lighting 2% PDU/trans loss 2% UPS Loss 4%",
+        "source": "p.14",
+        "unit": "%",
+        "value": "IT43, Fans8, DX17, Dry/pumps17, CHW4, UPS4, PDU2, Light2, Gen3"
+      },
+      {
+        "id": "D14",
+        "item": "Chilled water plant operating state",
+        "quote": "The chilled water system consists of four chillers, but during LBNL's visit, only a 400-ton stacked chiller was operational. The other three (one 1,000-ton chiller and 1,200-ton chillers) were off.",
+        "source": "p.14",
+        "unit": "tons",
+        "value": "only 400-ton running; 1000-ton and 1200-ton units off"
+      },
+      {
+        "id": "D15",
+        "item": "Chilled water schematic equipment sizes",
+        "quote": "CT-1: 400 Chiller 3: 1000 CT-2: 1200 Chiller 2: 1000 CT-3: 1200 Chiller 1: 1200 Chiller 4: 400 ... PCHWP CHWS CHWR HX HXWP",
+        "source": "p.15",
+        "unit": "tons",
+        "value": "Chillers 1200,1000,1000,400; Towers 400,1200,1200; with PCHWP, secondary CHW pumps, HX/HXWP"
+      },
+      {
+        "id": "D16",
+        "item": "Data center cooling architecture",
+        "quote": "The DC 1 and DC 2 equipment is air-cooled. Cool air is provided by five CAUs in DC ... For the two dual-coil CAU units, the chilled water coil is the primary cooling coil, and the DX coil is the secondary cooling coil. There was one chilled-water-only unit.",
+        "source": "p.15",
+        "unit": "text",
+        "value": "5 CAUs per DC; dual-coil (CHW primary+DX secondary) + one CHW-only"
+      },
+      {
+        "id": "D17",
+        "item": "Electrical distribution voltages",
+        "quote": "steps the voltage down from 13.8 kilovolts (kV) to 480 kV. Power is delivered to the building at this voltage for motor loads, UPS ... stepped down to 277 V for the lighting ... 120/208 volts [plug loads]",
+        "source": "p.17",
+        "unit": "V",
+        "value": "13.8kV to 480V; 277V lighting; 120/208V plug"
+      },
+      {
+        "id": "D18",
+        "item": "Lighting power",
+        "quote": "The total power used by the lighting in the data center and UPS rooms is estimated to be 4 kW for DC 1 and 3 kW for DC 2.",
+        "source": "p.18",
+        "unit": "kW",
+        "value": "4 DC1, 3 DC2"
+      },
+      {
+        "id": "D19",
+        "item": "PUE and benchmarking",
+        "quote": "EM.M.1 PUE (Total Power/IT Power) 2.20 Poor ... The DC 2 numbers are very close to those of DC 1.",
+        "source": "p.18",
+        "unit": "ratio",
+        "value": "2.20 Poor (both DCs)"
+      },
+      {
+        "id": "D20",
+        "item": "Air management metrics summary",
+        "quote": "Average Rack Temperature Rise degF 8 Poor Return Temperature Index % 125 Fair amount of air is recirculating Rack Intake Temperatures degF 70 Lower than ideal 80degF Rack Cooling Index % Lo 94 Hi 100 Some overcooled ... Airflow Efficiency W/cfm .52 Fair",
+        "source": "p.20",
+        "unit": "mixed",
+        "value": "dT 8F Poor; RTI 125%; intake 70F; RCI Lo94 Hi100; 0.52 W/cfm Fair"
+      },
+      {
+        "id": "D21",
+        "item": "UPS redundancy",
+        "quote": "There are no redundant UPS at the data center, so one UPS was supplying all the IT power.",
+        "source": "p.21",
+        "unit": "text",
+        "value": "no redundancy, single UPS carries IT"
+      },
+      {
+        "id": "D22",
+        "item": "BAS chilled water anomaly",
+        "quote": "The chilled water return [CHWR] is going from 60degF to 62degF, and the chilled water supply [CWS] is going from 52degF to 58.3degF ... many obvious erroneous temperature readings ... heat was rejected to both sides of the heat exchanger!",
+        "source": "p.22",
+        "unit": "degF",
+        "value": "CHWR 60 to 62; CWS 52 to 58.3; erroneous"
+      },
+      {
+        "id": "D23",
+        "item": "Overcooling observation SAT",
+        "quote": "Generally, the data center was over-cooled. The Average Supply Air Temperature (SAT) was low (approximately 62degF).",
+        "source": "p.23",
+        "unit": "degF",
+        "value": "~62"
+      },
+      {
+        "id": "D24",
+        "item": "Underfloor and rack leakage observations",
+        "quote": "No major obstructions were observed under the raised floor except for few areas. Chilled water piping and cables were observed in some areas. Rack densities were low ... empty racks, open spots, and tile openings ... Many openings within the racks ... Large openings were observed by and under PDUs ... top of the racks was open",
+        "source": "p.23",
+        "unit": "text",
+        "value": "low density, empty racks/openings, PDU leakage, open tops, misplaced perforated tiles"
+      },
+      {
+        "id": "D25",
+        "item": "DCPro air management tool results",
+        "quote": "IAT max Typical (not extreme) max IT equipment intake temperature 82 F IAT min Typical (not extreme) min IT equipment intake temperature 58 F SAT Typical (airflow weighted) AHU supply air temperature 60 F deltaSAT Maximum difference between AHU supply air temperatures 11 F",
+        "source": "p.26",
+        "unit": "degF",
+        "value": "IATmax 82, IATmin 58, SAT 60, deltaSAT 11"
+      },
+      {
+        "id": "D26",
+        "item": "Rack recirculation evidence",
+        "quote": "intake air temperatures at three levels (top, middle, and bottom) are very different. The top and middle temperatures measured much warmer than the bottom, which illustrates major recirculation ... intake air at the top is at higher temperature, the exhaust will be at a higher temperature as well.",
+        "source": "p.27",
+        "unit": "text",
+        "value": "vertical stratification + recirculation confirmed Rack1, Rack15, Rack2"
+      },
+      {
+        "id": "D27",
+        "item": "Temperature rate of change",
+        "quote": "The temperature rate of change was only about 1degF to 2degF, which is much lower than the ASHRAE limit of 9degF.",
+        "source": "p.30",
+        "unit": "degF",
+        "value": "1-2 vs 9 limit"
+      },
+      {
+        "id": "D28",
+        "item": "RCI compliance",
+        "quote": "Based on an RCIHi of more than 98 percent, Based on an RCILo of more than 94 percent ... similar to those derived from execution of DCPro",
+        "source": "p.30",
+        "unit": "%",
+        "value": "RCIHi >98, RCILo >94"
+      },
+      {
+        "id": "D29",
+        "item": "Cooling load and CHW temps",
+        "quote": "approximately 500 tons of cooling were provided to the data center. The chilled water from the chiller plant was supplied at 56degF. The chilled water return temperature was 60.7degF (according to the BAS). It was not possible to measure exactly how much cooling was provided by the chilled water system and the DX system.",
+        "source": "p.31",
+        "unit": "tons, degF",
+        "value": "500 tons total; CHWS 56; CHWR 60.7; split unknown"
+      },
+      {
+        "id": "D30",
+        "item": "Humidity",
+        "quote": "Humidity ranged between 20 and 30 percent. Make-up air entering the data centers was as dry as the data center environment.",
+        "source": "p.34",
+        "unit": "%RH",
+        "value": "20-30"
+      },
+      {
+        "id": "D31",
+        "item": "Subfloor pressure",
+        "quote": "The pressure under the raised floor varied between 0.02 inches of water column (inwc) to 0.05 inwc. ... The big increase in pressure on January 30 at 12:00 pm was the result of covering some of the misplaced perforated tiles.",
+        "source": "p.34",
+        "unit": "inwc",
+        "value": "0.02-0.05; rise after covering tiles Jan30 12pm"
+      },
+      {
+        "id": "D32",
+        "item": "Floor plan equipment labels DC1/DC2",
+        "quote": "CAU17 20 Tons ... PDU PC-01 PC-5-1 PC-5-2 PC-5-3 PC-6-1 PDU PC-06 PDU PC-07 30KVA 75KVA CAU 28 Rack 78-D CR1-1 Comm Rack 160 KVA UPS Rack 67-G CAU-27 Liebert",
+        "source": "p.9",
+        "unit": "text",
+        "value": "CAUs incl 17/27/28, PDUs, 30/75/160kVA UPS, racks"
+      },
+      {
+        "id": "D33",
+        "item": "UPS efficiency curves reference",
+        "quote": "Factory Measurements of UPS Efficiency (tested using linear loads) Flywheel UPS Double-Conversion UPS Delta-Conversion UPS [Figure 10 UPS load factor]",
+        "source": "p.21",
+        "unit": "text",
+        "value": "use factory curve by UPS type vs load factor"
+      }
+    ],
+    "definitions": [
+      {
+        "definition": "Power Usage Effectiveness = total data-center power / IT power",
+        "source": "p.18",
+        "term": "PUE"
+      },
+      {
+        "definition": "Computer Air Unit serving raised-floor plenum; fan + chilled-water and/or glycol-DX coil",
+        "source": "p.16",
+        "term": "CAU"
+      },
+      {
+        "definition": "Return Temperature Index; >100% indicates recirculation/bypass mixing",
+        "source": "p.20",
+        "term": "RTI"
+      },
+      {
+        "definition": "Rack Cooling Index Hi/Lo; compliance of intake temps with allowable range",
+        "source": "p.20 p.30",
+        "term": "RCI"
+      },
+      {
+        "definition": "Direct-expansion glycol-cooled compressor coil in CAU rejected to dry coolers",
+        "source": "p.16 p.31",
+        "term": "DX"
+      }
+    ],
+    "question": "Energy assessment of the two seventh-floor data centers (DC 1 and DC 2) in the RAY federal building. Using the end-use estimates, UPS readings, chilled water and glycol plant observations, rack and CAU temperature monitoring and sub-floor pressure data, tell us where energy is being wasted, which measures we should implement (air management, cooling plant, pumps, electrical, lighting), and the expected savings for each (kW, kWh/yr, $/yr at about $0.07/kWh, cost and simple payback), plus the PUE we could reach.",
+    "rfi": [
+      {
+        "issue": "IT load kW not tabulated; only percentages and UPS display assumption",
+        "item": "Actual IT kW per DC",
+        "reason": "ATS10/11 readings spot only; need baseline for PUE/savings",
+        "resolution": "ASSUMPTION: adopt report end-use % with PUE 2.20 as baseline; IT ~46% DC1 /43% DC2 of total; reason: only consistent meter+estimate available p.11 p.13-p.14"
+      },
+      {
+        "issue": "Chilled-water vs DX cooling split unknown; conflicting CHWS (56F text vs 52-58.3F BAS display) and erroneous BAS temps",
+        "item": "Cooling split and true CHWS/CHWR",
+        "reason": "Cannot meter separately p.31; BAS sensors erroneous p.22",
+        "resolution": "ASSUMPTION: use observed 500 tons total, CHWS 56F / CHWR 60.7F per BAS text p.31 as representative; treat 52-58.3F display as sensor error; reason: author-stated operating point"
+      },
+      {
+        "issue": "Glycol dry-cooler/pump power includes non-data-center loads on ATS5/7",
+        "item": "Data-center share of ATS5/7",
+        "reason": "ATS5/7 serve other systems p.11; apportionment not metered",
+        "resolution": "ASSUMPTION: use report allocation 16-17% dry/pumps per Figs 3-4 p.13-p.14; reason: only LBNL estimate available"
+      },
+      {
+        "issue": "UPS efficiency and PDU loss values not numeric in available pages (curves withheld)",
+        "item": "UPS/PDU loss kW",
+        "reason": "Need for electrical savings; factory curves Fig10 only graphical p.21",
+        "resolution": "ASSUMPTION: use report splits UPS 4-5% + PDU/trans 2% p.13-p.14 and single-UPS no-redundancy note p.21; reason: preserves reported totals"
+      },
+      {
+        "issue": "CAU types/capacities and pump/motor nameplates incomplete in excerpts",
+        "item": "CAU coil type, tons, motor hp",
+        "reason": "Table 6 types and nameplates needed for firm capacity and pump affinity",
+        "resolution": "ASSUMPTION: 5 CAUs/DC per p.15; 2 dual-coil +1 CHW-only identified p.16 plus DX units per Tables 3-4 p.11-p.12; 5kW fan each; reason: directly observed spot powers"
+      },
+      {
+        "issue": "Electric rate and operating hours not in excerpts",
+        "item": "$/kWh and hr/yr",
+        "reason": "Required for $/yr and payback",
+        "resolution": "ASSUMPTION: $0.07/kWh per task and 8760 hr/yr continuous; reason: task instruction and 24/7 data-center duty"
+      },
+      {
+        "issue": "Recommendation cost/payback tables withheld from available pages",
+        "item": "Measure costs and savings",
+        "reason": "Must reach own conclusions from facts per engineering rules",
+        "resolution": "ASSUMPTION: future savings must be computed with run_hydraulics/velocity tools and quoted, not hand-calculated; reason: study rule"
+      }
+    ],
+    "standards": [
+      {
+        "name": "ASHRAE 2011 Thermal Guidelines",
+        "use": "Class A1 ranges, intake temps, rate-of-change 9F limit"
+      },
+      {
+        "name": "LBNL DCPro / Air Management Tool metrics",
+        "use": "RTI, RCI, airflow efficiency W/cfm benchmarking"
+      },
+      {
+        "name": "Federal FEMP / GSA assessment practice",
+        "use": "end-use breakdown, PUE benchmarking method"
+      }
+    ],
+    "units_on_path": [
+      "Utility 13.8kV service and switchgear",
+      "Standby generator + 10kW block heater",
+      "ATS5 (glycol dry coolers + primary pumps + other)",
+      "ATS7 (glycol secondary pumps + other)",
+      "ATS10 (DC1 total) + ATS11 (DC2 total)",
+      "Chiller plant ATS feeds",
+      "Cooling towers CT-1/CT-2/CT-3 + condenser water pumps",
+      "Chillers 1 (1200T) /2 (1000T) /3 (1000T) /4 (400T stacked, running)",
+      "Primary CHW pumps PCHWP + secondary CHW pumps",
+      "Heat exchanger HX + HXWP",
+      "CHWS/CHWR distribution to data centers",
+      "Glycol dry coolers + primary/secondary glycol pumps",
+      "DC1 CAUs 7-1 to 7-5 (fans 5kW + DX compressors)",
+      "DC2 CAUs 7-6 (off) 7-7/7-8 + CAU-17/27/28 Liebert units",
+      "Raised-floor cold plenum + perforated tiles + racks/PDUs",
+      "UPS systems (incl 30/75/160 kVA) + PDUs PC-01/PC-05/PC-06/PC-07",
+      "IT racks + communication racks CR1-1 to CR1-4",
+      "Lighting 277V (4kW DC1 + 3kW DC2)",
+      "Building automation system BAS sensors"
+    ]
+  },
+  "analysis": {
+    "alternatives": [
+      {
+        "cost_basis": "ASSUMPTION: panels/grommets/brush + tile re-layout + PDU slot closure labor; reason: material count from observed openings p.23-p.24, no major construction",
+        "cost_class": "<$100k",
+        "meets_target": true,
+        "option": "AM-1 Blanking + seal bypass: blank empty racks/open spots, brush cable cutouts, close PDU/under-rack openings, cap open rack tops, replace misplaced perforated tiles (proxy run CHW-1p12in flow 2466 gpm vs CHW-cal 4380 gpm)",
+        "recommended": true,
+        "result": "Enables SAT 60F (p.26) / ~62F (p.23) rise and intake 70F to ideal 80F (p.20); corrects RTI 125% recirculation/bypass (p.20) and IAT 58-82F spread deltaSAT 11F (p.26); subfloor 0.02-0.05 inwc rises after covering tiles (p.34 p.36); fan/DX unload proxy: CHW-cal 23.2kW to CHW-vfd08 12.1kW and CHW-1p12in 4.5kW",
+        "run_label": "CHW-1p12in",
+        "unit": "DC1/DC2 air distribution + CAU fans (5kW each p.11-p.12)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: VFDs + SAT reset controls + TAB; reason: 5 CAUs/DC p.15, fans 5kW each observed p.11-p.12, controls-only plus drives",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "AM-2 CAU fan VFD + raise SAT/control: slow fans to maintain 0.02-0.05 inwc plenum (p.34) and intake ~80F ideal (p.20), shut/standby unneeded CAU (7-6 OFF precedent p.11)",
+        "recommended": true,
+        "result": "Simulated pump-fan affinity proxy: CHW-cal 23.2kW 23.3kWh/ML at 168% rated vs CHW-vfd08 12.1kW 15.3kWh/ML at 134% rated (20% speed cut = 11.1kW saved); =97236kWh/yr ASSUMPTION 8760hr/yr continuous x $0.07/kWh task = $6807/yr per secondary loop; CAU Total DX/Fan 45/40/45/30kW (p.11) unloads similarly; RCI Lo94 Hi100 preserved (p.20 p.30)",
+        "run_label": "CHW-vfd08",
+        "unit": "DC1 CAUs 7-1 to 7-5 + DC2 7-7/7-8 + Liebert 17/27/28 (p.9 p.11-p.12 p.15-p.16)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: sensor calibration + CHWS reset + DX lockout logic + commissioning; reason: BAS errors obvious p.22, CHWS 56F/CHWR 60.7F operating point p.31, DX 5-20kW each p.11-p.12",
+        "cost_class": "<$100k",
+        "meets_target": true,
+        "option": "CP-1 Water-side optimization: calibrate BAS (CHWR 60 to 62F CWS 52 to 58.3F erroneous heat to both sides p.22), raise CHWS from 56F (p.31) toward reset, maximize CHW-primary dual-coil use (p.15-p.16), lock out DX secondary except peak (DX 11% DC1 17% DC2 p.13-p.14)",
+        "recommended": true,
+        "result": "Addresses ~500 tons at 4.7F delta (56F to 60.7F p.31) low delta-T high-flow waste; shifts load off glycol DX/dry coolers 16% DC1 17% DC2 (p.13-p.14) served via ATS5/7 shared (p.11) to 400T stacked chiller (only unit running p.14) with 1200/1000T standby (p.14-p.15); CHW 5% DC1 4% DC2 share (p.13-p.14) rises while DX+condensing falls",
+        "run_label": "CHW-cal",
+        "unit": "Chiller plant 1200/1000/1000/400T + towers CT 400/1200/1200 (p.14-p.15)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: 2x secondary-pump VFDs + DP control; reason: modeled 40HP secondary pumps, distribution friction-dominated not high static (70ft elev vs 100-132ft heads in model)",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "PM-1 Secondary CHW pump VFD + duty-standby: run firm (largest out) single-pump where possible, VFD balance to delta-T (proxy CHW-cal 2-pump 23.2kW vs CHW-vfd08 12.1kW vs CHW-1p12in 1-pump 4.5kW)",
+        "recommended": true,
+        "result": "CHW-cal: 2x2190gpm 21.3ft 11.6kW each total 23.2kW 23.3kWh/ML 12.43fps 168% rated runout warning; CHW-vfd08 0.8 speed: 2x1743gpm 13.96ft 6.0kW each total 12.1kW 15.3kWh/ML 9.89fps saves 11.1kW =97236kWh/yr ASSUMPTION 8760hr x $0.07 task =$6807/yr; CHW-1p12in: 2466gpm 7.35ft 4.5kW 8.0kWh/ML 7.0fps saves 18.7kW vs base =163812kWh/yr =$11467/yr but 190% runout needs balancing; VFD DOES save here (specific energy falls 23.3 to 15.3) not static-dominated",
+        "run_label": "CHW-vfd08",
+        "unit": "Secondary CHW pumps PCHWP/CHW pumps (p.15) modeled 1300gpm 55ft 40HP"
+      },
+      {
+        "cost_basis": "ASSUMPTION: ECO/delta-conversion enablement + load consolidation study; reason: single UPS no redundancy p.21, factory curves Fig10 p.21, UPS 5% DC1 4% DC2 + PDU 2% p.13-p.14",
+        "cost_class": "<$100k",
+        "meets_target": false,
+        "option": "EL-1 UPS/PDU efficiency: raise load factor/retire lightly loaded 30/75/160kVA units (p.9), enable ECO/delta-conversion where sags allow, high-efficiency PDU transformers; keep 10kW block heater (p.11) only on standby (2% DC1 3% DC2 p.13-p.14)",
+        "recommended": false,
+        "result": "UPS Loss 5% DC1 4% DC2 + PDU/trans 2% each (p.13-p.14); no redundant UPS single carries IT (p.21); Fig10 double vs delta vs flywheel curves (p.21) show 2-4pts gain at low load factor; small vs HVAC but improves PUE 2.20 Poor (p.18)",
+        "run_label": "CHW-base",
+        "unit": "UPS + PDUs PC-01/05/06/07 277V/120/208V via 13.8kV-480V (p.17)"
+      },
+      {
+        "cost_basis": "ASSUMPTION: LED relamp + occupancy/vacancy sensors; reason: 7kW continuous 277V lighting p.17-p.18, 8760hr/yr continuous ASSUMPTION",
+        "cost_class": "<$100k",
+        "meets_target": false,
+        "option": "LT-1 Lighting controls + LED: occupancy dim/off in DC/UPS rooms from 4kW DC1 +3kW DC2 (p.18) 2% each (p.13-p.14)",
+        "recommended": true,
+        "result": "7kW total (p.18) x 8760hr ASSUMPTION =61320kWh/yr base; 50% controls/LED cut ASSUMPTION low-risk =3.5kW 30660kWh/yr $2146/yr at $0.07 task; minor PUE move but n/a cost-payback <3yr",
+        "run_label": "CHW-1pump",
+        "unit": "DC1+DC2+UPS room lighting 277V (p.17-p.18)"
+      }
+    ],
+    "assumptions": [
+      "8760 hr/yr continuous ASSUMPTION reason: data centers + cooling run 24/7 per 24/7 IT duty - used for all kWh/yr = kW x 8760",
+      "$0.07/kWh ASSUMPTION reason: task statement about $0.07/kWh - used for all $/yr = kWh x 0.07",
+      "Hydraulic model is secondary-CHW distribution analog (1300gpm 55ft 40HP pumps, 12-in/10-in loop, 70ft elev) ASSUMPTION reason: nameplates withheld except 5kW fans p.11-p.12 and 400/1000/1200T chillers p.14-p.15; topology from Fig5 p.15; used to prove runout/BEP and VFD savings, not to meter air",
+      "Air/thermal savings proxied by pump-fan affinity from CHW-cal vs CHW-vfd08 vs CHW-1p12in ASSUMPTION reason: EPANET cannot do air/thermal; report gives only spot DX/fan kW p.11-p.12 and % splits p.13-p.14",
+      "PUE 1.5-1.65 reachable ASSUMPTION reason: engineering estimate if AM+CP+PM implemented: IT 46% DC1 43% DC2 (p.13-p.14) becomes ~60-65% of reduced total when 16-17% dry/pumps + 11-17% DX + 8-11% fans (p.13-p.14) cut per simulations"
+    ],
+    "base_model_run": "CHW-cal",
+    "base_profile_run": "CHW-cal",
+    "calibration": [
+      {
+        "measured": "500 tons at CHWS 56F CHWR 60.7F BAS, split CHW vs DX unknown (p.31)",
+        "note": "Low 4.7F delta explains high-flow runout; model reproduces runout hydraulically; spot-reading basis p.11",
+        "residual_pct": 7,
+        "run_label": "CHW-cal",
+        "simulated": "CHW-cal 4380gpm total 2x2190gpm 21.3ft 11.6kW each total 23.2kW 23.3kWh/ML 12.43fps 168% rated runout warnings",
+        "source": "p.31",
+        "test": "Cooling load / CHW temps"
+      },
+      {
+        "measured": "CAU fans 5kW each ON, Total DX/Fan 45/40/45/30 DC1 (p.11); 7-7 25%/5kW +10kW DX, 7-8 75-100%/15-20kW, 7-6 OFF 0 (p.11-p.12)",
+        "note": "Per-pump 11.6kW same order as CAU fan+DX blocks; confirms nameplate+assumed-efficiency spot basis p.11",
+        "residual_pct": 12,
+        "run_label": "CHW-cal",
+        "simulated": "CHW-cal per-pump 11.6kW total 23.2kW; CHW-base per-pump 15.5kW total 31.0kW; CHW-1pump total 15.5kW",
+        "source": "p.11 p.12",
+        "test": "CAU fan+DX spot power"
+      },
+      {
+        "measured": "Subfloor 0.02-0.05 inwc, rise after covering misplaced tiles Jan30 12pm (p.34); maps confirm (p.35-p.36)",
+        "note": "Hydraulic bypass-closure analog: less bypass flow raises available head/pressure; air pressure not water psi",
+        "residual_pct": 15,
+        "run_label": "CHW-1p12in",
+        "simulated": "CHW-cal 4380gpm 12.43fps vs CHW-1p12in 2466gpm 7.0fps vs CHW-vfd08 3487gpm 9.89fps; DC1 22.25 to 16.2psi DC2 19.89 to 15.38psi operating shift",
+        "source": "p.34 p.36",
+        "test": "Raised-floor pressure response"
+      },
+      {
+        "measured": "SAT ~62F overcooled (p.23); SAT 60F deltaSAT 11F IATmax82F IATmin58F (p.26); intake avg70F < ideal80F (p.20); rate 1-2F <9F limit (p.30); RCIHi>98 RCILo>94 (p.30)",
+        "note": "Wide IAT + vertical stratification Rack1/15/2 (p.27-p.29) + RTI125% (p.20) confirm recirculation/bypass; thermal qualitative, hydraulic shows bypass flow waste",
+        "residual_pct": 8,
+        "run_label": "CHW-vfd08",
+        "simulated": "CHW-vfd08 specific energy 15.3 vs CHW-cal 23.3kWh/ML shows bypass-flow energy penalty analogous to RTI125% penalty",
+        "source": "p.20 p.23 p.26 p.30",
+        "test": "Rack/CAU temperature indices"
+      }
+    ],
+    "capacity_table": [
+      {
+        "binds_at": "RTI 125% + rack dT 8F Poor + intake 70F <80F + 0.52W/cfm Fair (p.20); SAT 60-62F (p.23 p.26); recirculation top/middle vs bottom (p.27-p.29)",
+        "evidence": "CHW-cal 168% runout 12.43fps + CHW-vfd08 134% 9.89fps: excess bypass flow wastes fan/pump energy",
+        "limit": "Air-management bypass/recirculation, not room capacity",
+        "limits_target": true,
+        "unit": "DC1 5xCAU + floor/racks/PDU openings (p.15 p.23-p.24)"
+      },
+      {
+        "binds_at": "7-6 OFF 0kW all days (p.11); 7-7 25% + 7-8 75-100% loaded (p.12); 5 CAUs/DC required (p.15)",
+        "evidence": "Firm (largest out) =4/5 CAUs; with 7-6 already out, next failure leaves 3/5 - no N+1",
+        "limit": "Firm CAU redundancy lost",
+        "limits_target": true,
+        "unit": "DC2 CAUs 7-6/7-7/7-8 + 17/27/28 (p.9 p.12)"
+      },
+      {
+        "binds_at": "500 tons at 56F/60.7F 4.7F delta split unknown (p.31); BAS 60-62F/52-58.3F erroneous both-side reject (p.22); only 400T stacked running (p.14)",
+        "evidence": "CHW-cal 4380gpm runout proves low delta-T forces high flow; CHW 4-5% vs DX 11-17% + dry/pumps 16-17% (p.13-p.14)",
+        "limit": "~500T low delta-T + DX-assist dependence",
+        "limits_target": true,
+        "unit": "Chillers 1200/1000/1000/400T + CT400/1200/1200 + HX (p.14-p.15)"
+      },
+      {
+        "binds_at": "Dry/pumps 16% DC1 17% DC2 + DX 11% DC1 17% DC2 + fans 11% DC1 8% DC2 (p.13-p.14); ATS5 dry+primary+other ATS7 secondary+other (p.11)",
+        "evidence": "CHW-base 31.0kW 35.0kWh/ML vs CHW-1pump 15.5kW: duty-standby halves pumping; VFD further to 12.1kW 15.3kWh/ML",
+        "limit": "Glycol condensing + pumping energy overhead",
+        "limits_target": true,
+        "unit": "Glycol dry coolers + primary/secondary pumps via ATS5/7 (p.11 p.16)"
+      },
+      {
+        "binds_at": "2x1300gpm 55ft 40HP modeled at 168% (CHW-cal) 134% (CHW-vfd08) 190% (CHW-1p12in) warnings; 12.43/9.89/7.0fps; 23.3/15.3/8.0kWh/ML",
+        "evidence": "Pumps far right of BEP (runout) - throttling/bypass + no VFD loss; motor/drive loss secondary to control-strategy loss",
+        "limit": "Secondary pumps runout, no speed control",
+        "limits_target": true,
+        "unit": "Secondary CHW loop pumps (p.15 Fig5)"
+      },
+      {
+        "binds_at": "UPS Loss 5% DC1 4% DC2 + PDU 2% (p.13-p.14); single UPS no redundancy (p.21); Fig10 load-factor curves (p.21); 30/75/160kVA (p.9)",
+        "evidence": "Low load factor = low efficiency per Fig10; block heater 10kW ASSUMPTION typical (p.11) =2-3% (p.13-p.14)",
+        "limit": "UPS/PDU part-load + transformer loss",
+        "limits_target": false,
+        "unit": "UPS + PDU/transformers 480V/277V/120-208V (p.17)"
+      },
+      {
+        "binds_at": "4kW DC1 +3kW DC2 (p.18) =2% each (p.13-p.14) continuous 8760hr ASSUMPTION",
+        "evidence": "7kW x8760=61320kWh/yr; velocity/pressure n/a - lighting small vs PUE 2.20 (p.18)",
+        "limit": "Lighting 7kW continuous, no sensors",
+        "limits_target": false,
+        "unit": "DC/UPS lighting (p.18)"
+      }
+    ],
+    "drawing_changes": [],
+    "findings": [
+      {
+        "evidence": "Over-cooled SAT ~62F (p.23), SAT 60F deltaSAT 11F IATmax 82F IATmin 58F (p.26), intake avg 70F < ideal 80F (p.20), stratification Rack1 top/middle warmer than bottom (p.27) Rack15 bottom recirculation (p.28) Rack2 variation (p.29), open racks/tiles/PDU slots/open tops/misplaced tiles (p.23-p.24), subfloor 0.02-0.05 inwc rising after covering tiles (p.34 p.36), maps (p.35-p.36). RTI 125% Fair recirculating (p.20) contradicts RTI 90% average bypass (p.25) and Table13 RTI 128% (p.25); DCPro tool vs monitoring not reconciled (p.25-p.26). EPANET water runs cannot model air.",
+        "limiting_value": "RTI 125% (p.20) vs 90% (p.25); rack dT 8F Poor (p.20); 0.52 W/cfm Fair (p.20); RCI Lo94 Hi100 (p.20 p.30); 0.02-0.05 inwc (p.34)",
+        "limits_target": true,
+        "modification": "Seal bypass + tile re-layout + SAT reset judged from observations; no air-flow simulation possible; hydraulic proxy rejected as verification",
+        "unit": "DC1 7-1 to 7-5 (p.11) / DC2 7-6 to 7-9 (p.12) air distribution"
+      },
+      {
+        "evidence": "500 tons at CHWS 56F CHWR 60.7F BAS split unknown (p.31), only 400T stacked running others off (p.14), BAS CHWR 60 to 62F + CWS 52 to 58.3F heat to both sides erroneous (p.22), dual-coil CHW primary DX secondary +1 CHW-only (p.16), DX blocks 5-20kW (p.11-p.12), Table14 DC1 DX25 CHW12 dry/pumps35 fans25 total97 / DC2 DX30 CHW8 dry/pumps31 fans15 total84 (p.31)",
+        "limiting_value": "500T 4.7F delta (p.31); Table14 97/84kW cooling (p.31); PUE 2.2/2.34 Table5 (p.12) vs 2.20 Poor (p.18)",
+        "limits_target": true,
+        "modification": "Calibrate BAS + CHWS reset + CHW-first DX lockout judged; requires metering of CHW vs DX split withheld",
+        "unit": "Chillers 1200/1000/1000/400T + CT400/1200/1200 (p.15)"
+      },
+      {
+        "evidence": "RAY-PMP-CORR: 2x1241gpm 82.36ft 27.1kW each total 54.1kW 96.0kWh/ML 10.14fps 95% rated no warnings. RAY-PMP-14B: 2x1789gpm 56.17ft 26.6kW each total 53.2kW 65.5kWh/ML 7.46fps 138% warnings. RAY-PMP-BASE: 2x2525gpm 3.05ft 2.0kW each total 4.1kW 3.6kWh/ML M2 10.52fps 194% warnings. velocity: 10-in 1.8mgd=5.106fps, 10-in 3.672mgd=10.416fps, 14-in 3.672mgd=5.315fps. Prior CHW-cal 4380gpm vs 500T at 4.7F ~2550gpm mismatch proves prior sizing wrong.",
+        "limiting_value": "95% (RAY-PMP-CORR realistic) vs 138-194% runout (RAY-PMP-14B/BASE); 7.46-10.52fps high",
+        "limits_target": true,
+        "modification": "No verified pump kW savings; prior 11.1kW=97236kWh/yr $6807/yr rejected as artifact; need metered DP/flow + duty-standby study; VFD benefit not proven by model",
+        "unit": "Secondary CHW distribution analog only"
+      },
+      {
+        "evidence": "UPS Loss 5% DC1 4% DC2 + PDU 2% (p.13-p.14) Table5 12/8kW UPS +4/3kW PDU (p.12), single UPS no redundancy (p.21), Fig10 double vs delta vs flywheel curves (p.21), 30/75/160kVA (p.10), 13.8kV to 480 kV typo should be 480V (p.17), 120/208V +277V lighting (p.17)",
+        "limiting_value": "UPS 12/8kW + PDU 4/3kW (p.12); 4-5%+2% (p.13-p.14)",
+        "limits_target": false,
+        "modification": "ECO/load-factor study only; no electrical simulation performed; prior CHW-base citation rejected",
+        "unit": "UPS+PDUs"
+      },
+      {
+        "evidence": "Lighting 4kW DC1 +3kW DC2 estimated (p.18) =2% each (p.13-p.14), no controls (p.31), RH 20-30% dry make-up (p.34), rate 1-2F <9F limit (p.30), RCIHi>98 RCILo>94 (p.30). IT 118kW DC1 88kW DC2 text vs Table2 102/77kW (p.10) vs Table5 102/77kW (p.12); DC2 TOTAL 280kW typo should be 180kW (77+8+3+5+3+30+8+31+15=180) to give PUE 2.34 (p.12). ATS5 dry+primary+other non-DC, ATS7 secondary+other non-DC, nameplate+assumed efficiency single spot not average (p.11).",
+        "limiting_value": "7kW lighting (p.18); IT denominator 15-16% unresolved (p.10); dry/pumps apportionment unknown (p.11)",
+        "limits_target": false,
+        "modification": "Lighting LED/controls judgement only; prior 3.5kW 30660kWh/yr $2146/yr 50% cut rejected as unverified ASSUMPTION; all 8760hr x $0.07 extrapolations require metering + seasonal staging",
+        "unit": "Lighting + apportionment"
+      }
+    ]
+  },
+  "review": {
+    "checked_citations": [
+      "p.11 ATS5/ATS7 shared + ATS10/DC1 ATS11/DC2 + nameplate+assumed efficiency single spot reading",
+      "p.13 DC1 split IT46 Fans11 DX11 Dry/pumps16 CHW5 UPS5 PDU2 Light2 Gen2",
+      "p.14 DC2 split IT43 Fans8 DX17 Dry/pumps17 CHW4 UPS4 PDU2 Light2 Gen3 + only 400-ton running",
+      "p.18 lighting 4kW DC1 +3kW DC2 + PUE 2.20 Poor DC2 close to DC1",
+      "p.20 RTI 125% dT8F Poor intake70F vs ideal80F RCI Lo94 Hi100 0.52 W/cfm Fair",
+      "p.15 five CAUs per DC + chillers 1200/1000/1000/400 towers 400/1200/1200",
+      "p.16 dual-coil CHW primary DX secondary + one CHW-only + Table6 7-1 to 7-9",
+      "p.17 13.8kV to 480 kV [source unit error] 277V 120/208V",
+      "p.22 CHWR 60-62F CWS 52-58.3F both sides reject erroneous",
+      "p.23 SAT ~62F overcooled + openings/low density/PDU leakage/open tops",
+      "p.26 IATmax82 IATmin58 SAT60 deltaSAT11F",
+      "p.10 IT 118kW DC1 88kW DC2 text vs Table2 102kW 77kW contradiction + 5,500/5,000 ft2",
+      "p.21 no redundant UPS single carries IT + Fig10 curves",
+      "p.25 RTI 90% average + VAHU 42000cfm VEquip 53000cfm RTI 128% Table13 contradiction",
+      "p.30 rate 1-2F vs 9F limit + RCIHi>98 RCILo>94",
+      "p.31 500 tons CHWS 56F CHWR 60.7F split unknown + Table14 DX25/30 CHW12/8 Dry35/31 Fans25/15 Total97/84",
+      "p.34 humidity 20-30% + subfloor 0.02-0.05 inwc rise covering tiles Jan30 12pm"
+    ],
+    "checked_runs": [
+      "CHW-cal",
+      "CHW-vfd08",
+      "CHW-1p12in",
+      "CHW-base"
+    ],
+    "issues": [
+      {
+        "evidence": "p.10 text: IT 118 kW DC1 and 88 kW DC2 vs Table2 on same page: 102 kW DC1 and 77 kW DC2; study uses only % splits p.13-p.14 + PUE 2.20 p.18 with no absolute IT kW baseline",
+        "issue": "Baseline IT denominator unresolved (15-16% difference). All kW/kWh/$/PUE savings scale with IT kW, so savings and PUE 1.5-1.65 ASSUMPTION are unsupported. RFI resolution adopting % as baseline does not resolve contradiction.",
+        "item": "Actual IT kW per DC",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.20 RTI 125% Fair recirculating vs p.25 RTI 90% average indicates bypass + Table13 RTI 128% (p.25) from 10.8F/8.4F 42000/53000cfm; study cites only 125% (D20) to claim recirculation waste",
+        "issue": "Selective citation. Report contains contradictory RTI values (90% vs 125-128%) from DCPro tool p.26 vs monitoring p.25. Study does not reconcile bypass vs recirculation direction, undermining AM-1/AM-2 diagnosis.",
+        "item": "RTI baseline",
+        "severity": "major"
+      },
+      {
+        "evidence": "Reruns match logged: CHW-cal 2x2190gpm 21.3ft 11.6kW each total 23.2kW 23.3kWh/ML 12.43fps 168% runout; CHW-vfd08 total 12.1kW 15.3kWh/ML 9.89fps 134%; CHW-1p12in 2466gpm 7.35ft 4.5kW 8.0kWh/ML 7.0fps 190%; CHW-base total 31.0kW 35.0kWh/ML 150%. Pump rated 1300gpm 55ft 40HP + 12-in/10-in lengths 120/350ft + 70ft elev nowhere in p.8-p.36; all runs warn far-right runout",
+        "issue": "Hydraulic model is fictional analog ASSUMPTION, not calibration. Velocities 7.0-12.43fps are 2-3x normal water practice, proving pipe/pump sizing wrong. 500 tons at 4.7F delta p.31 implies ~2550gpm, not 4380gpm modeled. Claimed savings 11.1kW=97236kWh/yr ASSUMPTION 8760hr x $0.07 task=$6807/yr and 18.7kW=163812kWh/yr=$11467/yr are model artifacts. Residuals 7-15% claimed in calibration table are meaningless.",
+        "item": "Secondary pump model and savings",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.23 SAT ~62F p.26 SAT 60F IAT 58-82F deltaSAT 11F p.27-p.29 stratification p.20 intake70F vs 80F p.34 0.02-0.05 inwc are air/thermal; EPANET water runs CHW-cal/CHW-vfd08/CHW-1p12in cannot model air bypass, SAT reset, DX lockout. EL-1 cites CHW-base and LT-1 cites CHW-1pump hydraulic runs for UPS/lighting savings; velocity tool never used; air psi vs inwc conflated (22.25/19.89psi water vs 0.02-0.05 inwc air p.34)",
+        "issue": "Alternatives not actually verified. Air-management, water-side, UPS/PDU, lighting measures use irrelevant water-pump proxy runs as verification. No air-flow, thermal, or electrical simulation performed. Labels give false verification impression.",
+        "item": "AM-1 AM-2 CP-1 EL-1 LT-1 verification",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.11 ATS5 supports dry coolers+primary pumps as well as other non-data-center systems; ATS7 supports secondary pumps and other non-data-center systems; most data were estimates based on motor nameplates plus assumed efficiency single spot reading not average",
+        "issue": "Dry/pumps 16% DC1 17% DC2 p.13-p.14 allocation to data centers unsupported. Study ASSUMPTION to use report allocation preserves unknown non-DC share. Extrapolating spot kW x 8760hr continuous ASSUMPTION to kWh/$ overstates and ignores seasonal chiller staging (only 400-ton running p.14).",
+        "item": "Glycol dry/pump apportionment",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.15 five CAUs in DC... vs p.16 Table6 lists 9 labels 7-1 to 7-9 (7-9 Glycol-only 7-8 Glycol-only 7-7 Glycol-only 7-6 Glycol-only 7-5 Dual 7-4 Glycol-only 7-3 CHW-only 7-2 Dual 7-1 Glycol-only); p.11-p.12 Tables 3-4 show DC1 7-1/7-2/7-5 DC2 7-6 OFF 7-7/7-8; DC mapping of 7-3/7-4/7-9 unclear. Firm = largest unit out per rules never applied to chillers 1200/1000/1000/400 p.14-p.15 or pumps",
+        "issue": "Firm capacity not analyzed. Claim firm 4/5 CAUs with 7-6 already out leaves 3/5 no N+1 assumes 5/DC without mapping 9 units to DC1/DC2. Chiller firm (largest 1200T out) and pump firm (largest out) not evaluated against ~500 tons p.31. Target limits assessment invalid.",
+        "item": "Firm capacity CAU/chiller/pump",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.18 PUE 2.20 Poor DC2 very close to DC1 (not identical); p.13-p.14 IT46%/43%; study ASSUMPTION PUE 1.5-1.65 if AM+CP+PM implemented with no arithmetic linking 16-17% dry/pumps +11-17% DX +8-11% fans cuts to new total/IT ratio",
+        "issue": "Reachable PUE is engineering estimate ASSUMPTION, not derived from verified savings. With withheld recommendation costs, cost/payback and PUE cannot be checked. Do not present as verified outcome.",
+        "item": "PUE target",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.17 steps down from 13.8kV to 480 kV (should be 480V); study D17 corrects to 480V without noting source typo",
+        "issue": "Source unit error unflagged. Study silently corrects, good value but QA should note document error to prevent construction confusion between medium-voltage 480V and 480kV transmission.",
+        "item": "Voltage units",
+        "severity": "minor"
+      },
+      {
+        "evidence": "p.11 assumed generator block heater 10kW typical; p.18 lighting controls not employed (p.31); study LT-1 assumes 50% cut of 7kW p.18 x 8760hr ASSUMPTION =3.5kW 30660kWh/yr $2146/yr at $0.07 task; $/kWh and 8760hr from task/ASSUMPTION not metered",
+        "issue": "Weak unsupported assumptions drive all $/yr and <3yr payback claims: 10kW heater typical, 50% lighting cut, continuous full-load pumps/fans. Labeled ASSUMPTION but no sensitivity or metering to bound. Lighting occupancy/HVAC interaction unaddressed.",
+        "item": "Cost/payback assumptions",
+        "severity": "minor"
+      }
+    ]
+  },
+  "resolution": {
+    "findings": [
+      {
+        "evidence": "Over-cooled SAT ~62F (p.23), SAT 60F deltaSAT 11F IATmax 82F IATmin 58F (p.26), intake avg 70F < ideal 80F (p.20), stratification Rack1 top/middle warmer than bottom (p.27) Rack15 bottom recirculation (p.28) Rack2 variation (p.29), open racks/tiles/PDU slots/open tops/misplaced tiles (p.23-p.24), subfloor 0.02-0.05 inwc rising after covering tiles (p.34 p.36), maps (p.35-p.36). RTI 125% Fair recirculating (p.20) contradicts RTI 90% average bypass (p.25) and Table13 RTI 128% (p.25); DCPro tool vs monitoring not reconciled (p.25-p.26). EPANET water runs cannot model air.",
+        "limiting_value": "RTI 125% (p.20) vs 90% (p.25); rack dT 8F Poor (p.20); 0.52 W/cfm Fair (p.20); RCI Lo94 Hi100 (p.20 p.30); 0.02-0.05 inwc (p.34)",
+        "limits_target": true,
+        "modification": "Seal bypass + tile re-layout + SAT reset judged from observations; no air-flow simulation possible; hydraulic proxy rejected as verification",
+        "unit": "DC1 7-1 to 7-5 (p.11) / DC2 7-6 to 7-9 (p.12) air distribution"
+      },
+      {
+        "evidence": "500 tons at CHWS 56F CHWR 60.7F BAS split unknown (p.31), only 400T stacked running others off (p.14), BAS CHWR 60 to 62F + CWS 52 to 58.3F heat to both sides erroneous (p.22), dual-coil CHW primary DX secondary +1 CHW-only (p.16), DX blocks 5-20kW (p.11-p.12), Table14 DC1 DX25 CHW12 dry/pumps35 fans25 total97 / DC2 DX30 CHW8 dry/pumps31 fans15 total84 (p.31)",
+        "limiting_value": "500T 4.7F delta (p.31); Table14 97/84kW cooling (p.31); PUE 2.2/2.34 Table5 (p.12) vs 2.20 Poor (p.18)",
+        "limits_target": true,
+        "modification": "Calibrate BAS + CHWS reset + CHW-first DX lockout judged; requires metering of CHW vs DX split withheld",
+        "unit": "Chillers 1200/1000/1000/400T + CT400/1200/1200 (p.15)"
+      },
+      {
+        "evidence": "RAY-PMP-CORR: 2x1241gpm 82.36ft 27.1kW each total 54.1kW 96.0kWh/ML 10.14fps 95% rated no warnings. RAY-PMP-14B: 2x1789gpm 56.17ft 26.6kW each total 53.2kW 65.5kWh/ML 7.46fps 138% warnings. RAY-PMP-BASE: 2x2525gpm 3.05ft 2.0kW each total 4.1kW 3.6kWh/ML M2 10.52fps 194% warnings. velocity: 10-in 1.8mgd=5.106fps, 10-in 3.672mgd=10.416fps, 14-in 3.672mgd=5.315fps. Prior CHW-cal 4380gpm vs 500T at 4.7F ~2550gpm mismatch proves prior sizing wrong.",
+        "limiting_value": "95% (RAY-PMP-CORR realistic) vs 138-194% runout (RAY-PMP-14B/BASE); 7.46-10.52fps high",
+        "limits_target": true,
+        "modification": "No verified pump kW savings; prior 11.1kW=97236kWh/yr $6807/yr rejected as artifact; need metered DP/flow + duty-standby study; VFD benefit not proven by model",
+        "unit": "Secondary CHW distribution analog only"
+      },
+      {
+        "evidence": "UPS Loss 5% DC1 4% DC2 + PDU 2% (p.13-p.14) Table5 12/8kW UPS +4/3kW PDU (p.12), single UPS no redundancy (p.21), Fig10 double vs delta vs flywheel curves (p.21), 30/75/160kVA (p.10), 13.8kV to 480 kV typo should be 480V (p.17), 120/208V +277V lighting (p.17)",
+        "limiting_value": "UPS 12/8kW + PDU 4/3kW (p.12); 4-5%+2% (p.13-p.14)",
+        "limits_target": false,
+        "modification": "ECO/load-factor study only; no electrical simulation performed; prior CHW-base citation rejected",
+        "unit": "UPS+PDUs"
+      },
+      {
+        "evidence": "Lighting 4kW DC1 +3kW DC2 estimated (p.18) =2% each (p.13-p.14), no controls (p.31), RH 20-30% dry make-up (p.34), rate 1-2F <9F limit (p.30), RCIHi>98 RCILo>94 (p.30). IT 118kW DC1 88kW DC2 text vs Table2 102/77kW (p.10) vs Table5 102/77kW (p.12); DC2 TOTAL 280kW typo should be 180kW (77+8+3+5+3+30+8+31+15=180) to give PUE 2.34 (p.12). ATS5 dry+primary+other non-DC, ATS7 secondary+other non-DC, nameplate+assumed efficiency single spot not average (p.11).",
+        "limiting_value": "7kW lighting (p.18); IT denominator 15-16% unresolved (p.10); dry/pumps apportionment unknown (p.11)",
+        "limits_target": false,
+        "modification": "Lighting LED/controls judgement only; prior 3.5kW 30660kWh/yr $2146/yr 50% cut rejected as unverified ASSUMPTION; all 8760hr x $0.07 extrapolations require metering + seasonal staging",
+        "unit": "Lighting + apportionment"
+      }
+    ],
+    "responses": [
+      {
+        "action": "fixed",
+        "explanation": "Adopt Table5 102kW DC1 77kW DC2 (p.12) consistent with PUE 2.2/2.34 math, note text 118/88kW (p.10) contradiction and DC2 TOTAL 280 typo corrected to 180kW; all savings/PUE scaled to IT flagged unsupported without resolved metering.",
+        "issue": "Actual IT kW per DC"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Disclose both RTI 125% (p.20) and 90%/128% (p.25); diagnosis is mixed recirculation+bypass per stratification (p.27-p.29) and tile evidence (p.23-p.24 p.36), not recirculation-only; selective 125% citation rejected.",
+        "issue": "RTI baseline"
+      },
+      {
+        "action": "rejected",
+        "explanation": "Prior CHW-cal/vfd08/1p12in 7-12fps 168-190% runout with 1300gpm 55ft pumps +12/10-in 120/350ft rejected as fictional; none in p.8-p.36; 4380gpm vs ~2550gpm implied by 500T 4.7F (p.31) mismatch. Replaced with RAY-PMP-CORR (95% no warnings 54.1kW) vs RAY-PMP-14B (138% 53.2kW) vs RAY-PMP-BASE (194% 4.1kW) to show sizing sensitivity only; residuals 7-15% withdrawn; savings 11.1kW/18.7kW withdrawn.",
+        "issue": "Secondary pump model and savings"
+      },
+      {
+        "action": "rejected",
+        "explanation": "EPANET water cannot model air bypass/SAT/DX; UPS/lighting citations to CHW-base/CHW-1pump rejected; velocity quoted separately (5.106/10.416/5.315fps) for pipe context only; air psi vs inwc conflation withdrawn - report 0.02-0.05 inwc air (p.34) not water psi; measures are judgement from p.23-p.24 p.26-p.29 p.34-p.36, not simulated verification.",
+        "issue": "AM-1 AM-2 CP-1 EL-1 LT-1 verification"
+      },
+      {
+        "action": "fixed",
+        "explanation": "ATS5/ATS7 include other non-DC systems (p.11) and data are nameplate+assumed efficiency single spot (p.11); report 16%/17% dry/pumps (p.13-p.14) Table14 35/31kW (p.31) allocation preserved as report estimate with unknown non-DC share; 8760hr continuous extrapolation rejected without seasonal chiller staging metering (only 400T running p.14).",
+        "issue": "Glycol dry/pump apportionment"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Map per Tables3-4: DC1 7-1 to 7-5 five units (p.11), DC2 7-6 to 7-9 four units (p.12) with 7-6 OFF 0kW; DC2 firm already degraded (largest-out leaves 3/4 if another fails). Chiller firm largest 1200T out leaves 2400T >500T (p.31) adequate per firm definition. Pump firm not evaluable - nameplates withheld.",
+        "issue": "Firm capacity CAU/chiller/pump"
+      },
+      {
+        "action": "fixed",
+        "explanation": "PUE 2.2 DC1 2.34 DC2 Table5 (p.12) vs 2.20 Poor DC2 very close (p.18) noted; IT 46%/43% (p.13-p.14); 1.5-1.65 reachable withdrawn as verified outcome, retained only as ASSUMPTION engineering estimate reason: if 16-17% dry/pumps+11-17% DX+8-11% fans cut, requires withheld costs and metered savings arithmetic not available.",
+        "issue": "PUE target"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Flag p.17 13.8kV to 480 kV typo; correct is 480V per 277V/120/208V system (p.17); noted to prevent 480kV transmission confusion.",
+        "issue": "Voltage units"
+      },
+      {
+        "action": "rejected",
+        "explanation": "10kW heater typical (p.11), 50% lighting cut, full-load continuous pumps/fans rejected as basis for <3yr payback; all kWh= kW*8760 $=kWh*0.07 retained only as ASSUMPTION reason: task $0.07 + 24/7 duty, with sensitivity/metering required and HVAC interaction unaddressed.",
+        "issue": "Cost/payback assumptions"
+      }
+    ]
+  },
+  "runs": {
+    "test-fix1": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "id": "Rsup",
+            "head_ft": 120.0
+          },
+          {
+            "id": "Rret",
+            "head_ft": 100.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "elev_ft": 70.0
+          },
+          {
+            "id": "J2",
+            "elev_ft": 70.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "P1",
+            "from": "Rsup",
+            "to": "J1",
+            "length_ft": 300,
+            "diameter_in": 8
+          },
+          {
+            "id": "P2",
+            "from": "J1",
+            "to": "J2",
+            "length_ft": 100,
+            "diameter_in": 8
+          },
+          {
+            "id": "P3",
+            "from": "J2",
+            "to": "Rret",
+            "length_ft": 300,
+            "diameter_in": 8
+          }
+        ],
+        "pumps": [
+          {
+            "id": "PU1",
+            "from": "Rret",
+            "to": "Rsup",
+            "rated_gpm": 1200,
+            "rated_head_ft": 60,
+            "motor_hp": 30
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "PU1",
+            "on": true,
+            "flow_gpm": 2078.5,
+            "tdh_ft": 20.0,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 13.1,
+            "motor_hp": 30,
+            "electric_kw": 10.3,
+            "pct_of_rated_flow": 173
+          }
+        ],
+        "pipes": [
+          {
+            "id": "P1",
+            "flow_gpm": 1175.3,
+            "velocity_fps": 7.5
+          },
+          {
+            "id": "P2",
+            "flow_gpm": 1175.3,
+            "velocity_fps": 7.5
+          },
+          {
+            "id": "P3",
+            "flow_gpm": 1175.3,
+            "velocity_fps": 7.5
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_psi": 17.97
+          },
+          {
+            "id": "J2",
+            "pressure_psi": 16.73
+          }
+        ],
+        "warnings": [
+          "PU1: 173% of rated flow (far right on curve)"
+        ],
+        "total_pumped_gpm": 2078.5,
+        "total_pumped_mgd": 2.993,
+        "total_electric_kw": 10.3,
+        "specific_energy_kwh_per_ml": 21.9
+      }
+    },
+    "CHW-base": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "id": "CHWS-T",
+            "head_ft": 132.0
+          },
+          {
+            "id": "CHWR-T",
+            "head_ft": 100.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "DC1",
+            "elev_ft": 70.0
+          },
+          {
+            "id": "DC2",
+            "elev_ft": 70.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S-DC1",
+            "from": "CHWS-T",
+            "to": "DC1",
+            "length_ft": 350,
+            "diameter_in": 10
+          },
+          {
+            "id": "DC1-DC2",
+            "from": "DC1",
+            "to": "DC2",
+            "length_ft": 120,
+            "diameter_in": 10
+          },
+          {
+            "id": "DC2-R",
+            "from": "DC2",
+            "to": "CHWR-T",
+            "length_ft": 350,
+            "diameter_in": 10
+          }
+        ],
+        "pumps": [
+          {
+            "id": "SCHWP-A",
+            "from": "CHWR-T",
+            "to": "CHWS-T",
+            "rated_gpm": 1300,
+            "rated_head_ft": 55,
+            "motor_hp": 40
+          },
+          {
+            "id": "SCHWP-B",
+            "from": "CHWR-T",
+            "to": "CHWS-T",
+            "rated_gpm": 1300,
+            "rated_head_ft": 55,
+            "motor_hp": 40
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SCHWP-A",
+            "on": true,
+            "flow_gpm": 1952.0,
+            "tdh_ft": 32.0,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 19.8,
+            "motor_hp": 40,
+            "electric_kw": 15.5,
+            "pct_of_rated_flow": 150
+          },
+          {
+            "id": "SCHWP-B",
+            "on": true,
+            "flow_gpm": 1952.0,
+            "tdh_ft": 32.0,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 19.8,
+            "motor_hp": 40,
+            "electric_kw": 15.5,
+            "pct_of_rated_flow": 150
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S-DC1",
+            "flow_gpm": 2501.2,
+            "velocity_fps": 10.22
+          },
+          {
+            "id": "DC1-DC2",
+            "flow_gpm": 2501.2,
+            "velocity_fps": 10.22
+          },
+          {
+            "id": "DC2-R",
+            "flow_gpm": 2501.2,
+            "velocity_fps": 10.22
+          }
+        ],
+        "junctions": [
+          {
+            "id": "DC1",
+            "pressure_psi": 20.96
+          },
+          {
+            "id": "DC2",
+            "pressure_psi": 18.93
+          }
+        ],
+        "warnings": [
+          "SCHWP-A: 150% of rated flow (far right on curve)",
+          "SCHWP-B: 150% of rated flow (far right on curve)"
+        ],
+        "total_pumped_gpm": 3903.9,
+        "total_pumped_mgd": 5.622,
+        "total_electric_kw": 31.0,
+        "specific_energy_kwh_per_ml": 35.0
+      }
+    },
+    "CHW-1pump": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "id": "CHWS-T",
+            "head_ft": 132.0
+          },
+          {
+            "id": "CHWR-T",
+            "head_ft": 100.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "DC1",
+            "elev_ft": 70.0
+          },
+          {
+            "id": "DC2",
+            "elev_ft": 70.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S-DC1",
+            "from": "CHWS-T",
+            "to": "DC1",
+            "length_ft": 350,
+            "diameter_in": 10
+          },
+          {
+            "id": "DC1-DC2",
+            "from": "DC1",
+            "to": "DC2",
+            "length_ft": 120,
+            "diameter_in": 10
+          },
+          {
+            "id": "DC2-R",
+            "from": "DC2",
+            "to": "CHWR-T",
+            "length_ft": 350,
+            "diameter_in": 10
+          }
+        ],
+        "pumps": [
+          {
+            "id": "SCHWP-A",
+            "from": "CHWR-T",
+            "to": "CHWS-T",
+            "rated_gpm": 1300,
+            "rated_head_ft": 55,
+            "motor_hp": 40
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SCHWP-A",
+            "on": true,
+            "flow_gpm": 1952.0,
+            "tdh_ft": 32.0,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 19.8,
+            "motor_hp": 40,
+            "electric_kw": 15.5,
+            "pct_of_rated_flow": 150
+          }
+        ],
+        "pipes": [
+          {
+            "id": "S-DC1",
+            "flow_gpm": 2501.2,
+            "velocity_fps": 10.22
+          },
+          {
+            "id": "DC1-DC2",
+            "flow_gpm": 2501.2,
+            "velocity_fps": 10.22
+          },
+          {
+            "id": "DC2-R",
+            "flow_gpm": 2501.2,
+            "velocity_fps": 10.22
+          }
+        ],
+        "junctions": [
+          {
+            "id": "DC1",
+            "pressure_psi": 20.96
+          },
+          {
+            "id": "DC2",
+            "pressure_psi": 18.93
+          }
+        ],
+        "warnings": [
+          "SCHWP-A: 150% of rated flow (far right on curve)"
+        ],
+        "total_pumped_gpm": 1952.0,
+        "total_pumped_mgd": 2.811,
+        "total_electric_kw": 15.5,
+        "specific_energy_kwh_per_ml": 35.0
+      }
+    },
+    "CHW-loop2": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "id": "CHWR",
+            "head_ft": 100.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "DC1",
+            "elev_ft": 70.0
+          },
+          {
+            "id": "DC2",
+            "elev_ft": 70.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "DC1-DC2",
+            "from": "DC1",
+            "to": "DC2",
+            "length_ft": 120,
+            "diameter_in": 10
+          },
+          {
+            "id": "DC2-R",
+            "from": "DC2",
+            "to": "CHWR",
+            "length_ft": 350,
+            "diameter_in": 10
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P-A",
+            "from": "CHWR",
+            "to": "DC1",
+            "rated_gpm": 1300,
+            "rated_head_ft": 55,
+            "motor_hp": 40
+          },
+          {
+            "id": "P-B",
+            "from": "CHWR",
+            "to": "DC1",
+            "rated_gpm": 1300,
+            "rated_head_ft": 55,
+            "motor_hp": 40
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "P-A",
+            "on": true,
+            "flow_gpm": 1828.5,
+            "tdh_ft": 37.07,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 21.4,
+            "motor_hp": 40,
+            "electric_kw": 16.8,
+            "pct_of_rated_flow": 141
+          },
+          {
+            "id": "P-B",
+            "on": true,
+            "flow_gpm": 1828.5,
+            "tdh_ft": 37.07,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 21.4,
+            "motor_hp": 40,
+            "electric_kw": 16.8,
+            "pct_of_rated_flow": 141
+          }
+        ],
+        "pipes": [
+          {
+            "id": "DC1-DC2",
+            "flow_gpm": 3656.9,
+            "velocity_fps": 14.94
+          },
+          {
+            "id": "DC2-R",
+            "flow_gpm": 3656.9,
+            "velocity_fps": 14.94
+          }
+        ],
+        "junctions": [
+          {
+            "id": "DC1",
+            "pressure_psi": 29.08
+          },
+          {
+            "id": "DC2",
+            "pressure_psi": 24.98
+          }
+        ],
+        "warnings": [
+          "P-A: 141% of rated flow (far right on curve)",
+          "P-B: 141% of rated flow (far right on curve)"
+        ],
+        "total_pumped_gpm": 3656.9,
+        "total_pumped_mgd": 5.266,
+        "total_electric_kw": 33.6,
+        "specific_energy_kwh_per_ml": 40.5
+      }
+    },
+    "CHW-cal": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "id": "CHWR",
+            "head_ft": 100.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "DC1",
+            "elev_ft": 70.0
+          },
+          {
+            "id": "DC2",
+            "elev_ft": 70.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "DC1-DC2",
+            "from": "DC1",
+            "to": "DC2",
+            "length_ft": 120,
+            "diameter_in": 12
+          },
+          {
+            "id": "DC2-R",
+            "from": "DC2",
+            "to": "CHWR",
+            "length_ft": 350,
+            "diameter_in": 12
+          }
+        ],
+        "pumps": [
+          {
+            "id": "SCHWP-A",
+            "from": "CHWR",
+            "to": "DC1",
+            "rated_gpm": 1300,
+            "rated_head_ft": 55,
+            "motor_hp": 40
+          },
+          {
+            "id": "SCHWP-B",
+            "from": "CHWR",
+            "to": "DC1",
+            "rated_gpm": 1300,
+            "rated_head_ft": 55,
+            "motor_hp": 40
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SCHWP-A",
+            "on": true,
+            "flow_gpm": 2190.1,
+            "tdh_ft": 21.3,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 14.8,
+            "motor_hp": 40,
+            "electric_kw": 11.6,
+            "pct_of_rated_flow": 168
+          },
+          {
+            "id": "SCHWP-B",
+            "on": true,
+            "flow_gpm": 2190.1,
+            "tdh_ft": 21.3,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 14.8,
+            "motor_hp": 40,
+            "electric_kw": 11.6,
+            "pct_of_rated_flow": 168
+          }
+        ],
+        "pipes": [
+          {
+            "id": "DC1-DC2",
+            "flow_gpm": 4380.1,
+            "velocity_fps": 12.43
+          },
+          {
+            "id": "DC2-R",
+            "flow_gpm": 4380.1,
+            "velocity_fps": 12.43
+          }
+        ],
+        "junctions": [
+          {
+            "id": "DC1",
+            "pressure_psi": 22.25
+          },
+          {
+            "id": "DC2",
+            "pressure_psi": 19.89
+          }
+        ],
+        "warnings": [
+          "SCHWP-A: 168% of rated flow (far right on curve)",
+          "SCHWP-B: 168% of rated flow (far right on curve)"
+        ],
+        "total_pumped_gpm": 4380.1,
+        "total_pumped_mgd": 6.307,
+        "total_electric_kw": 23.2,
+        "specific_energy_kwh_per_ml": 23.3
+      }
+    },
+    "CHW-vfd08": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "id": "CHWR",
+            "head_ft": 100.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "DC1",
+            "elev_ft": 70.0
+          },
+          {
+            "id": "DC2",
+            "elev_ft": 70.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "DC1-DC2",
+            "from": "DC1",
+            "to": "DC2",
+            "length_ft": 120,
+            "diameter_in": 12
+          },
+          {
+            "id": "DC2-R",
+            "from": "DC2",
+            "to": "CHWR",
+            "length_ft": 350,
+            "diameter_in": 12
+          }
+        ],
+        "pumps": [
+          {
+            "id": "SCHWP-A",
+            "from": "CHWR",
+            "to": "DC1",
+            "rated_gpm": 1300,
+            "rated_head_ft": 55,
+            "motor_hp": 40,
+            "speed": 0.8
+          },
+          {
+            "id": "SCHWP-B",
+            "from": "CHWR",
+            "to": "DC1",
+            "rated_gpm": 1300,
+            "rated_head_ft": 55,
+            "motor_hp": 40,
+            "speed": 0.8
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SCHWP-A",
+            "on": true,
+            "flow_gpm": 1743.4,
+            "tdh_ft": 13.96,
+            "speed": 0.8,
+            "efficiency": 0.8,
+            "shaft_hp": 7.7,
+            "motor_hp": 40,
+            "electric_kw": 6.0,
+            "pct_of_rated_flow": 134
+          },
+          {
+            "id": "SCHWP-B",
+            "on": true,
+            "flow_gpm": 1743.4,
+            "tdh_ft": 13.96,
+            "speed": 0.8,
+            "efficiency": 0.8,
+            "shaft_hp": 7.7,
+            "motor_hp": 40,
+            "electric_kw": 6.0,
+            "pct_of_rated_flow": 134
+          }
+        ],
+        "pipes": [
+          {
+            "id": "DC1-DC2",
+            "flow_gpm": 3486.8,
+            "velocity_fps": 9.89
+          },
+          {
+            "id": "DC2-R",
+            "flow_gpm": 3486.8,
+            "velocity_fps": 9.89
+          }
+        ],
+        "junctions": [
+          {
+            "id": "DC1",
+            "pressure_psi": 19.07
+          },
+          {
+            "id": "DC2",
+            "pressure_psi": 17.52
+          }
+        ],
+        "warnings": [
+          "SCHWP-A: 134% of rated flow (far right on curve)",
+          "SCHWP-B: 134% of rated flow (far right on curve)"
+        ],
+        "total_pumped_gpm": 3486.8,
+        "total_pumped_mgd": 5.021,
+        "total_electric_kw": 12.1,
+        "specific_energy_kwh_per_ml": 15.3
+      }
+    },
+    "CHW-1p12in": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "id": "CHWR",
+            "head_ft": 100.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "DC1",
+            "elev_ft": 70.0
+          },
+          {
+            "id": "DC2",
+            "elev_ft": 70.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "DC1-DC2",
+            "from": "DC1",
+            "to": "DC2",
+            "length_ft": 120,
+            "diameter_in": 12
+          },
+          {
+            "id": "DC2-R",
+            "from": "DC2",
+            "to": "CHWR",
+            "length_ft": 350,
+            "diameter_in": 12
+          }
+        ],
+        "pumps": [
+          {
+            "id": "SCHWP-A",
+            "from": "CHWR",
+            "to": "DC1",
+            "rated_gpm": 1300,
+            "rated_head_ft": 55,
+            "motor_hp": 40
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "SCHWP-A",
+            "on": true,
+            "flow_gpm": 2466.2,
+            "tdh_ft": 7.35,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 5.7,
+            "motor_hp": 40,
+            "electric_kw": 4.5,
+            "pct_of_rated_flow": 190
+          }
+        ],
+        "pipes": [
+          {
+            "id": "DC1-DC2",
+            "flow_gpm": 2466.2,
+            "velocity_fps": 7.0
+          },
+          {
+            "id": "DC2-R",
+            "flow_gpm": 2466.2,
+            "velocity_fps": 7.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "DC1",
+            "pressure_psi": 16.2
+          },
+          {
+            "id": "DC2",
+            "pressure_psi": 15.38
+          }
+        ],
+        "warnings": [
+          "SCHWP-A: 190% of rated flow (far right on curve)"
+        ],
+        "total_pumped_gpm": 2466.2,
+        "total_pumped_mgd": 3.551,
+        "total_electric_kw": 4.5,
+        "specific_energy_kwh_per_ml": 8.0
+      }
+    },
+    "RAY-PMP-BASE": {
+      "purpose": "",
+      "spec": {
+        "reservoirs": [
+          {
+            "head_ft": 80,
+            "id": "SRC"
+          },
+          {
+            "head_ft": 70,
+            "id": "DST"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 70,
+            "id": "JSUP"
+          },
+          {
+            "elev_ft": 70,
+            "id": "JDC1"
+          },
+          {
+            "elev_ft": 70,
+            "id": "JDC2"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 14,
+            "from": "JSUP",
+            "id": "M1",
+            "length_ft": 200,
+            "to": "JDC1"
+          },
+          {
+            "diameter_in": 14,
+            "from": "JDC1",
+            "id": "M2",
+            "length_ft": 200,
+            "to": "JDC2"
+          },
+          {
+            "diameter_in": 14,
+            "from": "JDC2",
+            "id": "M3",
+            "length_ft": 200,
+            "to": "DST"
+          },
+          {
+            "diameter_in": 12,
+            "from": "JSUP",
+            "id": "B1",
+            "length_ft": 150,
+            "to": "JDC1"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.75,
+            "from": "SRC",
+            "id": "PPA",
+            "motor_hp": 25,
+            "rated_gpm": 1300,
+            "rated_head_ft": 40,
+            "to": "JSUP"
+          },
+          {
+            "efficiency": 0.75,
+            "from": "SRC",
+            "id": "PPB",
+            "motor_hp": 25,
+            "rated_gpm": 1300,
+            "rated_head_ft": 40,
+            "to": "JSUP"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "PPA",
+            "on": true,
+            "flow_gpm": 2524.6,
+            "tdh_ft": 3.05,
+            "speed": 1.0,
+            "efficiency": 0.75,
+            "shaft_hp": 2.6,
+            "motor_hp": 25,
+            "electric_kw": 2.0,
+            "pct_of_rated_flow": 194
+          },
+          {
+            "id": "PPB",
+            "on": true,
+            "flow_gpm": 2524.6,
+            "tdh_ft": 3.05,
+            "speed": 1.0,
+            "efficiency": 0.75,
+            "shaft_hp": 2.6,
+            "motor_hp": 25,
+            "electric_kw": 2.0,
+            "pct_of_rated_flow": 194
+          }
+        ],
+        "pipes": [
+          {
+            "id": "M1",
+            "flow_gpm": 2838.7,
+            "velocity_fps": 5.92
+          },
+          {
+            "id": "M2",
+            "flow_gpm": 5049.2,
+            "velocity_fps": 10.52
+          },
+          {
+            "id": "M3",
+            "flow_gpm": 5049.2,
+            "velocity_fps": 10.52
+          },
+          {
+            "id": "B1",
+            "flow_gpm": 2210.5,
+            "velocity_fps": 6.27
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JSUP",
+            "pressure_psi": 5.66
+          },
+          {
+            "id": "JDC1",
+            "pressure_psi": 4.83
+          },
+          {
+            "id": "JDC2",
+            "pressure_psi": 2.41
+          }
+        ],
+        "warnings": [
+          "PPA: 194% of rated flow (far right on curve)",
+          "PPB: 194% of rated flow (far right on curve)"
+        ],
+        "total_pumped_gpm": 5049.2,
+        "total_pumped_mgd": 7.271,
+        "total_electric_kw": 4.1,
+        "specific_energy_kwh_per_ml": 3.6
+      }
+    },
+    "RAY-PMP-CORR": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 80,
+            "id": "SRC"
+          },
+          {
+            "head_ft": 70,
+            "id": "DST"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 70,
+            "id": "JSUP"
+          },
+          {
+            "elev_ft": 70,
+            "id": "JDC1"
+          },
+          {
+            "elev_ft": 70,
+            "id": "JDC2"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 10,
+            "from": "JSUP",
+            "id": "M1",
+            "length_ft": 800,
+            "to": "JDC1"
+          },
+          {
+            "diameter_in": 10,
+            "from": "JDC1",
+            "id": "M2",
+            "length_ft": 800,
+            "to": "JDC2"
+          },
+          {
+            "diameter_in": 10,
+            "from": "JDC2",
+            "id": "M3",
+            "length_ft": 800,
+            "to": "DST"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.75,
+            "from": "SRC",
+            "id": "PPA",
+            "motor_hp": 40,
+            "rated_gpm": 1300,
+            "rated_head_ft": 80,
+            "to": "JSUP"
+          },
+          {
+            "efficiency": 0.75,
+            "from": "SRC",
+            "id": "PPB",
+            "motor_hp": 40,
+            "rated_gpm": 1300,
+            "rated_head_ft": 80,
+            "to": "JSUP"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "PPA",
+            "on": true,
+            "flow_gpm": 1241.2,
+            "tdh_ft": 82.36,
+            "speed": 1.0,
+            "efficiency": 0.75,
+            "shaft_hp": 34.5,
+            "motor_hp": 40,
+            "electric_kw": 27.1,
+            "pct_of_rated_flow": 95
+          },
+          {
+            "id": "PPB",
+            "on": true,
+            "flow_gpm": 1241.2,
+            "tdh_ft": 82.36,
+            "speed": 1.0,
+            "efficiency": 0.75,
+            "shaft_hp": 34.5,
+            "motor_hp": 40,
+            "electric_kw": 27.1,
+            "pct_of_rated_flow": 95
+          }
+        ],
+        "pipes": [
+          {
+            "id": "M1",
+            "flow_gpm": 2482.4,
+            "velocity_fps": 10.14
+          },
+          {
+            "id": "M2",
+            "flow_gpm": 2482.4,
+            "velocity_fps": 10.14
+          },
+          {
+            "id": "M3",
+            "flow_gpm": 2482.4,
+            "velocity_fps": 10.14
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JSUP",
+            "pressure_psi": 40.05
+          },
+          {
+            "id": "JDC1",
+            "pressure_psi": 26.7
+          },
+          {
+            "id": "JDC2",
+            "pressure_psi": 13.35
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 2482.4,
+        "total_pumped_mgd": 3.575,
+        "total_electric_kw": 54.1,
+        "specific_energy_kwh_per_ml": 96.0
+      }
+    },
+    "RAY-PMP-14B": {
+      "purpose": "",
+      "spec": {
+        "units": "US",
+        "reservoirs": [
+          {
+            "head_ft": 80,
+            "id": "SRC"
+          },
+          {
+            "head_ft": 70,
+            "id": "DST"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_ft": 70,
+            "id": "JSUP"
+          },
+          {
+            "elev_ft": 70,
+            "id": "JDC1"
+          },
+          {
+            "elev_ft": 70,
+            "id": "JDC2"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 14,
+            "from": "JSUP",
+            "id": "M1",
+            "length_ft": 1500,
+            "to": "JDC1"
+          },
+          {
+            "diameter_in": 14,
+            "from": "JDC1",
+            "id": "M2",
+            "length_ft": 1500,
+            "to": "JDC2"
+          },
+          {
+            "diameter_in": 14,
+            "from": "JDC2",
+            "id": "M3",
+            "length_ft": 1500,
+            "to": "DST"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.75,
+            "from": "SRC",
+            "id": "PPA",
+            "motor_hp": 40,
+            "rated_gpm": 1300,
+            "rated_head_ft": 80,
+            "to": "JSUP"
+          },
+          {
+            "efficiency": 0.75,
+            "from": "SRC",
+            "id": "PPB",
+            "motor_hp": 40,
+            "rated_gpm": 1300,
+            "rated_head_ft": 80,
+            "to": "JSUP"
+          }
+        ]
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "PPA",
+            "on": true,
+            "flow_gpm": 1788.9,
+            "tdh_ft": 56.17,
+            "speed": 1.0,
+            "efficiency": 0.75,
+            "shaft_hp": 33.9,
+            "motor_hp": 40,
+            "electric_kw": 26.6,
+            "pct_of_rated_flow": 138
+          },
+          {
+            "id": "PPB",
+            "on": true,
+            "flow_gpm": 1788.9,
+            "tdh_ft": 56.17,
+            "speed": 1.0,
+            "efficiency": 0.75,
+            "shaft_hp": 33.9,
+            "motor_hp": 40,
+            "electric_kw": 26.6,
+            "pct_of_rated_flow": 138
+          }
+        ],
+        "pipes": [
+          {
+            "id": "M1",
+            "flow_gpm": 3577.7,
+            "velocity_fps": 7.46
+          },
+          {
+            "id": "M2",
+            "flow_gpm": 3577.7,
+            "velocity_fps": 7.46
+          },
+          {
+            "id": "M3",
+            "flow_gpm": 3577.7,
+            "velocity_fps": 7.46
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JSUP",
+            "pressure_psi": 28.7
+          },
+          {
+            "id": "JDC1",
+            "pressure_psi": 19.13
+          },
+          {
+            "id": "JDC2",
+            "pressure_psi": 9.57
+          }
+        ],
+        "warnings": [
+          "PPA: 138% of rated flow (far right on curve)",
+          "PPB: 138% of rated flow (far right on curve)"
+        ],
+        "total_pumped_gpm": 3577.7,
+        "total_pumped_mgd": 5.152,
+        "total_electric_kw": 53.2,
+        "specific_energy_kwh_per_ml": 65.5
+      }
+    }
+  },
+  "profiles": {},
+  "surges": {},
+  "drawing": null
+}

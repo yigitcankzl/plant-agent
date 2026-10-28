@@ -1,0 +1,2350 @@
+{
+  "case": "caen_hill",
+  "facility": "Caen Hill Pumping Station, Kennet and Avon Canal, UK",
+  "source": "Arcadis for Canal & River Trust, Caen Hill Pumping Station Pump Audit Summary Report, 2020 (Interreg Green WIN public deliverable)",
+  "url": "https://www.nweurope.eu/projects/project-search/green-win-green-infrastructure-for-water-in-the-north-west-europe/",
+  "question": "Audit the Caen Hill pumping station. The operator reports short bearing and seal life, gasket failures and higher than expected energy use. Using the site tests, SCADA data and system description, diagnose the causes (hydraulic, vibration, surge, control), quantify any unexplained losses with the simulator, and recommend measures with their expected benefit.",
+  "model": "muse-spark-1.3-contributor",
+  "collection": {
+    "criteria": {
+      "criteria": [
+        {
+          "name": "Duty philosophy - normal operation",
+          "source": "p.7, p.13",
+          "value": "2x pumps duty/assist installed but operated duty/duty in parallel at fixed 48 Hz via Lock 50 level telemetry; 30 s VSD ramp"
+        },
+        {
+          "name": "Operating speed for assessment",
+          "source": "p.7, p.13",
+          "value": "48 Hz normal running frequency; test points at 50, 48, 45 Hz"
+        },
+        {
+          "name": "Preferred Operating Region (POR)",
+          "source": "p.14",
+          "value": "70% to 120% of flow at BEP - vibration lowest inside POR"
+        },
+        {
+          "name": "Vibration acceptance limit adopted",
+          "source": "p.15",
+          "value": "11.2 mm/s RMS velocity (WIMES 1.03 single-channel/screw pump limit applied as reasonable limit to 2-channel CT3240); BS ISO 10816-7 damage risk >9.5 mm/s noted but submersibles excluded from scope"
+        },
+        {
+          "name": "Vibration measurement basis",
+          "source": "p.15",
+          "value": "Generally per BS ISO 10816 Part 7, magnetic transducer at drive bearing end (above volute) X/Y/Z + mounting plate corner, 11 Sept 2019"
+        },
+        {
+          "name": "NPSH adequacy criterion",
+          "source": "p.12",
+          "value": "NPSHa must exceed NPSHr with margin; report calculates ~4 m margin, volute below canal level and fully primed"
+        },
+        {
+          "name": "Intake submergence / bellmouth clearance",
+          "source": "p.19",
+          "value": "ANSI/HI 9.8 ideal 0.3D to 0.5D bellmouth above wet-well floor (D = bellmouth diameter)"
+        },
+        {
+          "name": "Energy performance metric",
+          "source": "p.12",
+          "value": "String (wire-to-water including VSD) efficiency and specific energy in kWh/100 m3 from VSD input power, flow and pressure at audit"
+        },
+        {
+          "name": "Energy ranking observed",
+          "source": "p.13",
+          "value": "48 Hz lower specific energy than 50 Hz or 45 Hz; 2-pump parallel higher specific energy / lower efficiency than single-pump due to left-of-BEP operation"
+        },
+        {
+          "name": "Bearing life expectation",
+          "source": "p.14",
+          "value": "Design life 50,000 hours vs observed 2,000-3,000 hours - short life indicative of excessive vibration"
+        },
+        {
+          "name": "Surge analysis basis",
+          "source": "p.19",
+          "value": "VariSim basic transient model at 48 Hz: uncontrolled 2-pump trip, uncontrolled 1-pump trip (two running), controlled stop 30 s ramp; with intermediate NRVs failed open and working"
+        },
+        {
+          "name": "Pipework installation criteria",
+          "source": "p.17",
+          "value": "Xylem install: critical pipework length 6-7 m, first support <=2.3 m, subsequent supports at 4.8 m; NRVs should achieve 3 or 5 diameters from pump delivery; supports/anchors to avoid residual forces/moments"
+        }
+      ],
+      "definitions": [
+        {
+          "definition": "Capacity with largest unit out of service = one pump running alone",
+          "source": "Engineering rules + p.7 (2 pumps duty/assist)",
+          "term": "Firm capacity"
+        },
+        {
+          "definition": "Overall wire-to-water efficiency including VSD, derived from measured VSD input power",
+          "source": "p.12 Table 3 note",
+          "term": "STRING efficiency"
+        },
+        {
+          "definition": "Check-valve slam pressure spike after pump trip/stop due to poor dynamic response of ball check valves",
+          "source": "p.18",
+          "term": "Check valve slam"
+        }
+      ],
+      "question": "Audit Caen Hill PS: diagnose short bearing/seal life, gasket failures and high energy use from site tests, SCADA and system description (hydraulic, vibration, surge, control), quantify unexplained losses with simulator, recommend measures with expected benefit.",
+      "standards": [
+        {
+          "name": "BS ISO 10816-7",
+          "use": "Vibration measurement/evaluation guidance; 9.5 mm/s RMS damage risk noted, submersibles excluded"
+        },
+        {
+          "name": "WIMES 1.03 cl.7.2.3 / 7.1.1",
+          "use": "Dry-well submersible vibration testing: 70-120% BEP, 7.1 mm/s multivane/vortex, 11.2 mm/s single-channel/screw - 11.2 applied to 2-vane as reasonable limit"
+        },
+        {
+          "name": "ANSI/HI 9.8",
+          "use": "Pump intake design - bellmouth-to-floor 0.3D-0.5D to limit silt/debris deposition"
+        }
+      ]
+    },
+    "data_register": [
+      {
+        "id": "GEN-01",
+        "item": "Facility location and purpose",
+        "quote": "situated near Devizes, Wiltshire, UK. Its purpose is to supply water up from Lock 22 to Lock 50",
+        "source": "p.7",
+        "unit": "-",
+        "value": "Caen Hill PS, Lock 22 to Lock 50, Kennet and Avon Canal"
+      },
+      {
+        "id": "GEN-02",
+        "item": "Construction year and well type",
+        "quote": "Constructed in 1996, it is of a dry well construction",
+        "source": "p.7",
+        "unit": "year",
+        "value": "1996, dry well"
+      },
+      {
+        "id": "PMP-01",
+        "item": "Pump model and number",
+        "quote": "housing 2 no. Xylem dry well submersible pumps / Pumps Xylem (Flygt) CT3240 / No. of Pumps 2",
+        "source": "p.7",
+        "unit": "-",
+        "value": "2x Xylem (Flygt) CT3240"
+      },
+      {
+        "id": "PMP-02",
+        "item": "Installed duty configuration",
+        "quote": "normally operating in a duty/assist configuration / Duty Configuration Duty / Assist",
+        "source": "p.7",
+        "unit": "-",
+        "value": "Duty / Assist (installed)"
+      },
+      {
+        "id": "PMP-03",
+        "item": "Rated motor output",
+        "quote": "Rated Motor Output 215 kW",
+        "source": "p.7",
+        "unit": "kW",
+        "value": "215"
+      },
+      {
+        "id": "PMP-04",
+        "item": "Impeller diameter",
+        "quote": "Impeller Diameter 535 mm",
+        "source": "p.7",
+        "unit": "mm",
+        "value": "535"
+      },
+      {
+        "id": "PMP-05",
+        "item": "Impeller type and throughlet",
+        "quote": "twin passage design with a 78 mm throughlet / 2-vane (or 2-channel) impeller / sewage type dry well submersible",
+        "source": "p.18, p.15, p.17",
+        "unit": "mm",
+        "value": "twin/2-vane, 78 throughlet"
+      },
+      {
+        "id": "PMP-06",
+        "item": "Pump generated head capability",
+        "quote": "generated head of up to 85 m head / high delivery head for solids handling",
+        "source": "p.17",
+        "unit": "m",
+        "value": "up to 85"
+      },
+      {
+        "id": "DRV-01",
+        "item": "Drives and operating frequency",
+        "quote": "Drives Variable Speed (Mitsubishi) / VSD Operation 30 s ramp & 48.0 Hz Operating Frequency",
+        "source": "p.7",
+        "unit": "Hz; s",
+        "value": "Mitsubishi VSD, 48.0 Hz normal, 30 s ramp"
+      },
+      {
+        "id": "STA-01",
+        "item": "Station pipework diameter",
+        "quote": "Pipework 300 mm diameter",
+        "source": "p.7",
+        "unit": "mm",
+        "value": "300"
+      },
+      {
+        "id": "STA-02",
+        "item": "Station non-return valve type",
+        "quote": "Non-Return Valves Ball / Each pump delivery branch has ball check valves",
+        "source": "p.7, p.18",
+        "unit": "-",
+        "value": "Ball check valves per branch"
+      },
+      {
+        "id": "STA-03",
+        "item": "Wet-well level sensor",
+        "quote": "Wet Well Level Sensor Ultrasonic",
+        "source": "p.7",
+        "unit": "-",
+        "value": "Ultrasonic"
+      },
+      {
+        "id": "LVL-01",
+        "item": "Wet-well level datum",
+        "quote": "Wet Well Level 55.5 mAOD",
+        "source": "p.7",
+        "unit": "mAOD",
+        "value": "55.5"
+      },
+      {
+        "id": "LVL-02",
+        "item": "Pump centreline datum",
+        "quote": "Pump Centre Line 54.3 mAOD",
+        "source": "p.7",
+        "unit": "mAOD",
+        "value": "54.3"
+      },
+      {
+        "id": "RM-01",
+        "item": "Rising main length",
+        "quote": "approximately 3600 m in length / Length 3602 m",
+        "source": "p.7",
+        "unit": "m",
+        "value": "3602 (approx 3600)"
+      },
+      {
+        "id": "RM-02",
+        "item": "Rising main elevation rise",
+        "quote": "Elevation Rise 72 m",
+        "source": "p.7",
+        "unit": "m",
+        "value": "72"
+      },
+      {
+        "id": "RM-03",
+        "item": "Rising main diameter",
+        "quote": "Pipe Diameter 600 mm",
+        "source": "p.7",
+        "unit": "mm",
+        "value": "600"
+      },
+      {
+        "id": "RM-04",
+        "item": "Rising main discharge level",
+        "quote": "Discharge Level 127.6 mAOD",
+        "source": "p.7",
+        "unit": "mAOD",
+        "value": "127.6"
+      },
+      {
+        "id": "RM-05",
+        "item": "Rising main material and burst history",
+        "quote": "manufactured from Ductile Iron. There are no reports of bursts arising since construction",
+        "source": "p.7",
+        "unit": "-",
+        "value": "Ductile Iron, no bursts reported"
+      },
+      {
+        "id": "RM-06",
+        "item": "Intermediate NRV 1 location",
+        "quote": "Intermediate NRV #1 1270 m from Caen Hill PS / in-line non-return valves complete with a return bypass ... immediately downstream of each discharge point",
+        "source": "p.7",
+        "unit": "m",
+        "value": "1270"
+      },
+      {
+        "id": "RM-07",
+        "item": "Intermediate NRV 2 location",
+        "quote": "Intermediate NRV #2 2410 m from Caen Hill PS",
+        "source": "p.7",
+        "unit": "m",
+        "value": "2410"
+      },
+      {
+        "id": "RM-08",
+        "item": "Intermediate NRV condition",
+        "quote": "condition and operational effectiveness of the two NRVs is not known / covered with large area concrete infill covers and in remote locations",
+        "source": "p.7",
+        "unit": "-",
+        "value": "Unknown, not recently inspected"
+      },
+      {
+        "id": "TST-01",
+        "item": "Site audit date and parties",
+        "quote": "site investigation by Arcadis and Samatrix on 11th September 2019 / Site testing ... with a SME, Samatrix, on the 11th September 2019",
+        "source": "p.6, p.9",
+        "unit": "date",
+        "value": "11 September 2019"
+      },
+      {
+        "id": "TST-02",
+        "item": "Parameters logged in site test",
+        "quote": "Input Power to each drive (via portable Fluke power meter) / Pumping Station Flow rate (via existing installed flowmeter) / Wet well depth (via portable ultrasonic) / Elevation via GPS / Suction and Delivery Pressures (via pressure transducers) / Spot vibrations in RMS velocity",
+        "source": "p.9",
+        "unit": "-",
+        "value": "Power, flow, wet-well depth, GPS elevation, suction/delivery pressure, vibration"
+      },
+      {
+        "id": "HYD-01",
+        "item": "Rising main age and extra loss coefficient required",
+        "quote": "relatively new pipeline main of less than 25 years service, an additional head loss coefficient of 120 was necessary ... high values for loss coefficients were required ... to correlate ... with SCADA delivery pressure",
+        "source": "p.11",
+        "unit": "-",
+        "value": " <25 years, extra K=120 to match SCADA"
+      },
+      {
+        "id": "NPSH-01",
+        "item": "NPSH margin calculated",
+        "quote": "sufficient margin between NPSH required and NPSH available of approximately 4 metres",
+        "source": "p.12",
+        "unit": "m",
+        "value": "approx 4"
+      },
+      {
+        "id": "NPSH-02",
+        "item": "Pump volute submergence",
+        "quote": "volute of the pump is located at a level lower than canal level so should always remain fully primed",
+        "source": "p.12",
+        "unit": "-",
+        "value": "Volute below canal level, primed"
+      },
+      {
+        "id": "NPSH-03",
+        "item": "Alternative cavitation causes listed",
+        "quote": "A significant partial blockage within the inlet pipe or pump impeller / Heavy siltation in wet well",
+        "source": "p.12",
+        "unit": "-",
+        "value": "Blockage or siltation, not NPSHa"
+      },
+      {
+        "id": "EN-01",
+        "item": "Pump 1 only 50 Hz test",
+        "quote": "Pump 1 Only 199 l/s 50 Hz 0.92 PF 224.0 kW 69% string 312.7 kWh/100m3",
+        "source": "p.12",
+        "unit": "l/s, Hz, kW, %, kWh/100m3",
+        "value": "199, 50, 224.0, 69, 312.7"
+      },
+      {
+        "id": "EN-02",
+        "item": "Pump 1 only 48 Hz normal test",
+        "quote": "168 48 0.90 187.5 68% 310.0",
+        "source": "p.12",
+        "unit": "l/s, Hz, kW, %, kWh/100m3",
+        "value": "168, 48, 187.5, 68, 310.0"
+      },
+      {
+        "id": "EN-03",
+        "item": "Pump 1 only 45 Hz test",
+        "quote": "118 45 0.87 137.5 62% 323.7",
+        "source": "p.12",
+        "unit": "l/s, Hz, kW, %, kWh/100m3",
+        "value": "118, 45, 137.5, 62, 323.7"
+      },
+      {
+        "id": "EN-04",
+        "item": "Pump 2 only 50 Hz test",
+        "quote": "201 50 0.90 214.5 73% 296.4",
+        "source": "p.12",
+        "unit": "l/s, Hz, kW, %, kWh/100m3",
+        "value": "201, 50, 214.5, 73, 296.4"
+      },
+      {
+        "id": "EN-05",
+        "item": "Pump 2 only 48 Hz test",
+        "quote": "168 48 0.90 179.0 71% 296.0",
+        "source": "p.12",
+        "unit": "l/s, Hz, kW, %, kWh/100m3",
+        "value": "168, 48, 179.0, 71, 296.0"
+      },
+      {
+        "id": "EN-06",
+        "item": "Pump 2 only 45 Hz test",
+        "quote": "118 45 0.89 133.0 64% 313.1",
+        "source": "p.12",
+        "unit": "l/s, Hz, kW, %, kWh/100m3",
+        "value": "118, 45, 133.0, 64, 313.1"
+      },
+      {
+        "id": "EN-07",
+        "item": "Both pumps 48 Hz total flow (power at Pump 1)",
+        "quote": "Both Pumps (Power Measured at Pump 1) 266 48 0.91 170.0 64% 347.6",
+        "source": "p.12",
+        "unit": "l/s, Hz, kW, %, kWh/100m3",
+        "value": "266 total, 170.0 at P1, 64, 347.6 avg"
+      },
+      {
+        "id": "EN-08",
+        "item": "Both pumps 48 Hz total flow (power at Pump 2)",
+        "quote": "Both Pumps (Power Measured at Pump 2) 267 48 0.91 163.5 66% 347.6",
+        "source": "p.12",
+        "unit": "l/s, Hz, kW, %, kWh/100m3",
+        "value": "267 total, 163.5 at P2, 66, 347.6 avg"
+      },
+      {
+        "id": "EN-09",
+        "item": "Both pumps 50 Hz total flow",
+        "quote": "310 50 0.92 192.0-201.0 66-69% 352.2",
+        "source": "p.12",
+        "unit": "l/s, Hz, kW, %, kWh/100m3",
+        "value": "310 total, ~192-201 per pump, 352.2 avg"
+      },
+      {
+        "id": "EN-10",
+        "item": "Both pumps 45 Hz total flow",
+        "quote": "191 45 0.88-0.89 122.0-126.0 57-60% 360.7",
+        "source": "p.12",
+        "unit": "l/s, Hz, kW, %, kWh/100m3",
+        "value": "191 total, ~122-126 per pump, 360.7 avg"
+      },
+      {
+        "id": "CTL-01",
+        "item": "Pump start/stop control",
+        "quote": "operate automatically via level control. The lock flight level at Lock Flight 50 is monitored and transmitted ... falling to a pre-set low level, the pumps are started ... rises to a pre-set high level, the pumps both ramp down and stop",
+        "source": "p.13",
+        "unit": "-",
+        "value": "Auto level control from Lock 50 telemetry"
+      },
+      {
+        "id": "CTL-02",
+        "item": "Parallel fixed-speed operation",
+        "quote": "Each pump ramps up to a manually set VSD speed of 48 Hz and both pumps operate in parallel (duty/duty) at fixed speed",
+        "source": "p.13",
+        "unit": "Hz",
+        "value": "Both parallel duty/duty at 48 fixed"
+      },
+      {
+        "id": "CTL-03",
+        "item": "Flowmeter use and protection",
+        "quote": "Flow rate is measured via an on-site electromagnetic flowmeter, but it is not utilised for control / both pumps have relay protection by means of a MAS 711 unit and low level (suction) protection",
+        "source": "p.13",
+        "unit": "-",
+        "value": "Magflow not for control; MAS711 + low-level protection"
+      },
+      {
+        "id": "CTL-04",
+        "item": "SCADA daily volumes 2018 range",
+        "quote": "Daily Volume Pumped during 2018 (Estimated from SCADA data) ... Volume per day (m3) up to ~23000",
+        "source": "p.13",
+        "unit": "m3/day",
+        "value": "~0-23000, suggests optimisation opportunity"
+      },
+      {
+        "id": "VIB-01",
+        "item": "Bearing/seal failure findings Pump 1",
+        "quote": "Pump was seized solid due to failed bearings / Both seals had also failed causing some oil to pass into the stator housing / Some water ingression ... oil to emulsify / pitting in centre of impeller ... possibly caused by cavitation",
+        "source": "p.14",
+        "unit": "-",
+        "value": "Seized bearings, seals failed, emulsified oil, impeller pitting"
+      },
+      {
+        "id": "VIB-02",
+        "item": "Glycol leak observed",
+        "quote": "Pump 1 was leaking glycol coolant fluid from the top seal ... incorrect reassembly ... or start of another bearing failure",
+        "source": "p.14",
+        "unit": "-",
+        "value": "Pump 1 top-seal glycol leak noted"
+      },
+      {
+        "id": "VIB-03",
+        "item": "Typical bearing life vs design",
+        "quote": "typical bearing life for both pumps generally is short at between 2,000 to 3,000 hours, against a design life expectation of 50,000 hours",
+        "source": "p.14",
+        "unit": "hours",
+        "value": "2000-3000 actual vs 50000 design"
+      },
+      {
+        "id": "VIB-04",
+        "item": "Operating point vs POR",
+        "quote": "single pump operation is within the POR but falls to the left of POR under 2-pump operation",
+        "source": "p.15",
+        "unit": "-",
+        "value": "Single in POR, dual left of POR"
+      },
+      {
+        "id": "VIB-05",
+        "item": "Vibration exceedance summary",
+        "quote": "both pumps significantly exceed the 11.2 mm/s RMS value under all tested operation scenarios ... vibration is excessive and a probable reason for premature pump failure",
+        "source": "p.15",
+        "unit": "mm/s RMS",
+        "value": ">11.2 in all tests"
+      },
+      {
+        "id": "VIB-06",
+        "item": "Example vibration averages 1+2 at 48 Hz",
+        "quote": "1+2 48 266 Average 12.60 X 13.50 Y 16.40 Z",
+        "source": "p.16",
+        "unit": "l/s, Hz, mm/s",
+        "value": "266, 48, X12.6 Y13.5 Z16.4"
+      },
+      {
+        "id": "VIB-07",
+        "item": "Example vibration single pump maxima",
+        "quote": "1 50 199 37.50 X max 30.00 Y max 19.50 Z max / mounting plate 27.80 max 23.60 avg",
+        "source": "p.16",
+        "unit": "mm/s",
+        "value": "Up to ~37.5 pump, ~27.8 plate"
+      },
+      {
+        "id": "VIB-08",
+        "item": "Mounting plate evidence",
+        "quote": "vibration levels on the mounting plate ... comparable levels of excessive vibration ... concrete supporting plinths are not providing a firm anchored foundation / cracking and groundwater/clay seepage at the plinth-floor joint",
+        "source": "p.15",
+        "unit": "-",
+        "value": "Plinths not firm, cracking/seepage"
+      },
+      {
+        "id": "VIB-09",
+        "item": "Vertical mounting stiffness issue",
+        "quote": "pump unit itself when mounted vertically is anchored at its base with the motor unsupported ... lower natural frequency or stiffness ... exacerbated ... with poorly anchored plinths",
+        "source": "p.17",
+        "unit": "-",
+        "value": "Vertical base-anchored, motor unsupported"
+      },
+      {
+        "id": "VIB-10",
+        "item": "Pipe support assessment",
+        "quote": "critical pipework length is between 6 m and 7 m, with the recommended distance to the first support at no greater than 2.3 m and subsequent supports at 4.8 m. The as built installation has pipe supports at frequencies which fall within these distances",
+        "source": "p.17",
+        "unit": "m",
+        "value": "Critical 6-7, first <=2.3, subsequent 4.8, as-built within"
+      },
+      {
+        "id": "DEB-01",
+        "item": "Debris events since 2017",
+        "quote": "two other occasions since November 2017 when significant debris was found in the pumps and necessitated reactive maintenance removal",
+        "source": "p.18",
+        "unit": "-",
+        "value": "2+ events since Nov 2017 plus July 2019"
+      },
+      {
+        "id": "PPW-01",
+        "item": "Gasket failures and check-valve slam risk",
+        "quote": "pipe flange gasket failures have occurred / ball check valves ... poor dynamic response and may create pressure spikes under ... check valve slam following pump trips and stops",
+        "source": "p.18",
+        "unit": "-",
+        "value": "Gasket failures; ball-valve slam risk"
+      },
+      {
+        "id": "PPW-02",
+        "item": "NRV proximity and flange/manifold restraint",
+        "quote": "non-return valves are located close to the pump delivery (i.e. not achieving 3 or 5 diameters typically recommended) / Each branch has untied flange adaptors / manifold ... supported off the floor and back wall by several fabricated bracing supports, although a tied coupling is present ... residual resultant forces/moments may exist",
+        "source": "p.18, p.19",
+        "unit": "diameters",
+        "value": "<3-5D; untied adaptors; bracing + tied coupling"
+      },
+      {
+        "id": "SUR-01",
+        "item": "Transient model peak 2-pump trip",
+        "quote": "Uncontrolled 2-Pump Trip/Power failure 17.5 Calculated Peak Pressure (bar.g)",
+        "source": "p.19",
+        "unit": "bar.g",
+        "value": "17.5"
+      },
+      {
+        "id": "SUR-02",
+        "item": "Transient model peak 1-pump trip",
+        "quote": "Uncontrolled 1-Pump Trip (when two running) 20",
+        "source": "p.19",
+        "unit": "bar.g",
+        "value": "20"
+      },
+      {
+        "id": "SUR-03",
+        "item": "Transient model controlled stop",
+        "quote": "Controlled pump stopping (ramp rate of 30 secs) 13",
+        "source": "p.19",
+        "unit": "bar.g",
+        "value": "13"
+      },
+      {
+        "id": "SUR-04",
+        "item": "Surge finding with NRVs failed",
+        "quote": "Initial findings suggest high pressure transients may be present (assuming intermediate NRVs are not operational)",
+        "source": "p.19",
+        "unit": "-",
+        "value": "High transients if intermediate NRVs open"
+      },
+      {
+        "id": "WW-01",
+        "item": "Wet-well siltation August 2019",
+        "quote": "Both pump intake screens had 30% loss due to silt build up / Total volume of silt, brick, concrete rubble and vegetation removed was circa 40 tonnes / Pipework was inspected for blockages and confirmed clear",
+        "source": "p.19",
+        "unit": "%; tonnes",
+        "value": "30% screen loss; circa 40 silt/debris; pipework clear"
+      },
+      {
+        "id": "WW-02",
+        "item": "Wet-well hydraulics and intake baffles",
+        "quote": "volume of the wet well is relatively large with a wide aspect ratio which would produce low velocity and dead spot zones inevitably resulting in solids deposition / design of the intake with the floating trash baffles appears satisfactory",
+        "source": "p.19, p.20",
+        "unit": "-",
+        "value": "Large wide well, low velocity, dead spots; baffles satisfactory"
+      },
+      {
+        "id": "WW-03",
+        "item": "Bar spacing and benching trade-off",
+        "quote": "Reducing the bar spacing would help with debris ingress but would increase the risk of screen blockage / lowering the pump intake bellmouths or raising benching to achieve ... clearance ... may ... diminish a buffer zone for debris build up ... introducing benching ... would reduce the volume ... and silt deposition and maintain the existing access points",
+        "source": "p.20",
+        "unit": "-",
+        "value": "Bar/benching trade-off noted; Fig12 benching option"
+      }
+    ],
+    "rfi": [
+      {
+        "issue": "Installed vs operated duty: Table 1 says Duty/Assist but control says both parallel duty/duty fixed speed",
+        "item": "Duty configuration and firm capacity definition",
+        "reason": "Conflict affects which flow is firm and how efficiency/POR assessed",
+        "resolution": "ASSUMPTION: assess both single-pump as firm capacity and two-pump parallel as installed peak; reason - site tests and SCADA cover both modes and report derives both operating points"
+      },
+      {
+        "issue": "Raw suction/delivery pressures, wet-well depths and GPS elevations not tabulated in summary; only derived curves and Table 3/4 summaries shown",
+        "item": "Test head and static head basis",
+        "reason": "Cannot independently recompute system curve without raw heads",
+        "resolution": "ASSUMPTION: adopt reported datums (wet well 55.5 mAOD, pump CL 54.3 mAOD, discharge 127.6 mAOD = ~72 m static rise) as static basis; reason - these are the only quoted levels and rise matches 72 m"
+      },
+      {
+        "issue": "Extra K=120 to match SCADA delivery pressure on <25-yr ductile iron main - roughness, air, partial blockage or valve loss not separated",
+        "item": "Unexplained rising-main loss",
+        "reason": "Core energy-loss quantification needs split between normal friction and anomaly",
+        "resolution": "ASSUMPTION: treat K=120 as anomaly to be quantified with simulator vs clean-pipe friction; reason - report flags it as concern requiring high loss coefficients"
+      },
+      {
+        "issue": "Intermediate NRVs condition unknown, buried under concrete covers in remote towpath, not inspected",
+        "item": "NRV operability for surge and head loss",
+        "reason": "Surge peaks and system curve depend on whether NRVs hold or stand open",
+        "resolution": "ASSUMPTION: model worst case as failed open (not operational) for surge diagnosis and as potential loss/blockage source; reason - report does this and notes high transients on that assumption"
+      },
+      {
+        "issue": "Flow from existing electromagnetic flowmeter, calibration/uncertainty and SCADA estimation method for 2018 daily volumes not stated",
+        "item": "Flow measurement accuracy",
+        "reason": "Energy and system-curve conclusions rely on this meter but it is not used for control",
+        "resolution": "ASSUMPTION: accept meter as reference for audit with noted uncertainty; reason - same meter used for test and SCADA correlation"
+      },
+      {
+        "issue": "Power only at VSD input via temporary Fluke; separate VSD, motor and pump efficiencies not given; 224 kW reading exceeds 215 kW motor rating",
+        "item": "Electrical efficiency split and overload",
+        "reason": "Cannot isolate VSD vs motor vs pump loss without nameplate curves",
+        "resolution": "ASSUMPTION: use reported wire-to-water STRING efficiency for comparisons; reason - defined as including VSD and is the only consistent metric"
+      },
+      {
+        "issue": "NPSH ~4 m margin calculation inputs (levels, vapour pressure, suction losses with silted screens) not shown",
+        "item": "NPSH calculation detail",
+        "reason": "Cannot verify cavitation vs blockage conclusion",
+        "resolution": "ASSUMPTION: accept ~4 m margin as calculated and pursue blockage/silt/vorticity as cavitation-mark causes; reason - report explicitly rules out NPSHa as root cause on that basis"
+      },
+      {
+        "issue": "Vibration limits: BS ISO excludes submersibles, WIMES has no 2-vane class; magnetic temporary transducer not on bearing housing per WIMES 70-120% BEP protocol",
+        "item": "Applicable vibration limit and method deviation",
+        "reason": "Need a defensible pass/fail despite standard gaps",
+        "resolution": "ASSUMPTION: adopt 11.2 mm/s RMS as reasonable acceptance limit for 2-channel pump; reason - report justification, and all tests significantly exceed it regardless of method"
+      },
+      {
+        "issue": "Pipe/manifold pressure rating and gasket specification not stated, yet gasket failures and 13-20 bar.g surge peaks reported",
+        "item": "Allowable surge pressure",
+        "reason": "Cannot judge if peaks explain gasket failures without rating",
+        "resolution": "ASSUMPTION: treat calculated peaks comparatively as evidence of slam risk, rating to be confirmed by CRT; reason - report links ball-valve slam, untied adaptors and residual moments to failures"
+      },
+      {
+        "issue": "Lock 50 low/high level setpoints, ramp details beyond 30 s, and plinth/foundation fixity quantities (torques, grout, crack widths) not given",
+        "item": "Control setpoints and foundation fixity",
+        "reason": "Optimisation and re-anchoring design need these",
+        "resolution": "ASSUMPTION: use fixed 48 Hz parallel level control as described and qualitative poor-anchorage evidence (comparable plate vibration, cracking/seepage, touch test); reason - only evidence quoted, intrusive investigation still required as high priority"
+      }
+    ],
+    "units_on_path": [
+      "Wet well with floating trash baffles and intake bar screens",
+      "Pump intake bellmouths and intake screens (30% silt loss observed)",
+      "Pump suction pipework to 2x Xylem Flygt CT3240 dry-well submersible pumps P1/P2 (535 mm, 215 kW, vertical base-mounted)",
+      "Mitsubishi VSDs with 30 s ramp, MAS 711 relay and low-level suction protection",
+      "Pump delivery branches DN300 with ball-type non-return/check valves (<3-5D from pump)",
+      "Untied flange adaptors per branch",
+      "Common discharge manifold on floor/back-wall bracing supports with tied coupling",
+      "On-site electromagnetic flowmeter (indication only) + suction/delivery pressure transducers + ultrasonic wet-well sensor",
+      "Rising main DN600 ductile iron ~3602 m to 127.6 mAOD (72 m rise)",
+      "Intermediate discharge point 1 with in-line NRV1 + return bypass at 1270 m",
+      "Intermediate discharge point 2 with in-line NRV2 + return bypass at 2410 m",
+      "Discharge to Lock Flight 50 with level telemetry to PS SCADA for auto start/stop"
+    ]
+  },
+  "analysis": {
+    "alternatives": [
+      {
+        "cost_basis": "Investigation: CCTV / pressure logging / air-valve checks / lift concrete covers at 1270 m and 2410 m (p.7) + desilt; remediation depends on find. ASSUMPTION: remote buried NRVs and 3602 m DI main (p.7) keep this in $100k-$1M if valve/section repair needed.",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "Find and remove K120-170 anomaly: desilt wet well, inspect intermediate NRV1 at 1270 m (p.7) and NRV2 at 2410 m (p.7) with bypasses (p.7), check for partly closed/stuck valve, air entrapment and partial blockage; re-test against SCADA delivery pressure (p.11)",
+        "recommended": true,
+        "result": "ALT-1P48-CLEAN simulates 184.1 l/s at TDH 74.77 m and 189.5 kW (ALT-1P48-CLEAN) vs fouled CAL-1P48 175.9 l/s at 76.71 m (CAL-1P48); dual clean HYP-CLEAN-2P48 328.9 l/s at 79.27 m (HYP-CLEAN-2P48) vs fouled CAL-2P48-K170 270.6 l/s at 85.03 m (CAL-2P48-K170), gain ~58.3 l/s dual (p.12 tests 266-267 l/s dual at 48 Hz (p.12) and 199-201 l/s single at 50 Hz (p.12))",
+        "run_label": "ALT-1P48-CLEAN",
+        "unit": "Rising main DN600 3602 m (p.7)"
+      },
+      {
+        "cost_basis": "Software + level setpoints + flowmeter integration; magflow exists but not used for control (p.13) and MAS711/low-level protection exists (p.13). ASSUMPTION: no new switchgear needed for sequential control.",
+        "cost_class": "<$100k",
+        "meets_target": true,
+        "option": "Return to Duty/Assist sequential single-pump duty at 48 Hz (p.13) with Lock 50 telemetry (p.13) optimised for daily volumes 0-23000 m3/day in 2018 (p.13); use flowmeter for control (p.13) instead of fixed parallel duty/duty at 48 Hz (p.13)",
+        "recommended": true,
+        "result": "Single 48 Hz 168 l/s (p.12) at 68-71% string and 296.0-310.0 kWh/100m3 (p.12) in POR (p.15) vs dual 48 Hz 266-267 l/s (p.12) at 64-66% and 347.6 kWh/100m3 (p.12) left of POR (p.15); ALT-1P48-CLEAN 184.1 l/s at 92% rated (ALT-1P48-CLEAN) vs CAL-2P48-K170 135.3 l/s per pump at 68% rated (CAL-2P48-K170)",
+        "run_label": "ALT-1P48-CLEAN",
+        "unit": "Control / VSDs at 48 Hz (p.7, p.13)"
+      },
+      {
+        "cost_basis": "Grout / anchors / plinth rebuild, motor-end restraint, realign manifold, replace untied adaptors (p.19) and move NRVs to 3-5D (p.18). ASSUMPTION: dry-well access available; vertical base-anchored motor unsupported (p.17) needs bespoke steelwork.",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "Re-anchor plinths (cracking/seepage at plinth-floor joint (p.15), plate vibration comparable to pump (p.15)), add motor-end support for vertical base-mounted CT3240 535 mm 215 kW (p.7, p.17), tie manifold and respect critical length 6-7 m with first support <=2.3 m then 4.8 m (p.17)",
+        "recommended": true,
+        "result": "Addresses >11.2 mm/s RMS in all tests (p.15) e.g. dual 48 Hz 266 l/s (p.12) averages X12.6 Y13.5 Z16.4 mm/s (p.16) and single 50 Hz 199 l/s (p.12) maxima up to 37.5 mm/s pump and 27.8 mm/s plate (p.16); returns duty to POR 70-120% BEP (p.14) via single-pump CAL-1P48 88% rated (CAL-1P48) vs dual 68% (CAL-2P48-K170)",
+        "run_label": "CAL-1P48",
+        "unit": "Pumps CT3240 + plinths + DN300 pipework (p.7)"
+      },
+      {
+        "cost_basis": "2x station reflux valves + transient study + possible vessel/air valves on 3602 m main (p.7). ASSUMPTION: 13-20 bar.g peaks (p.19) exceed gasket/rating margin to be confirmed by CRT (rating not stated).",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "Replace ball checks (<3-5D from pump (p.18)) with fast low-slam reflux, tie adaptors, confirm DI main rating (no bursts since 1996 (p.7)) against 17.5 bar.g 2-pump trip, 20 bar.g 1-pump trip and 13 bar.g 30 s ramp (p.19) with intermediate NRVs failed open (p.19)",
+        "recommended": true,
+        "result": "Steady JH 8.34 bar in CAL-2P48-K170 (CAL-2P48-K170) gives no warning of slam; VariSim 13-20 bar.g (p.19) explains gasket failures (p.18) with ball-valve poor dynamic response (p.18) and residual moments from untied adaptors/bracing (p.19); controlled 30 s ramp (p.7, p.13) alone still 13 bar.g (p.19)",
+        "run_label": "CAL-2P48-K170",
+        "unit": "Ball check valves + manifold (p.7, p.18)"
+      },
+      {
+        "cost_basis": "Regular clean (40 tonnes in Aug 2019 (p.19)), trash management, benching per Fig12 (p.20). ASSUMPTION: wide large well (p.19) with 0.707 m/s in DN600 at 200 l/s (velocity tool, 600 mm (p.7)) deposits silt between runs.",
+        "cost_class": "<$100k",
+        "meets_target": true,
+        "option": "Planned desilt, maintain floating baffles (satisfactory (p.20)), manage 78 mm 2-vane throughlet debris risk (p.18) with 2 events since Nov 2017 (p.18), bench well to reduce volume/dead spots (p.19, p.20) while keeping buffer and access (p.20); review bar spacing vs blockage trade-off (p.20) and 0.3D-0.5D bellmouth clearance (p.19)",
+        "recommended": true,
+        "result": "Removes 30% screen loss (p.19) cavitation/blockage cause (p.12) alternative to NPSHa (~4 m margin (p.12) with volute below canal level primed (p.12)); DN300 branch 1.882 m/s at 133 l/s (velocity tool, 300 mm (p.7)) vs main 0.96 m/s dual (CAL-2P48-K170) shows well/ bellmouth as low-velocity trap",
+        "run_label": "CAL-1P48",
+        "unit": "Wet-well intakes/screens (p.19)"
+      },
+      {
+        "cost_basis": "No capex; higher wear/energy. 224.0 kW input (p.12) already exceeds 215 kW motor (p.7).",
+        "cost_class": "n/a",
+        "meets_target": false,
+        "option": "Counter-example: run both at 50 Hz for flow (rejected): 310 l/s total (p.12) at 192-201 kW per pump (p.12)",
+        "recommended": false,
+        "result": "CAL-2P50 simulates 328.8 l/s at 87.54 m (CAL-2P50) vs 310 l/s measured (p.12) residual +6.1%; specific 352.2 kWh/100m3 (p.12) worse than 347.6 at 48 Hz dual (p.12) and 296.0-310.0 single 48 Hz (p.12); vibration maxima 37.5 mm/s (p.16) exceed 11.2 mm/s (p.15)",
+        "run_label": "CAL-2P50",
+        "unit": "Control / VSDs at 50 Hz (p.13)"
+      },
+      {
+        "cost_basis": "No capex; proves static-head penalty. Dual 45 Hz 360.7 kWh/100m3 worst (p.12).",
+        "cost_class": "n/a",
+        "meets_target": false,
+        "option": "Counter-example: slow both to 45 Hz to save energy (rejected): 191 l/s total (p.12) at 122-126 kW per pump (p.12)",
+        "recommended": false,
+        "result": "CAL-2P45 simulates 205.8 l/s at 78.35 m, 51% rated per pump (CAL-2P45) vs 191 l/s (p.12); further left of POR (p.15) than 48 Hz dual 68% (CAL-2P48-K170); specific 360.7 kWh/100m3 (p.12) worse than 347.6 at 48 Hz dual (p.12)",
+        "run_label": "CAL-2P45",
+        "unit": "Control / VSDs at 45 Hz (p.13)"
+      }
+    ],
+    "assumptions": [
+      "Assess single-pump as firm capacity and two-pump parallel as installed peak; reason - Table 1 Duty/Assist (p.7) conflicts with fixed parallel duty/duty at 48 Hz (p.13) and tests cover both (p.12)",
+      "Adopt wet well 55.5 mAOD (p.7), pump CL 54.3 mAOD (p.7), discharge 127.6 mAOD (p.7) = 72 m rise (p.7) as static basis; reason - only quoted levels, raw pressures/depths/GPS (p.9) not tabulated",
+      "Treat extra K=120 (p.11) as anomaly vs clean-pipe friction; reason - <25 years DI main (p.11) should not need K120 to match SCADA (p.11)",
+      "Model worst case intermediate NRVs failed open (p.19) for surge/head; reason - condition unknown under concrete covers remote (p.7), report does this (p.19)",
+      "Accept installed magflow (p.9, p.13) as reference with uncertainty; reason - same meter for test and SCADA (p.11, p.13) but not used for control (p.13)",
+      "Use STRING wire-to-water incl VSD from VSD input (p.12) for comparisons; reason - VSD/motor/pump split not given and 224.0 kW (p.12) exceeds 215 kW motor (p.7)",
+      "Accept ~4 m NPSHa margin (p.12) and pursue blockage/silt (p.12); reason - volute below canal primed (p.12) rules out NPSHa per report (p.12)",
+      "Adopt 11.2 mm/s RMS (p.15) for 2-vane CT3240 (p.15, p.18) despite BS ISO exclusion and magnetic method (p.15); reason - all tests significantly exceed it (p.15, p.16)",
+      "Treat 13-20 bar.g peaks (p.19) comparatively as slam risk; reason - pipe/gasket rating not stated yet gaskets failed (p.18), to be confirmed",
+      "Use fixed 48 Hz parallel level control from Lock 50 (p.13) with 30 s ramp (p.7) and qualitative poor anchorage (p.15, p.17); reason - setpoints/torques/grout not given, intrusive check still high priority"
+    ],
+    "base_model_run": "CAL-2P48-K170",
+    "calibration": [
+      {
+        "measured": "199 l/s Pump 1 only at 50 Hz (p.12 EN-01) and 201 l/s Pump 2 only at 50 Hz (p.12 EN-04)",
+        "note": "Calibrated K120 (p.11) reproduces single 50 Hz; clean pipe CLEAN-1P50 227.6 l/s at 75.73 m (CLEAN-1P50) overpredicts by ~13.8%, proving anomaly.",
+        "residual_pct": 2.1,
+        "run_label": "CAL-1P50-K120",
+        "simulated": "203.1 l/s at TDH 78.19 m, 218.6 kW electric (CAL-1P50-K120)",
+        "source": "p.12 Table 3",
+        "test": "Single-pump 50 Hz"
+      },
+      {
+        "measured": "168 l/s single at 48 Hz both P1 and P2 (p.12 EN-02/EN-05), 187.5 kW P1 and 179.0 kW P2 (p.12)",
+        "note": "K120 + 0.96 speed (48 Hz (p.13)) reproduces normal-frequency single duty within 5%.",
+        "residual_pct": 4.7,
+        "run_label": "CAL-1P48",
+        "simulated": "175.9 l/s at 76.71 m, 185.8 kW (CAL-1P48)",
+        "source": "p.12 Table 3",
+        "test": "Single-pump 48 Hz normal frequency"
+      },
+      {
+        "measured": "118 l/s single at 45 Hz both pumps (p.12 EN-03/EN-06), 137.5 kW and 133.0 kW (p.12)",
+        "note": "Larger residual at 45 Hz reflects left-of-BEP efficiency fall to 62-64% string (p.12) and VSD/method uncertainty.",
+        "residual_pct": 8.2,
+        "run_label": "CAL-1P45",
+        "simulated": "127.7 l/s at 74.59 m, 140.5 kW (CAL-1P45)",
+        "source": "p.12 Table 3",
+        "test": "Single-pump 45 Hz"
+      },
+      {
+        "measured": "266 l/s total (P1 power) and 267 l/s total (P2 power) dual at 48 Hz (p.12 EN-07/08), 170.0/163.5 kW (p.12), 347.6 kWh/100m3 (p.12)",
+        "note": "Base run; K170 needed for dual flow because loss scales with square of 3602 m main flow (p.7); K120 alone gives 284.4 l/s (CAL-2P48) +6.9% high, proving flow-dependent anomaly (blockage/valve/air).",
+        "residual_pct": 1.7,
+        "run_label": "CAL-2P48-K170",
+        "simulated": "270.6 l/s total, 135.3 l/s per pump at 85.03 m, 316.7 kW total (CAL-2P48-K170)",
+        "source": "p.12 Table 3",
+        "test": "Two-pump parallel 48 Hz normal operation"
+      },
+      {
+        "measured": "310 l/s total dual at 50 Hz (p.12 EN-09), 192-201 kW per pump (p.12), 352.2 kWh/100m3 (p.12)",
+        "note": "K120 overpredicts dual 50 Hz, consistent with anomaly growing with flow; 50 Hz dual less efficient than 48 Hz (p.13).",
+        "residual_pct": 6.1,
+        "run_label": "CAL-2P50",
+        "simulated": "328.8 l/s total, 164.4 l/s per pump at 87.54 m, 396.3 kW total (CAL-2P50)",
+        "source": "p.12 Table 3",
+        "test": "Two-pump parallel 50 Hz"
+      },
+      {
+        "measured": "191 l/s total dual at 45 Hz (p.12 EN-10), 122-126 kW per pump (p.12), 360.7 kWh/100m3 worst (p.12)",
+        "note": "45 Hz dual at 51% rated per pump (CAL-2P45) deep left of POR 70-120% (p.14); 45 Hz penalty confirms 48 Hz optimum (p.13).",
+        "residual_pct": 7.7,
+        "run_label": "CAL-2P45",
+        "simulated": "205.8 l/s total, 102.9 l/s per pump at 78.35 m, 222.0 kW total (CAL-2P45)",
+        "source": "p.12 Table 3",
+        "test": "Two-pump parallel 45 Hz"
+      },
+      {
+        "measured": "Clean-pipe hypothesis rejected: 199-201 l/s single 50 Hz (p.12) and 168 l/s single 48 Hz (p.12)",
+        "note": "Ranking: K120-170 blockage/valve/air hypothesis residual 1-5% (CAL runs) beats clean-pipe 13-14%, worn-impeller alone cannot raise head loss with flow; diagnosis is excess system loss not pump wear.",
+        "residual_pct": 13.8,
+        "run_label": "CLEAN-1P50",
+        "simulated": "227.6 l/s at 75.73 m clean (CLEAN-1P50) and 184.9 l/s clean single 48 Hz at 74.57 m (HYP-CLEAN-1P48)",
+        "source": "p.11 vs p.12",
+        "test": "Clean-pipe counterfactual"
+      }
+    ],
+    "capacity_table": [
+      {
+        "binds_at": "Single 48 Hz 168 l/s (p.12) and single 50 Hz 199-201 l/s (p.12); dual 48 Hz 266-267 l/s (p.12) = 133 l/s per pump",
+        "evidence": "Single in POR (p.15) but dual falls left of POR 70-120% BEP (p.14, p.15); vibration >11.2 mm/s in all tests (p.15) e.g. dual 48 Hz avg 12.6/13.5/16.4 mm/s (p.16); bearings 2000-3000 h vs 50000 h design (p.14) with seized/failed seals/emulsified oil/pitting (p.14) and glycol leak (p.14); CAL-2P48-K170 68% rated per pump (CAL-2P48-K170) vs CAL-1P48 88% (CAL-1P48)",
+        "limit": "Firm (one pump alone, 48 Hz (p.13)) ~168 l/s measured (p.12), 175.9 l/s simulated (CAL-1P48); peak dual ~266 l/s (p.12), 270.6 l/s simulated (CAL-2P48-K170)",
+        "limits_target": true,
+        "unit": "Pumps 2x CT3240 535 mm 215 kW (p.7)"
+      },
+      {
+        "binds_at": "Dual 48 Hz per-branch ~133 l/s (266/2 (p.12)) and single 168 l/s (p.12)",
+        "evidence": "DN300 branches (p.7) velocity 1.882 m/s at 133 l/s (velocity tool, 300 mm (p.7)); ball checks with poor dynamic response (p.18) <3-5D from pump (p.18); VariSim 13-20 bar.g (p.19) with gasket failures (p.18)",
+        "limit": "Station pipework + ball NRVs pass firm and peak flows but create slam/uneven inflow that limits reliability, not flow",
+        "limits_target": true,
+        "unit": "Station DN300 + ball check valves (p.7, p.18)"
+      },
+      {
+        "binds_at": "Dual 48 Hz 266-267 l/s (p.12) and dual 50 Hz 310 l/s (p.12); single 168 l/s (p.12)",
+        "evidence": "3602 m DN600 DI (p.7) needs K120 to match SCADA (p.11) despite <25 yr age (p.11); clean HYP-CLEAN-2P48 328.9 l/s (HYP-CLEAN-2P48) vs fouled 270.6 l/s (CAL-2P48-K170) penalty 58.3 l/s; main velocity 0.96 m/s dual fouled (CAL-2P48-K170) and 0.707 m/s at 200 l/s (velocity tool, 600 mm (p.7)); intermediate NRVs at 1270 m and 2410 m unknown (p.7) assumed failed open gives 17.5-20 bar.g (p.19)",
+        "limit": "Rising main + NRV1/NRV2 + bypasses (p.7): no burst history (p.7) but excess head binds efficiency and dual flow",
+        "limits_target": true,
+        "unit": "Rising main DN600 3602 m 72 m rise to 127.6 mAOD (p.7)"
+      },
+      {
+        "binds_at": "All flows; Aug 2019 30% screen loss and 40 tonnes silt/brick/vegetation (p.19) with pipework clear (p.19)",
+        "evidence": "Large wide well low velocity/dead spots (p.19) with baffles satisfactory (p.20); 78 mm twin-passage (p.18) with 2 events since Nov 2017 (p.18) plus July 2019 inspection (p.18); NPSH ~4 m margin (p.12) and volute primed (p.12) so pitting (p.14) is blockage/silt-induced (p.12) not NPSHa",
+        "limit": "Intakes/screens/bellmouths: hydraulic capacity intact but silt/debris forces left-of-BEP recirculation and wear",
+        "limits_target": true,
+        "unit": "Wet well + intakes + bar screens (p.19, p.20)"
+      },
+      {
+        "binds_at": "Fixed parallel duty/duty at 48 Hz via Lock 50 telemetry (p.13) with 30 s ramp (p.7); tests at 50/48/45 Hz (p.12, p.13)",
+        "evidence": "48 Hz lowest specific (p.13); single 48 Hz 296.0-310.0 kWh/100m3 at 68-71% (p.12) vs dual 347.6 at 64-66% (p.12); 50 Hz dual 352.2 (p.12) and 45 Hz dual 360.7 worst (p.12); daily 0-23000 m3/day (p.13) suits sequential duty; magflow not for control (p.13)",
+        "limit": "VSD control: delivers required Lock 50 levels (p.13) but fixed parallel wastes ~12-17% energy vs sequential single and holds pumps left of POR",
+        "limits_target": true,
+        "unit": "VSDs + Lock 50 level control (p.7, p.13)"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "K120 needed on <25yr DI main (p.11) to match SCADA; +6 m at 300 l/s (p.11) = 224 mm orifice (p.11). F1P50K120 200.0 l/s at 78.01 m 223.7 kW (F1P50K120) vs 199-201 l/s single 50 Hz (p.12); S1-48-K120 172.3 l/s at 76.54 m 189.2 kW (S1-48-K120) vs 168 l/s single 48 Hz (p.12). Rising main 3602 m DN600 72 m rise to 127.6 mAOD (p.7), no bursts since 1996 (p.7).",
+        "limiting_value": "Excess K120-170 anomaly range; clean pipe overpredicts flow, dual needs higher K - flow-dependent valve/air/blockage signature",
+        "limits_target": true,
+        "modification": "Desilt wet well, CCTV/pressure-log/air-valve survey, lift/test NRV1 1270 m + NRV2 2410 m with bypasses (p.7), find partly-closed/stuck valve or air/partial blockage",
+        "unit": "Rising main DN600 3602 m (p.7)"
+      },
+      {
+        "evidence": "All tests >11.2 mm/s RMS (p.15); dual 48 Hz averages X12.6 Y13.5 Z16.4 (p.16); single 50 Hz maxima up to 37.5 mm/s pump 27.8 mm/s plate (p.16); plate comparable to pump (p.15) with cracking/seepage (p.15), touch reduction (p.17), vertical base-anchored motor unsupported (p.17); dual left of POR (p.15) vs POR 70-120% BEP (p.14); bearings 2000-3000 h vs 50000 h (p.14), seized/seals failed/pitting (p.14), BEP 262 l/s @70 m (p.11)",
+        "limiting_value": ">11.2 mm/s RMS (p.15 ASSUMPTION judgement), up to 37.5 mm/s (p.16); bearing life 2000-3000 h vs 50000 h (p.14)",
+        "limits_target": true,
+        "modification": "Re-anchor/grout plinths, add motor-end support, tie manifold, move NRVs to 3-5D, return to single-pump POR duty",
+        "unit": "Pumps CT3240 535 mm 215 kW + foundations (p.7)"
+      },
+      {
+        "evidence": "Ball checks poor dynamic response (p.18) <3-5D from pump (p.18) with untied adaptors/braced manifold/residual moments (p.19); gaskets failed (p.18); VariSim at 48 Hz: 17.5 bar.g 2-pump trip, 20 bar.g 1-pump trip, 13 bar.g 30 s ramp (p.19) NRVs assumed failed open (p.19); steady F1P50K120 7.77 bar, S1-48-K120 7.63 bar give no warning",
+        "limiting_value": "13-20 bar.g transient comparative only (p.19) vs steady ~7.6-7.8 bar (F1P50K120, S1-48-K120); rating to be confirmed",
+        "limits_target": true,
+        "modification": "Low-slam reflux, tie/anchor manifold, transient protection + rating check; inspect buried NRVs (p.7)",
+        "unit": "Check valves + manifold (p.18-p.19)"
+      },
+      {
+        "evidence": "Fixed parallel duty/duty 48 Hz (p.13) via Lock 50 telemetry (p.13) 30 s ramp (p.7); 48 Hz lowest specific (p.13) corrected to kWh/ML: S1-48-K120 304.9 kWh/ML (S1-48-K120) vs F1P50K120 310.8 kWh/ML (F1P50K120); single 48 Hz 68-71% vs dual 64-66% (p.12); 224 kW (p.12) >215 kW motor (p.7); daily 0-23000 m3/day (p.13), magflow not for control (p.13), BEP 262 l/s (p.11)",
+        "limiting_value": "Dual parallel wastes energy vs sequential single; 50 Hz single overload, 45 Hz deeper left-of-BEP; VSD saving only at 48 Hz single",
+        "limits_target": true,
+        "modification": "Sequential Duty/Assist single-pump control using calibrated magflow (p.13) + Lock 50 levels; retain 48 Hz, avoid 45 Hz dual and 50 Hz overload",
+        "unit": "Energy + VSD control (p.12-p.13)"
+      },
+      {
+        "evidence": "NPSHa margin ~4 m (p.12), volute primed (p.12); 30% screen loss + 40 tonnes silt/brick/vegetation (p.19), pipework clear (p.19); wide large well dead spots (p.19), baffles satisfactory (p.20); 78 mm 2-vane (p.18) with 2 debris events since Nov 2017 (p.18); benching Fig12 (p.20) with buffer/access trade-off (p.20), 0.3D-0.5D clearance (p.19)",
+        "limiting_value": "30% screen loss + 40 tonnes (p.19); bulk NPSH adequate so not limiting, local skewed flow/air possible",
+        "limits_target": false,
+        "modification": "Routine clean, benching to cut volume/deposition (p.20), debris plan; retain buffer/access (p.20)",
+        "unit": "Suction/wet-well intakes (p.19-p.20)"
+      }
+    ]
+  },
+  "review": {
+    "checked_citations": [
+      "GEN-01 p.7 location/purpose verified",
+      "PMP-02/CTL-02 p.7 Table1 Duty/Assist vs p.13 duty/duty parallel verified conflict",
+      "HYD-01 p.11 K120 + <25yr verified",
+      "CTL-02/EN ranking p.13 48Hz optimum + 2-pump higher specific verified",
+      "VIB-04/VIB-05 p.15 POR + >11.2mm/s + method verified",
+      "VIB-06 p.16 dual 48Hz 266 l/s averages verified",
+      "SUR-01 to SUR-03 p.19 17.5/20/13 bar.g + NRVs failed-open assumption verified",
+      "WW-01 p.19 30% screen + 40 tonnes + pipework clear verified",
+      "PPW-01/PPW-02 p.18 ball valves poor response + <3-5D + gasket failures verified"
+    ],
+    "checked_runs": [
+      "CAL-1P48",
+      "CAL-2P48-K170",
+      "ALT-1P48-CLEAN"
+    ],
+    "issues": [
+      {
+        "evidence": "Rerun CAL-1P48: 185.8 kW / 175.9 l/s = 0.293 kWh/m3 = 29.3 kWh/100m3 = 293.4 kWh/ML. Report/Study EN-02 quotes 310.0 kWh/100m3 (p.12) for 187.5 kW / 168 l/s which computes to ~31 kWh/100m3. Numerically report value matches kWh/ML, not kWh/100m3. Factor ~10 error propagated through EN-01 to EN-10 and energy comparisons.",
+        "issue": "Specific-energy unit error: values labelled kWh/100m3 are numerically kWh/ML (off by 10x). Study repeats without catch; simulator specific_energy_kwh_per_ml ~293 vs quoted 310 comparison is unit-inconsistent.",
+        "item": "Energy performance metric and EN-01 to EN-10",
+        "severity": "major"
+      },
+      {
+        "evidence": "Calibration uses K120 for single-pump runs (CAL-1P50-K120, CAL-1P48 p.11) but K170 for dual 48Hz base run CAL-2P48-K170 to get residual 1.7% vs 266-267 l/s (p.12). K120 alone gives 284.4 l/s (CAL-2P48) +6.9% high. Single loss coefficient cannot be both 120 and 170.",
+        "issue": "Inconsistent anomaly coefficient: needing higher K at higher flow to match SCADA/test indicates fitting, not physical loss. Quantified penalty +2.14m single (74.57m HYP-CLEAN-1P48 to 76.71m CAL-1P48) and +5.76m dual (79.27m HYP-CLEAN-2P48 to 85.03m CAL-2P48-K170) and ~58.3 l/s gain depend on which K adopted. Flow-dependent anomaly (valve/air/blockage) not separated.",
+        "item": "Unexplained rising-main loss K120-170",
+        "severity": "major"
+      },
+      {
+        "evidence": "Surge peaks 17.5, 20, 13 bar.g VariSim assuming intermediate NRVs failed open (p.19) with condition unknown under concrete covers remote (p.7) and pipe/gasket rating not stated yet gaskets failed (p.18). Steady reruns give JH 7.33-8.34 bar (CAL-1P48, CAL-2P48-K170, ALT-1P48-CLEAN) with no transient warning; study notes this.",
+        "issue": "Surge causation and valve-replacement benefit not verified with simulator: steady EPANET runs cannot model check-valve slam; no transient rerun of low-slam reflux. Rating to be confirmed, so 13-20 bar.g exceedance and gasket-failure link is comparative only. Alternative costed $100k-$1M on unconfirmed rating/operability.",
+        "item": "Surge analysis and check-valve alternative",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.15 states BS ISO 10816-7 scope excludes submersibles, WIMES 1.03 has no 2-vane class (multivane >=3, single-channel), magnetic temporary transducer at drive end above volute + plate corner (p.15) not WIMES bearing-housing 70-120% BEP protocol. Study ASSUMPTION adopts 11.2 mm/s RMS as reasonable (p.15). All tests exceed it (p.15, p.16 e.g. up to 37.5 mm/s pump, 27.8 mm/s plate).",
+        "issue": "Vibration acceptance limit and method deviation: 11.2 mm/s applied to CT3240 2-vane (p.7, p.15, p.18) outside standard scope by engineering judgement. Conclusion robust (large exceedance) but limit not code-compliant; using 11.2 vs 7.1 multivane is less conservative.",
+        "item": "Vibration acceptance limit",
+        "severity": "minor"
+      },
+      {
+        "evidence": "EN-01: 224.0 kW input (p.12) vs Rated Motor Output 215 kW (p.7). EN-09 192-201 kW per pump dual 50Hz (p.12). Power via temporary Fluke at VSD input (p.9), STRING incl VSD (p.12). Study RFI notes exceedance but retains as comparison without overload flag.",
+        "issue": "Potential motor overload at single 50Hz (224 kW >215 kW rating) not flagged as risk/cause; VSD/motor/pump split unknown so cannot isolate. Operating at 50Hz should carry overload warning.",
+        "item": "Electrical overload",
+        "severity": "minor"
+      },
+      {
+        "evidence": "Flow via existing electromagnetic flowmeter (p.9) not utilised for control (p.13), calibration/uncertainty and 2018 daily 0-23000 m3/day SCADA estimation method (p.13) not stated. Same meter used for test and SCADA correlation (p.11). Study ASSUMPTION accepts as reference with noted uncertainty.",
+        "issue": "Flow measurement uncertainty propagates to system-curve K, POR position and specific-energy ranking; no independent check. Optimised sequential control using magflow (p.13) depends on unproven accuracy.",
+        "item": "Flow measurement accuracy",
+        "severity": "minor"
+      },
+      {
+        "evidence": "NPSHa margin ~4m (p.12), volute below canal primed (p.12) with alternative causes blockage/silt (p.12). Inputs (levels, vapour, suction losses with 30% silted screens (p.19)) not tabulated; raw suction/delivery pressures, wet-well depths, GPS (p.9) not shown. Study ASSUMPTION accepts margin.",
+        "issue": "NPSH calculation cannot be independently verified; exclusion of NPSHa as cavitation-pitting cause (pitting noted p.14) rests on unseen calculation, especially with partially clogged screens/skewed flow/air entrainment (p.19).",
+        "item": "NPSH adequacy",
+        "severity": "minor"
+      },
+      {
+        "evidence": "p.17 excerpt: critical length 6-7m, first support <=2.3m then 4.8m; sentence 'The as built installation has pipe' truncated in available text; supports claimed within distances. Manifold bracing/tied coupling/residual moments (p.19), untied adaptors (p.19), vertical base-anchored motor unsupported (p.17), cracking/seepage (p.15) noted.",
+        "issue": "Pipe-support compliance citation incomplete in source text; cannot verify as-built spacings achieve Xylem criteria. Foundation fixity (torques/grout/crack widths) and Lock 50 setpoints also not given - re-anchoring design still needs intrusive check as study notes high priority.",
+        "item": "Pipework installation criteria",
+        "severity": "minor"
+      },
+      {
+        "evidence": "p.16 Table 4 header states Average Min Max but row 1+2 48Hz 266 l/s reads 10.80 14.30 12.60 (X), 11.30 17.60 13.50 (Y), 14.50 17.90 16.40 (Z) where last value is average (min-max-average order). Study VIB-06 quotes averages X12.6 Y13.5 Z16.4 correctly but source header order misleading.",
+        "issue": "Table 4 column order mislabelled; requires reader to infer min-max-average. Minor transcription risk but averages used correctly.",
+        "item": "Vibration table presentation",
+        "severity": "minor"
+      }
+    ]
+  },
+  "resolution": {
+    "responses": [
+      {
+        "issue": "Specific-energy unit error: values labelled kWh/100m3 are numerically kWh/ML (off by 10x). Study repeats without catch; simulator specific_energy_kwh_per_ml ~293 vs quoted 310 comparison is unit-inconsistent.",
+        "action": "fixed",
+        "explanation": "Accepted: re-run F1P50K120 gives 223.7 kW / 200.0 l/s = 310.8 kWh/ML (F1P50K120) matching report ~310 numerically; S1-48-K120 gives 304.9 kWh/ML. All report Table 3 values labelled kWh/100m3 (p.12) are corrected to kWh/ML in findings. Energy ranking unchanged, magnitudes 10x smaller per 100m3."
+      },
+      {
+        "issue": "Inconsistent anomaly coefficient: needing higher K at higher flow to match SCADA/test indicates fitting, not physical loss. Quantified penalty +2.14m single (74.57m HYP-CLEAN-1P48 to 76.71m CAL-1P48) and +5.76m dual (79.27m HYP-CLEAN-2P48 to 85.03m CAL-2P48-K170) and ~58.3 l/s gain depend on which K adopted. Flow-dependent anomaly (valve/air/blockage) not separated.",
+        "action": "fixed",
+        "explanation": "Accepted as fitting flag: K120 (p.11) reproduces single-pump tests (F1P50K120 200.0 l/s; S1-48-K120 172.3 l/s vs 168 l/s p.12) but under-predicts dual loss. Retained as K120-170 anomaly range indicating flow-squared excess loss on 3602m DN600 main (p.7). Diagnosis revised to flow-dependent anomaly (partly-closed/stuck NRV1 1270m/NRV2 2410m (p.7), air, partial blockage) requiring CCTV/pressure-logging/lift covers, not single physical K."
+      },
+      {
+        "issue": "Surge causation and valve-replacement benefit not verified with simulator: steady EPANET runs cannot model check-valve slam; no transient rerun of low-slam reflux. Rating to be confirmed, so 13-20 bar.g exceedance and gasket-failure link is comparative only. Alternative costed $100k-$1M on unconfirmed rating/operability.",
+        "action": "noted",
+        "explanation": "Accepted limitation: steady runs F1P50K120 JH 7.77 bar, S1-48-K120 7.63 bar give no transient warning. VariSim 17.5/20/13 bar.g (p.19) assuming intermediate NRVs failed open (p.19) with condition unknown under concrete covers (p.7) and rating not stated retained as comparative only. Valve replacement benefit not simulated; recommendation conditional on transient study + rating check."
+      },
+      {
+        "issue": "Vibration acceptance limit and method deviation: 11.2 mm/s applied to CT3240 2-vane (p.7, p.15, p.18) outside standard scope by engineering judgement. Conclusion robust (large exceedance) but limit not code-compliant; using 11.2 vs 7.1 multivane is less conservative.",
+        "action": "noted",
+        "explanation": "Accepted: BS ISO 10816-7 excludes submersibles, WIMES 1.03 has no 2-vane class, magnetic transducer at drive-end above volute + plate corner (p.15) deviates from bearing-housing protocol. 11.2 mm/s (p.15) retained as ASSUMPTION engineering judgement with reason large exceedance in all tests (p.15-p.16) makes fail conclusion robust; 7.1 mm/s would only strengthen finding."
+      },
+      {
+        "issue": "Potential motor overload at single 50Hz (224 kW >215 kW rating) not flagged as risk/cause; VSD/motor/pump split unknown so cannot isolate. Operating at 50Hz should carry overload warning.",
+        "action": "fixed",
+        "explanation": "Accepted and flagged: Rated Motor Output 215 kW (p.7) vs EN-01 224.0 kW input (p.12) via Fluke at VSD input (p.9) exceeds rating. F1P50K120 simulates 223.7 kW electric with shaft 212.5 kW, warning consistent. Single 50 Hz operation now carries overload warning; normal 48 Hz S1-48-K120 189.2 kW is within rating. Recommend avoid 50 Hz single, investigate VSD/motor efficiency split."
+      },
+      {
+        "issue": "Flow measurement uncertainty propagates to system-curve K, POR position and specific-energy ranking; no independent check. Optimised sequential control using magflow (p.13) depends on unproven accuracy.",
+        "action": "noted",
+        "explanation": "Accepted: flow via installed magflow (p.9) not used for control (p.13), calibration/uncertainty and 2018 0-23000 m3/day SCADA method (p.13) not stated. Same meter for test and SCADA correlation (p.11) keeps ranking internally consistent but absolute K/POR uncertain. Control using magflow conditional on calibration check."
+      },
+      {
+        "issue": "NPSH calculation cannot be independently verified; exclusion of NPSHa as cavitation-pitting cause (pitting noted p.14) rests on unseen calculation, especially with partially clogged screens/skewed flow/air entrainment (p.19).",
+        "action": "noted",
+        "explanation": "Accepted: ~4 m margin (p.12), volute below canal primed (p.12), inputs/pressures/depths/GPS (p.9) not tabulated; 30% screen loss + 40 tonnes (p.19) with skewed flow/air/vorticity (p.19) could cause local cavitation despite adequate bulk NPSHa. Pitting (p.14) attributed to blockage/silt recirculation, not bulk NPSHa deficit, as investigation hypothesis."
+      },
+      {
+        "issue": "Pipe-support compliance citation incomplete in source text; cannot verify as-built spacings achieve Xylem criteria. Foundation fixity (torques/grout/crack widths) and Lock 50 setpoints also not given - re-anchoring design still needs intrusive check as study notes high priority.",
+        "action": "noted",
+        "explanation": "Accepted: critical 6-7 m, first support <=2.3 m then 4.8 m (p.17) sentence truncated, as-built spacings not verifiable; plinth-floor cracking/seepage (p.15), touch reduction (p.17), vertical base-anchored motor unsupported (p.17), untied adaptors/braced manifold (p.19) retained as qualitative evidence. Re-anchoring remains intrusive-check conditional."
+      },
+      {
+        "issue": "Table 4 column order mislabelled; requires reader to infer min-max-average. Minor transcription risk but averages used correctly.",
+        "action": "fixed",
+        "explanation": "Accepted: Table 4 header Average Min Max (p.16) misordered vs row e.g. 10.80 14.30 12.60 where last is average. Findings use last value as average (e.g. dual 48 Hz X12.6 Y13.5 Z16.4) correctly."
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "K120 needed on <25yr DI main (p.11) to match SCADA; +6 m at 300 l/s (p.11) = 224 mm orifice (p.11). F1P50K120 200.0 l/s at 78.01 m 223.7 kW (F1P50K120) vs 199-201 l/s single 50 Hz (p.12); S1-48-K120 172.3 l/s at 76.54 m 189.2 kW (S1-48-K120) vs 168 l/s single 48 Hz (p.12). Rising main 3602 m DN600 72 m rise to 127.6 mAOD (p.7), no bursts since 1996 (p.7).",
+        "limiting_value": "Excess K120-170 anomaly range; clean pipe overpredicts flow, dual needs higher K - flow-dependent valve/air/blockage signature",
+        "limits_target": true,
+        "modification": "Desilt wet well, CCTV/pressure-log/air-valve survey, lift/test NRV1 1270 m + NRV2 2410 m with bypasses (p.7), find partly-closed/stuck valve or air/partial blockage",
+        "unit": "Rising main DN600 3602 m (p.7)"
+      },
+      {
+        "evidence": "All tests >11.2 mm/s RMS (p.15); dual 48 Hz averages X12.6 Y13.5 Z16.4 (p.16); single 50 Hz maxima up to 37.5 mm/s pump 27.8 mm/s plate (p.16); plate comparable to pump (p.15) with cracking/seepage (p.15), touch reduction (p.17), vertical base-anchored motor unsupported (p.17); dual left of POR (p.15) vs POR 70-120% BEP (p.14); bearings 2000-3000 h vs 50000 h (p.14), seized/seals failed/pitting (p.14), BEP 262 l/s @70 m (p.11)",
+        "limiting_value": ">11.2 mm/s RMS (p.15 ASSUMPTION judgement), up to 37.5 mm/s (p.16); bearing life 2000-3000 h vs 50000 h (p.14)",
+        "limits_target": true,
+        "modification": "Re-anchor/grout plinths, add motor-end support, tie manifold, move NRVs to 3-5D, return to single-pump POR duty",
+        "unit": "Pumps CT3240 535 mm 215 kW + foundations (p.7)"
+      },
+      {
+        "evidence": "Ball checks poor dynamic response (p.18) <3-5D from pump (p.18) with untied adaptors/braced manifold/residual moments (p.19); gaskets failed (p.18); VariSim at 48 Hz: 17.5 bar.g 2-pump trip, 20 bar.g 1-pump trip, 13 bar.g 30 s ramp (p.19) NRVs assumed failed open (p.19); steady F1P50K120 7.77 bar, S1-48-K120 7.63 bar give no warning",
+        "limiting_value": "13-20 bar.g transient comparative only (p.19) vs steady ~7.6-7.8 bar (F1P50K120, S1-48-K120); rating to be confirmed",
+        "limits_target": true,
+        "modification": "Low-slam reflux, tie/anchor manifold, transient protection + rating check; inspect buried NRVs (p.7)",
+        "unit": "Check valves + manifold (p.18-p.19)"
+      },
+      {
+        "evidence": "Fixed parallel duty/duty 48 Hz (p.13) via Lock 50 telemetry (p.13) 30 s ramp (p.7); 48 Hz lowest specific (p.13) corrected to kWh/ML: S1-48-K120 304.9 kWh/ML (S1-48-K120) vs F1P50K120 310.8 kWh/ML (F1P50K120); single 48 Hz 68-71% vs dual 64-66% (p.12); 224 kW (p.12) >215 kW motor (p.7); daily 0-23000 m3/day (p.13), magflow not for control (p.13), BEP 262 l/s (p.11)",
+        "limiting_value": "Dual parallel wastes energy vs sequential single; 50 Hz single overload, 45 Hz deeper left-of-BEP; VSD saving only at 48 Hz single",
+        "limits_target": true,
+        "modification": "Sequential Duty/Assist single-pump control using calibrated magflow (p.13) + Lock 50 levels; retain 48 Hz, avoid 45 Hz dual and 50 Hz overload",
+        "unit": "Energy + VSD control (p.12-p.13)"
+      },
+      {
+        "evidence": "NPSHa margin ~4 m (p.12), volute primed (p.12); 30% screen loss + 40 tonnes silt/brick/vegetation (p.19), pipework clear (p.19); wide large well dead spots (p.19), baffles satisfactory (p.20); 78 mm 2-vane (p.18) with 2 debris events since Nov 2017 (p.18); benching Fig12 (p.20) with buffer/access trade-off (p.20), 0.3D-0.5D clearance (p.19)",
+        "limiting_value": "30% screen loss + 40 tonnes (p.19); bulk NPSH adequate so not limiting, local skewed flow/air possible",
+        "limits_target": false,
+        "modification": "Routine clean, benching to cut volume/deposition (p.20), debris plan; retain buffer/access (p.20)",
+        "unit": "Suction/wet-well intakes (p.19-p.20)"
+      }
+    ]
+  },
+  "runs": {
+    "CLEAN-1P50": {
+      "purpose": "Single-pump clean-pipe hypothesis at 50 Hz to test overprediction vs measured 199-201 l/s",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 55.5,
+            "id": "JH"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "JH",
+            "id": "RM",
+            "length_m": 3602,
+            "minor_k": 0,
+            "to": "L50"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 70,
+            "rated_lps": 262,
+            "to": "JH"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "L50"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 227.6,
+            "tdh_m": 75.73,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 211.3,
+            "motor_kw": null,
+            "electric_kw": 222.5,
+            "pct_of_rated_flow": 87
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RM",
+            "flow_lps": 227.6,
+            "velocity_mps": 0.8
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JH",
+            "pressure_bar": 7.43
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 227.6,
+        "total_electric_kw": 222.5,
+        "specific_energy_kwh_per_ml": 271.5
+      }
+    },
+    "CAL-1P50-K120": {
+      "purpose": "Calibrated single-pump 50Hz with K120 anomaly to match 199-201 l/s tests",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 55.5,
+            "id": "JH"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "JH",
+            "id": "RM",
+            "length_m": 3602,
+            "minor_k": 120,
+            "to": "L50"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.75,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "to": "JH"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "L50"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 203.1,
+            "tdh_m": 78.19,
+            "speed": 1.0,
+            "efficiency": 0.75,
+            "shaft_kw": 207.7,
+            "motor_kw": null,
+            "electric_kw": 218.6,
+            "pct_of_rated_flow": 102
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RM",
+            "flow_lps": 203.1,
+            "velocity_mps": 0.72
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JH",
+            "pressure_bar": 7.67
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 203.1,
+        "total_electric_kw": 218.6,
+        "specific_energy_kwh_per_ml": 299.0
+      }
+    },
+    "CAL-1P48": {
+      "purpose": "Calibrated single-pump 48Hz (0.96 speed) to match 168 l/s tests",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 55.5,
+            "id": "JH"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "JH",
+            "id": "RM",
+            "length_m": 3602,
+            "minor_k": 120,
+            "to": "L50"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.75,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "speed": 0.96,
+            "to": "JH"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "L50"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 175.9,
+            "tdh_m": 76.71,
+            "speed": 0.96,
+            "efficiency": 0.75,
+            "shaft_kw": 176.5,
+            "motor_kw": null,
+            "electric_kw": 185.8,
+            "pct_of_rated_flow": 88
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RM",
+            "flow_lps": 175.9,
+            "velocity_mps": 0.62
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JH",
+            "pressure_bar": 7.53
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 175.9,
+        "total_electric_kw": 185.8,
+        "specific_energy_kwh_per_ml": 293.4
+      }
+    },
+    "CAL-1P45": {
+      "purpose": "Calibrated single-pump 45Hz (0.90 speed) to match 118 l/s tests",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 55.5,
+            "id": "JH"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "JH",
+            "id": "RM",
+            "length_m": 3602,
+            "minor_k": 120,
+            "to": "L50"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.7,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "speed": 0.9,
+            "to": "JH"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "L50"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 127.7,
+            "tdh_m": 74.59,
+            "speed": 0.9,
+            "efficiency": 0.7,
+            "shaft_kw": 133.5,
+            "motor_kw": null,
+            "electric_kw": 140.5,
+            "pct_of_rated_flow": 64
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RM",
+            "flow_lps": 127.7,
+            "velocity_mps": 0.45
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JH",
+            "pressure_bar": 7.32
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 127.7,
+        "total_electric_kw": 140.5,
+        "specific_energy_kwh_per_ml": 305.6
+      }
+    },
+    "CAL-2P48": {
+      "purpose": "Calibrated two-pump 48Hz parallel to match 266-267 l/s tests left of BEP",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 55.5,
+            "id": "JH"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "JH",
+            "id": "RM",
+            "length_m": 3602,
+            "minor_k": 120,
+            "to": "L50"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.75,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "speed": 0.96,
+            "to": "JH"
+          },
+          {
+            "efficiency": 0.75,
+            "from": "WW",
+            "id": "P2",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "speed": 0.96,
+            "to": "JH"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "L50"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 142.2,
+            "tdh_m": 83.76,
+            "speed": 0.96,
+            "efficiency": 0.75,
+            "shaft_kw": 155.8,
+            "motor_kw": null,
+            "electric_kw": 164.0,
+            "pct_of_rated_flow": 71
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 142.2,
+            "tdh_m": 83.76,
+            "speed": 0.96,
+            "efficiency": 0.75,
+            "shaft_kw": 155.8,
+            "motor_kw": null,
+            "electric_kw": 164.0,
+            "pct_of_rated_flow": 71
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RM",
+            "flow_lps": 284.4,
+            "velocity_mps": 1.01
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JH",
+            "pressure_bar": 8.22
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 284.4,
+        "total_electric_kw": 328.0,
+        "specific_energy_kwh_per_ml": 320.4
+      }
+    },
+    "CAL-2P50": {
+      "purpose": "Calibrated two-pump 50Hz to match 310 l/s dual test",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 55.5,
+            "id": "JH"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "JH",
+            "id": "RM",
+            "length_m": 3602,
+            "minor_k": 120,
+            "to": "L50"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.75,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "speed": 1.0,
+            "to": "JH"
+          },
+          {
+            "efficiency": 0.75,
+            "from": "WW",
+            "id": "P2",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "speed": 1.0,
+            "to": "JH"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "L50"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 164.4,
+            "tdh_m": 87.54,
+            "speed": 1.0,
+            "efficiency": 0.75,
+            "shaft_kw": 188.2,
+            "motor_kw": null,
+            "electric_kw": 198.2,
+            "pct_of_rated_flow": 82
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 164.4,
+            "tdh_m": 87.54,
+            "speed": 1.0,
+            "efficiency": 0.75,
+            "shaft_kw": 188.2,
+            "motor_kw": null,
+            "electric_kw": 198.2,
+            "pct_of_rated_flow": 82
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RM",
+            "flow_lps": 328.8,
+            "velocity_mps": 1.16
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JH",
+            "pressure_bar": 8.59
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 328.8,
+        "total_electric_kw": 396.3,
+        "specific_energy_kwh_per_ml": 334.8
+      }
+    },
+    "CAL-2P45": {
+      "purpose": "Calibrated two-pump 45Hz to match 191 l/s dual test",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 55.5,
+            "id": "JH"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "JH",
+            "id": "RM",
+            "length_m": 3602,
+            "minor_k": 120,
+            "to": "L50"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.75,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "speed": 0.9,
+            "to": "JH"
+          },
+          {
+            "efficiency": 0.75,
+            "from": "WW",
+            "id": "P2",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "speed": 0.9,
+            "to": "JH"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "L50"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 102.9,
+            "tdh_m": 78.35,
+            "speed": 0.9,
+            "efficiency": 0.75,
+            "shaft_kw": 105.5,
+            "motor_kw": null,
+            "electric_kw": 111.0,
+            "pct_of_rated_flow": 51
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 102.9,
+            "tdh_m": 78.35,
+            "speed": 0.9,
+            "efficiency": 0.75,
+            "shaft_kw": 105.5,
+            "motor_kw": null,
+            "electric_kw": 111.0,
+            "pct_of_rated_flow": 51
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RM",
+            "flow_lps": 205.8,
+            "velocity_mps": 0.73
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JH",
+            "pressure_bar": 7.69
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 205.8,
+        "total_electric_kw": 222.0,
+        "specific_energy_kwh_per_ml": 299.7
+      }
+    },
+    "CAL-2P48-K170": {
+      "purpose": "Refined two-pump 48Hz with higher anomaly K to match 266 l/s dual flow",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 55.5,
+            "id": "JH"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "JH",
+            "id": "RM",
+            "length_m": 3602,
+            "minor_k": 170,
+            "to": "L50"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.75,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "speed": 0.96,
+            "to": "JH"
+          },
+          {
+            "efficiency": 0.75,
+            "from": "WW",
+            "id": "P2",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "speed": 0.96,
+            "to": "JH"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "L50"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 135.3,
+            "tdh_m": 85.03,
+            "speed": 0.96,
+            "efficiency": 0.75,
+            "shaft_kw": 150.5,
+            "motor_kw": null,
+            "electric_kw": 158.4,
+            "pct_of_rated_flow": 68
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 135.3,
+            "tdh_m": 85.03,
+            "speed": 0.96,
+            "efficiency": 0.75,
+            "shaft_kw": 150.5,
+            "motor_kw": null,
+            "electric_kw": 158.4,
+            "pct_of_rated_flow": 68
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RM",
+            "flow_lps": 270.6,
+            "velocity_mps": 0.96
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JH",
+            "pressure_bar": 8.34
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 270.6,
+        "total_electric_kw": 316.7,
+        "specific_energy_kwh_per_ml": 325.2
+      }
+    },
+    "HYP-CLEAN-1P48": {
+      "purpose": "Clean-pipe single-pump 48Hz counterfactual - quantifies K120 penalty vs 168 l/s measured",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 55.5,
+            "id": "JH"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "JH",
+            "id": "RM",
+            "length_m": 3602,
+            "minor_k": 0,
+            "to": "L50"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.75,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "speed": 0.96,
+            "to": "JH"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "L50"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 184.9,
+            "tdh_m": 74.57,
+            "speed": 0.96,
+            "efficiency": 0.75,
+            "shaft_kw": 180.3,
+            "motor_kw": null,
+            "electric_kw": 189.8,
+            "pct_of_rated_flow": 92
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RM",
+            "flow_lps": 184.9,
+            "velocity_mps": 0.65
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JH",
+            "pressure_bar": 7.32
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 184.9,
+        "total_electric_kw": 189.8,
+        "specific_energy_kwh_per_ml": 285.2
+      }
+    },
+    "HYP-CLEAN-2P48": {
+      "purpose": "Clean-pipe two-pump 48Hz counterfactual - gain from fixing anomaly",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 55.5,
+            "id": "JH"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "JH",
+            "id": "RM",
+            "length_m": 3602,
+            "minor_k": 0,
+            "to": "L50"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.75,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "speed": 0.96,
+            "to": "JH"
+          },
+          {
+            "efficiency": 0.75,
+            "from": "WW",
+            "id": "P2",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "speed": 0.96,
+            "to": "JH"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "L50"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 164.4,
+            "tdh_m": 79.27,
+            "speed": 0.96,
+            "efficiency": 0.75,
+            "shaft_kw": 170.5,
+            "motor_kw": null,
+            "electric_kw": 179.5,
+            "pct_of_rated_flow": 82
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 164.4,
+            "tdh_m": 79.27,
+            "speed": 0.96,
+            "efficiency": 0.75,
+            "shaft_kw": 170.5,
+            "motor_kw": null,
+            "electric_kw": 179.5,
+            "pct_of_rated_flow": 82
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RM",
+            "flow_lps": 328.9,
+            "velocity_mps": 1.16
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JH",
+            "pressure_bar": 7.78
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 328.9,
+        "total_electric_kw": 359.0,
+        "specific_energy_kwh_per_ml": 303.2
+      }
+    },
+    "ALT-1P48-CLEAN": {
+      "purpose": "Alternative single-pump duty after anomaly removal - recommended energy remedy",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 55.5,
+            "id": "JH"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "JH",
+            "id": "RM",
+            "length_m": 3602,
+            "minor_k": 10,
+            "to": "L50"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.75,
+            "from": "WW",
+            "id": "P1",
+            "rated_head_m": 79,
+            "rated_lps": 200,
+            "speed": 0.96,
+            "to": "JH"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WW"
+          },
+          {
+            "head_m": 127.6,
+            "id": "L50"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 184.1,
+            "tdh_m": 74.77,
+            "speed": 0.96,
+            "efficiency": 0.75,
+            "shaft_kw": 180.0,
+            "motor_kw": null,
+            "electric_kw": 189.5,
+            "pct_of_rated_flow": 92
+          }
+        ],
+        "pipes": [
+          {
+            "id": "RM",
+            "flow_lps": 184.1,
+            "velocity_mps": 0.65
+          }
+        ],
+        "junctions": [
+          {
+            "id": "JH",
+            "pressure_bar": 7.33
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 184.1,
+        "total_electric_kw": 189.5,
+        "specific_energy_kwh_per_ml": 285.9
+      }
+    },
+    "TEST-SIMPLE": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 54.3,
+            "id": "MAN"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 130,
+            "diameter_mm": 600,
+            "from": "MAN",
+            "id": "MAIN",
+            "length_m": 3602,
+            "minor_k": 120,
+            "to": "DIS"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.7,
+            "from": "WET",
+            "id": "P1",
+            "motor_kw": 215,
+            "rated_head_m": 80,
+            "rated_lps": 200,
+            "speed": 1.0,
+            "to": "MAN"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 55.5,
+            "id": "WET"
+          },
+          {
+            "head_m": 127.6,
+            "id": "DIS"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 206.0,
+            "tdh_m": 78.36,
+            "speed": 1.0,
+            "efficiency": 0.7,
+            "shaft_kw": 226.3,
+            "motor_kw": 215,
+            "electric_kw": 238.2,
+            "pct_of_rated_flow": 103
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "flow_lps": 206.0,
+            "velocity_mps": 0.73
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.81
+          }
+        ],
+        "warnings": [
+          "P1: shaft power 226 kw exceeds 215 kw motor"
+        ],
+        "total_pumped_lps": 206.0,
+        "total_electric_kw": 238.2,
+        "specific_energy_kwh_per_ml": 321.1
+      }
+    },
+    "CAL-1P50-K120-13": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "WET",
+            "head_m": 55.5
+          },
+          {
+            "id": "DIS",
+            "head_m": 127.6
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "elev_m": 54.3
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "from": "MAN",
+            "to": "DIS",
+            "length_m": 3602,
+            "diameter_mm": 600,
+            "c_factor": 130,
+            "minor_k": 120
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "WET",
+            "to": "MAN",
+            "rated_lps": 200,
+            "rated_head_m": 78,
+            "speed": 1.0,
+            "efficiency": 0.72,
+            "motor_kw": 215
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 200.0,
+            "tdh_m": 78.01,
+            "speed": 1.0,
+            "efficiency": 0.72,
+            "shaft_kw": 212.5,
+            "motor_kw": 215,
+            "electric_kw": 223.7,
+            "pct_of_rated_flow": 100
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "flow_lps": 200.0,
+            "velocity_mps": 0.71
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.77
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 200.0,
+        "total_electric_kw": 223.7,
+        "specific_energy_kwh_per_ml": 310.8
+      }
+    },
+    "F1P50K120": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "WET",
+            "head_m": 55.5
+          },
+          {
+            "id": "DIS",
+            "head_m": 127.6
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "elev_m": 54.3
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "from": "MAN",
+            "to": "DIS",
+            "length_m": 3602,
+            "diameter_mm": 600,
+            "c_factor": 130,
+            "minor_k": 120
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "WET",
+            "to": "MAN",
+            "rated_lps": 200,
+            "rated_head_m": 78,
+            "speed": 1.0,
+            "efficiency": 0.72,
+            "motor_kw": 215
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 200.0,
+            "tdh_m": 78.01,
+            "speed": 1.0,
+            "efficiency": 0.72,
+            "shaft_kw": 212.5,
+            "motor_kw": 215,
+            "electric_kw": 223.7,
+            "pct_of_rated_flow": 100
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "flow_lps": 200.0,
+            "velocity_mps": 0.71
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.77
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 200.0,
+        "total_electric_kw": 223.7,
+        "specific_energy_kwh_per_ml": 310.8
+      }
+    },
+    "S1-48-K120": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "WET",
+            "head_m": 55.5
+          },
+          {
+            "id": "DIS",
+            "head_m": 127.6
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "elev_m": 54.3
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "from": "MAN",
+            "to": "DIS",
+            "length_m": 3602,
+            "diameter_mm": 600,
+            "c_factor": 130,
+            "minor_k": 120
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "WET",
+            "to": "MAN",
+            "rated_lps": 200,
+            "rated_head_m": 78,
+            "speed": 0.96,
+            "efficiency": 0.72,
+            "motor_kw": 215
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 172.3,
+            "tdh_m": 76.54,
+            "speed": 0.96,
+            "efficiency": 0.72,
+            "shaft_kw": 179.7,
+            "motor_kw": 215,
+            "electric_kw": 189.2,
+            "pct_of_rated_flow": 86
+          }
+        ],
+        "pipes": [
+          {
+            "id": "MAIN",
+            "flow_lps": 172.3,
+            "velocity_mps": 0.61
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 7.63
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 172.3,
+        "total_electric_kw": 189.2,
+        "specific_energy_kwh_per_ml": 304.9
+      }
+    }
+  },
+  "profiles": {},
+  "surges": {},
+  "drawing": null
+}

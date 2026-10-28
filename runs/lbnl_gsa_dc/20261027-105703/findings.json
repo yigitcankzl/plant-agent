@@ -1,0 +1,37 @@
+[
+  {
+    "evidence": "Over-cooled SAT ~62F (p.23), SAT 60F deltaSAT 11F IATmax 82F IATmin 58F (p.26), intake avg 70F < ideal 80F (p.20), stratification Rack1 top/middle warmer than bottom (p.27) Rack15 bottom recirculation (p.28) Rack2 variation (p.29), open racks/tiles/PDU slots/open tops/misplaced tiles (p.23-p.24), subfloor 0.02-0.05 inwc rising after covering tiles (p.34 p.36), maps (p.35-p.36). RTI 125% Fair recirculating (p.20) contradicts RTI 90% average bypass (p.25) and Table13 RTI 128% (p.25); DCPro tool vs monitoring not reconciled (p.25-p.26). EPANET water runs cannot model air.",
+    "limiting_value": "RTI 125% (p.20) vs 90% (p.25); rack dT 8F Poor (p.20); 0.52 W/cfm Fair (p.20); RCI Lo94 Hi100 (p.20 p.30); 0.02-0.05 inwc (p.34)",
+    "limits_target": true,
+    "modification": "Seal bypass + tile re-layout + SAT reset judged from observations; no air-flow simulation possible; hydraulic proxy rejected as verification",
+    "unit": "DC1 7-1 to 7-5 (p.11) / DC2 7-6 to 7-9 (p.12) air distribution"
+  },
+  {
+    "evidence": "500 tons at CHWS 56F CHWR 60.7F BAS split unknown (p.31), only 400T stacked running others off (p.14), BAS CHWR 60 to 62F + CWS 52 to 58.3F heat to both sides erroneous (p.22), dual-coil CHW primary DX secondary +1 CHW-only (p.16), DX blocks 5-20kW (p.11-p.12), Table14 DC1 DX25 CHW12 dry/pumps35 fans25 total97 / DC2 DX30 CHW8 dry/pumps31 fans15 total84 (p.31)",
+    "limiting_value": "500T 4.7F delta (p.31); Table14 97/84kW cooling (p.31); PUE 2.2/2.34 Table5 (p.12) vs 2.20 Poor (p.18)",
+    "limits_target": true,
+    "modification": "Calibrate BAS + CHWS reset + CHW-first DX lockout judged; requires metering of CHW vs DX split withheld",
+    "unit": "Chillers 1200/1000/1000/400T + CT400/1200/1200 (p.15)"
+  },
+  {
+    "evidence": "RAY-PMP-CORR: 2x1241gpm 82.36ft 27.1kW each total 54.1kW 96.0kWh/ML 10.14fps 95% rated no warnings. RAY-PMP-14B: 2x1789gpm 56.17ft 26.6kW each total 53.2kW 65.5kWh/ML 7.46fps 138% warnings. RAY-PMP-BASE: 2x2525gpm 3.05ft 2.0kW each total 4.1kW 3.6kWh/ML M2 10.52fps 194% warnings. velocity: 10-in 1.8mgd=5.106fps, 10-in 3.672mgd=10.416fps, 14-in 3.672mgd=5.315fps. Prior CHW-cal 4380gpm vs 500T at 4.7F ~2550gpm mismatch proves prior sizing wrong.",
+    "limiting_value": "95% (RAY-PMP-CORR realistic) vs 138-194% runout (RAY-PMP-14B/BASE); 7.46-10.52fps high",
+    "limits_target": true,
+    "modification": "No verified pump kW savings; prior 11.1kW=97236kWh/yr $6807/yr rejected as artifact; need metered DP/flow + duty-standby study; VFD benefit not proven by model",
+    "unit": "Secondary CHW distribution analog only"
+  },
+  {
+    "evidence": "UPS Loss 5% DC1 4% DC2 + PDU 2% (p.13-p.14) Table5 12/8kW UPS +4/3kW PDU (p.12), single UPS no redundancy (p.21), Fig10 double vs delta vs flywheel curves (p.21), 30/75/160kVA (p.10), 13.8kV to 480 kV typo should be 480V (p.17), 120/208V +277V lighting (p.17)",
+    "limiting_value": "UPS 12/8kW + PDU 4/3kW (p.12); 4-5%+2% (p.13-p.14)",
+    "limits_target": false,
+    "modification": "ECO/load-factor study only; no electrical simulation performed; prior CHW-base citation rejected",
+    "unit": "UPS+PDUs"
+  },
+  {
+    "evidence": "Lighting 4kW DC1 +3kW DC2 estimated (p.18) =2% each (p.13-p.14), no controls (p.31), RH 20-30% dry make-up (p.34), rate 1-2F <9F limit (p.30), RCIHi>98 RCILo>94 (p.30). IT 118kW DC1 88kW DC2 text vs Table2 102/77kW (p.10) vs Table5 102/77kW (p.12); DC2 TOTAL 280kW typo should be 180kW (77+8+3+5+3+30+8+31+15=180) to give PUE 2.34 (p.12). ATS5 dry+primary+other non-DC, ATS7 secondary+other non-DC, nameplate+assumed efficiency single spot not average (p.11).",
+    "limiting_value": "7kW lighting (p.18); IT denominator 15-16% unresolved (p.10); dry/pumps apportionment unknown (p.11)",
+    "limits_target": false,
+    "modification": "Lighting LED/controls judgement only; prior 3.5kW 30660kWh/yr $2146/yr 50% cut rejected as unverified ASSUMPTION; all 8760hr x $0.07 extrapolations require metering + seasonal staging",
+    "unit": "Lighting + apportionment"
+  }
+]

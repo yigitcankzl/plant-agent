@@ -1,0 +1,12 @@
+# Step 5 - Capacity evaluation
+
+| unit | limit | binds_at | limits_target | evidence |
+|---|---|---|---|---|
+| EGPS 2-duty to Richmond S1.1 | 17.116 MGD duty (2 pumps) to Richmond, min WW max lift | 14.06 MGD total required now (1.06+13.0) (p.31) | False | Run CAL-BASE-2P-RICH: total 11886.3 gpm 17.116 MGD TDH 162.28 ft; disch 70.38 psi; HDPE 3.41 fps FRP 2.01 fps |
+| EGPS 2-duty to Henrico S1.2 | 16.171 MGD duty (2 pumps) to Henrico, min WW max lift | 14.06 MGD required (p.31); velocity 2.0-10.0 fps (p.38) | False | Run CAP-2P-HEN-DUTY: total 11229.8 gpm 16.171 MGD TDH 174.93 ft; HDPE 3.22 fps; disch 75.86 psi |
+| EGPS firm (1 of 2) — current | 6334.8 gpm firm (1 pump) — below required; FRP/DI velocity <2.0 fps minimum (p.38) | 14.06 MGD required (p.31) with largest of 2 out (C-FIRM task rule) | True | Run S1-2F-1P-RICH-MINWW: 6334.8 gpm single-pump TDH 146.26 ft; HDPE 1.81 fps FRP 1.07 fps DI 1.08 fps ASSUMPTION:~9.12 MGD by 0.00144 conversion |
+| EGPS 5-duty to Richmond S2.1 | 32.761 MGD duty (5 pumps) to Richmond, max WW | 27.09 MGD total 2045 (14.09+13.0) (p.31) | False | Run S2-1-5P-RICH-MAXWW: total 22750.5 gpm 32.761 MGD TDH 211.0 ft; HDPE 6.52 fps FRP 3.85 fps; disch 91.51 psi |
+| EGPS 5-duty to Henrico S2.2/S2.3 | ~30.29 MGD duty (5 pumps) to Henrico; EGPS 19876.6 gpm at 227.33 ft TDH with GM active, HDPE 5.69 fps, disch 98.59 psi | 27.09 MGD (p.31) | False | Run S2-2-5P-HEN-MINWW: 4206.8 gpm/pump TDH 221.02 ft ASSUMPTION:~21034 gpm ~30.29 MGD by arithmetic; run S2-3-5P-HEN-GM EGPS 19876.6 gpm + GM 4521.5 gpm =24398.0 gpm 35.133 MGD total with GM active |
+| EGPS firm (4 of 5) to Henrico — 2045 | ~26.85 MGD firm (4 of 5) to Henrico — ~0.24 MGD short of 27.09 MGD | 27.09 MGD (p.31) with largest of 5 out | True | Run S2-2F-4P-HEN-MINWW: 4660.9 gpm/pump TDH 207.6 ft ASSUMPTION:~18644 gpm ~26.85 MGD; run S2-3F-4P-HEN-GM firm EGPS 17670.9 gpm + GM 4711.5 gpm =22382.4 gpm 32.231 MGD combined |
+| EGPS firm (4 of 5) to Richmond — 2045 | 28.451 MGD firm (4 of 5) to Richmond — meets | 27.09 MGD (p.31) | False | Run S2-1F-4P-RICH-MINWW: total 19757.9 gpm 28.451 MGD TDH 198.69 ft; HDPE 5.66 fps |
+| Section B HDPE + remaining FRP/DI steady | Steady velocities pass (<10 fps); steady pressures below ratings but FRP margin <2 psi at 5-pump Henrico+GM before surge | Allowable 2.0-10.0 fps (p.38); HDPE surge 200 psig DI 660 psig FRP 100 psig (p.38) | True | Runs: HDPE 3.09 fps (S1-3-2P-HEN-GM) to 6.52 fps (S2-1-5P-RICH-MAXWW); steady disch 79.42 psi (S1-3) to 98.59 psi (S2-3-5P-HEN-GM); FRP downstream 62-82 psi steady |

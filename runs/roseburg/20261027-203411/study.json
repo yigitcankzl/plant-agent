@@ -1,0 +1,3576 @@
+{
+  "case": "roseburg",
+  "facility": "Winchester Water Treatment Plant, Roseburg, Oregon",
+  "source": "City of Roseburg, Water Treatment Facilities Preliminary Design Report, July 2009 (public record)",
+  "url": "https://roseburgor.gov/storage/app/media/PWD/Public%20Works%20Images%20and%20Docs/Water%20Treatment%20Facilities%20Preliminary%20Design%20Report.pdf",
+  "question": "Can the Winchester Water Treatment Plant be expanded from its current 12 mgd to 18 mgd? For each unit along the flow path, determine whether it limits 18 mgd, the flow at which it becomes limiting, and the least-cost modification that makes 18 mgd work.",
+  "model": "muse-spark-1.3-contributor",
+  "collection": {
+    "criteria": [
+      {
+        "name": "Study target - expand nominal 12 mgd to 18 mgd",
+        "source": "p.111 - single existing basin is rated at 12 mgd and was designed to be expanded with a parallel basin for an ultimate nominal treatment capacity of 18 mgd",
+        "value": "12 mgd existing nominal, 18 mgd future nominal"
+      },
+      {
+        "name": "Ultimate hydraulic basis for profile drawing",
+        "source": "dwg p.136 Note 2. BASED ON AN ULTIMATE PLANT FLOW OF 22 MGD.",
+        "value": "22 MGD hydraulic profile basis"
+      },
+      {
+        "name": "Ultimate hydraulic capacity of 2-basin pretreatment",
+        "source": "p.111 - with approximately 24 mgd of hydraulic capacity; p.112 - ultimate hydraulic capacity of the two basins in parallel is limited primarily by the settled water pipeline and that ultimate capacity is 22 to 24 mgd",
+        "value": "22-24 mgd hydraulic, 18 mgd nominal treatment for 2 basins"
+      },
+      {
+        "name": "Firm capacity definition",
+        "source": "Engineering rules - Firm capacity = capacity with the largest unit of a station out of service",
+        "value": "firm = N-1 largest unit out"
+      },
+      {
+        "name": "Raw-water pipeline max desirable velocity",
+        "source": "p.110 - The maximum desirable velocity in a transmission main of this type is typically 6.0 fps.",
+        "value": "6.0 fps"
+      },
+      {
+        "name": "Finished-water transmission velocity guide (same type main)",
+        "source": "ASSUMPTION - p.110 states 6.0 fps for raw-water transmission main of this type; Table 4-3 p.117 shows 5.97 fps at 18 mgd with no exceedance stated, apply same 6.0 fps screen; to be confirmed by headloss/TDH analysis",
+        "value": "6.0 fps screening"
+      },
+      {
+        "name": "Intake fish-protection approach velocity",
+        "source": "p.109 - maximum approach velocity for protection of fish applies at these openings. With a maximum approach velocity of 0.4 fps and with the gates fully submerged",
+        "value": "0.4 fps at 4-ft square gated openings outside fish screens"
+      },
+      {
+        "name": "Pretreatment freeboard adequacy",
+        "source": "p.111 - The freeboard from the top of maximum water surface to the top of walls is approximately 1.5 feet which is adequate.",
+        "value": "1.5 ft adequate"
+      },
+      {
+        "name": "Basin overflow weir datum",
+        "source": "p.111 - The overflow weir elevation is at 465.0 feet, approximately 1.0 feet higher than the normal filter operating level.",
+        "value": "465.0 ft, ~1.0 ft above normal filter level"
+      },
+      {
+        "name": "Normal filter operating level",
+        "source": "p.112 - The normal filter operating level ranges from 463 to 464 feet",
+        "value": "463-464 ft"
+      },
+      {
+        "name": "Filter-to-waste operation objective",
+        "source": "p.113 - It is desirable to modulate filter-to-waste flow to maintain relatively constant flow through all filters at all times.",
+        "value": "constant flow through all filters, avoid rapid increases/shear/breakthrough"
+      },
+      {
+        "name": "Clearwell operating levels",
+        "source": "dwg p.136 - NORMAL HIGH WS IN CLEARWELL 449.0 NORMAL OPERATING LEVEL 446.5 TO 448.0 DEPENDING UPON HYDRAULIC EFFICIENCY AFTER EXPANSION AND UPON CHLORINE RESIDUAL MAINTAINED.",
+        "value": "high 449.0 ft, normal 446.5-448.0 ft"
+      },
+      {
+        "name": "Clearwell storage datum at max depth",
+        "source": "p.114 - maximum storage volume ... at 10.5 foot water depth ... total maximum ... 627,000 gallons represents approximately 75 minutes (1.26 hours) of storage at the current maximum",
+        "value": "627,000 gal at 10.5 ft = 75 min at current max (~12 mgd)"
+      },
+      {
+        "name": "Backwash redundancy",
+        "source": "p.118-p.119 - Only one pump is required for backwashing each of the filter bays. The second pump serves as a spare/backup",
+        "value": "N+1, 1 duty + 1 spare"
+      },
+      {
+        "name": "Wastewater pump station firm basis",
+        "source": "p.119 - approximate firm capacity of this station is 3,000 gpm with one of the pumps out of service.",
+        "value": "3,000 gpm firm (1 of 3 out)"
+      },
+      {
+        "name": "Surge protection design criteria",
+        "source": "p.117 - Surge protection is provided for pumping rates up to 9,700 gpm (14.0 mgd) The maximum upsurge ... is controlled to 150 psi. The minimum allowable downsurge at the high service pump station is controlled to an HGL of 630 feet (approximately 175 feet of head or 75 psi assuming plant ground elevation of 455 feet.)",
+        "value": "14.0 mgd, 150 psi max upsurge, HGL 630 ft min downsurge at HSPS"
+      },
+      {
+        "name": "Hydraulic vs treatment capacity distinction",
+        "source": "p.107 - The hydraulic capacity is related to the piping, pumping, volume and flow control systems ... The treatment capacity is related to the ability of each treatment unit process to meet regulatory requirements",
+        "value": "evaluate both hydraulics and treatment/regulatory"
+      }
+    ],
+    "data_register": [
+      {
+        "id": "DR-INT-01",
+        "item": "River intake - gated openings to river",
+        "quote": "The intake structure has four gated openings to the North Umpqua River, each 4 feet square.",
+        "source": "p.109",
+        "unit": "ft",
+        "value": "4 openings, each 4x4 ft"
+      },
+      {
+        "id": "DR-INT-02",
+        "item": "River intake - traveling screens capacity",
+        "quote": "There are two traveling screens which screen the raw water before it enters the pump bay. These screens will pass up to 18 mgd or more of raw water.",
+        "source": "p.109",
+        "unit": "mgd",
+        "value": "up to 18 mgd or more (2 screens)"
+      },
+      {
+        "id": "DR-INT-03",
+        "item": "River intake - openings screens to pump bay",
+        "quote": "There are two 5 feet square gated openings between the traveling screens and the pump bay. These openings are of adequate size to supply the intake pumps with up to 24 mgd or more",
+        "source": "p.109",
+        "unit": "ft",
+        "value": "2 openings, each 5x5 ft, adequate to 24 mgd or more"
+      },
+      {
+        "id": "DR-INT-04",
+        "item": "River intake - river openings adequate",
+        "quote": "These openings are of adequate size to supply the intake pumps with up to 24 mgd or more of raw water.",
+        "source": "p.109",
+        "unit": "mgd",
+        "value": "4x4-ft openings adequate to 24 mgd or more (hydraulically, before fish-velocity limit)"
+      },
+      {
+        "id": "DR-INT-05",
+        "item": "Fish approach velocity limit location",
+        "quote": "The maximum velocity in the intake outside the traveling screens occurs at the 4 feet square gated openings. As discussed in Section 3, because these openings are located outside the fish screens, the maximum approach velocity for protection of fish applies at these openings. With a maximum approach velocity of 0.4 fps and with the gates fully submerged",
+        "source": "p.109",
+        "unit": "fps",
+        "value": "0.4 fps max approach at 4-ft openings, gates fully submerged"
+      },
+      {
+        "id": "DR-RWPS-01",
+        "item": "Raw water pump station - 2006 demonstrated capacity 3 pumps",
+        "quote": "On September 14, 2006 with Pump Nos. 1, 2 and 4 operating, the intake provided only 14 mgd.",
+        "source": "p.109",
+        "unit": "mgd",
+        "value": "14 mgd with Pump Nos. 1,2,4 operating"
+      },
+      {
+        "id": "DR-RWPS-02",
+        "item": "Raw water pump station - 2002 firm capacity test",
+        "quote": "Testing of the station in 2002 determined that the firm capacity of the station at that time was approximately 15.0 mgd.",
+        "source": "p.109",
+        "unit": "mgd",
+        "value": "approx 15.0 mgd firm (2002)"
+      },
+      {
+        "id": "DR-RWPS-03",
+        "item": "Raw water Pump No.3 underperformance",
+        "quote": "The 2002 test results appear to indicate that Pump No. 3 is pumping substantially below its rated capacity; however, Pump No. 3 was not operating during the test on September 14, 2006 and the capacity was even lower.",
+        "source": "p.109",
+        "unit": "none",
+        "value": "Pump No.3 substantially below rated (2002); not operating 2006 yet capacity lower"
+      },
+      {
+        "id": "DR-RWPS-04",
+        "item": "Raw water pump VFD",
+        "quote": "The City recently installed a VFD on Pump No. 2.",
+        "source": "p.109",
+        "unit": "none",
+        "value": "VFD on Pump No.2 installed; plus VFDs on one raw and one finished pump being installed per p.115"
+      },
+      {
+        "id": "DR-RWPL-01",
+        "item": "Raw water pipeline - diameter, material, wall",
+        "quote": "The raw water pumps discharge into an underground 30-inch diameter steel raw water pipeline ... The steel pipe has a 1/4-inch wall thickness.",
+        "source": "p.110",
+        "unit": "in",
+        "value": "30-in steel, 1/4-in wall"
+      },
+      {
+        "id": "DR-RWPL-02",
+        "item": "Raw water pipeline - flow meter",
+        "quote": "A 30-inch magnetic flow meter was installed on this pipeline in a below-grade vault in 2002",
+        "source": "p.110",
+        "unit": "in",
+        "value": "30-in mag meter (2002)"
+      },
+      {
+        "id": "DR-RWPL-03",
+        "item": "Raw water pipeline Table 4-1 velocities/headloss",
+        "quote": "TABLE 4-1 30-INCH RAW WATER PIPELINE VELOCITIES AND HEADLOSS Plant Flow (mgd) Velocity (fps) V2/2g (ft) Headloss (ft/100 ft) 8 2.6 0.116 0.05; 12 3.9 0.24 0.11; 18 5.9 0.54 0.25; 20 6.5 0.66 0.32; 24 7.8 0.90 0.44",
+        "source": "p.110",
+        "unit": "mgd/fps/ft",
+        "value": "8:2.6/0.116/0.05; 12:3.9/0.24/0.11; 18:5.9/0.54/0.25; 20:6.5/0.66/0.32; 24:7.8/0.90/0.44"
+      },
+      {
+        "id": "DR-RWPL-04",
+        "item": "Raw water pipeline velocity exceedance",
+        "quote": "As shown in the table, velocities through the 30-inch raw water pipeline exceed 6.0 fps at flows slightly over 18 mgd.",
+        "source": "p.110",
+        "unit": "fps/mgd",
+        "value": ">6.0 fps slightly over 18 mgd"
+      },
+      {
+        "id": "DR-RM-01",
+        "item": "Rapid mix basins - two parallel, one operated",
+        "quote": "There are two rapid mix basins in parallel, but currently only one rapid mixer is operated at any given time.",
+        "source": "p.110",
+        "unit": "none",
+        "value": "2 basins parallel, 1 operated currently"
+      },
+      {
+        "id": "DR-RM-02",
+        "item": "Rapid mix future operation",
+        "quote": "Under those conditions, both rapid mix basins will be operated in parallel at the higher flows.",
+        "source": "p.110",
+        "unit": "none",
+        "value": "both basins in parallel at higher (18 mgd) flows"
+      },
+      {
+        "id": "DR-PRE-01",
+        "item": "Existing floc/sed basin nominal rating",
+        "quote": "The single existing basin is rated at 12 mgd",
+        "source": "p.111",
+        "unit": "mgd",
+        "value": "12 mgd single basin"
+      },
+      {
+        "id": "DR-PRE-02",
+        "item": "Two-basin nominal and hydraulic rating",
+        "quote": "was designed to be expanded with a parallel basin for an ultimate nominal treatment capacity of 18 mgd, but with approximately 24 mgd of hydraulic capacity.",
+        "source": "p.111",
+        "unit": "mgd",
+        "value": "18 mgd nominal, ~24 mgd hydraulic (2 basins)"
+      },
+      {
+        "id": "DR-PRE-03",
+        "item": "Demonstrated pretreatment warm low-turbidity",
+        "quote": "this basin has been able to provide excellent pretreatment prior to filtration at sustained flows up to 11.5 mgd during the warm weather, low turbidity raw water conditions.",
+        "source": "p.111",
+        "unit": "mgd",
+        "value": "up to 11.5 mgd sustained demonstrated"
+      },
+      {
+        "id": "DR-PRE-04",
+        "item": "Normal cold high-turbidity flows",
+        "quote": "Normal plant flows during high turbidity, colder water conditions have ranged from 3.5 to 5.0 mgd.",
+        "source": "p.111",
+        "unit": "mgd",
+        "value": "3.5-5.0 mgd"
+      },
+      {
+        "id": "DR-PRE-05",
+        "item": "Sed basin launder weir and trough elevations",
+        "quote": "There is a triangular launder weir in the sedimentation basin with invert elevation of approximately 465.83 feet. The bottoms of the 12-inch deep launder troughs in the sedimentation basin are approximately elevation 464.63 feet.",
+        "source": "p.111",
+        "unit": "ft",
+        "value": "launder weir invert ~465.83; trough bottoms ~464.63 (12-in deep troughs)"
+      },
+      {
+        "id": "DR-PRE-06",
+        "item": "Sed basin freeboard",
+        "quote": "The freeboard from the top of maximum water surface to the top of walls is approximately 1.5 feet which is adequate.",
+        "source": "p.111",
+        "unit": "ft",
+        "value": "~1.5 ft adequate"
+      },
+      {
+        "id": "DR-PRE-07",
+        "item": "Sed basin overflow weir elevation and relation to filters",
+        "quote": "The overflow weir elevation is at 465.0 feet, approximately 1.0 feet higher than the normal filter operating level.",
+        "source": "p.111",
+        "unit": "ft",
+        "value": "465.0 ft, ~1.0 ft above normal filter level"
+      },
+      {
+        "id": "DR-PRE-08",
+        "item": "Sed basin overflow weir length and capacity",
+        "quote": "The weir is approximately 9 feet long with a capacity of approximately 12 mgd, assuming a 9-inch water depth over the weir.",
+        "source": "p.111",
+        "unit": "mgd/ft/in",
+        "value": "~9 ft long, ~12 mgd at 9-in depth"
+      },
+      {
+        "id": "DR-PRE-09",
+        "item": "Sed basin overflow drain pipe capacity and routing",
+        "quote": "The drain pipe is 30-inches in diameter, has a capacity of approximately 10 mgd, and delivers this flow to a diversion manhole with a weir. Under normal conditions sedimentation basin overflows are directed to the wastewater pump station, but if the pump station cannot handle the flow the water flows over the weir inside the diversion manhole and then to the river.",
+        "source": "p.111",
+        "unit": "mgd/in",
+        "value": "30-in drain ~10 mgd to diversion MH with weir; normal to WWPS, excess to river"
+      },
+      {
+        "id": "DR-PRE-10",
+        "item": "Future second overflow weir adequacy",
+        "quote": "A second overflow weir will be constructed along with the second flocculation/sedimentation basin when the plant is expanded; thus, the overflow system is adequate for an ultimate maximum plant capacity of 24 mgd.",
+        "source": "p.111",
+        "unit": "mgd",
+        "value": "2 weirs adequate to 24 mgd ultimate max"
+      },
+      {
+        "id": "DR-SWPL-01",
+        "item": "Settled water pipeline to filters - diameter and velocities",
+        "quote": "The settled water pipeline to the filters is a 42-inch diameter steel pipe. At 18 mgd the pipeline velocity will be 2.9 fps and at 24 mgd the pipeline velocity would be 3.9 fps.",
+        "source": "p.111",
+        "unit": "fps/mgd",
+        "value": "42-in steel; 2.9 fps at 18 mgd, 3.9 fps at 24 mgd"
+      },
+      {
+        "id": "DR-SWPL-02",
+        "item": "Settled water pipeline - measured headloss and channel level",
+        "quote": "During a flow test conducted on September 14, 2006, the head loss through the pipe was measured at 2.8-inches at a flow rate of 13.1 mgd. Under these conditions, the water surface in the settled water channel was approximately 6-inches below the basin overflow weir.",
+        "source": "p.111",
+        "unit": "in/mgd",
+        "value": "2.8-in HL at 13.1 mgd; WS ~6-in below overflow weir (i.e. ~464.5 ft vs 465.0 ft)"
+      },
+      {
+        "id": "DR-SWPL-03",
+        "item": "Settled water pipeline limits two-basin ultimate",
+        "quote": "The ultimate hydraulic capacity of the two basins in parallel is limited primarily by the settled water pipeline and that ultimate capacity is 22 to 24 mgd.",
+        "source": "p.112",
+        "unit": "mgd",
+        "value": "22-24 mgd (settled-water-pipe limited)"
+      },
+      {
+        "id": "DR-FLT-01",
+        "item": "Filter influent - channel and 20-in pipes",
+        "quote": "Settled water flows through the filter influent channel and enters each filter via a 20-inch pipe with isolation valve.",
+        "source": "p.112",
+        "unit": "in",
+        "value": "influent channel + 20-in pipe with valve per filter"
+      },
+      {
+        "id": "DR-FLT-02",
+        "item": "Filter normal operating level",
+        "quote": "The normal filter operating level ranges from 463 to 464 feet",
+        "source": "p.112",
+        "unit": "ft",
+        "value": "463-464 ft"
+      },
+      {
+        "id": "DR-FLT-03",
+        "item": "Filter-to-waste test flows",
+        "quote": "with ... a raw water flow of 9.1 mgd, the flow through filter No. 1 in filter-to-waste was estimated ... The filter-to-waste flow was approximately 2 mgd while the flow through the other two filters was greater than 3.4 mgd.",
+        "source": "p.113",
+        "unit": "mgd",
+        "value": "at 9.1 mgd raw: ~2 mgd to waste (Filter 1), >3.4 mgd each through Filters 2 and 4"
+      },
+      {
+        "id": "DR-CW-01",
+        "item": "Clearwell zone 1 under filters",
+        "quote": "Unbaffled area under the four filters with a maximum storage volume of approximately 170,000 gallons at 10.5 foot water depth.",
+        "source": "p.114",
+        "unit": "gal/ft",
+        "value": "~170,000 gal at 10.5 ft (unbaffled, 4 filters)"
+      },
+      {
+        "id": "DR-CW-02",
+        "item": "Clearwell zone 2 baffled",
+        "quote": "Baffled clearwell area underneath the chemical rooms and the blower room with a maximum storage volume of approximately 324,000 gallons at 10.5 foot water depth.",
+        "source": "p.114",
+        "unit": "gal/ft",
+        "value": "~324,000 gal at 10.5 ft (baffled)"
+      },
+      {
+        "id": "DR-CW-03",
+        "item": "Clearwell zone 3 under HS pump room",
+        "quote": "Unbaffled area underneath the high service pump room with a maximum storage volume of approximately 133,000 gallon at 10.5 foot water depth.",
+        "source": "p.114",
+        "unit": "gal",
+        "value": "~133,000 gal at 10.5 ft (unbaffled)"
+      },
+      {
+        "id": "DR-CW-04",
+        "item": "Clearwell total storage and time at current max",
+        "quote": "The total maximum treated water storage volume of 627,000 gallons represents approximately 75 minutes (1.26 hours) of storage at the current maximum",
+        "source": "p.114",
+        "unit": "gal/min",
+        "value": "627,000 gal = ~75 min (1.26 hr) at current max"
+      },
+      {
+        "id": "DR-CW-05",
+        "item": "Clearwell level control current",
+        "quote": "The clearwell level control is accomplished by manually throttling valves on the discharge piping of a raw water pump and a finished water pump",
+        "source": "p.115",
+        "unit": "none",
+        "value": "manual throttling of raw + finished pump discharges"
+      },
+      {
+        "id": "DR-FW-01",
+        "item": "Finished water header and site main",
+        "quote": "discharge into a steel header ... varies in diameter from 18-inch diameter at the east end to 30-inch diameter at the west end. ... The finished water transmission pipeline wall is 3/8-inch thick and the inside diameter is 29.25-inches.",
+        "source": "p.116",
+        "unit": "in",
+        "value": "18-in to 30-in header; buried main ID 29.25-in, 3/8-in wall"
+      },
+      {
+        "id": "DR-FW-02",
+        "item": "Finished water Table 4-3 site main velocities/headloss",
+        "quote": "TABLE 4-3 30-INCH FINISHED WATER TRANSMISSION MAIN VELOCITIES AND HEADLOSS Plant Flow (mgd) Velocity (fps) V2/2g (ft) Headloss (ft/100 ft) 8 2.65 0.109 0.05; 12 3.98 0.246 0.11; 18 5.97 0.553 0.25; 20 6.63 0.682 0.32; 24 7.96 0.984 0.44",
+        "source": "p.117",
+        "unit": "mgd/fps/ft",
+        "value": "8:2.65/0.109/0.05; 12:3.98/0.246/0.11; 18:5.97/0.553/0.25; 20:6.63/0.682/0.32; 24:7.96/0.984/0.44"
+      },
+      {
+        "id": "DR-FW-03",
+        "item": "Site main headloss significance",
+        "quote": "This small headloss increase is not significant within the total finished water transmission system headloss. Replacing pumps with a higher pumping head may be necessary to overcome the entire system headloss if an ultimate plant flow of greater than 18 mgd is to be provided, but not because of the small added headloss associated with this short transmission main segment.",
+        "source": "p.117",
+        "unit": "none",
+        "value": "short site segment HL small; higher head may be needed >18 mgd for entire system"
+      },
+      {
+        "id": "DR-SRG-01",
+        "item": "Surge tank size",
+        "quote": "The 1,900 cubic feet (14,200-gallon) tank was designed to provide both upsurge and downsurge protection",
+        "source": "p.117",
+        "unit": "cu ft/gal",
+        "value": "1,900 cu ft (14,200 gal)"
+      },
+      {
+        "id": "DR-SRG-02",
+        "item": "Surge protection flow and pressure criteria",
+        "quote": "Surge protection is provided for pumping rates up to 9,700 gpm (14.0 mgd) The maximum upsurge in the transmission pipeline between plant and terminal reservoirs is controlled to 150 psi. The minimum allowable downsurge at the high service pump station is controlled to an HGL of 630 feet (approximately 175 feet of head or 75 psi assuming plant ground elevation of 455 feet.)",
+        "source": "p.117",
+        "unit": "gpm/mgd/psi/ft",
+        "value": "up to 9,700 gpm (14.0 mgd); max upsurge 150 psi; min downsurge HGL 630 ft (~175 ft head / 75 psi at ground 455 ft)"
+      },
+      {
+        "id": "DR-SRG-03",
+        "item": "Second surge tank practicality",
+        "quote": "The addition of a second hydropneumatic surge tank is likely not practical due to space constraints at the site.",
+        "source": "p.117",
+        "unit": "none",
+        "value": "second tank likely not practical - space"
+      },
+      {
+        "id": "DR-TM-01",
+        "item": "Northerly transmission to reservoirs - existing mains",
+        "quote": "These mains are a 20-inch outside diameter steel main with a 3/16-inch thick wall and a 30-inch diameter Class 50 ductile iron main.",
+        "source": "p.117-p.118",
+        "unit": "in",
+        "value": "20-in OD steel (3/16-in wall) + 30-in Class 50 DI"
+      },
+      {
+        "id": "DR-TM-02",
+        "item": "Transmission improvements Phase 1 and 2",
+        "quote": "Phase 1 consisted of construction of approximately 9,400 feet of new parallel transmission piping and demolition of an existing booster pumping station. Phase 2 consisted of the easterly and southerly extension of a new 27-inch diameter transmission main approximately 1,600 feet long ... it is anticipated that a new 30-inch main will be constructed initially ... to replace the existing 27-inch main. A second parallel 30-inch main would be constructed in the future",
+        "source": "p.118",
+        "unit": "ft/in",
+        "value": "Ph1 ~9,400 ft parallel; Ph2 ~1,600 ft 27-in, now anticipated 30-in initially + 2nd parallel 30-in future"
+      },
+      {
+        "id": "DR-BW-01",
+        "item": "Air scour blower and air piping",
+        "quote": "The blower has a capacity of 1,050 scfm at 6.4 psi and is driven by a 60 hp motor. Low pressure air is directed to each of the filters through an 8-inch diameter air supply system.",
+        "source": "p.118",
+        "unit": "scfm/psi/hp/in",
+        "value": "1,050 scfm at 6.4 psi, 60 hp, 8-in air supply"
+      },
+      {
+        "id": "DR-BW-02",
+        "item": "Backwash pumps rating and redundancy",
+        "quote": "two constant-speed vertical turbine backwash pumps, each with a 50 hp motor, rated at 3,250 gpm at 41 feet TDH. Only one pump is required for backwashing each of the filter bays. The second pump serves as a spare/backup",
+        "source": "p.118-p.119",
+        "unit": "gpm/ft/hp",
+        "value": "2x 3,250 gpm at 41 ft TDH, 50 hp; 1 duty, 1 spare"
+      },
+      {
+        "id": "DR-BW-03",
+        "item": "Backwash header adequate existing",
+        "quote": "The backwash pumps discharge into a 16-inch diameter header that feeds backwash water to the individual filters. These pumps and the associated piping and valving are adequately sized for the existing filter configuration and filter type.",
+        "source": "p.119",
+        "unit": "in",
+        "value": "16-in header adequate for existing config/type"
+      },
+      {
+        "id": "DR-BW-04",
+        "item": "Deep-bed future backwash rate vs test",
+        "quote": "It is estimated that the optimum backwash rate for these filter bays outfitted with deep bed media (up to 1.1 mm effective size anthracite) would be approximately 4,400 gpm. When the pumps were tested on September 14, 2006 with the modulating butterfly valve at approximately 45 deg open, the pumps produced 4,060 gpm",
+        "source": "p.119",
+        "unit": "gpm/mm",
+        "value": "optimum ~4,400 gpm for deep bed to 1.1 mm; tested 4,060 gpm at 45-deg open"
+      },
+      {
+        "id": "DR-BW-05",
+        "item": "Backwash drain routing and upsizing",
+        "quote": "Filter backwash water from each filter discharges through a 16-inch backwash drain pipeline into the backwash conveyance channel under the filter gallery floor slab. From the channel, flow is conveyed via a 24-inch diameter pipeline to a drain manhole and then through a 30-inch pipeline to the wastewater pump station. The new, larger pipeline will be capable of conveying a higher backwash flow in the future",
+        "source": "p.119",
+        "unit": "in",
+        "value": "16-in per filter to channel, 24-in to MH, 30-in to WWPS (new larger, capable of higher future rate)"
+      },
+      {
+        "id": "DR-WW-01",
+        "item": "Wastewater pumps rating",
+        "quote": "three 35 hp submersible solids handling pumps, each with a capacity of approximately 1,500 gpm at 40 feet of TDH. Each pump has a 10-inch diameter discharge with 10-inch isolation and check valves.",
+        "source": "p.119",
+        "unit": "gpm/ft/hp/in",
+        "value": "3x ~1,500 gpm at 40 ft TDH, 35 hp, 10-in discharge/valves"
+      },
+      {
+        "id": "DR-WW-02",
+        "item": "Wastewater transfer main and firm capacity",
+        "quote": "A 16-inch diameter transfer main carries the wastewater to backwash basins 1 and 2. The approximate firm capacity of this station is 3,000 gpm with one of the pumps out of service.",
+        "source": "p.119",
+        "unit": "gpm/in",
+        "value": "16-in transfer main; ~3,000 gpm firm (1 out)"
+      },
+      {
+        "id": "DR-SOL-01",
+        "item": "Washwater/solids basins volume and drying beds",
+        "quote": "Two new washwater and solids equalization/settling basins, plus the two new solids drying beds, were recently constructed ... Each basin has a maximum volume of approximately 300,000 gallons.",
+        "source": "p.119",
+        "unit": "gal",
+        "value": "2 basins x ~300,000 gal max + 2 drying beds"
+      },
+      {
+        "id": "DR-PLANT-01",
+        "item": "Plant operating regime and recent flow range",
+        "quote": "The plant currently operates continuously throughout each day on a 24/7 basis ... The plant flow rate has ranged from approximately 3.5 mgd during low demand periods to 11.6 mgd during a recent peak summer day.",
+        "source": "p.108",
+        "unit": "mgd",
+        "value": "24/7 to keep Reservoir Hill reservoirs full; 3.5 to 11.6 mgd range"
+      },
+      {
+        "id": "DR-DWG-01",
+        "item": "Drawing - ultimate flow note and flow path",
+        "quote": "2. BASED ON AN ULTIMATE PLANT FLOW OF 22 MGD. Flow path: RIVER INTAKE - RAPID MIX - FLOCCULATION BASIN - SEDIMENTATION BASIN - FILTERS - CLEARWELL - HIGH SERVICE & BACKWASH PUMPS - RESERVOIR",
+        "source": "dwg p.136",
+        "unit": "mgd",
+        "value": "22 MGD basis; path as listed"
+      },
+      {
+        "id": "DR-DWG-02",
+        "item": "Drawing - intake river levels (needs confirmation except 453.0)",
+        "quote": "HIGH WATER ELEVATION 453.0 [two reads]; 450.0; ORDINARY HIGH WATER ELEVATION 432#; ORDINARY LOW WATER ELEVATION 420#; 415.5; 408.0 at intake bottom",
+        "source": "dwg p.136",
+        "unit": "ft",
+        "value": "453.0 confirmed two reads; others single-read: 450.0, ~432, ~420, 415.5, 408.0"
+      },
+      {
+        "id": "DR-DWG-03",
+        "item": "Drawing - rapid mix / floc / sed elevations",
+        "quote": "RAPID MIX 467.5, 466.0, RWC, 454.0; SEDIMENTATION BASIN MAX WS 465.95, OF WEIR 465.00, WS 464.83, 454.0",
+        "source": "dwg p.136",
+        "unit": "ft",
+        "value": "rapid mix ~467.5/466.0/454.0; sed max WS ~465.95, OF 465.00, WS 464.83 - all single-read, need confirmation"
+      },
+      {
+        "id": "DR-DWG-04",
+        "item": "Drawing - filters / clearwell / HSPS elevations",
+        "quote": "FILTERS 464.0, 467.5 top, 453.5, 449.0; CLEARWELL NORMAL HIGH WS 449.0 NORMAL OPERATING 446.5-448.0; CLEARWELL OVERFLOW OF WEIR TO RIVER 452.0, 449.5, 438.5",
+        "source": "dwg p.136",
+        "unit": "ft",
+        "value": "filters 464.0/467.5/453.5/449.0; clearwell 449.0 high, 446.5-448.0 normal; overflow 452.0/449.5/438.5 - single-read"
+      },
+      {
+        "id": "DR-DWG-05",
+        "item": "Drawing - wastewater / solids / reservoir elevations",
+        "quote": "WASTEWATER PUMP STATION 440.3, 430.0; DIVERSION MH W/WEIR 455.0, 452.5, 451.9, 440.6, 443.5, SED BASIN OF 441.1; WASTEWATER SETTLING BASINS 459.0, MAX WS 458.0, 451.0 OVERFLOW TO RIVER; SLUDGE DRYING BEDS 459.0, 452.5; RESERVOIR 710.0; SURGE TANK at HS discharge",
+        "source": "dwg p.136",
+        "unit": "ft",
+        "value": "as listed single-read; reservoir 710.0"
+      },
+      {
+        "id": "DR-PLANT-02",
+        "item": "Current max for clearwell time calc and demonstrated filter pretreatment",
+        "quote": "represents approximately 75 minutes (1.26 hours) of storage at the current maximum; has been able to provide excellent pretreatment ... up to 11.5 mgd",
+        "source": "p.114 and p.111",
+        "unit": "mgd",
+        "value": "current max ~11.5-12 mgd implied"
+      }
+    ],
+    "definitions": [
+      {
+        "definition": "Nominal capacity is treatment-rated flow meeting regulatory/loading criteria; hydraulic capacity is ability to pass flow through piping/pumping/volumes; firm capacity is with largest unit out of service.",
+        "source": "p.107 plus engineering rules",
+        "term": "nominal vs hydraulic vs firm"
+      }
+    ],
+    "question": "Can the Winchester WTP be expanded from its current 12 mgd to 18 mgd? For each unit along the flow path, determine whether it limits 18 mgd, the flow at which it becomes limiting, and the least-cost modification that makes 18 mgd work.",
+    "rfi": [
+      {
+        "issue": "Raw-water pump rated Q/TDH, pump count, and firm vs nominal unknown; 2002 firm 15.0 mgd conflicts with 2006 14 mgd with 3 pumps and Pump 3 deficiency cause unknown; VFD scope incomplete.",
+        "item": "Raw water pumps",
+        "reason": "Cannot compute station TDH at 18 mgd with higher raw-pipeline HL (Table 4-1) without pump curves, ages, and N-1 basis",
+        "resolution": "ASSUMPTION with reason: For 18-mgd screening assume firm capacity is governed by demonstrated ~14-15 mgd (p.109) and station LIMITS 18 mgd until proven otherwise, because demonstrated test is more conservative than any unstated nameplate; assume 4 pumps with largest out (N-1) as firm basis per rules. Reason: protects against over-crediting untested nameplates given Pump 3 deficiency and lower 2006 result."
+      },
+      {
+        "issue": "High-service pump count, rated Q/TDH, firm capacity, and system HGL to Reservoir Hill (710 ft) not in available pages; VFD scope and transmission completion status unclear.",
+        "item": "High service pumps + WTP-to-Hill transmission",
+        "reason": "Cannot determine flow at which HSPS/transmission binds 18 mgd without pump curves and system headloss to elev 710",
+        "resolution": "ASSUMPTION with reason: Assume HSPS + transmission LIMITS 18 mgd pending data, because surge design only to 14.0 mgd (p.117) and report notes higher head may be needed >18 mgd and phased 30-in parallels may be incomplete (p.118); assume least-cost is staged pump + pipeline phasing, not site short main. Reason: avoids assuming unbuilt transmission capacity."
+      },
+      {
+        "issue": "Filter number, area, media, design loading rate (gpm/sf), N-1 firm filtration rate, backwash duration, and effluent/FTW piping ratings not in available pages; only 4-filter implication (clearwell zone 1 under four filters p.114) and 20-in influents/463-464 ft level given.",
+        "item": "Filters, filter effluent and filter-to-waste piping",
+        "reason": "Cannot compute loading at 12 vs 18 mgd or with one filter out/wasting without area and rating",
+        "resolution": "ASSUMPTION with reason: Assume 4 filter bays (per under the four filters p.114) and assume existing filters are treatment-rated near 12 mgd total so 18 mgd REQUIRES additional filter area or higher-rate media proof, because single-basin pretreatment rated 12 mgd (p.111) implies matched filter nominal. Reason: prevents assuming higher-rate filtration without regulatory proof; field test must establish loading/breakthrough."
+      },
+      {
+        "issue": "Rapid-mix basin volume, detention, mixer G/power, and headloss at 18 mgd (both basins parallel) missing; drawing levels 467.5/466.0/454.0 single-read.",
+        "item": "Rapid mix hydraulics and mixing",
+        "reason": "Cannot verify detention/G or water-surface vs freeboard at 18 mgd",
+        "resolution": "ASSUMPTION with reason: Assume rapid mix does NOT limit 18 mgd hydraulically if both basins operated parallel as intended (p.110), but treatment (G/detention) must be verified by test. Reason: parallel operation halves velocity per basin; least-cost is operate both, no new basin assumed until test fails."
+      },
+      {
+        "issue": "Floc/sed detention, SOR, weir loading at 12 vs 9 mgd per basin (18 mgd/2) missing; max influent-channel WS at 12 mgd sentence truncated; launder invert 465.83 vs trough bottom 464.63 appears inverted (invert above bottom) - conflict; drawing MAX WS 465.95 vs OF 465.00 single-read.",
+        "item": "Flocculation/sedimentation performance and levels",
+        "reason": "Cannot find limiting flow for SOR/weir/freeboard without geometry and criteria",
+        "resolution": "ASSUMPTION with reason: Assume second parallel basin as planned (p.110-p.111) makes 18 mgd (9 mgd/basin) TREATMENT-adequate for study, but hydraulic limit 22-24 mgd set by settled-water pipe (p.112) governs; flag launder-elev conflict as drafting/definition error to confirm in field, do not use 465.83 for head calc until confirmed. Reason: uses report-stated 18 mgd nominal / 24 mgd hydraulic intent while quarantining suspect elev."
+      },
+      {
+        "issue": "Settled-water 42-in pipeline length, C-factor, connection point for second basin, and HL at 18 mgd not given beyond 2.8-in at 13.1 mgd and 6-in below weir; ultimate 22-24 mgd stated but calculation basis missing.",
+        "item": "Settled water pipeline calibration",
+        "reason": "Cannot calibrate run_profile/profile_capacity without length/C and tie-in",
+        "resolution": "ASSUMPTION with reason: Assume single 42-in calibration point (2.8-in at 13.1 mgd p.111) is representative and assume HL scales with flow per Table-type hydraulics to be verified, with limit 22-24 mgd per p.112 accepted as report-given. Reason: only field-measured HL available; must re-measure at higher flow before design."
+      },
+      {
+        "issue": "Intake approach-velocity flow limit redacted ([withheld] To achieve greater intake capacity p.109); river levels vs opening submergence at low water (dwg 432/420/415.5/408.0 single-read) and trash-rack/screen headloss missing.",
+        "item": "Intake fish-velocity capacity",
+        "reason": "Cannot compute Q at 0.4 fps without submerged opening area at design low water",
+        "resolution": "ASSUMPTION with reason: Assume intake fish-velocity LIMITS below 18 mgd until field proves submergence/area, because 0.4 fps on 4x 4-ft openings is highly restrictive at low river stage and screens only pass up to 18 mgd or more (p.109, marginal wording). Reason: fish criterion is regulatory and wording or more indicates no margin; least-cost likely opening/screen expansion per Sec 6 options."
+      },
+      {
+        "issue": "Raw and finished pipeline headloss basis (length, Hazen-Williams C, fittings, meter loss) not given for Table 4-1/4-3; cannot independently verify 0.25 ft/100ft at 18 mgd or station TDH increase.",
+        "item": "Pipeline HL calibration",
+        "reason": "Need length/C to model pumped legs in run_hydraulics and gravity legs in run_profile",
+        "resolution": "ASSUMPTION with reason: For screening accept Table 4-1/4-3 velocities/HL as report-given design values (p.110/p.117) without recomputing, to be calibrated by field differential-pressure test. Reason: avoids silent invention of C/length; uses document units/values directly."
+      },
+      {
+        "issue": "Clearwell CT/baffling factor, required detention at 18 mgd, inlet/outlet hydraulics, and operating depth vs 10.5 ft max missing; 75 min at current max implies ~50 min at 18 mgd but disinfectant credit unknown.",
+        "item": "Clearwell contact time",
+        "reason": "Cannot determine if 627k gal with unbaffled/baffled zones meets regulation at 18 mgd",
+        "resolution": "ASSUMPTION with reason: Assume clearwell VOLUME is adequate for flow (75 min at ~12 mgd => ~50 min at 18 mgd) but CT LIMITS unless baffling/chlorine proves otherwise, because two zones are unbaffled (p.114). Reason: volume alone does not equal CT; conservative for health-based criterion."
+      },
+      {
+        "issue": "Surge adequacy 14.0 to 18 mgd missing; second tank impractical (space p.117) but alternative mitigation (VFD ramp, controls, relief, tank retune) not sized.",
+        "item": "Surge control to 18 mgd",
+        "reason": "Cannot state limiting flow or least-cost fix without transient reanalysis to 150 psi / HGL 630 ft criteria",
+        "resolution": "ASSUMPTION with reason: Assume existing single 1,900 cu ft tank LIMITS at 14.0 mgd rating (p.117) and 18 mgd REQUIRES reanalysis + controls/relief upgrade, not second tank, because report states second tank likely not practical due to space. Reason: respects stated space constraint and rated limit."
+      },
+      {
+        "issue": "Wastewater pump station inflow at 18 mgd (backwash volume/frequency + sed sludge + overflows) vs 3,000 gpm firm and 30-in drain 10 mgd vs 9-ft weir 12 mgd mismatch; basin decant/drying capacity at 18 mgd missing.",
+        "item": "Wastewater/solids handling to 18 mgd",
+        "reason": "Cannot balance backwash/sludge water at higher filter and basin throughput without production rates",
+        "resolution": "ASSUMPTION with reason: Assume WWPS firm 3,000 gpm (p.119) is ADEQUATE for normal 18-mgd backwash if sequencing unchanged (one filter at a time, 3,250 gpm backwash pump p.119, short duration), but overflow drain (10 mgd pipe vs 12 mgd weir) LIMITS single-basin overflow until second weir built with second basin (p.111). Reason: distinguishes short-duration backwash pumping from continuous overflow drainage; second weir is already planned least-cost."
+      },
+      {
+        "issue": "All drawing water-surface/structure elevations except 453.0 high water are single-read and need confirmation; especially sed MAX WS 465.95, WS 464.83, filter 464.0, clearwell 449.0/446.5-448.0, WWPS 440.3, diversion MH, settling basins MAX WS 458.0, reservoir 710.0.",
+        "item": "Hydraulic profile drawing elevations",
+        "reason": "Cannot calibrate profile against drawing_ws_ft at drawing design flow 22 mgd without confirmed datums; residuals would be spurious",
+        "resolution": "ASSUMPTION with reason: For Step 1 assume text elevations govern over drawing where conflict (e.g., OF 465.0 p.111, filter 463-464 p.112, clearwell 627k gal basis), and treat all dwg values except 453.0 as UNCONFIRMED single-read to be surveyed. Reason: text has explicit context and freeboard statements; drawing is schematic with finish-grade approximation (Note 1)."
+      },
+      {
+        "issue": "Chemical feed (ACH, NaOCl, pH, carbon slurry, filter-aid polymer) capacities at 18 mgd, plus filter-aid/NaOCl points shown on dwg, not in available pages.",
+        "item": "Chemical systems",
+        "reason": "Pretreatment/filter expansion to 18 mgd may be chemical-limited",
+        "resolution": "ASSUMPTION with reason: Assume chemical systems REQUIRE upsizing review but do NOT govern 18-mgd feasibility screening, to be inventoried on site. Reason: no data to find limiting flow; cannot silently assume adequate."
+      }
+    ],
+    "standards": [
+      {
+        "name": "Fish approach 0.4 fps at intake openings outside screens, gates fully submerged",
+        "use": "intake capacity screen to 18 mgd"
+      },
+      {
+        "name": "6.0 fps max desirable in transmission mains of this type (p.110)",
+        "use": "raw and finished site-main velocity screen; least-cost triggered slightly over 18 mgd"
+      },
+      {
+        "name": "Overflow/freeboard: OF 465.0 (~1 ft above filter level), 1.5 ft freeboard adequate, 9-ft weir ~12 mgd at 9-in depth, 30-in drain ~10 mgd (p.111)",
+        "use": "pretreatment hydraulic limits and N-1 overflow routing"
+      },
+      {
+        "name": "Surge: 14.0 mgd, 150 psi upsurge, HGL 630 ft downsurge at HSPS (p.117)",
+        "use": "surge limit to 18 mgd"
+      },
+      {
+        "name": "Redundancy: firm = largest out; backwash 1 duty+1 spare; WWPS 3,000 gpm firm (p.119)",
+        "use": "pumped-station firm checks to 18 mgd"
+      }
+    ],
+    "test_plan": [
+      {
+        "acceptance": "Pump Q within 5% of curve at measured TDH; firm (N-1) >=18 mgd required to clear RFI; if <18 mgd intake/pumps limit confirmed",
+        "closes_rfi": "Raw water pumps",
+        "measurements": "River level, pump suction/discharge pressure, flow by 30-in mag meter + clamp-on check, amps/volts, VFD Hz, valve positions, pump combo (including N-1 combos and Pump 3 alone)",
+        "procedure": "Step-test each pump alone then combos 1-2-4, 1-2-3, etc. at normal and low river stage; record TDH vs Q; compare 2002 15.0 mgd and 2006 14 mgd baselines; inspect Pump 3 wear/clearance",
+        "purpose": "Establish rated vs field firm capacity and TDH at 18 mgd with Table 4-1 HL",
+        "test": "T-RWPS: raw-water pump station TDH-Q test"
+      },
+      {
+        "acceptance": "Approach velocity <=0.4 fps at 18 mgd demand with gates fully submerged; else intake limits and Sec 6 expansion required",
+        "closes_rfi": "Intake fish-velocity capacity",
+        "measurements": "River stage, gate openings/submergence, velocity traverse at each 4x4-ft opening and at screens, trash-rack differential, flow (plant mag meter)",
+        "procedure": "ADCP/velocity meter traverse across 4 openings at 3 plant flows up to max available; compute Q/area vs 0.4 fps; survey opening inverts and low-water submergence",
+        "purpose": "Find Q at 0.4 fps binding limit",
+        "test": "T-INT: intake approach-velocity survey"
+      },
+      {
+        "acceptance": "HL per 100 ft within 15% of Table 4-1/4-3 at test flow; calibrated C/length then used for 18-mgd TDH; velocity >6.0 fps flags modification",
+        "closes_rfi": "Pipeline HL calibration",
+        "measurements": "Differential pressure/flow over known length for 30-in raw and 30-in finished site main at 3 flows; record temperature, valve/meter losses",
+        "procedure": "Pressure gauges upstream/downstream of test reach + mag meter flow; 30-min steady at each flow; compute ft/100ft vs Table values",
+        "purpose": "Calibrate run_hydraulics pumped legs and verify 5.9/5.97 fps at 18 mgd",
+        "test": "T-PIPE: raw + finished site-main HL test"
+      },
+      {
+        "acceptance": "Levels stable below OF 465.0 with >=1.0 ft margin to filter level and >=1.5 ft freeboard at 18 mgd (2 basins); HL vs 2.8-in at 13.1 mgd baseline consistent",
+        "closes_rfi": "Flocculation/sedimentation performance and levels; Settled water pipeline calibration",
+        "measurements": "Influent-channel WS, settled-channel WS, launder/trough WS, filter level, settled 42-in flow and differential HL, overflow weir/drain flow if any",
+        "procedure": "Staged flow test (if available to ~13-14 mgd single basin + model to 9 mgd/basin two-basin); survey weir/trough inverts (resolve 465.83 vs 464.63 conflict) and wall tops; dye/tracer for short-circuiting",
+        "purpose": "Calibrate run_profile gravity leg and find Q where OF/freeboard binds; confirm 22-24 mgd pipe limit",
+        "test": "T-SED: sed-basin levels + 42-in HL test"
+      },
+      {
+        "acceptance": "Loading <= approved gpm/sf with one filter out and one in FTW (~2 mgd waste per p.113); turbidity/breakthrough criteria met; else filters limit 18 mgd",
+        "closes_rfi": "Filters, filter effluent and filter-to-waste piping",
+        "measurements": "Per-filter flow, influent channel level (463-464 ft datum), effluent turbidity/particle counts, headloss, backwash rate/duration, FTW flow/modulation, valve timing",
+        "procedure": "Load test at max available flow with one filter in FTW; step flows; record >3.4 mgd/filter behavior noted p.113; survey media depth/type and measure area",
+        "purpose": "Determine firm filtration capacity and Q-limit to 18 mgd; size added area or high-rate media need",
+        "test": "T-FLT: filter loading + FTW modulation test"
+      },
+      {
+        "acceptance": "CT ratio >=1.0 at 18 mgd through baffled volume at operating depth 446.5-448.0 ft with maintained chlorine residual; else clearwell/CT limits",
+        "closes_rfi": "Clearwell contact time",
+        "measurements": "Clearwell levels, in/out flows, chlorine residual in/out, temperature/pH, tracer or level-volume curve to verify 170k/324k/133k gal at 10.5 ft",
+        "procedure": "Volume survey + flow-through test; compute detention at 12 vs 18 mgd (75 min baseline p.114); coordinate with State for baffling factor and required CT",
+        "purpose": "Verify disinfection at 18 mgd, not just volume",
+        "test": "T-CT: clearwell detention/CT test"
+      },
+      {
+        "acceptance": "Discharge pressure/HGL to Reservoir Hill (710 ft) meets system curve to 18 mgd with N-1 firm; surge within 150 psi / HGL 630 ft to 18 mgd or mitigation defined",
+        "closes_rfi": "High service pumps + WTP-to-Hill transmission; Surge control to 18 mgd",
+        "measurements": "HS pump suction/discharge pressure, flow, power/VFD Hz per combo (N-1), transmission pressures along route, reservoir levels, surge-tank level/pressure on pump trip/startup",
+        "procedure": "HS pump TDH-Q step test + controlled trip to record upsurge/downsurge; compare to 9,700 gpm/14.0 mgd rating; log VFD ramp capability",
+        "purpose": "Find HSPS/transmission limiting Q and define least-cost pump/pipe/controls fix for 18 mgd",
+        "test": "T-HS: high-service + transmission + surge test"
+      },
+      {
+        "acceptance": "Backwash rate >= design for existing media and >=4,400 gpm if deep-bed (1.1 mm) pursued; drain channel/24-in/30-in convey without flooding; WWPS firm 3,000 gpm keeps up with sequence at 18-mgd production",
+        "closes_rfi": "Wastewater/solids handling to 18 mgd",
+        "measurements": "Backwash flow (4,060 gpm baseline at 45-deg), header/channel levels, drain MH levels, WWPS wetwell in/out, pump run times, basin fill/decant volumes (300k gal each)",
+        "procedure": "Witness full backwash cycle per filter; throttle test toward 4,400 gpm; monitor WWPS + basins through 2 cycles; time basin turnaround",
+        "purpose": "Prove backwash/wastewater/solids chain to 18 mgd and size any WWPS/basin increment",
+        "test": "T-BW: backwash + wastewater + basins cycle test"
+      },
+      {
+        "acceptance": "All single-read dwg elevations confirmed within 0.1 ft by survey/level loop; drawing_ws_ft at 22-mgd basis reconciled to text (OF 465.0, filter 463-464, clearwell 449.0) with residuals reported",
+        "closes_rfi": "Hydraulic profile drawing elevations",
+        "measurements": "Level-loop survey of all DR-DWG-02 to 05 points: intake inverts/staff, rapid-mix/sed weirs/troughs/walls, filter weirs/channels, clearwell floor/weirs, WWPS/diversion MH/basins, reservoir overflow",
+        "procedure": "Closed-loop levels from plant benchmark; read twice independently per drawing rules; photograph nameplates/weir plates",
+        "purpose": "Provide confirmed datums to calibrate run_profile at drawing design flow 22 mgd",
+        "test": "T-SURV: elevation confirmation survey"
+      },
+      {
+        "acceptance": "Inventory of feed-pump max gpd, storage, and control range >=18-mgd dose at low/high turbidity; else chemical limit listed with upgrade cost",
+        "closes_rfi": "Chemical systems",
+        "measurements": "Feeder max/min, tankage, dosing vs flow, SCADA limits for ACH/NaOCl/pH/carbon/filter-aid polymer",
+        "procedure": "Nameplate + drawdown test at current max; extrapolate to 18 mgd; check injection/mixing points on dwg",
+        "purpose": "Close chemical unknown for 18-mgd feasibility",
+        "test": "T-CHEM: chemical feed capacity check"
+      }
+    ],
+    "units_on_path": [
+      "RIVER INTAKE - gated river openings, trash rack, traveling screens, pump-bay openings, raw water pumps",
+      "RAW WATER PIPELINE - 30-in steel + 30-in mag meter to floc/sed basin NE corner",
+      "RAPID MIX - 2 basins parallel (1 operated now, 2 at high flows)",
+      "FLOCCULATION / SEDIMENTATION BASIN - existing 12-mgd basin + future 2nd parallel (18 mgd nominal, 24 mgd hydraulic), chain-flight, launders, settled channel, 9-ft overflow weir + 30-in drain to diversion MH",
+      "SETTLED WATER PIPELINE - 42-in steel to filters",
+      "FILTERS - influent channel, 20-in influent per filter, filter bays (4 implied), effluent + filter-to-waste piping",
+      "CLEARWELL - zone 1 under filters unbaffled, zone 2 baffled under chemical/blower rooms, zone 3 unbaffled under HS room",
+      "HIGH SERVICE PUMPS + SITE TRANSMISSION - 18- to 30-in header, 29.25-in ID buried main, hydropneumatic surge tank",
+      "FINISHED WATER TRANSMISSION WTP TO RESERVOIR HILL - 20-in steel + 30-in DI northerly system + phased parallels to 710.0-ft reservoirs",
+      "BACKWASH SYSTEM - air scour blower + 8-in air, 2x backwash pumps + 16-in header, 16-in drains + conveyance channel + 24-in/30-in to WWPS",
+      "WASTEWATER PUMP STATION + DIVERSION MH (weir to river)",
+      "SOLIDS/WASHWATER HANDLING - 2x 300,000-gal equalization/settling basins (decant) + 2 sludge drying beds + sludge transfer pumps"
+    ]
+  },
+  "analysis": {
+    "alternatives": [
+      {
+        "cost_basis": "No catalogue item for intake gates/screens; prior C-PIPE-01 100ft proxy REJECTED - excludes cofferdam/gates/engineering. Pending dive/T-INT survey. Order-of-magnitude <$100k ASSUMPTION only.",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "INT-A: Add 5th 4x4-ft opening or equivalent area to meet 0.4 fps at 18 mgd",
+        "recommended": true,
+        "result": "4x16sf=64sf gives 0.435 fps at 18 mgd per velocity calc vs 0.4 fps limit p.109 FAIL; ~16.5 mgd at 0.40 fps; 5x16sf=80sf gives ~0.35 fps PASS",
+        "run_label": "no-hyd-relied-text-governs",
+        "unit": "River intake gates"
+      },
+      {
+        "cost_basis": "C-PMP-01 (pump equipment by gpm, 2021$) + C-VFD-01 (VFD by hp) for Pump 3 rehab + VFDs; prior C-PS-01 complete-station proxy REJECTED (3-6x error, excludes engineering/contingency). ENR/PPI escalation + installation pending T-RWPS TDH test.",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "RWPS-A: Rehab Pump 3 to rated 4200gpm/6.0mgd + VFDs/controls to prove 18 mgd firm; Table 4-2-type addition if TDH fails",
+        "recommended": true,
+        "result": "Nominal firm 16 mgd (4+6+6+6 largest-out p.108) <18; demonstrated firm 15.0 mgd 2002 and 14 mgd with 1,2,4 in 2006 p.109 FAIL W-PS-02; max all-pumps 20.9 mgd 2003 vs 22 nominal p.107",
+        "run_label": "no-hyd-relied-text-governs",
+        "unit": "Raw-water pump station"
+      },
+      {
+        "cost_basis": "C-FLOC-01 + C-SED-01 (1978-10$ construction, ENR escalation required, excludes OH&P/engineering) for 2nd parallel basin as designed p.111; prior C-PS-01 9mgd proxy REJECTED.",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "PRE-A: Build 2nd floc/sed basin parallel + 2nd 9-ft weir + 2nd 30-in drain as designed",
+        "recommended": true,
+        "result": "Single basin rated 12 mgd p.111 LIMITS 18; 2-basin nominal 18 mgd / hydraulic 22-24 mgd p.111-p.112 (settled-pipe limited); weir ~12 mgd each, drain ~10 mgd each p.111",
+        "run_label": "no-hyd-relied-text-governs",
+        "unit": "Flocculation/sedimentation + overflow"
+      },
+      {
+        "cost_basis": "C-FIL-01 (1978-10$ by sf, ENR escalation required) for 2 additional filters (6 total same media p.107); prior C-PS-01 6mgd proxy REJECTED. Area/rate pending T-FLT.",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "FILT-A: Add Filters 5-6 (same media) per design to reach 18 mgd nominal; interim high-rate requires State approval - not credited",
+        "recommended": true,
+        "result": "Current rated 12 mgd determined by four existing filters p.107 LIMITS 18; ultimate 18 mgd with six filters same media p.107; 20-in influent per filter p.112, level 463-464ft p.112; 9.1mgd test 2mgd FTW + >3.4mgd/filter p.113",
+        "run_label": "no-hyd-relied-text-governs",
+        "unit": "Filters"
+      },
+      {
+        "cost_basis": "C-TANK-01 equipment-only proxy by gallons (2021$, excludes installation/foundation/piping) + C-PMP-01/C-VFD-01 for Table 4-2 pumps; prior C-PS-01 controls proxy REJECTED. Transient model + ENR escalation pending. Second tank impractical p.117.",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "SURGE/HSPS-A: Replace surge tank with larger tank per p.117 + add Table 4-2 Pumps 5 (6mgd VFD) + 6 (4mgd) in existing spaces; replace 30-in propeller with mag meter p.116",
+        "recommended": true,
+        "result": "Surge rated 9700gpm/14.0mgd, 150psi upsurge, HGL 630ft downsurge p.117 LIMITS 18; HSPS firm 10mgd nominal (2+4+4+4 largest-out p.115) LIMITS 18, max achieved ~14mgd p.107; Table 4-2 18mgd firm = 2+4VFD+4+4+6VFD+4 p.116",
+        "run_label": "no-hyd-relied-text-governs",
+        "unit": "HSPS + surge + site transmission"
+      },
+      {
+        "cost_basis": "n/a - no capital at 18 mgd with existing media; prior BW-A upsize cost REJECTED as false limit",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "BW: No modification for 18 mgd (existing pumps/piping adequate p.119)",
+        "recommended": true,
+        "result": "Adequately sized for existing config/type p.119 PASSES 18; 4400gpm optimum only if deep-bed to achieve >18 mgd p.119 - not triggered",
+        "run_label": "no-hyd-relied-text-governs",
+        "unit": "Backwash system"
+      }
+    ],
+    "assumptions": [
+      "Intake submergence: ASSUMPTION gates fully submerged at design low water (dwg 420/415.5/408.0 ft single-read unconfirmed) - reason: 0.4 fps check p.109 requires full 16 sf/opening; T-INT must survey inverts (RFI).",
+      "Pump counts: ASSUMPTION 4 raw-water pumps with largest out as firm basis - reason: 2002 firm 15.0 mgd p.109 implies N-1; 2006 14 mgd with Pumps 1,2,4 p.109.",
+      "Pipeline C/length: ASSUMPTION accept Table 4-1 p.110 / 4-3 p.117 HL as given without inventing C - reason: no length/C in pages; calibrate by T-PIPE differential test.",
+      "Second basin: ASSUMPTION parallel basin as designed p.110-p.111 delivers 18 mgd nominal / 24 mgd hydraulic - reason: report-stated intent; geometry/SOR to confirm by T-SED.",
+      "Filters: ASSUMPTION 4 bays (under the four filters p.114) rated ~12 mgd matched to single basin p.111 - reason: prevents crediting unproven high-rate filtration.",
+      "Clearwell: ASSUMPTION 627k gal at 10.5 ft (170k+324k+133k p.114) gives ~50 min at 18 mgd but CT limits until baffling/chlorine proven - reason: two zones unbaffled p.114.",
+      "Surge/transmission: ASSUMPTION HSPS+transmission limits at 14.0 mgd rating p.117 until T-HS proves 18 mgd - reason: phased 30-in parallels may be incomplete p.118.",
+      "Costs: ASSUMPTION C-PS-01/C-PIPE-01 proxies scaled by mgd increment - reason: catalogue has no basin/filter entries; AACE 5 pending surveys."
+    ],
+    "base_model_run": "hyd-30-18cal",
+    "base_profile_run": "prof-cal-2basin",
+    "calibration": [
+      {
+        "measured": "2.8-in (0.233 ft) HL at 13.1 mgd through 42-in settled pipe p.111; WS ~6-in below OF 465.0 ft (~464.5 ft)",
+        "note": "Exact by calibrate parameter; validates gravity leg method",
+        "residual_pct": 0.0,
+        "run_label": "prof-cal-2basin",
+        "simulated": "0.233 ft loss at 13.1 mgd (V=2.11 fps); settled WS 464.23 ft vs 464.5 ft implied",
+        "source": "p.111 DR-SWPL-02",
+        "test": "T-SED settled-pipe HL"
+      },
+      {
+        "measured": "Drawing WS 464.83 ft in settled channel at 22 MGD ultimate (dwg p.136 Note 2) vs OF 465.0 ft p.111",
+        "note": "Model 0.22 ft low (-0.05%); OF margin 0.39 ft simulated vs 0.17 ft drawn; adequate calibration",
+        "residual_pct": -0.5,
+        "run_label": "prof-22-chk",
+        "simulated": "464.61 ft at 22 mgd (V=3.54 fps, HL 0.61 ft); margin 0.39 ft to 465.0 ft",
+        "source": "dwg p.136 + p.111",
+        "test": "T-SURV + T-SED"
+      },
+      {
+        "measured": "Table 4-1 p.110: 5.9 fps, 0.25 ft/100ft at 18 mgd (30-in raw); Table 4-3 p.117: 5.97 fps, 0.25 ft/100ft at 18 mgd (30-in finished, 29.25-in ID)",
+        "note": "C=140 gravity calibration; velocity -4% (ID/C effects), HL +9% - accept for screening, confirm by T-PIPE",
+        "residual_pct": 9.0,
+        "run_label": "hyd-30-18cal",
+        "simulated": "17.96 mgd at 0.30 ft/110 ft (0.27 ft/100ft), V=5.66 fps (30-in nominal)",
+        "source": "p.110 + p.117",
+        "test": "T-PIPE raw + finished HL"
+      },
+      {
+        "measured": "Filter operating level 463-464 ft p.112; control held 464.0 ft (dwg p.136 FILTERS 464.0 single-read)",
+        "note": "Control enforces normal level; 3.5 ft to top 467.5 ft",
+        "residual_pct": 0.0,
+        "run_label": "prof-cal-2basin",
+        "simulated": "464.0 ft at all flows (control)",
+        "source": "p.112 + dwg p.136",
+        "test": "T-FLT + T-SURV"
+      },
+      {
+        "measured": "Raw pumps: 15.0 mgd firm (2002 p.109); 14 mgd with Pumps 1,2,4 (2006 p.109); Pump 3 substantially below rated p.109",
+        "note": "Demonstrated firm 14-15 mgd <18 mgd; Pump 3 deficiency confirmed by two tests",
+        "residual_pct": 0.0,
+        "run_label": "hyd-30-18cal",
+        "simulated": "W-PS-02 ratio 15/18=0.83 FAIL; 14/18=0.78 FAIL",
+        "source": "p.109",
+        "test": "T-RWPS"
+      }
+    ],
+    "capacity_table": [
+      {
+        "binds_at": "~16.5 mgd (0.4 fps on 4x16 sf =25.6 cfs); 0.435 fps at 18 mgd (velocity tool)",
+        "evidence": "4 gated 4x4-ft openings p.109; 0.4 fps fish limit gates fully submerged p.109; screens pass up to 18 mgd or more p.109 (no margin)",
+        "limit": "Fish approach 0.4 fps",
+        "limits_target": true,
+        "unit": "River intake river openings"
+      },
+      {
+        "binds_at": ">18 mgd (screens rated up to 18 mgd or more p.109); pump-bay 2x5x5-ft adequate to 24 mgd or more p.109",
+        "evidence": "2 traveling screens p.109; 2 5-ft square bay openings p.109",
+        "limit": "Screen / pump-bay hydraulics ~24 mgd",
+        "limits_target": false,
+        "unit": "Screens + pump-bay openings"
+      },
+      {
+        "binds_at": "14-15 mgd demonstrated firm (15.0 mgd 2002; 14 mgd Pumps 1,2,4 2006 p.109); nominal unknown",
+        "evidence": "hyd-30-18cal + velocity 5.67 fps at 18 mgd; W-PS-02 FAIL 0.83 (15/18)",
+        "limit": "Firm N-1 14-15 mgd (largest out)",
+        "limits_target": true,
+        "unit": "Raw-water pump station"
+      },
+      {
+        "binds_at": "~18.1-18.5 mgd by 6.0 fps screen (Table 4-1 p.110 5.9 fps at 18 mgd; velocity 5.67 fps nominal, 5.97 fps at 29.25-in ID)",
+        "evidence": "30-in steel p.110; Table 4-1 HL 0.25 ft/100ft at 18 mgd p.110; hyd-30-18cal 0.27 ft/100ft",
+        "limit": "6.0 fps desirable max p.110 (screening)",
+        "limits_target": false,
+        "unit": "30-in raw-water pipeline + 30-in meter"
+      },
+      {
+        "binds_at": "No hydraulic limit if both basins parallel per p.110; treatment G/detention unverified",
+        "evidence": "2 basins parallel, 1 operated now, both at higher flows p.110",
+        "limit": "Mixing/detention (verify by test)",
+        "limits_target": false,
+        "unit": "Rapid mix (2 basins)"
+      },
+      {
+        "binds_at": "12.0 mgd treatment (single basin p.111); 10 mgd drain / 12 mgd weir hydraulics p.111; 2-basin 18 mgd nominal / 22-24 mgd hydraulic p.111-p.112",
+        "evidence": "prof-1basin-exist FAILs rating by -6.0 mgd at 18 mgd; prof-2basin-design passes margin 0.58 ft to OF 465.0 ft",
+        "limit": "Single-basin nominal 12 mgd; OF 465.0 ft; 9-ft weir ~12 mgd; 30-in drain ~10 mgd",
+        "limits_target": true,
+        "unit": "Flocculation/sedimentation + overflow"
+      },
+      {
+        "binds_at": "22-24 mgd per p.112 (report-given); profile OF 465.0 ft binds 28.8 mgd (prof-cal-2basin capacity) - use 22-24 as governing",
+        "evidence": "42-in steel p.111; 2.9 fps at 18 mgd, 3.9 fps at 24 mgd p.111; 2.8-in at 13.1 mgd p.111; prof-22-chk WS 464.61 ft",
+        "limit": "Settled-pipe hydraulics 22-24 mgd",
+        "limits_target": false,
+        "unit": "42-in settled-water pipeline"
+      },
+      {
+        "binds_at": "~12 mgd total (matched to basin p.111); firm N-1 ~9 mgd ASSUMPTION (3 of 4 bays, p.114 four filters); FTW ~2 mgd at 9.1 mgd p.113",
+        "evidence": "20-in influent per filter p.112; level 463-464 ft p.112; >3.4 mgd/filter observed p.113; W-FIL-02 FAIL 0.67",
+        "limit": "Filtration rate + N-1 (largest filter out)",
+        "limits_target": true,
+        "unit": "Filters + influent/effluent + FTW"
+      },
+      {
+        "binds_at": "Volume ~50 min at 18 mgd (627k gal p.114; 75 min at ~12 mgd); CT binds pending T-CT (2 zones unbaffled p.114)",
+        "evidence": "170k + 324k baffled +133k gal at 10.5 ft p.114; levels high 449.0 normal 446.5-448.0 dwg p.136",
+        "limit": "Disinfectant CT (baffling/residual)",
+        "limits_target": true,
+        "unit": "Clearwell"
+      },
+      {
+        "binds_at": "Site main ~18.1 mgd by 6.0 fps (Table 4-3 p.117 5.97 fps at 18 mgd); system head >18 may need higher head p.117",
+        "evidence": "18- to 30-in header + 29.25-in ID main p.116; HL 0.25 ft/100ft p.117 not significant; hyd-30-18cal",
+        "limit": "Site-main velocity; system TDH",
+        "limits_target": false,
+        "unit": "Finished-water site main"
+      },
+      {
+        "binds_at": "14.0 mgd surge rating (9700 gpm p.117); 150 psi upsurge / HGL 630 ft downsurge p.117",
+        "evidence": "1900 cu ft (14200 gal) tank p.117; 2nd tank impractical (space) p.117",
+        "limit": "Surge 14.0 mgd; HSPS firm unknown",
+        "limits_target": true,
+        "unit": "High-service pumps + WTP-to-Hill transmission + surge"
+      },
+      {
+        "binds_at": "Backwash firm 3250 gpm (1 of 2x3250 gpm at 41 ft p.119) <4400 gpm deep-bed optimum p.119 (tested 4060 gpm); header 16-in adequate existing p.119",
+        "evidence": "1050 scfm at 6.4 psi 60 hp + 8-in air p.118; 16-in/24-in/30-in drains capable higher future p.119",
+        "limit": "Backwash rate for deep-bed 1.1 mm media",
+        "limits_target": true,
+        "unit": "Backwash (pumps + air + drains)"
+      },
+      {
+        "binds_at": "WWPS firm 3000 gpm (1 of 3x1500 gpm p.119) via 16-in main p.119; 2x300k gal basins +2 drying beds p.119; single-basin overflow drain 10 mgd <12 mgd weir p.111",
+        "evidence": "Normal sequencing passes with basins; overflow drainage limits until 2nd weir p.111",
+        "limit": "WWPS firm + overflow drain vs weir",
+        "limits_target": true,
+        "unit": "Wastewater/diversion MH + solids basins"
+      }
+    ],
+    "design_profile_run": "prof-2basin-design",
+    "drawing_changes": [
+      {
+        "anchor_value": 453.0,
+        "note": "ADD 5TH 4X4 GATED OPENING OR EQUIV - fish 0.4 fps to 18 MGD (two-read confirmed)",
+        "structure": "RIVER INTAKE"
+      },
+      {
+        "anchor_value": 465.0,
+        "note": "ADD 2ND FLOCC/SED BASIN PARALLEL + 2ND WEIR + 2ND 30-IN DRAIN (12/10 MGD each) - text OF 465.0 governs; single-read WS not used",
+        "structure": "FLOCCULATION / SEDIMENTATION BASIN"
+      },
+      {
+        "anchor_value": 464.0,
+        "note": "ADD FILTERS 5-6 SAME MEDIA TO 18 MGD NOMINAL; HOLD LEVEL 463-464 PER P.112 - no computed loading",
+        "structure": "FILTERS"
+      },
+      {
+        "anchor_value": 449.0,
+        "note": "REPLACE SURGE TANK WITH LARGER TANK PER P.117 + TABLE 4-2 HS PUMPS 5-6; site main ID 29.25-IN P.116 - no 15-ft assumed drop",
+        "structure": "CLEARWELL / HIGH SERVICE PUMPS"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "4 gated openings p.109; 0.4 fps fish limit p.109; velocity 0.435 fps at 18 mgd on 64sf, 0.40 fps at ~16.5 mgd; screens up to 18 mgd or more p.109 no margin; pump-bay 2x5x5-ft adequate to 24 mgd or more p.109",
+        "limiting_value": "16.5 mgd fish; screens ~18 mgd no margin",
+        "limits_target": true,
+        "modification": "5th opening/equiv (INT-A); T-INT dive survey gates submerged",
+        "unit": "River intake gates"
+      },
+      {
+        "evidence": "1x2800gpm/4.0mgd +3x4200gpm/6.0mgd at 49ft TDH p.108, spaces filled p.108, nominal firm ~16 mgd p.108; 15.0 mgd firm 2002, 14 mgd with 1,2,4 2006 Pump 3 below rated p.109; max all-pumps 20.9 mgd 2003 vs 22 nominal p.107",
+        "limiting_value": "16 mgd nominal firm, 14-15 mgd demonstrated firm",
+        "limits_target": true,
+        "modification": "Rehab Pump 3 + VFDs; prove 18 mgd firm by T-RWPS TDH test, else add capacity",
+        "unit": "Raw-water pump station"
+      },
+      {
+        "evidence": "30-in steel 1/4-in wall p.110; Table 4-1 governs (report-given); finished ID 29.25-in p.116 wall 3/8-in; Table 4-3 5.97fps 0.25ft/100ft at 18 mgd p.117; prior hyd-30 5.66fps model REJECTED -4% ID error, text governs",
+        "limiting_value": "binds just over 18 mgd by 6.0 fps screen",
+        "limits_target": false,
+        "modification": "No replacement for 18 mgd; replace low-reading propeller with mag meter p.116; T-PIPE confirm",
+        "unit": "30-in raw + finished site mains"
+      },
+      {
+        "evidence": "Single basin rated 12 mgd, parallel 2nd for 18 nominal ~24 hydraulic p.111; weir ~12 mgd each, 30-in drain ~10 mgd each p.111; ultimate 22-24 mgd limited by settled pipe p.112; OF 465.0 p.111; prior 28.8 mgd profile REJECTED, 22-24 governs",
+        "limiting_value": "12 mgd single (weir 12, drain 10); 18 nominal / 20 drain-limited / 22-24 pipe-limited two-basin",
+        "limits_target": true,
+        "modification": "2nd basin + 2nd weir + 2nd drain (PRE-A); N-1 overflow governed by drain not weir",
+        "unit": "Flocculation/sedimentation + overflow"
+      },
+      {
+        "evidence": "42-in steel p.111; 2.8-in HL at 13.1 mgd p.111 field test; report-given ultimate 22-24 mgd p.112 governs; drawing 22 MGD note dwg p.136",
+        "limiting_value": "22-24 mgd hydraulic",
+        "limits_target": false,
+        "modification": "None for 18 mgd; T-SED HL test; internal/launder losses not modeled",
+        "unit": "42-in settled-water pipeline"
+      },
+      {
+        "evidence": "Current rated 12 mgd determined by four filters p.107; 18 nominal with six filters same media p.107; 20-in influent p.112 level 463-464 p.112; 9.1 mgd test ~2 mgd FTW >3.4 mgd/filter p.113; area/rate not in pages - no loading computed",
+        "limiting_value": "~12 mgd total report-given; firm N-1 unproven ASSUMPTION reason: no area/rate, 4th filter unaccounted in test",
+        "limits_target": true,
+        "modification": "Filters 5-6 same media (FILT-A); T-FLT + State approval if high-rate claimed",
+        "unit": "Filters + influent/effluent + FTW"
+      },
+      {
+        "evidence": "170k +324k baffled +133k =627k gal at 10.5ft p.114; 75 min at current max p.114; +85k gal under Filters 5-6 p.115; 57 min at 18 mgd approx 60-min desirable p.115; 1,000,000 gal needed at 24 mgd short 288k p.115 space extremely limited p.115; 2 zones unbaffled p.114; 15-ft filters-to-clearwell drop REMOVED - no element cited",
+        "limiting_value": "Volume ~57 min at 18 mgd passes screening; CT/b affling pending T-CT",
+        "limits_target": true,
+        "modification": "Baffling/chlorine proof for CT; no volume expansion for 18 mgd",
+        "unit": "Clearwell"
+      },
+      {
+        "evidence": "HS 1x1400gpm/2.0mgd +3x2800gpm/4.0mgd at 305ft p.115 space for two more p.115 VFD on No2 p.115 firm 10 mgd nominal p.115; Table 4-2 18 mgd = retain 1-4 add 6mgd VFD +4mgd p.116; max achieved ~14 mgd vs 16 nominal p.107; surge 9700gpm/14.0mgd 150psi HGL630ft p.117; any expansion beyond existing total requires replacing tank with larger tank p.117 2nd tank impractical p.117; higher head needed >18 mgd p.117",
+        "limiting_value": "10 mgd HSPS firm; 14.0 mgd surge",
+        "limits_target": true,
+        "modification": "Larger surge tank replacement + Table 4-2 pumps + transient reanalysis; stage WTP-to-Hill parallels p.118",
+        "unit": "HSPS + transmission + surge"
+      },
+      {
+        "evidence": "Pumps/piping adequately sized for existing config/type p.119; higher 4400gpm optimum only if deep-bed to achieve >18 mgd p.119; prior 3250 vs 4400 LIMITS 18 REJECTED",
+        "limiting_value": "Does NOT limit 18 mgd",
+        "limits_target": false,
+        "modification": "None for 18 mgd",
+        "unit": "Backwash system"
+      }
+    ]
+  },
+  "review": {
+    "checked_citations": [
+      "p.109 firm 15.0 mgd 2002 / 14 mgd 2006 Pump 1,2,4 - verified",
+      "p.110 Table 4-1 5.9 fps 0.25 ft/100ft at 18 mgd + 6.0 fps desirable - verified via view_page",
+      "p.111 single basin 12 mgd / 18 nominal 24 hydraulic / OF 465.0 / weir 9-ft 12 mgd / drain 30-in 10 mgd / 42-in 2.9 fps at 18 mgd / 2.8-in at 13.1 mgd - verified via view_page",
+      "p.114 170k+324k+133k=627k gal at 10.5 ft / 75 min - verified",
+      "p.117 Table 4-3 5.97 fps 0.25 ft/100ft / surge 9700 gpm 14.0 mgd 150 psi HGL 630 ft / 1900 cu ft / 2nd tank impractical - verified via view_page",
+      "p.119 2x3250 gpm at 41 ft 1 duty+1 spare / deep-bed optimum 4400 gpm only if >18 mgd / 16-in header adequate existing - verified"
+    ],
+    "checked_runs": [
+      "hyd-30-18cal - reran, matches logged 5.66 fps",
+      "prof-cal-2basin - reran, matches logged",
+      "prof-2basin-design - reran, matches logged 464.42 ft margin 0.58 ft",
+      "prof-22-chk - reran, matches logged 464.61 ft residual -0.22 ft"
+    ],
+    "issues": [
+      {
+        "evidence": "prof-cal-2basin / prof-2basin-design show filters 464.0 ft to clearwell 449.0 ft = 15.0 ft loss with no element; no page gives filter effluent / clearwell inlet loss",
+        "issue": "Gravity profile imposes 15 ft drop filters-to-clearwell with no pipe/weir/orifice element or citation. Calibrates freely to hold filter control, not to field test. Residual 0.0 ft is circular.",
+        "item": "Filters to clearwell profile segment",
+        "severity": "major"
+      },
+      {
+        "evidence": "profile_capacity prof-cal-2basin binds OF 465.0 ft at 28.82 mgd; p.112 states ultimate hydraulic 22-24 mgd limited by settled pipe",
+        "issue": "Calibrated profile over-predicts settled-pipe capacity by ~5-7 mgd vs report-given 22-24 mgd. Model omits rapid-mix, floc/sed internal, launder/weir, filter influent channel losses. Cannot use to claim 18 mgd margin 0.58 ft is conservative.",
+        "item": "Settled-water profile completeness",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.117 With respect to surge protection, any expansion beyond existing total pumping capacity will require replacing existing tank with larger tank; study proposes SURGE-A retune/controls+relief, no replacement, costed as C-PS-01 5 mgd proxy controls",
+        "issue": "Proposed surge fix contradicts document requirement for larger tank and uses pump-station proxy for controls/relief with no transient model. No cost_estimate logged, no standards_check. Least-cost not verified.",
+        "item": "Surge protection + HSPS/transmission",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.119 If filter media is changed to deep bed to achieve production rates higher than 18 mgd, higher backwash rates may be required; existing pumps/piping adequately sized for existing config/type",
+        "issue": "Study lists backwash firm 3250 gpm <4400 gpm optimum as LIMITS 18 mgd. Document triggers higher rate only >18 mgd with media change. At 18 mgd with existing media no upgrade required. False limit and unnecessary BW-A cost.",
+        "item": "Backwash system",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.111 drain 30-in ~10 mgd each, weir ~12 mgd each; 2x drains =20 mgd, 2x weirs =24 mgd; study claims 2 weirs adequate to 24 mgd ultimate",
+        "issue": "Overflow drainage still binds below 24 mgd: 2x10 mgd drains =20 mgd < 24 mgd hydraulic. Study tracks weir rating but ignores drain parallel capacity. Single-basin 10 mgd drain <12 mgd weir mismatch also means drain, not weir, governs N-1 overflow.",
+        "item": "Overflow drain capacity",
+        "severity": "major"
+      },
+      {
+        "evidence": "p.110 image top: three 6 mgd pumps with three 8 mgd pumps firm 22 mgd; four 8 mgd pumps firm 24 mgd; RFI claims pump rated Q/TDH and firm vs nominal unknown",
+        "issue": "Study claims pump curves/counts unknown yet pages contain rated 6/8 mgd pump firm combinations. Firm N-1 basis not reconciled to those ratings, nor identified as raw vs high-service. Demonstrated 14-15 mgd vs rated 22-24 mgd gap unexplained; rehab vs replace decision unverified by TDH test.",
+        "item": "Pump ratings / firm basis",
+        "severity": "major"
+      },
+      {
+        "evidence": "No cost_estimate tool logs; cost_basis cites C-PS-01 booster station for 9 mgd basin, 6 mgd filter, 5 mgd surge controls and C-PIPE-01 100 ft 30-in for 5th intake opening",
+        "issue": "All capital costs use wrong-category proxies, unlogged, with ASSUMPTION pending survey. C-PS-01 excludes engineering/contingency/land per catalogue; C-PIPE excludes cofferdam/gates; C-FLOC/C-SED/C-FIL available but unused. AACE ranges not escalated by ENR as required.",
+        "item": "Cost estimates",
+        "severity": "major"
+      },
+      {
+        "evidence": "hyd-30-18cal 5.66 fps vs Table 4-1 p.110 5.9 fps and Table 4-3 p.117 5.97 fps at 18 mgd; finished ID 29.25-in p.116 and raw 1/4-in wall => ID 29.5-in should increase velocity, not decrease",
+        "issue": "Velocity -4% low due to 30-in nominal diameter and C=140 assumption. HL +9% high (0.27 vs 0.25 ft/100ft). Unit/ID error; screening conclusion (binds just over 18) still holds but calibration residual mis-stated as validated.",
+        "item": "30-in pipeline calibration",
+        "severity": "minor"
+      },
+      {
+        "evidence": "prof-22-chk / prof-2basin-design place drawing_ws_ft 464.83 ft and 466.0 ft from dwg p.136; read_drawing flags all but 453.0 ft single-read needing confirmation; engineering rules require cite as dwg and confirm",
+        "issue": "Single-read drawing water surfaces used for calibration residuals (-0.22 ft, -0.41 ft) before T-SURV confirmation. Residuals spurious per RFI resolution that text governs until surveyed.",
+        "item": "Drawing calibration",
+        "severity": "minor"
+      },
+      {
+        "evidence": "p.114 under the four filters; p.112 20-in influent per filter, level 463-464 ft; no area, loading rate gpm/sf, or rating in pages; p.113 9.1 mgd test ~2 mgd to waste, >3.4 mgd through other two filters leaves 4th filter unaccounted",
+        "issue": "Filter total ~12 mgd and firm N-1 ~9 mgd are ASSUMPTION matched to basin, not measured. Cannot compute loading or Q-limit; W-FIL-02 FAIL 0.67 cites no standards_check run. Least-cost added area vs high-rate media unverified.",
+        "item": "Filters",
+        "severity": "major"
+      }
+    ]
+  },
+  "resolution": {
+    "alternatives": [
+      {
+        "cost_basis": "No catalogue item for intake gates/screens; prior C-PIPE-01 100ft proxy REJECTED - excludes cofferdam/gates/engineering. Pending dive/T-INT survey. Order-of-magnitude <$100k ASSUMPTION only.",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "INT-A: Add 5th 4x4-ft opening or equivalent area to meet 0.4 fps at 18 mgd",
+        "recommended": true,
+        "result": "4x16sf=64sf gives 0.435 fps at 18 mgd per velocity calc vs 0.4 fps limit p.109 FAIL; ~16.5 mgd at 0.40 fps; 5x16sf=80sf gives ~0.35 fps PASS",
+        "run_label": "no-hyd-relied-text-governs",
+        "unit": "River intake gates"
+      },
+      {
+        "cost_basis": "C-PMP-01 (pump equipment by gpm, 2021$) + C-VFD-01 (VFD by hp) for Pump 3 rehab + VFDs; prior C-PS-01 complete-station proxy REJECTED (3-6x error, excludes engineering/contingency). ENR/PPI escalation + installation pending T-RWPS TDH test.",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "RWPS-A: Rehab Pump 3 to rated 4200gpm/6.0mgd + VFDs/controls to prove 18 mgd firm; Table 4-2-type addition if TDH fails",
+        "recommended": true,
+        "result": "Nominal firm 16 mgd (4+6+6+6 largest-out p.108) <18; demonstrated firm 15.0 mgd 2002 and 14 mgd with 1,2,4 in 2006 p.109 FAIL W-PS-02; max all-pumps 20.9 mgd 2003 vs 22 nominal p.107",
+        "run_label": "no-hyd-relied-text-governs",
+        "unit": "Raw-water pump station"
+      },
+      {
+        "cost_basis": "C-FLOC-01 + C-SED-01 (1978-10$ construction, ENR escalation required, excludes OH&P/engineering) for 2nd parallel basin as designed p.111; prior C-PS-01 9mgd proxy REJECTED.",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "PRE-A: Build 2nd floc/sed basin parallel + 2nd 9-ft weir + 2nd 30-in drain as designed",
+        "recommended": true,
+        "result": "Single basin rated 12 mgd p.111 LIMITS 18; 2-basin nominal 18 mgd / hydraulic 22-24 mgd p.111-p.112 (settled-pipe limited); weir ~12 mgd each, drain ~10 mgd each p.111",
+        "run_label": "no-hyd-relied-text-governs",
+        "unit": "Flocculation/sedimentation + overflow"
+      },
+      {
+        "cost_basis": "C-FIL-01 (1978-10$ by sf, ENR escalation required) for 2 additional filters (6 total same media p.107); prior C-PS-01 6mgd proxy REJECTED. Area/rate pending T-FLT.",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "FILT-A: Add Filters 5-6 (same media) per design to reach 18 mgd nominal; interim high-rate requires State approval - not credited",
+        "recommended": true,
+        "result": "Current rated 12 mgd determined by four existing filters p.107 LIMITS 18; ultimate 18 mgd with six filters same media p.107; 20-in influent per filter p.112, level 463-464ft p.112; 9.1mgd test 2mgd FTW + >3.4mgd/filter p.113",
+        "run_label": "no-hyd-relied-text-governs",
+        "unit": "Filters"
+      },
+      {
+        "cost_basis": "C-TANK-01 equipment-only proxy by gallons (2021$, excludes installation/foundation/piping) + C-PMP-01/C-VFD-01 for Table 4-2 pumps; prior C-PS-01 controls proxy REJECTED. Transient model + ENR escalation pending. Second tank impractical p.117.",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "SURGE/HSPS-A: Replace surge tank with larger tank per p.117 + add Table 4-2 Pumps 5 (6mgd VFD) + 6 (4mgd) in existing spaces; replace 30-in propeller with mag meter p.116",
+        "recommended": true,
+        "result": "Surge rated 9700gpm/14.0mgd, 150psi upsurge, HGL 630ft downsurge p.117 LIMITS 18; HSPS firm 10mgd nominal (2+4+4+4 largest-out p.115) LIMITS 18, max achieved ~14mgd p.107; Table 4-2 18mgd firm = 2+4VFD+4+4+6VFD+4 p.116",
+        "run_label": "no-hyd-relied-text-governs",
+        "unit": "HSPS + surge + site transmission"
+      },
+      {
+        "cost_basis": "n/a - no capital at 18 mgd with existing media; prior BW-A upsize cost REJECTED as false limit",
+        "cost_class": "n/a",
+        "meets_target": true,
+        "option": "BW: No modification for 18 mgd (existing pumps/piping adequate p.119)",
+        "recommended": true,
+        "result": "Adequately sized for existing config/type p.119 PASSES 18; 4400gpm optimum only if deep-bed to achieve >18 mgd p.119 - not triggered",
+        "run_label": "no-hyd-relied-text-governs",
+        "unit": "Backwash system"
+      }
+    ],
+    "drawing_changes": [
+      {
+        "anchor_value": 453.0,
+        "note": "ADD 5TH 4X4 GATED OPENING OR EQUIV - fish 0.4 fps to 18 MGD (two-read confirmed)",
+        "structure": "RIVER INTAKE"
+      },
+      {
+        "anchor_value": 465.0,
+        "note": "ADD 2ND FLOCC/SED BASIN PARALLEL + 2ND WEIR + 2ND 30-IN DRAIN (12/10 MGD each) - text OF 465.0 governs; single-read WS not used",
+        "structure": "FLOCCULATION / SEDIMENTATION BASIN"
+      },
+      {
+        "anchor_value": 464.0,
+        "note": "ADD FILTERS 5-6 SAME MEDIA TO 18 MGD NOMINAL; HOLD LEVEL 463-464 PER P.112 - no computed loading",
+        "structure": "FILTERS"
+      },
+      {
+        "anchor_value": 449.0,
+        "note": "REPLACE SURGE TANK WITH LARGER TANK PER P.117 + TABLE 4-2 HS PUMPS 5-6; site main ID 29.25-IN P.116 - no 15-ft assumed drop",
+        "structure": "CLEARWELL / HIGH SERVICE PUMPS"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "4 gated openings p.109; 0.4 fps fish limit p.109; velocity 0.435 fps at 18 mgd on 64sf, 0.40 fps at ~16.5 mgd; screens up to 18 mgd or more p.109 no margin; pump-bay 2x5x5-ft adequate to 24 mgd or more p.109",
+        "limiting_value": "16.5 mgd fish; screens ~18 mgd no margin",
+        "limits_target": true,
+        "modification": "5th opening/equiv (INT-A); T-INT dive survey gates submerged",
+        "unit": "River intake gates"
+      },
+      {
+        "evidence": "1x2800gpm/4.0mgd +3x4200gpm/6.0mgd at 49ft TDH p.108, spaces filled p.108, nominal firm ~16 mgd p.108; 15.0 mgd firm 2002, 14 mgd with 1,2,4 2006 Pump 3 below rated p.109; max all-pumps 20.9 mgd 2003 vs 22 nominal p.107",
+        "limiting_value": "16 mgd nominal firm, 14-15 mgd demonstrated firm",
+        "limits_target": true,
+        "modification": "Rehab Pump 3 + VFDs; prove 18 mgd firm by T-RWPS TDH test, else add capacity",
+        "unit": "Raw-water pump station"
+      },
+      {
+        "evidence": "30-in steel 1/4-in wall p.110; Table 4-1 governs (report-given); finished ID 29.25-in p.116 wall 3/8-in; Table 4-3 5.97fps 0.25ft/100ft at 18 mgd p.117; prior hyd-30 5.66fps model REJECTED -4% ID error, text governs",
+        "limiting_value": "binds just over 18 mgd by 6.0 fps screen",
+        "limits_target": false,
+        "modification": "No replacement for 18 mgd; replace low-reading propeller with mag meter p.116; T-PIPE confirm",
+        "unit": "30-in raw + finished site mains"
+      },
+      {
+        "evidence": "Single basin rated 12 mgd, parallel 2nd for 18 nominal ~24 hydraulic p.111; weir ~12 mgd each, 30-in drain ~10 mgd each p.111; ultimate 22-24 mgd limited by settled pipe p.112; OF 465.0 p.111; prior 28.8 mgd profile REJECTED, 22-24 governs",
+        "limiting_value": "12 mgd single (weir 12, drain 10); 18 nominal / 20 drain-limited / 22-24 pipe-limited two-basin",
+        "limits_target": true,
+        "modification": "2nd basin + 2nd weir + 2nd drain (PRE-A); N-1 overflow governed by drain not weir",
+        "unit": "Flocculation/sedimentation + overflow"
+      },
+      {
+        "evidence": "42-in steel p.111; 2.8-in HL at 13.1 mgd p.111 field test; report-given ultimate 22-24 mgd p.112 governs; drawing 22 MGD note dwg p.136",
+        "limiting_value": "22-24 mgd hydraulic",
+        "limits_target": false,
+        "modification": "None for 18 mgd; T-SED HL test; internal/launder losses not modeled",
+        "unit": "42-in settled-water pipeline"
+      },
+      {
+        "evidence": "Current rated 12 mgd determined by four filters p.107; 18 nominal with six filters same media p.107; 20-in influent p.112 level 463-464 p.112; 9.1 mgd test ~2 mgd FTW >3.4 mgd/filter p.113; area/rate not in pages - no loading computed",
+        "limiting_value": "~12 mgd total report-given; firm N-1 unproven ASSUMPTION reason: no area/rate, 4th filter unaccounted in test",
+        "limits_target": true,
+        "modification": "Filters 5-6 same media (FILT-A); T-FLT + State approval if high-rate claimed",
+        "unit": "Filters + influent/effluent + FTW"
+      },
+      {
+        "evidence": "170k +324k baffled +133k =627k gal at 10.5ft p.114; 75 min at current max p.114; +85k gal under Filters 5-6 p.115; 57 min at 18 mgd approx 60-min desirable p.115; 1,000,000 gal needed at 24 mgd short 288k p.115 space extremely limited p.115; 2 zones unbaffled p.114; 15-ft filters-to-clearwell drop REMOVED - no element cited",
+        "limiting_value": "Volume ~57 min at 18 mgd passes screening; CT/b affling pending T-CT",
+        "limits_target": true,
+        "modification": "Baffling/chlorine proof for CT; no volume expansion for 18 mgd",
+        "unit": "Clearwell"
+      },
+      {
+        "evidence": "HS 1x1400gpm/2.0mgd +3x2800gpm/4.0mgd at 305ft p.115 space for two more p.115 VFD on No2 p.115 firm 10 mgd nominal p.115; Table 4-2 18 mgd = retain 1-4 add 6mgd VFD +4mgd p.116; max achieved ~14 mgd vs 16 nominal p.107; surge 9700gpm/14.0mgd 150psi HGL630ft p.117; any expansion beyond existing total requires replacing tank with larger tank p.117 2nd tank impractical p.117; higher head needed >18 mgd p.117",
+        "limiting_value": "10 mgd HSPS firm; 14.0 mgd surge",
+        "limits_target": true,
+        "modification": "Larger surge tank replacement + Table 4-2 pumps + transient reanalysis; stage WTP-to-Hill parallels p.118",
+        "unit": "HSPS + transmission + surge"
+      },
+      {
+        "evidence": "Pumps/piping adequately sized for existing config/type p.119; higher 4400gpm optimum only if deep-bed to achieve >18 mgd p.119; prior 3250 vs 4400 LIMITS 18 REJECTED",
+        "limiting_value": "Does NOT limit 18 mgd",
+        "limits_target": false,
+        "modification": "None for 18 mgd",
+        "unit": "Backwash system"
+      }
+    ],
+    "responses": [
+      {
+        "action": "fixed",
+        "explanation": "Removed 15ft filters-to-clearwell assumed drop and 0.0ft circular residual; no page gives filter effluent/clearwell inlet loss. Findings now cite only report-given levels 463-464ft p.112 and clearwell volumes p.114-p.115; T-FLT/T-CT required.",
+        "issue": "Gravity profile imposes 15 ft drop filters-to-clearwell with no pipe/weir/orifice element or citation."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Rejected profile_capacity 28.82 mgd; model omits rapid-mix/floc internal/launder/channel losses. Report-given 22-24 mgd p.112 governs; 2-basin drain limit 20 mgd (2x10 p.111) now tracked separately.",
+        "issue": "Calibrated profile over-predicts settled-pipe capacity by ~5-7 mgd vs report-given 22-24 mgd."
+      },
+      {
+        "action": "fixed",
+        "explanation": "SURGE-A retune-only rejected. Final requires replacing existing tank with larger tank per p.117 (2nd tank impractical p.117) + Table 4-2 HS pumps; cost via C-TANK-01 equipment-only + C-PMP/C-VFD with ENR pending + transient model.",
+        "issue": "Proposed surge fix contradicts document requirement for larger tank and uses pump-station proxy."
+      },
+      {
+        "action": "fixed",
+        "explanation": "False limit withdrawn. P.119 triggers higher rate only with deep-bed to achieve >18 mgd; existing adequate p.119 passes 18. BW-A cost deleted.",
+        "issue": "Study lists backwash firm 3250 gpm <4400 gpm optimum as LIMITS 18 mgd."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Now tracks drains: single-basin drain 10 mgd < weir 12 mgd so drain governs N-1; two-basin 2x10=20 mgd < 2x12=24 mgd weir, so ultimate hydraulic 24 mgd drain-limited to 20 mgd with pipe 22-24 mgd p.112 governing in combination.",
+        "issue": "Overflow drainage still binds below 24 mgd: 2x10 mgd drains =20 mgd < 24 mgd hydraulic."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Reconciled: raw per p.108 1x4.0+3x6.0 mgd nominal firm ~16 mgd, demonstrated 14-15 p.109 (Pump 3 deficiency); HS per p.115 1x2.0+3x4.0 firm 10 nominal, Table 4-2 p.116 to 18 firm. No 6/8 mgd raw ratings claimed; gap = deficiency + TDH, verify by T-RWPS.",
+        "issue": "Study claims pump curves/counts unknown yet pages contain rated 6/8 mgd pump firm combinations."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Prior C-PS-01/C-PIPE-01 proxies rejected with reasons. Final uses C-FLOC/C-SED for basin, C-FIL for filters, C-TANK for surge, C-PMP/C-VFD for pumps, no valid item for intake gates; all n/a pending ENR escalation, installation, surveys. No cost_estimate logged per step limit.",
+        "issue": "All capital costs use wrong-category proxies, unlogged, with ASSUMPTION pending survey."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted: prior hyd-30 5.66fps/0.27ft/100ft vs Tables 5.9/5.97fps 0.25ft/100ft error from 30-in nominal vs 29.5-in raw (1/4-in wall p.110) and 29.25-in finished p.116 + C assumption. Text Tables govern; screening binds-just-over-18 holds; no validation claimed.",
+        "issue": "Velocity -4% low due to 30-in nominal diameter and C=140 assumption."
+      },
+      {
+        "action": "fixed",
+        "explanation": "Single-read WS 464.83/466.0 etc withdrawn from calibration; residuals deleted. Only two-read 453.0 high water dwg p.136 cited; text OF 465.0 p.111 and Tables govern until T-SURV survey.",
+        "issue": "Single-read drawing water surfaces used for calibration residuals before T-SURV confirmation."
+      },
+      {
+        "action": "fixed",
+        "explanation": "12 mgd now cited as report-given rated capacity determined by four filters p.107 and 18 mgd with six filters same media p.107, not computed; firm N-1 ~9 mgd withdrawn to ASSUMPTION unproven (no area/rate, 4th filter unaccounted p.113); no W-FIL-02 check claimed; T-FLT required.",
+        "issue": "Filter total ~12 mgd and firm N-1 ~9 mgd are ASSUMPTION matched to basin, not measured."
+      }
+    ]
+  },
+  "runs": {
+    "hyd-raw-18": {
+      "purpose": "Raw water 30-in pipeline headloss check at 18 mgd - 100ft segment to verify Table 4-1 0.25 ft/100ft",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J1"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J2"
+          }
+        ],
+        "pipes": [
+          {
+            "diameter_in": 30,
+            "from": "J1",
+            "id": "P1",
+            "length_ft": 100,
+            "to": "J2"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "R1",
+            "id": "PU1",
+            "rated_gpm": 12500,
+            "rated_head_ft": 10,
+            "to": "J1"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "R1"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "R2"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "PU1",
+            "on": true,
+            "flow_gpm": 0.0,
+            "tdh_ft": 13.33,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 0.0,
+            "motor_hp": null,
+            "electric_kw": 0.0,
+            "pct_of_rated_flow": 0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "P1",
+            "flow_gpm": 0.0,
+            "velocity_fps": 0.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_psi": 5.78
+          },
+          {
+            "id": "J2",
+            "pressure_psi": 5.78
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0,
+        "specific_energy_kwh_per_ml": 14.6
+      }
+    },
+    "hyd-raw-cal": {
+      "purpose": "Calibrate 30-in raw pipeline 100-ft segment to Table 4-1 headloss 0.25 ft per 100 ft at 18 mgd",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J1"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J2"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 30,
+            "from": "J1",
+            "id": "P1",
+            "length_ft": 100,
+            "to": "J2"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 30,
+            "from": "J2",
+            "id": "P2",
+            "length_ft": 10,
+            "to": "R2"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "R1",
+            "id": "PU1",
+            "rated_gpm": 12500,
+            "rated_head_ft": 0.3,
+            "to": "J1"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "R1"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "R2"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "PU1",
+            "on": true,
+            "flow_gpm": 11094.0,
+            "tdh_ft": 0.32,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 1.1,
+            "motor_hp": null,
+            "electric_kw": 0.9,
+            "pct_of_rated_flow": 89
+          }
+        ],
+        "pipes": [
+          {
+            "id": "P1",
+            "flow_gpm": 11094.0,
+            "velocity_fps": 5.04
+          },
+          {
+            "id": "P2",
+            "flow_gpm": 11094.0,
+            "velocity_fps": 5.04
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_psi": 0.14
+          },
+          {
+            "id": "J2",
+            "pressure_psi": 0.01
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 11094.0,
+        "total_pumped_mgd": 15.975,
+        "total_electric_kw": 0.9,
+        "specific_energy_kwh_per_ml": 0.4
+      }
+    },
+    "hyd-raw-18b": {
+      "purpose": "Raw 30-in 100-ft headloss verification at 18 mgd Table 4-1",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J1"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J2"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 30,
+            "from": "J1",
+            "id": "P100",
+            "length_ft": 100,
+            "to": "J2"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "R1",
+            "id": "PU",
+            "rated_gpm": 12500.0,
+            "rated_head_ft": 0.4,
+            "to": "J1"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "R1"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "R2"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "PU",
+            "on": true,
+            "flow_gpm": 0.0,
+            "tdh_ft": 0.53,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 0.0,
+            "motor_hp": null,
+            "electric_kw": 0.0,
+            "pct_of_rated_flow": 0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "P100",
+            "flow_gpm": 0.0,
+            "velocity_fps": 0.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_psi": 0.23
+          },
+          {
+            "id": "J2",
+            "pressure_psi": 0.23
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0,
+        "specific_energy_kwh_per_ml": 0.6
+      }
+    },
+    "hyd-base-raw": {
+      "purpose": "Base raw 30-in 100-ft gravity headloss calibration to Table 4-1 0.25 ft at 18 mgd",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J1"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 120,
+            "diameter_in": 30,
+            "from": "Rup",
+            "id": "P1",
+            "length_ft": 100,
+            "to": "J1"
+          },
+          {
+            "c_factor": 120,
+            "diameter_in": 30,
+            "from": "J1",
+            "id": "P2",
+            "length_ft": 10,
+            "to": "Rdn"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 1.0,
+            "id": "Rup"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "Rdn"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "P1",
+            "flow_gpm": 20482.7,
+            "velocity_fps": 9.3
+          },
+          {
+            "id": "P2",
+            "flow_gpm": 20482.7,
+            "velocity_fps": 9.3
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_psi": 0.04
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "hyd-30in-100ft": {
+      "purpose": "Calibrate 30-in raw/finished 100-ft segment headloss to Table 4-1/4-3 0.25 ft at 18 mgd",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J1"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 140,
+            "diameter_in": 30,
+            "from": "Rup",
+            "id": "P1",
+            "length_ft": 100,
+            "to": "J1"
+          },
+          {
+            "c_factor": 140,
+            "diameter_in": 30,
+            "from": "J1",
+            "id": "P2",
+            "length_ft": 10,
+            "to": "Rdn"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0.275,
+            "id": "Rup"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "Rdn"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "P1",
+            "flow_gpm": 11901.4,
+            "velocity_fps": 5.4
+          },
+          {
+            "id": "P2",
+            "flow_gpm": 11901.4,
+            "velocity_fps": 5.4
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_psi": 0.01
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "hyd-cal-30single": {
+      "purpose": "Base calibration single 30-in 100-ft to Table 4-1 0.25 ft at 18 mgd",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J1"
+          },
+          {
+            "elev_ft": 0.0,
+            "id": "J2"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 140,
+            "diameter_in": 30,
+            "from": "J1",
+            "id": "P100",
+            "length_ft": 100,
+            "to": "J2"
+          }
+        ],
+        "pumps": [
+          {
+            "from": "Rup",
+            "id": "PU",
+            "rated_gpm": 12500.0,
+            "rated_head_ft": 0.28,
+            "to": "J1"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0.0,
+            "id": "Rup"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "Rdn"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [
+          {
+            "id": "PU",
+            "on": true,
+            "flow_gpm": 0.0,
+            "tdh_ft": 0.37,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_hp": 0.0,
+            "motor_hp": null,
+            "electric_kw": 0.0,
+            "pct_of_rated_flow": 0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "P100",
+            "flow_gpm": 0.0,
+            "velocity_fps": 0.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_psi": 0.16
+          },
+          {
+            "id": "J2",
+            "pressure_psi": 0.16
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0,
+        "specific_energy_kwh_per_ml": 0.4
+      }
+    },
+    "hyd-30-18cal": {
+      "purpose": "30-in 110-ft gravity headloss calibration to Table 4-1 0.25 ft per 100 ft at 18 mgd total plant flow",
+      "spec": {
+        "junctions": [
+          {
+            "elev_ft": 0.0,
+            "id": "J1"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 140,
+            "diameter_in": 30,
+            "from": "Rup",
+            "id": "P1",
+            "length_ft": 100,
+            "to": "J1"
+          },
+          {
+            "c_factor": 140,
+            "diameter_in": 30,
+            "from": "J1",
+            "id": "P2",
+            "length_ft": 10,
+            "to": "Rdn"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_ft": 0.3,
+            "id": "Rup"
+          },
+          {
+            "head_ft": 0.0,
+            "id": "Rdn"
+          }
+        ],
+        "units": "US"
+      },
+      "result": {
+        "units": "US",
+        "pumps": [],
+        "pipes": [
+          {
+            "id": "P1",
+            "flow_gpm": 12473.9,
+            "velocity_fps": 5.66
+          },
+          {
+            "id": "P2",
+            "flow_gpm": 12473.9,
+            "velocity_fps": 5.66
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_psi": 0.01
+          }
+        ],
+        "warnings": [],
+        "total_pumped_gpm": 0.0,
+        "total_pumped_mgd": 0.0,
+        "total_electric_kw": 0.0
+      }
+    }
+  },
+  "profiles": {
+    "prof-base": {
+      "purpose": "Calibrated gravity profile clearwell to rapid mix: filter level control plus 42-in settled pipe calibrated to 2.8-in at 13.1 mgd field test, checked against drawing WS at 22 MGD ultimate",
+      "spec": {
+        "elements": [
+          {
+            "drawing_ws_ft": 464.0,
+            "id": "filters",
+            "max_ws_ft": 467.5,
+            "type": "control",
+            "ws_ft": 464.0
+          },
+          {
+            "calibrate": {
+              "flow_mgd": 13.1,
+              "headloss_ft": 0.2333
+            },
+            "diameter_in": 42,
+            "drawing_ws_ft": 464.83,
+            "id": "settled-42in",
+            "limit_name": "sed basin overflow weir 465.0",
+            "max_ws_ft": 465.0,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 466.0,
+            "id": "rapid-mix",
+            "limit_name": "rapid mix top of wall",
+            "max_ws_ft": 467.5,
+            "type": "control",
+            "ws_ft": 466.0
+          }
+        ],
+        "start": {
+          "id": "clearwell",
+          "ws_ft": 449.0
+        }
+      },
+      "flows": [
+        13.1,
+        18.0,
+        22.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 13.1,
+          "nodes": [
+            {
+              "id": "clearwell",
+              "ws_ft": 449.0,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "filters",
+              "ws_ft": 464.0,
+              "loss_ft": 15.0,
+              "drawing_ws_ft": 464.0,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "settled-42in",
+              "ws_ft": 464.23,
+              "loss_ft": 0.233,
+              "note": "V=2.11 fps",
+              "drawing_ws_ft": 464.83,
+              "residual_ft": -0.6
+            },
+            {
+              "id": "rapid-mix",
+              "ws_ft": 466.0,
+              "loss_ft": 1.767,
+              "drawing_ws_ft": 466.0,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [
+            {
+              "id": "filters",
+              "check": "max water surface",
+              "ws_ft": 464.0,
+              "limit_ft": 467.5,
+              "margin_ft": 3.5
+            },
+            {
+              "id": "settled-42in",
+              "check": "sed basin overflow weir 465.0",
+              "ws_ft": 464.23,
+              "limit_ft": 465.0,
+              "margin_ft": 0.77
+            },
+            {
+              "id": "rapid-mix",
+              "check": "rapid mix top of wall",
+              "ws_ft": 466.0,
+              "limit_ft": 467.5,
+              "margin_ft": 1.5
+            }
+          ],
+          "passes": true,
+          "first_limit": "settled-42in"
+        },
+        {
+          "flow_mgd": 18.0,
+          "nodes": [
+            {
+              "id": "clearwell",
+              "ws_ft": 449.0,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "filters",
+              "ws_ft": 464.0,
+              "loss_ft": 15.0,
+              "drawing_ws_ft": 464.0,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "settled-42in",
+              "ws_ft": 464.42,
+              "loss_ft": 0.42,
+              "note": "V=2.89 fps",
+              "drawing_ws_ft": 464.83,
+              "residual_ft": -0.41
+            },
+            {
+              "id": "rapid-mix",
+              "ws_ft": 466.0,
+              "loss_ft": 1.58,
+              "drawing_ws_ft": 466.0,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [
+            {
+              "id": "filters",
+              "check": "max water surface",
+              "ws_ft": 464.0,
+              "limit_ft": 467.5,
+              "margin_ft": 3.5
+            },
+            {
+              "id": "settled-42in",
+              "check": "sed basin overflow weir 465.0",
+              "ws_ft": 464.42,
+              "limit_ft": 465.0,
+              "margin_ft": 0.58
+            },
+            {
+              "id": "rapid-mix",
+              "check": "rapid mix top of wall",
+              "ws_ft": 466.0,
+              "limit_ft": 467.5,
+              "margin_ft": 1.5
+            }
+          ],
+          "passes": true,
+          "first_limit": "settled-42in"
+        },
+        {
+          "flow_mgd": 22.0,
+          "nodes": [
+            {
+              "id": "clearwell",
+              "ws_ft": 449.0,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "filters",
+              "ws_ft": 464.0,
+              "loss_ft": 15.0,
+              "drawing_ws_ft": 464.0,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "settled-42in",
+              "ws_ft": 464.61,
+              "loss_ft": 0.609,
+              "note": "V=3.54 fps",
+              "drawing_ws_ft": 464.83,
+              "residual_ft": -0.22
+            },
+            {
+              "id": "rapid-mix",
+              "ws_ft": 466.0,
+              "loss_ft": 1.391,
+              "drawing_ws_ft": 466.0,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [
+            {
+              "id": "filters",
+              "check": "max water surface",
+              "ws_ft": 464.0,
+              "limit_ft": 467.5,
+              "margin_ft": 3.5
+            },
+            {
+              "id": "settled-42in",
+              "check": "sed basin overflow weir 465.0",
+              "ws_ft": 464.61,
+              "limit_ft": 465.0,
+              "margin_ft": 0.39
+            },
+            {
+              "id": "rapid-mix",
+              "check": "rapid mix top of wall",
+              "ws_ft": 466.0,
+              "limit_ft": 467.5,
+              "margin_ft": 1.5
+            }
+          ],
+          "passes": true,
+          "first_limit": "settled-42in"
+        }
+      ]
+    },
+    "prof-22-chk": {
+      "purpose": "Check 22 MGD ultimate drawing WS residuals - settled 42-in calibrated to field test",
+      "spec": {
+        "elements": [
+          {
+            "drawing_ws_ft": 464.0,
+            "id": "filters",
+            "max_ws_ft": 467.5,
+            "type": "control",
+            "ws_ft": 464.0
+          },
+          {
+            "calibrate": {
+              "flow_mgd": 13.1,
+              "headloss_ft": 0.2333
+            },
+            "diameter_in": 42,
+            "drawing_ws_ft": 464.83,
+            "id": "settled-42in",
+            "limit_name": "sed basin overflow weir 465.0",
+            "max_ws_ft": 465.0,
+            "type": "pipe"
+          },
+          {
+            "drawing_ws_ft": 466.0,
+            "id": "rapid-mix",
+            "limit_name": "rapid mix top 467.5",
+            "max_ws_ft": 467.5,
+            "type": "control",
+            "ws_ft": 466.0
+          }
+        ],
+        "start": {
+          "id": "clearwell",
+          "ws_ft": 449.0
+        }
+      },
+      "flows": [
+        22.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 22.0,
+          "nodes": [
+            {
+              "id": "clearwell",
+              "ws_ft": 449.0,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "filters",
+              "ws_ft": 464.0,
+              "loss_ft": 15.0,
+              "drawing_ws_ft": 464.0,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "settled-42in",
+              "ws_ft": 464.61,
+              "loss_ft": 0.609,
+              "note": "V=3.54 fps",
+              "drawing_ws_ft": 464.83,
+              "residual_ft": -0.22
+            },
+            {
+              "id": "rapid-mix",
+              "ws_ft": 466.0,
+              "loss_ft": 1.391,
+              "drawing_ws_ft": 466.0,
+              "residual_ft": 0.0
+            }
+          ],
+          "checks": [
+            {
+              "id": "filters",
+              "check": "max water surface",
+              "ws_ft": 464.0,
+              "limit_ft": 467.5,
+              "margin_ft": 3.5
+            },
+            {
+              "id": "settled-42in",
+              "check": "sed basin overflow weir 465.0",
+              "ws_ft": 464.61,
+              "limit_ft": 465.0,
+              "margin_ft": 0.39
+            },
+            {
+              "id": "rapid-mix",
+              "check": "rapid mix top 467.5",
+              "ws_ft": 466.0,
+              "limit_ft": 467.5,
+              "margin_ft": 1.5
+            }
+          ],
+          "passes": true,
+          "first_limit": "settled-42in"
+        }
+      ]
+    },
+    "prof-cal-2basin": {
+      "purpose": "Calibrated gravity profile filters to rapid mix via 42-in settled pipe at total plant flows; with two basins each carries half; settled pipe carries full flow",
+      "spec": {
+        "elements": [
+          {
+            "drawing_ws_ft": 464.0,
+            "id": "filters",
+            "max_ws_ft": 467.5,
+            "type": "control",
+            "ws_ft": 464.0
+          },
+          {
+            "calibrate": {
+              "flow_mgd": 13.1,
+              "headloss_ft": 0.2333
+            },
+            "diameter_in": 42,
+            "drawing_ws_ft": 464.83,
+            "id": "settled42",
+            "limit_name": "sed basin overflow weir 465.0 ft",
+            "max_ws_ft": 465.0,
+            "share": 1.0,
+            "type": "pipe"
+          },
+          {
+            "id": "rapidmix",
+            "limit_name": "rapid mix top of wall",
+            "max_ws_ft": 467.5,
+            "type": "control",
+            "ws_ft": 466.0
+          }
+        ],
+        "start": {
+          "id": "clearwell",
+          "ws_ft": 449.0
+        }
+      },
+      "flows": [
+        9.0,
+        12.0,
+        13.1,
+        18.0,
+        22.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 9.0,
+          "nodes": [
+            {
+              "id": "clearwell",
+              "ws_ft": 449.0,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "filters",
+              "ws_ft": 464.0,
+              "loss_ft": 15.0,
+              "drawing_ws_ft": 464.0,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "settled42",
+              "ws_ft": 464.12,
+              "loss_ft": 0.116,
+              "note": "V=1.45 fps",
+              "drawing_ws_ft": 464.83,
+              "residual_ft": -0.71
+            },
+            {
+              "id": "rapidmix",
+              "ws_ft": 466.0,
+              "loss_ft": 1.884
+            }
+          ],
+          "checks": [
+            {
+              "id": "filters",
+              "check": "max water surface",
+              "ws_ft": 464.0,
+              "limit_ft": 467.5,
+              "margin_ft": 3.5
+            },
+            {
+              "id": "settled42",
+              "check": "sed basin overflow weir 465.0 ft",
+              "ws_ft": 464.12,
+              "limit_ft": 465.0,
+              "margin_ft": 0.88
+            },
+            {
+              "id": "rapidmix",
+              "check": "rapid mix top of wall",
+              "ws_ft": 466.0,
+              "limit_ft": 467.5,
+              "margin_ft": 1.5
+            }
+          ],
+          "passes": true,
+          "first_limit": "settled42"
+        },
+        {
+          "flow_mgd": 12.0,
+          "nodes": [
+            {
+              "id": "clearwell",
+              "ws_ft": 449.0,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "filters",
+              "ws_ft": 464.0,
+              "loss_ft": 15.0,
+              "drawing_ws_ft": 464.0,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "settled42",
+              "ws_ft": 464.2,
+              "loss_ft": 0.198,
+              "note": "V=1.93 fps",
+              "drawing_ws_ft": 464.83,
+              "residual_ft": -0.63
+            },
+            {
+              "id": "rapidmix",
+              "ws_ft": 466.0,
+              "loss_ft": 1.802
+            }
+          ],
+          "checks": [
+            {
+              "id": "filters",
+              "check": "max water surface",
+              "ws_ft": 464.0,
+              "limit_ft": 467.5,
+              "margin_ft": 3.5
+            },
+            {
+              "id": "settled42",
+              "check": "sed basin overflow weir 465.0 ft",
+              "ws_ft": 464.2,
+              "limit_ft": 465.0,
+              "margin_ft": 0.8
+            },
+            {
+              "id": "rapidmix",
+              "check": "rapid mix top of wall",
+              "ws_ft": 466.0,
+              "limit_ft": 467.5,
+              "margin_ft": 1.5
+            }
+          ],
+          "passes": true,
+          "first_limit": "settled42"
+        },
+        {
+          "flow_mgd": 13.1,
+          "nodes": [
+            {
+              "id": "clearwell",
+              "ws_ft": 449.0,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "filters",
+              "ws_ft": 464.0,
+              "loss_ft": 15.0,
+              "drawing_ws_ft": 464.0,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "settled42",
+              "ws_ft": 464.23,
+              "loss_ft": 0.233,
+              "note": "V=2.11 fps",
+              "drawing_ws_ft": 464.83,
+              "residual_ft": -0.6
+            },
+            {
+              "id": "rapidmix",
+              "ws_ft": 466.0,
+              "loss_ft": 1.767
+            }
+          ],
+          "checks": [
+            {
+              "id": "filters",
+              "check": "max water surface",
+              "ws_ft": 464.0,
+              "limit_ft": 467.5,
+              "margin_ft": 3.5
+            },
+            {
+              "id": "settled42",
+              "check": "sed basin overflow weir 465.0 ft",
+              "ws_ft": 464.23,
+              "limit_ft": 465.0,
+              "margin_ft": 0.77
+            },
+            {
+              "id": "rapidmix",
+              "check": "rapid mix top of wall",
+              "ws_ft": 466.0,
+              "limit_ft": 467.5,
+              "margin_ft": 1.5
+            }
+          ],
+          "passes": true,
+          "first_limit": "settled42"
+        },
+        {
+          "flow_mgd": 18.0,
+          "nodes": [
+            {
+              "id": "clearwell",
+              "ws_ft": 449.0,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "filters",
+              "ws_ft": 464.0,
+              "loss_ft": 15.0,
+              "drawing_ws_ft": 464.0,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "settled42",
+              "ws_ft": 464.42,
+              "loss_ft": 0.42,
+              "note": "V=2.89 fps",
+              "drawing_ws_ft": 464.83,
+              "residual_ft": -0.41
+            },
+            {
+              "id": "rapidmix",
+              "ws_ft": 466.0,
+              "loss_ft": 1.58
+            }
+          ],
+          "checks": [
+            {
+              "id": "filters",
+              "check": "max water surface",
+              "ws_ft": 464.0,
+              "limit_ft": 467.5,
+              "margin_ft": 3.5
+            },
+            {
+              "id": "settled42",
+              "check": "sed basin overflow weir 465.0 ft",
+              "ws_ft": 464.42,
+              "limit_ft": 465.0,
+              "margin_ft": 0.58
+            },
+            {
+              "id": "rapidmix",
+              "check": "rapid mix top of wall",
+              "ws_ft": 466.0,
+              "limit_ft": 467.5,
+              "margin_ft": 1.5
+            }
+          ],
+          "passes": true,
+          "first_limit": "settled42"
+        },
+        {
+          "flow_mgd": 22.0,
+          "nodes": [
+            {
+              "id": "clearwell",
+              "ws_ft": 449.0,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "filters",
+              "ws_ft": 464.0,
+              "loss_ft": 15.0,
+              "drawing_ws_ft": 464.0,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "settled42",
+              "ws_ft": 464.61,
+              "loss_ft": 0.609,
+              "note": "V=3.54 fps",
+              "drawing_ws_ft": 464.83,
+              "residual_ft": -0.22
+            },
+            {
+              "id": "rapidmix",
+              "ws_ft": 466.0,
+              "loss_ft": 1.391
+            }
+          ],
+          "checks": [
+            {
+              "id": "filters",
+              "check": "max water surface",
+              "ws_ft": 464.0,
+              "limit_ft": 467.5,
+              "margin_ft": 3.5
+            },
+            {
+              "id": "settled42",
+              "check": "sed basin overflow weir 465.0 ft",
+              "ws_ft": 464.61,
+              "limit_ft": 465.0,
+              "margin_ft": 0.39
+            },
+            {
+              "id": "rapidmix",
+              "check": "rapid mix top of wall",
+              "ws_ft": 466.0,
+              "limit_ft": 467.5,
+              "margin_ft": 1.5
+            }
+          ],
+          "passes": true,
+          "first_limit": "settled42"
+        }
+      ]
+    },
+    "prof-1basin-exist": {
+      "purpose": "Existing single-basin treatment rating 12 mgd plus single overflow weir/drain limits",
+      "spec": {
+        "elements": [
+          {
+            "drawing_ws_ft": 464.0,
+            "id": "filters",
+            "max_ws_ft": 467.5,
+            "type": "control",
+            "ws_ft": 464.0
+          },
+          {
+            "calibrate": {
+              "flow_mgd": 13.1,
+              "headloss_ft": 0.2333
+            },
+            "diameter_in": 42,
+            "drawing_ws_ft": 464.83,
+            "id": "settled42",
+            "limit_name": "sed basin overflow weir 465.0 ft",
+            "max_flow_mgd": 12.0,
+            "max_ws_ft": 465.0,
+            "rating_name": "single basin nominal 12 mgd p.111",
+            "type": "pipe"
+          },
+          {
+            "id": "rapidmix",
+            "limit_name": "rapid mix top of wall",
+            "max_ws_ft": 467.5,
+            "type": "control",
+            "ws_ft": 466.0
+          }
+        ],
+        "start": {
+          "id": "clearwell",
+          "ws_ft": 449.0
+        }
+      },
+      "flows": [
+        12.0,
+        18.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 12.0,
+          "nodes": [
+            {
+              "id": "clearwell",
+              "ws_ft": 449.0,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "filters",
+              "ws_ft": 464.0,
+              "loss_ft": 15.0,
+              "drawing_ws_ft": 464.0,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "settled42",
+              "ws_ft": 464.2,
+              "loss_ft": 0.198,
+              "note": "V=1.93 fps",
+              "drawing_ws_ft": 464.83,
+              "residual_ft": -0.63
+            },
+            {
+              "id": "rapidmix",
+              "ws_ft": 466.0,
+              "loss_ft": 1.802
+            }
+          ],
+          "checks": [
+            {
+              "id": "filters",
+              "check": "max water surface",
+              "ws_ft": 464.0,
+              "limit_ft": 467.5,
+              "margin_ft": 3.5
+            },
+            {
+              "id": "settled42",
+              "check": "sed basin overflow weir 465.0 ft",
+              "ws_ft": 464.2,
+              "limit_ft": 465.0,
+              "margin_ft": 0.8
+            },
+            {
+              "id": "settled42",
+              "check": "single basin nominal 12 mgd p.111",
+              "flow_mgd": 12.0,
+              "limit_mgd": 12.0,
+              "margin_mgd": 0.0,
+              "margin_ft": 0.0
+            },
+            {
+              "id": "rapidmix",
+              "check": "rapid mix top of wall",
+              "ws_ft": 466.0,
+              "limit_ft": 467.5,
+              "margin_ft": 1.5
+            }
+          ],
+          "passes": true,
+          "first_limit": "settled42"
+        },
+        {
+          "flow_mgd": 18.0,
+          "nodes": [
+            {
+              "id": "clearwell",
+              "ws_ft": 449.0,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "filters",
+              "ws_ft": 464.0,
+              "loss_ft": 15.0,
+              "drawing_ws_ft": 464.0,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "settled42",
+              "ws_ft": 464.42,
+              "loss_ft": 0.42,
+              "note": "V=2.89 fps",
+              "drawing_ws_ft": 464.83,
+              "residual_ft": -0.41
+            },
+            {
+              "id": "rapidmix",
+              "ws_ft": 466.0,
+              "loss_ft": 1.58
+            }
+          ],
+          "checks": [
+            {
+              "id": "filters",
+              "check": "max water surface",
+              "ws_ft": 464.0,
+              "limit_ft": 467.5,
+              "margin_ft": 3.5
+            },
+            {
+              "id": "settled42",
+              "check": "sed basin overflow weir 465.0 ft",
+              "ws_ft": 464.42,
+              "limit_ft": 465.0,
+              "margin_ft": 0.58
+            },
+            {
+              "id": "settled42",
+              "check": "single basin nominal 12 mgd p.111",
+              "flow_mgd": 18.0,
+              "limit_mgd": 12.0,
+              "margin_mgd": -6.0,
+              "margin_ft": -6.0
+            },
+            {
+              "id": "rapidmix",
+              "check": "rapid mix top of wall",
+              "ws_ft": 466.0,
+              "limit_ft": 467.5,
+              "margin_ft": 1.5
+            }
+          ],
+          "passes": false,
+          "first_limit": "settled42"
+        }
+      ]
+    },
+    "prof-2basin-design": {
+      "purpose": "Design two-basin 18 mgd nominal 24 mgd hydraulic settled pipe plus second overflow weir",
+      "spec": {
+        "elements": [
+          {
+            "drawing_ws_ft": 464.0,
+            "id": "filters",
+            "max_ws_ft": 467.5,
+            "type": "control",
+            "ws_ft": 464.0
+          },
+          {
+            "calibrate": {
+              "flow_mgd": 13.1,
+              "headloss_ft": 0.2333
+            },
+            "diameter_in": 42,
+            "drawing_ws_ft": 464.83,
+            "id": "settled42",
+            "limit_name": "sed basin overflow weir 465.0 ft",
+            "max_flow_mgd": 24.0,
+            "max_ws_ft": 465.0,
+            "rating_name": "two-basin hydraulic 24 mgd p.111",
+            "type": "pipe"
+          },
+          {
+            "id": "rapidmix",
+            "limit_name": "rapid mix top of wall",
+            "max_ws_ft": 467.5,
+            "type": "control",
+            "ws_ft": 466.0
+          }
+        ],
+        "start": {
+          "id": "clearwell",
+          "ws_ft": 449.0
+        }
+      },
+      "flows": [
+        18.0
+      ],
+      "results": [
+        {
+          "flow_mgd": 18.0,
+          "nodes": [
+            {
+              "id": "clearwell",
+              "ws_ft": 449.0,
+              "loss_ft": 0.0
+            },
+            {
+              "id": "filters",
+              "ws_ft": 464.0,
+              "loss_ft": 15.0,
+              "drawing_ws_ft": 464.0,
+              "residual_ft": 0.0
+            },
+            {
+              "id": "settled42",
+              "ws_ft": 464.42,
+              "loss_ft": 0.42,
+              "note": "V=2.89 fps",
+              "drawing_ws_ft": 464.83,
+              "residual_ft": -0.41
+            },
+            {
+              "id": "rapidmix",
+              "ws_ft": 466.0,
+              "loss_ft": 1.58
+            }
+          ],
+          "checks": [
+            {
+              "id": "filters",
+              "check": "max water surface",
+              "ws_ft": 464.0,
+              "limit_ft": 467.5,
+              "margin_ft": 3.5
+            },
+            {
+              "id": "settled42",
+              "check": "sed basin overflow weir 465.0 ft",
+              "ws_ft": 464.42,
+              "limit_ft": 465.0,
+              "margin_ft": 0.58
+            },
+            {
+              "id": "settled42",
+              "check": "two-basin hydraulic 24 mgd p.111",
+              "flow_mgd": 18.0,
+              "limit_mgd": 24.0,
+              "margin_mgd": 6.0,
+              "margin_ft": 6.0
+            },
+            {
+              "id": "rapidmix",
+              "check": "rapid mix top of wall",
+              "ws_ft": 466.0,
+              "limit_ft": 467.5,
+              "margin_ft": 1.5
+            }
+          ],
+          "passes": true,
+          "first_limit": "settled42"
+        }
+      ]
+    }
+  },
+  "surges": {},
+  "eps_runs": {},
+  "cost_estimates": {
+    "cost-intake-opening": {
+      "lines": [
+        {
+          "id": "C-PIPE-01",
+          "item": "Water pipeline, open cut, rural, soil, incl. appurtenances (any material)",
+          "x": 30.0,
+          "x_unit": "in",
+          "qty": 100.0,
+          "unit_cost_base": 424,
+          "base_year": "2023-01",
+          "escalation": 1.0,
+          "cost": 42000.0,
+          "note": "5th 4x4-ft intake opening equivalent - proxy 30-in short connection, ASSUMPTION length 100 ft pending dive survey",
+          "warnings": [],
+          "source": "TWDB Uniform Costing Model User Guide v3.0 (March 2024), Appendix: 'TWDB UCM Update: Proposed Unit Cost Updates' memo (Feb 27 2024), pdf p.65, memo Table 3 (Page 10 of 33)"
+        }
+      ],
+      "total": 42000.0,
+      "dollars": "2023-09 (ENR CCI 13485.67)",
+      "aace_class": 5,
+      "range": [
+        28000.0,
+        70000.0
+      ],
+      "range_basis": "AACE 18R-97 class 5: [-0.2, -0.5] to [0.3, 1.0]; midpoint bounds used",
+      "note": "Order-of-magnitude capital cost from published curves; excludes land, engineering and contingency unless the curve includes them."
+    },
+    "cost-rwps-rehab": {
+      "lines": [
+        {
+          "id": "C-PS-01",
+          "item": "Booster pump station, complete (capacity basis)",
+          "x": 18.0,
+          "x_unit": "mgd",
+          "qty": 1.0,
+          "unit_cost_base": 6527075,
+          "base_year": "2023-01",
+          "escalation": 1.0,
+          "cost": 6527000.0,
+          "note": "Raw-water pump station rehab/upgrade to 18 mgd firm (Pump 3 rehab + VFD + controls); capacity basis proxy",
+          "warnings": [],
+          "source": "TWDB Uniform Costing Model User Guide v3.0 (March 2024), Appendix: 'TWDB UCM Update: Proposed Unit Cost Updates' memo (Feb 27 2024), pdf p.62, memo Table 2 (Page 7 of 33)"
+        }
+      ],
+      "total": 6527000.0,
+      "dollars": "2023-09 (ENR CCI 13485.67)",
+      "aace_class": 5,
+      "range": [
+        4243000.0,
+        10770000.0
+      ],
+      "range_basis": "AACE 18R-97 class 5: [-0.2, -0.5] to [0.3, 1.0]; midpoint bounds used",
+      "note": "Order-of-magnitude capital cost from published curves; excludes land, engineering and contingency unless the curve includes them."
+    },
+    "cost-2nd-basin": {
+      "lines": [
+        {
+          "id": "C-PS-01",
+          "item": "Booster pump station, complete (capacity basis)",
+          "x": 9.0,
+          "x_unit": "mgd",
+          "qty": 1.0,
+          "unit_cost_base": 4529453,
+          "base_year": "2023-01",
+          "escalation": 1.0,
+          "cost": 4529000.0,
+          "note": "Second floc/sed basin parallel for 18 mgd nominal - proxy capacity basis 9 mgd increment, ASSUMPTION pending geometry survey",
+          "warnings": [],
+          "source": "TWDB Uniform Costing Model User Guide v3.0 (March 2024), Appendix: 'TWDB UCM Update: Proposed Unit Cost Updates' memo (Feb 27 2024), pdf p.62, memo Table 2 (Page 7 of 33)"
+        }
+      ],
+      "total": 4529000.0,
+      "dollars": "2023-09 (ENR CCI 13485.67)",
+      "aace_class": 5,
+      "range": [
+        2944000.0,
+        7474000.0
+      ],
+      "range_basis": "AACE 18R-97 class 5: [-0.2, -0.5] to [0.3, 1.0]; midpoint bounds used",
+      "note": "Order-of-magnitude capital cost from published curves; excludes land, engineering and contingency unless the curve includes them."
+    },
+    "cost-filter-expand": {
+      "lines": [
+        {
+          "id": "C-PS-01",
+          "item": "Booster pump station, complete (capacity basis)",
+          "x": 6.0,
+          "x_unit": "mgd",
+          "qty": 1.0,
+          "unit_cost_base": 3657868,
+          "base_year": "2023-01",
+          "escalation": 1.0,
+          "cost": 3658000.0,
+          "note": "Filter capacity increment to 18 mgd firm N-1 - proxy 6 mgd increment, ASSUMPTION pending area survey and rate approval",
+          "warnings": [],
+          "source": "TWDB Uniform Costing Model User Guide v3.0 (March 2024), Appendix: 'TWDB UCM Update: Proposed Unit Cost Updates' memo (Feb 27 2024), pdf p.62, memo Table 2 (Page 7 of 33)"
+        }
+      ],
+      "total": 3658000.0,
+      "dollars": "2023-09 (ENR CCI 13485.67)",
+      "aace_class": 5,
+      "range": [
+        2378000.0,
+        6035000.0
+      ],
+      "range_basis": "AACE 18R-97 class 5: [-0.2, -0.5] to [0.3, 1.0]; midpoint bounds used",
+      "note": "Order-of-magnitude capital cost from published curves; excludes land, engineering and contingency unless the curve includes them."
+    },
+    "cost-surge-controls": {
+      "lines": [
+        {
+          "id": "C-PS-01",
+          "item": "Booster pump station, complete (capacity basis)",
+          "x": 5.0,
+          "x_unit": "mgd",
+          "qty": 1.0,
+          "unit_cost_base": 3322703,
+          "base_year": "2023-01",
+          "escalation": 1.0,
+          "cost": 3323000.0,
+          "note": "Surge reanalysis plus VFD ramp/controls and relief to extend 14.0 to 18 mgd without second tank (space constrained p.117), proxy small station upgrade",
+          "warnings": [],
+          "source": "TWDB Uniform Costing Model User Guide v3.0 (March 2024), Appendix: 'TWDB UCM Update: Proposed Unit Cost Updates' memo (Feb 27 2024), pdf p.62, memo Table 2 (Page 7 of 33)"
+        }
+      ],
+      "total": 3323000.0,
+      "dollars": "2023-09 (ENR CCI 13485.67)",
+      "aace_class": 5,
+      "range": [
+        2160000.0,
+        5482000.0
+      ],
+      "range_basis": "AACE 18R-97 class 5: [-0.2, -0.5] to [0.3, 1.0]; midpoint bounds used",
+      "note": "Order-of-magnitude capital cost from published curves; excludes land, engineering and contingency unless the curve includes them."
+    },
+    "cost-bw-upgrade": {
+      "lines": [
+        {
+          "id": "C-PS-01",
+          "item": "Booster pump station, complete (capacity basis)",
+          "x": 5.0,
+          "x_unit": "mgd",
+          "qty": 1.0,
+          "unit_cost_base": 3322703,
+          "base_year": "2023-01",
+          "escalation": 1.0,
+          "cost": 3323000.0,
+          "note": "Backwash pump/VFD upsizing toward 4400 gpm deep-bed optimum (tested 4060 gpm p.119), proxy small station",
+          "warnings": [],
+          "source": "TWDB Uniform Costing Model User Guide v3.0 (March 2024), Appendix: 'TWDB UCM Update: Proposed Unit Cost Updates' memo (Feb 27 2024), pdf p.62, memo Table 2 (Page 7 of 33)"
+        }
+      ],
+      "total": 3323000.0,
+      "dollars": "2023-09 (ENR CCI 13485.67)",
+      "aace_class": 5,
+      "range": [
+        2160000.0,
+        5482000.0
+      ],
+      "range_basis": "AACE 18R-97 class 5: [-0.2, -0.5] to [0.3, 1.0]; midpoint bounds used",
+      "note": "Order-of-magnitude capital cost from published curves; excludes land, engineering and contingency unless the curve includes them."
+    }
+  },
+  "standards_checks": [
+    {
+      "rule_id": "W-PS-02",
+      "status": "pass",
+      "value": 1.0,
+      "limit": ">= 1.0 ratio",
+      "rule": "Raw water pumping station: firm capacity (largest pump out of service) must convey the treatment facility design flow.",
+      "citation": "Recommended Standards for Water Works, 2022 Edition (GLUMRB Ten States Standards), Sec. 6.2.1 (pdf p.187 (printed p.136))",
+      "basis": "prof-2basin-design at 18 mgd passes OF 465.0 margin 0.58 ft; two-basin nominal 18 mgd p.111"
+    },
+    {
+      "rule_id": "W-INT-01",
+      "status": "not checked",
+      "reason": "velocity tool 0.435 fps at 18 mgd surcharged WS; DR-INT-01/05 p.109"
+    },
+    {
+      "rule_id": "W-FIL-02",
+      "status": "FAIL",
+      "value": 0.667,
+      "limit": ">= 1.0 ratio",
+      "rule": "At least two filters; with more than two, design capacity met with the largest filter out of service.",
+      "citation": "Recommended Standards for Water Works, 2022 Edition (GLUMRB Ten States Standards), Sec. 4.3.1.3 (pdf p.94 (printed p.43))",
+      "basis": "prof-1basin-exist single basin nominal 12 mgd p.111 vs 18 mgd target"
+    },
+    {
+      "rule_id": "W-CW-01",
+      "status": "pass",
+      "value": 3.0,
+      "limit": ">= 2 count",
+      "rule": "Clearwell has at least two compartments (50% isolatable); sized for disinfectant contact time.",
+      "citation": "Recommended Standards for Water Works, 2022 Edition (GLUMRB Ten States Standards), Sec. 7.2.2 c) (pdf p.200-201 (printed p.149-150))",
+      "basis": "DR-CW-01/02/03 p.114 three clearwell zones (170k plus 324k plus 133k gal)"
+    }
+  ],
+  "drawing": {
+    "page": 136,
+    "title": "WINCHESTER WTP HYDRAULIC PROFILE",
+    "design_flow_note": "2. BASED ON AN ULTIMATE PLANT FLOW OF 22 MGD.",
+    "flow_path": [
+      "RIVER INTAKE",
+      "RAPID MIX",
+      "FLOCCULATION BASIN",
+      "SEDIMENTATION BASIN",
+      "FILTERS",
+      "CLEARWELL",
+      "HIGH SERVICE & BACKWASH PUMPS",
+      "RESERVOIR"
+    ],
+    "notes": [
+      "1. SYMBOL REPRESENTS APPROXIMATE FINISH GRADE RELATIONSHIP.",
+      "2. BASED ON AN ULTIMATE PLANT FLOW OF 22 MGD."
+    ],
+    "elevations": [
+      {
+        "value": 453.0,
+        "structure": "RIVER INTAKE",
+        "feature": "other",
+        "label_text": "HIGH WATER ELEVATION 453.0",
+        "bbox": [
+          0.0996,
+          0.2471,
+          0.1195,
+          0.2587
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 450.0,
+        "structure": "RIVER INTAKE",
+        "feature": "water surface",
+        "label_text": "450.0",
+        "bbox": [
+          0.0996,
+          0.2616,
+          0.1195,
+          0.2732
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 432.0,
+        "structure": "RIVER INTAKE",
+        "feature": "other",
+        "label_text": "ORDINARY HIGH WATER ELEVATION 432\u00b1",
+        "bbox": [
+          0.1,
+          0.3381,
+          0.1223,
+          0.3497
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 425.5,
+        "structure": "RIVER INTAKE",
+        "feature": "other",
+        "label_text": "425.5",
+        "bbox": [
+          0.0955,
+          0.3613,
+          0.1153,
+          0.3729
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 420.0,
+        "structure": "RIVER INTAKE",
+        "feature": "water surface",
+        "label_text": "ORDINARY LOW WATER ELEVATION 420\u00b1",
+        "bbox": [
+          0.1,
+          0.3961,
+          0.1223,
+          0.4077
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 415.5,
+        "structure": "RIVER INTAKE",
+        "feature": "other",
+        "label_text": "415.5",
+        "bbox": [
+          0.0955,
+          0.4135,
+          0.1153,
+          0.4251
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 408.0,
+        "structure": "RIVER INTAKE",
+        "feature": "floor",
+        "label_text": "408.0",
+        "bbox": [
+          0.1947,
+          0.4518,
+          0.2145,
+          0.4634
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 467.5,
+        "structure": "RAPID MIX",
+        "feature": "top of wall",
+        "label_text": "467.5",
+        "bbox": [
+          0.2001,
+          0.192,
+          0.2195,
+          0.2036
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 466.0,
+        "structure": "RAPID MIX",
+        "feature": "water surface",
+        "label_text": "466.0",
+        "bbox": [
+          0.2472,
+          0.1978,
+          0.2658,
+          0.2094
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 454.0,
+        "structure": "FLOCCULATION BASIN",
+        "feature": "invert",
+        "label_text": "454.0",
+        "bbox": [
+          0.2001,
+          0.2558,
+          0.2199,
+          0.2674
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 465.98,
+        "structure": "SEDIMENTATION BASIN",
+        "feature": "max water surface",
+        "label_text": "MAX WS 465.98",
+        "bbox": [
+          0.3974,
+          0.185,
+          0.4191,
+          0.1978
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 465.0,
+        "structure": "SEDIMENTATION BASIN",
+        "feature": "overflow weir",
+        "label_text": "OF WEIR 465.00",
+        "bbox": [
+          0.5365,
+          0.1844,
+          0.5597,
+          0.1949
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 464.83,
+        "structure": "SEDIMENTATION BASIN",
+        "feature": "water surface",
+        "label_text": "WS 464.83",
+        "bbox": [
+          0.5365,
+          0.203,
+          0.5592,
+          0.2134
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 454.0,
+        "structure": "SEDIMENTATION BASIN",
+        "feature": "invert",
+        "label_text": "454.0",
+        "bbox": [
+          0.5025,
+          0.2581,
+          0.5178,
+          0.2685
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 455.0,
+        "structure": "WASTEWATER PUMP STATION",
+        "feature": "grade",
+        "label_text": "455.0",
+        "bbox": [
+          0.5937,
+          0.2546,
+          0.6085,
+          0.2645
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 440.3,
+        "structure": "WASTEWATER PUMP STATION",
+        "feature": "other",
+        "label_text": "440.3",
+        "bbox": [
+          0.5666,
+          0.3503,
+          0.5819,
+          0.3608
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 430.0,
+        "structure": "WASTEWATER PUMP STATION",
+        "feature": "floor",
+        "label_text": "430.0",
+        "bbox": [
+          0.6135,
+          0.3683,
+          0.6301,
+          0.3782
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 452.5,
+        "structure": "DIVERSION MH W/WEIR",
+        "feature": "other",
+        "label_text": "452.5",
+        "bbox": [
+          0.659,
+          0.2424,
+          0.6755,
+          0.2523
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 440.6,
+        "structure": "DIVERSION MH W/WEIR",
+        "feature": "invert",
+        "label_text": "440.6",
+        "bbox": [
+          0.659,
+          0.3219,
+          0.6755,
+          0.3318
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 443.5,
+        "structure": "DIVERSION MH W/WEIR",
+        "feature": "other",
+        "label_text": "443.5",
+        "bbox": [
+          0.6584,
+          0.308,
+          0.6737,
+          0.3184
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 451.9,
+        "structure": "DIVERSION MH W/WEIR",
+        "feature": "top of wall",
+        "label_text": "451.9",
+        "bbox": [
+          0.6811,
+          0.254,
+          0.6954,
+          0.2639
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 441.1,
+        "structure": "DIVERSION MH W/WEIR",
+        "feature": "invert",
+        "label_text": "441.1",
+        "bbox": [
+          0.6811,
+          0.3352,
+          0.6954,
+          0.3451
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 464.0,
+        "structure": "FILTERS",
+        "feature": "other",
+        "label_text": "464.0",
+        "bbox": [
+          0.7665,
+          0.2001,
+          0.7851,
+          0.2105
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 467.5,
+        "structure": "FILTERS",
+        "feature": "top of wall",
+        "label_text": "467.5",
+        "bbox": [
+          0.7954,
+          0.1943,
+          0.8132,
+          0.2042
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 453.5,
+        "structure": "CLEARWELL",
+        "feature": "other",
+        "label_text": "453.5",
+        "bbox": [
+          0.8078,
+          0.2946,
+          0.8256,
+          0.3045
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 449.0,
+        "structure": "CLEARWELL",
+        "feature": "other",
+        "label_text": "449.0",
+        "bbox": [
+          0.8367,
+          0.2958,
+          0.8545,
+          0.3057
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 452.0,
+        "structure": "CLEARWELL",
+        "feature": "other",
+        "label_text": "452.0",
+        "bbox": [
+          0.9173,
+          0.2552,
+          0.9339,
+          0.2651
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 449.5,
+        "structure": "CLEARWELL",
+        "feature": "overflow weir",
+        "label_text": "449.5 OF WEIR",
+        "bbox": [
+          0.9173,
+          0.2726,
+          0.9339,
+          0.2825
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 438.5,
+        "structure": "CLEARWELL",
+        "feature": "invert",
+        "label_text": "438.5",
+        "bbox": [
+          0.9173,
+          0.3567,
+          0.9347,
+          0.3666
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 710.0,
+        "structure": "RESERVOIR",
+        "feature": "water surface",
+        "label_text": "710.0 RESERVOIR",
+        "bbox": [
+          0.8479,
+          0.0394,
+          0.8677,
+          0.051
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 459.0,
+        "structure": "WASTEWATER SETTLING BASINS",
+        "feature": "top of wall",
+        "label_text": "459.0",
+        "bbox": [
+          0.2021,
+          0.6305,
+          0.2162,
+          0.6392
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 458.0,
+        "structure": "WASTEWATER SETTLING BASINS",
+        "feature": "max water surface",
+        "label_text": "MAX WS 458.0",
+        "bbox": [
+          0.2873,
+          0.6474,
+          0.3055,
+          0.6561
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 451.0,
+        "structure": "WASTEWATER SETTLING BASINS",
+        "feature": "overflow weir",
+        "label_text": "451.0 OVERFLOW TO RIVER",
+        "bbox": [
+          0.2029,
+          0.6909,
+          0.2162,
+          0.6996
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 459.0,
+        "structure": "SLUDGE DRYING BEDS",
+        "feature": "top of wall",
+        "label_text": "459.0",
+        "bbox": [
+          0.7458,
+          0.6311,
+          0.7652,
+          0.6416
+        ],
+        "confirmed": "two reads"
+      },
+      {
+        "value": 452.5,
+        "structure": "SLUDGE DRYING BEDS",
+        "feature": "grade",
+        "label_text": "452.5",
+        "bbox": [
+          0.7458,
+          0.663,
+          0.7652,
+          0.6735
+        ],
+        "confirmed": "two reads"
+      }
+    ],
+    "tile_only_labels": [
+      {
+        "value": 465.9,
+        "text": "MAX WS 465.9",
+        "bbox": [
+          0.3877,
+          0.1978,
+          0.4125,
+          0.2094
+        ]
+      },
+      {
+        "value": 452.5,
+        "text": "452.5",
+        "bbox": [
+          0.6302,
+          0.2546,
+          0.645,
+          0.2645
+        ]
+      },
+      {
+        "value": 440.6,
+        "text": "440.6",
+        "bbox": [
+          0.6352,
+          0.3352,
+          0.6505,
+          0.3457
+        ]
+      },
+      {
+        "value": 430.0,
+        "text": "430.0",
+        "bbox": [
+          0.5927,
+          0.4002,
+          0.6075,
+          0.4106
+        ]
+      },
+      {
+        "value": 449.0,
+        "text": "NORMAL HIGH WS IN CLEARWELL 449.0",
+        "bbox": [
+          0.8545,
+          0.3642,
+          0.8719,
+          0.3741
+        ]
+      },
+      {
+        "value": 446.5,
+        "text": "NORMAL OPERATING LEVEL 446.5 TO 448.0",
+        "bbox": [
+          0.8132,
+          0.3758,
+          0.8305,
+          0.3857
+        ]
+      },
+      {
+        "value": 448.0,
+        "text": "NORMAL OPERATING LEVEL 446.5 TO 448.0",
+        "bbox": [
+          0.8545,
+          0.3758,
+          0.8719,
+          0.3857
+        ]
+      }
+    ]
+  }
+}

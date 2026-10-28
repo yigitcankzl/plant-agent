@@ -1,0 +1,5659 @@
+{
+  "case": "briare",
+  "facility": "Briare Pumping Station, Canal de Briare, France",
+  "source": "Arcadis for Voies navigables de France, Briare Pumping Station Pump Assessment Report, 2020 (Interreg Green WIN public deliverable)",
+  "url": "https://www.nweurope.eu/projects/project-search/green-win-green-infrastructure-for-water-in-the-north-west-europe/",
+  "question": "Energy audit of the Briare pumping station: is the existing pump selection appropriate for the system, would variable speed drives save energy, and which measures should the operator take to reduce energy use? Quantify with the simulator where possible and state the data needed to confirm.",
+  "model": "muse-spark-1.3-contributor",
+  "collection": {
+    "criteria": [
+      {
+        "name": "Normal operating duty",
+        "source": "p.6",
+        "value": "2 pumps most of time, up to 3 if necessary (p.6)"
+      },
+      {
+        "name": "Installed / duty configuration",
+        "source": "p.6",
+        "value": "6 pumps installed; Duty / Duty / Assist + 3 Standby units assumed (p.6)"
+      },
+      {
+        "name": "Firm capacity definition",
+        "source": "Engineering rules + p.6",
+        "value": "Firm capacity = capacity with largest unit out of service; with 6 installed and 2-pump normal duty (p.6), firm 2-pump duty requires 3 pumps available"
+      },
+      {
+        "name": "Suction / wet-well levels",
+        "source": "p.6, p.9",
+        "value": "124.2 to 125.8 mNGF (p.6); Sump TVL 125.8 mNGF, Design ~124.9 mNGF, SWL 124.2 mNGF (p.9, partly legible)"
+      },
+      {
+        "name": "Discharge level and static lift",
+        "source": "p.6, p.9",
+        "value": "Discharge 168.1 mNGF (p.6); Elevation rise ~43 m (p.6); Static lift Minimum ~42.3 m / Design ~43.2 m / Maximum ~43.9 m (p.9, 168.1 minus 125.8/124.9/124.2)"
+      },
+      {
+        "name": "Rising-main geometry",
+        "source": "p.6",
+        "value": "Twin 900 mm diameter mains, approx. 2650 m length (p.6); 2 x 2650 m (O 900 mm) on schematic (p.7)"
+      },
+      {
+        "name": "Station pipework",
+        "source": "p.6",
+        "value": "300 mm diameter branch into 750 mm diameter manifold (3 pumps) (p.6)"
+      },
+      {
+        "name": "Hydraulic roughness - design and sensitivity",
+        "source": "p.6, p.8, p.9",
+        "value": "Design ks 0.3 mm; sensitivity curves for 0.03 mm and 1.5 mm (p.6, p.8, p.9: Low 0.03 / Design 0.3 / High 1.5 mm)"
+      },
+      {
+        "name": "2020 implementation scope / efficiency target",
+        "source": "p.5",
+        "value": "Automation, supervision and telecontrol; optimising operations time periods; at least one new pump; Motor IE3 or IE4, Variable Speed Drive (VSD); Smart water and energy monitoring (p.5)"
+      },
+      {
+        "name": "Existing motor standard",
+        "source": "p.6",
+        "value": "IE2, Rated Motor Output 170 kW, Fixed Speed assumed star-delta (p.6)"
+      },
+      {
+        "name": "Specific-energy benchmark",
+        "source": "p.10, p.11",
+        "value": "Existing 174 kWh/1000 m3 for 2- or 3-pump operation, 172 for 1 pump (p.10, p.11); IE3 option 170 kWh/1000 m3 for 2- or 3-pump, 167 for 1 pump (p.10); reduction ~4 kWh/1000 m3 (p.10)"
+      },
+      {
+        "name": "Annual pumped volume for savings",
+        "source": "p.11",
+        "value": "2,907,360 m3 in 2016 (p.11); single IE3 pump at 66% utilisation saves 3,873 kWh/annum, all pumps 11,629 kWh/annum (p.11)"
+      },
+      {
+        "name": "Electrical load benchmark",
+        "source": "p.11",
+        "value": "Base supplementary load ~10 kW summer and ~20 kW winter (p.11); typical summer total ~280 kW, pumping ~270 kW after base, vs predicted 265 kW for 2 pumps (p.11)"
+      }
+    ],
+    "data_register": [
+      {
+        "id": "D01",
+        "item": "Pump model (Table 1)",
+        "quote": "Xylem (Flygt) CP3231 / 705 with 53-455 performance curve",
+        "source": "p.6",
+        "unit": "model",
+        "value": "CP3231 / 705, 53-455 curve (p.6)"
+      },
+      {
+        "id": "D02",
+        "item": "Number of pumps installed",
+        "quote": "No. of Pumps 6",
+        "source": "p.6",
+        "unit": "count",
+        "value": "6 (p.6)"
+      },
+      {
+        "id": "D03",
+        "item": "Normal operation - number running",
+        "quote": "operates with only 2 pumps for most of the time and up to 3 if necessary",
+        "source": "p.6",
+        "unit": "count",
+        "value": "2 normal, up to 3 (p.6)"
+      },
+      {
+        "id": "D04",
+        "item": "Duty configuration",
+        "quote": "Duty / Duty / Assist + 3 Standby units assumed",
+        "source": "p.6",
+        "unit": "configuration",
+        "value": "Duty/Duty/Assist + 3 standby, assumed (p.6)"
+      },
+      {
+        "id": "D05",
+        "item": "Rated motor output",
+        "quote": "Rated Motor Output 170 kW",
+        "source": "p.6",
+        "unit": "kW",
+        "value": "170 (p.6)"
+      },
+      {
+        "id": "D06",
+        "item": "Motor energy conformance existing",
+        "quote": "Energy Conformance IE2",
+        "source": "p.6",
+        "unit": "IE class",
+        "value": "IE2 (p.6)"
+      },
+      {
+        "id": "D07",
+        "item": "Impeller diameter",
+        "quote": "Impeller Diameter 435 mm",
+        "source": "p.6",
+        "unit": "mm",
+        "value": "435 (p.6)"
+      },
+      {
+        "id": "D08",
+        "item": "Drives",
+        "quote": "Drives Fixed Speed (assumed star-delta)",
+        "source": "p.6",
+        "unit": "drive type",
+        "value": "Fixed speed, assumed star-delta (p.6)"
+      },
+      {
+        "id": "D09",
+        "item": "Station pipework",
+        "quote": "300 mm diameter branch into 750 mm diameter manifold (3 pumps)",
+        "source": "p.6",
+        "unit": "mm",
+        "value": "300 branch into 750 manifold (p.6)"
+      },
+      {
+        "id": "D10",
+        "item": "Wet-well level range",
+        "quote": "Wet Well Level 124.2 to 125.8 mNGF (based upon schematic)",
+        "source": "p.6",
+        "unit": "mNGF",
+        "value": "124.2 to 125.8 (p.6)"
+      },
+      {
+        "id": "D11",
+        "item": "Rising mains - number",
+        "quote": "twin 900 mm diameter rising mains",
+        "source": "p.6",
+        "unit": "count",
+        "value": "2 (p.6)"
+      },
+      {
+        "id": "D12",
+        "item": "Rising mains - length",
+        "quote": "approximately 2650 m in length",
+        "source": "p.6",
+        "unit": "m",
+        "value": "approx. 2650 (p.6)"
+      },
+      {
+        "id": "D13",
+        "item": "Rising mains - diameter",
+        "quote": "Pipe Diameter 900 mm",
+        "source": "p.6",
+        "unit": "mm",
+        "value": "900 (p.6)"
+      },
+      {
+        "id": "D14",
+        "item": "Elevation rise",
+        "quote": "Elevation Rise Approximately 43 m",
+        "source": "p.6",
+        "unit": "m",
+        "value": "approx. 43 (p.6)"
+      },
+      {
+        "id": "D15",
+        "item": "Discharge level",
+        "quote": "Discharge Level 168.1 mNGF",
+        "source": "p.6",
+        "unit": "mNGF",
+        "value": "168.1 (p.6)"
+      },
+      {
+        "id": "D16",
+        "item": "Pipe material",
+        "quote": "Pipe Material Not known",
+        "source": "p.6",
+        "unit": "-",
+        "value": "Not known (p.6)"
+      },
+      {
+        "id": "D17",
+        "item": "Roughness design + sensitivity",
+        "quote": "Roughness (and Loss Coeff, K) 0.3 mm (Curves produced for 0.03 mm and 1.5 mm)",
+        "source": "p.6",
+        "unit": "mm",
+        "value": "0.3 design; 0.03 and 1.5 sensitivity (p.6)"
+      },
+      {
+        "id": "D18",
+        "item": "Schematic rising mains label",
+        "quote": "CONDUITES ASCENSIONNELLES 2 x 2650 m (O 900mm)",
+        "source": "p.7",
+        "unit": "m / mm",
+        "value": "2 x 2650 m, O 900 mm (p.7)"
+      },
+      {
+        "id": "D19",
+        "item": "Schematic elevation difference",
+        "quote": "43 metres",
+        "source": "p.7",
+        "unit": "m",
+        "value": "43 (p.7)"
+      },
+      {
+        "id": "D20",
+        "item": "System curves - 2-pump operation title",
+        "quote": "Briare PS System Curves - 2 Pump Operation",
+        "source": "p.8",
+        "unit": "-",
+        "value": "2-pump system curves derived by Arcadis (p.8)"
+      },
+      {
+        "id": "D21",
+        "item": "System curves legend - pump curve",
+        "quote": "Xylem CP 3231 735/745 435mm impeller 2No. Pumps",
+        "source": "p.8",
+        "unit": "model",
+        "value": "CP3231 735/745 435 mm, 2 pumps (p.8)"
+      },
+      {
+        "id": "D22",
+        "item": "System curves legend - roughness/level cases",
+        "quote": "ks=0.03mm; Wet Well @ 124.2mNGF / ks=0.3mm; Wet Well @ 124.9mNGF / ks=1.5mm; Wet Well @ 125.8mNGF",
+        "source": "p.8",
+        "unit": "mm / mNGF",
+        "value": "ks 0.03@124.2, 0.3@124.9, 1.5@125.8 (p.8, legend partly legible)"
+      },
+      {
+        "id": "D23",
+        "item": "Hydraulic calc - sump levels",
+        "quote": "Sump levels TVL 125.8 mNGF Design 124.90 mNGF SWL 124.2 mNGF",
+        "source": "p.9",
+        "unit": "mNGF",
+        "value": "TVL 125.8, Design 124.9, SWL 124.2 (p.9)"
+      },
+      {
+        "id": "D24",
+        "item": "Hydraulic calc - discharge levels",
+        "quote": "Assumed Hydraulic Discharge levels TVL 168.0 mNGF Design 168.0 mNGF EVL 168.0 mNGF",
+        "source": "p.9",
+        "unit": "mNGF",
+        "value": "~168.0 (p.9, image resolution limited)"
+      },
+      {
+        "id": "D25",
+        "item": "Hydraulic calc - static lift",
+        "quote": "Static lift Minimum Design Maximum 42.3 m 43.1 m 43.9 m",
+        "source": "p.9",
+        "unit": "m",
+        "value": "Min ~42.3, Design ~43.1, Max ~43.9 (p.9, image resolution limited)"
+      },
+      {
+        "id": "D26",
+        "item": "Hydraulic calc - reach lengths",
+        "quote": "Length (m) 9 2650",
+        "source": "p.9",
+        "unit": "m",
+        "value": "Branch/manifold ~9, rising main 2650 (p.9, image resolution limited)"
+      },
+      {
+        "id": "D27",
+        "item": "Hydraulic calc - diameters / areas",
+        "quote": "Diameter (m) 0.3 0.75 0.9 / Flow area (m2) 0.070686 0.441786 0.63617",
+        "source": "p.9",
+        "unit": "m / m2",
+        "value": "0.3/0.070686, 0.75/0.441786, 0.9/0.63617 (p.9)"
+      },
+      {
+        "id": "D28",
+        "item": "Hydraulic calc - roughness inputs",
+        "quote": "Roughness (mm) Low 0.03 Design 0.3 High 1.5",
+        "source": "p.9",
+        "unit": "mm",
+        "value": "Low 0.03, Design 0.3, High 1.5 (p.9)"
+      },
+      {
+        "id": "D29",
+        "item": "Hydraulic calc - proportioned flow",
+        "quote": "Proportioned station flow 0.5 0.5 1 0.5",
+        "source": "p.9",
+        "unit": "fraction",
+        "value": "0.5 per rising main for 3-pump operation (p.9, image resolution limited)"
+      },
+      {
+        "id": "D30",
+        "item": "Hydraulic calc - total fitting K",
+        "quote": "Total K 1.15 3.99 2.55 3.10",
+        "source": "p.9",
+        "unit": "-",
+        "value": "1.15, 3.99, 2.55, 3.10 per reach (p.9)"
+      },
+      {
+        "id": "D31",
+        "item": "Xylem selection - existing pump label",
+        "quote": "CP3231 / 735 455 435mm",
+        "source": "p.10",
+        "unit": "model",
+        "value": "CP3231/735 455 435 mm (p.10)"
+      },
+      {
+        "id": "D32",
+        "item": "Xylem selection - IE3 pump label",
+        "quote": "CP3231 / 736 455 435mm (IE3)",
+        "source": "p.10",
+        "unit": "model",
+        "value": "CP3231/736 455 435 mm IE3 (p.10)"
+      },
+      {
+        "id": "D33",
+        "item": "Station flow - existing, 3 pumps",
+        "quote": "3 pumps 634",
+        "source": "p.10",
+        "unit": "l/s",
+        "value": "634 (p.10, Table 3 station total - see RFI)"
+      },
+      {
+        "id": "D34",
+        "item": "Station flow - existing, 2 pumps",
+        "quote": "2 pumps 422",
+        "source": "p.10",
+        "unit": "l/s",
+        "value": "422 (p.10)"
+      },
+      {
+        "id": "D35",
+        "item": "Station flow - existing, 1 pump",
+        "quote": "1 pump 214",
+        "source": "p.10",
+        "unit": "l/s",
+        "value": "214 (p.10)"
+      },
+      {
+        "id": "D36",
+        "item": "Station flow - IE3, 3/2/1 pumps",
+        "quote": "3 pumps 638 2 pumps 424 1 pump 216",
+        "source": "p.10",
+        "unit": "l/s",
+        "value": "638 / 424 / 216 (p.10)"
+      },
+      {
+        "id": "D37",
+        "item": "Input power - existing, 3/2/1 pumps",
+        "quote": "398 265 133",
+        "source": "p.10",
+        "unit": "kW",
+        "value": "398 / 265 / 133 (p.10, station total - see RFI)"
+      },
+      {
+        "id": "D38",
+        "item": "Input power - IE3, 3/2/1 pumps",
+        "quote": "390 260 130",
+        "source": "p.10",
+        "unit": "kW",
+        "value": "390 / 260 / 130 (p.10)"
+      },
+      {
+        "id": "D39",
+        "item": "Overall efficiency - existing",
+        "quote": "75.5 75.4 75.7",
+        "source": "p.10",
+        "unit": "%",
+        "value": "75.5 (3 pumps), 75.4 (2 pumps), 75.7 (1 pump) (p.10)"
+      },
+      {
+        "id": "D40",
+        "item": "Overall efficiency - IE3",
+        "quote": "77.4 77.4 77.8",
+        "source": "p.10",
+        "unit": "%",
+        "value": "77.4 / 77.4 / 77.8 (p.10)"
+      },
+      {
+        "id": "D41",
+        "item": "Specific energy - existing",
+        "quote": "174 174 172",
+        "source": "p.10",
+        "unit": "kWh/1000 m3",
+        "value": "174 (3 pumps), 174 (2 pumps), 172 (1 pump) (p.10)"
+      },
+      {
+        "id": "D42",
+        "item": "Specific energy - IE3",
+        "quote": "170 170 167",
+        "source": "p.10",
+        "unit": "kWh/1000 m3",
+        "value": "170 / 170 / 167 (p.10)"
+      },
+      {
+        "id": "D43",
+        "item": "N-impeller alternative",
+        "quote": "N type semi open impeller version ... gave marginal specific energy improvement (<1 kWh/1000 m3) which has not been presented",
+        "source": "p.10",
+        "unit": "kWh/1000 m3",
+        "value": "<1 improvement, not presented (p.10)"
+      },
+      {
+        "id": "D44",
+        "item": "Specific energy vs number of pumps",
+        "quote": "specific energy for the pump remains almost the same regardless of the number of pumps running",
+        "source": "p.10",
+        "unit": "-",
+        "value": "Almost same (p.10)"
+      },
+      {
+        "id": "D45",
+        "item": "IE3 saving per volume",
+        "quote": "With an IE3 motor the pumping specific energy is reduced by approximately 4 kWh/1000 m3",
+        "source": "p.10",
+        "unit": "kWh/1000 m3",
+        "value": "approx. 4 (p.10)"
+      },
+      {
+        "id": "D46",
+        "item": "EDF reports period",
+        "quote": "Energy consumption reports from EDF from 2017 and 2018 were reviewed",
+        "source": "p.11",
+        "unit": "-",
+        "value": "2017 and 2018 (p.11)"
+      },
+      {
+        "id": "D47",
+        "item": "Base supplementary load",
+        "quote": "base supplementary load of approximately 10 kW during the summer months and 20 kW during the winter months",
+        "source": "p.11",
+        "unit": "kW",
+        "value": "~10 summer, ~20 winter (p.11)"
+      },
+      {
+        "id": "D48",
+        "item": "Typical summer total and pumping load",
+        "quote": "typical loads during the summer months reflect a load of approximately 280 kW. Taking off 10 kW base load leaves a pumping load of approximately 270 kW",
+        "source": "p.11",
+        "unit": "kW",
+        "value": "~280 total, ~270 pumping (p.11)"
+      },
+      {
+        "id": "D49",
+        "item": "Predicted 2-pump load alignment",
+        "quote": "aligns with the predicted load for two running pumps of 265 kW",
+        "source": "p.11",
+        "unit": "kW",
+        "value": "265 (p.11)"
+      },
+      {
+        "id": "D50",
+        "item": "July-Aug 2018 dip",
+        "quote": "load reduced by approximately 15 kW during July and August 2018",
+        "source": "p.11",
+        "unit": "kW",
+        "value": "approx. 15 (p.11)"
+      },
+      {
+        "id": "D51",
+        "item": "VNF specific-energy estimate",
+        "quote": "VNF have estimated the cost of pumping at 222 kWh/1000 m3 which is based upon pump running time and assigning an arbitrary 200 l/s per pump",
+        "source": "p.11",
+        "unit": "kWh/1000 m3 / l/s",
+        "value": "222 based on arbitrary 200 per pump (p.11)"
+      },
+      {
+        "id": "D52",
+        "item": "Arcadis specific-energy estimate",
+        "quote": "estimated specific energy of pumping with 2 or 3 existing pumps is 174 kWh/1000 m3",
+        "source": "p.11",
+        "unit": "kWh/1000 m3",
+        "value": "174 (p.11)"
+      },
+      {
+        "id": "D53",
+        "item": "IE3 single-pump specific energy in energy section",
+        "quote": "Using an IE3 motor on one pump is anticipated to reduce this to 172 kWh/1000 m3",
+        "source": "p.11",
+        "unit": "kWh/1000 m3",
+        "value": "172 (p.11)"
+      },
+      {
+        "id": "D54",
+        "item": "Annual pumped volume 2016",
+        "quote": "VNF's assessment of total pumped volume during 2016 is 2,907,360 m3",
+        "source": "p.11",
+        "unit": "m3",
+        "value": "2,907,360 (p.11)"
+      },
+      {
+        "id": "D55",
+        "item": "Annual saving - one IE3 pump",
+        "quote": "use of an IE3 motor on a single pump (assuming 66% utilisation) would bring a reduction of 3,873 kWh per annum",
+        "source": "p.11",
+        "unit": "kWh per annum",
+        "value": "3,873 at 66% utilisation (p.11)"
+      },
+      {
+        "id": "D56",
+        "item": "Annual saving - all pumps IE3",
+        "quote": "If all pumps were changed then the saving would increase to 11,629 kWh per annum",
+        "source": "p.11",
+        "unit": "kWh per annum",
+        "value": "11,629 (p.11)"
+      },
+      {
+        "id": "D57",
+        "item": "2020 project considerations",
+        "quote": "Automation, supervision and telecontrol of pumping operations Optimising of operations time periods Implementing at least one new pump Motor IE3 or IE4 energy performance, Variable Speed Drive (VSD) Smart water and energy monitoring",
+        "source": "p.5",
+        "unit": "-",
+        "value": "Automation; optimise time periods; >=1 new pump; IE3/IE4 + VSD; smart monitoring (p.5)"
+      }
+    ],
+    "definitions": [
+      {
+        "source": "Engineering rules",
+        "term": "Firm capacity",
+        "definition": "Capacity with the largest unit of a station out of service"
+      },
+      {
+        "source": "p.10, p.11",
+        "term": "Specific energy",
+        "definition": "Energy per volume pumped in kWh/1000 m3 as tabulated per 1/2/3-pump operation (p.10, p.11)"
+      },
+      {
+        "source": "p.6",
+        "term": "Duty / Duty / Assist + standby",
+        "definition": "2 pumps meet normal duty, 3rd assists at high demand; 3 units standby as assumed (p.6)"
+      },
+      {
+        "source": "p.5, p.6, p.10",
+        "term": "IE2 / IE3 / IE4",
+        "definition": "IEC motor efficiency classes; existing IE2 (p.6), new pump IE3 or IE4 considered (p.5), IE3 data presented (p.10)"
+      },
+      {
+        "source": "p.5",
+        "term": "VSD",
+        "definition": "Variable Speed Drive for new pump(s) to be assessed for energy saving (p.5)"
+      },
+      {
+        "source": "p.6",
+        "term": "mNGF",
+        "definition": "Elevation datum used for wet-well 124.2-125.8 mNGF and discharge 168.1 mNGF levels (p.6)"
+      },
+      {
+        "source": "p.6, p.8, p.9",
+        "term": "ks roughness",
+        "definition": "Equivalent sand roughness in mm; design 0.3 mm with 0.03 and 1.5 mm sensitivity cases (p.6, p.8, p.9)"
+      },
+      {
+        "source": "p.9",
+        "term": "TVL / Design / SWL-EVL and static lift",
+        "definition": "Top/design/low sump and discharge levels in hydraulic sheet; static lift = discharge minus sump, Minimum/Design/Maximum (p.9)"
+      }
+    ],
+    "question": "Energy audit of Briare PS: is the existing Xylem CP3231 pump selection appropriate for the twin-900 mm / 2650 m / ~43 m system, would VSDs save energy, and which measures (new pump, IE3/IE4 motors, operating periods, automation, metering) should VNF take to reduce energy use? Quantify with the simulator where possible and state data needed to confirm.",
+    "rfi": [
+      {
+        "issue": "Pipe material unknown so ageing/friction uncertain",
+        "item": "Rising-main material and true ks",
+        "reason": "Table 2 states Not known (p.6); design uses 0.3 mm with 0.03/1.5 mm cases (p.6, p.8, p.9)",
+        "resolution": "ASSUMPTION: adopt ks=0.3 mm as design base case and retain 0.03/1.5 mm as sensitivity band (p.6) because report provides curves for those values; require CCTV/coupon or pressure-drop test to confirm."
+      },
+      {
+        "issue": "Pump designation conflict",
+        "item": "CP3231/705 53-455 (p.6) vs CP3231/735 455 and /736 455 on curves/selection (p.8, p.10)",
+        "reason": "Table 1 (p.6) differs from Figure 2 legend (p.8) and Table 3 (p.10); review states best fit was existing pump with closed C impeller (p.10)",
+        "resolution": "ASSUMPTION: treat all as same 435 mm closed-C CP3231 family and use Table 3/Figure 2 hydraulics (p.10, p.8) for audit because Xylem tool confirmed best fit to existing (p.10); require nameplate/curve confirmation."
+      },
+      {
+        "issue": "Table 3 Per Pump heading vs station totals",
+        "item": "Flows 634/422/214 l/s and powers 398/265/133 kW labelled Per Pump (p.10) but scale with pump count and match 265 kW 2-pump station load (p.11)",
+        "reason": "Values cannot be per-pump (e.g., 634 l/s per pump with 3 running); text notes specific energy almost same regardless of number running (p.10)",
+        "resolution": "ASSUMPTION: interpret Table 3 flows/powers as station totals for n pumps in parallel because they align with 265 kW prediction for two running pumps (p.11); require Xylem duty-point printouts to confirm per-pump split."
+      },
+      {
+        "issue": "Duty, drives and levels are assumed/from schematic",
+        "item": "Duty/Duty/Assist +3 standby assumed; Fixed Speed assumed star-delta; Wet-well 124.2-125.8 mNGF based upon schematic (p.6)",
+        "reason": "All flagged assumed or schematic-derived (p.6); firm-capacity and head depend on them",
+        "resolution": "ASSUMPTION: adopt Duty/Duty/Assist +3 standby, fixed-speed, and 124.2 low/124.9 design/125.8 high mNGF (p.6, p.9) for base model because they are the only stated basis; require VNF ops log, starter panel check, and level survey to confirm."
+      },
+      {
+        "issue": "Hydraulic input sheet partly illegible",
+        "item": "Figure 3 reach lengths/diameters/K, fluid properties, TVL/EVL and static-lift print (p.9)",
+        "reason": "Image resolution obscures exact numbers, K breakdown, temperature/viscosity/density, and discharge TVL/Design/EVL (p.9)",
+        "resolution": "ASSUMPTION: fix geometry to 300 mm branches, 750 mm manifold, 2x900 mm x2650 m mains (p.6), areas 0.070686/0.441786/0.63617 m2, roughness Low 0.03/Design 0.3/High 1.5 mm, Total K 1.15/3.99/2.55/3.10, sump 125.8/124.9/124.2 mNGF, discharge ~168.0-168.1 mNGF, static ~42.3/43.1/43.9 m (p.6, p.9) because text tables control over pixels; require native calc file to rerun exactly."
+      },
+      {
+        "issue": "No flow measurement; VNF flow assumption arbitrary",
+        "item": "No flow measurement have been undertaken (p.11); VNF uses arbitrary 200 l/s per pump and ignores supplementary loads to get 222 kWh/1000 m3 (p.11)",
+        "reason": "Xylem predicts ~211-216 l/s per pump (422/2, 214, 424/2, 216) (p.10) vs 200 arbitrary (p.11); cannot validate 174 vs 222 without metering",
+        "resolution": "ASSUMPTION: use Xylem station flows 422 l/s (2 pumps) and 634-638 l/s (3 pumps) (p.10) for simulator and retain 222 as VNF-estimate only (p.11) because Xylem tool is the calibrated selection; require clamp-on/Inline flow + power logging to confirm."
+      },
+      {
+        "issue": "Supplementary load split not metered; 2018 dip unexplained",
+        "item": "Base 10 kW summer /20 kW winter deduced (p.11); July-Aug 2018 -15 kW with no obvious explanation (p.11); Figure 4 monthly bars not tabulated",
+        "reason": "Deduction from EDF 2017-2018 reports (p.11) without sub-metering; anomaly affects baseline",
+        "resolution": "ASSUMPTION: accept 10/20 kW base and 280 total/270 pumping/265 predicted for 2-pump validation (p.11) and exclude 15 kW dip as anomaly because report leaves it unexplained (p.11); require half-hourly EDF data and building-services sub-meter to confirm."
+      },
+      {
+        "issue": "Annual volume and 66% utilisation basis unclear",
+        "item": "2016 volume 2,907,360 m3 and 66% utilisation saving 3,873 /11,629 kWh/annum (p.11)",
+        "reason": "Single-year volume (p.11) with no 2017-2018 volumes, hours, or tariff/ops-period data though optimising operations time periods is a goal (p.5)",
+        "resolution": "ASSUMPTION: accept 2,907,360 m3 and 66% (p.11) for illustrative IE3 savings only because no other volume given; require run-hours per pump, volumes, and tariff bands to confirm economics and VSD/period-optimisation case."
+      }
+    ],
+    "standards": [
+      {
+        "name": "Document units",
+        "use": "Report all heads/levels in m/mNGF, diameters in mm/m, flows in l/s, power in kW, specific energy in kWh/1000 m3, volume in m3 as in source tables"
+      },
+      {
+        "name": "IEC 60034-30-1 IE classes",
+        "use": "Use to interpret existing IE2 vs new IE3/IE4 motor options and ~4 kWh/1000 m3 IE3 saving claim"
+      },
+      {
+        "name": "Firm-capacity rule",
+        "use": "Assess whether 2-pump normal / 3-pump peak duty can still be met with largest unit out of service"
+      }
+    ],
+    "units_on_path": [
+      "Wet well / sump (124.2 to 125.8 mNGF) (p.6)",
+      "6x Xylem (Flygt) CP3231 pumps, 435 mm impeller, 170 kW IE2 fixed-speed (p.6)",
+      "300 mm diameter branch pipework per pump (p.6)",
+      "750 mm diameter manifold per 3 pumps (p.6)",
+      "Twin 900 mm diameter rising mains approx. 2650 m (p.6, p.7)",
+      "Discharge at 168.1 mNGF, approx. 43 m rise (p.6, p.7)"
+    ]
+  },
+  "analysis": {
+    "alternatives": [
+      {
+        "cost_basis": "Supply/install 1x CP3231/736 435mm IE3 170kW pump+motor; no civils, uses 300mm branch/750mm manifold (p.6)",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "Like-for-like renewal with IE3 (or IE4) motor - at least one new pump (p.5)",
+        "recommended": true,
+        "result": "Document: 2-pump 424 l/s at 260kW 170 kWh/1000m3 vs 422 l/s at 265kW 174 (p.10); saving ~4 (p.10). AUD-2P 424.8 l/s 263.4kW 172.2 illustrates hydraulics unchanged; IE gain only",
+        "run_label": "AUD-2P",
+        "unit": "6x CP3231 435mm 170kW IE2 fixed-speed (p.6)"
+      },
+      {
+        "cost_basis": "SCADA/automation + telecontrol + duty-select logic; no hydraulic change (p.5 scope)",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "Extend 1-pump duty + automate Duty/Duty/Assist selection (p.6)",
+        "recommended": true,
+        "result": "AUD-1P 214.6 l/s 132.1kW 171.0 vs AUD-2P 424.8 l/s 263.4kW 172.2; document flat 172/174/174 (p.10) almost same regardless number (p.10) so longer 1-pump avoids starts with no penalty",
+        "run_label": "AUD-1P",
+        "unit": "6x CP3231 435mm 170kW IE2 fixed-speed (p.6)"
+      },
+      {
+        "cost_basis": "2-3x 170kW (p.6) LV VSD panels + harmonics/filter + commissioning; motor derating check",
+        "cost_class": "$100k-$1M",
+        "meets_target": false,
+        "option": "Retrofit VSDs for energy saving (p.5 scope to assess)",
+        "recommended": false,
+        "result": "AUD-VSD95 355.3 l/s 214.0kW, AUD-VSD90 273.5 l/s 160.1kW cannot meet 422 l/s duty (p.10); AUD-VSD80 0 l/s TDH 43.2m stalls vs ~43m rise (p.6)(p.7). Static-dominated twin 900mm x2650m (p.6) leaves no like-for-like turndown; drive losses excluded so apparent part-flow gain unproven",
+        "run_label": "AUD-VSD90",
+        "unit": "Fixed Speed assumed star-delta (p.6)"
+      },
+      {
+        "cost_basis": "Clamp-on/inline flow + kW logging + half-hourly EDF (p.11) + level survey; tariff-band analysis for optimising periods (p.5)",
+        "cost_class": "<$100k",
+        "meets_target": true,
+        "option": "Smart water/energy metering + tariff-period optimisation + confirm base load",
+        "recommended": true,
+        "result": "No flow measurement (p.11); VNF 222 kWh/1000m3 on arbitrary 200 l/s (p.11) vs Xylem 211-216 (p.10) and AUD-2P 212.4 l/s per pump. Base ~10kW summer/~20kW winter (p.11), ~280kW total/~270kW pumping vs 265kW predicted (p.11); Jul-Aug 2018 -15kW unexplained (p.11). Metering to verify 174 (p.11) and 3873/11629 kWh on 2907360m3 (p.11)",
+        "run_label": "AUD-2P-LOW",
+        "unit": "Controls + metering (p.5)(p.11)"
+      }
+    ],
+    "base_model_run": "BASE-2P",
+    "calibration": [
+      {
+        "measured": "422 l/s station (2 pumps) (p.10)",
+        "note": "Design sump 124.9 mNGF (p.9), discharge 168.1 mNGF (p.6); branch K ASSUMPTION 8.0 to represent valves/bends because Total K 1.15/3.99/2.55/3.10 (p.9) image illegible",
+        "residual_pct": 0.4,
+        "run_label": "BASE-2P",
+        "simulated": "423.7 l/s total, 211.8 l/s per pump, TDH 47.87m",
+        "source": "p.10 Table 3",
+        "test": "2-pump station flow"
+      },
+      {
+        "measured": "265 kW station (2 pumps) (p.10); EDF pumping ~270 kW, total ~280 kW summer (p.11)",
+        "note": "Sim 263.8 kW within -0.5% of Xylem and -2.3% of EDF deduction; aligns with predicted load for two pumps (p.11)",
+        "residual_pct": -0.5,
+        "run_label": "BASE-2P",
+        "simulated": "263.8 kW total, 131.9 kW per pump, spec 172.9 kWh/ML",
+        "source": "p.10 Table 3 + p.11 EDF",
+        "test": "2-pump input power"
+      },
+      {
+        "measured": "634 l/s / 398 kW station (3 pumps) (p.10)",
+        "note": "Same BASE-2P parameters with 3rd pump; manifold 750mm (p.6) velocity 1.41 m/s sim",
+        "residual_pct": -1.8,
+        "run_label": "CHK-3P",
+        "simulated": "622.6 l/s total, 207.5 l/s per pump at 392.9 kW total",
+        "source": "p.10 Table 3",
+        "test": "3-pump station flow/power"
+      },
+      {
+        "measured": "214 l/s / 133 kW (1 pump) 172 kWh/1000m3 (p.10)",
+        "note": "Single-pump sim matches; specific energy 171.4 vs 172 (p.10) -0.3%",
+        "residual_pct": 0.3,
+        "run_label": "CHK-1P",
+        "simulated": "214.7 l/s at 132.4 kW, 171.4 kWh/ML, branch 3.04 m/s",
+        "source": "p.10 Table 3",
+        "test": "1-pump duty"
+      },
+      {
+        "measured": "Specific energy 174 kWh/1000m3 2- or 3-pump (p.10, p.11)",
+        "note": "Sim 172.9 (BASE-2P), 175.3 (CHK-3P), 174.9 low-level, 170.4 high-level bracket report; level range 124.2-125.8 mNGF (p.6)",
+        "residual_pct": -0.6,
+        "run_label": "BASE-2P",
+        "simulated": "172.9 kWh/ML base; CHK-2P-LOW 174.9, CHK-2P-HIGH 170.4",
+        "source": "p.10 Table 3 + p.11",
+        "test": "Specific energy"
+      }
+    ],
+    "capacity_table": [
+      {
+        "binds_at": "2-pump duty 422 l/s (p.10) met at TDH ~47.9m; 3-pump 622.6 l/s (CHK-3P) vs 634 l/s (p.10); firm 2-pump with largest unit out requires 3 available - met with 6 installed (p.6)",
+        "evidence": "BASE-2P 423.7 l/s at 263.8 kW; CHK-3P 622.6 l/s at 392.9 kW; best fit was existing pump closed C (p.10); VNF assessment correlation very good (p.9)",
+        "limit": "Pump-match / duty head",
+        "limits_target": false,
+        "unit": "6x CP3231 435mm 170kW (p.6)"
+      },
+      {
+        "binds_at": "Static ~42.3/43.1/43.9m (p.9) from 168.1 mNGF (p.6) minus 125.8/124.9/124.2 mNGF (p.9, p.6); ~43m rise (p.6, p.7) dominates TDH ~47-48m sim",
+        "evidence": "BASE-2P TDH 47.87m; CHK-2P-LOW TDH 48.42m flow 416.5 l/s; CHK-2P-HIGH TDH 47.17m flow 432.8 l/s; ALT-VSD-80 TDH 43.2m zero flow - static floor",
+        "limit": "Static head floor",
+        "limits_target": true,
+        "unit": "Twin 900mm x2650m mains +43m lift (p.6, p.7)"
+      },
+      {
+        "binds_at": "Mains velocity 0.33 m/s per main at 2-pump (BASE-2P), 0.49 m/s at 3-pump (CHK-3P), 0.17 m/s at 1-pump (CHK-1P); friction small, twin 900mm (p.6) oversized for 422-634 l/s (p.10)",
+        "evidence": "BASE-2P M1/M2 0.33 m/s; CHK-3P 0.49 m/s; velocity check ASSUMPTION SI: 211 l/s in 900mm =0.332 m/s tool; ks 0.3 design, 0.03/1.5 sensitivity (p.6, p.8, p.9), material Not known (p.6)",
+        "limit": "Friction / roughness uncertainty",
+        "limits_target": false,
+        "unit": "Twin 900mm x2650m (p.6)"
+      },
+      {
+        "binds_at": "Branch 3.0 m/s at 211.8 l/s per pump (BASE-2P); manifold 0.96 m/s at 423.7 l/s (BASE-2P), 1.41 m/s at 622.6 l/s (CHK-3P); 300mm branch into 750mm manifold (3 pumps) (p.6)",
+        "evidence": "BASE-2P B1/B2 3.0 m/s, M0 0.96 m/s; velocity tool 300mm/211 l/s =2.985 m/s, 750mm/422 l/s =0.955 m/s; high branch loss forces K ASSUMPTION",
+        "limit": "Station-pipework loss",
+        "limits_target": false,
+        "unit": "300mm branches / 750mm manifold (p.6)"
+      },
+      {
+        "binds_at": "IE2 (p.6) vs IE3 77.4% vs 75.4-75.5% overall (p.10); IE3 170 vs 174 kWh/1000m3 (p.10); N-impeller <1 kWh/1000m3 not presented (p.10)",
+        "evidence": "Table 3: 398/265/133 kW existing vs 390/260/130 kW IE3 (p.10); 638/424/216 l/s IE3 vs 634/422/214 l/s (p.10); reduction ~4 (p.10), 172 single-IE3 (p.11), 3873/11629 kWh/annum on 2907360m3 (p.11)",
+        "limit": "Motor efficiency",
+        "limits_target": true,
+        "unit": "IE2 170kW Fixed Speed assumed star-delta (p.6)"
+      },
+      {
+        "binds_at": "No flow measurement (p.11); 200 l/s arbitrary (p.11) vs 211-216 Xylem (p.10); base 10kW summer/20kW winter (p.11); 15kW Jul-Aug 2018 dip unexplained (p.11)",
+        "evidence": "EDF 2017-2018 reviewed (p.11); typical 280 total/270 pumping vs 265 predicted (p.11); need run-hours, volumes, tariffs to confirm optimising periods (p.5) + automation/supervision/telecontrol + smart monitoring (p.5)",
+        "limit": "Metering / tariff control",
+        "limits_target": true,
+        "unit": "Controls + metering (p.5, p.11)"
+      }
+    ],
+    "findings": [
+      {
+        "evidence": "Best fit was existing pump closed C (p.10); VNF assessment very good correlation (p.9). AUD-2P 424.8 l/s at 263.4 kW, 172.2 kWh/ML vs Table 3 station totals 422 l/s at 265 kW, 174 kWh/1000m3 (p.10) (+0.7%/-0.6%). AUD-1P 214.6 l/s at 132.1 kW vs 214 l/s at 133 kW (p.10). AUD-3P 627.2 l/s at 393.0 kW vs 634 l/s at 398 kW (p.10). EDF pumping ~270 kW vs 265 kW predicted aligns (p.11). Flat spec almost same regardless number running (p.10).",
+        "limiting_value": "Overall 75.4% 2-pump, 75.5% 3-pump, 75.7% 1-pump (p.10) at 174/174/172 kWh/1000m3 (p.10)",
+        "limits_target": false,
+        "modification": "Retain CP3231 435mm hydraulics; renewal like-for-like. Data to confirm: nameplate/curve to resolve CP3231/705 53-455 (p.6) vs CP3231/735 435mm and /736 (p.10) vs 735/745 legend (p.8 image); Xylem duty printouts; flow+power log to replace arbitrary 200 l/s per pump (p.11).",
+        "unit": "6x CP3231 435mm 170kW IE2 fixed-speed (p.6)"
+      },
+      {
+        "evidence": "Elevation rise Approximately 43 m (p.6), 43 metres schematic (p.7 image), discharge 168.1 mNGF (p.6), wet well 124.2 to 125.8 mNGF (p.6). AUD-2P TDH 47.78m; AUD-2P-LOW 48.33m at 417.6 l/s; AUD-2P-HIGH 47.08m at 434.0 l/s. AUD-VSD80 0.0 l/s TDH 43.2m stalls. Twin 900mm x2650m (p.6); mains velocity 0.33 m/s per main AUD-2P, 0.49 m/s AUD-3P; velocity tool 211 l/s in 900mm =0.332 m/s; 211 l/s in 300mm =2.985 m/s vs AUD-2P branch 3.01 m/s.",
+        "limiting_value": "Static-dominated; VSD 0.8 stalls at static floor, VSD 0.95 still needs 46.42m; friction small across ks 0.03/0.3/1.5mm (p.6)(p.8 image)",
+        "limits_target": true,
+        "modification": "Do NOT fit VSDs for energy saving to meet 422 l/s duty (p.10). Keep Fixed Speed assumed star-delta (p.6). VSD only if soft-start/control needed with lifecycle cost including drive/harmonic losses. Data to confirm: native calc Fig.3 (p.9 image), material Not known (p.6), pressure-drop test, digitised Fig.2 system curves (p.8 image).",
+        "unit": "Twin 900mm x2650m +43m lift (p.6)(p.7)"
+      },
+      {
+        "evidence": "IE3 option CP3231/736 435mm 424 l/s 260 kW 77.4% 170 kWh/1000m3 vs existing 422 l/s 265 kW 75.4% 174 (p.10); 1-pump IE3 216 l/s 130 kW 77.8% 167 vs 214 l/s 133 kW 75.7% 172 (p.10); reduction approximately 4 kWh/1000m3 2- or 3-pump (p.10); N-impeller <1 kWh/1000m3 not presented (p.10). AUD-VSD90 273.5 l/s at 160.1 kW 162.6 kWh/ML and AUD-VSD95 355.3 l/s at 214.0 kW 167.3 kWh/ML use ASSUMPTION eff 0.80 no drive loss, so not comparable to Xylem 75-77% overall (p.10).",
+        "limiting_value": "170 vs 174 kWh/1000m3 (p.10); 167 1-pump IE3 (p.10)",
+        "limits_target": true,
+        "modification": "Implement >=1 new pump (p.5) with IE3 or IE4 motor; roll to all at renewal. N-impeller <1 (p.10) not justified alone; IE4 no data in report - require quote/curve. Data to confirm: run-hours/pump, 66% utilisation basis (p.11), IE4 offer, tariff.",
+        "unit": "IE2 170kW motors (p.6)"
+      },
+      {
+        "evidence": "Operates 2 pumps most time up to 3 (p.6); Duty/Duty/Assist +3 Standby assumed (p.6). AUD-1P 214.6 l/s at 132.1 kW 171.0 kWh/ML vs AUD-2P 424.8 l/s at 263.4 kW 172.2 kWh/ML; Table 3 172 1-pump vs 174 2-pump (p.10). Scope automation/supervision/telecontrol + optimising periods (p.5). Firm 2-pump duty requires 3 available - met with 6 installed (p.6).",
+        "limiting_value": "1-pump 172 vs 2-pump 174 kWh/1000m3 (p.10); no penalty for longer 1-pump running",
+        "limits_target": false,
+        "modification": "Prefer extended 1-pump running via automation/duty-select; use 2/3 only for level/flow demand; optimise to off-peak tariffs. Data to confirm: ops log, control band 124.2-125.8 mNGF (p.6), starter-panel check, tariff bands.",
+        "unit": "Duty configuration (p.6)"
+      },
+      {
+        "evidence": "EDF 2017-2018 reviewed (p.11); base ~10 kW summer/~20 kW winter building services (p.11); summer ~280 kW total / ~270 kW pumping vs 265 kW predicted (p.11); 15 kW Jul-Aug 2018 dip no obvious explanation (p.11); VNF 222 kWh/1000m3 based on arbitrary 200 l/s per pump no supplementary loads (p.11) vs Xylem 211-216 l/s per pump (p.10); 2907360 m3 2016 (p.11); single-IE3 to 172 (p.11) vs all-IE3 170/167 (p.10); 3873 kWh/annum at 66% and 11629 kWh all pumps (p.11).",
+        "limiting_value": "~10-20 kW base (p.11) ~4-7% of pumping load; 222 incorrect (p.11)",
+        "limits_target": true,
+        "modification": "Sub-meter services, log half-hourly kW + flow + levels, resolve 15 kW dip, re-baseline 174 (p.10)(p.11). Data to confirm: half-hourly EDF, sub-meter, clamp-on flow, sump survey, 2016-18 volumes/hours, tariffs for optimising periods (p.5) + smart monitoring (p.5).",
+        "unit": "Station metering/controls (p.5)(p.11)"
+      }
+    ]
+  },
+  "review": {
+    "checked_citations": [
+      "D02 - 6 pumps (p.6) verified",
+      "D06 - IE2 (p.6) verified",
+      "D10 - Wet-well 124.2-125.8 mNGF (p.6) verified",
+      "D15 - Discharge 168.1 mNGF (p.6) verified",
+      "D31/D32 - CP3231/735 and /736 IE3 labels (p.10) verified",
+      "D33-D42 - Table 3 flows 634/422/214 l/s, powers 398/265/133 kW, eff 75.5/75.4/75.7%, spec 174/174/172 and IE3 638/424/216, 390/260/130, 77.4/77.4/77.8%, 170/170/167 (p.10) verified",
+      "D45 - IE3 saving ~4 kWh/1000m3 (p.10) verified",
+      "D47-D49 - base 10kW summer/20kW winter, 280 total/270 pumping vs 265 predicted (p.11) verified",
+      "D51/D54 - arbitrary 200 l/s per pump, 222 kWh/1000m3, volume 2,907,360 m3 2016 (p.11) verified",
+      "D57 - 2020 scope automation/telecontrol/periods/>=1 pump/IE3-IE4+VSD/smart monitoring (p.5) verified"
+    ],
+    "checked_runs": [
+      "BASE-2P",
+      "CHK-3P",
+      "CHK-1P",
+      "CHK-2P-LOW",
+      "ALT-VSD-90",
+      "ALT-VSD-80"
+    ],
+    "issues": [
+      {
+        "evidence": "Reruns match logged: BASE-2P 423.7 l/s 263.8 kW 172.9 kWh/ML, CHK-3P 622.6 l/s 392.9 kW, CHK-1P 214.7 l/s 132.4 kW, CHK-2P-LOW 416.5 l/s 262.2 kW, ALT-VSD-90 272.7 l/s 169.6 kW, ALT-VSD-80 0 l/s. No pump curve in p.6,p.8,p.10 - only duty points; Table 1 gives model/impeller/motor only (p.6).",
+        "issue": "Simulator pump rated point 211 l/s @ 48 m, eff 0.794, motor 170 kW, branch minor_k 8.0, C=110 are tuning ASSUMPTIONS to force +0.4%/-0.5% match, not document data. Calibration is circular, not independent verification. Pump eff vs overall eff and C vs ks conversion unexplained.",
+        "item": "Calibrated model inputs",
+        "severity": "major"
+      },
+      {
+        "evidence": "Design ks 0.3 mm, sensitivity 0.03 and 1.5 mm (p.6); legend ks=0.03@124.2, 0.3@124.9, 1.5@125.8 (p.8 image); roughness Low 0.03/Design 0.3/High 1.5 (p.9 image); material Not known (p.6). CHK-2P-LOW/HIGH change SUCT 124.2 vs 125.8 mNGF but keep C=110, minor_k same.",
+        "issue": "Roughness sensitivity not actually simulated. Level sensitivity only; Hazen-Williams C=110 proxy for ks=0.3 mm unsupported, no C for 0.03/1.5 mm. Claim to bracket friction uncertainty therefore unverified.",
+        "item": "Roughness sensitivity",
+        "severity": "major"
+      },
+      {
+        "evidence": "Table 3 titled (Per Pump) (p.10) but 634/422/214 l/s and 398/265/133 kW scale with count and match 265 kW 2-pump station load (p.11). p.11 single-IE3 to 172 kWh/1000m3 vs p.10 all-IE3 170 (2-pump) /167 (1-pump). 3,873x3=11,619 not 11,629 (p.11).",
+        "issue": "Per-pump heading is wrong - values are station totals (study correctly assumes). Blended 172 figure for one IE3 among existing unexplained, and annual-saving arithmetic has 10 kWh rounding gap with unclear 66% utilisation basis. Firm-capacity and savings interpretation rest on corrected totals, need Xylem printouts.",
+        "item": "Table 3 totals vs 172 blend",
+        "severity": "major"
+      },
+      {
+        "evidence": "ALT-VSD-90 eff 0.75, ALT-VSD-80 eff 0.70 in specs; no VSD/curve data in p.5,p.6,p.10. Scope lists IE3 or IE4 + VSD and >=1 new pump (p.5); N-impeller <1 kWh improvement not presented (p.10); IE4 no data.",
+        "issue": "VSD no-saving/stall conclusion rests on assumed efficiencies and EPANET affinity without drive losses/harmonics. IE4, N-impeller, and soft-start/control VSD alternatives were not actually verified yet recommended/ dismissed.",
+        "item": "VSD/IE4/N-impeller verification",
+        "severity": "major"
+      },
+      {
+        "evidence": "Discharge 168.1 mNGF (p.6) vs Assumed Hydraulic Discharge ~168.0 (p.9 image); static Minimum ~42.3/Design ~43.1/Maximum ~43.9 (p.9 image) vs 168.1-125.8/124.9/124.2 =42.3/43.2/43.9. Sim uses SUCT 124.9 DISCH 168.1 but J elev 125.0 OUT 168.0. Total K 1.15/3.99/2.55/3.10 (study) vs image possibly 3.89 second value, watermark Page 1 obscures.",
+        "issue": "0.1 m datum mix and elev offsets; K misread possible due to illegible p.9. Design lift 43.2 vs 43.1 used interchangeably. Native calc file needed for exact rerun.",
+        "item": "Datum/K legibility",
+        "severity": "minor"
+      },
+      {
+        "evidence": "Model CP3231/705 53-455 (p.6) vs CP3231 735/745 legend (p.8 image) vs CP3231/735 and /736 (p.10). Schematic 2x2650 m O900 mm and 43 metres (p.7 image only); system curves Fig.2 (p.8 image only); hydraulic sheet Fig.3 (p.9 image, resolution limited).",
+        "issue": "Designation conflict and image-only dimensions/levels/curves require nameplate/curve and level survey confirmation. Study assumes same 435 mm closed-C family - reasonable but weak.",
+        "item": "Designation/image-only data",
+        "severity": "minor"
+      },
+      {
+        "evidence": "No flow measurement undertaken, arbitrary 200 l/s per pump (p.11) vs Xylem 211-216 l/s per pump (p.10: 422/2,214); base 10 summer/20 winter kW, 280 total/270 pumping (p.11); 15 kW Jul-Aug 2018 dip no obvious explanation (p.11); 2016 volume only (p.11); optimising periods + automation/telecontrol + smart monitoring scope (p.5) without tariffs/hours.",
+        "issue": "Energy baseline, 174 vs 222 dispute, 3,873/11,629 kWh/annum savings, 1-pump extended duty and tariff-period optimisation all unverified without flow+kW+level logging, half-hourly EDF, sub-metering, run-hours/volumes/tariffs. Excluding 15 kW dip as anomaly is weak.",
+        "item": "Metering/tariff basis",
+        "severity": "minor"
+      }
+    ]
+  },
+  "resolution": {
+    "findings": [
+      {
+        "evidence": "Best fit was existing pump closed C (p.10); VNF assessment very good correlation (p.9). AUD-2P 424.8 l/s at 263.4 kW, 172.2 kWh/ML vs Table 3 station totals 422 l/s at 265 kW, 174 kWh/1000m3 (p.10) (+0.7%/-0.6%). AUD-1P 214.6 l/s at 132.1 kW vs 214 l/s at 133 kW (p.10). AUD-3P 627.2 l/s at 393.0 kW vs 634 l/s at 398 kW (p.10). EDF pumping ~270 kW vs 265 kW predicted aligns (p.11). Flat spec almost same regardless number running (p.10).",
+        "limiting_value": "Overall 75.4% 2-pump, 75.5% 3-pump, 75.7% 1-pump (p.10) at 174/174/172 kWh/1000m3 (p.10)",
+        "limits_target": false,
+        "modification": "Retain CP3231 435mm hydraulics; renewal like-for-like. Data to confirm: nameplate/curve to resolve CP3231/705 53-455 (p.6) vs CP3231/735 435mm and /736 (p.10) vs 735/745 legend (p.8 image); Xylem duty printouts; flow+power log to replace arbitrary 200 l/s per pump (p.11).",
+        "unit": "6x CP3231 435mm 170kW IE2 fixed-speed (p.6)"
+      },
+      {
+        "evidence": "Elevation rise Approximately 43 m (p.6), 43 metres schematic (p.7 image), discharge 168.1 mNGF (p.6), wet well 124.2 to 125.8 mNGF (p.6). AUD-2P TDH 47.78m; AUD-2P-LOW 48.33m at 417.6 l/s; AUD-2P-HIGH 47.08m at 434.0 l/s. AUD-VSD80 0.0 l/s TDH 43.2m stalls. Twin 900mm x2650m (p.6); mains velocity 0.33 m/s per main AUD-2P, 0.49 m/s AUD-3P; velocity tool 211 l/s in 900mm =0.332 m/s; 211 l/s in 300mm =2.985 m/s vs AUD-2P branch 3.01 m/s.",
+        "limiting_value": "Static-dominated; VSD 0.8 stalls at static floor, VSD 0.95 still needs 46.42m; friction small across ks 0.03/0.3/1.5mm (p.6)(p.8 image)",
+        "limits_target": true,
+        "modification": "Do NOT fit VSDs for energy saving to meet 422 l/s duty (p.10). Keep Fixed Speed assumed star-delta (p.6). VSD only if soft-start/control needed with lifecycle cost including drive/harmonic losses. Data to confirm: native calc Fig.3 (p.9 image), material Not known (p.6), pressure-drop test, digitised Fig.2 system curves (p.8 image).",
+        "unit": "Twin 900mm x2650m +43m lift (p.6)(p.7)"
+      },
+      {
+        "evidence": "IE3 option CP3231/736 435mm 424 l/s 260 kW 77.4% 170 kWh/1000m3 vs existing 422 l/s 265 kW 75.4% 174 (p.10); 1-pump IE3 216 l/s 130 kW 77.8% 167 vs 214 l/s 133 kW 75.7% 172 (p.10); reduction approximately 4 kWh/1000m3 2- or 3-pump (p.10); N-impeller <1 kWh/1000m3 not presented (p.10). AUD-VSD90 273.5 l/s at 160.1 kW 162.6 kWh/ML and AUD-VSD95 355.3 l/s at 214.0 kW 167.3 kWh/ML use ASSUMPTION eff 0.80 no drive loss, so not comparable to Xylem 75-77% overall (p.10).",
+        "limiting_value": "170 vs 174 kWh/1000m3 (p.10); 167 1-pump IE3 (p.10)",
+        "limits_target": true,
+        "modification": "Implement >=1 new pump (p.5) with IE3 or IE4 motor; roll to all at renewal. N-impeller <1 (p.10) not justified alone; IE4 no data in report - require quote/curve. Data to confirm: run-hours/pump, 66% utilisation basis (p.11), IE4 offer, tariff.",
+        "unit": "IE2 170kW motors (p.6)"
+      },
+      {
+        "evidence": "Operates 2 pumps most time up to 3 (p.6); Duty/Duty/Assist +3 Standby assumed (p.6). AUD-1P 214.6 l/s at 132.1 kW 171.0 kWh/ML vs AUD-2P 424.8 l/s at 263.4 kW 172.2 kWh/ML; Table 3 172 1-pump vs 174 2-pump (p.10). Scope automation/supervision/telecontrol + optimising periods (p.5). Firm 2-pump duty requires 3 available - met with 6 installed (p.6).",
+        "limiting_value": "1-pump 172 vs 2-pump 174 kWh/1000m3 (p.10); no penalty for longer 1-pump running",
+        "limits_target": false,
+        "modification": "Prefer extended 1-pump running via automation/duty-select; use 2/3 only for level/flow demand; optimise to off-peak tariffs. Data to confirm: ops log, control band 124.2-125.8 mNGF (p.6), starter-panel check, tariff bands.",
+        "unit": "Duty configuration (p.6)"
+      },
+      {
+        "evidence": "EDF 2017-2018 reviewed (p.11); base ~10 kW summer/~20 kW winter building services (p.11); summer ~280 kW total / ~270 kW pumping vs 265 kW predicted (p.11); 15 kW Jul-Aug 2018 dip no obvious explanation (p.11); VNF 222 kWh/1000m3 based on arbitrary 200 l/s per pump no supplementary loads (p.11) vs Xylem 211-216 l/s per pump (p.10); 2907360 m3 2016 (p.11); single-IE3 to 172 (p.11) vs all-IE3 170/167 (p.10); 3873 kWh/annum at 66% and 11629 kWh all pumps (p.11).",
+        "limiting_value": "~10-20 kW base (p.11) ~4-7% of pumping load; 222 incorrect (p.11)",
+        "limits_target": true,
+        "modification": "Sub-meter services, log half-hourly kW + flow + levels, resolve 15 kW dip, re-baseline 174 (p.10)(p.11). Data to confirm: half-hourly EDF, sub-meter, clamp-on flow, sump survey, 2016-18 volumes/hours, tariffs for optimising periods (p.5) + smart monitoring (p.5).",
+        "unit": "Station metering/controls (p.5)(p.11)"
+      }
+    ],
+    "responses": [
+      {
+        "action": "fixed",
+        "explanation": "Accepted: rated 211 l/s @48m, eff 0.80 ASSUMPTION, motor_eff 0.945 ASSUMPTION, branch minor_k 8.0 ASSUMPTION to represent valves/bends, C=110 ASSUMPTION for ks=0.3mm, manifold/mains K ASSUMPTIONS are tuning not document data. Relabelled all runs AUD-* as illustrative audit model reproducing Table 3 station totals (p.10) within ~1% (AUD-2P +0.7% flow/-0.6% power; AUD-1P; AUD-3P), not independent verification. Pump eff vs overall 75.4-75.7% (p.10) gap disclosed as motor/drive assumption.",
+        "issue": "Calibrated model inputs"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Fixed by new runs: AUD-2P-SMOOTH C=140 ASSUMPTION proxy for ks=0.03mm (p.6)(p.8): 427.8 l/s at 264.0 kW 171.4 kWh/ML; AUD-2P-ROUGH C=80 ASSUMPTION proxy for ks=1.5mm: 418.5 l/s at 262.1 kW 174.0 kWh/ML vs AUD-2P C=110 424.8 l/s 263.4 kW 172.2. Plus level bracket AUD-2P-LOW 417.6 l/s 261.9 kW 174.2 and AUD-2P-HIGH 434.0 l/s 265.1 kW 169.7 (124.2/125.8 mNGF p.6). Confirms friction/level moves flow only ~+/-2% and spec ~169-174, static dominates. Exact C-ks conversion still ASSUMPTION; material Not known (p.6).",
+        "issue": "Roughness sensitivity"
+      },
+      {
+        "action": "fixed",
+        "explanation": "Accepted: Table 3 heading (Per Pump) (p.10) wrong - 634/422/214 l/s and 398/265/133 kW scale with count and 265 kW matches 2-pump station load (p.11), so treated as station totals throughout. Blended single-IE3 to 172 kWh/1000m3 (p.11) vs all-IE3 170 2-pump /167 1-pump (p.10) unexplained in report - interpreted as 1xIE3+1xIE2 average, needs Xylem printout. 3873x3=11619 vs 11629 kWh (p.11) 10 kWh gap noted as rounding/unclear 66% basis (p.11); firm-capacity and savings use corrected totals.",
+        "issue": "Table 3 totals vs 172 blend"
+      },
+      {
+        "action": "noted",
+        "explanation": "Qualified: AUD-VSD90 273.5 l/s 160.1 kW and AUD-VSD95 355.3 l/s 214.0 kW use ASSUMPTION eff 0.80 constant + affinity no drive/harmonic loss; specific appears lower only because flow turned down, cannot meet 422 l/s 2-pump duty (p.10). AUD-VSD80 0 l/s proves stall against ~43m lift (p.6)(p.7). So no-saving conclusion holds for like-for-like duty; VSD saving at reduced flow not proven once 3-5% drive loss and off-BEP drop added. IE4 (scope p.5) no data, N-impeller <1 (p.10) not presented - both NOT verified, dismissed only on report basis, need curves/quotes.",
+        "issue": "VSD/IE4/N-impeller verification"
+      },
+      {
+        "action": "noted",
+        "explanation": "Minor: use 168.1 mNGF (p.6) for sims; ~168.0 Assumed Hydraulic Discharge (p.9 image) 0.1m difference immaterial vs 47-48m TDH. Junction elevs 125/126/130m ASSUMPTIONS for model connectivity. Total K 1.15/3.99/2.55/3.10 reading vs possibly 3.89 obscured by Page 1 watermark (p.9 image) - branch K=8.0 ASSUMPTION adopted instead. Design lift quoted as Approximately 43m (p.6). Native calc file needed for exact rerun.",
+        "issue": "Datum/K legibility"
+      },
+      {
+        "action": "noted",
+        "explanation": "CP3231/705 53-455 (p.6) vs CP3231 735/745 legend (p.8 image) vs CP3231/735 and /736 (p.10) conflict noted; assumed same 435mm closed-C family as best fit existing closed C (p.10) - reasonable but weak. Schematic 2x2650m O900mm 43m (p.7 image), Fig.2 curves (p.8 image), Fig.3 sheet (p.9 image) all image-only. Requires nameplate/curve and level survey.",
+        "issue": "Designation/image-only data"
+      },
+      {
+        "action": "noted",
+        "explanation": "Not fixed without data: No flow measurement, arbitrary 200 l/s (p.11) vs 211-216 Xylem (p.10) remains; base 10/20kW, 280/270kW (p.11), 15kW Jul-Aug 2018 dip (p.11) unexplained - not excluded as anomaly, flagged for investigation; 2016 volume only (p.11); tariffs/hours for optimising periods + automation/telecontrol + smart monitoring (p.5) missing. All baseline/saving/1-pump/tariff findings conditional on flow+kW+level logging, half-hourly EDF, sub-metering, run-hours/volumes/tariffs.",
+        "issue": "Metering/tariff basis"
+      }
+    ],
+    "alternatives": [
+      {
+        "cost_basis": "Supply/install 1x CP3231/736 435mm IE3 170kW pump+motor; no civils, uses 300mm branch/750mm manifold (p.6)",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "Like-for-like renewal with IE3 (or IE4) motor - at least one new pump (p.5)",
+        "recommended": true,
+        "result": "Document: 2-pump 424 l/s at 260kW 170 kWh/1000m3 vs 422 l/s at 265kW 174 (p.10); saving ~4 (p.10). AUD-2P 424.8 l/s 263.4kW 172.2 illustrates hydraulics unchanged; IE gain only",
+        "run_label": "AUD-2P",
+        "unit": "6x CP3231 435mm 170kW IE2 fixed-speed (p.6)"
+      },
+      {
+        "cost_basis": "SCADA/automation + telecontrol + duty-select logic; no hydraulic change (p.5 scope)",
+        "cost_class": "$100k-$1M",
+        "meets_target": true,
+        "option": "Extend 1-pump duty + automate Duty/Duty/Assist selection (p.6)",
+        "recommended": true,
+        "result": "AUD-1P 214.6 l/s 132.1kW 171.0 vs AUD-2P 424.8 l/s 263.4kW 172.2; document flat 172/174/174 (p.10) almost same regardless number (p.10) so longer 1-pump avoids starts with no penalty",
+        "run_label": "AUD-1P",
+        "unit": "6x CP3231 435mm 170kW IE2 fixed-speed (p.6)"
+      },
+      {
+        "cost_basis": "2-3x 170kW (p.6) LV VSD panels + harmonics/filter + commissioning; motor derating check",
+        "cost_class": "$100k-$1M",
+        "meets_target": false,
+        "option": "Retrofit VSDs for energy saving (p.5 scope to assess)",
+        "recommended": false,
+        "result": "AUD-VSD95 355.3 l/s 214.0kW, AUD-VSD90 273.5 l/s 160.1kW cannot meet 422 l/s duty (p.10); AUD-VSD80 0 l/s TDH 43.2m stalls vs ~43m rise (p.6)(p.7). Static-dominated twin 900mm x2650m (p.6) leaves no like-for-like turndown; drive losses excluded so apparent part-flow gain unproven",
+        "run_label": "AUD-VSD90",
+        "unit": "Fixed Speed assumed star-delta (p.6)"
+      },
+      {
+        "cost_basis": "Clamp-on/inline flow + kW logging + half-hourly EDF (p.11) + level survey; tariff-band analysis for optimising periods (p.5)",
+        "cost_class": "<$100k",
+        "meets_target": true,
+        "option": "Smart water/energy metering + tariff-period optimisation + confirm base load",
+        "recommended": true,
+        "result": "No flow measurement (p.11); VNF 222 kWh/1000m3 on arbitrary 200 l/s (p.11) vs Xylem 211-216 (p.10) and AUD-2P 212.4 l/s per pump. Base ~10kW summer/~20kW winter (p.11), ~280kW total/~270kW pumping vs 265kW predicted (p.11); Jul-Aug 2018 -15kW unexplained (p.11). Metering to verify 174 (p.11) and 3873/11629 kWh on 2907360m3 (p.11)",
+        "run_label": "AUD-2P-LOW",
+        "unit": "Controls + metering (p.5)(p.11)"
+      }
+    ]
+  },
+  "runs": {
+    "test-SI-format": {
+      "purpose": "trial SI field names and baseline head",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "SUCT",
+            "head_m": 124.9
+          },
+          {
+            "id": "DISCH",
+            "head_m": 168.1
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "elev_m": 125.0
+          },
+          {
+            "id": "OUT",
+            "elev_m": 168.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "M1",
+            "from": "MAN",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 120
+          },
+          {
+            "id": "M2",
+            "from": "MAN",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 120
+          },
+          {
+            "id": "DISCH_PIPE",
+            "from": "OUT",
+            "to": "DISCH",
+            "length_m": 10,
+            "diameter_mm": 900,
+            "c_factor": 120
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "SUCT",
+            "to": "MAN",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170
+          },
+          {
+            "id": "P2",
+            "from": "SUCT",
+            "to": "MAN",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 237.8,
+            "tdh_m": 43.67,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 127.4,
+            "motor_kw": 170,
+            "electric_kw": 134.1,
+            "pct_of_rated_flow": 113
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 237.8,
+            "tdh_m": 43.67,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 127.4,
+            "motor_kw": 170,
+            "electric_kw": 134.1,
+            "pct_of_rated_flow": 113
+          }
+        ],
+        "pipes": [
+          {
+            "id": "M1",
+            "flow_lps": 237.8,
+            "velocity_mps": 0.37
+          },
+          {
+            "id": "M2",
+            "flow_lps": 237.8,
+            "velocity_mps": 0.37
+          },
+          {
+            "id": "DISCH_PIPE",
+            "flow_lps": 475.7,
+            "velocity_mps": 0.75
+          }
+        ],
+        "junctions": [
+          {
+            "id": "MAN",
+            "pressure_bar": 4.27
+          },
+          {
+            "id": "OUT",
+            "pressure_bar": 0.01
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 475.7,
+        "total_electric_kw": 268.1,
+        "specific_energy_kwh_per_ml": 156.6
+      }
+    },
+    "cal-2p-v1": {
+      "purpose": "calibration 2-pump design level with station pipework",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "SUCT",
+            "head_m": 124.9
+          },
+          {
+            "id": "DISCH",
+            "head_m": 168.1
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "elev_m": 125.0
+          },
+          {
+            "id": "J2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN",
+            "elev_m": 125.0
+          },
+          {
+            "id": "OUT",
+            "elev_m": 168.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "from": "J1",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 1.15
+          },
+          {
+            "id": "B2",
+            "from": "J2",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 1.15
+          },
+          {
+            "id": "M1",
+            "from": "MAN",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "M2",
+            "from": "MAN",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "DP",
+            "from": "OUT",
+            "to": "DISCH",
+            "length_m": 10,
+            "diameter_mm": 900,
+            "c_factor": 120
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "SUCT",
+            "to": "J1",
+            "rated_lps": 211,
+            "rated_head_m": 46,
+            "motor_kw": 170,
+            "efficiency": 0.79
+          },
+          {
+            "id": "P2",
+            "from": "SUCT",
+            "to": "J2",
+            "rated_lps": 211,
+            "rated_head_m": 46,
+            "motor_kw": 170,
+            "efficiency": 0.79
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 220.7,
+            "tdh_m": 44.56,
+            "speed": 1.0,
+            "efficiency": 0.79,
+            "shaft_kw": 122.1,
+            "motor_kw": 170,
+            "electric_kw": 128.5,
+            "pct_of_rated_flow": 105
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 220.7,
+            "tdh_m": 44.56,
+            "speed": 1.0,
+            "efficiency": 0.79,
+            "shaft_kw": 122.1,
+            "motor_kw": 170,
+            "electric_kw": 128.5,
+            "pct_of_rated_flow": 105
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 220.7,
+            "velocity_mps": 3.12
+          },
+          {
+            "id": "B2",
+            "flow_lps": 220.7,
+            "velocity_mps": 3.12
+          },
+          {
+            "id": "M1",
+            "flow_lps": 220.7,
+            "velocity_mps": 0.35
+          },
+          {
+            "id": "M2",
+            "flow_lps": 220.7,
+            "velocity_mps": 0.35
+          },
+          {
+            "id": "DP",
+            "flow_lps": 441.4,
+            "velocity_mps": 0.69
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.36
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.36
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.28
+          },
+          {
+            "id": "OUT",
+            "pressure_bar": 0.01
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 441.4,
+        "total_electric_kw": 257.1,
+        "specific_energy_kwh_per_ml": 161.8
+      }
+    },
+    "cal-2p-v2": {
+      "purpose": "try higher rated head to raise TDH and power",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "SUCT",
+            "head_m": 124.9
+          },
+          {
+            "id": "DISCH",
+            "head_m": 168.1
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "elev_m": 125.0
+          },
+          {
+            "id": "J2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN",
+            "elev_m": 125.0
+          },
+          {
+            "id": "OUT",
+            "elev_m": 168.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "from": "J1",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 1.15
+          },
+          {
+            "id": "B2",
+            "from": "J2",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 1.15
+          },
+          {
+            "id": "M1",
+            "from": "MAN",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "M2",
+            "from": "MAN",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "DP",
+            "from": "OUT",
+            "to": "DISCH",
+            "length_m": 10,
+            "diameter_mm": 900,
+            "c_factor": 120
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "SUCT",
+            "to": "J1",
+            "rated_lps": 211,
+            "rated_head_m": 50,
+            "motor_kw": 170,
+            "efficiency": 0.79
+          },
+          {
+            "id": "P2",
+            "from": "SUCT",
+            "to": "J2",
+            "rated_lps": 211,
+            "rated_head_m": 50,
+            "motor_kw": 170,
+            "efficiency": 0.79
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 241.6,
+            "tdh_m": 44.82,
+            "speed": 1.0,
+            "efficiency": 0.79,
+            "shaft_kw": 134.5,
+            "motor_kw": 170,
+            "electric_kw": 141.5,
+            "pct_of_rated_flow": 114
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 241.6,
+            "tdh_m": 44.82,
+            "speed": 1.0,
+            "efficiency": 0.79,
+            "shaft_kw": 134.5,
+            "motor_kw": 170,
+            "electric_kw": 141.5,
+            "pct_of_rated_flow": 114
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 241.6,
+            "velocity_mps": 3.42
+          },
+          {
+            "id": "B2",
+            "flow_lps": 241.6,
+            "velocity_mps": 3.42
+          },
+          {
+            "id": "M1",
+            "flow_lps": 241.6,
+            "velocity_mps": 0.38
+          },
+          {
+            "id": "M2",
+            "flow_lps": 241.6,
+            "velocity_mps": 0.38
+          },
+          {
+            "id": "DP",
+            "flow_lps": 483.2,
+            "velocity_mps": 0.76
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.39
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.39
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.29
+          },
+          {
+            "id": "OUT",
+            "pressure_bar": 0.01
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 483.2,
+        "total_electric_kw": 283.1,
+        "specific_energy_kwh_per_ml": 162.7
+      }
+    },
+    "cal-2p-C90": {
+      "purpose": "increase friction with lower C to raise TDH toward 48m",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "SUCT",
+            "head_m": 124.9
+          },
+          {
+            "id": "DISCH",
+            "head_m": 168.1
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "elev_m": 125.0
+          },
+          {
+            "id": "J2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN",
+            "elev_m": 125.0
+          },
+          {
+            "id": "OUT",
+            "elev_m": 168.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "from": "J1",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 100,
+            "minor_k": 1.15
+          },
+          {
+            "id": "B2",
+            "from": "J2",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 100,
+            "minor_k": 1.15
+          },
+          {
+            "id": "M1",
+            "from": "MAN",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 90,
+            "minor_k": 5.65
+          },
+          {
+            "id": "M2",
+            "from": "MAN",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 90,
+            "minor_k": 5.65
+          },
+          {
+            "id": "DP",
+            "from": "OUT",
+            "to": "DISCH",
+            "length_m": 10,
+            "diameter_mm": 900,
+            "c_factor": 120
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "SUCT",
+            "to": "J1",
+            "rated_lps": 211,
+            "rated_head_m": 46,
+            "motor_kw": 170,
+            "efficiency": 0.79
+          },
+          {
+            "id": "P2",
+            "from": "SUCT",
+            "to": "J2",
+            "rated_lps": 211,
+            "rated_head_m": 46,
+            "motor_kw": 170,
+            "efficiency": 0.79
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 218.6,
+            "tdh_m": 44.88,
+            "speed": 1.0,
+            "efficiency": 0.79,
+            "shaft_kw": 121.8,
+            "motor_kw": 170,
+            "electric_kw": 128.2,
+            "pct_of_rated_flow": 104
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 218.6,
+            "tdh_m": 44.88,
+            "speed": 1.0,
+            "efficiency": 0.79,
+            "shaft_kw": 121.8,
+            "motor_kw": 170,
+            "electric_kw": 128.2,
+            "pct_of_rated_flow": 104
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 218.6,
+            "velocity_mps": 3.09
+          },
+          {
+            "id": "B2",
+            "flow_lps": 218.6,
+            "velocity_mps": 3.09
+          },
+          {
+            "id": "M1",
+            "flow_lps": 218.6,
+            "velocity_mps": 0.34
+          },
+          {
+            "id": "M2",
+            "flow_lps": 218.6,
+            "velocity_mps": 0.34
+          },
+          {
+            "id": "DP",
+            "flow_lps": 437.2,
+            "velocity_mps": 0.69
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.39
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.39
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.3
+          },
+          {
+            "id": "OUT",
+            "pressure_bar": 0.01
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 437.2,
+        "total_electric_kw": 256.4,
+        "specific_energy_kwh_per_ml": 163.0
+      }
+    },
+    "base-2p-r44": {
+      "purpose": "base 2-pump with manifold and rated 44m head",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "SUCT",
+            "head_m": 124.9
+          },
+          {
+            "id": "DISCH",
+            "head_m": 168.1
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "elev_m": 125.0
+          },
+          {
+            "id": "J2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "OUT",
+            "elev_m": 168.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "from": "J1",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 1.15
+          },
+          {
+            "id": "B2",
+            "from": "J2",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 1.15
+          },
+          {
+            "id": "M0",
+            "from": "MAN",
+            "to": "MAN2",
+            "length_m": 20,
+            "diameter_mm": 750,
+            "c_factor": 120,
+            "minor_k": 3.99
+          },
+          {
+            "id": "M1",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "M2",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "DP",
+            "from": "OUT",
+            "to": "DISCH",
+            "length_m": 10,
+            "diameter_mm": 900,
+            "c_factor": 120,
+            "minor_k": 3.1
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "SUCT",
+            "to": "J1",
+            "rated_lps": 211,
+            "rated_head_m": 44,
+            "motor_kw": 170,
+            "efficiency": 0.794
+          },
+          {
+            "id": "P2",
+            "from": "SUCT",
+            "to": "J2",
+            "rated_lps": 211,
+            "rated_head_m": 44,
+            "motor_kw": 170,
+            "efficiency": 0.794
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 206.2,
+            "tdh_m": 44.66,
+            "speed": 1.0,
+            "efficiency": 0.794,
+            "shaft_kw": 113.8,
+            "motor_kw": 170,
+            "electric_kw": 119.8,
+            "pct_of_rated_flow": 98
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 206.2,
+            "tdh_m": 44.66,
+            "speed": 1.0,
+            "efficiency": 0.794,
+            "shaft_kw": 113.8,
+            "motor_kw": 170,
+            "electric_kw": 119.8,
+            "pct_of_rated_flow": 98
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 206.2,
+            "velocity_mps": 2.92
+          },
+          {
+            "id": "B2",
+            "flow_lps": 206.2,
+            "velocity_mps": 2.92
+          },
+          {
+            "id": "M0",
+            "flow_lps": 412.4,
+            "velocity_mps": 0.93
+          },
+          {
+            "id": "M1",
+            "flow_lps": 206.2,
+            "velocity_mps": 0.32
+          },
+          {
+            "id": "M2",
+            "flow_lps": 206.2,
+            "velocity_mps": 0.32
+          },
+          {
+            "id": "DP",
+            "flow_lps": 412.4,
+            "velocity_mps": 0.65
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.37
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.37
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.3
+          },
+          {
+            "id": "MAN2",
+            "pressure_bar": 4.28
+          },
+          {
+            "id": "OUT",
+            "pressure_bar": 0.02
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 412.4,
+        "total_electric_kw": 239.5,
+        "specific_energy_kwh_per_ml": 161.3
+      }
+    },
+    "BASE-2P": {
+      "purpose": "calibrated 2-pump design level to match Xylem 422L/s 265kW",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "SUCT",
+            "head_m": 124.9
+          },
+          {
+            "id": "DISCH",
+            "head_m": 168.1
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "elev_m": 125.0
+          },
+          {
+            "id": "J2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "OUT",
+            "elev_m": 168.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "from": "J1",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "B2",
+            "from": "J2",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "M0",
+            "from": "MAN",
+            "to": "MAN2",
+            "length_m": 20,
+            "diameter_mm": 750,
+            "c_factor": 120,
+            "minor_k": 3.99
+          },
+          {
+            "id": "M1",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "M2",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "DP",
+            "from": "OUT",
+            "to": "DISCH",
+            "length_m": 10,
+            "diameter_mm": 900,
+            "c_factor": 120,
+            "minor_k": 3.1
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "SUCT",
+            "to": "J1",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "efficiency": 0.794
+          },
+          {
+            "id": "P2",
+            "from": "SUCT",
+            "to": "J2",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "efficiency": 0.794
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 211.8,
+            "tdh_m": 47.87,
+            "speed": 1.0,
+            "efficiency": 0.794,
+            "shaft_kw": 125.3,
+            "motor_kw": 170,
+            "electric_kw": 131.9,
+            "pct_of_rated_flow": 100
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 211.8,
+            "tdh_m": 47.87,
+            "speed": 1.0,
+            "efficiency": 0.794,
+            "shaft_kw": 125.3,
+            "motor_kw": 170,
+            "electric_kw": 131.9,
+            "pct_of_rated_flow": 100
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 211.8,
+            "velocity_mps": 3.0
+          },
+          {
+            "id": "B2",
+            "flow_lps": 211.8,
+            "velocity_mps": 3.0
+          },
+          {
+            "id": "M0",
+            "flow_lps": 423.7,
+            "velocity_mps": 0.96
+          },
+          {
+            "id": "M1",
+            "flow_lps": 211.8,
+            "velocity_mps": 0.33
+          },
+          {
+            "id": "M2",
+            "flow_lps": 211.8,
+            "velocity_mps": 0.33
+          },
+          {
+            "id": "DP",
+            "flow_lps": 423.7,
+            "velocity_mps": 0.67
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.69
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.69
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.3
+          },
+          {
+            "id": "MAN2",
+            "pressure_bar": 4.28
+          },
+          {
+            "id": "OUT",
+            "pressure_bar": 0.02
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 423.7,
+        "total_electric_kw": 263.8,
+        "specific_energy_kwh_per_ml": 172.9
+      }
+    },
+    "CHK-3P": {
+      "purpose": "check 3-pump design level vs Table 3",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "SUCT",
+            "head_m": 124.9
+          },
+          {
+            "id": "DISCH",
+            "head_m": 168.1
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "elev_m": 125.0
+          },
+          {
+            "id": "J2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "J3",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "OUT",
+            "elev_m": 168.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "from": "J1",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "B2",
+            "from": "J2",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "B3",
+            "from": "J3",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "M0",
+            "from": "MAN",
+            "to": "MAN2",
+            "length_m": 20,
+            "diameter_mm": 750,
+            "c_factor": 120,
+            "minor_k": 3.99
+          },
+          {
+            "id": "M1",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "M2",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "DP",
+            "from": "OUT",
+            "to": "DISCH",
+            "length_m": 10,
+            "diameter_mm": 900,
+            "c_factor": 120,
+            "minor_k": 3.1
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "SUCT",
+            "to": "J1",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "efficiency": 0.794
+          },
+          {
+            "id": "P2",
+            "from": "SUCT",
+            "to": "J2",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "efficiency": 0.794
+          },
+          {
+            "id": "P3",
+            "from": "SUCT",
+            "to": "J3",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "efficiency": 0.794
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 207.5,
+            "tdh_m": 48.52,
+            "speed": 1.0,
+            "efficiency": 0.794,
+            "shaft_kw": 124.4,
+            "motor_kw": 170,
+            "electric_kw": 131.0,
+            "pct_of_rated_flow": 98
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 207.5,
+            "tdh_m": 48.52,
+            "speed": 1.0,
+            "efficiency": 0.794,
+            "shaft_kw": 124.4,
+            "motor_kw": 170,
+            "electric_kw": 131.0,
+            "pct_of_rated_flow": 98
+          },
+          {
+            "id": "P3",
+            "on": true,
+            "flow_lps": 207.5,
+            "tdh_m": 48.52,
+            "speed": 1.0,
+            "efficiency": 0.794,
+            "shaft_kw": 124.4,
+            "motor_kw": 170,
+            "electric_kw": 131.0,
+            "pct_of_rated_flow": 98
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 207.5,
+            "velocity_mps": 2.94
+          },
+          {
+            "id": "B2",
+            "flow_lps": 207.5,
+            "velocity_mps": 2.94
+          },
+          {
+            "id": "B3",
+            "flow_lps": 207.5,
+            "velocity_mps": 2.94
+          },
+          {
+            "id": "M0",
+            "flow_lps": 622.6,
+            "velocity_mps": 1.41
+          },
+          {
+            "id": "M1",
+            "flow_lps": 311.3,
+            "velocity_mps": 0.49
+          },
+          {
+            "id": "M2",
+            "flow_lps": 311.3,
+            "velocity_mps": 0.49
+          },
+          {
+            "id": "DP",
+            "flow_lps": 622.6,
+            "velocity_mps": 0.98
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.75
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.75
+          },
+          {
+            "id": "J3",
+            "pressure_bar": 4.75
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.38
+          },
+          {
+            "id": "MAN2",
+            "pressure_bar": 4.34
+          },
+          {
+            "id": "OUT",
+            "pressure_bar": 0.03
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 622.6,
+        "total_electric_kw": 392.9,
+        "specific_energy_kwh_per_ml": 175.3
+      }
+    },
+    "CHK-1P": {
+      "purpose": "check 1-pump design level vs Table 3",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "SUCT",
+            "head_m": 124.9
+          },
+          {
+            "id": "DISCH",
+            "head_m": 168.1
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "OUT",
+            "elev_m": 168.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "from": "J1",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "M0",
+            "from": "MAN",
+            "to": "MAN2",
+            "length_m": 20,
+            "diameter_mm": 750,
+            "c_factor": 120,
+            "minor_k": 3.99
+          },
+          {
+            "id": "M1",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "M2",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "DP",
+            "from": "OUT",
+            "to": "DISCH",
+            "length_m": 10,
+            "diameter_mm": 900,
+            "c_factor": 120,
+            "minor_k": 3.1
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "SUCT",
+            "to": "J1",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "efficiency": 0.794
+          },
+          {
+            "id": "P2",
+            "from": "SUCT",
+            "to": "J1",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "efficiency": 0.794,
+            "on": false
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 214.7,
+            "tdh_m": 47.44,
+            "speed": 1.0,
+            "efficiency": 0.794,
+            "shaft_kw": 125.8,
+            "motor_kw": 170,
+            "electric_kw": 132.4,
+            "pct_of_rated_flow": 102
+          },
+          {
+            "id": "P2",
+            "on": false,
+            "flow_lps": 0.0,
+            "tdh_m": 47.44,
+            "speed": 1.0,
+            "efficiency": 0,
+            "shaft_kw": 0.0,
+            "motor_kw": 170,
+            "electric_kw": 0.0,
+            "pct_of_rated_flow": 0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 214.7,
+            "velocity_mps": 3.04
+          },
+          {
+            "id": "M0",
+            "flow_lps": 214.7,
+            "velocity_mps": 0.49
+          },
+          {
+            "id": "M1",
+            "flow_lps": 107.3,
+            "velocity_mps": 0.17
+          },
+          {
+            "id": "M2",
+            "flow_lps": 107.3,
+            "velocity_mps": 0.17
+          },
+          {
+            "id": "DP",
+            "flow_lps": 214.7,
+            "velocity_mps": 0.34
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.64
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.25
+          },
+          {
+            "id": "MAN2",
+            "pressure_bar": 4.24
+          },
+          {
+            "id": "OUT",
+            "pressure_bar": 0.01
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 214.7,
+        "total_electric_kw": 132.4,
+        "specific_energy_kwh_per_ml": 171.4
+      }
+    },
+    "CHK-2P-LOW": {
+      "purpose": "check low sump level sensitivity",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "SUCT",
+            "head_m": 124.2
+          },
+          {
+            "id": "DISCH",
+            "head_m": 168.1
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "elev_m": 125.0
+          },
+          {
+            "id": "J2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "OUT",
+            "elev_m": 168.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "from": "J1",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "B2",
+            "from": "J2",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "M0",
+            "from": "MAN",
+            "to": "MAN2",
+            "length_m": 20,
+            "diameter_mm": 750,
+            "c_factor": 120,
+            "minor_k": 3.99
+          },
+          {
+            "id": "M1",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "M2",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "DP",
+            "from": "OUT",
+            "to": "DISCH",
+            "length_m": 10,
+            "diameter_mm": 900,
+            "c_factor": 120,
+            "minor_k": 3.1
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "SUCT",
+            "to": "J1",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "efficiency": 0.794
+          },
+          {
+            "id": "P2",
+            "from": "SUCT",
+            "to": "J2",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "efficiency": 0.794
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 208.2,
+            "tdh_m": 48.42,
+            "speed": 1.0,
+            "efficiency": 0.794,
+            "shaft_kw": 124.6,
+            "motor_kw": 170,
+            "electric_kw": 131.1,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 208.2,
+            "tdh_m": 48.42,
+            "speed": 1.0,
+            "efficiency": 0.794,
+            "shaft_kw": 124.6,
+            "motor_kw": 170,
+            "electric_kw": 131.1,
+            "pct_of_rated_flow": 99
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 208.2,
+            "velocity_mps": 2.95
+          },
+          {
+            "id": "B2",
+            "flow_lps": 208.2,
+            "velocity_mps": 2.95
+          },
+          {
+            "id": "M0",
+            "flow_lps": 416.5,
+            "velocity_mps": 0.94
+          },
+          {
+            "id": "M1",
+            "flow_lps": 208.2,
+            "velocity_mps": 0.33
+          },
+          {
+            "id": "M2",
+            "flow_lps": 208.2,
+            "velocity_mps": 0.33
+          },
+          {
+            "id": "DP",
+            "flow_lps": 416.5,
+            "velocity_mps": 0.65
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.67
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.67
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.3
+          },
+          {
+            "id": "MAN2",
+            "pressure_bar": 4.28
+          },
+          {
+            "id": "OUT",
+            "pressure_bar": 0.02
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 416.5,
+        "total_electric_kw": 262.2,
+        "specific_energy_kwh_per_ml": 174.9
+      }
+    },
+    "CHK-2P-HIGH": {
+      "purpose": "check high sump level sensitivity",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "SUCT",
+            "head_m": 125.8
+          },
+          {
+            "id": "DISCH",
+            "head_m": 168.1
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "elev_m": 125.0
+          },
+          {
+            "id": "J2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "OUT",
+            "elev_m": 168.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "from": "J1",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "B2",
+            "from": "J2",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "M0",
+            "from": "MAN",
+            "to": "MAN2",
+            "length_m": 20,
+            "diameter_mm": 750,
+            "c_factor": 120,
+            "minor_k": 3.99
+          },
+          {
+            "id": "M1",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "M2",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "DP",
+            "from": "OUT",
+            "to": "DISCH",
+            "length_m": 10,
+            "diameter_mm": 900,
+            "c_factor": 120,
+            "minor_k": 3.1
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "SUCT",
+            "to": "J1",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "efficiency": 0.794
+          },
+          {
+            "id": "P2",
+            "from": "SUCT",
+            "to": "J2",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "efficiency": 0.794
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 216.4,
+            "tdh_m": 47.17,
+            "speed": 1.0,
+            "efficiency": 0.794,
+            "shaft_kw": 126.1,
+            "motor_kw": 170,
+            "electric_kw": 132.8,
+            "pct_of_rated_flow": 103
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 216.4,
+            "tdh_m": 47.17,
+            "speed": 1.0,
+            "efficiency": 0.794,
+            "shaft_kw": 126.1,
+            "motor_kw": 170,
+            "electric_kw": 132.8,
+            "pct_of_rated_flow": 103
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 216.4,
+            "velocity_mps": 3.06
+          },
+          {
+            "id": "B2",
+            "flow_lps": 216.4,
+            "velocity_mps": 3.06
+          },
+          {
+            "id": "M0",
+            "flow_lps": 432.8,
+            "velocity_mps": 0.98
+          },
+          {
+            "id": "M1",
+            "flow_lps": 216.4,
+            "velocity_mps": 0.34
+          },
+          {
+            "id": "M2",
+            "flow_lps": 216.4,
+            "velocity_mps": 0.34
+          },
+          {
+            "id": "DP",
+            "flow_lps": 432.8,
+            "velocity_mps": 0.68
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.71
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.71
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.3
+          },
+          {
+            "id": "MAN2",
+            "pressure_bar": 4.28
+          },
+          {
+            "id": "OUT",
+            "pressure_bar": 0.02
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 432.8,
+        "total_electric_kw": 265.5,
+        "specific_energy_kwh_per_ml": 170.4
+      }
+    },
+    "ALT-1P-TURN": {
+      "purpose": "alternative single pump continuous duty",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "SUCT",
+            "head_m": 124.9
+          },
+          {
+            "id": "DISCH",
+            "head_m": 168.1
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "OUT",
+            "elev_m": 168.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "from": "J1",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "M0",
+            "from": "MAN",
+            "to": "MAN2",
+            "length_m": 20,
+            "diameter_mm": 750,
+            "c_factor": 120,
+            "minor_k": 3.99
+          },
+          {
+            "id": "M1",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "M2",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "DP",
+            "from": "OUT",
+            "to": "DISCH",
+            "length_m": 10,
+            "diameter_mm": 900,
+            "c_factor": 120,
+            "minor_k": 3.1
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "SUCT",
+            "to": "J1",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "efficiency": 0.794
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 214.7,
+            "tdh_m": 47.44,
+            "speed": 1.0,
+            "efficiency": 0.794,
+            "shaft_kw": 125.8,
+            "motor_kw": 170,
+            "electric_kw": 132.4,
+            "pct_of_rated_flow": 102
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 214.7,
+            "velocity_mps": 3.04
+          },
+          {
+            "id": "M0",
+            "flow_lps": 214.7,
+            "velocity_mps": 0.49
+          },
+          {
+            "id": "M1",
+            "flow_lps": 107.3,
+            "velocity_mps": 0.17
+          },
+          {
+            "id": "M2",
+            "flow_lps": 107.3,
+            "velocity_mps": 0.17
+          },
+          {
+            "id": "DP",
+            "flow_lps": 214.7,
+            "velocity_mps": 0.34
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.64
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.25
+          },
+          {
+            "id": "MAN2",
+            "pressure_bar": 4.24
+          },
+          {
+            "id": "OUT",
+            "pressure_bar": 0.01
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 214.7,
+        "total_electric_kw": 132.4,
+        "specific_energy_kwh_per_ml": 171.4
+      }
+    },
+    "ALT-VSD-90": {
+      "purpose": "alternative 2 pumps at reduced speed illustration",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "SUCT",
+            "head_m": 124.9
+          },
+          {
+            "id": "DISCH",
+            "head_m": 168.1
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "elev_m": 125.0
+          },
+          {
+            "id": "J2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "OUT",
+            "elev_m": 168.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "from": "J1",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "B2",
+            "from": "J2",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "M0",
+            "from": "MAN",
+            "to": "MAN2",
+            "length_m": 20,
+            "diameter_mm": 750,
+            "c_factor": 120,
+            "minor_k": 3.99
+          },
+          {
+            "id": "M1",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "M2",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "DP",
+            "from": "OUT",
+            "to": "DISCH",
+            "length_m": 10,
+            "diameter_mm": 900,
+            "c_factor": 120,
+            "minor_k": 3.1
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "SUCT",
+            "to": "J1",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "speed": 0.9,
+            "efficiency": 0.75
+          },
+          {
+            "id": "P2",
+            "from": "SUCT",
+            "to": "J2",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "speed": 0.9,
+            "efficiency": 0.75
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 136.4,
+            "tdh_m": 45.16,
+            "speed": 0.9,
+            "efficiency": 0.75,
+            "shaft_kw": 80.5,
+            "motor_kw": 170,
+            "electric_kw": 84.8,
+            "pct_of_rated_flow": 65
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 136.4,
+            "tdh_m": 45.16,
+            "speed": 0.9,
+            "efficiency": 0.75,
+            "shaft_kw": 80.5,
+            "motor_kw": 170,
+            "electric_kw": 84.8,
+            "pct_of_rated_flow": 65
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 136.4,
+            "velocity_mps": 1.93
+          },
+          {
+            "id": "B2",
+            "flow_lps": 136.4,
+            "velocity_mps": 1.93
+          },
+          {
+            "id": "M0",
+            "flow_lps": 272.7,
+            "velocity_mps": 0.62
+          },
+          {
+            "id": "M1",
+            "flow_lps": 136.4,
+            "velocity_mps": 0.21
+          },
+          {
+            "id": "M2",
+            "flow_lps": 136.4,
+            "velocity_mps": 0.21
+          },
+          {
+            "id": "DP",
+            "flow_lps": 272.7,
+            "velocity_mps": 0.43
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.42
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.42
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.26
+          },
+          {
+            "id": "MAN2",
+            "pressure_bar": 4.25
+          },
+          {
+            "id": "OUT",
+            "pressure_bar": 0.01
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 272.7,
+        "total_electric_kw": 169.6,
+        "specific_energy_kwh_per_ml": 172.7
+      }
+    },
+    "ALT-VSD-80": {
+      "purpose": "alternative deeper speed reduction to test static head limit",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "id": "SUCT",
+            "head_m": 124.9
+          },
+          {
+            "id": "DISCH",
+            "head_m": 168.1
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "elev_m": 125.0
+          },
+          {
+            "id": "J2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN",
+            "elev_m": 125.0
+          },
+          {
+            "id": "MAN2",
+            "elev_m": 125.0
+          },
+          {
+            "id": "OUT",
+            "elev_m": 168.0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "from": "J1",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "B2",
+            "from": "J2",
+            "to": "MAN",
+            "length_m": 9,
+            "diameter_mm": 300,
+            "c_factor": 120,
+            "minor_k": 8.0
+          },
+          {
+            "id": "M0",
+            "from": "MAN",
+            "to": "MAN2",
+            "length_m": 20,
+            "diameter_mm": 750,
+            "c_factor": 120,
+            "minor_k": 3.99
+          },
+          {
+            "id": "M1",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "M2",
+            "from": "MAN2",
+            "to": "OUT",
+            "length_m": 2650,
+            "diameter_mm": 900,
+            "c_factor": 110,
+            "minor_k": 2.55
+          },
+          {
+            "id": "DP",
+            "from": "OUT",
+            "to": "DISCH",
+            "length_m": 10,
+            "diameter_mm": 900,
+            "c_factor": 120,
+            "minor_k": 3.1
+          }
+        ],
+        "pumps": [
+          {
+            "id": "P1",
+            "from": "SUCT",
+            "to": "J1",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "speed": 0.8,
+            "efficiency": 0.7
+          },
+          {
+            "id": "P2",
+            "from": "SUCT",
+            "to": "J2",
+            "rated_lps": 211,
+            "rated_head_m": 48,
+            "motor_kw": 170,
+            "speed": 0.8,
+            "efficiency": 0.7
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 0.0,
+            "tdh_m": 43.2,
+            "speed": 0.8,
+            "efficiency": 0.7,
+            "shaft_kw": 0.0,
+            "motor_kw": 170,
+            "electric_kw": 0.0,
+            "pct_of_rated_flow": 0
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 0.0,
+            "tdh_m": 43.2,
+            "speed": 0.8,
+            "efficiency": 0.7,
+            "shaft_kw": 0.0,
+            "motor_kw": 170,
+            "electric_kw": 0.0,
+            "pct_of_rated_flow": 0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 0.0,
+            "velocity_mps": 0.0
+          },
+          {
+            "id": "B2",
+            "flow_lps": 0.0,
+            "velocity_mps": 0.0
+          },
+          {
+            "id": "M0",
+            "flow_lps": 0.0,
+            "velocity_mps": 0.0
+          },
+          {
+            "id": "M1",
+            "flow_lps": 0.0,
+            "velocity_mps": 0.0
+          },
+          {
+            "id": "M2",
+            "flow_lps": 0.0,
+            "velocity_mps": 0.0
+          },
+          {
+            "id": "DP",
+            "flow_lps": 0.0,
+            "velocity_mps": 0.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.23
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.23
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.23
+          },
+          {
+            "id": "MAN2",
+            "pressure_bar": 4.23
+          },
+          {
+            "id": "OUT",
+            "pressure_bar": 0.01
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "BASE-2P-14": {
+      "purpose": "",
+      "spec": {
+        "junctions": [
+          {
+            "elev_m": 125.0,
+            "id": "J1"
+          },
+          {
+            "elev_m": 125.0,
+            "id": "J2"
+          },
+          {
+            "elev_m": 126.0,
+            "id": "MAN"
+          },
+          {
+            "elev_m": 130.0,
+            "id": "SPLIT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J1",
+            "id": "B1",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J2",
+            "id": "B2",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 750,
+            "from": "MAN",
+            "id": "M0",
+            "length_m": 20,
+            "minor_k": 2.0,
+            "to": "SPLIT"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M1",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M2",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J1"
+          },
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J2"
+          }
+        ],
+        "reservoirs": [
+          {
+            "head_m": 124.9,
+            "id": "SUCT"
+          },
+          {
+            "head_m": 168.1,
+            "id": "DISCH"
+          }
+        ],
+        "units": "SI"
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 212.4,
+            "tdh_m": 47.78,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 124.5,
+            "motor_kw": 170.0,
+            "electric_kw": 131.7,
+            "pct_of_rated_flow": 101
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 212.4,
+            "tdh_m": 47.78,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 124.5,
+            "motor_kw": 170.0,
+            "electric_kw": 131.7,
+            "pct_of_rated_flow": 101
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 212.4,
+            "velocity_mps": 3.01
+          },
+          {
+            "id": "B2",
+            "flow_lps": 212.4,
+            "velocity_mps": 3.01
+          },
+          {
+            "id": "M0",
+            "flow_lps": 424.8,
+            "velocity_mps": 0.96
+          },
+          {
+            "id": "M1",
+            "flow_lps": 212.4,
+            "velocity_mps": 0.33
+          },
+          {
+            "id": "M2",
+            "flow_lps": 212.4,
+            "velocity_mps": 0.33
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.68
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.68
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.19
+          },
+          {
+            "id": "SPLIT",
+            "pressure_bar": 3.78
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 424.8,
+        "total_electric_kw": 263.4,
+        "specific_energy_kwh_per_ml": 172.2
+      }
+    },
+    "B2-DES": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 124.9,
+            "id": "SUCT"
+          },
+          {
+            "head_m": 168.1,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 125.0,
+            "id": "J1"
+          },
+          {
+            "elev_m": 125.0,
+            "id": "J2"
+          },
+          {
+            "elev_m": 126.0,
+            "id": "MAN"
+          },
+          {
+            "elev_m": 130.0,
+            "id": "SPLIT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J1",
+            "id": "B1",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J2",
+            "id": "B2",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 750,
+            "from": "MAN",
+            "id": "M0",
+            "length_m": 20,
+            "minor_k": 2.0,
+            "to": "SPLIT"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M1",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M2",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J1"
+          },
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J2"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 212.4,
+            "tdh_m": 47.78,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 124.5,
+            "motor_kw": 170.0,
+            "electric_kw": 131.7,
+            "pct_of_rated_flow": 101
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 212.4,
+            "tdh_m": 47.78,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 124.5,
+            "motor_kw": 170.0,
+            "electric_kw": 131.7,
+            "pct_of_rated_flow": 101
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 212.4,
+            "velocity_mps": 3.01
+          },
+          {
+            "id": "B2",
+            "flow_lps": 212.4,
+            "velocity_mps": 3.01
+          },
+          {
+            "id": "M0",
+            "flow_lps": 424.8,
+            "velocity_mps": 0.96
+          },
+          {
+            "id": "M1",
+            "flow_lps": 212.4,
+            "velocity_mps": 0.33
+          },
+          {
+            "id": "M2",
+            "flow_lps": 212.4,
+            "velocity_mps": 0.33
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.68
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.68
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.19
+          },
+          {
+            "id": "SPLIT",
+            "pressure_bar": 3.78
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 424.8,
+        "total_electric_kw": 263.4,
+        "specific_energy_kwh_per_ml": 172.2
+      }
+    },
+    "AUD-2P": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 124.9,
+            "id": "SUCT"
+          },
+          {
+            "head_m": 168.1,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 125.0,
+            "id": "J1"
+          },
+          {
+            "elev_m": 125.0,
+            "id": "J2"
+          },
+          {
+            "elev_m": 126.0,
+            "id": "MAN"
+          },
+          {
+            "elev_m": 130.0,
+            "id": "SPLIT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J1",
+            "id": "B1",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J2",
+            "id": "B2",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 750,
+            "from": "MAN",
+            "id": "M0",
+            "length_m": 20,
+            "minor_k": 2.0,
+            "to": "SPLIT"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M1",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M2",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J1"
+          },
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J2"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 212.4,
+            "tdh_m": 47.78,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 124.5,
+            "motor_kw": 170.0,
+            "electric_kw": 131.7,
+            "pct_of_rated_flow": 101
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 212.4,
+            "tdh_m": 47.78,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 124.5,
+            "motor_kw": 170.0,
+            "electric_kw": 131.7,
+            "pct_of_rated_flow": 101
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 212.4,
+            "velocity_mps": 3.01
+          },
+          {
+            "id": "B2",
+            "flow_lps": 212.4,
+            "velocity_mps": 3.01
+          },
+          {
+            "id": "M0",
+            "flow_lps": 424.8,
+            "velocity_mps": 0.96
+          },
+          {
+            "id": "M1",
+            "flow_lps": 212.4,
+            "velocity_mps": 0.33
+          },
+          {
+            "id": "M2",
+            "flow_lps": 212.4,
+            "velocity_mps": 0.33
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.68
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.68
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.19
+          },
+          {
+            "id": "SPLIT",
+            "pressure_bar": 3.78
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 424.8,
+        "total_electric_kw": 263.4,
+        "specific_energy_kwh_per_ml": 172.2
+      }
+    },
+    "AUD-1P": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 124.9,
+            "id": "SUCT"
+          },
+          {
+            "head_m": 168.1,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 125.0,
+            "id": "J1"
+          },
+          {
+            "elev_m": 126.0,
+            "id": "MAN"
+          },
+          {
+            "elev_m": 130.0,
+            "id": "SPLIT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J1",
+            "id": "B1",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 750,
+            "from": "MAN",
+            "id": "M0",
+            "length_m": 20,
+            "minor_k": 2.0,
+            "to": "SPLIT"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M1",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M2",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J1"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 214.6,
+            "tdh_m": 47.44,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 124.9,
+            "motor_kw": 170.0,
+            "electric_kw": 132.1,
+            "pct_of_rated_flow": 102
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 214.6,
+            "velocity_mps": 3.04
+          },
+          {
+            "id": "M0",
+            "flow_lps": 214.6,
+            "velocity_mps": 0.49
+          },
+          {
+            "id": "M1",
+            "flow_lps": 107.3,
+            "velocity_mps": 0.17
+          },
+          {
+            "id": "M2",
+            "flow_lps": 107.3,
+            "velocity_mps": 0.17
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.64
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.15
+          },
+          {
+            "id": "SPLIT",
+            "pressure_bar": 3.75
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 214.6,
+        "total_electric_kw": 132.1,
+        "specific_energy_kwh_per_ml": 171.0
+      }
+    },
+    "AUD-3P": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 124.9,
+            "id": "SUCT"
+          },
+          {
+            "head_m": 168.1,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 125.0,
+            "id": "J1"
+          },
+          {
+            "elev_m": 125.0,
+            "id": "J2"
+          },
+          {
+            "elev_m": 125.0,
+            "id": "J3"
+          },
+          {
+            "elev_m": 126.0,
+            "id": "MAN"
+          },
+          {
+            "elev_m": 130.0,
+            "id": "SPLIT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J1",
+            "id": "B1",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J2",
+            "id": "B2",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J3",
+            "id": "B3",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 750,
+            "from": "MAN",
+            "id": "M0",
+            "length_m": 20,
+            "minor_k": 2.0,
+            "to": "SPLIT"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M1",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M2",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J1"
+          },
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J2"
+          },
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P3",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J3"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 209.1,
+            "tdh_m": 48.29,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 123.8,
+            "motor_kw": 170.0,
+            "electric_kw": 131.0,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 209.1,
+            "tdh_m": 48.29,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 123.8,
+            "motor_kw": 170.0,
+            "electric_kw": 131.0,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "P3",
+            "on": true,
+            "flow_lps": 209.1,
+            "tdh_m": 48.29,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 123.8,
+            "motor_kw": 170.0,
+            "electric_kw": 131.0,
+            "pct_of_rated_flow": 99
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 209.1,
+            "velocity_mps": 2.96
+          },
+          {
+            "id": "B2",
+            "flow_lps": 209.1,
+            "velocity_mps": 2.96
+          },
+          {
+            "id": "B3",
+            "flow_lps": 209.1,
+            "velocity_mps": 2.96
+          },
+          {
+            "id": "M0",
+            "flow_lps": 627.2,
+            "velocity_mps": 1.42
+          },
+          {
+            "id": "M1",
+            "flow_lps": 313.6,
+            "velocity_mps": 0.49
+          },
+          {
+            "id": "M2",
+            "flow_lps": 313.6,
+            "velocity_mps": 0.49
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.73
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.73
+          },
+          {
+            "id": "J3",
+            "pressure_bar": 4.73
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.25
+          },
+          {
+            "id": "SPLIT",
+            "pressure_bar": 3.83
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 627.2,
+        "total_electric_kw": 393.0,
+        "specific_energy_kwh_per_ml": 174.1
+      }
+    },
+    "AUD-2P-LOW": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 124.2,
+            "id": "SUCT"
+          },
+          {
+            "head_m": 168.1,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 125.0,
+            "id": "J1"
+          },
+          {
+            "elev_m": 125.0,
+            "id": "J2"
+          },
+          {
+            "elev_m": 126.0,
+            "id": "MAN"
+          },
+          {
+            "elev_m": 130.0,
+            "id": "SPLIT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J1",
+            "id": "B1",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J2",
+            "id": "B2",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 750,
+            "from": "MAN",
+            "id": "M0",
+            "length_m": 20,
+            "minor_k": 2.0,
+            "to": "SPLIT"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M1",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M2",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J1"
+          },
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J2"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 208.8,
+            "tdh_m": 48.33,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 123.8,
+            "motor_kw": 170.0,
+            "electric_kw": 131.0,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 208.8,
+            "tdh_m": 48.33,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 123.8,
+            "motor_kw": 170.0,
+            "electric_kw": 131.0,
+            "pct_of_rated_flow": 99
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 208.8,
+            "velocity_mps": 2.95
+          },
+          {
+            "id": "B2",
+            "flow_lps": 208.8,
+            "velocity_mps": 2.95
+          },
+          {
+            "id": "M0",
+            "flow_lps": 417.6,
+            "velocity_mps": 0.95
+          },
+          {
+            "id": "M1",
+            "flow_lps": 208.8,
+            "velocity_mps": 0.33
+          },
+          {
+            "id": "M2",
+            "flow_lps": 208.8,
+            "velocity_mps": 0.33
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.66
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.66
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.19
+          },
+          {
+            "id": "SPLIT",
+            "pressure_bar": 3.78
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 417.6,
+        "total_electric_kw": 261.9,
+        "specific_energy_kwh_per_ml": 174.2
+      }
+    },
+    "AUD-2P-HIGH": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 125.8,
+            "id": "SUCT"
+          },
+          {
+            "head_m": 168.1,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 125.0,
+            "id": "J1"
+          },
+          {
+            "elev_m": 125.0,
+            "id": "J2"
+          },
+          {
+            "elev_m": 126.0,
+            "id": "MAN"
+          },
+          {
+            "elev_m": 130.0,
+            "id": "SPLIT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J1",
+            "id": "B1",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J2",
+            "id": "B2",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 750,
+            "from": "MAN",
+            "id": "M0",
+            "length_m": 20,
+            "minor_k": 2.0,
+            "to": "SPLIT"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M1",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M2",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J1"
+          },
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J2"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 217.0,
+            "tdh_m": 47.08,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 125.3,
+            "motor_kw": 170.0,
+            "electric_kw": 132.6,
+            "pct_of_rated_flow": 103
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 217.0,
+            "tdh_m": 47.08,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 125.3,
+            "motor_kw": 170.0,
+            "electric_kw": 132.6,
+            "pct_of_rated_flow": 103
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 217.0,
+            "velocity_mps": 3.07
+          },
+          {
+            "id": "B2",
+            "flow_lps": 217.0,
+            "velocity_mps": 3.07
+          },
+          {
+            "id": "M0",
+            "flow_lps": 434.0,
+            "velocity_mps": 0.98
+          },
+          {
+            "id": "M1",
+            "flow_lps": 217.0,
+            "velocity_mps": 0.34
+          },
+          {
+            "id": "M2",
+            "flow_lps": 217.0,
+            "velocity_mps": 0.34
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.7
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.7
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.19
+          },
+          {
+            "id": "SPLIT",
+            "pressure_bar": 3.78
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 434.0,
+        "total_electric_kw": 265.1,
+        "specific_energy_kwh_per_ml": 169.7
+      }
+    },
+    "AUD-2P-SMOOTH": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 124.9,
+            "id": "SUCT"
+          },
+          {
+            "head_m": 168.1,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 125.0,
+            "id": "J1"
+          },
+          {
+            "elev_m": 125.0,
+            "id": "J2"
+          },
+          {
+            "elev_m": 126.0,
+            "id": "MAN"
+          },
+          {
+            "elev_m": 130.0,
+            "id": "SPLIT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 140,
+            "diameter_mm": 300,
+            "from": "J1",
+            "id": "B1",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 140,
+            "diameter_mm": 300,
+            "from": "J2",
+            "id": "B2",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 140,
+            "diameter_mm": 750,
+            "from": "MAN",
+            "id": "M0",
+            "length_m": 20,
+            "minor_k": 2.0,
+            "to": "SPLIT"
+          },
+          {
+            "c_factor": 140,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M1",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 140,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M2",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J1"
+          },
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J2"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 213.9,
+            "tdh_m": 47.56,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 124.7,
+            "motor_kw": 170.0,
+            "electric_kw": 132.0,
+            "pct_of_rated_flow": 101
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 213.9,
+            "tdh_m": 47.56,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 124.7,
+            "motor_kw": 170.0,
+            "electric_kw": 132.0,
+            "pct_of_rated_flow": 101
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 213.9,
+            "velocity_mps": 3.03
+          },
+          {
+            "id": "B2",
+            "flow_lps": 213.9,
+            "velocity_mps": 3.03
+          },
+          {
+            "id": "M0",
+            "flow_lps": 427.8,
+            "velocity_mps": 0.97
+          },
+          {
+            "id": "M1",
+            "flow_lps": 213.9,
+            "velocity_mps": 0.34
+          },
+          {
+            "id": "M2",
+            "flow_lps": 213.9,
+            "velocity_mps": 0.34
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.66
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.66
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.17
+          },
+          {
+            "id": "SPLIT",
+            "pressure_bar": 3.77
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 427.8,
+        "total_electric_kw": 264.0,
+        "specific_energy_kwh_per_ml": 171.4
+      }
+    },
+    "AUD-2P-ROUGH": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 124.9,
+            "id": "SUCT"
+          },
+          {
+            "head_m": 168.1,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 125.0,
+            "id": "J1"
+          },
+          {
+            "elev_m": 125.0,
+            "id": "J2"
+          },
+          {
+            "elev_m": 126.0,
+            "id": "MAN"
+          },
+          {
+            "elev_m": 130.0,
+            "id": "SPLIT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 80,
+            "diameter_mm": 300,
+            "from": "J1",
+            "id": "B1",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 80,
+            "diameter_mm": 300,
+            "from": "J2",
+            "id": "B2",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 80,
+            "diameter_mm": 750,
+            "from": "MAN",
+            "id": "M0",
+            "length_m": 20,
+            "minor_k": 2.0,
+            "to": "SPLIT"
+          },
+          {
+            "c_factor": 80,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M1",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 80,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M2",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J1"
+          },
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 1.0,
+            "to": "J2"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 209.2,
+            "tdh_m": 48.27,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 123.8,
+            "motor_kw": 170.0,
+            "electric_kw": 131.0,
+            "pct_of_rated_flow": 99
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 209.2,
+            "tdh_m": 48.27,
+            "speed": 1.0,
+            "efficiency": 0.8,
+            "shaft_kw": 123.8,
+            "motor_kw": 170.0,
+            "electric_kw": 131.0,
+            "pct_of_rated_flow": 99
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 209.2,
+            "velocity_mps": 2.96
+          },
+          {
+            "id": "B2",
+            "flow_lps": 209.2,
+            "velocity_mps": 2.96
+          },
+          {
+            "id": "M0",
+            "flow_lps": 418.5,
+            "velocity_mps": 0.95
+          },
+          {
+            "id": "M1",
+            "flow_lps": 209.2,
+            "velocity_mps": 0.33
+          },
+          {
+            "id": "M2",
+            "flow_lps": 209.2,
+            "velocity_mps": 0.33
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.73
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.73
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.22
+          },
+          {
+            "id": "SPLIT",
+            "pressure_bar": 3.82
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 418.5,
+        "total_electric_kw": 262.1,
+        "specific_energy_kwh_per_ml": 174.0
+      }
+    },
+    "AUD-VSD90": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 124.9,
+            "id": "SUCT"
+          },
+          {
+            "head_m": 168.1,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 125.0,
+            "id": "J1"
+          },
+          {
+            "elev_m": 125.0,
+            "id": "J2"
+          },
+          {
+            "elev_m": 126.0,
+            "id": "MAN"
+          },
+          {
+            "elev_m": 130.0,
+            "id": "SPLIT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J1",
+            "id": "B1",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J2",
+            "id": "B2",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 750,
+            "from": "MAN",
+            "id": "M0",
+            "length_m": 20,
+            "minor_k": 2.0,
+            "to": "SPLIT"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M1",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M2",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 0.9,
+            "to": "J1"
+          },
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 0.9,
+            "to": "J2"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 136.7,
+            "tdh_m": 45.12,
+            "speed": 0.9,
+            "efficiency": 0.8,
+            "shaft_kw": 75.7,
+            "motor_kw": 170.0,
+            "electric_kw": 80.1,
+            "pct_of_rated_flow": 65
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 136.7,
+            "tdh_m": 45.12,
+            "speed": 0.9,
+            "efficiency": 0.8,
+            "shaft_kw": 75.7,
+            "motor_kw": 170.0,
+            "electric_kw": 80.1,
+            "pct_of_rated_flow": 65
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 136.7,
+            "velocity_mps": 1.93
+          },
+          {
+            "id": "B2",
+            "flow_lps": 136.7,
+            "velocity_mps": 1.93
+          },
+          {
+            "id": "M0",
+            "flow_lps": 273.5,
+            "velocity_mps": 0.62
+          },
+          {
+            "id": "M1",
+            "flow_lps": 136.7,
+            "velocity_mps": 0.21
+          },
+          {
+            "id": "M2",
+            "flow_lps": 136.7,
+            "velocity_mps": 0.21
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.42
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.42
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.16
+          },
+          {
+            "id": "SPLIT",
+            "pressure_bar": 3.76
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 273.5,
+        "total_electric_kw": 160.1,
+        "specific_energy_kwh_per_ml": 162.6
+      }
+    },
+    "AUD-VSD80": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 124.9,
+            "id": "SUCT"
+          },
+          {
+            "head_m": 168.1,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 125.0,
+            "id": "J1"
+          },
+          {
+            "elev_m": 125.0,
+            "id": "J2"
+          },
+          {
+            "elev_m": 126.0,
+            "id": "MAN"
+          },
+          {
+            "elev_m": 130.0,
+            "id": "SPLIT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J1",
+            "id": "B1",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J2",
+            "id": "B2",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 750,
+            "from": "MAN",
+            "id": "M0",
+            "length_m": 20,
+            "minor_k": 2.0,
+            "to": "SPLIT"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M1",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M2",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 0.8,
+            "to": "J1"
+          },
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 0.8,
+            "to": "J2"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 0.0,
+            "tdh_m": 43.2,
+            "speed": 0.8,
+            "efficiency": 0.8,
+            "shaft_kw": 0.0,
+            "motor_kw": 170.0,
+            "electric_kw": 0.0,
+            "pct_of_rated_flow": 0
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 0.0,
+            "tdh_m": 43.2,
+            "speed": 0.8,
+            "efficiency": 0.8,
+            "shaft_kw": 0.0,
+            "motor_kw": 170.0,
+            "electric_kw": 0.0,
+            "pct_of_rated_flow": 0
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 0.0,
+            "velocity_mps": 0.0
+          },
+          {
+            "id": "B2",
+            "flow_lps": 0.0,
+            "velocity_mps": 0.0
+          },
+          {
+            "id": "M0",
+            "flow_lps": 0.0,
+            "velocity_mps": 0.0
+          },
+          {
+            "id": "M1",
+            "flow_lps": 0.0,
+            "velocity_mps": 0.0
+          },
+          {
+            "id": "M2",
+            "flow_lps": 0.0,
+            "velocity_mps": 0.0
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.23
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.23
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.13
+          },
+          {
+            "id": "SPLIT",
+            "pressure_bar": 3.74
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 0.0,
+        "total_electric_kw": 0.0
+      }
+    },
+    "AUD-VSD95": {
+      "purpose": "",
+      "spec": {
+        "units": "SI",
+        "reservoirs": [
+          {
+            "head_m": 124.9,
+            "id": "SUCT"
+          },
+          {
+            "head_m": 168.1,
+            "id": "DISCH"
+          }
+        ],
+        "junctions": [
+          {
+            "elev_m": 125.0,
+            "id": "J1"
+          },
+          {
+            "elev_m": 125.0,
+            "id": "J2"
+          },
+          {
+            "elev_m": 126.0,
+            "id": "MAN"
+          },
+          {
+            "elev_m": 130.0,
+            "id": "SPLIT"
+          }
+        ],
+        "pipes": [
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J1",
+            "id": "B1",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 300,
+            "from": "J2",
+            "id": "B2",
+            "length_m": 9,
+            "minor_k": 8.0,
+            "to": "MAN"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 750,
+            "from": "MAN",
+            "id": "M0",
+            "length_m": 20,
+            "minor_k": 2.0,
+            "to": "SPLIT"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M1",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          },
+          {
+            "c_factor": 110,
+            "diameter_mm": 900,
+            "from": "SPLIT",
+            "id": "M2",
+            "length_m": 2650,
+            "minor_k": 3.0,
+            "to": "DISCH"
+          }
+        ],
+        "pumps": [
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P1",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 0.95,
+            "to": "J1"
+          },
+          {
+            "efficiency": 0.8,
+            "from": "SUCT",
+            "id": "P2",
+            "motor_eff": 0.945,
+            "motor_kw": 170.0,
+            "rated_head_m": 48.0,
+            "rated_lps": 211.0,
+            "speed": 0.95,
+            "to": "J2"
+          }
+        ]
+      },
+      "result": {
+        "units": "SI",
+        "pumps": [
+          {
+            "id": "P1",
+            "on": true,
+            "flow_lps": 177.6,
+            "tdh_m": 46.42,
+            "speed": 0.95,
+            "efficiency": 0.8,
+            "shaft_kw": 101.1,
+            "motor_kw": 170.0,
+            "electric_kw": 107.0,
+            "pct_of_rated_flow": 84
+          },
+          {
+            "id": "P2",
+            "on": true,
+            "flow_lps": 177.6,
+            "tdh_m": 46.42,
+            "speed": 0.95,
+            "efficiency": 0.8,
+            "shaft_kw": 101.1,
+            "motor_kw": 170.0,
+            "electric_kw": 107.0,
+            "pct_of_rated_flow": 84
+          }
+        ],
+        "pipes": [
+          {
+            "id": "B1",
+            "flow_lps": 177.6,
+            "velocity_mps": 2.51
+          },
+          {
+            "id": "B2",
+            "flow_lps": 177.6,
+            "velocity_mps": 2.51
+          },
+          {
+            "id": "M0",
+            "flow_lps": 355.3,
+            "velocity_mps": 0.8
+          },
+          {
+            "id": "M1",
+            "flow_lps": 177.6,
+            "velocity_mps": 0.28
+          },
+          {
+            "id": "M2",
+            "flow_lps": 177.6,
+            "velocity_mps": 0.28
+          }
+        ],
+        "junctions": [
+          {
+            "id": "J1",
+            "pressure_bar": 4.54
+          },
+          {
+            "id": "J2",
+            "pressure_bar": 4.54
+          },
+          {
+            "id": "MAN",
+            "pressure_bar": 4.17
+          },
+          {
+            "id": "SPLIT",
+            "pressure_bar": 3.77
+          }
+        ],
+        "warnings": [],
+        "total_pumped_lps": 355.3,
+        "total_electric_kw": 214.0,
+        "specific_energy_kwh_per_ml": 167.3
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+# Step 5 - Capacity evaluation
+
+| unit | limit | binds_at | limits_target | evidence |
+|---|---|---|---|---|
+| River intake | Intake gates fish protection | 16.5 mgd (4x4.14 mgd); screens 18+ mgd (p.109) | True | Fish approach 0.4 fps fully submerged (p.109 criterion); run raw-18short needs new screens |
+| Raw water pumping station | Raw pumping firm (largest out) | 16.4 mgd firm existing (run raw-existshort); 15.0 mgd 2002 test, 14 mgd 2006 Pumps1,2,4 (p.109) | True | Nominal firm 16 mgd (p.108); firm_capacity raw-existshort 16.40 mgd; fixed by 4->6 mgd swap to 18.16 mgd (run raw-18short) |
+| 30-in raw pipeline | 30-in raw pipeline velocity 6 fps desirable | ~19.0 mgd at 6.0 fps (5.67 fps at 18 mgd velocity tool; Table 4-1 p.110) | False | 30-in raw 5.9 fps 0.54 ft at 18 mgd (p.110 DR-12); short WTP-site segment may allow higher (p.110) |
+| Flocculation/sedimentation | Floc/sed treatment + freeboard max WS 466.0 / top 467.5 (1.5 ft, p.111 dwg p.136) | 12.0 mgd treatment single basin; 18.0 mgd nominal two basins; 22-24 mgd hydraulic (p.111-p.112) | True | Single basin rated 12 mgd (p.111); rec-18grav 9.0 mgd/basin at 18 mgd total; profile_capacity rapidmix-2 18.01 mgd |
+| 42-in settled water pipeline | 42-in settled pipe + channel | 22.7 mgd settled-channel 465.0 (profile_capacity rec-18grav); pipe per se to 24 mgd at 3.9 fps (p.111) | False | 2.9 fps at 18 mgd, 3.9 fps at 24 mgd (p.111 DR-17); calibrated loss 0.42 ft at 18 mgd (run rec-18grav) |
+| Filters Nos.1-4 (+5-6) | Filters treatment vs hydraulic | 12.0 mgd treatment (4x3.0); 16.0 mgd hydraulic (4x4.0) existing; 18.0/24.0 with six filters | True | 3 mgd/filter treatment, 4 mgd/filter hydraulic to clearwell (p.112); profile_capacity filters 12.02 mgd existing, 18.03 mgd rec-18grav |
+| Filter-to-waste | Filter-to-waste capacity | ~2 mgd observed vs 3-4 mgd required (June 29 2006 Filter1 to waste calc, p.112-p.113) | True | 8-in too small to convey 3 mgd (p.112-p.113 DR-23) |
+| Clearwell | Clearwell detention 60-min desirability + overflows | 17.1 mgd for 60 min with 712k gal (712k/60min=17.09 mgd); 57 min at 18 mgd (p.115) | True | 627k gal =75 min at 12 mgd; +85k=712k with Filters5-6 (p.114-p.115); overflows 19 mgd 9-ft + combined 24 mgd (p.114) |
+| High service pumps | High-service firm (largest out) | 11.8 mgd firm true existing (run hs-exist); 10 mgd nominal, 14 mgd max achieved (p.115) | True | 1x2.0 +3x4.0 mgd at 305 ft (p.115); firm_capacity hs-exist 11.82 mgd; fixed to 22.87 mgd by Table4-2 (run hs-18fix) |
+| Finished water header/main | Finished 30-in WTP-site velocity | ~18.1 mgd at 6.0 fps (5.97 fps at 18 mgd Table4-3 p.117; 5.97 fps velocity tool ID29.25) | False | Short WTP-site header 18-to-30-in 29.25-in ID (p.116); small added loss not significant (p.117) |
+| Surge tank | Surge protection | 14.0 mgd (9,700 gpm) protection; 150 psi upsurge / HGL630 ft downsurge (p.117) | True | 1900cf/14,200 gal tank (p.117 DR-33); larger tank required beyond 14 mgd total pumping |
+| Terminal transmission | Transmission to Reservoir Hill (Elev 710 dwg p.136) | Off-site system per 1986 study; Phase1 9,400 ft done, Phase2 1,600 ft 27-in + 2nd 30-in pending (p.118) | True | Master-plan update determines if 2nd main prior/concurrent with 18 mgd (p.118 DR-34) |
+| Backwash | Backwash pumps/piping/air scour | Adequate to 18 mgd existing media/type; 4,400 gpm optimum deep bed > pumps (p.119) | False | 2x3,250 gpm at 41 ft, 4,060 tested, 1,050 scfm air (p.119); upsize 24-in to 30-in with new filters (p.119) |
+| Residuals handling | Wastewater PS + equalization | Firm 3,000 gpm (4.32 mgd) vs 3,250 gpm backwash (4.68 mgd) (p.119) | False | 3x1,500 gpm at 40 ft (p.119); 16-in to 2x300k gal basins +2 beds (p.119); mass balance test required |
