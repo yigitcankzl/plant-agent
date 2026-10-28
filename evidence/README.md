@@ -17,5 +17,6 @@ The engineers' conclusion pages were withheld from the agent; see cases/<case>/c
 | stanislaus_surge | surge analysis | 1 | 60% | muse-wonder-1.0 | muse-spark-1.3-contributor |
 | stpete_swwrf | capacity study | 1 | 67% | muse-wonder-1.0 | muse-spark-1.3-contributor |
 | west_norriton | capacity study | 2 | 30%, 40% | muse-wonder-1.0 | muse-spark-1.3-contributor |
+| williams_geismar | failure investigation | 1 | 67% | muse-wonder-1.0 | muse-spark-1.3-contributor |
 
 Roseburg runs dated 20261028 use the strict redaction (hint sentences such as '22 to 24 mgd ... settled water pipeline' removed); earlier Roseburg runs used a looser redaction and are kept for transparency.
