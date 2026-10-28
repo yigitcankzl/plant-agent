@@ -165,6 +165,71 @@ def overview(path):
             "data_quality": lint(eq)}
 
 
+RELIEF = ("SafetyValve", "ReliefValve", "RuptureDisc", "BurstingDisc", "BreatherValve")
+BLOCKING = ("Valve",)  # any valve that can be closed: block, check and control valves alike
+
+
+def relief_scan(path):
+    """For every side of every equipment item: can it reach a relief device without passing a valve that could be closed?
+    That is the Williams Geismar question: an exchanger side that heat can reach, isolatable from its relief, ruptures.
+    Sides are told apart by the fluid code of the lines on their nozzles. Deterministic graph search, no LLM."""
+    g = parse(path)
+    n = g["nodes"]
+    adj, fwd = defaultdict(set), set()
+    for e in g["pipe_edges"]:
+        adj[e["src"]].add(e["dst"]); adj[e["dst"]].add(e["src"])
+        fwd.add((e["src"], e["dst"]))  # segments run from the relief device's inlet to its outlet
+    fluid_of = defaultdict(set)
+    for e in g["pipe_edges"]:
+        for k in ("src", "dst"):
+            if n.get(e[k], {}).get("kind") == "nozzle" and e["fluid"]:
+                fluid_of[e[k]].add(e["fluid"].rstrip("abcdefghijklmnopqrstuvwxyz") or e["fluid"])  # WKa/WKb: supply and return of one side
+    is_relief = lambda i: any(r in (n.get(i, {}).get("cls") or "") for r in RELIEF)  # noqa: E731
+    is_valve = lambda i: "Valve" in (n.get(i, {}).get("cls") or "") and not is_relief(i)  # noqa: E731
+    out = []
+    for eq in [x for x in n.values() if x["kind"] == "equipment" and x.get("tag")]:
+        nozzles = [x["id"] for x in n.values() if x["kind"] == "nozzle" and x.get("parent") == eq["id"]]
+        sides = defaultdict(list)
+        for z in nozzles:
+            sides[tuple(sorted(fluid_of[z])) or ("?",)].append(z)
+        heated = "HeatExchanger" in eq["cls"] or "Heater" in eq["cls"] or "Reboiler" in eq["cls"]
+        for fluids, starts in sides.items():
+            # breadth-first over the piping; remember the closable valves crossed on the way
+            best, seen, todo = None, set(starts), [(z, ()) for z in starts]
+            boundary = False
+            while todo:
+                cur, via = todo.pop(0)
+                for nx in adj[cur]:
+                    if nx in seen or n.get(nx, {}).get("kind") in ("nozzle",) and n[nx].get("parent") == eq["id"]:
+                        continue
+                    if n.get(nx, {}).get("kind") == "equipment" or n.get(nx, {}).get("kind") == "nozzle":
+                        continue  # stop at other equipment: its relief is its own
+                    seen.add(nx)
+                    v = via + ((n[nx].get("tag") or n[nx]["cls"]),) if is_valve(nx) else via
+                    if is_relief(nx):
+                        if (cur, nx) not in fwd:  # reached from its outlet: this relief valve discharges here, it does not protect it
+                            continue
+                        if best is None or len(v) < len(best[1]):
+                            best = ((n[nx].get("tag") or n[nx]["cls"]), v)
+                        continue
+                    if n.get(nx, {}).get("kind") in ("line_end", "offpage"):
+                        boundary = True
+                        continue
+                    todo.append((nx, v))
+            if best and not best[1]:
+                status, text = "protected", f"relief {best[0]} with no closable valve in between"
+            elif best:
+                status, text = "isolatable", f"relief {best[0]} only through {', '.join(best[1])}: if one is closed the side has no relief"
+            else:
+                status, text = "no relief on this P&ID", "no relief device reachable" + (" (lines leave the drawing: check the connecting P&ID)" if boundary else "")
+            risk = heated and status != "protected"
+            out.append({"tag": eq["tag"], "class": eq["cls"], "side_fluids": list(fluids), "status": status, "detail": text,
+                        "thermal_expansion_risk": risk,
+                        "why": ("a heat-exchanger side that can be blocked in while the other side is hot: liquid thermal expansion can "
+                                "exceed the design pressure (API 521 hydraulic expansion; Williams Geismar 2013)") if risk else ""})
+    return out
+
+
 def _num(v):
     try:
         return float(str(v).split()[0])
@@ -201,3 +266,6 @@ if __name__ == "__main__":
     print(json.dumps(o, indent=1)[:3000])
     assert {e["tag"] for e in o["equipment"]} >= {"P4711", "H1007", "T4750"} and o["connections"]
     print("ok", len(o["equipment"]), "equipment,", len(o["connections"]), "connections")
+    for r in relief_scan(_s.argv[1] if len(_s.argv) > 1 else str(__import__("pathlib").Path(__file__).resolve().parents[2] /
+                         "case-data/realcad/dexpi/C01V04-VER.EX01.xml")):
+        print(f"  {r['tag']:6s} {','.join(r['side_fluids']):10s} {r['status']:24s} {'THERMAL ' if r['thermal_expansion_risk'] else ''}{r['detail']}")

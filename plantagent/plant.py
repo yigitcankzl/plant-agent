@@ -160,6 +160,8 @@ class PlantWorkspace(Study):
             f("check_coverage", "Compare a logged run's flowsheet with the P&ID: which equipment-to-equipment connections (by line "
                                 "number) the model reproduces, which it misses, and which P&ID equipment it leaves out.",
               {"label": S}, ["label"]),
+            f("relief_scan", "Deterministic scan of the P&ID: for each side of each equipment item, whether it reaches a relief "
+                             "device without passing a valve that could be closed, and which heated sides could be blocked in.", {}),
             f("blocked_in_pressure", "DWSIM: pressure a liquid-full, blocked-in vessel reaches when heated from T1 to T2 "
                                      "(API 521 hydraulic expansion), for relief checks.",
               {"compounds": {"type": "array", "items": S}, "x": {"type": "object"}, "T1_C": N, "P1_bar": N, "T2_C": N},
@@ -181,6 +183,8 @@ class PlantWorkspace(Study):
             r = self.runs[a["label"]]
             r["capacity"] = process.capacity(r["spec"])
             return {"label": a["label"], **r["capacity"]}
+        if name == "relief_scan":
+            return pid.relief_scan(DATA / self.cfg["pid"])
         if name == "check_coverage":
             r = self.runs.get(a["label"])
             return coverage(self.pid, r["spec"]) if r else {"error": f"unknown label; logged: {list(self.runs)}"}

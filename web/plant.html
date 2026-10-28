@@ -115,6 +115,10 @@
       <div class="eq" onclick="showDoc('pid')"><div class="t">Smart P&amp;ID <span>DEXPI XML</span></div><div class="why" id="pidStats"></div></div>
       <div class="eq" onclick="showDoc('basis')"><div class="t">Operating data sheet <span>md</span></div></div>
     </div>
+    <div class="sec"><h4>Safety scan <span>no AI · P&amp;ID graph</span></h4>
+      <button class="btn" onclick="reliefScan()">Check every side for relief protection</button>
+      <div id="relief" style="margin-top:6px"></div>
+    </div>
   </aside>
 
   <main>
@@ -304,7 +308,7 @@ function notes(a) {
     const r = g.getBoundingClientRect(), n = document.createElement('div');
     n.className = 'note ' + (h.severity || 'info');
     n.style.left = (r.left + r.width / 2 - box.left) + 'px';
-    n.style.top = (r.bottom - box.top) + 'px';
+    n.style.top = (r.top - box.top + 22) + 'px';  // the tag's group also holds its datasheet table: anchor at the symbol's top
     n.textContent = h.text;
     sheet.appendChild(n);
   }
@@ -378,6 +382,28 @@ function showDoc(which) {
   $('modalBox').innerHTML = which === 'basis' ? `<pre>${esc(P.basis)}</pre>` :
     `<h3>Smart P&amp;ID (read directly from the DEXPI XML)</h3><pre>${esc(P.pid.equipment.map(e => `${e.tag}  ${e.class}  ${JSON.stringify(e.design)}`).join('\n'))}\n\n${esc(P.pid.connections.map(c => `${c.from} → ${c.inline.join(' → ')}${c.inline.length ? ' → ' : ''}${c.to}`).join('\n'))}\n\n${esc(P.pid.control.join('\n'))}</pre>`;
   $('modal').classList.add('on');
+}
+
+async function reliefScan() {
+  const rs = await api('relief');
+  const col = r => r.status === 'protected' ? 'ok' : r.thermal_expansion_risk ? 'fail' : 'warn';
+  $('relief').innerHTML = rs.map(r => `<div class="eq" onclick="select('${esc(r.tag)}')"><div class="t">${esc(r.tag)} <span>${esc(r.side_fluids.join(','))} side</span></div>
+    <div class="why" style="color:var(--${col(r)})">${r.status === 'protected' ? '✓' : '⚠'} ${esc(r.status)}${r.thermal_expansion_risk ? ' · can be blocked in while heated' : ''}</div>
+    <div class="why">${esc(r.detail)}</div></div>`).join('');
+  const sheet = $('sheet'), box = sheet.getBoundingClientRect();
+  sheet.querySelectorAll('.note').forEach(n => n.remove());
+  const byTag = {};
+  for (const r of rs) if (r.status !== 'protected') (byTag[r.tag] = byTag[r.tag] || []).push(r);
+  for (const [tag, list] of Object.entries(byTag)) {
+    const g = sheet.querySelector(`g[data-tag="${CSS.escape(tag)}"]`); if (!g) continue;
+    const b = g.getBoundingClientRect(), n = document.createElement('div');
+    const hot = list.filter(r => r.thermal_expansion_risk);
+    n.className = 'note ' + (hot.length ? 'fail' : 'warn');
+    n.style.left = (b.left + b.width / 2 - box.left) + 'px'; n.style.top = (b.top - box.top + 22) + 'px';
+    n.textContent = hot.length ? `${tag}: ${hot.map(r => r.side_fluids.join(',')).join(' and ')} side can be blocked in while heated, no relief`
+      : `${tag}: ${list.map(r => r.status).join(', ')}`;
+    sheet.appendChild(n);
+  }
 }
 
 $('q').onkeydown = e => { if (e.key === 'Enter') { ask($('q').value); $('q').value = ''; } };
