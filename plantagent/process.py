@@ -29,6 +29,9 @@ SPEC_HELP = {
              "residence_basis = the product stream that leaves the tank for good (hold time = volume / that flow). "
              "mixer: in [..], out. splitter: in, out [..], fractions [..] or fixed_kg_h {out stream: kg/h} (the first outlet fixed, "
              "the other takes the rest: in a recirculation loop fix the recirculation branch and let the product take the rest). compressor: in, out, P_out_bar, eff_pct. "
+             "column: in, distillate, bottoms, light_key, heavy_key (compound names), light_key_in_bottoms and "
+             "heavy_key_in_distillate (mole fractions), reflux_ratio, P_bar (shortcut method: reports minimum and actual stages, "
+             "minimum reflux, condenser and reboiler duty). "
              "recycle: in (the calculated return stream), out (the tear stream used upstream, e.g. into a mixer), guess "
              "{T_C, kg_h} (closes recirculation loops). Streams are created by name the first time they appear. Model EVERY "
              "connection on the P&ID that carries process flow (recirculation loops included) or say why it is excluded.",
@@ -210,6 +213,19 @@ class _Sheet:
             c.CalcMode, c.POut = self.Comp.CalculationMode.OutletPressure, float(u["P_out_bar"]) * 1e5
             c.AdiabaticEfficiency = float(u.get("eff_pct", 75))  # DWSIM takes percent, like the pump
             return c
+        if t == "column":
+            # shortcut distillation (Fenske-Underwood-Gilliland): stages and duties for given key-component splits
+            c = self._add("ShortcutColumn", uid)
+            self._link(self.stream(u["in"]), c)
+            self._link(c, self.stream(u["distillate"]), 0, -1); self._link(c, self.stream(u["bottoms"]), 1, -1)
+            self._link(c, self._add("EnergyStream", f"QC-{uid}")); self._link(self._add("EnergyStream", f"QR-{uid}"), c)
+            c.m_lightkey, c.m_heavykey = u["light_key"], u["heavy_key"]
+            c.m_lightkeymolarfrac = float(u["light_key_in_bottoms"])
+            c.m_heavykeymolarfrac = float(u["heavy_key_in_distillate"])
+            c.m_refluxratio = float(u.get("reflux_ratio", 1.5))
+            c.m_condenserpressure = float(u.get("P_bar", 1.013)) * 1e5
+            c.m_boilerpressure = float(u.get("P_bottom_bar", u.get("P_bar", 1.013))) * 1e5
+            return c
         raise ValueError(f"unknown unit type {t}")
 
     def solve(self):
@@ -261,6 +277,9 @@ class _Sheet:
                          discharge_C=_r(self.streams[u["out"]].GetTemperature() - 273.15, 1))
             elif t == "valve":
                 r.update(dP_bar=_r(o.DeltaP / 1e5, 3))
+            elif t == "column":
+                r.update(min_stages=_r(o.m_Nmin, 1), stages=_r(o.m_N, 1), min_reflux=_r(o.m_Rmin, 3), reflux=_r(o.m_refluxratio, 3),
+                         condenser_kW=_r(abs(o.m_Qc or 0), 1), reboiler_kW=_r(abs(o.m_Qb or 0), 1))
             elif t == "tank":
                 # hold time is volume over the NET throughput (the product leaving), not over a recirculation loop
                 basis = u.get("residence_basis")
@@ -316,6 +335,10 @@ def _checks(sheet, res):
         if u and u["type"] == "compressor":
             add("shaft power vs motor", u["kW"], lim.get("max_kW"), "kW")
             add("discharge temperature vs limit", u["discharge_C"], lim.get("max_discharge_C"), "C")
+        if u and u["type"] == "column":
+            add("stages needed vs installed", u["stages"], lim.get("installed_stages"), "stages")
+            add("reboiler duty vs rated", u["reboiler_kW"], lim.get("max_reboiler_kW"), "kW")
+            add("condenser duty vs rated", u["condenser_kW"], lim.get("max_condenser_kW"), "kW")
         if u and u["type"] == "hx":
             add("installed area vs frame", u["area_m2"], lim.get("max_area_m2"), "m2")
             add("hot-side pressure drop vs available", u["dP_hot_bar"], lim.get("max_dP_hot_bar"), "bar")
