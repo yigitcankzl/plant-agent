@@ -130,56 +130,159 @@
   #tour .row { display: flex; gap: 8px; justify-content: flex-end; }
 </style>
 <link rel="stylesheet" href="design.css">
+<style>
+  /* Capacity desk: one scenario, one drawing, one contextual inspector. */
+  .process.focused .app {
+    grid-template-columns: minmax(0, 1fr) 390px;
+    grid-template-rows: 62px 124px minmax(0, 1fr);
+  }
+  .process.focused header { grid-column: 1 / 3; justify-content: flex-start; }
+  .process.focused header #proj { max-width: min(38vw, 470px); }
+  .mode-tabs { display: flex; align-self: stretch; margin-left: auto; }
+  .mode-tabs .btn { min-height: 0; padding: 0 14px; border: 0; border-radius: 0; background: transparent; color: var(--muted); }
+  .mode-tabs .btn:hover { background: #183a41; color: var(--text); }
+  .mode-tabs .btn.active { color: var(--text); box-shadow: inset 0 -3px var(--accent); }
+  .process.focused #infoBtn { margin-left: 4px; }
+
+  .process.focused main { grid-row: 3; grid-column: 1; display: flex; min-height: 0; flex-direction: column; overflow: hidden; }
+  .process.focused main .stage { flex: 1; min-height: 0; padding: 14px; }
+  .process.focused .pid-viewport { height: 100%; min-height: 390px; }
+  .process.focused footer {
+    grid-row: 2; grid-column: 1; grid-template-columns: minmax(280px, 340px) minmax(0, 1fr) auto;
+    align-items: center; border-top: 0; border-bottom: 1px solid var(--line); background: #143139;
+  }
+  .process.focused .flowctl { padding: 13px 18px; }
+  .process.focused .flow-label { display: block; margin-bottom: 2px; color: var(--muted); font-size: 11px; font-weight: 700; }
+  .process.focused .flowv { font-size: 23px; }
+  .process.focused .verdict { min-width: 0; padding: 13px 20px; }
+  .process.focused .verdict .big { font-size: 18px; }
+  .process.focused #toTarget { min-height: 44px; margin: 0 18px 0 8px; padding-inline: 18px; }
+
+  .process.focused aside.right { grid-row: 2 / 4; grid-column: 2; display: flex; min-height: 0; flex-direction: column; }
+  .process.focused .rhead { flex: 0 0 auto; font-size: 13px; color: var(--text); }
+  .process.focused #rightScroll { overflow: auto; flex: 1; min-height: 0; }
+  .side-details, .analysis-log { margin: 0; border-bottom: 1px solid var(--line); }
+  .side-details > summary, .analysis-log > summary { padding: 11px 18px; list-style-position: inside; font-weight: 700; color: var(--muted); }
+  .analysis-log > summary { display: flex; justify-content: space-between; gap: 12px; list-style: none; }
+  .analysis-log > summary::-webkit-details-marker { display: none; }
+  .analysis-log > summary::after { content: "View log"; font-weight: 500; color: var(--accent); }
+  .analysis-log[open] > summary::after { content: "Hide log"; }
+  .process.focused .progress { position: static; min-height: 0; padding: 0 18px 12px; background: transparent; }
+  .process.focused #modePanel { padding: 18px; }
+  .process.focused #modePanel h3 { margin: 0 0 6px; font-size: 19px; }
+  .process.focused #modePanel p { margin: 0 0 14px; color: var(--muted); }
+  .process.focused .mode-list { display: grid; gap: 8px; }
+  .process.focused .mode-list .btn { height: auto; padding: 10px 12px; text-align: left; white-space: normal; }
+  .side-ask { position: sticky; bottom: 0; z-index: 3; display: grid; grid-template-columns: 1fr auto; gap: 7px; padding: 12px 14px; border-top: 1px solid var(--line); background: rgba(16,46,52,.98); }
+  .side-ask .cmd { min-width: 0; }
+  .side-ask .cmd input { min-height: 38px; }
+  .inspector-back { margin: 14px 18px 0; }
+
+  .process.focused aside.left {
+    position: fixed; inset: 62px auto 0 0; z-index: 42; width: min(360px, calc(100vw - 32px));
+    transform: translateX(-102%); transition: transform .2s ease; box-shadow: 18px 0 50px rgba(0,0,0,.35);
+  }
+  .process.focused aside.left.open { transform: translateX(0); }
+  .drawer-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border-bottom: 1px solid var(--line); background: #102e34; }
+  .drawer-head b { font-size: 15px; }
+  .drawer-shade { position: fixed; inset: 62px 0 0; z-index: 41; display: none; background: rgba(4,16,19,.55); }
+  .drawer-shade.on { display: block; }
+  .process.focused .app.mode-other main { grid-row: 2 / 4; }
+  [hidden] { display: none !important; }
+
+  @media (max-width: 1080px) {
+    .process.focused .app { grid-template-columns: minmax(0, 1fr) 340px; }
+    .mode-tabs .btn { padding-inline: 9px; }
+    .process.focused #infoBtn { font-size: 0; }
+    .process.focused #infoBtn::after { content: "Model"; font-size: 12.5px; }
+  }
+  @media (max-width: 820px) {
+    .process.focused .app { display: flex; height: auto; min-height: 100vh; }
+    .process.focused header { flex-wrap: wrap; min-height: 112px; padding: 10px 14px; }
+    .process.focused header #proj { max-width: calc(100vw - 160px); }
+    .mode-tabs { order: 3; width: 100%; min-height: 42px; margin: 0; }
+    .mode-tabs .btn { flex: 1; }
+    .process.focused footer { order: 1; grid-template-columns: 1fr auto; }
+    .process.focused footer .verdict { grid-column: 1 / 3; grid-row: 2; border-top: 1px solid var(--line); }
+    .process.focused main { order: 2; min-height: 540px; }
+    .process.focused aside.right { order: 3; min-height: 0; border-top: 1px solid var(--line); }
+    .process.focused .side-ask { position: static; }
+  }
+  @media (max-width: 560px) {
+    .process.focused footer { display: block; }
+    .process.focused #toTarget { width: calc(100% - 32px); margin: 0 16px 14px; }
+    .process.focused .flowctl { border-right: 0; }
+    .process.focused header #proj { order: 2; max-width: 100%; flex: 1 1 100%; }
+    .process.focused #infoBtn { margin-left: auto; }
+  }
+</style>
 </head>
-<body class="process">
+<body class="process focused">
 <div class="app">
   <header>
     <a class="logo" href="home.html" style="color:var(--text);text-decoration:none" title="Back to case library">Plant<span>Agent</span></a>
     <select id="proj" title="Project"></select>
-    <div class="cmd" style="flex:1 1 360px;min-width:300px"><span class="k">›</span><input id="q" aria-label="Ask about the process unit" placeholder="Ask about this unit… e.g. What limits +20% throughput?" autocomplete="off" disabled></div>
-    <label title="Second opinion: also ask Meta's open-weights model (Muse Spark Open) independently and compare the two answers. Spends open-model credit."
-      style="display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--muted);white-space:nowrap;flex:0 0 auto"><input type="checkbox" id="so"> 2nd opinion</label>
-    <button class="btn go" id="toTarget" disabled>Find a path to target</button>
-    <select id="model" title="Model">
-      <option value="muse-spark-1.3-contributor">Muse Spark (contributor)</option>
-      <option value="muse-spark-1.3">Muse Spark</option>
-      <option value="muse-wonder-1.0">Muse Wonder</option>
-      <option value="baseten:meta-models/muse-spark-open-1026">Muse Spark Open (open weights, Baseten)</option>
-    </select>
+    <nav class="mode-tabs" aria-label="Analysis mode">
+      <button class="btn active" type="button" data-mode="capacity">Capacity</button>
+      <button class="btn" type="button" data-mode="troubleshoot">Troubleshoot</button>
+      <button class="btn" type="button" data-mode="safety" id="safetyMode">Safety</button>
+    </nav>
+    <button class="btn" id="infoBtn" type="button" aria-expanded="false" onclick="toggleDrawer(true)">Model &amp; sources</button>
   </header>
 
-  <aside class="left">
+  <aside class="left" id="infoDrawer" aria-label="Model and source details">
+    <div class="drawer-head"><b>Model &amp; sources</b><button class="btn" type="button" aria-label="Close model and sources" onclick="toggleDrawer(false)">Close</button></div>
     <div class="sec"><h4>Equipment load <span id="atScale"></span></h4><div id="eqlist" aria-live="polite"><div class="empty">Loading case data…</div></div></div>
     <div class="sec"><h4>Model <span id="builtBy"></span></h4><div id="modelBox"></div></div>
     <div class="sec"><h4>Documents</h4>
       <div class="eq" onclick="showDoc('pid')"><div class="t" id="pidName">Smart P&amp;ID <span>DEXPI XML</span></div><div class="why" id="pidStats"></div></div>
       <div class="eq" onclick="showDoc('basis')"><div class="t">Operating data sheet <span>md</span></div></div>
     </div>
-    <div class="sec" id="safetySec"><h4>Safety scan <span>no AI · P&amp;ID graph</span></h4>
-      <button class="btn" onclick="reliefScan()">Check every side for relief protection</button>
-      <div id="relief" style="margin-top:6px"></div>
+    <div class="sec"><h4>Analysis settings</h4>
+      <label title="Also ask Meta's open-weights model independently and compare the answers." style="display:flex;align-items:center;gap:6px;margin-bottom:10px;color:var(--muted)"><input type="checkbox" id="so"> Verify with a second model</label>
+      <select id="model" title="Model" style="width:100%">
+        <option value="muse-spark-1.3-contributor">Muse Spark (contributor)</option>
+        <option value="muse-spark-1.3">Muse Spark</option>
+        <option value="muse-wonder-1.0">Muse Wonder</option>
+        <option value="baseten:meta-models/muse-spark-open-1026">Muse Spark Open (open weights, Baseten)</option>
+      </select>
     </div>
   </aside>
+  <div class="drawer-shade" id="drawerShade" onclick="toggleDrawer(false)"></div>
 
   <main>
-    <div class="progress" id="progress"></div>
     <div id="note" style="display:none;margin:8px 18px 0;padding:6px 10px;border:1px solid #5a4a2a;border-radius:5px;color:var(--warn);font-size:12px"></div>
     <div class="stage" style="position:relative"><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Proposed</button></div><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing zoom"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
   </main>
 
-  <footer>
+  <footer id="scenario">
     <div class="flowctl">
+      <label class="flow-label" for="scale">Throughput target</label>
       <div class="flowv" id="flowv">–</div>
       <input type="range" id="scale" min="80" max="250" step="1" value="100">
       <div style="display:flex;justify-content:space-between;color:var(--muted);font:11px var(--mono)"><span>80%</span><span id="tgtLbl"></span><span id="maxLbl">250%</span></div>
     </div>
     <div class="verdict"><div class="big" id="verdict">–</div><div class="sub" id="verdictSub"></div></div>
+    <button class="btn go" id="toTarget" disabled>Analyze target</button>
   </footer>
 
   <aside class="right">
-    <div class="rhead"><span>Decision and evidence</span><span id="spend"></span></div>
-    <div id="revs"></div>
-    <div id="answers"></div>
+    <div class="rhead"><span id="inspectorTitle">Result</span><span id="spend"></span></div>
+    <div id="rightScroll">
+      <div id="modePanel" hidden>
+        <section id="troublePanel" hidden></section>
+        <section id="safetySec" hidden><h3>Relief protection</h3><p>Check every equipment side in the smart P&amp;ID without spending AI credit.</p>
+          <button class="btn go" onclick="reliefScan()">Run safety scan</button><div id="relief" style="margin-top:10px"></div>
+        </section>
+      </div>
+      <details class="analysis-log" id="analysisLog" hidden><summary><span id="progressSummary">Analysis log</span></summary><div class="progress" id="progress"></div></details>
+      <details class="side-details" id="historyDetails"><summary>History and audit</summary><div id="revs"></div></details>
+      <div id="answers"></div>
+    </div>
+    <div class="side-ask" id="askDock">
+      <div class="cmd"><span class="k">›</span><input id="q" aria-label="Ask about the current result" placeholder="Ask about this result…" autocomplete="off" disabled></div>
+      <button class="btn" id="askBtn" type="button" disabled>Ask</button>
+    </div>
   </aside>
 </div>
 <div id="tour" role="dialog" aria-live="polite"><div class="st" id="tourStep"></div><div class="tx" id="tourText"></div>
@@ -198,6 +301,44 @@ const api = async (p, body) => { const r = await fetch(`/api/plant/${CASE}/${p}`
 let P = null, ST = null, busy = false, base = null;
 const NAMES = {pump: 'Pump', hx: 'Heat exchanger', tank: 'Tank', valve: 'Valve', heater: 'Heater / heat load', cooler: 'Cooler', compressor: 'Compressor', mixer: 'Mixer', splitter: 'Splitter', recycle: 'Loop closure'};
 const sev = u => u > 1.0 ? 'fail' : u > 0.9 ? 'warn' : 'ok';
+let ACTIVE_MODE = 'capacity';
+
+function toggleDrawer(open) {
+  $('infoDrawer').classList.toggle('open', open);
+  $('drawerShade').classList.toggle('on', open);
+  $('infoBtn').setAttribute('aria-expanded', String(open));
+}
+
+function renderTroubleshootMode() {
+  if (!P) return;
+  const today = P.health?.today || [], units = P.troubleshootable || [];
+  $('troublePanel').innerHTML = `<h3>Morning troubleshooting</h3><p>Start with the historian signal, then inspect the affected equipment and fit likely causes in DWSIM.</p>
+    ${today.length ? `<div class="card warn"><div class="tt">What needs attention</div>${today.map((x, i) => `<div style="margin:7px 0"><b>${i + 1}.</b> ${esc(x.text)}</div>`).join('')}</div>` : '<div class="card"><div class="res">No historian alert is available for this case.</div></div>'}
+    <div class="mode-list">${units.map(tag => `<button class="btn" onclick="select('${esc(tag)}')"><b>${esc(nm(tag))}</b><br><span style="color:var(--muted)">Inspect readings and test likely causes</span></button>`).join('') || '<span style="color:var(--muted)">No equipment has a configured troubleshooting model.</span>'}</div>`;
+}
+
+function showMode(mode) {
+  ACTIVE_MODE = mode;
+  toggleDrawer(false);
+  selectOnDrawing('');
+  document.querySelectorAll('.eq.sel').forEach(e => e.classList.remove('sel'));
+  document.querySelectorAll('[data-mode]').forEach(b => { b.classList.toggle('active', b.dataset.mode === mode); b.setAttribute('aria-pressed', String(b.dataset.mode === mode)); });
+  $('scenario').hidden = mode !== 'capacity';
+  document.querySelector('.app').classList.toggle('mode-other', mode !== 'capacity');
+  $('modePanel').hidden = mode === 'capacity';
+  $('troublePanel').hidden = mode !== 'troubleshoot';
+  $('safetySec').hidden = mode !== 'safety';
+  $('answers').hidden = mode !== 'capacity';
+  $('historyDetails').hidden = mode !== 'capacity';
+  $('askDock').hidden = mode !== 'capacity';
+  if (mode === 'troubleshoot') { renderTroubleshootMode(); $('inspectorTitle').textContent = 'Troubleshoot'; }
+  else if (mode === 'safety') $('inspectorTitle').textContent = 'Safety';
+  else { $('inspectorTitle').textContent = 'Result'; if (P?.built) answers(); }
+  requestAnimationFrame(() => { fitDrawing(); if (ST) render(ST); });
+}
+
+document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => showMode(b.dataset.mode));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleDrawer(false); });
 
 async function projects() {
   const ps = await fetch('/api/projects').then(r => r.json());
@@ -342,7 +483,7 @@ async function load() {
     await new Promise((r, x) => { const im = $('sheet').querySelector('img'); im.complete ? r() : (im.onload = r, im.onerror = () => x(new Error('the drawing image did not load'))); });
   }
   initViewer();
-  $('safetySec').style.display = P.dexpi ? '' : 'none';  // the relief scan needs a smart (DEXPI) P&ID
+  $('safetyMode').hidden = !P.dexpi;  // the relief scan needs a smart (DEXPI) P&ID
   if (P.drawing === 'none' && !P.dexpi) $('pidStats').textContent = 'equipment and connections from the data sheet';
   if (P.drawing === 'none') $('pidName').innerHTML = P.dexpi ? 'Smart P&amp;ID <span>DEXPI XML · flowsheet drawn from the model</span>' : 'No drawing <span>flowsheet drawn from the model</span>';
   if (P.drawing === 'pdf') $('pidName').innerHTML = `Schematic (PDF) <span>read by ${esc((P.pid.model || 'Muse').replace('muse-', ''))}</span>`;
@@ -359,7 +500,9 @@ async function load() {
   model(); answers(); revs();
   if (P.built) render(P.at_target); else noModel();
   $('q').disabled = false;
+  $('askBtn').disabled = false;
   $('toTarget').disabled = false;
+  showMode(ACTIVE_MODE);
 }
 
 // ---- engineer confirms Muse's read of a PDF schematic before any model is built ----
@@ -507,7 +650,9 @@ function equipmentCard(tag) {  // design data, operating values, every limit wit
   const checks = (ST.checks || []).filter(c => c.id === tag && c.utilisation != null);
   const editable = u ? Object.entries(u).filter(([k, v]) => typeof v === 'number' && FIELDS[k]) : feed ? Object.entries(feed).filter(([k, v]) => typeof v === 'number' && FIELDS[k]) : [];
   const path = k => `${u ? 'units' : 'feeds'}.${tag}.${k}`;
-  $('modalBox').innerHTML = `<h3>${esc(nm(tag))} <span style="color:var(--muted);font-size:12px">${esc(tag)}</span></h3>
+  $('modePanel').hidden = true; $('historyDetails').hidden = true; $('answers').hidden = false; $('askDock').hidden = false;
+  $('inspectorTitle').textContent = 'Equipment';
+  $('answers').innerHTML = `<button class="btn inspector-back" onclick="showMode(ACTIVE_MODE)">← Back to ${esc(ACTIVE_MODE === 'capacity' ? 'result' : ACTIVE_MODE)}</button><div class="ans"><h3>${esc(nm(tag))} <span style="color:var(--muted);font-size:12px">${esc(tag)}</span></h3>
     ${e ? `<div class="tt">Design data (P&amp;ID)</div><table class="ecard">${Object.entries(e.design || {}).map(([k, v]) => `<tr><td>${esc(k)}</td><td class="v">${esc(v)}</td></tr>`).join('')}</table>` : ''}
     <div class="tt" style="margin-top:10px">Operating at ${Math.round(ST.scale * 100)}% (DWSIM)</div><table class="ecard">${Object.entries(op).filter(([k, v]) => typeof v === 'number').map(([k, v]) => `<tr><td title="${esc(k)}">${esc((OPL[k] || [k])[0])}</td><td class="v">${esc(fmt(v))} ${esc((OPL[k] || ['', ''])[1])}</td></tr>`).join('')}</table>
     <div class="tt" style="margin-top:10px">Limits</div><table class="ecard">${checks.map(c => `<tr><td>${esc(c.check)}</td><td class="v">${esc(fmt(c.value))} of ${esc(fmt(c.limit))} ${esc(c.unit)}</td><td class="v" style="color:var(--${sev(c.utilisation)})">${Math.round(c.utilisation * 100)}% · margin ${Math.round((1 - c.utilisation) * 100)}%</td></tr>`).join('') || '<tr><td>No stated limit</td></tr>'}</table>
@@ -519,10 +664,9 @@ function equipmentCard(tag) {  // design data, operating values, every limit wit
     ${(P.troubleshootable || []).includes(tag) ? `<div class="tt" style="margin-top:10px">Troubleshoot (deterministic: each cause fitted in DWSIM, checked against the other historian readings)</div>
       <span style="font-size:12px">Product out of ${esc(tag)} reads</span> <input id="tsVal" type="number" step="0.1" style="width:80px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:4px" placeholder="last day">
       <span style="font-size:12px">°C</span> <button class="btn" onclick="troubleshoot('${esc(tag)}')">Find the cause</button><div id="tsOut" style="margin-top:8px"></div>` : ''}
-    <div style="margin-top:12px"><button class="btn" onclick="$('modal').classList.remove('on');$('q').value='Why is ${esc(tag)} limiting, and what is the cheapest fix?';$('q').focus()">Ask the copilot about ${esc(tag)}</button></div>`;
+    <div style="margin-top:12px"><button class="btn" onclick="$('q').value='Why is ${esc(tag)} limiting, and what is the cheapest fix?';$('q').focus()">Ask about ${esc(tag)}</button></div></div>`;
   $('wiField') && ($('wiField').onchange = () => { $('wiValue').value = $('wiField').selectedOptions[0].dataset.v; });
   WI = {tag, path};
-  $('modal').classList.add('on');
 }
 let WI = null;
 function healthOf(tag) {
@@ -587,16 +731,23 @@ function chip(e) {
 }
 
 async function follow(job, title) {
-  busy = true; document.querySelectorAll('header .btn').forEach(b => b.disabled = true);
-  $('progress').innerHTML = `<span class="chip live">${esc(title)}</span>`;
-  let off = 0, t0 = Date.now();
+  busy = true;
+  document.querySelectorAll('header .btn, #toTarget, #askBtn').forEach(b => b.disabled = true);
+  $('analysisLog').hidden = false; $('analysisLog').open = false; $('progress').innerHTML = '';
+  $('progressSummary').textContent = title + '…';
+  let off = 0, t0 = Date.now(), steps = 0;
   while (true) {
     const j = await fetch(`/api/job/${job}?offset=${off}`).then(r => r.json());
     off = j.offset;
-    for (const e of j.events) if (e.kind === 'tool') $('progress').insertAdjacentHTML('beforeend', chip(e));
+    for (const e of j.events) if (e.kind === 'tool') {
+      steps += 1; $('progress').insertAdjacentHTML('beforeend', chip(e));
+      $('progressSummary').textContent = `Analyzing… ${steps} step${steps === 1 ? '' : 's'} complete`;
+    }
     if (j.done) {
-      busy = false; document.querySelectorAll('header .btn').forEach(b => b.disabled = false);
-      $('progress').insertAdjacentHTML('beforeend', j.error ? `<span class="chip err">${esc(j.error)}</span>` : `<span class="chip done">done in ${Math.round((Date.now() - t0) / 1000)}s</span>`);
+      const seconds = Math.round((Date.now() - t0) / 1000);
+      busy = false; document.querySelectorAll('header .btn, #toTarget, #askBtn').forEach(b => b.disabled = false);
+      $('progressSummary').textContent = j.error ? 'Analysis stopped — open log' : `Analysis complete · ${steps} steps · ${seconds}s`;
+      $('progress').insertAdjacentHTML('beforeend', j.error ? `<span class="chip err">${esc(j.error)}</span>` : `<span class="chip done">Complete in ${seconds}s</span>`);
       return j;
     }
     await new Promise(r => setTimeout(r, 700));
@@ -612,11 +763,11 @@ async function build() {
 
 async function ask(text, context) {
   if (busy || !text.trim()) return;
-  $('answers').insertAdjacentHTML('afterbegin', `<div class="ans" id="pending"><div class="rq">› <b>${esc(text)}</b></div><div class="meta">working…</div></div>`);
+  showMode('capacity');
   const {job} = await api('ask', {text, context, second_opinion: $('so').checked});
   const j = await follow(job, text);
-  $('pending')?.remove();
-  if (j.answer) { P.answers.push(j.answer); answers(); notes(j.answer); }
+  if (j.answer) { P.answers.push(j.answer); answers(); }
+  else if (j.error) $('answers').insertAdjacentHTML('afterbegin', `<div class="ans"><div class="hl" style="color:var(--fail)">Analysis could not finish</div><div class="sm">${esc(j.error)}</div></div>`);
 }
 
 function notes(a) {
@@ -693,9 +844,9 @@ function ans(a, idx) {
   const lim = (a.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity)).slice(0, 3);
   const limits = lim.length ? `<div class="tt" style="margin-top:8px">What limits it</div>${lim.map(h => `<div style="font-size:12.5px;margin:2px 0"><b style="color:var(--${h.severity === 'fail' ? 'fail' : 'warn'})">${esc(nm(h.tag))}</b> · ${esc(h.text)}</div>`).join('')}` : '';
   const fixes = (a.proposals || []).length ? `<div class="tt" style="margin-top:10px">Fixes · each re-solved in DWSIM</div>${props}${compare(a)}${comb}` : '';
-  return `<div class="ans"><div class="tt">Question</div><div class="rq">${esc(a.request)}</div>
-    <div class="tt" style="margin-top:8px">Answer</div><div class="hl">${esc(a.headline)}</div>${limits}${fc}${fixes}${secondOpinion(a, idx)}
+  return `<div class="ans"><div class="tt">Result</div><div class="hl">${esc(a.headline)}</div>${limits}${fc}${fixes}${secondOpinion(a, idx)}
     <details style="margin-top:10px"><summary>Evidence · ${(a.cards || []).length} calculations, sources and assumptions</summary><div class="sm">${esc(a.summary)}</div>${cards}</details>
+    <details style="margin-top:8px"><summary>Study request</summary><div class="rq">${esc(a.request)}</div></details>
     <div class="meta">${a.seconds}s · $${(a.cost_usd || 0).toFixed(4)} · ${(a.checks || []).filter(c => c.ok).length}/${(a.checks || []).length} cited runs re-solved to the same result${(a.checks || []).filter(c => !c.ok).map(c => ` · <span style="color:var(--fail)">✗ ${esc(c.item)}: ${esc(c.why || 'not reproduced')}</span>`).join('')}</div></div>`;
 }
 
@@ -725,7 +876,8 @@ async function reload() {
   const keep = P.answers;
   P = await api('project'); P.answers = keep;
   $('viewTog').style.display = P.has_revisions ? 'flex' : 'none';
-  model(); answers(); revs(); render(await api('state?scale=' + $('scale').value / 100 + (VIEW === 'existing' ? '&view=existing' : '')));
+  model(); answers(); revs(); renderTroubleshootMode(); render(await api('state?scale=' + $('scale').value / 100 + (VIEW === 'existing' ? '&view=existing' : '')));
+  showMode(ACTIVE_MODE);
 }
 
 async function decisionFile() {
@@ -798,16 +950,20 @@ async function reliefScan() {
 }
 
 $('q').onkeydown = e => { if (e.key === 'Enter') { ask($('q').value); $('q').value = ''; } };
-$('toTarget').onclick = () => ask(`Get the unit to ${Math.round(P.target_scale * 100)}% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in DWSIM, within every utility and frame limit on the data sheet.`);
+$('askBtn').onclick = () => { ask($('q').value); $('q').value = ''; };
+$('toTarget').onclick = () => {
+  const target = Number($('scale').value);
+  ask(`Get the unit to ${target}% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in DWSIM, within every utility and frame limit on the data sheet.`);
+};
 // ---- guided demo: question -> source drawing -> limit -> proposal -> before/after -> evidence ----
 let TOUR_I = 0;
 const TOUR = [
-  ['The source', 'A real P&ID in the DEXPI exchange standard (the DEXPI reference unit; the operating data sheet is illustrative). The agent read it and built this DWSIM simulation itself, reproducing the 14 measured values on the data sheet.', () => ['sheet', 'modelBox'], () => setScale(100)],
+  ['The source', 'A real P&ID in the DEXPI exchange standard (the DEXPI reference unit; the operating data sheet is illustrative). The agent read it and built this DWSIM simulation itself, reproducing the 14 measured values on the data sheet.', () => ['sheet', 'infoBtn'], () => setScale(100)],
   ['The question', 'Sales wants +20 % throughput. Move to 120 %: every equipment item on the P&ID is re-solved in DWSIM and coloured by how close it runs to its limit.', () => ['scale', 'verdict'], () => setScale(Math.round(P.target_scale * 100))],
-  ['What limits it', 'Three limits bind: the H1007 cooler outlet, the tank temperature held by the H1008 loop, and the quality-control hold time in T4750. Each bar shows the value against the documented limit.', () => ['eqlist'], null],
+  ['What limits it', 'Three limits bind: the H1007 cooler outlet, the tank temperature held by the H1008 loop, and the quality-control hold time in T4750. The drawing marks each item by how close it runs to its documented limit.', () => ['sheet', 'verdict'], null],
   ['The fixes', 'The agent proposes the cheapest change for each limit, within the utility supply limits on the data sheet. The server re-solves each one in DWSIM before it can be applied; a change that only edits a limit is refused.', () => ['answers'], () => document.querySelector('.prop')?.scrollIntoView({block: 'center'})],
   ['Before and after', 'All changes together, re-solved: the unit reaches 120 % and the new maximum is about 124 %. No capital spend: operating changes inside documented limits.', () => ['answers'], () => [...document.querySelectorAll('.card')].find(c => /All \d+ changes together|Alternatives compared/.test(c.textContent))?.scrollIntoView({block: 'center'})],
-  ['The evidence', 'Every input is labelled as in a document, measured, computed or assumed, and every cited run is re-solved to the same result. Changes are draft model revisions with a reason, kept in a hash-chained audit trail. The P&ID coverage check confirms the model has every flow connection on the drawing.', () => ['revs', 'modelBox'], null],
+  ['The evidence', 'Every input is labelled as in a document, measured, computed or assumed, and every cited run is re-solved to the same result. Model sources, revisions and the hash-chained audit trail stay one click away without competing with the decision.', () => ['historyDetails', 'infoBtn'], null],
 ];
 function setScale(v) { $('scale').value = v; $('scale').oninput(); }
 function tourGo(i) {
