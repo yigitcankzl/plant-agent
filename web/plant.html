@@ -120,9 +120,9 @@
   <header>
     <a class="logo" href="home.html" style="color:var(--text);text-decoration:none" title="Back to case library">Plant<span>Agent</span></a>
     <select id="proj" title="Project"></select>
-    <div class="cmd"><span class="k">›</span><input id="q" aria-label="Ask about the process unit" placeholder="Ask about this unit… e.g. What limits +20% throughput?" autocomplete="off" disabled></div>
-    <label title="Also ask Meta's open-weights model (Muse Spark Open) independently and compare the two answers. Spends open-model credit."
-      style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);white-space:nowrap"><input type="checkbox" id="so"> + open-model second opinion</label>
+    <div class="cmd" style="flex:1 1 360px;min-width:300px"><span class="k">›</span><input id="q" aria-label="Ask about the process unit" placeholder="Ask about this unit… e.g. What limits +20% throughput?" autocomplete="off" disabled></div>
+    <label title="Second opinion: also ask Meta's open-weights model (Muse Spark Open) independently and compare the two answers. Spends open-model credit."
+      style="display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--muted);white-space:nowrap;flex:0 0 auto"><input type="checkbox" id="so"> 2nd opinion</label>
     <button class="btn go" id="toTarget" disabled>Find a path to target</button>
     <select id="model" title="Model">
       <option value="muse-spark-1.3-contributor">Muse Spark (contributor)</option>
@@ -358,6 +358,12 @@ const nm = id => (P?.names || {})[id] || id;  // readable name for a unit or str
 const FIELDS = {m3_h: ['flow', 'm³/h'], kg_h: ['flow', 'kg/h'], T_C: ['temperature', '°C'], P_bar: ['pressure', 'bar(a)'], volume_m3: ['working volume', 'm³'],
   area_m2: ['installed area', 'm²'], U_W_m2K: ['heat-transfer coefficient', 'W/m²K'], P_out_bar: ['discharge pressure', 'bar(a)'], T_out_C: ['outlet temperature', '°C'],
   duty_kW: ['duty', 'kW'], dP_bar: ['pressure rise/drop', 'bar'], eff_pct: ['efficiency', '%'], kv: ['valve Kv', '']};
+const OPL = {duty_kW: ['Duty', 'kW'], lmtd_C: ['Log-mean temperature difference', 'K'], U_W_m2K: ['Heat-transfer coefficient', 'W/m²K'], area_m2: ['Area', 'm²'],
+  dP_hot_bar: ['Pressure drop, hot side', 'bar'], dP_cold_bar: ['Pressure drop, cold side', 'bar'], m3_h: ['Flow', 'm³/h'], head_m: ['Head', 'm'],
+  dP_bar: ['Pressure rise or drop', 'bar'], eff_pct: ['Efficiency', '%'], kW: ['Shaft power', 'kW'], npsha_m: ['NPSH available', 'm'],
+  discharge_barg: ['Discharge pressure', 'barg'], discharge_C: ['Discharge temperature', '°C'], residence_min: ['Hold time', 'min'], volume_m3: ['Working volume', 'm³'],
+  T_C: ['Temperature', '°C'], P_bar: ['Pressure', 'bar(a)'], kg_h: ['Mass flow', 'kg/h'], vapour_frac: ['Vapour fraction', ''], min_stages: ['Minimum stages', ''],
+  stages: ['Stages needed', ''], min_reflux: ['Minimum reflux ratio', ''], reflux: ['Reflux ratio', ''], condenser_kW: ['Condenser duty', 'kW'], reboiler_kW: ['Reboiler duty', 'kW']};
 function describe(c) {
   const [k, id, f] = String(c.path || '').split('.'); const [label, unit] = FIELDS[f] || [String(f || '').replace(/_/g, ' '), ''];
   const from = 'from' in c && c.from != null ? `${fmt(c.from)} → ` : '';
@@ -381,7 +387,7 @@ function equipmentCard(tag) {  // design data, operating values, every limit wit
   const path = k => `${u ? 'units' : 'feeds'}.${tag}.${k}`;
   $('modalBox').innerHTML = `<h3>${esc(nm(tag))} <span style="color:var(--muted);font-size:12px">${esc(tag)}</span></h3>
     ${e ? `<div class="tt">Design data (P&amp;ID)</div><table class="ecard">${Object.entries(e.design || {}).map(([k, v]) => `<tr><td>${esc(k)}</td><td class="v">${esc(v)}</td></tr>`).join('')}</table>` : ''}
-    <div class="tt" style="margin-top:10px">Operating at ${Math.round(ST.scale * 100)}% (DWSIM)</div><table class="ecard">${Object.entries(op).filter(([k, v]) => typeof v === 'number').map(([k, v]) => `<tr><td>${esc(k)}</td><td class="v">${esc(fmt(v))}</td></tr>`).join('')}</table>
+    <div class="tt" style="margin-top:10px">Operating at ${Math.round(ST.scale * 100)}% (DWSIM)</div><table class="ecard">${Object.entries(op).filter(([k, v]) => typeof v === 'number').map(([k, v]) => `<tr><td title="${esc(k)}">${esc((OPL[k] || [k])[0])}</td><td class="v">${esc(fmt(v))} ${esc((OPL[k] || ['', ''])[1])}</td></tr>`).join('')}</table>
     <div class="tt" style="margin-top:10px">Limits</div><table class="ecard">${checks.map(c => `<tr><td>${esc(c.check)}</td><td class="v">${esc(fmt(c.value))} of ${esc(fmt(c.limit))} ${esc(c.unit)}</td><td class="v" style="color:var(--${sev(c.utilisation)})">${Math.round(c.utilisation * 100)}% · margin ${Math.round((1 - c.utilisation) * 100)}%</td></tr>`).join('') || '<tr><td>No stated limit</td></tr>'}</table>
     ${editable.length ? `<div class="tt" style="margin-top:10px">What if… (a preview in DWSIM, not a revision)</div>
       <select id="wiField">${editable.map(([k, v]) => `<option value="${k}" data-v="${v}">${esc(FIELDS[k][0])} (${esc(fmt(v))} ${esc(FIELDS[k][1])})</option>`).join('')}</select>

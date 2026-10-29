@@ -1080,21 +1080,72 @@
       ],
       "cost_class": "<$100k",
       "why": "Cheapest fix that works at every condition: lowers condenser duty from 1,938 to 1,382 kW at 22C bin and compressor power 546 to 363 kW, creates 31% condenser margin and verified in DWSIM base2400_float_8p6_20C_detail, and delivers 1,329 MWh/year saving $94k/year pays back in months - no new equipment needed, only pressure setpoint logic",
-      "verified": true,
+      "verified": false,
       "fixes": "COND-101A",
-      "still_over": [],
-      "breaks": [],
-      "capacity_multiple": 1.389,
+      "still_over": [
+       {
+        "id": "COND-101A",
+        "check": "outlet temperature vs heat-sink minimum (ambient + approach)",
+        "value": 20.0,
+        "limit": 28.0,
+        "unit": "C",
+        "utilisation": 1.027
+       },
+       {
+        "id": "COND-101B",
+        "check": "outlet temperature vs heat-sink minimum (ambient + approach)",
+        "value": 20.0,
+        "limit": 28.0,
+        "unit": "C",
+        "utilisation": 1.027
+       }
+      ],
+      "breaks": [
+       {
+        "id": "COND-101A",
+        "check": "outlet temperature vs heat-sink minimum (ambient + approach)",
+        "value": 20.0,
+        "limit": 28.0,
+        "unit": "C",
+        "utilisation": 1.027
+       },
+       {
+        "id": "COND-101B",
+        "check": "outlet temperature vs heat-sink minimum (ambient + approach)",
+        "value": 20.0,
+        "limit": 28.0,
+        "unit": "C",
+        "utilisation": 1.027
+       }
+      ],
+      "capacity_multiple": 0.1,
       "limited_by": {
        "id": "COND-101A",
-       "check": "duty vs design",
-       "value": 2000.97,
-       "limit": 2000,
-       "unit": "kW",
-       "utilisation": 1.0
+       "check": "outlet temperature vs heat-sink minimum (ambient + approach)",
+       "value": 20.0,
+       "limit": 28.0,
+       "unit": "C",
+       "utilisation": 1.027
       },
-      "reaches_target": true,
-      "over_limits_at_target": [],
+      "reaches_target": false,
+      "over_limits_at_target": [
+       {
+        "id": "COND-101A",
+        "check": "outlet temperature vs heat-sink minimum (ambient + approach)",
+        "value": 20.0,
+        "limit": 28.0,
+        "unit": "C",
+        "utilisation": 1.027
+       },
+       {
+        "id": "COND-101B",
+        "check": "outlet temperature vs heat-sink minimum (ambient + approach)",
+        "value": 20.0,
+        "limit": 28.0,
+        "unit": "C",
+        "utilisation": 1.027
+       }
+      ],
       "target_scale": 1.292
      }
     ],
@@ -1131,7 +1182,6 @@
      "units.C-101C.P_out_bar: only the open model changes it",
      "units.COND-101A.T_out_C: only the open model changes it",
      "units.COND-101B.T_out_C: only the open model changes it",
-     "verified in DWSIM: none vs COND-101A",
      "annual energy saving: 1,716 vs 1,330 MWh"
     ],
     "status": "partly"

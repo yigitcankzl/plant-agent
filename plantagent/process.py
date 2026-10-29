@@ -41,7 +41,8 @@ SPEC_HELP = {
               "psv_set_barg (relief valve on the pump discharge: discharge must stay below 90 % of set), area_m2 (installed HX "
               "area), out_T_C (outlet the process needs, side: cold|hot), max_dP_hot_bar, max_dP_cold_bar (available pressure "
               "drop), min_residence_min, max_area_m2 (HX frame limit), and for streams max_T_C, max_P_bar (design limit), "
-              "max_m3_h (utility supply; checked against 90 % of it to keep a margin), must_be_liquid: true (e.g. condenser outlet)}}. Values come from the P&ID or datasheets; cite them.",
+              "max_m3_h (utility supply; checked against 90 % of it to keep a margin), must_be_liquid: true (e.g. condenser outlet), min_T_out_C (cooler or condenser: the lowest outlet its heat sink allows at "
+              "design conditions, e.g. design wet bulb + approach for an evaporative condenser)}}. Values come from the P&ID or datasheets; cite them.",
 }
 
 
@@ -365,6 +366,15 @@ def _checks(sheet, res):
             add("installed area vs frame", u["area_m2"], lim.get("max_area_m2"), "m2")
             add("hot-side pressure drop vs available", u["dP_hot_bar"], lim.get("max_dP_hot_bar"), "bar")
             add("cold-side pressure drop vs available", u["dP_cold_bar"], lim.get("max_dP_cold_bar"), "bar")
+        if u and u["type"] in ("heater", "cooler") and lim.get("min_T_out_C") is not None:
+            # a cooler/condenser cannot cool below what its heat sink allows (ambient or wet bulb + approach); in kelvin,
+            # so the ratio stays meaningful near 0 C
+            spec_u = sheet.units[key][0]
+            t_out = (res["streams"].get(spec_u["out"]) or {}).get("T_C")
+            if t_out is not None:
+                out.append({"id": key, "check": "outlet temperature vs heat-sink minimum (ambient + approach)", "value": t_out,
+                            "limit": lim["min_T_out_C"], "unit": "C",
+                            "utilisation": round((lim["min_T_out_C"] + 273.15) / (t_out + 273.15), 3)})
         if u and lim.get("max_kW") and u["type"] in ("heater", "cooler"):  # an exchanger's datasheet duty is a design point, not a limit
             add("duty vs design", abs(u.get("duty_kW") or 0), lim["max_kW"], "kW")
         if u and u["type"] == "tank":
@@ -586,6 +596,14 @@ if __name__ == "__main__":
         assert 450 < d[0]["density_kg_m3"] < 520 and d[1]["density_kg_m3"] < d[0]["density_kg_m3"]
         bi = blocked_in(["Propane", "Propylene"], {"Propane": 0.95, "Propylene": 0.05}, 25, 15, 86)  # Williams: 77 F -> 187 F
         print("blocked-in 25->86 C:", bi)
+        # a condenser cannot cool below wet bulb + approach: a lower outlet must show as over its limit
+        cyc = {"compounds": ["Ammonia"], "package": "Peng-Robinson (PR)",
+               "feeds": {"SUC": {"T_C": -8, "P_bar": 2.9, "kg_h": 3600, "x": {"Ammonia": 1}}},
+               "units": [{"id": "K", "type": "compressor", "in": "SUC", "out": "DIS", "P_out_bar": 8.6, "eff_pct": 75},
+                         {"id": "COND", "type": "cooler", "in": "DIS", "out": "LIQ", "T_out_C": 18}],
+               "limits": {"COND": {"min_T_out_C": 28}}}
+        ch = [c for c in run(cyc)["checks"] if c["id"] == "COND" and "heat-sink" in c["check"]]
+        assert ch and ch[0]["utilisation"] > 1, ch
         assert bi["pressure_psig"] > 2000, "heating liquid-full propane by 60 K must reach thousands of psi"
         assert b["points"][2]["bubble_P_bar"] > b["points"][0]["bubble_P_bar"] > 5
         section = {"compounds": ["Carbon dioxide", "Water"], "package": "Peng-Robinson (PR)",

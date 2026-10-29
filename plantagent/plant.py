@@ -633,6 +633,25 @@ class PlantWorkspace(Study):
         ans.update(seconds=round(time.time() - t0), cost_usd=round(llm.spent() - usd0, 4), request=text, model=self.model)
         return ans
 
+    def names(self):
+        """display_names, with each utility named from the P&ID fluid code and the data sheet (e.g. 'Cooling water to H1007')."""
+        import re as _re
+        n = display_names(self.spec)
+        codes = {str(l.get("line")): (l.get("fluid_code") or "").rstrip("abcdefghijklmnopqrstuvwxyz") for l in (self.pid or {}).get("lines") or []}
+        for sid, f in (self.spec.get("feeds") or {}).items():
+            if not f.get("utility"):
+                continue
+            code = next((codes[d] for d in _re.findall(r"\d{4,}", sid) if codes.get(d)), None)
+            m = code and _re.search(r"([A-Z][a-z]+(?: [a-z]+)?)\s+to\s+\S+\s*\(fluid " + _re.escape(code) + r"\)", self.basis)
+            fluid = m.group(1) if m else None
+            if not fluid:
+                continue
+            for k, v in list(n.items()):
+                if v == n[sid] or (k != sid and v.startswith("Utility return from") and k.startswith(("s", "S")) and
+                                   any(codes.get(d) == code for d in _re.findall(r"\d{4,}", k))):
+                    n[k] = v.replace("Utility supply", fluid).replace("Utility return", fluid + " return")
+        return n
+
     def whatif(self, changes, scale=None):
         """Preview one change in DWSIM at the current throughput: limit checks before and after. Not a revision."""
         if limit_changes({"changes": changes}):

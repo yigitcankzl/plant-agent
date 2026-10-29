@@ -138,10 +138,12 @@
     "max_kW": 450
    },
    "COND-101A": {
-    "max_kW": 2000
+    "max_kW": 2000,
+    "min_T_out_C": 28.0
    },
    "COND-101B": {
-    "max_kW": 2000
+    "max_kW": 2000,
+    "min_T_out_C": 28.0
    },
    "LIQ-HP": {
     "max_T_C": 31,
@@ -476,7 +478,8 @@
   "3x compressors modelled as C-101A/B/C in parallel via SPL-SUC/MIX-DIS with equal split; 2x condensers as COND-101A/B in parallel via SPL-DIS/MIX-LIQ; SPL/MIX are flow helpers, not P&ID equipment.",
   "XV-101 expansion valve modelled as P_out 3.16 bar(a) isenthalpic flash (no tag in data sheet - required to close loop suction to -7.88 C).",
   "Compressor eff_pct 75% and motor max_kW 450 each, condenser max_kW 2000 each taken directly from data-sheet rows into limits.",
-  "Floating-head cases (wet-bulb+8K, floor 8.6 bar(a)/~19-20 C) evaluated in separate runs e.g. float_86_again, not in calibrated fixed-head model."
+  "Floating-head cases (wet-bulb+8K, floor 8.6 bar(a)/~19-20 C) evaluated in separate runs e.g. float_86_again, not in calibrated fixed-head model.",
+  "Model correction: condenser outlet at least 28 C at design conditions (design wet bulb 21 C + 8 K approach = 29 C condensing, 1 K subcooled), from the data sheet; floating head is evaluated with annual_energy over the bins"
  ],
  "model": "muse-spark-1.3-contributor",
  "coverage": null,

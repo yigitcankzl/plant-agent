@@ -70,7 +70,7 @@ Results on the two process cases (`runs/ws/*/second_opinion_answer.json`):
 | Case | Agree | Disagree |
 |---|---|---|
 | Chemical unit, +20 % | Cooling water to 27 m3/h and tank level to 22.1 m3; both reach 120 % | The open model missed the third limit, the tank temperature held by the H1008 chilled-water loop |
-| Dairy refrigeration, N+1 and floating head | The new load fits with N+1; the condensers are the closest limit | Annual saving: 1,716 MWh from Muse Spark, 1,330 MWh from Muse Spark Open. A direct bin calculation on the same model gives 1,329 MWh, so the open model was right here. The open model also proposed a fixed 8.6 bar(a) head pressure. DWSIM accepted it, but only because the condenser outlet temperature is not yet tied to wet bulb in the model (a known gap). |
+| Dairy refrigeration, N+1 and floating head | The new load fits with N+1; the condensers are the closest limit | Annual saving: 1,716 MWh from Muse Spark, 1,330 MWh from Muse Spark Open. A direct bin calculation on the same model gives 1,329 MWh, so the open model was right here. The open model also proposed a fixed 8.6 bar(a) head pressure. DWSIM first accepted it, because the condenser outlet was not tied to wet bulb. The condensers now carry a heat-sink limit (`min_T_out_C`: design wet bulb 21 C + 8 K approach, 1 K subcooled = 28 C), so that proposal no longer verifies. Floating head is evaluated with `annual_energy` over the wet-bulb bins. |
 
 Neither model is always right. The value is in the disagreements the engineer is shown.
 
