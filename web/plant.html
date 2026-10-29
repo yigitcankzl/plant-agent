@@ -361,6 +361,7 @@ const api = async (p, body) => { const r = await fetch(`/api/plant/${CASE}/${p}`
 let P = null, ST = null, busy = false, base = null;
 const NAMES = {pump: 'Pump', hx: 'Heat exchanger', tank: 'Tank', valve: 'Valve', heater: 'Heater / heat load', cooler: 'Cooler', compressor: 'Compressor', mixer: 'Mixer', splitter: 'Splitter', recycle: 'Loop closure'};
 const sev = u => u > 1.0 ? 'fail' : u > 0.9 ? 'warn' : 'ok';
+const simulator = () => (P?.built?.engine || P?.engine) === 'watertap' ? 'WaterTAP' : 'DWSIM';
 let ACTIVE_MODE = 'capacity';
 
 function toggleDrawer(open) {
@@ -609,7 +610,7 @@ async function confirmRead() {
 }
 
 function noModel() {
-  $('eqlist').innerHTML = `<div class="empty">No simulation model yet.<br>The agent reads the <b>P&amp;ID</b> and the <b>operating data sheet</b> and builds a calibrated DWSIM model itself.</div>`;
+  $('eqlist').innerHTML = `<div class="empty">No simulation model yet.<br>The agent reads the <b>P&amp;ID</b> and the <b>operating data sheet</b> and builds a calibrated ${simulator()} model itself.</div>`;
   if (P.drawing === 'pdf') reviewRead();
   else $('answers').innerHTML = `<div class="empty"><button class="btn go" onclick="build()">Build the model from the P&amp;ID</button></div>`;
   $('verdict').textContent = 'No model yet';
@@ -638,13 +639,18 @@ function model() {
   const b = P.built;
   fillReview();
   if (!b) { $('modelBox').innerHTML = ''; return; }
+  const isRO = b.engine === 'watertap', count = isRO ? (b.spec.stages || []).length : (b.spec.units || []).length;
+  const cov = b.coverage, conns = cov?.connections || [], mapped = cov?.mappings || [];
+  const coverage = !cov ? '' : isRO
+    ? `<div class="kv" style="margin-top:6px"><span>P&amp;ID coverage</span>${mapped.length} mapped tags · ${(cov.missing_equipment || []).length} unmodelled items</div>`
+    : `<div class="kv" style="margin-top:6px"><span>P&amp;ID coverage</span>${conns.filter(c => c.modelled).length} of ${conns.filter(c => !c.relief_path).length} flow connections ${(cov.missing_connections || []).length || (cov.missing_equipment || []).length ? '<b style="color:var(--fail)">✗</b>' : '<b style="color:var(--ok)">✓</b>'}</div>
+      <div style="color:var(--muted);font-size:11px">${conns.filter(c => c.relief_path).length} relief path(s) excluded: no normal flow</div>`;
   $('builtBy').textContent = `${b.model.replace('muse-', '').replace('-contributor', '')} · ${b.seconds}s`;
-  $('modelBox').innerHTML = `<div class="why" style="color:var(--muted);font-size:11.5px;margin-bottom:6px">DWSIM flowsheet built by the agent from the P&amp;ID, ${b.spec.units.length} units. Calibration:</div>` +
+  $('modelBox').innerHTML = `<div class="why" style="color:var(--muted);font-size:11.5px;margin-bottom:6px">${simulator()} model built by the agent from the P&amp;ID, ${count} ${isRO ? 'RO stages' : 'units'}. Calibration:</div>` +
     `<details><summary>${(b.calibration || []).length} measured values reproduced</summary>` +
-    (b.calibration || []).map(c => `<div class="kv"><span>${esc(c.item)}</span>${esc(String(c.simulated).split(' (')[0])} <span>vs ${esc(String(c.measured).split(' (')[0])}</span></div>`).join('') + `</details>` +
+    (b.calibration || []).map(c => `<div class="kv"><span>${esc(c.item || c.source || 'Calibration point')}</span>${esc(String(c.simulated).split(' (')[0])} <span>vs ${esc(String(c.measured).split(' (')[0])}</span></div>`).join('') + `</details>` +
     (P.drawing === 'pdf' ? `<div class="kv" style="margin-top:6px"><span>Drawing read</span>${P.read_confirmed ? `confirmed · ${P.read_corrections} corrections by the engineer` : 'not confirmed'}</div>` : '') +
-    (b.coverage ? `<div class="kv" style="margin-top:6px"><span>P&amp;ID coverage</span>${b.coverage.connections.filter(c => c.modelled).length} of ${b.coverage.connections.filter(c => !c.relief_path).length} flow connections ${b.coverage.missing_connections.length || b.coverage.missing_equipment.length ? '<b style="color:var(--fail)">✗</b>' : '<b style="color:var(--ok)">✓</b>'}</div>
-      <div style="color:var(--muted);font-size:11px">${b.coverage.connections.filter(c => c.relief_path).length} relief path(s) excluded: no normal flow</div>` : '') +
+    coverage +
     ((P.pid.data_quality || []).length ? `<details style="margin-top:6px"><summary style="color:var(--warn)">⚠ ${P.pid.data_quality.length} P&amp;ID data problems</summary>${P.pid.data_quality.map(a => `<div style="font-size:11.5px;color:var(--muted);padding:2px 0">• ${esc(a)}</div>`).join('')}</details>` : '') +
     `<details style="margin-top:6px"><summary>${(b.assumptions || []).length} assumptions</summary>${(b.assumptions || []).map(a => `<div style="font-size:11.5px;color:var(--muted);padding:2px 0">• ${esc(a)}</div>`).join('')}</details>` +
     `<div style="margin-top:8px"><button class="btn" onclick="build()">Rebuild model</button></div>`;
@@ -698,7 +704,7 @@ function render(st) {
   const top = rows[0], cap = P.capacity;
   const over = rows.filter(c => c.utilisation > 1);
   const blocks = (P.built?.review?.findings || []).filter(f => f.severity === 'block');
-  const capLine = cap?.capacity_multiple ? `Simulated maximum: <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? 'Recorded DWSIM solution of this model (re-solved live when the model changes).' : 'Solved live in DWSIM.'}` : '';
+  const capLine = cap?.capacity_multiple != null ? `Simulated maximum: <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? `Recorded ${simulator()} solution of this model (re-solved live when the model changes).` : `Solved live in ${simulator()}.`}` : '';
   if (blocks.length) {
     const more = blocks.length > 1 ? ` · ${blocks.length - 1} more blocking finding${blocks.length > 2 ? 's' : ''}.` : '';
     $('verdict').innerHTML = `<span style="color:var(--fail)">Model needs review</span>`;
@@ -1189,7 +1195,7 @@ $('scale').oninput = () => {
 
 function chip(e) {
   const kind = e.kind === 'tool' ? (/run_process|process_capacity/.test(e.name) ? 'sim' : 'doc') : e.kind === 'say' ? '' : 'done';
-  const label = { read_pid: 'Reading the P&ID', read_data_sheet: 'Reading the operating data sheet', run_process: 'DWSIM solve', process_capacity: 'DWSIM capacity search', get_spec: 'Loading the model' }[e.name] || e.name || (e.text || '').slice(0, 80);
+  const label = { read_pid: 'Reading the P&ID', read_data_sheet: 'Reading the operating data sheet', run_process: 'DWSIM solve', process_capacity: 'DWSIM capacity search', run_ro: 'WaterTAP solve', ro_capacity: 'WaterTAP capacity search', get_spec: 'Loading the model' }[e.name] || e.name || (e.text || '').slice(0, 80);
   const arg = e.args ? (e.args.match(/"label": ?"([^"]+)"/) || [])[1] : '';
   return `<span class="chip ${kind}">${esc(label)}${arg ? ' · ' + esc(arg) : ''}</span>`;
 }
@@ -1294,7 +1300,7 @@ function secondOpinion(a, idx) {  // the open-weights model's independent answer
     <div style="font-size:12px">${esc(so.answer.headline || '')}</div>
     ${c.disagree.length ? `<div style="margin-top:6px;font-size:11.5px;color:var(--warn)">${c.disagree.map(x => '≠ ' + esc(x)).join('<br>')}</div>` : ''}
     ${c.agree.length ? `<details><summary>${c.agree.length} points agree</summary><div style="font-size:11.5px">${c.agree.map(x => '= ' + esc(x)).join('<br>')}</div></details>` : ''}
-    ${(so.answer.proposals || []).length ? `<details><summary>Open model's ${so.answer.proposals.length} proposals (each re-solved in DWSIM)</summary>${so.answer.proposals.map((p, j) => prop(p, idx, j, 'so')).join('')}</details>` : ''}
+    ${(so.answer.proposals || []).length ? `<details><summary>Open model's ${so.answer.proposals.length} proposals (each re-solved in ${simulator()})</summary>${so.answer.proposals.map((p, j) => prop(p, idx, j, 'so')).join('')}</details>` : ''}
     <div class="meta">${so.answer.seconds}s · $${(so.answer.cost_usd || 0).toFixed(4)} (conservative estimate)</div></div>`;
 }
 
@@ -1303,8 +1309,10 @@ function ans(a, idx) {
     ${(c.inputs || []).length ? `<details><summary>${c.inputs.length} inputs (${[...new Set(c.inputs.map(basisOf))].join(', ')}) · runs: ${esc((c.runs || []).join(', ') || 'none')}</summary><div class="evidence-list">${c.inputs.map(x => `<div class="evidence-row"><div class="evidence-row-head"><b>${esc(x.name)}</b>${basisChip(basisOf(x))}</div><div class="evidence-value">${esc(x.value)}</div><div class="evidence-source">${esc(x.source)}</div></div>`).join('')}</div></details>` : ''}</div>`).join('');
   const fc = (a.field_checks || []).length ? `<section class="field-checks"><h4>Verify in the field first</h4><p>These readings can change the recommendation.</p>${a.field_checks.map(f => `<div class="field-check"><div class="field-check-title">${esc(f.item)}</div><div class="field-check-where">${esc(f.where)}</div><div class="field-check-impact"><b>If the reading differs</b>${esc(f.changes)}</div></div>`).join('')}</section>` : '';
   const props = (a.proposals || []).map((p, j) => prop(p, idx, j)).join('');
-  const cb = a.combined, comb = cb && !cb.error ? `<div class="card ${cb.reaches_target ? 'ok' : 'fail'}"><div class="tt">All ${a.proposals.length} changes together · re-solved in DWSIM</div>
-    <div class="res">${cb.reaches_target ? '✓ Reaches ' + Math.round(P.target_scale * 100) + '%' : '✗ Short of target'} · new maximum ${Math.round((cb.capacity_multiple || 0) * 100)}% (${esc(cb.limited_by?.id || '')})</div></div>` : '';
+  const cb = a.combined, cap = cb?.capacity_multiple == null ? 'not calculated' : Math.round(cb.capacity_multiple * 100) + '%';
+  const limit = cb?.limited_by?.id ? ` · first limit ${esc(cb.limited_by.id)}` : '';
+  const comb = cb && !cb.error ? `<div class="card ${cb.reaches_target ? 'ok' : 'fail'}"><div class="tt">All ${a.proposals.length} changes together · re-solved in ${simulator()}</div>
+    <div class="res">${cb.reaches_target ? '✓ Reaches ' + Math.round(P.target_scale * 100) + '%' : cb.capacity_multiple == null ? '✗ Not verified' : '✗ Short of target'} · new maximum ${cap}${limit}</div></div>` : '';
   const lim = (a.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity)).slice(0, 3);
   const limits = lim.length ? `<section class="answer-section"><h4>What limits the target</h4><div class="limit-list">${lim.map(h => `<div class="limit-item"><b style="color:var(--${h.severity === 'fail' ? 'fail' : 'warn'})">${esc(h.tag)}</b><span>${esc(h.text)}</span></div>`).join('')}</div></section>` : '';
   const fixes = (a.proposals || []).length ? `<section class="answer-section"><h4>Recommended changes</h4>${props}</section>${compare(a)}${comb}` : '';
@@ -1319,7 +1327,7 @@ function prop(p, i, j, src) {
   const cur = path => { const [k, id, f] = path.split('.'); const o = k === 'units' ? units[id] : (spec[k] || {})[id]; return o ? o[f] : undefined; };
   const diff = (p.changes || []).map(c => `<div>${describe(c.path ? {...c, from: 'from' in c ? c.from : cur(c.path)} : c)}</div>`).join('');
   const added = (p.new_equipment || []).map(e => `<span class="vb" style="color:var(--warn)">${esc(e.id)}: new equipment, rating to confirm</span>`).join('');
-  const v = p.verified ? `<span class="vb y" title="Re-solved in DWSIM with this change at ${Math.round(P.target_scale * 100)}% throughput; every limit of ${esc(p.fixes || '')} within 100 %, nothing else pushed over.">✓ Simulated: ${esc(p.fixes || '')} within limits at ${Math.round(P.target_scale * 100)}%</span>`
+  const v = p.verified ? `<span class="vb y" title="Re-solved in ${simulator()} with this change at ${Math.round(P.target_scale * 100)}% throughput; every limit of ${esc(p.fixes || '')} within 100 %, nothing else pushed over.">✓ Simulated: ${esc(p.fixes || '')} within limits at ${Math.round(P.target_scale * 100)}%</span>`
     : `<span class="vb n">✗ ${p.unverified_reason ? 'Not verifiable: ' + esc(p.unverified_reason) : p.error ? 'did not solve' : esc((p.still_over?.[0] || p.breaks?.[0] || {}).id || '') + ' still over its limit'}</span>`;
   return `<div class="prop ${p.accepted ? 'done' : ''}"><div class="ph"><b>${esc(p.title)}</b><span class="vb" style="color:var(--muted)">${esc(p.cost_class || '')}</span></div>
     <div class="diff">${diff}</div>${added ? `<div class="diff">${added}</div>` : ''}${p.why ? `<div class="diff" style="color:var(--muted);font-family:var(--sans)">${esc(p.why)}</div>` : ''}

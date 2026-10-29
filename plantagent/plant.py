@@ -1787,7 +1787,10 @@ class PlantWorkspace(Study):
             if fixing and step == limit - 3:
                 messages.append({"role": "user", "content": "Fix round is nearly done. Call submit_model now. If the spec cannot express "
                                  "the fix, call report_gap instead of approximating or changing a documented limit."})
-            msg = llm.complete(self.model, compact(messages), tools=tools)
+            available = tools
+            if _is_watertap(self.cfg) and step >= limit - 3:
+                available = [t for t in tools if t["function"]["name"] in (submit_name, "report_gap")]
+            msg = llm.complete(self.model, compact(messages), tools=available)
             self.log.write(json.dumps({"phase": phase, "step": step, "assistant": msg}) + "\n")
             if not msg["tool_calls"] and msg.get("content") and "invoke name=" in msg["content"]:
                 msg = {**msg, "tool_calls": text_tool_calls(msg["content"]), "content": ""}

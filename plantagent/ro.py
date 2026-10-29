@@ -800,10 +800,18 @@ def _capacity(spec):
     if base is None:
         return {"error": "no limits to check; set a max pressure, flux, pump power, permeate TDS, recovery or minimum concentrate flow",
                 "errors": errs}
-    lo, hi = (0.1, 1.0) if base["utilisation"] > 1 else (1.0, 1.0)
-
     def over(top, errors):
         return top is None or bool(errors) or top["utilisation"] > 1
+
+    if base["utilisation"] > 1:
+        low, low_checks, low_errors = worst(0.1)
+        if over(low, low_errors):
+            return {"capacity_multiple": None, "limited_by": base, "checks_at_capacity": low_checks,
+                    "checks_at_base": base_checks, "errors": low_errors,
+                    "note": "base case is already over a limit and no feasible capacity was found down to 10 % feed"}
+        lo, hi = 0.1, 1.0
+    else:
+        lo, hi = 1.0, 1.0
 
     while base["utilisation"] <= 1 and hi < 5:
         hi *= 1.25

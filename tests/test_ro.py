@@ -1,4 +1,5 @@
 """WaterTAP reverse osmosis: solver checks, build-path routing, coverage and review."""
+import io
 import json
 import tempfile
 import unittest
@@ -133,6 +134,20 @@ class RoTests(unittest.TestCase):
         self.assertAlmostEqual(n["normalized_salt_passage"], 0.7235667615, places=6)
         self.assertAlmostEqual(n["normalized_differential_pressure"], 1.5494453080, places=6)
 
+    def test_capacity_does_not_report_ten_percent_when_low_solve_fails(self):
+        base = {"id": "RO-1", "check": "flux vs max", "utilisation": 1.04}
+
+        def solve(_spec, scale):
+            if scale == 1.0:
+                return {"checks": [base], "errors": []}
+            return {"checks": [], "errors": ["infeasible"]}
+
+        with mock.patch("plantagent.ro._solve", solve):
+            cap = ro._capacity({})
+        self.assertIsNone(cap["capacity_multiple"])
+        self.assertEqual(cap["limited_by"], base)
+        self.assertIn("no feasible capacity", cap["note"])
+
     def test_dwsim_tools_and_build_prompt_unchanged(self):
         ws = _ws()
         names = [t["function"]["name"] for t in ws.tools()]
@@ -183,6 +198,7 @@ class RoTests(unittest.TestCase):
 
         def fake_loop(_self, phase, system, user, tools, submit_name, max_steps):
             self.assertEqual(phase, "build")
+            self.assertEqual(max_steps, 30)
             self.assertIn("WaterTAP", system)
             self.assertIn("run_ro", user)
             tool_names = [t["function"]["name"] for t in tools]
@@ -212,6 +228,27 @@ class RoTests(unittest.TestCase):
             self.assertEqual(saved["engine"], "watertap")
             self.assertEqual(saved["spec"]["stages"][0]["id"], "RO-1")
             self.assertEqual(saved["result"]["boron"], "not modelled")
+
+    def test_watertap_final_build_steps_force_submit_or_gap(self):
+        ws = _ws("watertap")
+        ws.steps, ws.listener, ws.log = 0, None, io.StringIO()
+        ws._review_run = lambda _label: {"findings": []}
+        tools = [
+            {"type": "function", "function": {"name": "run_ro"}},
+            {"type": "function", "function": {"name": "report_gap"}},
+            {"type": "function", "function": {"name": "submit_model"}},
+        ]
+        seen = []
+
+        def complete(_model, _messages, **params):
+            seen.append([t["function"]["name"] for t in params["tools"]])
+            return {"content": "", "tool_calls": [{"id": "1", "name": "submit_model",
+                                                       "arguments": '{"label":"design"}'}]}
+
+        with mock.patch("plantagent.plant.llm.complete", complete):
+            self.assertEqual(ws._build_loop("build", "system", "user", tools, "submit_model", 3),
+                             {"label": "design"})
+        self.assertEqual(seen, [["report_gap", "submit_model"]])
 
     def test_watertap_never_calls_process_or_dwsim_review(self):
         ws = _ws("watertap")
