@@ -121,6 +121,11 @@
   .viewtog { position: absolute; top: 8px; right: 12px; z-index: 6; display: flex; gap: 0; }
   .viewtog button { border-radius: 0; } .viewtog button:first-child { border-radius: 5px 0 0 5px; } .viewtog button:last-child { border-radius: 0 5px 5px 0; }
   .viewtog .on { background: #1d4f86; border-color: #2b6cb3; }
+  .draft-note { position: absolute; transform: translate(6px, 0) scale(var(--inverse-zoom, 1)); transform-origin: left top; max-width: 230px; font: 600 11px/1.35 var(--sans); color: #083044; background: rgba(232,248,252,.96); border: 1px solid #0b7ea8; border-radius: 4px; padding: 4px 6px; pointer-events: none; }
+  .calc-sheet { margin: 8px 10px; }
+  .calc-sheet table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .calc-sheet td, .calc-sheet th { border-top: 1px solid var(--line); padding: 3px 4px; text-align: left; vertical-align: top; }
+  .calc-sheet td.v, .calc-sheet .v { font-family: var(--mono); }
   .ecard td { padding: 3px 6px; border-top: 1px solid var(--line); font-size: 12px; } .ecard td.v { font-family: var(--mono); }
   .tour-on { outline: 3px solid #4da3ff !important; outline-offset: 2px; border-radius: 6px; }
   #tour { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 60; background: #0f2e45; color: #fff; border: 1px solid #4da3ff;
@@ -529,7 +534,9 @@ async function load() {
   } else if (P.drawing === 'svg') {
     const r = await fetch(`/api/plant/${CASE}/svg`);
     if (!r.ok) throw new Error(`the P&ID drawing did not load (HTTP ${r.status})`);
-    $('sheet').innerHTML = await r.text();
+    AS_BUILT = await r.text();
+    $('sheet').innerHTML = AS_BUILT;
+    if (VIEW === 'proposed') appendProposedOverlay();
   } else {  // a PDF schematic read by Muse vision: the sheet as an image, one positioned box per tag
     $('sheet').innerHTML = `<img src="/api/plant/${CASE}/sheet.png" alt="schematic">` + Object.entries(P.pid.positions || {}).map(([t, p]) => {
       const [x0, y0, x1, y1] = p.box, pad = .012;
@@ -551,7 +558,7 @@ async function load() {
     feed ? {name: feed[0], m3_h: feed[1].m3_h ?? feed[1].kg_h, unit: feed[1].m3_h != null ? 'm³/h' : 'kg/h'} : null;
   $('tgtLbl').textContent = `target ${Math.round(P.target_scale * 100)}%`;
   $('scale').value = Math.round(P.target_scale * 100);
-  $('viewTog').style.display = P.has_revisions ? 'flex' : 'none';
+  syncViewToggle();
   model(); answers(); revs();
   if (P.built) render(P.at_target); else noModel();
   $('q').disabled = false;
@@ -687,6 +694,7 @@ function render(st) {
     b.innerHTML = `${esc(c.id)} ${Math.round(c.utilisation * 100)}%`;
     sheet.appendChild(b);
   }
+  placeDraftNotes();
   const top = rows[0], cap = P.capacity;
   const over = rows.filter(c => c.utilisation > 1);
   const blocks = (P.built?.review?.findings || []).filter(f => f.severity === 'block');
@@ -729,6 +737,334 @@ function describe(c) {
   return `<span title="${esc(c.path)}">${esc(nm(id))} ${esc(label)}: <b>${esc(from)}${esc(fmt(c.value))}</b> ${esc(unit)}</span>`;
 }
 
+const ROUTING = new Set(['mixer', 'splitter', 'recycle']);
+const calcNum = v => (v == null || v === '') ? 'to confirm' : String(v);
+function qty(value, unit) {
+  if (value == null) return [null, unit];
+  if (unit === 'kg/h' && Math.abs(value) >= 1000) return [value / 1000, 't/h'];
+  if (unit === 'kW' && Math.abs(value) >= 1000) return [value / 1000, 'MW'];
+  return [value, unit];
+}
+function equipmentDuty(row) {
+  const r = row || {}, op = r.operating_point || r.operating || {}, limits = r.limits || {}, rating = r.rating || {};
+  const [flow, flowU] = qty(op.kg_h != null ? op.kg_h : op.flow, op.kg_h != null ? 'kg/h' : (op.flow_unit || 'kg/h'));
+  const shaftRaw = op.kW != null ? op.kW : (op.shaft != null ? op.shaft : op.duty);
+  const [shaft, shaftU] = qty(shaftRaw, op.kW != null ? 'kW' : (op.shaft_unit || op.duty_unit || 'kW'));
+  const [rFlow, rFlowU] = qty(limits.max_kg_h != null ? limits.max_kg_h : rating.flow, limits.max_kg_h != null ? 'kg/h' : (rating.flow_unit || 'kg/h'));
+  const rShaftRaw = limits.max_kW != null ? limits.max_kW : (rating.shaft != null ? rating.shaft : rating.duty);
+  const [rShaft, rShaftU] = qty(rShaftRaw, limits.max_kW != null ? 'kW' : (rating.shaft_unit || rating.duty_unit || 'kW'));
+  return {flow, flow_unit: flowU, shaft, shaft_unit: shaftU, rating_flow: rFlow, rating_flow_unit: rFlowU,
+    rating_shaft: rShaft, rating_shaft_unit: rShaftU, rating_source: r.rating_source || rating.source || 'to confirm',
+    status: r.status || 'new equipment, rating to confirm', efficiency_pct: op.eff_pct != null ? op.eff_pct : op.efficiency_pct,
+    pressure_ratio: op.pressure_ratio, head: op.head, head_unit: op.head_unit};
+}
+function presentCalc(c) {
+  if (!c) return null;
+  if (c.capacity_multiple_after != null || c.checks || (c.new_equipment || []).some(e => e.operating_point)) {
+    const limits = (c.checks || []).map(row => {
+      let value = row.value, limit = row.limit, unit = row.unit || '';
+      if (unit === 'kg/h') { value = value == null ? null : value / 1000; limit = limit == null ? null : limit / 1000; unit = 't/h'; }
+      else if (unit === 'kW' && value != null && Math.abs(value) >= 1000) { value /= 1000; limit = limit == null ? null : limit / 1000; unit = 'MW'; }
+      return {id: row.id, check: row.check, before_pct: row.before == null ? null : row.before * 100,
+        after_pct: row.after == null ? null : row.after * 100, value, limit, unit};
+    });
+    const streams = (c.streams || []).map(row => {
+      const [flow, flowU] = qty(row.kg_h != null ? row.kg_h : row.flow, row.kg_h != null ? 'kg/h' : (row.flow_unit || 'kg/h'));
+      let phase = row.phase; if (phase == null && row.vapour_frac != null) phase = row.vapour_frac >= 0.5 ? 'vapour' : 'liquid';
+      return {id: row.id, T_C: row.T_C, P_bar: row.P_bar, flow, flow_unit: flowU, phase: phase || 'to confirm'};
+    });
+    let total = 0, have = false;
+    for (const [uid, u] of Object.entries(c.units || {})) if (u && u.kg_h != null && String(uid).startsWith('K-')) { total += u.kg_h; have = true; }
+    const fb = c.limited_by_before || {}, fa = c.limited_by_after || {};
+    return {
+      capacity_before_pct: c.capacity_multiple_before == null ? null : c.capacity_multiple_before * 100,
+      capacity_after_pct: c.capacity_multiple_after == null ? null : c.capacity_multiple_after * 100,
+      first_limit_before: {id: fb.id, check: fb.check, pct: fb.utilisation == null ? null : fb.utilisation * 100},
+      first_limit_after: {id: fa.id, check: fa.check, pct: fa.utilisation == null ? null : fa.utilisation * 100},
+      throughput: have ? {label: 'total compression', scale_pct: c.target_scale == null ? null : c.target_scale * 100, value: total / 1000, unit: 't/h'} : null,
+      limits, streams, new_equipment: (c.new_equipment || []).map(e => ({...equipmentDuty(e), id: e.id, type: e.type, service: e.service || e.type,
+        inlet: e.inlet || {}, outlet: e.outlet || {}, assumptions: e.assumptions || []})),
+      provenance: {simulator: c.simulator || 'to confirm', kind: 'simulator screening', note: 'Screening solve of the stored model. Not a vendor or mechanical approval.'},
+      assumptions: c.assumptions || ['to confirm'], warnings: c.warnings || c.errors || ['to confirm']};
+  }
+  return c;
+}
+let AS_BUILT = null;
+function streamPorts(u) {
+  const ins = [], outs = [];
+  const add = (bucket, v) => { if (typeof v === 'string' && v) bucket.push(v); else if (Array.isArray(v) && v.every(x => typeof x === 'string')) bucket.push(...v.filter(Boolean)); };
+  add(ins, u.in); add(outs, u.out);
+  for (const k of ['vapor', 'liquid', 'product', 'reject', 'distillate', 'bottoms']) add(outs, u[k]);
+  for (const k of ['cold', 'hot']) if (Array.isArray(u[k]) && u[k].length === 2 && u[k].every(x => typeof x === 'string')) { ins.push(u[k][0]); outs.push(u[k][1]); }
+  return [ins, outs];
+}
+function indexUnits(units) {
+  const by = {}, prod = {}, cons = {};
+  for (const u of units) {
+    by[u.id] = u;
+    const [ins, outs] = streamPorts(u);
+    for (const s of ins) (cons[s] = cons[s] || []).push(u.id);
+    for (const s of outs) prod[s] = u.id;
+  }
+  return {by, prod, cons};
+}
+function proposedTopology(spec, changes) {
+  const added = (changes || []).filter(c => c.add_unit).map(c => c.add_unit);
+  const addedIds = new Set(added.map(u => u.id));
+  const base = spec.units || [];
+  const baseIds = new Set(base.map(u => u.id));
+  let units;
+  if ([...addedIds].some(id => baseIds.has(id))) units = base.map(u => ({...u}));
+  else {
+    units = base.map(u => JSON.parse(JSON.stringify(u)));
+    const byId = Object.fromEntries(units.map(u => [u.id, u]));
+    for (const c of changes || []) {
+      if (c.add_unit) { const u = JSON.parse(JSON.stringify(c.add_unit)); units.push(u); byId[u.id] = u; }
+      else if (c.reroute && byId[c.reroute.unit]) byId[c.reroute.unit][c.reroute.field] = JSON.parse(JSON.stringify(c.reroute.value));
+    }
+  }
+  return {units, existing: new Set([...baseIds].filter(id => !addedIds.has(id))), added: addedIds};
+}
+function verifiedDesigns() {
+  const out = [];
+  for (const a of P?.answers || []) for (const p of a.proposals || []) {
+    if (p.verified && (p.changes || []).some(c => c.add_unit && !ROUTING.has(c.add_unit.type))) out.push(p);
+  }
+  if (out.length) return out;
+  for (const r of P?.revisions || []) {
+    if (r.kind === 'change' && (r.changes || []).some(c => c.add_unit && !ROUTING.has(c.add_unit.type)))
+      out.push({verified: true, title: r.title, changes: r.changes, calculation: r.calculation || null});
+  }
+  return out;
+}
+function syncViewToggle() {
+  const verified = (P?.answers || []).some(a => (a.proposals || []).some(p => p.verified));
+  $('viewTog').style.display = (P?.has_revisions || verified) ? 'flex' : 'none';
+}
+function tagCenter(g) {
+  const shapes = [...g.querySelectorAll('path,circle,rect,ellipse,polygon,polyline,line')];
+  if (!shapes.length) return null;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const el of shapes) {
+    const b = el.getBBox();
+    x0 = Math.min(x0, b.x); y0 = Math.min(y0, b.y); x1 = Math.max(x1, b.x + b.width); y1 = Math.max(y1, b.y + b.height);
+  }
+  return [(x0 + x1) / 2, (y0 + y1) / 2];
+}
+function walkDrawn(seed, forward, idx, centers, seen) {
+  if (!seed || seen.has(seed)) return null;
+  const unit = idx.by[seed];
+  if (centers[seed] && (!unit || !ROUTING.has(unit.type))) return seed;
+  seen.add(seed);
+  if (!unit) return null;
+  const [ins, outs] = streamPorts(unit);
+  const nxt = forward ? outs.flatMap(s => idx.cons[s] || []) : ins.map(s => idx.prod[s]).filter(Boolean);
+  for (const id of nxt) { const hit = walkDrawn(id, forward, idx, centers, seen); if (hit) return hit; }
+  return null;
+}
+function neighborDrawn(uid, forward, idx, centers) {
+  const unit = idx.by[uid]; if (!unit) return null;
+  const [ins, outs] = streamPorts(unit);
+  const seeds = forward ? outs.flatMap(s => idx.cons[s] || []) : ins.map(s => idx.prod[s]).filter(Boolean);
+  for (const seed of seeds) { const hit = walkDrawn(seed, forward, idx, centers, new Set([uid])); if (hit) return hit; }
+  return null;
+}
+function parallelInfo(uid, idx, existing, added) {
+  const unit = idx.by[uid]; if (!unit) return null;
+  const [ins, outs] = streamPorts(unit);
+  if (ins.length !== 1 || outs.length !== 1) return null;
+  const splitter = idx.prod[ins[0]], mixer = (idx.cons[outs[0]] || [])[0];
+  if (!added.has(splitter) || !added.has(mixer)) return null;
+  if (idx.by[splitter]?.type !== 'splitter' || idx.by[mixer]?.type !== 'mixer') return null;
+  const partners = [];
+  for (const s of streamPorts(idx.by[splitter])[1]) {
+    if (s === ins[0]) continue;
+    for (const cid of idx.cons[s] || []) if (existing.has(cid) && !partners.includes(cid)) partners.push(cid);
+  }
+  if (partners.length !== 1) return null;
+  const partner = partners[0];
+  if (!streamPorts(idx.by[partner])[1].some(s => (idx.cons[s] || []).includes(mixer))) return null;
+  const partnerOut = streamPorts(idx.by[partner])[1].find(s => (idx.cons[s] || []).includes(mixer));
+  return {splitter, mixer, partner, in_stream: ins[0], out_stream: outs[0], mixer_out: streamPorts(idx.by[mixer])[1][0],
+    partner_out: partnerOut, split_in: streamPorts(idx.by[splitter])[0][0]};
+}
+function flowAxis(a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  return Math.abs(dx) >= Math.abs(dy) ? [dx >= 0 ? 1 : -1, 0] : [0, dy >= 0 ? 1 : -1];
+}
+function clearOf(pt, centers, ignore, minimum) {
+  return Object.entries(centers).every(([tag, c]) => ignore.has(tag) || Math.hypot(pt[0] - c[0], pt[1] - c[1]) >= minimum);
+}
+function placeParallel(info, centers) {
+  const partner = centers[info.partner]; if (!partner) return null;
+  const target = centers[info.downstream] || centers[info.upstream];
+  const axis = target ? flowAxis(partner, target) : [1, 0];
+  const perps = [[-axis[1], axis[0]], [axis[1], -axis[0]]].sort((p, q) => (partner[1] + q[1] * 36) - (partner[1] + p[1] * 36));
+  let spot = null;
+  for (const p of perps) {
+    const cand = [partner[0] + p[0] * 36, partner[1] + p[1] * 36];
+    if (clearOf(cand, centers, new Set([info.partner]), 14)) { spot = cand; break; }
+  }
+  if (!spot) return null;
+  const splitter = [partner[0] - axis[0] * 32, partner[1] - axis[1] * 32];
+  let reach = 32;
+  if (centers[info.downstream]) {
+    const room = Math.abs((centers[info.downstream][0] - partner[0]) * axis[0] + (centers[info.downstream][1] - partner[1]) * axis[1]);
+    reach = Math.min(32, Math.max(18, room - 18));
+  }
+  const mixer = [partner[0] + axis[0] * reach, partner[1] + axis[1] * reach];
+  if (!clearOf(splitter, centers, new Set([info.partner]), 14) || !clearOf(mixer, centers, new Set([info.partner, info.downstream]), 14)) return null;
+  return {unit_at: spot, splitter_at: splitter, mixer_at: mixer};
+}
+function ortho(a, b, avoid) {
+  if (Math.abs(a[0] - b[0]) < 1 || Math.abs(a[1] - b[1]) < 1) return [a, b];
+  const options = [[a, [b[0], a[1]], b], [a, [a[0], b[1]], b]];
+  const penalty = pts => Math.min(...avoid.map(c => Math.hypot(pts[1][0] - c[0], pts[1][1] - c[1])));
+  return options.sort((p, q) => penalty(q) - penalty(p))[0];
+}
+function isaSymbol(kind) {
+  if (kind === 'compressor') return '<path d="M-8,-6 L8,-4 V4 L-8,6 Z"/><circle r="1.8" fill="none"/><path d="M0,-3.2 L4,-4.6 M0,3.2 L4,1.8" fill="none"/>';
+  if (kind === 'pump') return '<circle r="6" fill="#f4fbff"/><path d="M-3,-3.5 L4,0 L-3,3.5 Z" fill="#d7f1f8"/>';
+  if (kind === 'hx') return '<rect x="-10" y="-6" width="20" height="12" rx="5" fill="#f4fbff"/><path d="M-9,-2 H9 M-9,2 H9" fill="none"/>';
+  if (kind === 'splitter') return '<circle r="4" fill="#f4fbff"/><path d="M-7,0 H-4 M4,0 H7 M0,-4 V-7" fill="none"/>';
+  if (kind === 'mixer') return '<rect x="-4" y="-4" width="8" height="8" fill="#f4fbff"/><path d="M-7,0 H-4 M4,0 H7 M0,4 V7" fill="none"/>';
+  return '<rect x="-8" y="-6" width="16" height="12" fill="#f4fbff"/>';
+}
+function dutyLines(row) {
+  const d = equipmentDuty(row), lines = [];
+  lines.push(d.flow != null ? `operating flow ${calcNum(d.flow)} ${d.flow_unit || 'to confirm'}` : 'operating flow to confirm');
+  lines.push(d.shaft != null ? `calculated shaft ${calcNum(d.shaft)} ${d.shaft_unit || 'to confirm'}` : 'calculated duty to confirm');
+  const bits = [];
+  if (d.rating_flow != null) bits.push(`${calcNum(d.rating_flow)} ${d.rating_flow_unit || ''}`.trim());
+  if (d.rating_shaft != null) bits.push(`${calcNum(d.rating_shaft)} ${d.rating_shaft_unit || ''}`.trim());
+  lines.push('preliminary rating ' + (bits.length ? bits.join(' / ') : 'to confirm'));
+  lines.push('vendor confirmation required', 'vendor curve to confirm');
+  return lines;
+}
+function cloudPath(box) {
+  const cx = box.x + box.width / 2, cy = box.y + box.height / 2, radius = 9, bumps = 8;
+  let d = '';
+  for (let i = 0; i < bumps; i++) {
+    const a0 = 2 * Math.PI * i / bumps, a1 = 2 * Math.PI * (i + 1) / bumps, am = (a0 + a1) / 2;
+    const x0 = cx + radius * Math.cos(a0), y0 = cy + radius * Math.sin(a0);
+    const x1 = cx + radius * Math.cos(a1), y1 = cy + radius * Math.sin(a1);
+    const mx = cx + (radius + 3.2) * Math.cos(am), my = cy + (radius + 3.2) * Math.sin(am);
+    d += `${i ? 'L' : 'M'}${x0.toFixed(1)},${y0.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}`;
+  }
+  return d + ' Z';
+}
+function appendProposedOverlay() {
+  const design = verifiedDesigns()[0];
+  const svg = $('sheet').querySelector('svg');
+  if (!design || !P.built?.spec || !svg || svg.querySelector('#proposed-draft')) return;
+  const centers = {};
+  for (const g of svg.querySelectorAll('g[data-tag]')) { const c = tagCenter(g); if (c && g.dataset.tag) centers[g.dataset.tag] = c; }
+  let topo;
+  try { topo = proposedTopology(P.built.spec, design.changes); }
+  catch (e) { return; }
+  const idx = indexUnits(topo.units);
+  const occupied = {...centers}, placed = [], unplaced = [];
+  const physical = [...topo.added].filter(id => idx.by[id] && !ROUTING.has(idx.by[id].type));
+  if (!physical.length) return;
+  for (const uid of physical.sort()) {
+    if (centers[uid]) { unplaced.push(uid); continue; }
+    const info = parallelInfo(uid, idx, topo.existing, topo.added);
+    if (!info || !centers[info.partner]) { unplaced.push(uid); continue; }
+    info.upstream = neighborDrawn(info.splitter, false, idx, centers);
+    info.downstream = neighborDrawn(info.mixer, true, idx, centers);
+    const spot = placeParallel(info, occupied);
+    if (!spot) { unplaced.push(uid); continue; }
+    occupied[uid] = spot.unit_at; occupied[info.splitter] = spot.splitter_at; occupied[info.mixer] = spot.mixer_at;
+    placed.push({...info, id: uid, type: idx.by[uid].type, ...spot});
+  }
+  const duties = Object.fromEntries(((design.calculation || {}).new_equipment || []).map(e => [e.id, e]));
+  const rerouted = new Set((design.changes || []).filter(c => c.reroute).map(c => c.reroute.unit));
+  let html = `<g id="proposed-draft" data-draft="true" font-family="sans-serif"><defs><marker id="arr-draft" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L5,2.5 0,5 Z" fill="#0b7ea8"/></marker></defs><text x="188" y="-288" font-size="7" font-weight="700" fill="#0b7ea8" pointer-events="none">DRAFT – NOT APPROVED</text>`;
+  html += `<g data-legend="proposed" pointer-events="none"><line x1="8" y1="-269" x2="24" y2="-269" stroke="#294248" stroke-width="0.9"/><text x="27" y="-268" font-size="2.6" fill="#17383d">Existing</text><line x1="8" y1="-263.8" x2="24" y2="-263.8" stroke="#0b7ea8" stroke-width="0.9" stroke-dasharray="3,1.4"/><text x="27" y="-262.8" font-size="2.6" fill="#17383d">Proposed new</text><path d="M8,-258.6 Q12,-260.6 16,-258.6 Q20,-256.6 24,-258.6" fill="none" stroke="#b45309" stroke-width="0.7"/><text x="27" y="-257.6" font-size="2.6" fill="#17383d">Rerouted</text><text x="8" y="-252.4" font-size="2.6" fill="#0b7ea8">Rating to confirm</text></g>`;
+  for (const g of svg.querySelectorAll('g[data-line]')) {
+    if (!rerouted.has(g.dataset.from) && !rerouted.has(g.dataset.to)) continue;
+    const shape = g.querySelector('polyline,line,path'); if (!shape) continue;
+    html += `<path d="${cloudPath(shape.getBBox())}" fill="none" stroke="#b45309" stroke-width="0.6" pointer-events="none"/>`;
+  }
+  const avoid = Object.values(occupied);
+  const symbols = [];
+  for (const item of placed) {
+    const up = centers[item.upstream], down = centers[item.downstream];
+    const partnerStream = streamPorts(idx.by[item.splitter])[1].find(s => (idx.cons[s] || []).includes(item.partner));
+    const routes = [];
+    if (up) routes.push([item.split_in || 'inlet', item.upstream, item.splitter, up, item.splitter_at]);
+    routes.push([partnerStream, item.splitter, item.partner, item.splitter_at, centers[item.partner]]);
+    routes.push([item.in_stream, item.splitter, item.id, item.splitter_at, item.unit_at]);
+    if (item.partner_out) routes.push([item.partner_out, item.partner, item.mixer, centers[item.partner], item.mixer_at]);
+    routes.push([item.out_stream, item.id, item.mixer, item.unit_at, item.mixer_at]);
+    if (down && item.mixer_out) routes.push([item.mixer_out, item.mixer, item.downstream, item.mixer_at, down]);
+    for (const [stream, src, dst, a, b] of routes) {
+      const pts = ortho(a, b, avoid);
+      html += `<g class="proposed-new" data-line="${esc(stream || src + '-' + dst)}" data-from="${esc(src)}" data-to="${esc(dst)}"><polyline points="${pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')}" fill="none" stroke="#0b7ea8" stroke-width="0.9" stroke-dasharray="3,1.4" stroke-linejoin="round" marker-end="url(#arr-draft)"/><text x="${((a[0] + b[0]) / 2 + 1.5).toFixed(1)}" y="${((a[1] + b[1]) / 2 - 1.5).toFixed(1)}" font-size="2.2" fill="#0b7ea8" pointer-events="none">${esc(stream || '')}</text></g>`;
+    }
+    symbols.push([item.id, item.type, item.unit_at], [item.splitter, 'splitter', item.splitter_at], [item.mixer, 'mixer', item.mixer_at]);
+  }
+  for (const [id, kind, at] of symbols) {
+    const [x, y] = at;
+    const note = ROUTING.has(kind) ? '' : dutyLines(duties[id]).map((row, i) => `<text x="${(x - 11).toFixed(1)}" y="${(y + 11 + i * 3.1).toFixed(1)}" text-anchor="end" font-size="2.3" fill="#0b4f66" pointer-events="none">${esc(row)}</text>`).join('');
+    const name = ROUTING.has(kind) ? kind : (duties[id]?.service || kind);
+    html += `<g class="proposed-new" data-tag="${esc(id)}" data-new="true" data-name="${esc(name)}" fill="#f4fbff" stroke="#0b7ea8" stroke-width="0.8"><g transform="translate(${x.toFixed(1)},${y.toFixed(1)})">${isaSymbol(kind)}</g><text x="${x.toFixed(1)}" y="${(y - 9).toFixed(1)}" text-anchor="middle" font-size="3.2" font-weight="700" stroke="none" fill="#0b4f66" pointer-events="none">${esc(id)}</text>${note}</g>`;
+  }
+  if (unplaced.length) html += `<text x="8" y="-248" font-size="3" fill="#b45309" pointer-events="none">unplaced new equipment: ${esc(unplaced.join(', '))}</text>`;
+  html += '</g>';
+  svg.insertAdjacentHTML('beforeend', html);
+}
+function placeDraftNotes() {
+  if (VIEW !== 'proposed') return;
+  const sheet = $('sheet'), box = sheet.getBoundingClientRect();
+  sheet.querySelectorAll('.draft-note').forEach(n => n.remove());
+  for (const g of sheet.querySelectorAll('g[data-new="true"]')) {
+    if (ROUTING.has(g.dataset.name)) continue;
+    const design = verifiedDesigns()[0];
+    const row = ((design?.calculation || {}).new_equipment || []).find(e => e.id === g.dataset.tag);
+    const lines = dutyLines(row);
+    const symbol = g.querySelector('g') || g;
+    const r = symbol.getBoundingClientRect(), n = document.createElement('div');
+    n.className = 'draft-note';
+    n.style.left = ((r.left - box.left) / V.scale) + 'px';
+    n.style.top = ((r.bottom - box.top + 2) / V.scale) + 'px';
+    n.style.transform = 'translate(-100%, 0) scale(var(--inverse-zoom, 1))';
+    n.innerHTML = `<b>${esc(g.dataset.tag)}</b> · new equipment, rating to confirm<br>${lines.map(esc).join('<br>')}`;
+    sheet.appendChild(n);
+  }
+}
+function newEquipmentRecord(tag) {
+  for (const p of verifiedDesigns()) {
+    const row = ((p.calculation || {}).new_equipment || []).find(e => e.id === tag);
+    const change = (p.changes || []).find(c => c.add_unit && c.add_unit.id === tag);
+    if (row || change) return {proposal: p, row, change};
+  }
+  const g = $('sheet').querySelector(`[data-tag="${CSS.escape(tag)}"][data-new="true"]`);
+  return g ? {proposal: verifiedDesigns()[0], row: null, change: null, name: g.dataset.name} : null;
+}
+function calcSheet(p) {
+  const c = presentCalc(p.calculation);
+  if (!p.verified || !c) return '';
+  const pct = v => v == null ? '—' : `${calcNum(v)} %`;
+  const thru = c.throughput || {}, fb = c.first_limit_before || {}, fa = c.first_limit_after || {};
+  const limits = (c.limits || []).map(r => `<tr><td>${esc(r.id)}</td><td>${esc(r.check)}</td><td class="v">${pct(r.before_pct)}</td><td class="v">${pct(r.after_pct)}</td><td class="v">${esc(calcNum(r.value))} ${esc(r.unit || '')}</td><td class="v">${esc(calcNum(r.limit))} ${esc(r.unit || '')}</td></tr>`).join('');
+  const streams = (c.streams || []).map(r => `<tr><td>${esc(r.id)}</td><td class="v">${esc(calcNum(r.T_C))} °C</td><td class="v">${esc(calcNum(r.P_bar))} bar</td><td class="v">${esc(calcNum(r.flow))} ${esc(r.flow_unit || '')}</td><td>${esc(r.phase || 'to confirm')}</td></tr>`).join('');
+  const duty = (c.new_equipment || []).map(e => `<tr><td>${esc(e.id)}</td><td class="v">${esc(calcNum(e.flow))} ${esc(e.flow_unit || '')}</td><td class="v">${esc(calcNum(e.shaft))} ${esc(e.shaft_unit || '')}</td><td class="v">${esc(calcNum(e.rating_flow))} ${esc(e.rating_flow_unit || '')} / ${esc(calcNum(e.rating_shaft))} ${esc(e.rating_shaft_unit || '')}</td><td>${esc(e.rating_source || 'to confirm')}</td></tr>`).join('');
+  const prov = c.provenance || {};
+  return `<details class="calc-sheet"><summary>Before / Proposed calculation</summary>
+    <div class="diff">${thru.label ? `<div><b>${esc(thru.label)}</b> at ${esc(calcNum(thru.scale_pct))}%: <b class="v">${esc(calcNum(thru.value))} ${esc(thru.unit || '')}</b></div>` : ''}
+    <div>Capacity before <b class="v">${pct(c.capacity_before_pct)}</b> · after <b class="v">${pct(c.capacity_after_pct)}</b></div>
+    <div>First limit before <b>${esc(fb.id || 'to confirm')}</b> ${esc(fb.check || '')} <b class="v">${pct(fb.pct)}</b></div>
+    <div>First limit after <b>${esc(fa.id || 'to confirm')}</b> ${esc(fa.check || '')} <b class="v">${pct(fa.pct)}</b></div></div>
+    <table><tr><th>Equipment</th><th>Check</th><th>Before %</th><th>After %</th><th>Calculated value</th><th>Limit</th></tr>${limits}</table>
+    <table><tr><th>Stream</th><th>T</th><th>P</th><th>Flow</th><th>Phase</th></tr>${streams}</table>
+    <table><tr><th>New equipment</th><th>Operating flow</th><th>Calculated shaft</th><th>Provisional rating</th><th>Rating source</th></tr>${duty}</table>
+    <div class="diff">Simulator provenance: ${esc(prov.simulator || 'to confirm')} — ${esc(prov.kind || 'simulator screening')}. ${esc(prov.note || '')}</div>
+    <div class="diff">Assumptions: ${(c.assumptions || ['to confirm']).map(a => esc(a)).join('; ')}</div>
+    <div class="diff">Warnings: ${(c.warnings || ['to confirm']).map(a => esc(a)).join('; ')}</div>
+    <div class="diff"><b>Simulator screening</b> is not <b>provisional equipment selection</b>, and neither is <b>vendor and mechanical design approval</b>. Approval is to confirm.</div></details>`;
+}
+
 function select(tag, fromCanvas = false) {
   document.querySelectorAll('.eq.sel').forEach(e => e.classList.remove('sel'));
   document.querySelectorAll('.eq[data-id]').forEach(e => { if (e.dataset.id === tag) e.classList.add('sel'); });
@@ -738,6 +1074,35 @@ function select(tag, fromCanvas = false) {
 }
 
 function equipmentCard(tag) {  // design data, operating values, every limit with its margin, and a what-if
+  const added = newEquipmentRecord(tag);
+  const onSheet = $('sheet').querySelector(`[data-tag="${CSS.escape(tag)}"]`)?.dataset.new === 'true';
+  if (added && onSheet) {
+    const duty = equipmentDuty(added.row || {});
+    const change = added.change || {}, unit = change.add_unit || {};
+    const streams = Object.fromEntries((((added.proposal || {}).calculation || {}).streams || []).map(s => [s.id, s]));
+    const [ins, outs] = streamPorts(unit);
+    const inletS = streams[ins[0]] || {}, outletS = streams[outs[0]] || {};
+    const phase = s => s.phase || (s.vapour_frac == null ? 'to confirm' : s.vapour_frac >= 0.5 ? 'vapour' : 'liquid');
+    $('modePanel').hidden = true; $('historyDetails').hidden = true; $('answers').hidden = false; $('askDock').hidden = false;
+    $('inspectorTitle').textContent = 'Equipment';
+    $('answers').innerHTML = `<button class="btn inspector-back" onclick="showMode(ACTIVE_MODE)">← Back to ${esc(ACTIVE_MODE === 'capacity' ? 'result' : ACTIVE_MODE)}</button><div class="ans"><h3>${esc(tag)} <span style="color:var(--muted);font-size:12px">${esc(duty.status)}</span></h3>
+      <div class="tt">Calculated operating point</div><table class="ecard">
+        <tr><td>Flow</td><td class="v">${esc(calcNum(duty.flow))} ${esc(duty.flow_unit || '')}</td></tr>
+        <tr><td>Shaft / duty</td><td class="v">${esc(calcNum(duty.shaft))} ${esc(duty.shaft_unit || '')}</td></tr>
+        <tr><td>Pressure ratio</td><td class="v">${esc(calcNum(duty.pressure_ratio))}</td></tr>
+        <tr><td>Head</td><td class="v">${esc(calcNum(duty.head))} ${esc(duty.head_unit || '')}</td></tr>
+        <tr><td>Assumed efficiency</td><td class="v">${esc(calcNum(duty.efficiency_pct))} %</td></tr></table>
+      <div class="tt" style="margin-top:10px">Provisional rating</div><table class="ecard">
+        <tr><td>Rating</td><td class="v">${esc(calcNum(duty.rating_flow))} ${esc(duty.rating_flow_unit || '')} / ${esc(calcNum(duty.rating_shaft))} ${esc(duty.rating_shaft_unit || '')}</td></tr>
+        <tr><td>Rating source</td><td class="v">${esc(duty.rating_source || change.rating_source || 'to confirm')}</td></tr>
+        <tr><td>Status</td><td class="v">${esc(duty.status)}</td></tr></table>
+      <div class="tt" style="margin-top:10px">Inlet / outlet</div><table class="ecard">
+        <tr><td>Inlet</td><td class="v">${esc(ins[0] || 'to confirm')} · ${esc(calcNum(inletS.T_C))} °C · ${esc(calcNum(inletS.P_bar))} bar · ${esc(phase(inletS))}</td></tr>
+        <tr><td>Outlet</td><td class="v">${esc(outs[0] || 'to confirm')} · ${esc(calcNum(outletS.T_C))} °C · ${esc(calcNum(outletS.P_bar))} bar · ${esc(phase(outletS))}</td></tr></table>
+      <div class="tt" style="margin-top:10px">Assumptions</div><div class="diff">${(((added.proposal || {}).calculation || {}).assumptions || ['to confirm']).map(a => '• ' + esc(a)).join('<br>')}</div>
+      <div style="margin-top:8px;color:var(--warn)">Vendor curve, materials and mechanical design are to confirm. This is simulator screening and a provisional selection, not vendor approval.</div></div>`;
+    return;
+  }
   const spec = P.built.spec, u = (spec.units || []).find(x => x.id === tag), feed = (spec.feeds || {})[tag];
   const e = (P.pid.equipment || []).find(x => x.tag === tag);
   const op = (ST.units || {})[tag] || (ST.streams || {})[tag] || {};
@@ -806,6 +1171,11 @@ async function applyWhatIf() {
 let VIEW = 'proposed';
 async function setView(v) {
   VIEW = v; $('vExisting').classList.toggle('on', v === 'existing'); $('vProposed').classList.toggle('on', v === 'proposed');
+  if (AS_BUILT && P?.drawing === 'svg') {
+    $('sheet').innerHTML = AS_BUILT;
+    initViewer();
+    if (v === 'proposed') appendProposedOverlay();
+  }
   render(await api(`state?scale=${$('scale').value / 100}${v === 'existing' ? '&view=existing' : ''}`));
 }
 let tmr = null;
@@ -953,6 +1323,7 @@ function prop(p, i, j, src) {
     : `<span class="vb n">✗ ${p.unverified_reason ? 'Not verifiable: ' + esc(p.unverified_reason) : p.error ? 'did not solve' : esc((p.still_over?.[0] || p.breaks?.[0] || {}).id || '') + ' still over its limit'}</span>`;
   return `<div class="prop ${p.accepted ? 'done' : ''}"><div class="ph"><b>${esc(p.title)}</b><span class="vb" style="color:var(--muted)">${esc(p.cost_class || '')}</span></div>
     <div class="diff">${diff}</div>${added ? `<div class="diff">${added}</div>` : ''}${p.why ? `<div class="diff" style="color:var(--muted);font-family:var(--sans)">${esc(p.why)}</div>` : ''}
+    ${calcSheet(p)}
     <div class="pf">${v}${p.verified ? `<div class="prop-actions"><button class="btn go" onclick="accept(${i},${j},'${src || ''}')" title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature.">Apply as draft model revision</button><button class="btn" onclick="this.closest('.prop').remove()">Dismiss</button></div>` : ''}${p.accepted ? '<span class="vb y">applied as draft revision</span>' : ''}</div></div>`;
 }
 
@@ -970,8 +1341,10 @@ async function accept(i, j, src) {
 async function reload() {
   const keep = P.answers;
   P = await api('project'); P.answers = keep;
-  $('viewTog').style.display = P.has_revisions ? 'flex' : 'none';
-  model(); answers(); revs(); renderTroubleshootMode(); render(await api('state?scale=' + $('scale').value / 100 + (VIEW === 'existing' ? '&view=existing' : '')));
+  syncViewToggle();
+  model(); answers(); revs(); renderTroubleshootMode();
+  if (AS_BUILT && P.drawing === 'svg') { $('sheet').innerHTML = AS_BUILT; initViewer(); if (VIEW === 'proposed') appendProposedOverlay(); }
+  render(await api('state?scale=' + $('scale').value / 100 + (VIEW === 'existing' ? '&view=existing' : '')));
   showMode(ACTIVE_MODE);
 }
 
