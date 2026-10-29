@@ -413,7 +413,7 @@ function healthOf(tag) {
     <div style="color:var(--warn);font-size:11px">${esc(P.health.source_note || '')}</div>`;
 }
 async function troubleshoot(tag) {
-  $('tsOut').textContent = 'Fitting each cause in DWSIM…';
+  $('tsOut').textContent = 'Fitting each cause in DWSIM (about 1–2 minutes the first time)…';
   const v = $('tsVal').value;
   const r = await api('troubleshoot', {equipment: tag, reading: v === '' ? null : Number(v)}).catch(e => ({error: e.message}));
   if (r.error) { $('tsOut').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return; }

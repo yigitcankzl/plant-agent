@@ -678,6 +678,11 @@ class PlantWorkspace(Study):
         """Rank the causes of an exchanger's process outlet running out of spec (plantagent.diagnose). The symptom is the
         engineer's reading (or the historian's last day); the other readings come from the historian's last day."""
         from . import diagnose
+        key = hashlib.sha1(json.dumps([self.spec, equipment, reading, scale], sort_keys=True, default=str).encode()).hexdigest()
+        cache = self.model_file.with_name("troubleshoot_cache.json")
+        stored = json.loads(cache.read_text()) if cache.exists() else {}
+        if key in stored:  # the same model, equipment and reading: the fitted result does not change
+            return stored[key]
         m = json.loads((ROOT / "cases" / self.name / "historian_map.json").read_text())
         hx = (m.get("exchangers") or {}).get(equipment)
         if not hx:
@@ -700,7 +705,9 @@ class PlantWorkspace(Study):
             obs.append({"path": f"streams.{prod}.m3_h", "value": mean(pf), "name": "product flow (meter)", "sigma": 0.2})
         r = diagnose.diagnose(self.spec, symptom, obs, diagnose.hypotheses_for(self.spec, equipment, names=self.names()),
                               float(scale or 1.0))
-        return {**r, "observations": obs, "source_note": m.get("note", "")}
+        out = {**r, "observations": obs, "source_note": m.get("note", "")}
+        cache.write_text(json.dumps({**stored, key: out}, default=str))
+        return out
 
     def whatif(self, changes, scale=None):
         """Preview one change in DWSIM at the current throughput: limit checks before and after. Not a revision."""
