@@ -7,6 +7,7 @@ DWSIM runs through pythonnet and must run with cwd = its install dir, so every c
 import json
 import math
 import os
+import select
 import subprocess
 import sys
 from pathlib import Path
@@ -22,7 +23,8 @@ SPEC_HELP = {
              "water/steam/chilled water (not scaled with throughput)}}",
     "units": "list in flow order, each with id and type. "
              "pump: in, out, dP_bar or curve [[m3_h, head_m],...], eff_pct, kind: centrifugal|positive_displacement. "
-             "hx: cold [in, out], hot [in, out], U_W_m2K, area_m2 (rating: outlets are computed); optional U_ref_flows_m3_h "
+             "hx: cold [in, out], hot [in, out], U_W_m2K, area_m2 (rating: outlets are computed; for a condensing hot side give "
+             "hot_out_T_C, e.g. the saturated condensate temperature, and the cold outlet follows from the energy balance); optional U_ref_flows_m3_h "
              "[hot, cold] (U then varies with flow, each film ~ Q^0.8) and dP_ref_bar [hot, cold] at those flows (dP ~ Q^1.8). "
              "heater|cooler: in, out, T_out_C or duty_kW (scales: true if that duty grows with throughput, e.g. an IT or process heat load). "
              "valve: in, out, dP_bar or kv or P_out_bar; optional cv_rated (US Cv) or kv_rated (one only), "
@@ -35,6 +37,10 @@ SPEC_HELP = {
              "residence_basis = the product stream that leaves the tank for good (hold time = volume / that flow). "
              "mixer: in [..], out. splitter: in, out [..], fractions [..] or fixed_kg_h {out stream: kg/h} (the first outlet fixed, "
              "the other takes the rest: in a recirculation loop fix the recirculation branch and let the product take the rest). compressor: in, out, P_out_bar, eff_pct. "
+             "evaporator: in, vapor, liquid, P_bar (body pressure), evap_frac (fraction of the inlet boiled off), heating [in, out] "
+             "(steam that condenses fully), U_W_m2K, area_m2, x_NaCl (omit for a salt-crystallising body: saturated brine; then "
+             "salt_kg_h is reported; model the brine as Water with the Steam Tables (IAPWS-IF97) package: DWSIM's NRTL has no NaCl electrolyte data and gives about a third of the real boiling point elevation). Applies the NaCl boiling point elevation to the driving force and checks the heater area "
+             "and the heat balance (boil-up vs heat the heating steam gives; >1 means the steam cannot sustain the boil-up). "
              "flash: in, vapor, liquid (equilibrium phase split at inlet T and P; use a cooler or valve first). "
              "component_separator: in, product, reject, recover_pct {compound: percent of inlet moles sent to product; omitted compounds default to 100}; fixed-split approximation, not a TEG or PSA design model. "
              "column: in, distillate, bottoms, light_key, heavy_key (compound names), light_key_in_bottoms and "
@@ -43,7 +49,7 @@ SPEC_HELP = {
              "recycle: in (the calculated return stream), out (the tear stream used upstream, e.g. into a mixer), guess "
              "{T_C, kg_h} (closes recirculation loops). Streams are created by name the first time they appear. Model EVERY "
              "connection on the P&ID that carries process flow (recirculation loops included) or say why it is excluded.",
-    "limits": "{unit or stream id: {max_m3_h, min_m3_h (pump minimum continuous flow), max_kW (pump or compressor motor), max_discharge_C (compressor), max_head_m, npshr_m, "
+    "limits": "{unit or stream id: {max_m3_h, min_m3_h (pump minimum continuous flow), max_kW (pump or compressor motor), max_kg_h (compressor suction capacity), max_discharge_C (compressor), max_head_m, npshr_m, "
               "psv_set_barg (relief valve on the pump discharge: discharge must stay below 90 % of set), area_m2 (installed HX "
               "area), out_T_C (outlet the process needs, side: cold|hot), max_dP_hot_bar, max_dP_cold_bar (available pressure "
               "drop), min_residence_min, max_area_m2 (HX frame limit), and for streams max_T_C, max_P_bar (design limit), "
@@ -180,8 +186,8 @@ class _Sheet:
             (ci, co), (hi, ho) = u["cold"], u["hot"]
             self._link(self.stream(ci), h, 0, 0); self._link(self.stream(hi), h, 0, 1)
             self._link(h, self.stream(co), 0, 0); self._link(h, self.stream(ho), 1, 0)
-            h.CalcMode = self.HXM.CalcBothTemp_UA
             h.OverallCoefficient, h.Area = float(u.get("U_W_m2K", 1000)), float(u.get("area_m2", 10))
+            self._hx_mode(u, h)
             return h
         if t in ("heater", "cooler"):
             cls = self.Heater if t == "heater" else self.Cooler
@@ -229,7 +235,14 @@ class _Sheet:
             return p
         if t == "tank":
             k = self._add("Tank", uid)
-            src = self.stream(u["in"])
+            if isinstance(u["in"], list):  # several inlets: mix them first
+                m = self._add("Mixer", f"{uid}-mix")
+                for i, s_ in enumerate(u["in"]):
+                    self._link(self.stream(s_), m, -1, i)
+                src = self.stream(f"{uid}-mixed")
+                self._link(m, src)
+            else:
+                src = self.stream(u["in"])
             if u.get("P_bar") is not None:  # the liquid settles at vessel pressure: an inlet valve drops it there
                 v = self._add("Valve", f"{uid}-inlet")
                 mid = self.stream(f"{uid}-in")
@@ -278,6 +291,36 @@ class _Sheet:
             c.CalcMode, c.POut = self.Comp.CalculationMode.OutletPressure, float(u["P_out_bar"]) * 1e5
             c.AdiabaticEfficiency = float(u.get("eff_pct", 75))  # DWSIM takes percent, like the pump
             return c
+        if t == "evaporator":
+            # brine boils at P_bar: inlet valve -> heater to the evaporated fraction -> vapour/liquid split; the heating
+            # steam condenses fully on the other side. Water stands in for the brine; the salt's boiling point elevation is
+            # applied to the temperature driving force from brine.py (Sparrow 2003), and the salt follows from the water boiled.
+            # ponytail: a DWSIM Vessel cannot split single-compound steam-table water, so the inlet is split by the boiled
+            # fraction and each part is brought to saturated vapour / saturated liquid at body pressure
+            v = self._add("Valve", f"{uid}-inlet"); mid = self.stream(f"{uid}-in")
+            self._link(self.stream(u["in"]), v); self._link(v, mid)
+            v.CalcMode, v.OutletPressure = self.Valve.CalculationMode.OutletPressure, float(u["P_bar"]) * 1e5
+            sp = self._add("Splitter", f"{uid}-split")
+            self._link(mid, sp)
+            hs = []
+            for k, (out, vf) in enumerate(((u["vapor"], 1.0), (u["liquid"], 0.0))):
+                part = self.stream(f"{uid}-part{k}")
+                self._link(sp, part, k, -1)
+                h = self._add("Heater", uid if k == 0 else f"{uid}-liq")
+                self._link(part, h); self._link(h, self.stream(out)); self._link(self._add("EnergyStream", f"E-{uid}-{k}"), h)
+                h.CalcMode, h.OutletVaporFraction = self.Heater.CalculationMode.OutletVaporFraction, vf
+                hs.append(h)
+            f = float(u["evap_frac"])
+            sp.Ratios[0], sp.Ratios[1] = f, 1 - f
+            b = hs[0]
+            self.__dict__.setdefault("aux_liq", {})[uid] = hs[1]
+            if u.get("heating"):
+                c = self._add("Cooler", f"{uid}-heating")
+                self._link(self.stream(u["heating"][0]), c); self._link(c, self.stream(u["heating"][1]))
+                self._link(c, self._add("EnergyStream", f"E-{uid}-heating"))
+                c.CalcMode, c.OutletVaporFraction = self.Cooler.CalculationMode.OutletVaporFraction, 0.0
+                self.__dict__.setdefault("aux", {})[uid] = c
+            return b
         if t == "flash":
             v = self._add("Vessel", uid)
             self._link(self.stream(u["in"]), v)
@@ -371,60 +414,90 @@ class _Sheet:
         un = {}
         for uid, (u, o) in self.units.items():
             t, r = u["type"], {"type": u["type"]}
-            if t == "pump":
-                q = (self.streams[u["in"]].GetVolumetricFlow() or 0) * 3600
-                # ponytail: DWSIM leaves DeltaQ at 0 in curve mode, so shaft power is Q*dP/eta
-                r.update(m3_h=_r(q, 2), head_m=_r(o.Head, 2), dP_bar=_r(o.DeltaP / 1e5, 3), eff_pct=_r(o.Eficiencia, 1),
-                         kW=_r(q / 3600 * (o.DeltaP or 0) / ((o.Eficiencia or 100) / 100) / 1000, 2), npsha_m=_r(o.NPSH, 2),
-                         discharge_barg=_r(self.streams[u["out"]].GetPressure() / 1e5 - 1.013, 3),
-                         kind=u.get("kind", "centrifugal"))
-            elif t == "hx":
-                r.update(duty_kW=_r(o.Q, 1), lmtd_C=_r(o.LMTD, 2), U_W_m2K=_r(o.OverallCoefficient, 1), area_m2=_r(o.Area, 2),
-                         dP_hot_bar=_r(o.HotSidePressureDrop / 1e5, 3), dP_cold_bar=_r(o.ColdSidePressureDrop / 1e5, 3))
-            elif t in ("heater", "cooler"):
-                r.update(duty_kW=_r(o.DeltaQ, 2))
-            elif t == "compressor":
-                r.update(duty_kW=_r(o.DeltaQ, 2), kW=_r(o.DeltaQ, 2),
-                         discharge_C=_r(self.streams[u["out"]].GetTemperature() - 273.15, 1))
-            elif t == "valve":
-                r.update(dP_bar=_r(o.DeltaP / 1e5, 3))
-                s = self.streams[u["in"]]
-                rated = (float(u["cv_rated"]) if u.get("cv_rated") is not None else float(u["kv_rated"]) * 1.156) if \
-                    (u.get("cv_rated") is not None or u.get("kv_rated") is not None) else None
-                if float(s.Phases[2].Properties.molarfraction or 0) <= 0.001:
-                    dp = (s.GetPressure() - self.streams[u["out"]].GetPressure()) / 1e5
-                    try:
-                        sizing = _valve_sizing(float(s.GetVolumetricFlow()), float(s.Phases[0].Properties.density), dp,
-                                               rated, u.get("characteristic", "equal_percentage"), float(u.get("rangeability", 50)))
-                        r["cv_required"] = _r(sizing["cv_required"], 3)
-                        if rated is not None:
-                            r["opening_pct"] = _r(sizing["opening_pct"], 2)
-                            if sizing.get("sizing_error"):
-                                r["sizing_error"] = sizing["sizing_error"]
-                    except (TypeError, ValueError) as ex:
-                        if rated is not None:
-                            r["sizing_error"] = f"liquid properties unavailable: {ex}"
-                if rated is not None:
-                    if float(s.Phases[2].Properties.molarfraction or 0) > 0.001:
-                        r.update(cv_required=None, opening_pct=None, sizing_error="liquid-only Cv sizing; gas/two-phase unsupported")
-                    r.update(cv_rated=_r(rated, 3), characteristic=u.get("characteristic", "equal_percentage"))
-            elif t == "pipe":
-                data = getattr(self, "_pipe_values", {}).get(uid)
-                if data:
-                    r.update(dP_bar=_r((self.streams[u["in"]].GetPressure() - self.streams[u["out"]].GetPressure()) / 1e5, 4),
-                             velocity_m_s=_r(data["velocity_m_s"], 3), Reynolds=_r(data["Reynolds"], 0),
-                             friction_factor=_r(data["friction_factor"], 5))
-            elif t == "column":
-                r.update(min_stages=_r(o.m_Nmin, 1), stages=_r(o.m_N, 1), min_reflux=_r(o.m_Rmin, 3), reflux=_r(o.m_refluxratio, 3),
-                         condenser_kW=_r(abs(o.m_Qc or 0), 1), reboiler_kW=_r(abs(o.m_Qb or 0), 1))
-            elif t == "tank":
-                # hold time is volume over the NET throughput (the product leaving), not over a recirculation loop
-                basis = u.get("residence_basis")
-                q = self.streams[basis].GetVolumetricFlow() if basis in self.streams else None
-                r.update(residence_min=_r(o.Volume / q / 60 if q else o.ResidenceTime / 60, 2), volume_m3=o.Volume,
-                         residence_basis=basis or "tank outlet")
+            try:
+                if t == "pump":
+                    q = (self.streams[u["in"]].GetVolumetricFlow() or 0) * 3600
+                    # ponytail: DWSIM leaves DeltaQ at 0 in curve mode, so shaft power is Q*dP/eta
+                    r.update(m3_h=_r(q, 2), head_m=_r(o.Head, 2), dP_bar=_r(o.DeltaP / 1e5, 3), eff_pct=_r(o.Eficiencia, 1),
+                             kW=_r(q / 3600 * (o.DeltaP or 0) / ((o.Eficiencia or 100) / 100) / 1000, 2), npsha_m=_r(o.NPSH, 2),
+                             discharge_barg=_r(self.streams[u["out"]].GetPressure() / 1e5 - 1.013, 3),
+                             kind=u.get("kind", "centrifugal"))
+                elif t == "hx":
+                    r.update(duty_kW=_r(o.Q, 1), lmtd_C=_r(o.LMTD, 2), U_W_m2K=_r(o.OverallCoefficient, 1), area_m2=_r(o.Area, 2),
+                             dP_hot_bar=_r(o.HotSidePressureDrop / 1e5, 3), dP_cold_bar=_r(o.ColdSidePressureDrop / 1e5, 3))
+                elif t in ("heater", "cooler"):
+                    r.update(duty_kW=_r(o.DeltaQ, 2))
+                elif t == "evaporator":
+                    from . import brine
+                    vap = self.streams[u["vapor"]].GetMassFlow() * 3600
+                    x = u.get("x_NaCl")
+                    b = brine.bpe(float(u["P_bar"]), x)
+                    boil = (o.DeltaQ or 0) + (getattr(self, "aux_liq", {})[uid].DeltaQ or 0)
+                    r.update(boil_kW=_r(boil, 1), vapour_kg_h=_r(vap, 0), brine_T_C=b["t_brine_C"], bpe_K=b["bpe_K"],
+                             salt_kg_h=_r(vap * b["x_NaCl"] / (1 - b["x_NaCl"]), 0) if x is None else None)
+                    if u.get("heating"):
+                        hc = getattr(self, "aux", {}).get(uid)
+                        hs = self.streams[u["heating"][1]]
+                        heat, t_cond = (hc.DeltaQ if hc else None), hs.GetTemperature() - 273.15
+                        dt = t_cond - b["t_brine_C"]
+                        r.update(heating_kW=_r(abs(heat), 1) if heat is not None else None, condensing_C=_r(t_cond, 2), driving_dT_K=_r(dt, 2),
+                                 heat_balance_kW=_r(abs(heat) - boil, 1) if heat is not None else None,
+                                 area_needed_m2=_r(boil * 1e3 / (float(u["U_W_m2K"]) * dt), 0) if u.get("U_W_m2K") and dt > 0 else
+                                 (None if not u.get("U_W_m2K") else 9.99e9),
+                                 area_m2=u.get("area_m2"), U_W_m2K=u.get("U_W_m2K"))
+                elif t == "compressor":
+                    r.update(duty_kW=_r(o.DeltaQ, 2), kW=_r(o.DeltaQ, 2),
+                             discharge_C=_r(self.streams[u["out"]].GetTemperature() - 273.15, 1))
+                elif t == "valve":
+                    r.update(dP_bar=_r(o.DeltaP / 1e5, 3))
+                    s = self.streams[u["in"]]
+                    rated = (float(u["cv_rated"]) if u.get("cv_rated") is not None else float(u["kv_rated"]) * 1.156) if \
+                        (u.get("cv_rated") is not None or u.get("kv_rated") is not None) else None
+                    if float(s.Phases[2].Properties.molarfraction or 0) <= 0.001:
+                        dp = (s.GetPressure() - self.streams[u["out"]].GetPressure()) / 1e5
+                        try:
+                            sizing = _valve_sizing(float(s.GetVolumetricFlow()), float(s.Phases[0].Properties.density), dp,
+                                                   rated, u.get("characteristic", "equal_percentage"), float(u.get("rangeability", 50)))
+                            r["cv_required"] = _r(sizing["cv_required"], 3)
+                            if rated is not None:
+                                r["opening_pct"] = _r(sizing["opening_pct"], 2)
+                                if sizing.get("sizing_error"):
+                                    r["sizing_error"] = sizing["sizing_error"]
+                        except (TypeError, ValueError) as ex:
+                            if rated is not None:
+                                r["sizing_error"] = f"liquid properties unavailable: {ex}"
+                    if rated is not None:
+                        if float(s.Phases[2].Properties.molarfraction or 0) > 0.001:
+                            r.update(cv_required=None, opening_pct=None, sizing_error="liquid-only Cv sizing; gas/two-phase unsupported")
+                        r.update(cv_rated=_r(rated, 3), characteristic=u.get("characteristic", "equal_percentage"))
+                elif t == "pipe":
+                    data = getattr(self, "_pipe_values", {}).get(uid)
+                    if data:
+                        r.update(dP_bar=_r((self.streams[u["in"]].GetPressure() - self.streams[u["out"]].GetPressure()) / 1e5, 4),
+                                 velocity_m_s=_r(data["velocity_m_s"], 3), Reynolds=_r(data["Reynolds"], 0),
+                                 friction_factor=_r(data["friction_factor"], 5))
+                elif t == "column":
+                    r.update(min_stages=_r(o.m_Nmin, 1), stages=_r(o.m_N, 1), min_reflux=_r(o.m_Rmin, 3), reflux=_r(o.m_refluxratio, 3),
+                             condenser_kW=_r(abs(o.m_Qc or 0), 1), reboiler_kW=_r(abs(o.m_Qb or 0), 1))
+                elif t == "tank":
+                    # hold time is volume over the NET throughput (the product leaving), not over a recirculation loop
+                    basis = u.get("residence_basis")
+                    q = self.streams[basis].GetVolumetricFlow() if basis in self.streams else None
+                    r.update(residence_min=_r(o.Volume / q / 60 if q else o.ResidenceTime / 60, 2), volume_m3=o.Volume,
+                             residence_basis=basis or "tank outlet")
+            except (TypeError, ZeroDivisionError) as ex:  # an unsolved unit reports why instead of failing the run
+                r["error"] = f"did not solve ({ex.__class__.__name__}): check the unit's inlet streams and specs"
             un[uid] = r
         return {"streams": st, "units": un}
+
+    def _hx_mode(self, u, h):
+        """Rating mode by default (U and area given, outlets computed). A condensing or boiling side does not converge in
+        that mode, so hot_out_T_C fixes the hot outlet (e.g. saturated condensate) and the cold outlet follows from the
+        energy balance; the area check then says whether the installed area can deliver it."""
+        if u.get("hot_out_T_C") is not None:
+            h.CalcMode, h.TempHotOut = self.HXM.CalcTempColdOut, 273.15 + float(u["hot_out_T_C"])
+        else:
+            h.CalcMode = self.HXM.CalcBothTemp_UA
 
     def required_area(self, uid, out_T_C, side="cold"):
         """Area this exchanger needs to reach out_T_C on `side` at the current flows (DWSIM design mode)."""
@@ -437,7 +510,8 @@ class _Sheet:
             h.DefinedTemperature, h.TempHotOut = SpecifiedTemperature.Hot_Fluid, 273.15 + float(out_T_C)
         errs = self.solve()
         a = float(h.Area)
-        h.CalcMode, h.Area = self.HXM.CalcBothTemp_UA, float(u.get("area_m2", 10))
+        h.Area = float(u.get("area_m2", 10))
+        self._hx_mode(u, h)
         self.solve()
         return (round(a, 2) if not errs and a > 0 else None), errs
 
@@ -448,7 +522,8 @@ def _checks(sheet, res):
     limits = sheet.spec.get("limits") or {}
     rated_valves = {uid for uid, (spec_u, _) in sheet.units.items() if spec_u["type"] == "valve" and
                     (spec_u.get("cv_rated") is not None or spec_u.get("kv_rated") is not None)}
-    for key in dict.fromkeys((*limits, *sorted(rated_valves))):
+    evaporators = sorted(uid for uid, (spec_u, _) in sheet.units.items() if spec_u["type"] == "evaporator")
+    for key in dict.fromkeys((*limits, *sorted(rated_valves), *evaporators)):
         lim = limits.get(key, {})
         u, s = res["units"].get(key), res["streams"].get(key)
         def add(what, value, limit, unit, higher_is_worse=True):
@@ -484,7 +559,12 @@ def _checks(sheet, res):
                     add(f"area needed for {side} outlet {lim['out_T_C']} C", need, lim["area_m2"], "m2")
                 else:
                     out.append({"id": key, "check": "required area", "error": "; ".join(errs)[:200] or "no solution"})
+        if u and u["type"] == "evaporator":
+            add("heater area needed (BPE included) vs installed", u.get("area_needed_m2"), u.get("area_m2"), "m2")
+            if u.get("heat_balance_kW") is not None and u["boil_kW"]:
+                add("boil-up duty vs heat from the heating steam", u["boil_kW"], u["heating_kW"], "kW")
         if u and u["type"] == "compressor":
+            add("suction flow vs capacity", (res["streams"].get(sheet.units[key][0]["in"]) or {}).get("kg_h"), lim.get("max_kg_h"), "kg/h")
             add("shaft power vs motor", u["kW"], lim.get("max_kW"), "kW")
             add("discharge temperature vs limit", u["discharge_C"], lim.get("max_discharge_C"), "C")
         if u and u["type"] == "column":
@@ -638,7 +718,10 @@ def _worker(a):
 _PROC, _LOCK = None, __import__("threading").Lock()
 
 
-def _call(payload):
+SOLVE_TIMEOUT_S = 150
+
+
+def _call(payload, timeout_s=None):
     """One long-lived DWSIM worker (start-up once, then ~0.05 s per solve); restarted if it dies.
     ponytail: one global lock serialises solves; a worker pool if several users solve at once."""
     global _PROC
@@ -650,6 +733,12 @@ def _call(payload):
             try:
                 _PROC.stdin.write(json.dumps(payload) + "\n")
                 _PROC.stdin.flush()
+                # a flowsheet that never converges (e.g. nested recycles) would hang the caller: give up after SOLVE_TIMEOUT_S
+                if not select.select([_PROC.stdout], [], [], timeout_s or SOLVE_TIMEOUT_S)[0]:
+                    _PROC.kill()
+                    _PROC = None
+                    raise RuntimeError(f"DWSIM did not finish within {timeout_s or SOLVE_TIMEOUT_S} s (the flowsheet does not converge); "
+                                       "simplify it: fewer recycle loops, or the evaporator unit for boiling brine bodies")
                 line = _PROC.stdout.readline()
                 if line:
                     r = json.loads(line)
@@ -672,7 +761,7 @@ def run(spec, scale=1.0):
 
 
 def capacity(spec):
-    return _call({"op": "capacity", "spec": spec})
+    return _call({"op": "capacity", "spec": spec}, timeout_s=900)  # many solves (bisection)
 
 
 def bubble(compounds, x, T_C, package="Peng-Robinson (PR)"):
@@ -748,4 +837,15 @@ if __name__ == "__main__":
         assert ss["LIQ"]["kg_h"] > 0 and ss["VAP"]["kg_h"] > 0
         assert abs(ss["DRY_CO2"]["kg_h"] + ss["WET"]["kg_h"] - ss["VAP"]["kg_h"]) < 1
         assert abs(ss["DRY_CO2"]["components_kg_h"]["Water"] / ss["VAP"]["components_kg_h"]["Water"] - 0.1) < 0.02
+        # evaporator: US 5,366,514 Table I boil-up (247.7 t/h) and salt; +20 % feed with a fixed compressor flow runs short of heat
+        ev = {"compounds": ["Water"], "package": "Steam Tables (IAPWS-IF97)",
+              "feeds": {"B": {"T_C": 125.6, "P_bar": 3, "kg_h": 362900, "x": {"Water": 1}}},
+              "units": [{"id": "V", "type": "evaporator", "in": "B", "vapor": "VAP", "liquid": "L", "P_bar": 1.7, "evap_frac": 0.68,
+                         "heating": ["ST", "C"], "U_W_m2K": 2000, "area_m2": 8800},
+                        {"id": "SP", "type": "splitter", "in": "VAP", "out": ["SUC", "X"], "fixed_kg_h": {"SUC": 226800}},
+                        {"id": "K", "type": "compressor", "in": "SUC", "out": "ST", "P_out_bar": 3.08, "eff_pct": 78}]}
+        e1, e2 = run(ev), run(ev, 1.2)
+        v1 = e1["units"]["V"]
+        assert not e1["errors"] and 240000 < v1["vapour_kg_h"] < 255000 and 9 < v1["bpe_K"] < 10.5 and v1["driving_dT_K"] > 5, v1
+        assert any(c["check"].startswith("boil-up") and c["utilisation"] > 1 for c in e2["checks"]), e2["checks"]
         print("ok")

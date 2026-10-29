@@ -7,7 +7,7 @@ import json
 import time
 from pathlib import Path
 
-from . import audit, llm, pid, process
+from . import audit, brine, llm, pid, process
 from .docs import DATA
 from .study import ARR, Study, submit
 
@@ -411,6 +411,9 @@ class PlantWorkspace(Study):
                                  "condensing pressure at a condensing temperature.",
               {"compounds": {"type": "array", "items": S}, "x": {"type": "object"}, "T_C": {"type": "array", "items": N}},
               ["compounds", "x", "T_C"]),
+            f("brine_bpe", "NaCl brine (Sparrow 2003): boiling temperature and boiling point elevation at a pressure, for a "
+                           "salt mass fraction or saturated brine (omit x_NaCl). DWSIM water models miss this; add it yourself.",
+              {"p_bar": N, "x_NaCl": N}, ["p_bar"]),
             f("blocked_in_pressure", "DWSIM: pressure a liquid-full, blocked-in vessel reaches when heated from T1 to T2 "
                                      "(API 521 hydraulic expansion), for relief checks.",
               {"compounds": {"type": "array", "items": S}, "x": {"type": "object"}, "T1_C": N, "P1_bar": N, "T2_C": N},
@@ -469,6 +472,8 @@ class PlantWorkspace(Study):
             return coverage(self.pid, r["spec"]) if r else {"error": f"unknown label; logged: {list(self.runs)}"}
         if name == "bubble_pressure":
             return process.bubble(a["compounds"], a["x"], a["T_C"])
+        if name == "brine_bpe":
+            return brine.bpe(float(a["p_bar"]), a.get("x_NaCl"))
         if name == "blocked_in_pressure":
             return process.blocked_in(a["compounds"], a["x"], a["T1_C"], a["P1_bar"], a["T2_C"])
         if name == "get_spec":

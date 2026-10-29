@@ -79,7 +79,7 @@ def _client_for(model):
         return _open[host], model.split(":", 1)[1]
     if spent() - sum(spent(h) for h in OPEN_HOSTS) >= BUDGET_USD:
         raise RuntimeError(f"Muse budget reached (${spent():.2f} of ${BUDGET_USD}). Raise MUSE_BUDGET_USD deliberately.")
-    _client = _client or OpenAI(api_key=os.environ["META_API_KEY"], base_url=os.getenv("META_BASE_URL", "https://api.meta.ai/v1"), timeout=240, max_retries=2)
+    _client = _client or OpenAI(api_key=os.environ["META_API_KEY"], base_url=os.getenv("META_BASE_URL", "https://api.meta.ai/v1"), timeout=480, max_retries=1)
     return _client, model
 
 

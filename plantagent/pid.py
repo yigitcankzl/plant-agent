@@ -166,6 +166,8 @@ def overview(path):
 
 
 RELIEF = ("SafetyValve", "ReliefValve", "RuptureDisc", "BurstingDisc", "BreatherValve")
+# pressure vessels: one pressure space (all nozzles are one side), and a relief path may run through them
+VESSELS = ("Vessel", "Drum", "Column", "Separator", "Desuperheater", "Evaporator", "Crystalli")
 BLOCKING = ("Valve",)  # any valve that can be closed: block, check and control valves alike
 
 
@@ -190,8 +192,9 @@ def relief_scan(path):
     for eq in [x for x in n.values() if x["kind"] == "equipment"]:
         nozzles = [x["id"] for x in n.values() if x["kind"] == "nozzle" and x.get("parent") == eq["id"]]
         sides = defaultdict(list)
+        is_vessel = any(v in eq["cls"] for v in VESSELS)
         for z in nozzles:
-            sides[tuple(sorted(fluid_of[z])) or ("?",)].append(z)
+            sides[("all",) if is_vessel else (tuple(sorted(fluid_of[z])) or ("?",))].append(z)
         heated = "HeatExchanger" in eq["cls"] or "Heater" in eq["cls"] or "Reboiler" in eq["cls"]
         for fluids, starts in sides.items():
             # breadth-first over the piping; remember the closable valves crossed on the way
@@ -202,7 +205,15 @@ def relief_scan(path):
                 for nx in adj[cur]:
                     if nx in seen or n.get(nx, {}).get("kind") in ("nozzle",) and n[nx].get("parent") == eq["id"]:
                         continue
-                    if n.get(nx, {}).get("kind") == "equipment" or n.get(nx, {}).get("kind") == "nozzle":
+                    if n.get(nx, {}).get("kind") == "nozzle":
+                        other = n[nx].get("parent")
+                        if other and any(v in n.get(other, {}).get("cls", "") for v in VESSELS):
+                            # a pressure vessel passes pressure on: continue from all its other nozzles
+                            for z2 in [x["id"] for x in n.values() if x["kind"] == "nozzle" and x.get("parent") == other]:
+                                if z2 not in seen:
+                                    seen.add(z2); todo.append((z2, via))
+                        continue
+                    if n.get(nx, {}).get("kind") == "equipment":
                         continue  # stop at other equipment: its relief is its own
                     seen.add(nx)
                     v = via + ((n[nx].get("tag") or n[nx]["cls"]),) if is_valve(nx) else via
