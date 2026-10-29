@@ -7,7 +7,7 @@ numbers, valves and relief settings are ours). Equipment ratings marked ILLUSTRA
 ## Operating point (patent Table I, converted to SI)
 | Stream / item | Value |
 |---|---|
-| Feed brine to E-101 (line 1001), saturated NaCl (~26 wt %) | 362.9 t/h at 24 °C |
+| Feed brine to E-101 (line 1001), "saturated in salt" (about 26 wt % NaCl) | 362.9 t/h at 24 °C |
 | Brine leaving E-101 | 60 °C |
 | Elutriating brine to the evaporator legs | 98.0 t/h at 60 °C |
 | Brine through E-102 to V-201 (lines 1003/1004) | 264.9 t/h, 60 → 125.6 °C |
@@ -22,6 +22,10 @@ numbers, valves and relief settings are ours). Equipment ratings marked ILLUSTRA
 | Purge to disposal well (line 5101) | 6.8 t/h at 108.9 °C |
 | Purge-evaporator overheads to E-101 (line 3201) | 25.4 t/h at 100.6 °C after desuperheating |
 | Salt produced (dry) | 94.9 t/h (2,511 short t/d) |
+
+The patent describes the FIG. I feed as "saturated in salt" ([US 5,366,514, FIG. I description and Table I](https://patents.google.com/patent/US5366514A/en)).
+It explicitly allows lower-concentration feed; solution-mined brine can arrive below saturation. Use `feed_x_NaCl`
+to examine that case rather than treating 26 wt % as universal.
 
 ## What the patent says about the equipment
 - K-201 is a single-wheel centrifugal compressor, 1.8:1, driven by a gas turbine. "The VRC compressor can only pass a

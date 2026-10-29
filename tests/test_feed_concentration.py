@@ -1,0 +1,75 @@
+"""Feed-concentration and heat-limited evaporator regression tests."""
+import copy
+import unittest
+
+from plantagent import brine, process
+
+
+def spec(feed_x=0.26, feed_t=125.6, feed_kg_h=100000, evap_frac=0.5):
+    return {"compounds": ["Water"], "package": "Steam Tables (IAPWS-IF97)",
+            "feeds": {"B": {"T_C": feed_t, "P_bar": 3, "kg_h": feed_kg_h, "x": {"Water": 1}}},
+            "units": [{"id": "V", "type": "evaporator", "in": "B", "vapor": "VAP", "liquid": "L",
+                       "P_bar": 1.7, "evap_frac": evap_frac, "feed_x_NaCl": feed_x}]}
+
+
+class BrineCp(unittest.TestCase):
+    def test_laliberte_cp(self):
+        self.assertAlmostEqual(brine.cp(100, 0), 4.215, places=2)
+        self.assertAlmostEqual(brine.cp(100, 0.26), 3.303, places=2)
+        self.assertLess(brine.cp(100, 0.26), brine.cp(100, 0.20))
+        with self.assertRaises(ValueError):
+            brine.cp(100, 0.5)
+
+
+@unittest.skipUnless(process.available(), "DWSIM unavailable")
+class Evaporator(unittest.TestCase):
+    def test_crystal_and_liquid_mass_balances(self):
+        r = process.run(spec(feed_t=60))
+        self.assertFalse(r["errors"])
+        v = r["units"]["V"]
+        self.assertTrue(v["crystallising"])
+        self.assertAlmostEqual(v["salt_in_kg_h"], 26000, delta=1)
+        self.assertAlmostEqual(v["salt_kg_h"] + v["liquid_out_brine_kg_h"] + v["vapour_kg_h"], 100000, delta=2)
+        self.assertAlmostEqual(v["salt_kg_h"] + v["liquid_out_brine_kg_h"] * v["body_x_NaCl"], 26000, delta=5)
+        self.assertLess(v["sensible_correction_kW"], 0)
+
+    def test_unsaturated_body_does_not_crystallise(self):
+        r = process.run(spec(feed_x=0.1, evap_frac=0.2))
+        self.assertFalse(r["errors"])
+        v = r["units"]["V"]
+        self.assertFalse(v["crystallising"])
+        self.assertEqual(v["salt_kg_h"], 0)
+        self.assertAlmostEqual(v["body_x_NaCl"], 0.125, places=3)
+        self.assertLess(v["bpe_K"], brine.bpe(1.7)["bpe_K"])
+
+    def test_cannot_evaporate_more_than_feed_water(self):
+        r = process.run(spec(evap_frac=0.9))
+        self.assertIn("boil-up exceeds water", r["units"]["V"]["error"])
+        self.assertIsNone(r["units"]["V"]["salt_kg_h"])
+
+    def test_same_boilup_concentration_ratio(self):
+        rich = spec(feed_x=0.26, feed_kg_h=247700 / 0.73, evap_frac=0.73)
+        lean = spec(feed_x=0.20, feed_kg_h=247700 / 0.79, evap_frac=0.79)
+        a, b = process.run(rich), process.run(lean)
+        self.assertFalse(a["errors"] or b["errors"])
+        av, bv = a["units"]["V"], b["units"]["V"]
+        self.assertAlmostEqual(av["vapour_kg_h"], bv["vapour_kg_h"], delta=1)
+        self.assertAlmostEqual(bv["salt_kg_h"] / av["salt_kg_h"], (0.2 / 0.8) / (0.26 / 0.74), delta=0.02)
+
+    def test_cold_feed_reduces_heat_limited_boilup(self):
+        s = spec(feed_kg_h=362900, evap_frac=0.68)
+        s["units"][0].update(heating=["ST", "C"], U_W_m2K=2000, area_m2=8800)
+        s["units"].extend([{"id": "SP", "type": "splitter", "in": "VAP", "out": ["SUC", "X"],
+                            "fixed_kg_h": {"SUC": 226800}},
+                           {"id": "K", "type": "compressor", "in": "SUC", "out": "ST", "P_out_bar": 3.08, "eff_pct": 78}])
+        warm = process.run(s)
+        cold_spec = copy.deepcopy(s)
+        cold_spec["feeds"]["B"]["T_C"] = 120
+        cold = process.run(cold_spec)
+        self.assertFalse(warm["errors"] or cold["errors"])
+        self.assertLess(cold["units"]["V"]["vapour_kg_h"], warm["units"]["V"]["vapour_kg_h"])
+        self.assertAlmostEqual(cold["units"]["V"]["boil_kW"], cold["units"]["V"]["heating_kW"], delta=1)
+
+
+if __name__ == "__main__":
+    unittest.main()
