@@ -68,6 +68,9 @@
   .stage { padding: 14px 18px 30px; }
   .sheet { position: relative; background: var(--paper); border-radius: 3px; box-shadow: 0 6px 30px rgba(0,0,0,.45); }
   .sheet img { width: 100%; display: block; border-radius: 3px; }
+  .sheet { transform-origin: 0 0; } .stage { overflow: hidden; } main.dragging { cursor: grabbing; } main.dragging .hit { pointer-events: none; }
+  .zoombar { position: sticky; top: 44px; z-index: 15; float: right; margin: 8px 26px -40px 0; display: flex; gap: 4px; padding: 4px; background: rgba(16,20,26,.85); border: 1px solid var(--line); border-radius: 6px; }
+  .zoombar button { min-width: 30px; height: 28px; background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 4px; cursor: pointer; font: 600 13px var(--sans); }
   .hit { position: absolute; border: 1.5px solid transparent; border-radius: 4px; cursor: pointer; transition: all .15s; }
   .show-hits .hit { border-color: rgba(77,163,255,.35); }
   .hit:hover, .hit.sel { border-color: var(--accent); background: rgba(77,163,255,.10); }
@@ -304,6 +307,7 @@
 
   <main id="main">
     <div class="progress" id="progress"></div>
+    <div class="zoombar"><button type="button" data-z="in" title="Zoom in">+</button><button type="button" data-z="out" title="Zoom out">−</button><button type="button" data-z="fit" title="Fit">Fit</button></div>
     <div class="stage"><div class="sheet show-hits" id="sheet"></div></div>
   </main>
 
@@ -1148,6 +1152,31 @@ document.querySelectorAll("#exports [data-k]").forEach(d => d.onclick = async e 
   setTimeout(() => t.style.display = "none", 9000);
 });
 load().catch(e => document.body.insertAdjacentHTML("afterbegin", `<div class="load-error" role="alert"><b>Could not load this workspace.</b> ${esc(e.message)} <a href="" onclick="location.reload();return false">Reload the page</a></div>`));
+// drawing zoom/pan: wheel zooms toward the cursor, drag pans, double-click zooms in; a drag never counts as a click
+(() => {
+  const main = $("#main"), sheet = $("#sheet"), Z = {s: 1, x: 0, y: 0, down: null, moved: false};
+  const apply = () => { sheet.style.transform = Z.s === 1 && !Z.x && !Z.y ? "" : `translate(${Z.x}px, ${Z.y}px) scale(${Z.s})`; };
+  const zoom = (f, cx, cy) => {
+    const r = sheet.parentElement.getBoundingClientRect(), px = (cx ?? r.left + r.width / 2) - r.left - 18, py = (cy ?? r.top + r.height / 2) - r.top - 14;
+    const n = Math.max(1, Math.min(10, Z.s * f)), k = n / Z.s;
+    Z.x = n === 1 ? 0 : px - (px - Z.x) * k; Z.y = n === 1 ? 0 : py - (py - Z.y) * k; Z.s = n; apply();
+  };
+  main.addEventListener("wheel", e => { if (!e.target.closest(".stage")) return; e.preventDefault(); zoom(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX, e.clientY); }, {passive: false});
+  main.addEventListener("dblclick", e => { if (e.target.closest(".stage")) zoom(1.7, e.clientX, e.clientY); });
+  main.addEventListener("pointerdown", e => { if (e.button === 0 && e.target.closest(".stage") && Z.s > 1) Z.down = {x: e.clientX, y: e.clientY, ox: Z.x, oy: Z.y}; });
+  main.addEventListener("pointermove", e => {
+    if (!Z.down) return;
+    const dx = e.clientX - Z.down.x, dy = e.clientY - Z.down.y;
+    if (!Z.moved && Math.hypot(dx, dy) < 5) return;
+    if (!Z.moved) { Z.moved = true; main.setPointerCapture(e.pointerId); main.classList.add("dragging"); }
+    Z.x = Z.down.ox + dx; Z.y = Z.down.oy + dy; apply();
+  });
+  const up = () => { Z.down = null; main.classList.remove("dragging"); setTimeout(() => { Z.moved = false; }, 0); };
+  main.addEventListener("pointerup", up); main.addEventListener("pointercancel", up);
+  main.addEventListener("click", e => { if (Z.moved) { e.stopPropagation(); e.preventDefault(); } }, true);
+  document.querySelectorAll(".zoombar button").forEach(b => b.onclick = () =>
+    b.dataset.z === "fit" ? (Z.s = 1, Z.x = Z.y = 0, apply()) : zoom(b.dataset.z === "in" ? 1.4 : 1 / 1.4));
+})();
 </script>
 </body>
 </html>

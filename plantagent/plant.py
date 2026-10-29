@@ -764,6 +764,20 @@ class PlantWorkspace(Study):
         self._commit(r)
         return {**v, "revisions": self.revisions}
 
+    def correct(self, spec, title, user=None, reason=None):
+        """An engineer's correction of the built model itself (wrong connection, double-counted unit), not a plant change:
+        kept as its own revision kind with an audit entry, so the as-built model and the fix stay visible."""
+        if not (reason or "").strip():
+            raise ValueError("a reason for the correction is required")
+        cap = process.capacity(spec)
+        r = {"rev": len(self.revisions) + 1, "kind": "correction", "title": title, "changes": [], "spec_before": self.built["spec"],
+             "spec_after": spec, "capacity_multiple": cap.get("capacity_multiple"), "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+             "user": user, "reason": reason}
+        r["audit"] = audit.append(self.name, "correct_model", user, reason, {"rev": r["rev"], "title": title,
+                                  "capacity_multiple": r["capacity_multiple"]})["hash"]
+        self._commit(r)
+        return {"capacity": cap, "revisions": self.revisions}
+
     def restore(self, rev, user=None, reason=None):
         """Return the model to how it was before revision `rev` (0 = as built). History is kept: the return is itself a
         new revision with its own audit entry."""

@@ -34,13 +34,22 @@ numbers, valves and relief settings are ours). Equipment ratings marked ILLUSTRA
 - K-201 suction capacity: 226.8 t/h (the patent's fixed compressor throughput). Shaft power: not stated in the patent.
 - E-201 circulating heater: 8,800 m², U 2,000 W/m²K in service (ILLUSTRATIVE; 2,500 W/m²K clean).
 - P-201 forced-circulation pump: 15,000 m³/h rated (ILLUSTRATIVE).
-- E-301 purge-evaporator heater: 900 m² (ILLUSTRATIVE).
+- E-301 purge-evaporator heater: 1,500 m², U 1,500 W/m²K (ILLUSTRATIVE).
 - Relief: PSV-201 on V-201 set 3.5 barg, PSV-202 on D-201 set 4.5 barg, PSV-301 on V-301 set 1.0 barg (ours).
 
 ## Process requirements and design rules
 - Brine temperature rise through E-201 at most 3 K: a larger rise flashes in the tubes and scales them with salt.
 - Condensate leaves E-201 saturated at the shell pressure.
 - The brine boils above the steam saturation temperature by its boiling point elevation (use the brine_bpe tool).
+
+## Modelling scope (from the plant's process engineer)
+- The capacity question is decided by the VRC loop: V-201 boil-up, K-201, D-201 and the circulating heater E-201, plus the
+  purge evaporator V-301 with E-301 that takes the excess vapour. Model that loop in detail.
+- The feed preheat train (P-101, E-101, E-102) is not in question: take the brine entering V-201 from Table I (264.9 t/h
+  at 125.6 °C, plus 98.0 t/h elutriating brine at 60 °C, both scaling with throughput) instead of closing the
+  condensate-to-brine heat-recovery loops.
+- Turbine exhaust steam joining the compressor discharge: 15.9 t/h at 3.08 bar(a), fixed (the gas turbine does not
+  grow with salt production).
 
 ## Request
 Sales wants the plant to make **3,000 short tons per day instead of 2,500 (+20 %)**.

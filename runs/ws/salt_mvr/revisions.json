@@ -1,0 +1,575 @@
+[
+ {
+  "rev": 1,
+  "kind": "correction",
+  "title": "Heating steam taken from the compressor discharge (model review)",
+  "changes": [],
+  "spec_before": {
+   "compounds": [
+    "Water"
+   ],
+   "package": "Steam Tables (IAPWS-IF97)",
+   "feeds": {
+    "S1004mix": {
+     "T_C": 108,
+     "P_bar": 2.4,
+     "kg_h": 362900,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "S3003FEED": {
+     "T_C": 135,
+     "P_bar": 3.08,
+     "kg_h": 251700,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "TURBINE_EXH": {
+     "T_C": 200,
+     "P_bar": 3.08,
+     "kg_h": 15900,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "CIRC_S2001": {
+     "T_C": 125.6,
+     "P_bar": 2.73,
+     "kg_h": 17850000,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "PURGEFEED": {
+     "T_C": 125.6,
+     "P_bar": 1.7,
+     "kg_h": 47600,
+     "x": {
+      "Water": 1.0
+     }
+    }
+   },
+   "units": [
+    {
+     "id": "V-201",
+     "type": "evaporator",
+     "in": "S1004mix",
+     "vapor": "S3001raw",
+     "liquid": "S2001slurry",
+     "P_bar": 1.7,
+     "evap_frac": 0.6825,
+     "heating": [
+      "S3003FEED",
+      "S4001"
+     ],
+     "U_W_m2K": 2000,
+     "area_m2": 8800
+    },
+    {
+     "id": "OVERHEAD_SPLIT",
+     "type": "splitter",
+     "in": "S3001raw",
+     "out": [
+      "S3101",
+      "S3001"
+     ],
+     "fixed_kg_h": {
+      "S3101": 20900
+     }
+    },
+    {
+     "id": "K-201",
+     "type": "compressor",
+     "in": "S3001",
+     "out": "S3002raw",
+     "P_out_bar": 3.08,
+     "eff_pct": 75
+    },
+    {
+     "id": "D-201MIX",
+     "type": "mixer",
+     "in": [
+      "S3002raw",
+      "TURBINE_EXH"
+     ],
+     "out": "S3002"
+    },
+    {
+     "id": "D-201",
+     "type": "cooler",
+     "in": "S3002",
+     "out": "S3003",
+     "T_out_C": 135,
+     "scales": false
+    },
+    {
+     "id": "P-201",
+     "type": "pump",
+     "in": "CIRC_S2001",
+     "out": "S2002",
+     "dP_bar": 1.33,
+     "eff_pct": 80
+    },
+    {
+     "id": "E-201",
+     "type": "hx",
+     "hot": [
+      "S3003",
+      "S4001hx"
+     ],
+     "cold": [
+      "S2002",
+      "S2003"
+     ],
+     "U_W_m2K": 2000,
+     "area_m2": 8800,
+     "hot_out_T_C": 134.4
+    },
+    {
+     "id": "5001/FV-301",
+     "type": "valve",
+     "in": "PURGEFEED",
+     "out": "S5001",
+     "P_out_bar": 1.01
+    },
+    {
+     "id": "V-301",
+     "type": "evaporator",
+     "in": "S5001",
+     "vapor": "S3201raw",
+     "liquid": "S5101",
+     "P_bar": 1.01,
+     "evap_frac": 0.857,
+     "heating": [
+      "S3101",
+      "S4101"
+     ],
+     "U_W_m2K": 1500,
+     "area_m2": 900
+    }
+   ],
+   "limits": {
+    "K-201": {
+     "max_kg_h": 226800,
+     "max_kW": 14000
+    },
+    "V-201": {
+     "area_m2": 8800
+    },
+    "E-201": {
+     "area_m2": 8800,
+     "out_T_C": 128.6,
+     "side": "cold"
+    },
+    "V-301": {
+     "area_m2": 900
+    }
+   }
+  },
+  "spec_after": {
+   "compounds": [
+    "Water"
+   ],
+   "package": "Steam Tables (IAPWS-IF97)",
+   "feeds": {
+    "S1004mix": {
+     "T_C": 108,
+     "P_bar": 2.4,
+     "kg_h": 362900,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "TURBINE_EXH": {
+     "T_C": 200,
+     "P_bar": 3.08,
+     "kg_h": 15900,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "CIRC_S2001": {
+     "T_C": 125.6,
+     "P_bar": 2.73,
+     "kg_h": 17850000,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "PURGEFEED": {
+     "T_C": 125.6,
+     "P_bar": 1.7,
+     "kg_h": 47600,
+     "x": {
+      "Water": 1.0
+     }
+    }
+   },
+   "units": [
+    {
+     "id": "V-201",
+     "type": "evaporator",
+     "in": "S1004mix",
+     "vapor": "S3001raw",
+     "liquid": "S2001slurry",
+     "P_bar": 1.7,
+     "evap_frac": 0.6825,
+     "heating": [
+      "S3002",
+      "S4001"
+     ],
+     "U_W_m2K": 2000,
+     "area_m2": 8800
+    },
+    {
+     "id": "OVERHEAD_SPLIT",
+     "type": "splitter",
+     "in": "S3001raw",
+     "out": [
+      "S3101",
+      "S3001"
+     ],
+     "fractions": [
+      0.0843762616067824,
+      0.9156237383932176
+     ]
+    },
+    {
+     "id": "K-201",
+     "type": "compressor",
+     "in": "S3001",
+     "out": "S3002raw",
+     "P_out_bar": 3.08,
+     "eff_pct": 75
+    },
+    {
+     "id": "D-201MIX",
+     "type": "mixer",
+     "in": [
+      "S3002raw",
+      "TURBINE_EXH"
+     ],
+     "out": "S3002"
+    },
+    {
+     "id": "P-201",
+     "type": "pump",
+     "in": "CIRC_S2001",
+     "out": "S2002",
+     "dP_bar": 1.33,
+     "eff_pct": 80
+    },
+    {
+     "id": "5001/FV-301",
+     "type": "valve",
+     "in": "PURGEFEED",
+     "out": "S5001",
+     "P_out_bar": 1.01
+    },
+    {
+     "id": "V-301",
+     "type": "evaporator",
+     "in": "S5001",
+     "vapor": "S3201raw",
+     "liquid": "S5101",
+     "P_bar": 1.01,
+     "evap_frac": 0.857,
+     "heating": [
+      "S3101",
+      "S4101"
+     ],
+     "U_W_m2K": 1500,
+     "area_m2": 900
+    }
+   ],
+   "limits": {
+    "K-201": {
+     "max_kg_h": 226800,
+     "max_kW": 14000
+    },
+    "V-201": {
+     "area_m2": 8800
+    },
+    "V-301": {
+     "area_m2": 900
+    }
+   }
+  },
+  "capacity_multiple": 1.001,
+  "at": "2026-10-29T22:21:42+0300",
+  "user": "model review",
+  "reason": "As built, V-201 was heated by a separate fixed 251.7 t/h steam feed while the K-201 discharge went to a second copy of the heater (E-201), so the compressor did not limit the boil-up. Corrected: V-201 heating = K-201 discharge + turbine exhaust (E-201 is V-201's heater, not a second one); desuperheating as spray mixing, not heat removed (the superheat stays in the steam); excess vapour to E-301 as 8.4 % of boil-up (20.9 of 247.7 t/h, Table I) so it scales.",
+  "audit": "0fb865e6d1f5ea8cf530e0330c788b51f8e60a99366b03ab7ced79e78c5b4316"
+ },
+ {
+  "rev": 2,
+  "kind": "correction",
+  "title": "Purge evaporator: liquid feed, boil-off set by its heating steam (model review)",
+  "changes": [],
+  "spec_before": {
+   "compounds": [
+    "Water"
+   ],
+   "package": "Steam Tables (IAPWS-IF97)",
+   "feeds": {
+    "S1004mix": {
+     "T_C": 108,
+     "P_bar": 2.4,
+     "kg_h": 362900,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "TURBINE_EXH": {
+     "T_C": 200,
+     "P_bar": 3.08,
+     "kg_h": 15900,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "CIRC_S2001": {
+     "T_C": 125.6,
+     "P_bar": 2.73,
+     "kg_h": 17850000,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "PURGEFEED": {
+     "T_C": 125.6,
+     "P_bar": 1.7,
+     "kg_h": 47600,
+     "x": {
+      "Water": 1.0
+     }
+    }
+   },
+   "units": [
+    {
+     "id": "V-201",
+     "type": "evaporator",
+     "in": "S1004mix",
+     "vapor": "S3001raw",
+     "liquid": "S2001slurry",
+     "P_bar": 1.7,
+     "evap_frac": 0.6825,
+     "heating": [
+      "S3002",
+      "S4001"
+     ],
+     "U_W_m2K": 2000,
+     "area_m2": 8800
+    },
+    {
+     "id": "OVERHEAD_SPLIT",
+     "type": "splitter",
+     "in": "S3001raw",
+     "out": [
+      "S3101",
+      "S3001"
+     ],
+     "fractions": [
+      0.0843762616067824,
+      0.9156237383932176
+     ]
+    },
+    {
+     "id": "K-201",
+     "type": "compressor",
+     "in": "S3001",
+     "out": "S3002raw",
+     "P_out_bar": 3.08,
+     "eff_pct": 75
+    },
+    {
+     "id": "D-201MIX",
+     "type": "mixer",
+     "in": [
+      "S3002raw",
+      "TURBINE_EXH"
+     ],
+     "out": "S3002"
+    },
+    {
+     "id": "P-201",
+     "type": "pump",
+     "in": "CIRC_S2001",
+     "out": "S2002",
+     "dP_bar": 1.33,
+     "eff_pct": 80
+    },
+    {
+     "id": "5001/FV-301",
+     "type": "valve",
+     "in": "PURGEFEED",
+     "out": "S5001",
+     "P_out_bar": 1.01
+    },
+    {
+     "id": "V-301",
+     "type": "evaporator",
+     "in": "S5001",
+     "vapor": "S3201raw",
+     "liquid": "S5101",
+     "P_bar": 1.01,
+     "evap_frac": 0.857,
+     "heating": [
+      "S3101",
+      "S4101"
+     ],
+     "U_W_m2K": 1500,
+     "area_m2": 900
+    }
+   ],
+   "limits": {
+    "K-201": {
+     "max_kg_h": 226800,
+     "max_kW": 14000
+    },
+    "V-201": {
+     "area_m2": 8800
+    },
+    "V-301": {
+     "area_m2": 900
+    }
+   }
+  },
+  "spec_after": {
+   "compounds": [
+    "Water"
+   ],
+   "package": "Steam Tables (IAPWS-IF97)",
+   "feeds": {
+    "S1004mix": {
+     "T_C": 108,
+     "P_bar": 2.4,
+     "kg_h": 362900,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "TURBINE_EXH": {
+     "T_C": 200,
+     "P_bar": 3.08,
+     "kg_h": 15900,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "CIRC_S2001": {
+     "T_C": 125.6,
+     "P_bar": 2.73,
+     "kg_h": 17850000,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "PURGEFEED": {
+     "T_C": 125.6,
+     "P_bar": 2.73,
+     "kg_h": 47600,
+     "x": {
+      "Water": 1.0
+     }
+    }
+   },
+   "units": [
+    {
+     "id": "V-201",
+     "type": "evaporator",
+     "in": "S1004mix",
+     "vapor": "S3001raw",
+     "liquid": "S2001slurry",
+     "P_bar": 1.7,
+     "evap_frac": 0.6825,
+     "heating": [
+      "S3002",
+      "S4001"
+     ],
+     "U_W_m2K": 2000,
+     "area_m2": 8800
+    },
+    {
+     "id": "OVERHEAD_SPLIT",
+     "type": "splitter",
+     "in": "S3001raw",
+     "out": [
+      "S3101",
+      "S3001"
+     ],
+     "fractions": [
+      0.0843762616067824,
+      0.9156237383932176
+     ]
+    },
+    {
+     "id": "K-201",
+     "type": "compressor",
+     "in": "S3001",
+     "out": "S3002raw",
+     "P_out_bar": 3.08,
+     "eff_pct": 75
+    },
+    {
+     "id": "D-201MIX",
+     "type": "mixer",
+     "in": [
+      "S3002raw",
+      "TURBINE_EXH"
+     ],
+     "out": "S3002"
+    },
+    {
+     "id": "P-201",
+     "type": "pump",
+     "in": "CIRC_S2001",
+     "out": "S2002",
+     "dP_bar": 1.33,
+     "eff_pct": 80
+    },
+    {
+     "id": "5001/FV-301",
+     "type": "valve",
+     "in": "PURGEFEED",
+     "out": "S5001",
+     "P_out_bar": 1.01
+    },
+    {
+     "id": "V-301",
+     "type": "evaporator",
+     "in": "S5001",
+     "vapor": "S3201raw",
+     "liquid": "S5101",
+     "P_bar": 1.01,
+     "evap_frac": 0.44,
+     "heating": [
+      "S3101",
+      "S4101"
+     ],
+     "U_W_m2K": 1500,
+     "area_m2": 1500
+    }
+   ],
+   "limits": {
+    "K-201": {
+     "max_kg_h": 226800,
+     "max_kW": 14000
+    },
+    "V-201": {
+     "area_m2": 8800
+    },
+    "V-301": {
+     "area_m2": 1500
+    }
+   }
+  },
+  "capacity_multiple": 1.001,
+  "at": "2026-10-29T22:28:11+0300",
+  "user": "model review",
+  "reason": "The purge liquor (line 5001) was given at 125.6 C and 1.70 bar(a): in the water stand-in that is steam (the brine is liquid only through its BPE), which gave a negative V-301 duty. It now leaves at the circulation-pump pressure (2.73 bar(a)) and flashes through FV-301. V-301 boil-off set to 44 % of its feed (~21 t/h): the 25.4 t/h overheads in Table I include the desuperheating water, and the 20.9 t/h of heating vapour cannot boil more. E-301 area 1,500 m2 (illustrative rating, data sheet updated; the patent gives none).",
+  "audit": "feacb137dd6d003472c4486be040f1813dedc5a5dedacaf1083686e4fd231d88"
+ }
+]

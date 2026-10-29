@@ -1,0 +1,1061 @@
+{
+ "label": "vrc_cal_v2_desup_hx",
+ "spec": {
+  "compounds": [
+   "Water"
+  ],
+  "package": "Steam Tables (IAPWS-IF97)",
+  "feeds": {
+   "S1004mix": {
+    "T_C": 108,
+    "P_bar": 2.4,
+    "kg_h": 362900,
+    "x": {
+     "Water": 1.0
+    }
+   },
+   "S3003FEED": {
+    "T_C": 135,
+    "P_bar": 3.08,
+    "kg_h": 251700,
+    "x": {
+     "Water": 1.0
+    }
+   },
+   "TURBINE_EXH": {
+    "T_C": 200,
+    "P_bar": 3.08,
+    "kg_h": 15900,
+    "x": {
+     "Water": 1.0
+    }
+   },
+   "CIRC_S2001": {
+    "T_C": 125.6,
+    "P_bar": 2.73,
+    "kg_h": 17850000,
+    "x": {
+     "Water": 1.0
+    }
+   },
+   "PURGEFEED": {
+    "T_C": 125.6,
+    "P_bar": 1.7,
+    "kg_h": 47600,
+    "x": {
+     "Water": 1.0
+    }
+   }
+  },
+  "units": [
+   {
+    "id": "V-201",
+    "type": "evaporator",
+    "in": "S1004mix",
+    "vapor": "S3001raw",
+    "liquid": "S2001slurry",
+    "P_bar": 1.7,
+    "evap_frac": 0.6825,
+    "heating": [
+     "S3003FEED",
+     "S4001"
+    ],
+    "U_W_m2K": 2000,
+    "area_m2": 8800
+   },
+   {
+    "id": "OVERHEAD_SPLIT",
+    "type": "splitter",
+    "in": "S3001raw",
+    "out": [
+     "S3101",
+     "S3001"
+    ],
+    "fixed_kg_h": {
+     "S3101": 20900
+    }
+   },
+   {
+    "id": "K-201",
+    "type": "compressor",
+    "in": "S3001",
+    "out": "S3002raw",
+    "P_out_bar": 3.08,
+    "eff_pct": 75
+   },
+   {
+    "id": "D-201MIX",
+    "type": "mixer",
+    "in": [
+     "S3002raw",
+     "TURBINE_EXH"
+    ],
+    "out": "S3002"
+   },
+   {
+    "id": "D-201",
+    "type": "cooler",
+    "in": "S3002",
+    "out": "S3003",
+    "T_out_C": 135,
+    "scales": false
+   },
+   {
+    "id": "P-201",
+    "type": "pump",
+    "in": "CIRC_S2001",
+    "out": "S2002",
+    "dP_bar": 1.33,
+    "eff_pct": 80
+   },
+   {
+    "id": "E-201",
+    "type": "hx",
+    "hot": [
+     "S3003",
+     "S4001hx"
+    ],
+    "cold": [
+     "S2002",
+     "S2003"
+    ],
+    "U_W_m2K": 2000,
+    "area_m2": 8800,
+    "hot_out_T_C": 134.4
+   },
+   {
+    "id": "5001/FV-301",
+    "type": "valve",
+    "in": "PURGEFEED",
+    "out": "S5001",
+    "P_out_bar": 1.01
+   },
+   {
+    "id": "V-301",
+    "type": "evaporator",
+    "in": "S5001",
+    "vapor": "S3201raw",
+    "liquid": "S5101",
+    "P_bar": 1.01,
+    "evap_frac": 0.857,
+    "heating": [
+     "S3101",
+     "S4101"
+    ],
+    "U_W_m2K": 1500,
+    "area_m2": 900
+   }
+  ],
+  "limits": {
+   "K-201": {
+    "max_kg_h": 226800,
+    "max_kW": 14000
+   },
+   "V-201": {
+    "area_m2": 8800
+   },
+   "E-201": {
+    "area_m2": 8800,
+    "out_T_C": 128.6,
+    "side": "cold"
+   },
+   "V-301": {
+    "area_m2": 900
+   }
+  }
+ },
+ "result": {
+  "scale": 1.0,
+  "errors": [],
+  "streams": {
+   "S1004mix": {
+    "T_C": 108.0,
+    "P_bar": 2.4,
+    "kg_h": 362900.0,
+    "m3_h": 380.99,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 362900.0
+    }
+   },
+   "S3003FEED": {
+    "T_C": 135.0,
+    "P_bar": 3.08,
+    "kg_h": 251700.0,
+    "m3_h": 149004.52,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 251700.0
+    }
+   },
+   "TURBINE_EXH": {
+    "T_C": 200.0,
+    "P_bar": 3.08,
+    "kg_h": 15900.0,
+    "m3_h": 11090.7,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 15900.0
+    }
+   },
+   "CIRC_S2001": {
+    "T_C": 125.6,
+    "P_bar": 2.73,
+    "kg_h": 17850000.0,
+    "m3_h": 19018.83,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 17850000.0
+    }
+   },
+   "PURGEFEED": {
+    "T_C": 125.6,
+    "P_bar": 1.7,
+    "kg_h": 47600.0,
+    "m3_h": 50549.3,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 47600.0
+    }
+   },
+   "V-201-in": {
+    "T_C": 108.01,
+    "P_bar": 1.7,
+    "kg_h": 362900.0,
+    "m3_h": 381.01,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 362900.0
+    }
+   },
+   "V-201-part0": {
+    "T_C": 108.01,
+    "P_bar": 1.7,
+    "kg_h": 247679.2,
+    "m3_h": 260.04,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 247679.25
+    }
+   },
+   "S3001raw": {
+    "T_C": 115.15,
+    "P_bar": 1.7,
+    "kg_h": 247679.2,
+    "m3_h": 255415.96,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 247679.25
+    }
+   },
+   "V-201-part1": {
+    "T_C": 108.01,
+    "P_bar": 1.7,
+    "kg_h": 115220.8,
+    "m3_h": 120.97,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 115220.75
+    }
+   },
+   "S2001slurry": {
+    "T_C": 115.15,
+    "P_bar": 1.7,
+    "kg_h": 115220.8,
+    "m3_h": 121.67,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 115220.75
+    }
+   },
+   "S4001": {
+    "T_C": 134.43,
+    "P_bar": 3.08,
+    "kg_h": 251700.0,
+    "m3_h": 270.34,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 251700.0
+    }
+   },
+   "S3101": {
+    "T_C": 115.15,
+    "P_bar": 1.7,
+    "kg_h": 20900.0,
+    "m3_h": 21552.89,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 20900.0
+    }
+   },
+   "S3001": {
+    "T_C": 115.15,
+    "P_bar": 1.7,
+    "kg_h": 226779.2,
+    "m3_h": 233863.52,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 226779.25
+    }
+   },
+   "S3002raw": {
+    "T_C": 191.49,
+    "P_bar": 3.08,
+    "kg_h": 226779.2,
+    "m3_h": 155133.83,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 226779.25
+    }
+   },
+   "S3002": {
+    "T_C": 192.05,
+    "P_bar": 3.08,
+    "kg_h": 242679.2,
+    "m3_h": 166224.56,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 242679.25
+    }
+   },
+   "S3003": {
+    "T_C": 135.0,
+    "P_bar": 3.08,
+    "kg_h": 242679.2,
+    "m3_h": 143664.28,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 242679.25
+    }
+   },
+   "S2002": {
+    "T_C": 125.62,
+    "P_bar": 4.06,
+    "kg_h": 17850000.0,
+    "m3_h": 19017.79,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 17850000.0
+    }
+   },
+   "S2003": {
+    "T_C": 132.52,
+    "P_bar": 4.06,
+    "kg_h": 17850000.0,
+    "m3_h": 19137.11,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 17850000.0
+    }
+   },
+   "S4001hx": {
+    "T_C": 134.4,
+    "P_bar": 3.08,
+    "kg_h": 242679.2,
+    "m3_h": 260.65,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 242679.25
+    }
+   },
+   "S5001": {
+    "T_C": 122.21,
+    "P_bar": 1.01,
+    "kg_h": 47600.0,
+    "m3_h": 85005.15,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 47600.0
+    }
+   },
+   "V-301-in": {
+    "T_C": 122.21,
+    "P_bar": 1.01,
+    "kg_h": 47600.0,
+    "m3_h": 85005.15,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 47600.0
+    }
+   },
+   "V-301-part0": {
+    "T_C": 122.21,
+    "P_bar": 1.01,
+    "kg_h": 40793.2,
+    "m3_h": 72849.41,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 40793.2
+    }
+   },
+   "S3201raw": {
+    "T_C": 99.88,
+    "P_bar": 1.01,
+    "kg_h": 40793.2,
+    "m3_h": 68464.23,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 40793.2
+    }
+   },
+   "V-301-part1": {
+    "T_C": 122.21,
+    "P_bar": 1.01,
+    "kg_h": 6806.8,
+    "m3_h": 12155.74,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 6806.8
+    }
+   },
+   "S5101": {
+    "T_C": 99.88,
+    "P_bar": 1.01,
+    "kg_h": 6806.8,
+    "m3_h": 7.1,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 6806.8
+    }
+   },
+   "S4101": {
+    "T_C": 115.15,
+    "P_bar": 1.7,
+    "kg_h": 20900.0,
+    "m3_h": 22.07,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 20900.0
+    }
+   }
+  },
+  "units": {
+   "V-201": {
+    "type": "evaporator",
+    "boil_kW": 155479.5,
+    "vapour_kg_h": 247679.0,
+    "brine_T_C": 124.86,
+    "bpe_K": 9.69,
+    "salt_kg_h": 99941.0,
+    "heating_kW": 151166.7,
+    "condensing_C": 134.43,
+    "driving_dT_K": 9.57,
+    "heat_balance_kW": -4312.7,
+    "area_needed_m2": 8127.0,
+    "area_m2": 8800,
+    "U_W_m2K": 2000
+   },
+   "OVERHEAD_SPLIT": {
+    "type": "splitter"
+   },
+   "K-201": {
+    "type": "compressor",
+    "duty_kW": 9399.29,
+    "kW": 9399.29,
+    "discharge_C": 191.5
+   },
+   "D-201MIX": {
+    "type": "mixer"
+   },
+   "D-201": {
+    "type": "cooler",
+    "duty_kW": 8208.01
+   },
+   "P-201": {
+    "type": "pump",
+    "m3_h": 19018.83,
+    "head_m": 14.45,
+    "dP_bar": 1.33,
+    "eff_pct": 80.0,
+    "kW": 878.3,
+    "npsha_m": 3.96,
+    "discharge_barg": 3.047,
+    "kind": "centrifugal"
+   },
+   "E-201": {
+    "type": "hx",
+    "duty_kW": 145756.2,
+    "lmtd_C": 4.99,
+    "U_W_m2K": 3321.8,
+    "area_m2": 8800.0,
+    "dP_hot_bar": 0.0,
+    "dP_cold_bar": 0.0
+   },
+   "5001/FV-301": {
+    "type": "valve",
+    "dP_bar": 0.69
+   },
+   "V-301": {
+    "type": "evaporator",
+    "boil_kW": -4869.7,
+    "vapour_kg_h": 40793.0,
+    "brine_T_C": 108.68,
+    "bpe_K": 8.72,
+    "salt_kg_h": 16054.0,
+    "heating_kW": 12862.9,
+    "condensing_C": 115.15,
+    "driving_dT_K": 6.47,
+    "heat_balance_kW": 17732.6,
+    "area_needed_m2": -502.0,
+    "area_m2": 900,
+    "U_W_m2K": 1500
+   }
+  },
+  "checks": [
+   {
+    "id": "V-201",
+    "check": "boil-up duty vs heat from the heating steam",
+    "value": 155479.5,
+    "limit": 151166.7,
+    "unit": "kW",
+    "utilisation": 1.029
+   },
+   {
+    "id": "K-201",
+    "check": "suction flow vs capacity",
+    "value": 226779.2,
+    "limit": 226800,
+    "unit": "kg/h",
+    "utilisation": 1.0
+   },
+   {
+    "id": "V-201",
+    "check": "heater area needed (BPE included) vs installed",
+    "value": 8127.0,
+    "limit": 8800,
+    "unit": "m2",
+    "utilisation": 0.924
+   },
+   {
+    "id": "K-201",
+    "check": "shaft power vs motor",
+    "value": 9399.29,
+    "limit": 14000,
+    "unit": "kW",
+    "utilisation": 0.671
+   },
+   {
+    "id": "E-201",
+    "check": "area needed for cold outlet 128.6 C",
+    "value": 2512.8,
+    "limit": 8800,
+    "unit": "m2",
+    "utilisation": 0.286
+   },
+   {
+    "id": "V-301",
+    "check": "boil-up duty vs heat from the heating steam",
+    "value": -4869.7,
+    "limit": 12862.9,
+    "unit": "kW",
+    "utilisation": -0.379
+   },
+   {
+    "id": "V-301",
+    "check": "heater area needed (BPE included) vs installed",
+    "value": -502.0,
+    "limit": 900,
+    "unit": "m2",
+    "utilisation": -0.558
+   }
+  ]
+ },
+ "mapping": [
+  {
+   "tag": "V-201",
+   "modelled_as": "evaporator unit id V-201, P_bar 1.70, evap_frac 0.6825, heating S3003FEED->S4001, U 2000, area 8800",
+   "source": "P&ID equipment V-201 Vessel DesignPressure 3.5 BarGauge, NominalCapacity 450 m3; data sheet V-201 rows"
+  },
+  {
+   "tag": "K-201",
+   "modelled_as": "compressor unit id K-201, in S3001 out S3002raw, P_out 3.08 bar, eff 75%",
+   "source": "P&ID K-201 CentrifugalCompressor DesignPressureRatio 1.8 DesignShaftPower 14000 kW; data sheet K-201 rows"
+  },
+  {
+   "tag": "D-201",
+   "modelled_as": "mixer K201_TURB_MIX (turbine exhaust join) + cooler unit id D-201 to 135 C",
+   "source": "P&ID D-201 Desuperheater, lines 3002 in / 3003 out; data sheet D-201/line 3003 row"
+  },
+  {
+   "tag": "E-201",
+   "modelled_as": "hx unit id E-201, hot S3003v->S4001hx hot_out 134.4 C, cold S2002->S2003, U 2000 area 8800",
+   "source": "P&ID E-201 TubularHeatExchanger DesignHeatTransferArea 6500 m2 superseded by data sheet 8800 m2 - conflict in assumptions"
+  },
+  {
+   "tag": "P-201",
+   "modelled_as": "pump unit id P-201, in CIRC_S2001 out S2002, dP 1.33 bar eff 80%",
+   "source": "P&ID P-201 DesignVolumeFlowRate 12000 m3/h superseded by data sheet 15000 m3/h; lines 2001/2002"
+  },
+  {
+   "tag": "V-301",
+   "modelled_as": "evaporator unit id V-301, P_bar 1.01, evap_frac 0.857, heating S3101v->S4101 area 900",
+   "source": "P&ID V-301 Vessel DesignPressure 1 BarGauge NominalCapacity 120 m3; data sheet V-301 rows"
+  },
+  {
+   "tag": "E-301",
+   "modelled_as": "heating side of V-301 evaporator (S3101v condensing to S4101, area 900, U 1500 assumed for purge heater)",
+   "source": "P&ID E-301 DesignHeatTransferArea 900 m2; data sheet E-301 900 m2; lines 2101/2102/3101/4101"
+  },
+  {
+   "tag": "1004/LV-201",
+   "modelled_as": "valve unit id 1004/LV-201 in calibration sequence vrc_cal_v1, P_out 2.4 bar on S1004",
+   "source": "P&ID valve 1004/LV-201 GlobeValve on line 1004 E-102 to V-201"
+  },
+  {
+   "tag": "3001/C1",
+   "modelled_as": "valve on line 3001 in vrc_cal_v1 sequence, dP 0.02 bar before K-201",
+   "source": "P&ID valve 3001/C1 ButterflyValve line 3001 V-201 to K-201"
+  },
+  {
+   "tag": "3101/C1",
+   "modelled_as": "valve unit 3101/C1 dP 0.05 bar on excess vapour S3101",
+   "source": "P&ID valve 3101/C1 GateValve line 3101 V-201 to E-301"
+  },
+  {
+   "tag": "3003/C1",
+   "modelled_as": "valve on S3003 to E-201 in final topology (dP 0.02 bar in sequenced variant)",
+   "source": "P&ID valve 3003/C1 GateValve line 3003 D-201 to E-201"
+  },
+  {
+   "tag": "5001/FV-301",
+   "modelled_as": "valve unit id 5001/FV-301, purge feed to V-301",
+   "source": "P&ID valve 5001/FV-301 GlobeValve line 5001 V-201 to V-301"
+  },
+  {
+   "tag": "5101/C1",
+   "modelled_as": "valve on V-301 liquid outlet S5101 in sequenced variant, dP 0.05 bar",
+   "source": "P&ID valve 5101/C1 GateValve line 5101 V-301 to open-out"
+  },
+  {
+   "tag": "6001/C1",
+   "modelled_as": "valve on V-201 slurry/salt outlet in sequenced variant",
+   "source": "P&ID valve 6001/C1 GateValve line 6001 V-201 to open-out"
+  },
+  {
+   "tag": "7001/PSV-201, 7002/PSV-202, 7003/PSV-301",
+   "modelled_as": "Not process units - no normal flow; entered as pressure limits from set pressures 3.5 / 4.5 / 1 Bar",
+   "source": "P&ID valves PSV set_pressure attributes; relief lines 7001/7002/7003"
+  },
+  {
+   "tag": "P-101, E-101, E-102, T-401",
+   "modelled_as": "Excluded boundary equipment per Modelling scope - feeds/products taken at battery limit, listed in assumptions",
+   "source": "P&ID equipment P-101 300 m3/h, E-101 13000 kW, E-102 16000 kW, T-401 300 m3; data sheet Modelling scope row"
+  }
+ ],
+ "calibration": [
+  {
+   "item": "V-201 brine boiling temperature",
+   "measured": "125.6 C - data sheet Table I row 'V-201 VRC evaporator 1.70 bar(a), brine boiling at 125.6 C'",
+   "simulated": "124.86 C - run vrc_cal_v2_desup_hx, unit V-201 brine_T_C (BPE 9.69 K over 115.15 C water saturation)",
+   "source": "Data sheet Table I; brine_bpe tool at 1.70 bar; logged run vrc_cal_v2_desup_hx"
+  },
+  {
+   "item": "V-201 overhead vapour temperature to K-201 (line 3001)",
+   "measured": "115.2 C saturation at 1.70 bar(a) - data sheet Table I row",
+   "simulated": "115.15 C - run vrc_cal_v2_desup_hx stream S3001raw/S3001",
+   "source": "Data sheet Table I; logged run"
+  },
+  {
+   "item": "V-201 total boil-up vapour flow",
+   "measured": "247.7 t/h implied: 226.8 t/h to K-201 + 20.9 t/h excess to E-301 - data sheet Table I rows",
+   "simulated": "247.679 t/h - run vrc_cal_v2_desup_hx unit V-201 vapour_kg_h 247679 kg/h",
+   "source": "Data sheet Table I; logged run"
+  },
+  {
+   "item": "K-201 suction flow (line 3001)",
+   "measured": "226.8 t/h - data sheet Table I and K-201 suction capacity rating",
+   "simulated": "226.779 t/h - stream S3001; check K-201 suction vs capacity utilisation 1.000 (226779/226800)",
+   "source": "Data sheet Table I / Equipment ratings; P&ID line 3001; logged run checks"
+  },
+  {
+   "item": "Excess V-201 vapour to E-301 (line 3101)",
+   "measured": "20.9 t/h - data sheet Table I row",
+   "simulated": "20.900 t/h - stream S3101, splitter fixed_kg_h",
+   "source": "Data sheet Table I; P&ID line 3101 V-201 to E-301 with 3101/C1"
+  },
+  {
+   "item": "K-201 discharge pressure",
+   "measured": "3.08 bar(a), ratio 1.8 - data sheet Table I row; P&ID K-201 DesignPressureRatio 1.8",
+   "simulated": "3.08 bar - stream S3002raw, compressor P_out_bar",
+   "source": "Data sheet Table I; P&ID K-201 design; logged run"
+  },
+  {
+   "item": "K-201 shaft power vs rating",
+   "measured": "No measured power in data sheet ('Shaft power: not stated in the patent'); limit 14,000 kW P&ID K-201 DesignShaftPower",
+   "simulated": "9,399 kW, discharge 191.5 C - run unit K-201; utilisation 0.671 of 14,000 kW",
+   "source": "P&ID K-201 DesignShaftPower 14000 Kilowatt; logged run"
+  },
+  {
+   "item": "Steam to E-201 after D-201 (line 3003) temperature",
+   "measured": "135 C at 3.08 bar(a), 251.7 t/h incl. 15.9 t/h turbine exhaust - data sheet Table I row",
+   "simulated": "135.0 C - stream S3003 (cooler D-201 T_out_C); flow 242.679 t/h = 226.779 compressed + 15.9 turbine, i.e. 9.0 t/h spray short of 251.7 as stated in assumptions",
+   "source": "Data sheet Table I; P&ID line 3003 D-201 to E-201 with 3003/C1; logged run"
+  },
+  {
+   "item": "E-201 condensate (line 4001)",
+   "measured": "251.7 t/h at 134.4 C saturated - data sheet Table I row and Process requirement 'condensate leaves saturated at shell pressure'",
+   "simulated": "242.679 t/h at 134.4 C - stream S4001hx (hot_out_T_C fixed); flow difference is desuperheater spray per assumption",
+   "source": "Data sheet Table I; logged run E-201"
+  },
+  {
+   "item": "E-201 heater area / duty",
+   "measured": "8,800 m2 installed, U 2,000 W/m2K in service - data sheet Equipment ratings (site data over P&ID 6,500 m2); brine rise at most 3 K requirement",
+   "simulated": "V-201 evaporator area_needed 8,127 m2 vs 8,800 m2 utilisation 0.924, heating 151,167 kW vs boil 155,480 kW utilisation 1.029; separate E-201 hx duty 145,756 kW, cold outlet 132.52 C i.e. rise above 128.6 C limit - FAILS 3 K requirement at modelled circulation",
+   "source": "Data sheet Equipment ratings and Process requirements; logged run checks for V-201 and E-201"
+  },
+  {
+   "item": "Salt production",
+   "measured": "94.9 t/h dry (2,511 short t/d) - data sheet Table I row 'Salt produced'",
+   "simulated": "99.941 t/h - run unit V-201 salt_kg_h (saturated-brine crystalliser model, +5.3% vs measured); V-301 salt 16.05 t/h is purge-brine salt reporting, not added to product",
+   "source": "Data sheet Table I; logged run V-201"
+  },
+  {
+   "item": "Purge liquor V-201 to V-301 (line 5001) and disposal (line 5101)",
+   "measured": "47.6 t/h purge at 125.6 C; 6.8 t/h to disposal at 108.9 C - data sheet Table I rows",
+   "simulated": "Feed 47.6 t/h entered; V-301 liquid S5101 6.807 t/h at 99.88 C water saturation, brine_T 108.68 C vs measured 108.9 C",
+   "source": "Data sheet Table I; P&ID lines 5001 with 5001/FV-301 and 5101 with 5101/C1; logged run"
+  },
+  {
+   "item": "V-301 purge evaporator body",
+   "measured": "about 1.01 bar(a), 108.9 C - data sheet Table I row; overheads 25.4 t/h at 100.6 C after desuperheating quoted for combined overheads",
+   "simulated": "1.01 bar, brine_T 108.68 C (BPE 8.72 K), vapour S3201raw 40.793 t/h at 99.88 C (=47.6-6.8 mass balance), area_needed negative in this run due to flashed-feed artefact - area not claimed calibrated, see assumption",
+   "source": "Data sheet Table I; P&ID V-301 DesignPressure 1 BarGauge; logged run"
+  },
+  {
+   "item": "Feed to V-201 (lines 1004 + elutriating)",
+   "measured": "264.9 t/h at 125.6 C plus 98.0 t/h at 60 C, total 362.9 t/h - data sheet Table I and Modelling scope rows",
+   "simulated": "264.900 + 98.000 t/h feeds, mixer outlet 362.900 t/h at 108.0 C in probe/calibration sequence feeding V-201 at 1.70 bar",
+   "source": "Data sheet Table I / Modelling scope; P&ID line 1004 with 1004/LV-201; logged runs vrc_cal_v1/v2"
+  }
+ ],
+ "assumptions": [
+  "Brine modelled as Water with Steam Tables (IAPWS-IF97) package; saturated crystallising brine in V-201 and V-301 handled by evaporator with x_NaCl omitted, so salt_kg_h and boiling-point elevation are reported by the unit. brine_bpe at 1.70 bar: water 115.17 C, saturated brine 124.86 C, BPE 9.69 K; at 1.01 bar: brine 108.68 C, BPE 8.72 K.",
+  "CONFLICT used site data: E-201 installed area 8,800 m2 from data sheet Equipment ratings row (U 2,000 W/m2K in service) over P&ID E-201 DesignHeatTransferArea 6,500 m2.",
+  "CONFLICT used site data: P-201 rated flow 15,000 m3/h from data sheet Equipment ratings row over P&ID P-201 DesignVolumeFlowRate 12,000 m3/h; this rating is entered as a limit check and the simulated circulation exceeds it - not hidden.",
+  "K-201 shaft-power limit 14,000 kW from P&ID K-201 DesignShaftPower; data sheet states shaft power is not stated in the patent. Suction capacity 226.8 t/h from data sheet Equipment ratings and Table I row for line 3001.",
+  "Feed preheat train P-101, E-101, E-102 and T-401 excluded per data sheet Modelling scope row: 'take the brine entering V-201 from Table I (264.9 t/h at 125.6 C, plus 98.0 t/h elutriating brine at 60 C) instead of closing condensate-to-brine heat-recovery loops'. Their connections 1002,1003,4201,4002,4001,4101,3201 and 4301 are therefore boundary flows, not closed in the VRC model.",
+  "Turbine exhaust 15.9 t/h at 3.08 bar(a) is fixed and does not scale with throughput, per data sheet Modelling scope row; its temperature is not stated, assumed 200 C superheated vapour as a feed - it only affects the D-201 mixer/desuperheating duty, D-201 outlet is fixed at the measured 135 C.",
+  "D-201 desuperheater modelled as a mixer for turbine exhaust followed by cooler unit D-201 fixed at 135 C (data sheet line 3003 row). The condensate spray itself is not recirculated as a material stream because E-201 condensate is produced downstream of D-201 in DWSIM sequence; spray is represented by the cooler duty. Hence simulated S3003/E-201 condensate mass is 242.7 t/h vs measured 251.7 t/h, the 9.0 t/h difference being the spray - stated in calibration.",
+  "V-201 forced-circulation loop 2001-2002-2003 modelled once-through: CIRC_S2001 feed at the measured brine temperature 125.6 C and 1.70 bar vessel pressure plus pump head, through P-201 (dP 1.33 bar, eff 80% assumed - no efficiency on P&ID/data sheet) and E-201 rating, returning as S2003. No recycle unit used because supply temperature is set by V-201 boiling, per instruction for known-temperature loops.",
+  "E-301 is the heating side of evaporator V-301 (heating stream S3101v to S4101, area 900 m2 from P&ID E-301 DesignHeatTransferArea and data sheet) plus, in topology terms, its cold circulation is the V-301 feed; a separate E-301 hx rating was probed separately and not sequenced in the final logged run due to DWSIM double-use of the heating stream - E-301 area check is therefore via V-301 area_needed vs 900 m2.",
+  "Compressor K-201 efficiency 75% assumed (not on P&ID or data sheet), discharge fixed at 3.08 bar(a) (data sheet K-201 discharge row, ratio 1.8 = P&ID DesignPressureRatio).",
+  "V-301 feed in the final run is taken at its measured body condition 108.9 C liquid (data sheet V-301 row / purge disposal row) via valve 5001/FV-301, because feeding 125.6 C vapour-fraction feed flashes in DWSIM and gives negative boil duty; purge mass 47.6 t/h, excess heating vapour 20.9 t/h and disposal 6.8 t/h are all preserved.",
+  "Relief valves 7001/PSV-201 (3.5 Bar, P&ID V-201), 7002/PSV-202 (4.5 Bar) and 7003/PSV-301 (1 Bar) carry no normal flow and are not modelled as process units; vessel pressure limits in the run use P&ID design pressures V-201 3.5 BarGauge and V-301 1 BarGauge converted to absolute (4.51 / 2.01 bar).",
+  "E-201 brine rise requirement at most 3 K (data sheet Process requirements row) entered as E-201 cold outlet limit 125.6+3.0=128.6 C; condensate leaves saturated at shell pressure entered as hot outlet 134.4 C (data sheet E-201 condensate row)."
+ ],
+ "model": "muse-wonder-1.0",
+ "coverage": {
+  "connections": [
+   {
+    "from": "P-101",
+    "to": "E-101",
+    "lines": [
+     "1002"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "E-101",
+    "to": "E-102",
+    "lines": [
+     "1003"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "E-101",
+    "to": "T-401",
+    "lines": [
+     "4201"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "E-102",
+    "to": "T-401",
+    "lines": [
+     "4002"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "E-102",
+    "to": "V-201",
+    "lines": [
+     "1004"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "V-201",
+    "to": "P-201",
+    "lines": [
+     "2001"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "V-201",
+    "to": "E-301",
+    "lines": [
+     "3101"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "V-201",
+    "to": "V-301",
+    "lines": [
+     "5001"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "V-201",
+    "to": "K-201",
+    "lines": [
+     "3001"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "P-201",
+    "to": "E-201",
+    "lines": [
+     "2002"
+    ],
+    "relief_path": false,
+    "modelled": true
+   },
+   {
+    "from": "E-201",
+    "to": "V-201",
+    "lines": [
+     "2003"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "E-201",
+    "to": "E-102",
+    "lines": [
+     "4001"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "K-201",
+    "to": "D-201",
+    "lines": [
+     "3002"
+    ],
+    "relief_path": false,
+    "modelled": true
+   },
+   {
+    "from": "D-201",
+    "to": "E-201",
+    "lines": [
+     "3003"
+    ],
+    "relief_path": false,
+    "modelled": true
+   },
+   {
+    "from": "E-301",
+    "to": "T-401",
+    "lines": [
+     "4101"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "E-301",
+    "to": "V-301",
+    "lines": [
+     "2102"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "V-301",
+    "to": "E-301",
+    "lines": [
+     "2101"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "V-301",
+    "to": "E-101",
+    "lines": [
+     "3201"
+    ],
+    "relief_path": false,
+    "modelled": false
+   }
+  ],
+  "missing_connections": [
+   {
+    "from": "P-101",
+    "to": "E-101",
+    "lines": [
+     "1002"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "E-101",
+    "to": "E-102",
+    "lines": [
+     "1003"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "E-101",
+    "to": "T-401",
+    "lines": [
+     "4201"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "E-102",
+    "to": "T-401",
+    "lines": [
+     "4002"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "E-102",
+    "to": "V-201",
+    "lines": [
+     "1004"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "V-201",
+    "to": "P-201",
+    "lines": [
+     "2001"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "V-201",
+    "to": "E-301",
+    "lines": [
+     "3101"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "V-201",
+    "to": "V-301",
+    "lines": [
+     "5001"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "V-201",
+    "to": "K-201",
+    "lines": [
+     "3001"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "E-201",
+    "to": "V-201",
+    "lines": [
+     "2003"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "E-201",
+    "to": "E-102",
+    "lines": [
+     "4001"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "E-301",
+    "to": "T-401",
+    "lines": [
+     "4101"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "E-301",
+    "to": "V-301",
+    "lines": [
+     "2102"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "V-301",
+    "to": "E-301",
+    "lines": [
+     "2101"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "V-301",
+    "to": "E-101",
+    "lines": [
+     "3201"
+    ],
+    "relief_path": false,
+    "modelled": false
+   }
+  ],
+  "missing_equipment": [
+   "E-101",
+   "E-102",
+   "E-301",
+   "P-101",
+   "T-401"
+  ]
+ },
+ "read_corrections": 0,
+ "seconds": 1096,
+ "cost_usd": 4.0331,
+ "at": "2026-10-29 22:17"
+}

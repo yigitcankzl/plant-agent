@@ -23,7 +23,7 @@ EQ = {
     "D-201": ("Desuperheater", 315, 200, "drum", {}, ["N1", "N2", "N3"]),
     "V-301": ("Vessel", 345, 120, "vessel", {"DesignPressure": (1.0, "BarGauge"), "NominalCapacity(Volume)": (120, "MetreCubed")},
               ["N1", "N2", "N3", "N4", "N5", "N6", "N7"]),
-    "E-301": ("TubularHeatExchanger", 390, 95, "hx", {"DesignHeatTransferArea": (900, "MetreSquared")}, ["N1", "N2", "N3", "N4"]),
+    "E-301": ("TubularHeatExchanger", 390, 95, "hx", {"DesignHeatTransferArea": (1500, "MetreSquared")}, ["N1", "N2", "N3", "N4"]),
     "T-401": ("Tank", 230, 35, "tank", {"NominalCapacity(Volume)": (300, "MetreCubed")}, ["N1", "N2", "N3", "N4"]),
 }
 NAMES = {"P-101": "Feed brine pump", "E-101": "Brine-cooled condenser", "E-102": "Brine preheater", "V-201": "VRC evaporator / crystalliser",

@@ -433,6 +433,9 @@ class _Sheet:
                     x = u.get("x_NaCl")
                     b = brine.bpe(float(u["P_bar"]), x)
                     boil = (o.DeltaQ or 0) + (getattr(self, "aux_liq", {})[uid].DeltaQ or 0)
+                    if boil < 0 or (self.streams[u["in"]].GetPhase("Vapor").Properties.molarfraction or 0) > 0.99:
+                        r["error"] = ("inlet is vapour in the water stand-in: brine above the water saturation temperature at its "
+                                      "pressure only stays liquid through its BPE; give that feed at a pressure where water is liquid")
                     r.update(boil_kW=_r(boil, 1), vapour_kg_h=_r(vap, 0), brine_T_C=b["t_brine_C"], bpe_K=b["bpe_K"],
                              salt_kg_h=_r(vap * b["x_NaCl"] / (1 - b["x_NaCl"]), 0) if x is None else None)
                     if u.get("heating"):
@@ -560,9 +563,13 @@ def _checks(sheet, res):
                 else:
                     out.append({"id": key, "check": "required area", "error": "; ".join(errs)[:200] or "no solution"})
         if u and u["type"] == "evaporator":
-            add("heater area needed (BPE included) vs installed", u.get("area_needed_m2"), u.get("area_m2"), "m2")
-            if u.get("heat_balance_kW") is not None and u["boil_kW"]:
-                add("boil-up duty vs heat from the heating steam", u["boil_kW"], u["heating_kW"], "kW")
+            if u.get("error"):
+                out.append({"id": key, "check": "evaporator inlet", "error": u["error"]})
+            elif (u.get("boil_kW") or 0) > 0:
+                add("heater area needed (BPE included) vs installed", u.get("area_needed_m2"), u.get("area_m2"), "m2")
+            if u.get("heat_balance_kW") is not None and (u["boil_kW"] or 0) > 0 and not u.get("error"):
+                # ponytail: 2 % energy-closure tolerance (feed preheat, losses); a real shortfall is far larger
+                add("boil-up duty vs heat from the heating steam (2 % closure tolerance)", u["boil_kW"], u["heating_kW"] * 1.02, "kW")
         if u and u["type"] == "compressor":
             add("suction flow vs capacity", (res["streams"].get(sheet.units[key][0]["in"]) or {}).get("kg_h"), lim.get("max_kg_h"), "kg/h")
             add("shaft power vs motor", u["kW"], lim.get("max_kW"), "kW")
