@@ -51,6 +51,26 @@ SPEC_HELP = {
              "column: in, distillate, bottoms, light_key, heavy_key (compound names), light_key_in_bottoms and "
              "heavy_key_in_distillate (mole fractions), reflux_ratio, P_bar (shortcut method: reports minimum and actual stages, "
              "minimum reflux, condenser and reboiler duty). "
+             "reactor: kind conversion|equilibrium|cstr|pfr, in, vapor and liquid (conversion, equilibrium, cstr) or out (pfr), "
+             "mode isothermal|adiabatic|outlet_temperature, T_out_C in Celsius, phase Vapor|Liquid|Mixture|Solid, "
+             "reactions [{name, base, stoich {compound: coefficient, products positive}, conversion_pct (conversion), "
+             "approach_K and lnKeq (equilibrium; empty lnKeq uses Gibbs), A, E_J_mol, orders, Tmin_K, Tmax_K, rate_expression (cstr/pfr; "
+             "empty rate_expression is Arrhenius k=A*exp(-E/RT) with E in J/mol, basis 'Molar Concentration', amount mol/m3, rate mol/[m3.s])}]. "
+             "cstr needs volume_m3 and headspace (vapor volume fraction, default 0.1, must be > 0) and a liquid holdup: a vapor-only feed does not react. "
+             "pfr needs volume_m3, or length_m and diameter_m (volume is then pi*d^2/4*L, m). Optional dP_bar. "
+             "Results: conversion_pct of each base compound, duty_kW (DWSIM DeltaQ, kW, negative = heat removed), cooling_kW, T_out_C. "
+             "distillation: rigorous column. in, distillate, bottoms, optional vapor (partial condenser), stages, feed_stage "
+             "(1 = condenser), condenser total|partial|full_reflux, P_bar, dP_bar, subcool_K. One condenser spec and one reboiler spec: "
+             "reflux_ratio, boilup_ratio, distillate_mol_s, bottoms_mol_s, or condenser_spec/reboiler_spec {type, value, units, compound}. "
+             "Spec types: Reflux Ratio, Boilup Ratio, Product Molar Flow Rate (units mol/s), Product Mass Flow Rate, Heat Duty, "
+             "Component Molar Flow Rate, Component Mass Flow Rate, Component Fraction, Component Recovery, Stream Ratio, Temperature, Feed Recovery. "
+             "Results: condenser_kW, reboiler_kW (absolute duties), signed condenser_duty_kW and reboiler_duty_kW, and profile "
+             "[{stage, T_C, P_bar, vapour_kg_h, liquid_kg_h, rho_v_kg_m3, rho_l_kg_m3, sigma_N_m, flood_frac}]. "
+             "dwsim: any allowlisted DWSIM object. class is the ObjectType name, in and out are stream lists mapped onto the first "
+             "material ports in DWSIM's port order (unused ports stay open), energy is an optional energy-stream name or list. "
+             "set {Property: value} in the SI unit documented for that property; enums by name. report lists properties to return. "
+             "A wrong class or property raises an error that lists the valid names. No arbitrary reflection. "
+             "Reactions, feed stage and column specs are not generic properties: use reactor and distillation for those. "
              "recycle: in (the calculated return stream), out (the tear stream used upstream, e.g. into a mixer), guess "
              "{T_C, kg_h} (closes recirculation loops). Streams are created by name the first time they appear. Model EVERY "
              "connection on the P&ID that carries process flow (recirculation loops included) or say why it is excluded.",
@@ -61,7 +81,13 @@ SPEC_HELP = {
               "max_m3_h (utility supply; checked against 90 % of it to keep a margin), max_velocity_m_s and max_dP_bar (pipe; "
               "3 m/s is a typical liquid pump-discharge screen per Grundfos guidance, not a universal limit), "
               "must_be_liquid: true (e.g. condenser outlet), min_T_out_C (cooler or condenser: the lowest outlet its heat sink allows at "
-              "design conditions, e.g. design wet bulb + approach for an evaporative condenser)}}. Values come from the P&ID or datasheets; cite them.",
+              "design conditions, e.g. design wet bulb + approach for an evaporative condenser), "
+              "max_duty_kW (reactor cooling capacity: compared with cooling_kW, the heat the jacket must remove), "
+              "max_T_C on a reactor (outlet temperature), "
+              "diameter_m, tray_spacing_m (default 0.5 m, DWSIM's tray spacing), flood_frac_max (default 0.8) for a distillation column: "
+              "Fair sieve-tray flood fraction from DWSIM's per-stage traffic. DWSIM does not report flooding. "
+              "A unit type with no limit check is reported as 'no limit check for this unit type' and is not treated as within limits. "
+              "Allowlisted classes and SI units: docs/dwsim_units.md.}}. Values come from the P&ID or datasheets; cite them.",
 }
 
 
@@ -81,9 +107,12 @@ def _dwsim():
 def _r(x, n=0):
     """round() that lets an unsolved (None) value through instead of crashing the whole result."""
     try:
-        return round(float(x), n)
+        v = float(x)
     except (TypeError, ValueError):
         return None
+    if v != v or v in (float("inf"), float("-inf")):
+        return None
+    return round(v, n)
 
 
 def _valve_sizing(q_m3_s, rho_kg_m3, dp_bar, rated_cv=None, characteristic="equal_percentage", rangeability=50):
@@ -117,6 +146,241 @@ def _pipe_hydraulics(q_m3_s, rho_kg_m3, mu_pa_s, length_m, diameter_m, roughness
     dp_bar = (rho_kg_m3 * velocity ** 2 / 2 * (f * length_m / diameter_m + fittings_K) +
               rho_kg_m3 * 9.80665 * elevation_m) / 1e5
     return {"velocity_m_s": velocity, "Reynolds": reynolds, "friction_factor": f, "dP_bar": dp_bar}
+
+
+def _prop(unit, kind, values=None):
+    meta = {"unit": unit, "kind": kind}
+    if values:
+        meta["values"] = values
+    return meta
+
+
+_F = lambda u="1": _prop(u, "float")  # noqa: E731
+_I = lambda u="1": _prop(u, "int")  # noqa: E731
+_B = _prop("bool", "bool")
+_S = _prop("text", "str")
+_E = lambda values: _prop("enum", "enum", values)  # noqa: E731
+
+# Settable properties only. Values are DWSIM's stored SI (Pa, K, kW, m, m2, m3) unless the unit says otherwise.
+# Pump and compressor efficiencies are percent, matching the existing wrappers. Enums are set by name.
+DWSIM_ALLOW = {
+    "Pump": {"DeltaP": _F("Pa"), "POut": _F("Pa"), "Eficiencia": _F("percent"), "Efficiency": _F("percent"),
+             "OutletTemperature": _F("K"), "CalcMode": _E(["Delta_P", "OutletPressure", "EnergyStream", "Curves", "Power"])},
+    "Valve": {"DeltaP": _F("Pa"), "PressureDrop": _F("Pa"), "OutletPressure": _F("Pa"), "Kv": _F("Kv"),
+              "CalcMode": _E(["DeltaP", "OutletPressure", "Kv_Liquid", "Kv_Gas", "Kv_Steam", "Kv_General"])},
+    "Heater": {"DeltaQ": _F("kW"), "HeatDuty": _F("kW"), "OutletTemperature": _F("K"), "PressureDrop": _F("Pa"),
+               "TemperatureChange": _F("K"), "Efficiency": _F("fraction"),
+               "CalcMode": _E(["HeatAdded", "OutletTemperature", "EnergyStream", "OutletVaporFraction", "TemperatureChange", "HeatAddedRemoved"])},
+    "Cooler": {"DeltaQ": _F("kW"), "HeatDuty": _F("kW"), "OutletTemperature": _F("K"), "PressureDrop": _F("Pa"),
+               "TemperatureChange": _F("K"), "Efficiency": _F("fraction"),
+               "CalcMode": _E(["HeatRemoved", "OutletTemperature", "OutletVaporFraction", "TemperatureChange", "EnergyStream"])},
+    "HeatExchanger": {"Area": _F("m2"), "OverallCoefficient": _F("W/m2K"), "Q": _F("kW"),
+                      "HotSidePressureDrop": _F("Pa"), "ColdSidePressureDrop": _F("Pa"),
+                      "CalcMode": _E(["CalcTempHotOut", "CalcTempColdOut", "CalcBothTemp", "CalcBothTemp_UA", "CalcArea",
+                                      "ShellandTube_Rating", "ShellandTube_CalcFoulingFactor", "PinchPoint", "ThermalEfficiency",
+                                      "OutletVaporFraction1", "OutletVaporFraction2"])},
+    "Compressor": {"POut": _F("Pa"), "DeltaP": _F("Pa"), "DeltaQ": _F("kW"), "AdiabaticEfficiency": _F("percent"),
+                   "PolytropicEfficiency": _F("percent"), "PressureRatio": _F("1"),
+                   "CalcMode": _E(["OutletPressure", "Delta_P", "EnergyStream", "PowerRequired", "Head", "Curves", "PressureRatio"]),
+                   "ProcessPath": _E(["Adiabatic", "Polytropic"])},
+    "Expander": {"POut": _F("Pa"), "DeltaP": _F("Pa"), "DeltaQ": _F("kW"), "AdiabaticEfficiency": _F("percent"),
+                 "PolytropicEfficiency": _F("percent"), "PressureRatio": _F("1"),
+                 "CalcMode": _E(["OutletPressure", "Delta_P", "PowerGenerated", "Head", "Curves", "PressureRatio"]),
+                 "ProcessPath": _E(["Adiabatic", "Polytropic"])},
+    "Tank": {"Volume": _F("m3")},
+    "Vessel": {"FlashPressure": _F("Pa"), "FlashTemperature": _F("K"),
+               "CalculationMode": _E(["Adiabatic", "Legacy", "HeatingCoolingIsothermic", "HeatingCoolingIsobaric"]),
+               "PressureCalculation": _E(["Average", "Maximum", "Minimum"])},
+    "Mixer": {"PressureCalculation": _E(["Average", "Maximum", "Minimum"])},
+    "Splitter": {"StreamFlowSpec": _F("kg/s"), "Stream2FlowSpec": _F("kg/s"),
+                 "OperationMode": _E(["SplitRatios", "StreamMassFlowSpec", "StreamMoleFlowSpec"])},
+    "OrificePlate": {"OrificeDiameter": _F("m"), "InternalPipeDiameter": _F("m"), "Beta": _F("1"),
+                     "OverallPressureDrop": _F("Pa"), "OrificePressureDrop": _F("Pa"),
+                     "OrifType": _E(["CornerTaps", "FlangeTaps", "RadiusTaps"]),
+                     "CalculationMethod": _E(["Homogeneous", "Slip"])},
+    "SolidSeparator": {"SeparationEfficiency": _F("fraction"), "LiquidSeparationEfficiency": _F("fraction")},
+    "Filter": {"PressureDrop": _F("Pa"), "TotalFilterArea": _F("m2"), "SubmergedAreaFraction": _F("fraction"),
+               "FilterCycleTime": _F("s"), "CakeRelativeHumidity": _F("fraction"),
+               "SpecificCakeResistance": _F("m/kg"), "FilterMediumResistance": _F("1/m"),
+               "CalcMode": _E(["Design", "Simulation"])},
+    "ShortcutColumn": {"StageHeight": _F("m")},
+    "DistillationColumn": {"NumberOfStages": _I("1"), "RefluxRatio": _F("1"), "ColumnPressureDrop": _F("Pa"),
+                           "CondenserDeltaP": _F("Pa"), "CondenserDuty": _F("kW"), "ReboilerDuty": _F("kW"),
+                           "TraySpacing": _F("m"), "DistillateFlowRate": _F("mol/s"), "MaxIterations": _I("1"),
+                           "CondenserType": _E(["Total_Condenser", "Partial_Condenser", "Full_Reflux"])},
+    "AbsorptionColumn": {"NumberOfStages": _I("1"), "ColumnPressureDrop": _F("Pa"), "TraySpacing": _F("m"),
+                         "MaxIterations": _I("1"), "OperationMode": _E(["Absorber", "Extractor"])},
+    "RCT_Conversion": {"OutletTemperature": _F("K"), "ReactorOperationMode": _E(["Isothermic", "Adiabatic", "OutletTemperature", "NonIsothermalNonAdiabatic"])},
+    "RCT_Equilibrium": {"OutletTemperature": _F("K"), "ReactorOperationMode": _E(["Isothermic", "Adiabatic", "OutletTemperature", "NonIsothermalNonAdiabatic"])},
+    "RCT_Gibbs": {"OutletTemperature": _F("K"), "ReactorOperationMode": _E(["Isothermic", "Adiabatic", "OutletTemperature", "NonIsothermalNonAdiabatic"])},
+    "RCT_CSTR": {"Volume": _F("m3"), "Headspace": _F("fraction"), "OutletTemperature": _F("K"), "CatalystAmount": _F("kg"),
+                 "ReactorOperationMode": _E(["Isothermic", "Adiabatic", "OutletTemperature", "NonIsothermalNonAdiabatic"])},
+    "RCT_PFR": {"Length": _F("m"), "Diameter": _F("m"), "Volume": _F("m3"), "CatalystLoading": _F("kg/m3"),
+                "CatalystVoidFraction": _F("fraction"), "CatalystParticleDiameter": _F("m"),
+                "UseUserDefinedPressureDrop": _B, "UserDefinedPressureDrop": _F("Pa"), "OutletTemperature": _F("K"),
+                "ReactorOperationMode": _E(["Isothermic", "Adiabatic", "OutletTemperature", "NonIsothermalNonAdiabatic"])},
+    "OT_Recycle": {"MaximumIterations": _I("1"), "SmoothingFactor": _F("1"),
+                   "AccelerationMethod": _E(["None", "Wegstein", "Dominant_Eigenvalue", "GlobalBroyden"])},
+    "Pipe": {"OutletPressure": _F("Pa"), "OutletTemperature": _F("K"),
+             "Specification": _E(["Length", "OutletPressure", "OutletTemperature"])},
+}
+
+_COLUMN_SPEC_TYPES = (
+    "Reflux Ratio", "Boilup Ratio", "Heat Duty", "Product Molar Flow Rate", "Component Molar Flow Rate",
+    "Product Mass Flow Rate", "Component Mass Flow Rate", "Component Fraction", "Component Recovery",
+    "Stream Ratio", "Temperature", "Feed Recovery",
+)
+_REACTOR_MODE = {"isothermal": "Isothermic", "adiabatic": "Adiabatic", "outlet_temperature": "OutletTemperature"}
+_REACTOR_CLASS = {"conversion": "RCT_Conversion", "equilibrium": "RCT_Equilibrium", "cstr": "RCT_CSTR", "pfr": "RCT_PFR"}
+# Types that compare a DWSIM result with a stated limit. Anything else is reported, not treated as fine.
+_CHECKED_TYPES = {"pump", "valve", "pipe", "hx", "heater", "cooler", "evaporator", "compressor", "column", "tank",
+                  "reactor", "distillation"}
+
+
+def _prop_list(props):
+    return ", ".join(f"{name} ({meta['unit']})" + (f" one of {', '.join(meta['values'])}" if meta["kind"] == "enum" else "")
+                     for name, meta in sorted(props.items()))
+
+
+def validate_dwsim_unit(u):
+    """Reject a generic unit whose class or property is outside the allowlist."""
+    uid, cls = u.get("id", "?"), u.get("class")
+    if cls not in DWSIM_ALLOW:
+        raise ValueError(f"{uid}: DWSIM class {cls!r} is not allowlisted. Valid classes: {', '.join(sorted(DWSIM_ALLOW))}")
+    props = DWSIM_ALLOW[cls]
+    for name, value in (u.get("set") or {}).items():
+        if name not in props:
+            raise ValueError(f"{uid}: property {name!r} is not settable on {cls}. Valid properties: {_prop_list(props)}")
+        meta = props[name]
+        if meta["kind"] == "enum" and str(value) not in meta["values"]:
+            raise ValueError(f"{uid}: {name}={value!r} is not valid. Valid {name}: {', '.join(meta['values'])}")
+    for name in u.get("report") or []:
+        if name not in props:
+            raise ValueError(f"{uid}: property {name!r} cannot be reported on {cls}. Valid properties: {_prop_list(props)}")
+    if not u.get("in") or not u.get("out"):
+        raise ValueError(f"{uid}: a dwsim unit needs in and out stream lists")
+    return props
+
+
+def _fair_csb(tray_spacing_m, flow_parameter):
+    """Souders-Brown C_sb at entrainment flood, m/s, at 0.020 N/m surface tension.
+
+    Lygeros, A. I.; Magoulas, K. G. Hydrocarbon Process. 1986, 65, 43-44, fit of
+    Fair, J. R. Petro/Chem. Eng. 1961, 33(10), 45-52. Parameters as compiled by
+    Souza, Bagajewicz and Costa, Ind. Eng. Chem. Res. 2025, 64 (doi 10.1021/acs.iecr.4c03115):
+    C_sb = 0.0105 + 0.1496 * lt^0.755 * exp(-1.463 * F_LV^0.842), lt in m.
+    Clamped to the chart's practical range (about 0.15-1 m spacing and F_LV 0.001-1).
+    """
+    lt = min(max(float(tray_spacing_m), 0.15), 1.0)
+    flv = min(max(float(flow_parameter), 1e-3), 1.0)
+    return 0.0105 + 0.1496 * lt ** 0.755 * math.exp(-1.463 * flv ** 0.842)
+
+
+def fair_flood_fraction(vapour_kg_s, liquid_kg_s, rho_v, rho_l, sigma_N_m, diameter_m, tray_spacing_m):
+    """Vapour velocity on the net area divided by Fair's flooding velocity.
+
+    Net area is 90% of the shell (one downcomer taken as 10% of the cross-section), the usual
+    screening allowance in Fair's chart. Not a tray rating: no weir, hole area or downcomer backup.
+    """
+    if diameter_m <= 0 or rho_v <= 0 or rho_l <= rho_v or vapour_kg_s <= 0:
+        raise ValueError("flooding screen needs a positive diameter, vapour flow and liquid density above the vapour")
+    area_net = 0.9 * math.pi * diameter_m ** 2 / 4
+    velocity = (vapour_kg_s / rho_v) / area_net
+    flv = (liquid_kg_s / vapour_kg_s) * math.sqrt(rho_v / rho_l) if liquid_kg_s > 0 else 1e-3
+    csb = _fair_csb(tray_spacing_m, flv) * (max(sigma_N_m, 1e-4) / 0.020) ** 0.2
+    u_flood = csb * math.sqrt((rho_l - rho_v) / rho_v)
+    return velocity / u_flood if u_flood else None
+
+
+def _column_profile(text):
+    """Parse DWSIM's ColumnPropertiesProfile (Pa, K, mol/s, kg/s, kg/m3, Pa.s, W/m.K, N/m)."""
+    rows = []
+    for line in (text or "").splitlines():
+        parts = line.split()
+        if len(parts) < 14:
+            continue
+        try:
+            stage = int(parts[0])
+            nums = [float(x) for x in parts[1:14]]
+        except ValueError:
+            continue
+        keys = ("P_Pa", "T_K", "vapour_mol_s", "vapour_kg_s", "rho_v", "mu_v", "k_v",
+                "liquid_mol_s", "liquid_kg_s", "rho_l", "mu_l", "k_l", "sigma_N_m")
+        rows.append({"stage": stage, **dict(zip(keys, nums))})
+    return rows
+
+
+def _set_dwsim_prop(obj, name, value, meta):
+    if meta["kind"] == "enum":
+        current = getattr(obj, name)
+        setattr(obj, name, getattr(type(current), str(value)))
+    elif meta["kind"] == "bool":
+        setattr(obj, name, bool(value))
+    elif meta["kind"] == "int":
+        setattr(obj, name, int(value))
+    elif meta["kind"] == "str":
+        setattr(obj, name, str(value))
+    else:
+        setattr(obj, name, float(value))
+
+
+def _read_dwsim_prop(obj, name):
+    value = getattr(obj, name)
+    if value is None:
+        return None
+    getter = getattr(value, "GetType", None)
+    if getter is not None and getter().IsEnum:
+        return str(value).split(".")[-1]
+    if isinstance(value, bool):
+        return bool(value)
+    if isinstance(value, int) and not isinstance(value, bool):
+        return int(value)
+    try:
+        return _r(value, 6)
+    except (TypeError, ValueError):
+        return None
+
+
+def _duty_fields(obj):
+    out = {}
+    for attr, key in (("DeltaQ", "duty_kW"), ("HeatDuty", "heat_duty_kW")):
+        value = getattr(obj, attr, None)
+        if isinstance(value, (int, float)) and value == value:
+            out[key] = _r(value, 3)
+    if "duty_kW" not in out and "heat_duty_kW" in out:
+        out["duty_kW"] = out["heat_duty_kW"]
+    return out
+
+
+def _dwsim_ports(obj):
+    """Material inlets, material outlets, and energy ports in DWSIM's listed order."""
+    ins, outs, energies = [], [], []
+    for raw in obj.GetConnectionPortsList():
+        line = str(raw).split(", Connected")[0]
+        if "Type:" not in line:
+            continue
+        typ = line.split("Type:")[1].strip()
+        name = line.split("Name:")[1].split(",")[0].strip() if "Name:" in line else ""
+        index = None
+        if "#" in line:
+            try:
+                index = int(line.split("#")[1].split(",")[0])
+            except ValueError:
+                index = None
+        if line.startswith("Inlet Port"):
+            side = "in"
+        elif line.startswith("Outlet Port"):
+            side = "out"
+        else:
+            side = "energy"
+        port = {"index": index, "name": name, "side": side}
+        if typ == "ConEn":
+            energies.append(port)
+        elif typ == "ConIn":
+            ins.append(port)
+        elif typ == "ConOut":
+            outs.append(port)
+    return ins, outs, energies
 
 
 class _Sheet:
@@ -164,6 +428,91 @@ class _Sheet:
             s.SetMassFlow(float(f["kg_h"]) * scale / 3600)
         else:
             s.SetVolumetricFlow(float(f["m3_h"]) * scale / 3600)
+
+    def _energy(self, name):
+        # not a material stream: results() only walks self.streams
+        return self._add("EnergyStream", name)
+
+    def _connect_listed(self, obj, streams, ports, into_unit):
+        if len(streams) > len(ports):
+            names = ", ".join(p["name"] for p in ports) or "none"
+            raise ValueError(f"{obj.GraphicObject.Tag}: {len(ports)} material port(s) ({names}); got {len(streams)} stream(s)")
+        for stream_name, port in zip(streams, ports):
+            idx = -1 if port["index"] is None else port["index"]
+            if into_unit:
+                self._link(self.stream(stream_name), obj, -1, idx)
+            else:
+                self._link(obj, self.stream(stream_name), idx, -1)
+
+    def _connect_energy(self, obj, names, ports):
+        names = names if isinstance(names, list) else [names]
+        if len(names) > len(ports):
+            raise ValueError(f"{obj.GraphicObject.Tag}: {len(ports)} energy port(s); got {len(names)} energy stream(s)")
+        for name, port in zip(names, ports):
+            energy = self._energy(name)
+            idx = -1 if port["index"] is None else port["index"]
+            if port["side"] == "in":
+                self._link(energy, obj, -1, idx)
+            else:
+                self._link(obj, energy, idx, -1)
+
+    def _add_reactions(self, uid, kind, reactions, phase):
+        from System.Collections.Generic import Dictionary
+        rs = self.sim.CreateReactionSet(uid, uid)
+        self.sim.AddReactionSet(rs)
+        for i, rxn in enumerate(reactions or []):
+            sto = Dictionary[str, float]()
+            for compound, coeff in rxn["stoich"].items():
+                sto[compound] = float(coeff)
+            name, base = rxn.get("name") or f"{uid}-{i+1}", rxn["base"]
+            phase_i = rxn.get("phase") or phase
+            if kind == "conversion":
+                obj = self.sim.CreateConversionReaction(name, name, sto, base, phase_i, str(rxn["conversion_pct"]))
+            elif kind == "equilibrium":
+                obj = self.sim.CreateEquilibriumReaction(
+                    name, name, sto, base, phase_i, rxn.get("basis") or "Fugacity", rxn.get("basis_units") or "Pa",
+                    float(rxn.get("approach_K") or 0), rxn.get("lnKeq") or "")
+            else:
+                orders, reverse = Dictionary[str, float](), Dictionary[str, float]()
+                for compound, coeff in rxn["stoich"].items():
+                    default = 1.0 if float(coeff) < 0 else 0.0
+                    orders[compound] = float((rxn.get("orders") or {}).get(compound, default))
+                    reverse[compound] = float((rxn.get("reverse_orders") or {}).get(compound, 0.0))
+                obj = self.sim.CreateKineticReaction(
+                    name, name, sto, orders, reverse, base, phase_i, rxn.get("basis") or "Molar Concentration",
+                    rxn.get("amount_units") or "mol/m3", rxn.get("rate_units") or "mol/[m3.s]",
+                    float(rxn.get("A") or 0), float(rxn.get("E_J_mol") or 0), float(rxn.get("A_reverse") or 0),
+                    float(rxn.get("E_reverse_J_mol") or 0), rxn.get("rate_expression") or "", rxn.get("reverse_rate_expression") or "")
+            obj.Tmin = float(rxn.get("Tmin_K", 200))
+            obj.Tmax = float(rxn.get("Tmax_K", 5000))
+            self.sim.AddReaction(obj)
+            self.sim.AddReactionToSet(obj.ID, rs.ID, True, i)
+        return rs.ID
+
+    def _column_spec(self, u, which):
+        """Resolve a condenser or reboiler specification. Shorthand fields win over the spec object."""
+        if which == "condenser":
+            if u.get("reflux_ratio") is not None:
+                spec = {"type": "Reflux Ratio", "value": u["reflux_ratio"], "units": ""}
+            elif u.get("distillate_mol_s") is not None:
+                spec = {"type": "Product Molar Flow Rate", "value": u["distillate_mol_s"], "units": "mol/s"}
+            else:
+                spec = u.get("condenser_spec")
+        else:
+            if u.get("boilup_ratio") is not None:
+                spec = {"type": "Boilup Ratio", "value": u["boilup_ratio"], "units": ""}
+            elif u.get("bottoms_mol_s") is not None:
+                spec = {"type": "Product Molar Flow Rate", "value": u["bottoms_mol_s"], "units": "mol/s"}
+            else:
+                spec = u.get("reboiler_spec")
+        if not spec:
+            raise ValueError(f"{u['id']}: distillation needs a {which} spec (reflux_ratio, boilup_ratio, "
+                             "distillate_mol_s, bottoms_mol_s, or condenser_spec/reboiler_spec)")
+        if spec["type"] not in _COLUMN_SPEC_TYPES:
+            raise ValueError(f"{u['id']}: {which} spec {spec['type']!r} is not valid. Valid: {', '.join(_COLUMN_SPEC_TYPES)}")
+        if "Component" in spec["type"] and not spec.get("compound"):
+            raise ValueError(f"{u['id']}: {spec['type']} needs compound")
+        return spec
 
     def _unit(self, u):
         t, uid = u["type"], u["id"]
@@ -365,6 +714,99 @@ class _Sheet:
             c.m_condenserpressure = float(u.get("P_bar", 1.013)) * 1e5
             c.m_boilerpressure = float(u.get("P_bottom_bar", u.get("P_bar", 1.013))) * 1e5
             return c
+        if t == "dwsim":
+            props = validate_dwsim_unit(u)
+            obj = self._add(u["class"], uid)
+            ins, outs, energies = _dwsim_ports(obj)
+            self._connect_listed(obj, u["in"], ins, True)
+            self._connect_listed(obj, u["out"], outs, False)
+            if u.get("energy") is not None:
+                if not energies:
+                    raise ValueError(f"{uid}: {u['class']} has no energy port")
+                self._connect_energy(obj, u["energy"], energies)
+            for name, value in (u.get("set") or {}).items():
+                _set_dwsim_prop(obj, name, value, props[name])
+            return obj
+        if t == "reactor":
+            kind = u.get("kind")
+            if kind not in _REACTOR_CLASS:
+                raise ValueError(f"{uid}: reactor kind must be one of {', '.join(_REACTOR_CLASS)}")
+            mode = u.get("mode", "isothermal")
+            if mode not in _REACTOR_MODE:
+                raise ValueError(f"{uid}: reactor mode must be isothermal, adiabatic or outlet_temperature")
+            phase = u.get("phase") or ("Liquid" if kind == "cstr" else "Vapor")
+            if phase not in ("Vapor", "Liquid", "Mixture", "Solid"):
+                raise ValueError(f"{uid}: phase must be Vapor, Liquid, Mixture or Solid")
+            obj = self._add(_REACTOR_CLASS[kind], uid)
+            self._link(self.stream(u["in"]), obj, -1, 0)
+            self._link(self._energy(f"E-{uid}"), obj, -1, 1)
+            if kind == "pfr":
+                if not u.get("out"):
+                    raise ValueError(f"{uid}: pfr needs out")
+                self._link(obj, self.stream(u["out"]), 0, -1)
+            elif kind == "cstr":
+                if not u.get("liquid"):
+                    raise ValueError(f"{uid}: cstr needs liquid (the reacting holdup) and an optional vapor")
+                self._link(obj, self.stream(u["liquid"]), 0, -1)
+                self._link(obj, self.stream(u.get("vapor") or f"{uid}-vapor"), 1, -1)
+            else:
+                if not u.get("vapor") or not u.get("liquid"):
+                    raise ValueError(f"{uid}: {kind} reactor needs vapor and liquid outlets")
+                self._link(obj, self.stream(u["vapor"]), 0, -1)
+                self._link(obj, self.stream(u["liquid"]), 1, -1)
+            if kind == "cstr":
+                if u.get("volume_m3") is None:
+                    raise ValueError(f"{uid}: cstr needs volume_m3")
+                obj.Volume = float(u["volume_m3"])
+                obj.Headspace = float(u.get("headspace", 0.1))
+                if obj.Headspace <= 0:
+                    raise ValueError(f"{uid}: headspace must be > 0 (DWSIM rejects a CSTR with no vapor space)")
+            if kind == "pfr":
+                if u.get("volume_m3") is not None:
+                    obj.Volume = float(u["volume_m3"])
+                elif u.get("length_m") is not None and u.get("diameter_m") is not None:
+                    obj.Volume = math.pi * (float(u["diameter_m"]) / 2) ** 2 * float(u["length_m"])
+                else:
+                    raise ValueError(f"{uid}: pfr needs volume_m3, or length_m and diameter_m")
+                if u.get("length_m") is not None:
+                    obj.Length = float(u["length_m"])
+                if u.get("diameter_m") is not None:
+                    obj.Diameter = float(u["diameter_m"])
+                if u.get("dP_bar") is not None:
+                    obj.UseUserDefinedPressureDrop = True
+                    obj.UserDefinedPressureDrop = float(u["dP_bar"]) * 1e5
+            obj.ReactionSetID = self._add_reactions(uid, kind, u.get("reactions"), phase)
+            obj.ReactorOperationMode = getattr(type(obj.ReactorOperationMode), _REACTOR_MODE[mode])
+            if mode == "outlet_temperature":
+                if u.get("T_out_C") is None:
+                    raise ValueError(f"{uid}: outlet_temperature mode needs T_out_C")
+                obj.OutletTemperature = 273.15 + float(u["T_out_C"])
+            return obj
+        if t == "distillation":
+            stages, feed_stage = int(u["stages"]), int(u["feed_stage"])
+            if not 1 <= feed_stage <= stages:
+                raise ValueError(f"{uid}: feed_stage must be from 1 (condenser) to {stages}")
+            condenser = {"total": "Total_Condenser", "partial": "Partial_Condenser", "full_reflux": "Full_Reflux"}
+            if u.get("condenser", "total") not in condenser:
+                raise ValueError(f"{uid}: condenser must be total, partial or full_reflux")
+            cspec, rspec = self._column_spec(u, "condenser"), self._column_spec(u, "reboiler")
+            col = self._add("DistillationColumn", uid)
+            col.SetNumberOfStages(stages)
+            col.ConnectFeed(self.stream(u["in"]), feed_stage - 1)
+            col.ConnectDistillate(self.stream(u["distillate"]))
+            col.ConnectBottoms(self.stream(u["bottoms"]))
+            if u.get("vapor"):
+                col.ConnectVaporProduct(self.stream(u["vapor"]))
+            col.ConnectCondenserDuty(self._energy(f"QC-{uid}"))
+            col.ConnectReboilerDuty(self._energy(f"QR-{uid}"))
+            col.SetCondenserSpec(cspec["type"], float(cspec["value"]), cspec.get("units") or "", cspec.get("compound") or "")
+            col.SetReboilerSpec(rspec["type"], float(rspec["value"]), rspec.get("units") or "", rspec.get("compound") or "")
+            col.SetTopPressure(float(u.get("P_bar", 1.01325)) * 1e5)
+            col.ColumnPressureDrop = float(u.get("dP_bar", 0)) * 1e5
+            col.CondenserType = getattr(type(col.CondenserType), condenser[u.get("condenser", "total")])
+            if u.get("subcool_K") is not None:
+                col.TotalCondenserSubcoolingDeltaT = float(u["subcool_K"])
+            return col
         raise ValueError(f"unknown unit type {t}")
 
     def solve(self):
@@ -545,6 +987,55 @@ class _Sheet:
                     q = self.streams[basis].GetVolumetricFlow() if basis in self.streams else None
                     r.update(residence_min=_r(o.Volume / q / 60 if q else o.ResidenceTime / 60, 2), volume_m3=o.Volume,
                              residence_basis=basis or "tank outlet")
+                elif t == "dwsim":
+                    r["class"] = u["class"]
+                    r["properties"] = {name: _read_dwsim_prop(o, name) for name in (u.get("report") or [])}
+                    r.update(_duty_fields(o))
+                elif t == "reactor":
+                    products = [s for s in (u.get("vapor"), u.get("liquid"), u.get("out"), f"{uid}-vapor") if s in self.streams]
+                    inlet = self.streams[u["in"]]
+                    conv = []
+                    for rxn in u.get("reactions") or []:
+                        base = rxn["base"]
+                        nin = float(inlet.GetCompoundMolarFlow(base) or 0)
+                        nout = sum(float(self.streams[s].GetCompoundMolarFlow(base) or 0) for s in products)
+                        conv.append({"reaction": rxn.get("name"), "base": base,
+                                     "conversion_pct": _r((nin - nout) / nin * 100, 2) if nin else None})
+                    temps = [self.streams[s].GetTemperature() - 273.15 for s in products
+                             if (self.streams[s].GetMassFlow() or 0) > 1e-8]
+                    duty = o.DeltaQ
+                    r.update(kind=u["kind"], conversion=conv, conversion_pct=conv[0]["conversion_pct"] if len(conv) == 1 else None,
+                             duty_kW=_r(duty, 3), cooling_kW=_r(max(0.0, -(duty or 0)), 3),
+                             T_out_C=_r(max(temps), 2) if temps else None)
+                elif t == "distillation":
+                    profile = _column_profile(o.ColumnPropertiesProfile)
+                    lim = (self.spec.get("limits") or {}).get(uid) or {}
+                    spacing = float(lim.get("tray_spacing_m") or o.TraySpacing or 0.5)
+                    diameter = lim.get("diameter_m")
+                    flood_error = None if diameter else "flooding screen needs limits.diameter_m (tray_spacing_m defaults to 0.5, flood_frac_max to 0.8)"
+                    fracs = []
+                    shown = []
+                    for row in profile:
+                        item = {"stage": row["stage"], "T_C": _r(row["T_K"] - 273.15, 2), "P_bar": _r(row["P_Pa"] / 1e5, 4),
+                                "vapour_kg_h": _r(row["vapour_kg_s"] * 3600, 2), "liquid_kg_h": _r(row["liquid_kg_s"] * 3600, 2),
+                                "vapour_mol_s": _r(row["vapour_mol_s"], 4), "liquid_mol_s": _r(row["liquid_mol_s"], 4),
+                                "rho_v_kg_m3": _r(row["rho_v"], 2), "rho_l_kg_m3": _r(row["rho_l"], 1),
+                                "sigma_N_m": _r(row["sigma_N_m"], 5)}
+                        if diameter and row["vapour_kg_s"] > 1e-6 and row["rho_l"] > row["rho_v"] > 0:
+                            frac = fair_flood_fraction(row["vapour_kg_s"], row["liquid_kg_s"], row["rho_v"], row["rho_l"],
+                                                       row["sigma_N_m"], float(diameter), spacing)
+                            item["flood_frac"] = _r(frac, 3)
+                            if frac is not None:
+                                fracs.append(frac)
+                        shown.append(item)
+                    if diameter and not fracs:
+                        flood_error = "DWSIM reported no stage with vapour traffic to screen for flooding"
+                    r.update(stages=o.NumberOfStages, feed_stage=u["feed_stage"], reflux=_r(o.RefluxRatio, 3),
+                             condenser_kW=_r(abs(o.CondenserDuty or 0), 2), reboiler_kW=_r(abs(o.ReboilerDuty or 0), 2),
+                             condenser_duty_kW=_r(o.CondenserDuty, 2), reboiler_duty_kW=_r(o.ReboilerDuty, 2),
+                             dwsim_estimated_diameter_m=_r(o.EstimatedDiameter, 3) if o.EstimatedDiameter == o.EstimatedDiameter else None,
+                             profile=shown, flood_frac=_r(max(fracs), 3) if fracs else None, flood_error=flood_error,
+                             tray_spacing_m=spacing)
             except (TypeError, ZeroDivisionError) as ex:  # an unsolved unit reports why instead of failing the run
                 r["error"] = f"did not solve ({ex.__class__.__name__}): check the unit's inlet streams and specs"
             un[uid] = r
@@ -583,7 +1074,9 @@ def _checks(sheet, res):
     rated_valves = {uid for uid, (spec_u, _) in sheet.units.items() if spec_u["type"] == "valve" and
                     (spec_u.get("cv_rated") is not None or spec_u.get("kv_rated") is not None)}
     evaporators = sorted(uid for uid, (spec_u, _) in sheet.units.items() if spec_u["type"] == "evaporator")
-    for key in dict.fromkeys((*limits, *sorted(rated_valves), *evaporators)):
+    reactors = sorted(uid for uid, (spec_u, _) in sheet.units.items() if spec_u["type"] == "reactor")
+    columns = sorted(uid for uid, (spec_u, _) in sheet.units.items() if spec_u["type"] == "distillation")
+    for key in dict.fromkeys((*limits, *sorted(rated_valves), *evaporators, *reactors, *columns)):
         lim = limits.get(key, {})
         u, s = res["units"].get(key), res["streams"].get(key)
         def add(what, value, limit, unit, higher_is_worse=True):
@@ -635,6 +1128,17 @@ def _checks(sheet, res):
             add("stages needed vs installed", u["stages"], lim.get("installed_stages"), "stages")
             add("reboiler duty vs rated", u["reboiler_kW"], lim.get("max_reboiler_kW"), "kW")
             add("condenser duty vs rated", u["condenser_kW"], lim.get("max_condenser_kW"), "kW")
+        if u and u["type"] == "reactor":
+            if (u.get("cooling_kW") or 0) > 0:
+                add("cooling duty vs cooling capacity", u.get("cooling_kW"), lim.get("max_duty_kW"), "kW")
+            add("outlet temperature vs limit", u.get("T_out_C"), lim.get("max_T_C"), "C")
+        if u and u["type"] == "distillation":
+            add("reboiler duty vs rated", u.get("reboiler_kW"), lim.get("max_reboiler_kW"), "kW")
+            add("condenser duty vs rated", u.get("condenser_kW"), lim.get("max_condenser_kW"), "kW")
+            if u.get("flood_frac") is not None:
+                add("Fair flood fraction vs limit", u["flood_frac"], lim.get("flood_frac_max", 0.8), "fraction of flood")
+            elif u.get("flood_error"):
+                out.append({"id": key, "check": "Fair flooding screen", "error": u["flood_error"]})
         if u and u["type"] == "hx":
             add("installed area vs frame", u["area_m2"], lim.get("max_area_m2"), "m2")
             add("hot-side pressure drop vs available", u["dP_hot_bar"], lim.get("max_dP_hot_bar"), "bar")
@@ -659,6 +1163,9 @@ def _checks(sheet, res):
                 out.append({"id": key, "check": "must leave as liquid", "value": s["vapour_frac"], "limit": 0, "unit": "vapour fraction",
                             "utilisation": round(1 + s["vapour_frac"], 3)})
             add("flow vs 90 % of available supply", s["m3_h"], UTILITY_MARGIN * lim["max_m3_h"] if lim.get("max_m3_h") else None, "m3/h")
+    for uid, (spec_u, _) in sheet.units.items():
+        if spec_u["type"] not in _CHECKED_TYPES:
+            out.append({"id": uid, "check": "no limit check for this unit type", "type": spec_u["type"]})
     return sorted(out, key=lambda c: -c.get("utilisation", 0))
 
 
@@ -861,7 +1368,7 @@ if __name__ == "__main__":
             try:
                 r = _worker(json.loads(line))
             except Exception as ex:  # noqa: BLE001 - report to the caller, keep serving
-                r = {"worker_error": f"{type(ex).__name__}: {ex}"[:400]}
+                r = {"worker_error": f"{type(ex).__name__}: {ex}"[:2000]}
             out.write(json.dumps(r) + "\n")
             out.flush()
     else:
@@ -901,6 +1408,31 @@ if __name__ == "__main__":
         assert ss["LIQ"]["kg_h"] > 0 and ss["VAP"]["kg_h"] > 0
         assert abs(ss["DRY_CO2"]["kg_h"] + ss["WET"]["kg_h"] - ss["VAP"]["kg_h"]) < 1
         assert abs(ss["DRY_CO2"]["components_kg_h"]["Water"] / ss["VAP"]["components_kg_h"]["Water"] - 0.1) < 0.02
+        assert any(c["id"] == "V" and c["check"] == "no limit check for this unit type" for c in sr["checks"])
+        conv = {"compounds": ["Ethylene", "Hydrogen", "Ethane"], "package": "Peng-Robinson (PR)",
+                "feeds": {"F": {"T_C": 77, "P_bar": 5, "kg_h": 3600, "x": {"Ethylene": 0.5, "Hydrogen": 0.5}}},
+                "units": [{"id": "R", "type": "reactor", "kind": "conversion", "in": "F", "vapor": "V", "liquid": "L",
+                           "mode": "isothermal", "phase": "Vapor",
+                           "reactions": [{"name": "HYD", "base": "Ethylene", "conversion_pct": 90,
+                                          "stoich": {"Ethylene": -1, "Hydrogen": -1, "Ethane": 1}}]}],
+                "limits": {"R": {"max_duty_kW": 1e6, "max_T_C": 200}}}
+        cr = run(conv)
+        assert not cr["errors"], cr["errors"]
+        ru = cr["units"]["R"]
+        assert 85 < ru["conversion_pct"] < 95 and ru["duty_kW"] < 0 and 70 < ru["T_out_C"] < 85, ru
+        col = {"compounds": ["Benzene", "Toluene"], "package": "Peng-Robinson (PR)",
+               "feeds": {"F": {"T_C": 92, "P_bar": 1.013, "kg_h": 3064, "x": {"Benzene": 0.5, "Toluene": 0.5}}},
+               "units": [{"id": "C", "type": "distillation", "in": "F", "distillate": "D", "bottoms": "B",
+                          "stages": 12, "feed_stage": 7, "condenser": "total", "P_bar": 1.01325,
+                          "reflux_ratio": 2.0, "bottoms_mol_s": 5.0}],
+               "limits": {"C": {"diameter_m": 0.9, "tray_spacing_m": 0.5, "flood_frac_max": 0.8}}}
+        c1, c2 = run(col), run(col, 2.0)
+        assert not c1["errors"], c1["errors"]
+        assert not c2["errors"], c2["errors"]
+        assert c1["streams"]["D"]["components_kg_h"]["Benzene"] > c1["streams"]["B"]["components_kg_h"]["Benzene"]
+        f1, f2 = c1["units"]["C"]["flood_frac"], c2["units"]["C"]["flood_frac"]
+        assert f1 and f2 and f2 > f1, (f1, f2, c1["units"]["C"].get("flood_error"), c2["errors"])
+        assert c1["units"]["C"]["condenser_kW"] and len(c1["units"]["C"]["profile"]) == 12
         # evaporator: US 5,366,514 Table I boil-up (247.7 t/h) and salt; +20 % feed with a fixed compressor flow runs short of heat
         ev = {"compounds": ["Water"], "package": "Steam Tables (IAPWS-IF97)",
               "feeds": {"B": {"T_C": 125.6, "P_bar": 3, "kg_h": 362900, "x": {"Water": 1}}},
