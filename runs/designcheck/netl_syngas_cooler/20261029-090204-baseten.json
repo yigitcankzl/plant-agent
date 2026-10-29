@@ -1,0 +1,292 @@
+{
+  "case": "netl_syngas_cooler",
+  "model": "baseten:meta-models/muse-spark-open-1026",
+  "allowed_pages": [
+    96
+  ],
+  "withheld_pages": [
+    97,
+    98,
+    112
+  ],
+  "leak_hits": [],
+  "submission": {
+    "run_label": "case2_syngas_cooler_BFD8-9_T350",
+    "assumptions": "Inlet stream 8 is fixed as supplied design input: 871 C, 28.3 bar abs, 240967 kg/h, mole fractions Methane 0.0411, CO 0.1432, CO2 0.0124, H2 0.4609, H2O 0.3393, N2 0.0030. Page 96 available contains only BFD Exhibit 3-17 with blocks REFORMER->SYNGAS COOLER->SHIFT REACTORS and no temperatures, pressures, duties or stream tables for streams 8/9. Therefore every outlet setpoint is an assumption, not a measured reproduction:\n- Cooler outlet temperature T_out_C = 350 C assumed. No outlet temperature is given on p.96 or elsewhere available. 350 C chosen as representative high-temperature shift (HTS) inlet / syngas waste-heat boiler outlet range (typically 320-400 C) to avoid inventing a utility steam generation target. This is a pure assumed target, not independent validation of any withheld result.\n- Pressure loss dP = 0.5 bar assumed (implemented as valve after ideal cooler: 28.3 -> 27.8 bar). No pressure drop data on p.96. 0.3-0.7 bar is typical for a syngas cooler/WHB plus piping; 0.5 bar used as nominal.\n- Property package Peng-Robinson (PR) assumed suitable for high-T, high-P syngas mixture (H2, CO, CO2, CH4, H2O, N2) where hydrocarbon/gas behavior dominates. No package specified on available page.\n- Cooler modeled as single net syngas-side cooler (duty computed) without utility-side stream, as instructed: heat-recovery section represented by its syngas-side enthalpy change only. No U, area, or steam side invented.\nDuty ~100.7 MW scales directly with assumed T_out; changing assumed T_out by +/-50C changes duty by ~10 MW.",
+    "limitations": "Model covers only syngas side between BFD 8 and 9; no utility/steam side, no fouling, no heat loss, no condensation kinetics. Outlet state SYNGAS_TO_SHIFT from DWSIM under these assumed setpoints: T 349.9 C (350 C before valve), P 27.8 bar, vapour fraction 1.0, total 240967 kg/h conserved, components kg/h: Methane 12873.3, CO 78313.2, CO2 10654.8, H2 18140.5, H2O 119344.4, N2 1640.8. Net cooling duty (enthalpy removed) 100749 kW for 871->350 C at given flow; at 28.3 bar no water condensation occurs at this assumed outlet (vapour fraction 1.0). If actual plant shift inlet temperature or pressure drop differs, temperature, pressure and duty will differ proportionally. This run does NOT reproduce or validate any withheld Exhibit 3-17 stream-table values for stream 9; it is a forward calculation from the supplied inlet with stated assumptions only. Property package PR is an approximation; at 871 C ideal-gas enthalpy dominates, but real-gas effects and water association introduce uncertainty."
+  },
+  "failure": null,
+  "final_run_label": "case2_syngas_cooler_BFD8-9_T350",
+  "dwsim_runs": 1,
+  "steps": 3,
+  "wall_time_s": 17.8,
+  "spend_usd": 0.02051,
+  "model_run_cost_usd": 0.02051,
+  "score": {
+    "overall": {
+      "within_2pct": 0.8,
+      "within_5pct": 0.8,
+      "within_10pct": 0.8
+    },
+    "by_type": {
+      "P_bar": {
+        "within_2pct": 1.0,
+        "within_5pct": 1.0,
+        "within_10pct": 1.0
+      },
+      "T_K": {
+        "within_2pct": 0.0,
+        "within_5pct": 0.0,
+        "within_10pct": 0.0
+      },
+      "component_kg_h": {
+        "within_2pct": 1.0,
+        "within_5pct": 1.0,
+        "within_10pct": 1.0
+      },
+      "cooling_kW": {
+        "within_2pct": 0.0,
+        "within_5pct": 0.0,
+        "within_10pct": 0.0
+      },
+      "kg_h": {
+        "within_2pct": 1.0,
+        "within_5pct": 1.0,
+        "within_10pct": 1.0
+      }
+    },
+    "metrics": [
+      {
+        "id": "outlet_T",
+        "type": "T_K",
+        "stream": "SYNGAS_TO_SHIFT",
+        "expected": 477.15,
+        "page": 97,
+        "actual": 623.0699999999999,
+        "error_pct": 30.582,
+        "within_2pct": false,
+        "within_5pct": false,
+        "within_10pct": false
+      },
+      {
+        "id": "outlet_P",
+        "type": "P_bar",
+        "stream": "SYNGAS_TO_SHIFT",
+        "expected": 28.0,
+        "page": 97,
+        "actual": 27.8,
+        "error_pct": 0.714,
+        "within_2pct": true,
+        "within_5pct": true,
+        "within_10pct": true
+      },
+      {
+        "id": "outlet_flow",
+        "type": "kg_h",
+        "stream": "SYNGAS_TO_SHIFT",
+        "expected": 240967,
+        "page": 97,
+        "actual": 240967.0,
+        "error_pct": 0.0,
+        "within_2pct": true,
+        "within_5pct": true,
+        "within_10pct": true
+      },
+      {
+        "id": "methane_flow",
+        "type": "component_kg_h",
+        "stream": "SYNGAS_TO_SHIFT",
+        "component": "Methane",
+        "expected": 12874,
+        "page": 97,
+        "actual": 12873.3,
+        "error_pct": 0.005,
+        "within_2pct": true,
+        "within_5pct": true,
+        "within_10pct": true
+      },
+      {
+        "id": "co_flow",
+        "type": "component_kg_h",
+        "stream": "SYNGAS_TO_SHIFT",
+        "component": "Carbon monoxide",
+        "expected": 78313,
+        "page": 97,
+        "actual": 78313.18,
+        "error_pct": 0.0,
+        "within_2pct": true,
+        "within_5pct": true,
+        "within_10pct": true
+      },
+      {
+        "id": "co2_flow",
+        "type": "component_kg_h",
+        "stream": "SYNGAS_TO_SHIFT",
+        "component": "Carbon dioxide",
+        "expected": 10655,
+        "page": 97,
+        "actual": 10654.8,
+        "error_pct": 0.002,
+        "within_2pct": true,
+        "within_5pct": true,
+        "within_10pct": true
+      },
+      {
+        "id": "hydrogen_flow",
+        "type": "component_kg_h",
+        "stream": "SYNGAS_TO_SHIFT",
+        "component": "Hydrogen",
+        "expected": 18140,
+        "page": 97,
+        "actual": 18140.47,
+        "error_pct": 0.003,
+        "within_2pct": true,
+        "within_5pct": true,
+        "within_10pct": true
+      },
+      {
+        "id": "water_flow",
+        "type": "component_kg_h",
+        "stream": "SYNGAS_TO_SHIFT",
+        "component": "Water",
+        "expected": 119344,
+        "page": 97,
+        "actual": 119344.41,
+        "error_pct": 0.0,
+        "within_2pct": true,
+        "within_5pct": true,
+        "within_10pct": true
+      },
+      {
+        "id": "nitrogen_flow",
+        "type": "component_kg_h",
+        "stream": "SYNGAS_TO_SHIFT",
+        "component": "Nitrogen",
+        "expected": 1641,
+        "page": 97,
+        "actual": 1640.83,
+        "error_pct": 0.01,
+        "within_2pct": true,
+        "within_5pct": true,
+        "within_10pct": true
+      },
+      {
+        "id": "cooling_duty",
+        "type": "cooling_kW",
+        "expected": 126944.4,
+        "page": 112,
+        "actual": 100748.68,
+        "error_pct": 20.636,
+        "within_2pct": false,
+        "within_5pct": false,
+        "within_10pct": false
+      }
+    ]
+  },
+  "final_run": {
+    "scale": 1.0,
+    "errors": [],
+    "streams": {
+      "8": {
+        "T_C": 871.0,
+        "P_bar": 28.3,
+        "kg_h": 240967.0,
+        "m3_h": 65850.89,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Methane": 12873.3,
+          "Carbon monoxide": 78313.18,
+          "Carbon dioxide": 10654.8,
+          "Hydrogen": 18140.47,
+          "Water": 119344.41,
+          "Nitrogen": 1640.83
+        }
+      },
+      "COOLED_GAS": {
+        "T_C": 350.0,
+        "P_bar": 28.3,
+        "kg_h": 240967.0,
+        "m3_h": 35591.41,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Methane": 12873.3,
+          "Carbon monoxide": 78313.18,
+          "Carbon dioxide": 10654.8,
+          "Hydrogen": 18140.47,
+          "Water": 119344.41,
+          "Nitrogen": 1640.83
+        }
+      },
+      "SYNGAS_TO_SHIFT": {
+        "T_C": 349.92,
+        "P_bar": 27.8,
+        "kg_h": 240967.0,
+        "m3_h": 36228.94,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Methane": 12873.3,
+          "Carbon monoxide": 78313.18,
+          "Carbon dioxide": 10654.8,
+          "Hydrogen": 18140.47,
+          "Water": 119344.41,
+          "Nitrogen": 1640.83
+        }
+      }
+    },
+    "units": {
+      "COOLER_8_9": {
+        "type": "cooler",
+        "duty_kW": 100748.68
+      },
+      "DP_VALVE": {
+        "type": "valve",
+        "dP_bar": 0.5
+      }
+    },
+    "checks": [],
+    "spec": {
+      "compounds": [
+        "Methane",
+        "Carbon monoxide",
+        "Carbon dioxide",
+        "Hydrogen",
+        "Water",
+        "Nitrogen"
+      ],
+      "package": "Peng-Robinson (PR)",
+      "feeds": {
+        "8": {
+          "T_C": 871,
+          "P_bar": 28.3,
+          "kg_h": 240967,
+          "x": {
+            "Methane": 0.0411,
+            "Carbon monoxide": 0.1432,
+            "Carbon dioxide": 0.0124,
+            "Hydrogen": 0.4609,
+            "Water": 0.3393,
+            "Nitrogen": 0.003
+          }
+        }
+      },
+      "units": [
+        {
+          "id": "COOLER_8_9",
+          "type": "cooler",
+          "in": "8",
+          "out": "COOLED_GAS",
+          "T_out_C": 350
+        },
+        {
+          "id": "DP_VALVE",
+          "type": "valve",
+          "in": "COOLED_GAS",
+          "out": "SYNGAS_TO_SHIFT",
+          "dP_bar": 0.5
+        }
+      ],
+      "limits": {}
+    }
+  },
+  "tool_log": "runs/netl_syngas_cooler/20261029-090146/log.jsonl"
+}

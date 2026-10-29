@@ -184,6 +184,13 @@ What the workspace shows:
 
 ## Evidence: blind benchmark against real engineers
 
+The separate [NETL design-reproduction check](evidence/designcheck/README.md) compares agent-built DWSIM outlet states with withheld published stream tables (deterministic thresholds, not an LLM judge):
+
+| NETL 2022 Case 2 section | Muse contributor within ±10% | Muse Spark Open / Baseten within ±10% |
+|---|---:|---:|
+| Syngas cooler (streams 8→9) | 8/10; T and duty missed | 8/10; T and duty missed |
+| CO2 compression/drying (18+19→20) | 5/7; water and aftercooler missed | 4/7; water, aftercooler and invalid pump power missed |
+
 On each real project, the pages holding the engineers' conclusions are **withheld** from the agent. Recommendation
 clauses are redacted, and a leak check runs against the answer key. The agent then does the study, and
 **muse-wonder-1.0**, a different model from the agent, grades its findings against the engineers' conclusions.

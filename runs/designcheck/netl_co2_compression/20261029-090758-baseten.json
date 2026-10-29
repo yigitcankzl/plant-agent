@@ -1,0 +1,939 @@
+{
+  "case": "netl_co2_compression",
+  "model": "baseten:meta-models/muse-spark-open-1026",
+  "allowed_pages": [
+    96
+  ],
+  "withheld_pages": [
+    98,
+    102,
+    104,
+    112
+  ],
+  "leak_hits": [],
+  "submission": {
+    "run_label": "CO2_8stage_pump8_final",
+    "assumptions": "Model of Case 2 CO2 compression/drying train ONLY. No pages other than 96 available - page 96 is only a BFD with no stream tables, pressures, duties or design data. All design choices are independent assumptions, not tuned to withheld publication:\n\nFeeds: Boundary streams as given: Stream18 30C 2.0 bara 69097 kg/h x_CO2 0.9835 x_H2O 0.0165; Stream19 49C 1.4 bara 125180 kg/h x_CO2 0.9728 x_H2O 0.0270 x_H2 0.0002. STREAM18 throttled in VALVE18 to 1.4 bara to enable mixing at lowest pressure, then MIX_OUT.\n\nThermodynamic: Peng-Robinson (PR) for CO2/H2O/H2 high-pressure system. Suitable for compressors and phase splits; not Steam Tables because CO2/H2 mixture.\n\nCompression train philosophy: Published design stated eight-stage. Final product must be dense-phase pipeline CO2. Assumed final outlet CO2_PRODUCT = 35C, 150 bar absolute (15,000 kPa, ~2175 psia). This is standard US NETL Case B12B-type assumption for CO2 to pipeline/EOR (~152.7 bara). Not from withheld page - explicitly assumed because product conditions are withheld. Therefore explained as assumption, not validation.\n\nStage pressure ratios: No stage pressures given. Assumed equal ratio per stage for minimum work: overall ratio = 150/1.4 =107.14, 8 steps => per-stage ratio =107.14^(1/8)=1.793. Stages 1-5: 1.4->2.51->4.50->8.07->14.47->25.95 bara (vapor compression). TEG assumed here. Stages 6-7: 25.95->46.53->83.44 bara vapor. After stage7 cooling to 35C at 83.44 bara CO2 is at/beyond critical point (73.8 bara, 31.1C) and becomes dense-phase/supercritical liquid - DWSIM correctly reports V7 ~0 and KO7 = ~192001 kg/h liquid-like. Therefore stage 8 cannot be gas compressor: modeled as PUMP8 dense-phase pump 83.44->150 bara dP=66.56 bar. This still counts as 8 pressure-elevation steps as in eight-stage integrally-geared compressor + pump concept common in NETL studies.\n\nIntercooling/knockout: Each compression followed by cooler to T_out=35C - assumed cooling water/air cooling achieving 35C. Flash drums KO1-KO7 model interstage knockout removing condensed water + co-condensed CO2. No pressure drop assumed in coolers/piping (withheld).\n\nEfficiencies: Each compressor eff_pct=75% isentropic. Typical for multistage integrally-geared CO2 compressor (70-80%). Pump eff_pct=75% as default. Compressor duties reported are shaft/isentroic-corrected thermodynamic work; electrical motor inefficiency not added - if 95% driver, electrical ~1.05x higher.\n\nDehydration: Approximate TEG dehydration with component_separator because DWSIM has no rigorous TEG/contactor. Placed after stage5 at ~26 bara - industry standard TEG operates 25-40 bara before deep compression to avoid hydrate/free water. Recover_pct: CO2 99.8% to product (0.2% slip to TEG vent), H2 99.8% to product, H2O 0.5% to product => 99.5% water removed. Gives dry CO2 <10 ppmw water. TEG_REJECT = 609 kg/h containing 224 kg/h water + 385 kg/h co-absorbed CO2. Not a design model, fixed-split approximation only.\n\nFinal aftercooling: COOL8 cools pumped dense-phase from pump discharge ~53.8C (pump heating) to 35C pipeline temperature, duty ~3.02 MW cooling.\n\nAll T_out_C, P_out_bar, recoveries and efficiencies are assumptions with rationale above, not independent validation against publication.",
+    "limitations": "No validation possible against withheld Table 3-7/Case 2 stream table. Results are purely consequence of assumed 150 bara/35C pipeline target, equal ratio 1.793, 75% efficiencies and TEG split. Different pipeline spec (e.g. 110 bara, 30C, 40C) would change power ~10-15% and shift dense-phase boundary. PR package: CO2-H2O mutual solubility and water content at >73 bara has uncertainty vs specialized EOS (SPUNG, etc.); knockout amounts approximate. Coolers assumed no dP and perfect 35C control - real pressure losses 0.1-0.3 bar/stage would increase power. Mixer assumes adiabatic; real piping heat loss not modeled. component_separator is fixed split, not rigorous TEG - does not model TEG circulation, reboiler duty, BTEX, nor water dewpoint to -40C. Pump inlet is supercritical/dense-phase - DWSIM pump reports 0 m3/h due to near-critical property interpolation; duty is small but sensitive to density model. No impurities beyond CO2/H2O/H2 - real Cansolv/MDEA slip (N2,O2,SOx,amines) not included. Interstage water KO streams not routed to treatment-disposition shown only as KO1-5 liquid outlets. Motor, gearbox, seal leakage, and cooling-water system power not included. Scale not validated for turndown, NPSH, or control."
+  },
+  "failure": null,
+  "final_run_label": "CO2_8stage_pump8_final",
+  "dwsim_runs": 2,
+  "steps": 4,
+  "wall_time_s": 51.4,
+  "spend_usd": 0.21478,
+  "model_run_cost_usd": 0.06728,
+  "score": {
+    "overall": {
+      "within_2pct": 0.571,
+      "within_5pct": 0.571,
+      "within_10pct": 0.571
+    },
+    "by_type": {
+      "P_bar": {
+        "within_2pct": 1.0,
+        "within_5pct": 1.0,
+        "within_10pct": 1.0
+      },
+      "T_K": {
+        "within_2pct": 1.0,
+        "within_5pct": 1.0,
+        "within_10pct": 1.0
+      },
+      "aftercooler_kW": {
+        "within_2pct": 0.0,
+        "within_5pct": 0.0,
+        "within_10pct": 0.0
+      },
+      "component_kg_h": {
+        "within_2pct": 0.5,
+        "within_5pct": 0.5,
+        "within_10pct": 0.5
+      },
+      "compressor_kW": {
+        "within_2pct": 0.0,
+        "within_5pct": 0.0,
+        "within_10pct": 0.0
+      },
+      "kg_h": {
+        "within_2pct": 1.0,
+        "within_5pct": 1.0,
+        "within_10pct": 1.0
+      }
+    },
+    "metrics": [
+      {
+        "id": "outlet_T",
+        "type": "T_K",
+        "stream": "CO2_PRODUCT",
+        "expected": 303.15,
+        "page": 98,
+        "actual": 308.15,
+        "error_pct": 1.649,
+        "within_2pct": true,
+        "within_5pct": true,
+        "within_10pct": true
+      },
+      {
+        "id": "outlet_P",
+        "type": "P_bar",
+        "stream": "CO2_PRODUCT",
+        "expected": 152.7,
+        "page": 98,
+        "actual": 150.0,
+        "error_pct": 1.768,
+        "within_2pct": true,
+        "within_5pct": true,
+        "within_10pct": true
+      },
+      {
+        "id": "outlet_flow",
+        "type": "kg_h",
+        "stream": "CO2_PRODUCT",
+        "expected": 192413,
+        "page": 98,
+        "actual": 192001.0,
+        "error_pct": 0.214,
+        "within_2pct": true,
+        "within_5pct": true,
+        "within_10pct": true
+      },
+      {
+        "id": "co2_flow",
+        "type": "component_kg_h",
+        "stream": "CO2_PRODUCT",
+        "component": "Carbon dioxide",
+        "expected": 192374,
+        "page": 98,
+        "actual": 191998.7,
+        "error_pct": 0.195,
+        "within_2pct": true,
+        "within_5pct": true,
+        "within_10pct": true
+      },
+      {
+        "id": "water_flow",
+        "type": "component_kg_h",
+        "stream": "CO2_PRODUCT",
+        "component": "Water",
+        "expected": 39,
+        "page": 98,
+        "actual": 1.13,
+        "error_pct": 97.103,
+        "within_2pct": false,
+        "within_5pct": false,
+        "within_10pct": false
+      },
+      {
+        "id": "compressor_power",
+        "type": "compressor_kW",
+        "expected": 16460,
+        "page": 104,
+        "actual": null,
+        "error_pct": null,
+        "within_2pct": false,
+        "within_5pct": false,
+        "within_10pct": false
+      },
+      {
+        "id": "aftercooler_duty",
+        "type": "aftercooler_kW",
+        "stream": "CO2_PRODUCT",
+        "expected": 8888.9,
+        "page": 112,
+        "actual": 3015.93,
+        "error_pct": 66.071,
+        "within_2pct": false,
+        "within_5pct": false,
+        "within_10pct": false
+      }
+    ]
+  },
+  "final_run": {
+    "scale": 1.0,
+    "errors": [],
+    "streams": {
+      "STREAM18": {
+        "T_C": 30.0,
+        "P_bar": 2.0,
+        "kg_h": 69097.0,
+        "m3_h": 19768.6,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 68625.71,
+          "Water": 471.29,
+          "Hydrogen": 0.0
+        }
+      },
+      "STREAM19": {
+        "T_C": 49.0,
+        "P_bar": 1.4,
+        "kg_h": 125180.0,
+        "m3_h": 54963.26,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 123772.59,
+          "Water": 1406.24,
+          "Hydrogen": 1.17
+        }
+      },
+      "STREAM18_LP": {
+        "T_C": 29.34,
+        "P_bar": 1.4,
+        "kg_h": 69097.0,
+        "m3_h": 28268.44,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 68625.71,
+          "Water": 471.29,
+          "Hydrogen": 0.0
+        }
+      },
+      "MIX_OUT": {
+        "T_C": 42.08,
+        "P_bar": 1.4,
+        "kg_h": 194277.0,
+        "m3_h": 83244.32,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 192398.3,
+          "Water": 1877.53,
+          "Hydrogen": 1.17
+        }
+      },
+      "C1_OUT": {
+        "T_C": 98.28,
+        "P_bar": 2.51,
+        "kg_h": 194277.0,
+        "m3_h": 54692.01,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 192398.3,
+          "Water": 1877.53,
+          "Hydrogen": 1.17
+        }
+      },
+      "C1_COOL": {
+        "T_C": 35.0,
+        "P_bar": 2.51,
+        "kg_h": 194277.0,
+        "m3_h": 44964.74,
+        "vapour_frac": 0.9968,
+        "components_kg_h": {
+          "Carbon dioxide": 192398.3,
+          "Water": 1877.53,
+          "Hydrogen": 1.17
+        }
+      },
+      "V1": {
+        "T_C": 35.0,
+        "P_bar": 2.51,
+        "kg_h": 194016.8,
+        "m3_h": 44964.48,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 192397.55,
+          "Water": 1618.08,
+          "Hydrogen": 1.17
+        }
+      },
+      "KO1": {
+        "T_C": 35.0,
+        "P_bar": 2.51,
+        "kg_h": 260.2,
+        "m3_h": 0.26,
+        "vapour_frac": 0.0,
+        "components_kg_h": {
+          "Carbon dioxide": 0.77,
+          "Water": 259.44,
+          "Hydrogen": 0.0
+        }
+      },
+      "C2_OUT": {
+        "T_C": 90.48,
+        "P_bar": 4.5,
+        "kg_h": 194016.8,
+        "m3_h": 29578.12,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 192397.55,
+          "Water": 1618.08,
+          "Hydrogen": 1.17
+        }
+      },
+      "C2_COOL": {
+        "T_C": 35.0,
+        "P_bar": 4.5,
+        "kg_h": 194016.8,
+        "m3_h": 24615.37,
+        "vapour_frac": 0.9913,
+        "components_kg_h": {
+          "Carbon dioxide": 192397.55,
+          "Water": 1618.08,
+          "Hydrogen": 1.17
+        }
+      },
+      "V2": {
+        "T_C": 35.0,
+        "P_bar": 4.5,
+        "kg_h": 193317.0,
+        "m3_h": 24614.67,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 192393.94,
+          "Water": 921.89,
+          "Hydrogen": 1.17
+        }
+      },
+      "KO2": {
+        "T_C": 35.0,
+        "P_bar": 4.5,
+        "kg_h": 699.9,
+        "m3_h": 0.7,
+        "vapour_frac": 0.0,
+        "components_kg_h": {
+          "Carbon dioxide": 3.73,
+          "Water": 696.14,
+          "Hydrogen": 0.0
+        }
+      },
+      "C3_OUT": {
+        "T_C": 90.62,
+        "P_bar": 8.07,
+        "kg_h": 193317.0,
+        "m3_h": 16188.37,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 192393.94,
+          "Water": 921.89,
+          "Hydrogen": 1.17
+        }
+      },
+      "C3_COOL": {
+        "T_C": 35.0,
+        "P_bar": 8.07,
+        "kg_h": 193317.0,
+        "m3_h": 13409.91,
+        "vapour_frac": 0.9952,
+        "components_kg_h": {
+          "Carbon dioxide": 192393.94,
+          "Water": 921.89,
+          "Hydrogen": 1.17
+        }
+      },
+      "V3": {
+        "T_C": 35.0,
+        "P_bar": 8.07,
+        "kg_h": 192931.7,
+        "m3_h": 13409.53,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 192390.27,
+          "Water": 540.31,
+          "Hydrogen": 1.17
+        }
+      },
+      "KO3": {
+        "T_C": 35.0,
+        "P_bar": 8.07,
+        "kg_h": 385.3,
+        "m3_h": 0.39,
+        "vapour_frac": 0.0,
+        "components_kg_h": {
+          "Carbon dioxide": 3.67,
+          "Water": 381.58,
+          "Hydrogen": 0.0
+        }
+      },
+      "C4_OUT": {
+        "T_C": 90.86,
+        "P_bar": 14.47,
+        "kg_h": 192931.7,
+        "m3_h": 8823.71,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 192390.27,
+          "Water": 540.31,
+          "Hydrogen": 1.17
+        }
+      },
+      "C4_COOL": {
+        "T_C": 35.0,
+        "P_bar": 14.47,
+        "kg_h": 192931.7,
+        "m3_h": 7202.97,
+        "vapour_frac": 0.9974,
+        "components_kg_h": {
+          "Carbon dioxide": 192390.27,
+          "Water": 540.31,
+          "Hydrogen": 1.17
+        }
+      },
+      "V4": {
+        "T_C": 35.0,
+        "P_bar": 14.47,
+        "kg_h": 192720.6,
+        "m3_h": 7202.76,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 192386.71,
+          "Water": 332.68,
+          "Hydrogen": 1.17
+        }
+      },
+      "KO4": {
+        "T_C": 35.0,
+        "P_bar": 14.47,
+        "kg_h": 211.2,
+        "m3_h": 0.21,
+        "vapour_frac": 0.0,
+        "components_kg_h": {
+          "Carbon dioxide": 3.56,
+          "Water": 207.63,
+          "Hydrogen": 0.0
+        }
+      },
+      "C5_OUT": {
+        "T_C": 91.33,
+        "P_bar": 25.95,
+        "kg_h": 192720.6,
+        "m3_h": 4746.88,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 192386.71,
+          "Water": 332.68,
+          "Hydrogen": 1.17
+        }
+      },
+      "C5_COOL": {
+        "T_C": 35.0,
+        "P_bar": 25.95,
+        "kg_h": 192720.6,
+        "m3_h": 3740.9,
+        "vapour_frac": 0.9986,
+        "components_kg_h": {
+          "Carbon dioxide": 192386.71,
+          "Water": 332.68,
+          "Hydrogen": 1.17
+        }
+      },
+      "V5": {
+        "T_C": 35.0,
+        "P_bar": 25.95,
+        "kg_h": 192610.0,
+        "m3_h": 3740.79,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 192383.47,
+          "Water": 225.35,
+          "Hydrogen": 1.17
+        }
+      },
+      "KO5": {
+        "T_C": 35.0,
+        "P_bar": 25.95,
+        "kg_h": 110.6,
+        "m3_h": 0.11,
+        "vapour_frac": 0.0,
+        "components_kg_h": {
+          "Carbon dioxide": 3.24,
+          "Water": 107.34,
+          "Hydrogen": 0.0
+        }
+      },
+      "DRY_V5": {
+        "T_C": 35.0,
+        "P_bar": 25.95,
+        "kg_h": 192001.0,
+        "m3_h": 3726.62,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 191998.7,
+          "Water": 1.13,
+          "Hydrogen": 1.16
+        }
+      },
+      "TEG_REJECT": {
+        "T_C": 35.0,
+        "P_bar": 25.95,
+        "kg_h": 609.0,
+        "m3_h": 7.58,
+        "vapour_frac": 0.4066,
+        "components_kg_h": {
+          "Carbon dioxide": 384.77,
+          "Water": 224.22,
+          "Hydrogen": 0.0
+        }
+      },
+      "C6_OUT": {
+        "T_C": 91.85,
+        "P_bar": 46.53,
+        "kg_h": 192001.0,
+        "m3_h": 2471.99,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 191998.7,
+          "Water": 1.13,
+          "Hydrogen": 1.16
+        }
+      },
+      "C6_COOL": {
+        "T_C": 35.0,
+        "P_bar": 46.53,
+        "kg_h": 192001.0,
+        "m3_h": 1774.27,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 191998.7,
+          "Water": 1.13,
+          "Hydrogen": 1.16
+        }
+      },
+      "V6": {
+        "T_C": 35.0,
+        "P_bar": 46.53,
+        "kg_h": 192001.0,
+        "m3_h": 1774.27,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 191998.7,
+          "Water": 1.13,
+          "Hydrogen": 1.16
+        }
+      },
+      "KO6": {
+        "T_C": 35.0,
+        "P_bar": 46.53,
+        "kg_h": 0.0,
+        "m3_h": 0.0,
+        "vapour_frac": 0.0,
+        "components_kg_h": {
+          "Carbon dioxide": 0.0,
+          "Water": 0.0,
+          "Hydrogen": 0.0
+        }
+      },
+      "C7_OUT": {
+        "T_C": 91.24,
+        "P_bar": 83.44,
+        "kg_h": 192001.0,
+        "m3_h": 1209.91,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 191998.7,
+          "Water": 1.13,
+          "Hydrogen": 1.16
+        }
+      },
+      "C7_COOL": {
+        "T_C": 35.0,
+        "P_bar": 83.44,
+        "kg_h": 192001.0,
+        "m3_h": 0.0,
+        "vapour_frac": 0.0,
+        "components_kg_h": {
+          "Carbon dioxide": 191998.7,
+          "Water": 1.13,
+          "Hydrogen": 1.16
+        }
+      },
+      "V7": {
+        "T_C": 35.0,
+        "P_bar": 83.44,
+        "kg_h": 0.0,
+        "m3_h": 0.0,
+        "vapour_frac": 1.0,
+        "components_kg_h": {
+          "Carbon dioxide": 0.0,
+          "Water": 0.0,
+          "Hydrogen": 0.0
+        }
+      },
+      "KO7": {
+        "T_C": 35.0,
+        "P_bar": 83.44,
+        "kg_h": 192001.0,
+        "m3_h": 0.0,
+        "vapour_frac": 0.0,
+        "components_kg_h": {
+          "Carbon dioxide": 191998.7,
+          "Water": 1.13,
+          "Hydrogen": 1.16
+        }
+      },
+      "P8_OUT": {
+        "T_C": 53.76,
+        "P_bar": 150.0,
+        "kg_h": 192001.0,
+        "m3_h": 0.0,
+        "vapour_frac": 0.0,
+        "components_kg_h": {
+          "Carbon dioxide": 191998.7,
+          "Water": 1.13,
+          "Hydrogen": 1.16
+        }
+      },
+      "CO2_PRODUCT": {
+        "T_C": 35.0,
+        "P_bar": 150.0,
+        "kg_h": 192001.0,
+        "m3_h": 0.0,
+        "vapour_frac": 0.0,
+        "components_kg_h": {
+          "Carbon dioxide": 191998.7,
+          "Water": 1.13,
+          "Hydrogen": 1.16
+        }
+      }
+    },
+    "units": {
+      "VALVE18": {
+        "type": "valve",
+        "dP_bar": 0.6
+      },
+      "MIX1": {
+        "type": "mixer"
+      },
+      "COMP1": {
+        "type": "compressor",
+        "duty_kW": 2686.24,
+        "kW": 2686.24,
+        "discharge_C": 98.3
+      },
+      "COOL1": {
+        "type": "cooler",
+        "duty_kW": 3254.95
+      },
+      "FLASH1": {
+        "type": "flash"
+      },
+      "COMP2": {
+        "type": "compressor",
+        "duty_kW": 2601.87,
+        "kW": 2601.87,
+        "discharge_C": 90.5
+      },
+      "COOL2": {
+        "type": "cooler",
+        "duty_kW": 3183.95
+      },
+      "FLASH2": {
+        "type": "flash"
+      },
+      "COMP3": {
+        "type": "compressor",
+        "duty_kW": 2553.73,
+        "kW": 2553.73,
+        "discharge_C": 90.6
+      },
+      "COOL3": {
+        "type": "cooler",
+        "duty_kW": 2996.7
+      },
+      "FLASH3": {
+        "type": "flash"
+      },
+      "COMP4": {
+        "type": "compressor",
+        "duty_kW": 2492.63,
+        "kW": 2492.63,
+        "discharge_C": 90.9
+      },
+      "COOL4": {
+        "type": "cooler",
+        "duty_kW": 2966.97
+      },
+      "FLASH4": {
+        "type": "flash"
+      },
+      "COMP5": {
+        "type": "compressor",
+        "duty_kW": 2399.66,
+        "kW": 2399.66,
+        "discharge_C": 91.3
+      },
+      "COOL5": {
+        "type": "cooler",
+        "duty_kW": 3113.87
+      },
+      "FLASH5": {
+        "type": "flash"
+      },
+      "TEG": {
+        "type": "component_separator"
+      },
+      "COMP6": {
+        "type": "compressor",
+        "duty_kW": 2226.33,
+        "kW": 2226.33,
+        "discharge_C": 91.8
+      },
+      "COOL6": {
+        "type": "cooler",
+        "duty_kW": 3592.22
+      },
+      "FLASH6": {
+        "type": "flash"
+      },
+      "COMP7": {
+        "type": "compressor",
+        "duty_kW": 1916.45,
+        "kW": 1916.45,
+        "discharge_C": 91.2
+      },
+      "COOL7": {
+        "type": "cooler",
+        "duty_kW": 8970.92
+      },
+      "FLASH7": {
+        "type": "flash"
+      },
+      "PUMP8": {
+        "type": "pump",
+        "m3_h": 0.0,
+        "head_m": 0.01,
+        "dP_bar": 66.56,
+        "eff_pct": 75.0,
+        "kW": 0.01,
+        "npsha_m": -0.0,
+        "discharge_barg": 148.987,
+        "kind": "centrifugal"
+      },
+      "COOL8": {
+        "type": "cooler",
+        "duty_kW": 3015.93
+      }
+    },
+    "checks": [],
+    "spec": {
+      "compounds": [
+        "Carbon dioxide",
+        "Water",
+        "Hydrogen"
+      ],
+      "package": "Peng-Robinson (PR)",
+      "feeds": {
+        "STREAM18": {
+          "T_C": 30,
+          "P_bar": 2.0,
+          "kg_h": 69097,
+          "x": {
+            "Carbon dioxide": 0.9835,
+            "Water": 0.0165
+          }
+        },
+        "STREAM19": {
+          "T_C": 49,
+          "P_bar": 1.4,
+          "kg_h": 125180,
+          "x": {
+            "Carbon dioxide": 0.9728,
+            "Water": 0.027,
+            "Hydrogen": 0.0002
+          }
+        }
+      },
+      "units": [
+        {
+          "id": "VALVE18",
+          "type": "valve",
+          "in": "STREAM18",
+          "out": "STREAM18_LP",
+          "P_out_bar": 1.4
+        },
+        {
+          "id": "MIX1",
+          "type": "mixer",
+          "in": [
+            "STREAM18_LP",
+            "STREAM19"
+          ],
+          "out": "MIX_OUT"
+        },
+        {
+          "id": "COMP1",
+          "type": "compressor",
+          "in": "MIX_OUT",
+          "out": "C1_OUT",
+          "P_out_bar": 2.51,
+          "eff_pct": 75
+        },
+        {
+          "id": "COOL1",
+          "type": "cooler",
+          "in": "C1_OUT",
+          "out": "C1_COOL",
+          "T_out_C": 35
+        },
+        {
+          "id": "FLASH1",
+          "type": "flash",
+          "in": "C1_COOL",
+          "vapor": "V1",
+          "liquid": "KO1"
+        },
+        {
+          "id": "COMP2",
+          "type": "compressor",
+          "in": "V1",
+          "out": "C2_OUT",
+          "P_out_bar": 4.5,
+          "eff_pct": 75
+        },
+        {
+          "id": "COOL2",
+          "type": "cooler",
+          "in": "C2_OUT",
+          "out": "C2_COOL",
+          "T_out_C": 35
+        },
+        {
+          "id": "FLASH2",
+          "type": "flash",
+          "in": "C2_COOL",
+          "vapor": "V2",
+          "liquid": "KO2"
+        },
+        {
+          "id": "COMP3",
+          "type": "compressor",
+          "in": "V2",
+          "out": "C3_OUT",
+          "P_out_bar": 8.07,
+          "eff_pct": 75
+        },
+        {
+          "id": "COOL3",
+          "type": "cooler",
+          "in": "C3_OUT",
+          "out": "C3_COOL",
+          "T_out_C": 35
+        },
+        {
+          "id": "FLASH3",
+          "type": "flash",
+          "in": "C3_COOL",
+          "vapor": "V3",
+          "liquid": "KO3"
+        },
+        {
+          "id": "COMP4",
+          "type": "compressor",
+          "in": "V3",
+          "out": "C4_OUT",
+          "P_out_bar": 14.47,
+          "eff_pct": 75
+        },
+        {
+          "id": "COOL4",
+          "type": "cooler",
+          "in": "C4_OUT",
+          "out": "C4_COOL",
+          "T_out_C": 35
+        },
+        {
+          "id": "FLASH4",
+          "type": "flash",
+          "in": "C4_COOL",
+          "vapor": "V4",
+          "liquid": "KO4"
+        },
+        {
+          "id": "COMP5",
+          "type": "compressor",
+          "in": "V4",
+          "out": "C5_OUT",
+          "P_out_bar": 25.95,
+          "eff_pct": 75
+        },
+        {
+          "id": "COOL5",
+          "type": "cooler",
+          "in": "C5_OUT",
+          "out": "C5_COOL",
+          "T_out_C": 35
+        },
+        {
+          "id": "FLASH5",
+          "type": "flash",
+          "in": "C5_COOL",
+          "vapor": "V5",
+          "liquid": "KO5"
+        },
+        {
+          "id": "TEG",
+          "type": "component_separator",
+          "in": "V5",
+          "product": "DRY_V5",
+          "reject": "TEG_REJECT",
+          "recover_pct": {
+            "Carbon dioxide": 99.8,
+            "Water": 0.5,
+            "Hydrogen": 99.8
+          }
+        },
+        {
+          "id": "COMP6",
+          "type": "compressor",
+          "in": "DRY_V5",
+          "out": "C6_OUT",
+          "P_out_bar": 46.53,
+          "eff_pct": 75
+        },
+        {
+          "id": "COOL6",
+          "type": "cooler",
+          "in": "C6_OUT",
+          "out": "C6_COOL",
+          "T_out_C": 35
+        },
+        {
+          "id": "FLASH6",
+          "type": "flash",
+          "in": "C6_COOL",
+          "vapor": "V6",
+          "liquid": "KO6"
+        },
+        {
+          "id": "COMP7",
+          "type": "compressor",
+          "in": "V6",
+          "out": "C7_OUT",
+          "P_out_bar": 83.44,
+          "eff_pct": 75
+        },
+        {
+          "id": "COOL7",
+          "type": "cooler",
+          "in": "C7_OUT",
+          "out": "C7_COOL",
+          "T_out_C": 35
+        },
+        {
+          "id": "FLASH7",
+          "type": "flash",
+          "in": "C7_COOL",
+          "vapor": "V7",
+          "liquid": "KO7"
+        },
+        {
+          "id": "PUMP8",
+          "type": "pump",
+          "in": "KO7",
+          "out": "P8_OUT",
+          "dP_bar": 66.56,
+          "eff_pct": 75
+        },
+        {
+          "id": "COOL8",
+          "type": "cooler",
+          "in": "P8_OUT",
+          "out": "CO2_PRODUCT",
+          "T_out_C": 35
+        }
+      ],
+      "limits": {}
+    }
+  },
+  "tool_log": "runs/netl_co2_compression/20261029-090706/log.jsonl"
+}
