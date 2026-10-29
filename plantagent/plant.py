@@ -58,6 +58,96 @@ def limit_changes(p):
 
 
 OPEN_MODEL = "baseten:meta-models/muse-spark-open-1026"
+FIELD = {"m3_h": ("flow", "m³/h"), "kg_h": ("flow", "kg/h"), "T_C": ("temperature", "°C"), "P_bar": ("pressure", "bar(a)"),
+         "volume_m3": ("working volume", "m³"), "area_m2": ("installed area", "m²"), "U_W_m2K": ("heat-transfer coefficient", "W/m²K"),
+         "P_out_bar": ("discharge pressure", "bar(a)"), "T_out_C": ("outlet temperature", "°C"), "duty_kW": ("duty", "kW"),
+         "dP_bar": ("pressure rise/drop", "bar"), "eff_pct": ("efficiency", "%"), "kv": ("valve Kv", "")}
+KIND = {"pump": "pump", "hx": "heat exchanger", "tank": "tank", "valve": "valve", "heater": "heat load", "cooler": "cooler",
+        "compressor": "compressor", "mixer": "junction", "splitter": "branch", "recycle": "loop closure", "column": "column"}
+
+
+def display_names(spec):
+    """Readable names for every unit and stream id, from the flowsheet topology (no model call): a unit keeps its P&ID tag
+    with its kind; a stream is named by what produces and consumes it, e.g. 'Utility supply to H1007', 'H1007 to T4750'."""
+    units = spec.get("units") or []
+    names = {u["id"]: f"{u['id']} {KIND.get(u['type'], u['type'])}" for u in units}
+    prod, cons = {}, {}
+    for u in units:
+        ins = [u["in"]] if isinstance(u.get("in"), str) else list(u.get("in") or [])
+        outs = [u["out"]] if isinstance(u.get("out"), str) else list(u.get("out") or [])
+        for k in ("cold", "hot"):
+            if u.get(k):
+                ins.append(u[k][0]); outs.append(u[k][1])
+        for k in ("distillate", "bottoms"):
+            if u.get(k):
+                outs.append(u[k])
+        for x in ins:
+            cons.setdefault(x, u["id"])
+        for x in outs:
+            prod.setdefault(x, u["id"])
+    feeds = spec.get("feeds") or {}
+    hidden = {u["id"]: u for u in units if u["type"] in ("mixer", "splitter", "recycle", "valve")}
+
+    def io(uid, side):
+        u = next(x for x in units if x["id"] == uid)
+        v = u.get(side)
+        return [v] if isinstance(v, str) else list(v or [])
+
+    def up(sid, seen=()):  # nearest real equipment upstream, through junctions, branches and valves
+        p = prod.get(sid)
+        if p is None or sid in seen:
+            return None
+        return p if p not in hidden else next((x for x in (up(i, seen + (sid,)) for i in io(p, "in")) if x), None)
+
+    def down(sid, seen=()):
+        c = cons.get(sid)
+        if c is None or sid in seen:
+            return None
+        return c if c not in hidden else next((x for x in (down(o, seen + (sid,)) for o in io(c, "out")) if x), None)
+
+    def leaves(sid, seen=()):  # does this stream (or what it becomes) leave the unit for good?
+        c = cons.get(sid)
+        if c is None:
+            return True
+        return c in hidden and hidden[c]["type"] != "recycle" and any(leaves(o, seen + (sid,)) for o in io(c, "out") if o not in seen)
+    utility = {k for k, f in feeds.items() if f.get("utility")}
+    for _ in range(len(units)):  # a utility stays a utility through its own side of exchangers and through valves
+        for u in units:
+            pairs = [tuple(u[k]) for k in ("cold", "hot") if u.get(k)] + \
+                [(i, o) for i in ([u["in"]] if isinstance(u.get("in"), str) else []) for o in ([u["out"]] if isinstance(u.get("out"), str) else [])]
+            utility |= {o for i, o in pairs if i in utility}
+    for sid in set(prod) | set(cons) | set(feeds):
+        a, b = up(sid), down(sid)
+        if sid in utility and sid not in feeds and cons.get(sid) is None:
+            names[sid] = f"Utility return from {a or 'the unit'}"
+            continue
+        if sid in feeds:
+            names[sid] = f"{'Utility supply' if feeds[sid].get('utility') else 'Feed'} to {b or 'the unit'}"
+        elif a and b and a != b:
+            names[sid] = f"{a} outlet to {b}"
+        elif a and cons.get(sid) is None:
+            names[sid] = f"{a} outlet (product leaving the unit)"
+        elif a:
+            names[sid] = f"{a} outlet"
+        elif b:
+            names[sid] = f"Stream into {b}"
+        else:
+            names[sid] = sid
+    return names
+
+
+def describe_change(spec, c, names=None):
+    """'H1007 cooling water flow: 20 → 27 m³/h' for a change path; the raw path stays available for traceability."""
+    names = names or display_names(spec)
+    try:
+        kind, oid, field = c["path"].split(".", 2)
+    except ValueError:
+        return c.get("path", "")
+    label, unit = FIELD.get(field, (field.replace("_", " "), ""))
+    who = names.get(oid, oid)
+    frm = c.get("from")
+    fmt = lambda v: f"{v:g}" if isinstance(v, (int, float)) else str(v)  # noqa: E731
+    return f"{who} {label}: {fmt(frm) + ' → ' if frm is not None else ''}{fmt(c.get('value'))} {unit}".strip()
 
 
 def compare_answers(a, b):
@@ -542,6 +632,25 @@ class PlantWorkspace(Study):
         ans["checks"] = [self.reproduce(r) for r in dict.fromkeys(r for c in ans["cards"] for r in (c.get("runs") or []))]
         ans.update(seconds=round(time.time() - t0), cost_usd=round(llm.spent() - usd0, 4), request=text, model=self.model)
         return ans
+
+    def whatif(self, changes, scale=None):
+        """Preview one change in DWSIM at the current throughput: limit checks before and after. Not a revision."""
+        if limit_changes({"changes": changes}):
+            raise ValueError("a what-if changes the plant, not its documented limits")
+        sc = float(scale or self.cfg.get("target_scale", 1.0))
+        before, after = self.state(sc), process.run(patch(self.spec, changes), sc)
+        key = lambda r: {(c["id"], c["check"]): c for c in r["checks"] if "utilisation" in c}  # noqa: E731
+        b, a = key(before), key(after)
+        return {"scale": sc, "errors": after["errors"], "changes": [{**c, "text": describe_change(self.spec, c)} for c in changes],
+                "checks": [{"id": k[0], "check": k[1], "before": b[k]["utilisation"] if k in b else None, "after": a[k]["utilisation"],
+                            "value_after": a[k]["value"], "limit": a[k]["limit"], "unit": a[k]["unit"]} for k in a],
+                "units_after": after["units"]}
+
+    def existing_state(self, scale):
+        """The model as built, before any revision: what the Existing view colours."""
+        if not self.revisions:
+            return self.state(scale)
+        return {"scale": scale, **process.run(self._built_spec(), scale)}
 
     def reproduce(self, label):
         """A cited run counts only if it exists and re-solves to the same result now."""

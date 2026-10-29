@@ -675,7 +675,7 @@ function proposalHtml(p, i) {
   return `<div class="prop" data-i="${i}"><div class="t">${esc(p.title)}</div>
     <div class="diff">${esc(unit ? p.unit : p.element + "." + p.field)}: <span class="o">${p.old ?? "—"}</span> → <span class="n">${unit ? p.capacity_mgd + " MGD" : p.value}</span></div>
     <div class="r ${p.passes_after ? "" : "bad"}">${p.passes_after ? "✓ verified in the simulator" + (p.run_label ? " · run " + esc(p.run_label) : "") + ` · at ${p.target_mgd} MGD` : "✗ not verified: " + esc((p.failing_after || []).join(", "))}</div>
-    <button class="acc" ${p.passes_after ? "" : "disabled style='opacity:.5'"}>Accept</button><button class="rej">Reject</button></div>`;
+    <button class="acc" ${p.passes_after ? "" : "disabled style='opacity:.5'"} title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature.">Apply as draft model revision</button><button class="rej">Dismiss</button></div>`;
 }
 
 async function acceptProposal(p, box) {

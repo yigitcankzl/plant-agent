@@ -100,6 +100,12 @@
   .modal.on { display: flex; }
   .modal .box { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; width: min(820px, 92vw); max-height: 84vh; overflow: auto; padding: 16px 20px; }
   .modal pre { white-space: pre-wrap; font: 12px/1.5 var(--mono); }
+  .sheet svg .c-ok { stroke: #2f9663 !important; } .sheet svg .c-warn { stroke: #c5871e !important; }
+  .sheet svg .c-fail { stroke: #e0392c !important; stroke-width: 1.6 !important; animation: pulse .9s infinite alternate; }
+  .viewtog { position: absolute; top: 8px; right: 12px; z-index: 6; display: flex; gap: 0; }
+  .viewtog button { border-radius: 0; } .viewtog button:first-child { border-radius: 5px 0 0 5px; } .viewtog button:last-child { border-radius: 0 5px 5px 0; }
+  .viewtog .on { background: #1d4f86; border-color: #2b6cb3; }
+  .ecard td { padding: 3px 6px; border-top: 1px solid var(--line); font-size: 12px; } .ecard td.v { font-family: var(--mono); }
   .tour-on { outline: 3px solid #4da3ff !important; outline-offset: 2px; border-radius: 6px; }
   #tour { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 60; background: #0f2e45; color: #fff; border: 1px solid #4da3ff;
           border-radius: 10px; padding: 12px 16px; width: min(720px, 92vw); box-shadow: 0 10px 40px rgba(0,0,0,.5); display: none; }
@@ -142,7 +148,7 @@
   <main>
     <div class="progress" id="progress"></div>
     <div id="note" style="display:none;margin:8px 18px 0;padding:6px 10px;border:1px solid #5a4a2a;border-radius:5px;color:var(--warn);font-size:12px"></div>
-    <div class="stage"><div class="sheet" id="sheet"></div></div>
+    <div class="stage" style="position:relative"><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Proposed</button></div><div class="sheet" id="sheet"></div></div>
   </main>
 
   <footer>
@@ -229,6 +235,7 @@ async function load() {
     feed ? {name: feed[0], m3_h: feed[1].m3_h ?? feed[1].kg_h, unit: feed[1].m3_h != null ? 'm³/h' : 'kg/h'} : null;
   $('tgtLbl').textContent = `target ${Math.round(P.target_scale * 100)}%`;
   $('scale').value = Math.round(P.target_scale * 100);
+  $('viewTog').style.display = P.has_revisions ? 'flex' : 'none';
   model(); answers(); revs();
   if (P.built) render(P.at_target); else noModel();
   $('q').disabled = false;
@@ -314,7 +321,7 @@ function render(st) {
   $('eqlist').innerHTML = rows.map(c => {
     const feeds = P.built.spec.feeds || {};
     const u = units[c.id], name = u ? NAMES[u.type] || u.type : feeds[c.id]?.utility ? 'Utility supply' : 'Process stream';
-    return `<div class="eq" data-id="${esc(c.id)}" onclick="select('${esc(c.id)}')"><div class="t">${esc(c.id)} <span>${Math.round(c.utilisation * 100)}%</span></div>
+    return `<div class="eq" data-id="${esc(c.id)}" onclick="select('${esc(c.id)}')" title="${esc(c.id)}"><div class="t">${esc(u ? c.id : nm(c.id))} <span>${Math.round(c.utilisation * 100)}%</span></div>
       <div class="bar"><i style="width:${Math.min(100, c.utilisation / 1.3 * 100)}%;background:var(--${sev(c.utilisation)})"></i></div>
       <div class="why">${esc(name)} · ${esc(c.check)}: ${fmt(c.value)} of ${fmt(c.limit)} ${esc(c.unit)}</div></div>`;
   }).join('') || '<div class="empty">No limits in the model.</div>';
@@ -322,11 +329,16 @@ function render(st) {
   const sheet = $('sheet');
   sheet.querySelectorAll('.badge').forEach(b => b.remove());
   sheet.querySelectorAll('[data-tag]').forEach(g => g.classList.remove('u-ok', 'u-warn', 'u-fail'));
+  sheet.querySelectorAll('.c-ok,.c-warn,.c-fail').forEach(e => e.classList.remove('c-ok', 'c-warn', 'c-fail'));
+  const svgEl = sheet.querySelector('svg'), vb = svgEl?.viewBox?.baseVal;
   const box = sheet.getBoundingClientRect();
   for (const c of rows) {
     const g = sheet.querySelector(`[data-tag="${CSS.escape(c.id)}"]`);
     if (!g) continue;
-    g.classList.add('u-' + sev(c.utilisation));
+    if (g.tagName.toLowerCase() === 'g' && vb) {  // a DEXPI group also holds its datasheet table: colour the symbol only
+      const cut = vb.y + vb.height * 0.72;
+      g.querySelectorAll('path,line,polyline,polygon,circle,ellipse,rect').forEach(e => { try { if (e.getBBox().y < cut) e.classList.add('c-' + sev(c.utilisation)); } catch (x) {} });
+    } else g.classList.add('u-' + sev(c.utilisation));
     const r = g.getBoundingClientRect();
     const b = document.createElement('div');
     b.className = 'badge ' + sev(c.utilisation);
@@ -337,29 +349,82 @@ function render(st) {
   }
   const top = rows[0], cap = P.capacity;
   const over = rows.filter(c => c.utilisation > 1);
-  $('verdict').innerHTML = over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(over[0].id)} is over its limit`
-    : `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — tightest: ${esc(top?.id || '')} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`;
-  $('verdictSub').innerHTML = cap?.capacity_multiple ? `Simulated maximum: <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(cap.limited_by?.id)}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? 'Recorded DWSIM solution of this model (re-solved live when the model changes).' : 'Solved live in DWSIM.'}` : '';
+  $('verdict').innerHTML = over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
+    : `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — tightest: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`;
+  $('verdictSub').innerHTML = cap?.capacity_multiple ? `Simulated maximum: <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? 'Recorded DWSIM solution of this model (re-solved live when the model changes).' : 'Solved live in DWSIM.'}` : '';
 }
 const fmt = v => typeof v === 'number' ? (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1)) : v;
+const nm = id => (P?.names || {})[id] || id;  // readable name for a unit or stream id; the raw id stays in tooltips
+const FIELDS = {m3_h: ['flow', 'm³/h'], kg_h: ['flow', 'kg/h'], T_C: ['temperature', '°C'], P_bar: ['pressure', 'bar(a)'], volume_m3: ['working volume', 'm³'],
+  area_m2: ['installed area', 'm²'], U_W_m2K: ['heat-transfer coefficient', 'W/m²K'], P_out_bar: ['discharge pressure', 'bar(a)'], T_out_C: ['outlet temperature', '°C'],
+  duty_kW: ['duty', 'kW'], dP_bar: ['pressure rise/drop', 'bar'], eff_pct: ['efficiency', '%'], kv: ['valve Kv', '']};
+function describe(c) {
+  const [k, id, f] = String(c.path || '').split('.'); const [label, unit] = FIELDS[f] || [String(f || '').replace(/_/g, ' '), ''];
+  const from = 'from' in c && c.from != null ? `${fmt(c.from)} → ` : '';
+  return `<span title="${esc(c.path)}">${esc(nm(id))} ${esc(label)}: <b>${esc(from)}${esc(fmt(c.value))}</b> ${esc(unit)}</span>`;
+}
 
 function select(tag) {
   document.querySelectorAll('.eq.sel').forEach(e => e.classList.remove('sel'));
   document.querySelectorAll('.eq[data-id]').forEach(e => { if (e.dataset.id === tag) e.classList.add('sel'); });
   $('sheet').querySelectorAll('.u-sel').forEach(g => g.classList.remove('u-sel'));
   $('sheet').querySelector(`[data-tag="${CSS.escape(tag)}"]`)?.classList.add('u-sel');
-  const e = P.pid.equipment.find(x => x.tag === tag);
-  $('q').value = e ? `Why is ${tag} (${e.class}) limiting, and what is the cheapest fix?` : `What limits ${tag}?`;
-  $('q').focus();
+  if (P.built && ST) equipmentCard(tag);
 }
 
+function equipmentCard(tag) {  // design data, operating values, every limit with its margin, and a what-if
+  const spec = P.built.spec, u = (spec.units || []).find(x => x.id === tag), feed = (spec.feeds || {})[tag];
+  const e = (P.pid.equipment || []).find(x => x.tag === tag);
+  const op = (ST.units || {})[tag] || (ST.streams || {})[tag] || {};
+  const checks = (ST.checks || []).filter(c => c.id === tag && c.utilisation != null);
+  const editable = u ? Object.entries(u).filter(([k, v]) => typeof v === 'number' && FIELDS[k]) : feed ? Object.entries(feed).filter(([k, v]) => typeof v === 'number' && FIELDS[k]) : [];
+  const path = k => `${u ? 'units' : 'feeds'}.${tag}.${k}`;
+  $('modalBox').innerHTML = `<h3>${esc(nm(tag))} <span style="color:var(--muted);font-size:12px">${esc(tag)}</span></h3>
+    ${e ? `<div class="tt">Design data (P&amp;ID)</div><table class="ecard">${Object.entries(e.design || {}).map(([k, v]) => `<tr><td>${esc(k)}</td><td class="v">${esc(v)}</td></tr>`).join('')}</table>` : ''}
+    <div class="tt" style="margin-top:10px">Operating at ${Math.round(ST.scale * 100)}% (DWSIM)</div><table class="ecard">${Object.entries(op).filter(([k, v]) => typeof v === 'number').map(([k, v]) => `<tr><td>${esc(k)}</td><td class="v">${esc(fmt(v))}</td></tr>`).join('')}</table>
+    <div class="tt" style="margin-top:10px">Limits</div><table class="ecard">${checks.map(c => `<tr><td>${esc(c.check)}</td><td class="v">${esc(fmt(c.value))} of ${esc(fmt(c.limit))} ${esc(c.unit)}</td><td class="v" style="color:var(--${sev(c.utilisation)})">${Math.round(c.utilisation * 100)}% · margin ${Math.round((1 - c.utilisation) * 100)}%</td></tr>`).join('') || '<tr><td>No stated limit</td></tr>'}</table>
+    ${editable.length ? `<div class="tt" style="margin-top:10px">What if… (a preview in DWSIM, not a revision)</div>
+      <select id="wiField">${editable.map(([k, v]) => `<option value="${k}" data-v="${v}">${esc(FIELDS[k][0])} (${esc(fmt(v))} ${esc(FIELDS[k][1])})</option>`).join('')}</select>
+      <input id="wiValue" type="number" step="any" style="width:110px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:4px" value="${editable[0][1]}">
+      <button class="btn" onclick="whatIf('${esc(tag)}')">Re-solve</button><div id="wiOut" style="margin-top:8px"></div>` : ''}
+    <div style="margin-top:12px"><button class="btn" onclick="$('modal').classList.remove('on');$('q').value='Why is ${esc(tag)} limiting, and what is the cheapest fix?';$('q').focus()">Ask the copilot about ${esc(tag)}</button></div>`;
+  $('wiField') && ($('wiField').onchange = () => { $('wiValue').value = $('wiField').selectedOptions[0].dataset.v; });
+  WI = {tag, path};
+  $('modal').classList.add('on');
+}
+let WI = null;
+async function whatIf(tag) {
+  const changes = [{path: WI.path($('wiField').value), from: Number($('wiField').selectedOptions[0].dataset.v), value: Number($('wiValue').value)}];
+  $('wiOut').textContent = 'Solving in DWSIM…';
+  const r = await api('whatif', {changes, scale: ST.scale}).catch(e => ({error: e.message}));
+  if (r.error) { $('wiOut').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return; }
+  const moved = r.checks.filter(c => c.before == null || Math.abs(c.after - c.before) > 0.005).sort((a, b) => b.after - a.after);
+  $('wiOut').innerHTML = `<div style="font-size:12px;margin-bottom:4px">${describe(changes[0])} at ${Math.round(r.scale * 100)}%</div>
+    <table class="ecard">${moved.map(c => `<tr><td>${esc(nm(c.id))}: ${esc(c.check)}</td><td class="v">${c.before == null ? '—' : Math.round(c.before * 100) + '%'} → <b style="color:var(--${sev(c.after)})">${Math.round(c.after * 100)}%</b></td></tr>`).join('') || '<tr><td>No limit moved</td></tr>'}</table>
+    <button class="btn go" style="margin-top:8px" onclick="applyWhatIf()">Apply as draft model revision</button>`;
+  WI.changes = changes;
+}
+async function applyWhatIf() {
+  const reason = prompt('Applying this what-if as a DRAFT model revision (not an engineering approval). Reason, kept in the audit trail:');
+  if (!reason) return;
+  const r = await api('accept', {proposal: {title: 'Engineer what-if: ' + WI.changes.map(c => c.path + ' = ' + c.value).join(', '), tag: WI.tag, changes: WI.changes, _by: 'engineer what-if'}, reason})
+    .catch(e => ({error: e.message}));
+  if (r.error) { $('wiOut').insertAdjacentHTML('beforeend', `<div style="color:var(--fail)">${esc(r.error)}</div>`); return; }
+  $('modal').classList.remove('on'); await reload();
+}
+
+let VIEW = 'proposed';
+async function setView(v) {
+  VIEW = v; $('vExisting').classList.toggle('on', v === 'existing'); $('vProposed').classList.toggle('on', v === 'proposed');
+  render(await api(`state?scale=${$('scale').value / 100}${v === 'existing' ? '&view=existing' : ''}`));
+}
 let tmr = null;
 $('scale').oninput = () => {
   if (!P?.built) return;
   const s = $('scale').value / 100;
   $('flowv').innerHTML = base ? `${(base.m3_h * s).toFixed(1)} <small>${base.unit} · solving…</small>` : '…';
   clearTimeout(tmr);
-  tmr = setTimeout(async () => render(await api('state?scale=' + s)), 120);
+  tmr = setTimeout(async () => render(await api('state?scale=' + s + (VIEW === 'existing' ? '&view=existing' : ''))), 120);
 };
 
 function chip(e) {
@@ -405,22 +470,36 @@ async function ask(text, context) {
 function notes(a) {
   const sheet = $('sheet'), box = sheet.getBoundingClientRect();
   sheet.querySelectorAll('.note').forEach(n => n.remove());
-  for (const h of a.highlights || []) {
+  const rank = {fail: 0, warn: 1, info: 2, ok: 3};
+  const hs = [...(a.highlights || [])].sort((x, y) => (rank[x.severity] ?? 4) - (rank[y.severity] ?? 4)).slice(0, 3);  // the top items only
+  for (const h of hs) {
     const g = sheet.querySelector(`[data-tag="${CSS.escape(h.tag)}"]`);
     if (!g) continue;
     const r = g.getBoundingClientRect(), n = document.createElement('div');
     n.className = 'note ' + (h.severity || 'info');
     n.style.left = (r.left + r.width / 2 - box.left) + 'px';
     n.style.top = (r.top - box.top + 22) + 'px';  // the tag's group also holds its datasheet table: anchor at the symbol's top
-    n.textContent = h.text;
+    n.textContent = h.text.length > 90 ? h.text.slice(0, 88) + '…' : h.text;
+    n.title = h.text;
     sheet.appendChild(n);
+    placeClear(n, sheet);
+  }
+}
+function placeClear(n, sheet) {  // push a note down until it no longer overlaps an earlier note or badge
+  for (let k = 0; k < 12; k++) {
+    const a = n.getBoundingClientRect();
+    const hit = [...sheet.querySelectorAll('.note,.badge')].find(o => o !== n && (() => { const b = o.getBoundingClientRect();
+      return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom; })());
+    if (!hit) return;
+    n.style.top = (parseFloat(n.style.top) + hit.getBoundingClientRect().height + 4) + 'px';
   }
 }
 
 function answers() {
   if (!P.built) return;
   const list = [...(P.answers || [])].reverse();
-  $('answers').innerHTML = list.length ? list.map((a, i) => ans(a, P.answers.length - 1 - i)).join('') :
+  $('answers').innerHTML = list.length ? ans(list[0], P.answers.length - 1) +
+    (list.length > 1 ? `<details class="ans"><summary>History · ${list.length - 1} earlier questions</summary>${list.slice(1).map((a, i) => ans(a, P.answers.length - 2 - i)).join('')}</details>` : '') :
     `<div class="empty"><b>What would you like to test?</b><br>Ask about an equipment limit, or find a path to the target throughput.
      <div class="sugg">${['What limits +20% throughput?', 'Which exchanger is closest to its limit, and why?', 'How much headroom does the cooling water have?'].map(s => `<button class="btn" onclick="ask('${s}')">${s}</button>`).join('')}</div></div>`;
   $('spend').textContent = list.length ? '$' + list.reduce((t, a) => t + (a.cost_usd || 0), 0).toFixed(3) : '';
@@ -459,14 +538,19 @@ function ans(a, idx) {
   const props = (a.proposals || []).map((p, j) => prop(p, idx, j)).join('');
   const cb = a.combined, comb = cb && !cb.error ? `<div class="card ${cb.reaches_target ? 'ok' : 'fail'}"><div class="tt">All ${a.proposals.length} changes together · re-solved in DWSIM</div>
     <div class="res">${cb.reaches_target ? '✓ Reaches ' + Math.round(P.target_scale * 100) + '%' : '✗ Short of target'} · new maximum ${Math.round((cb.capacity_multiple || 0) * 100)}% (${esc(cb.limited_by?.id || '')})</div></div>` : '';
-  return `<div class="ans"><div class="rq">› ${esc(a.request)}</div><div class="hl">${esc(a.headline)}</div><div class="sm">${esc(a.summary)}</div>${fc}${props}${compare(a)}${comb}${secondOpinion(a, idx)}${cards}
+  const lim = (a.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity)).slice(0, 3);
+  const limits = lim.length ? `<div class="tt" style="margin-top:8px">What limits it</div>${lim.map(h => `<div style="font-size:12.5px;margin:2px 0"><b style="color:var(--${h.severity === 'fail' ? 'fail' : 'warn'})">${esc(nm(h.tag))}</b> · ${esc(h.text)}</div>`).join('')}` : '';
+  const fixes = (a.proposals || []).length ? `<div class="tt" style="margin-top:10px">Fixes · each re-solved in DWSIM</div>${props}${compare(a)}${comb}` : '';
+  return `<div class="ans"><div class="tt">Question</div><div class="rq">${esc(a.request)}</div>
+    <div class="tt" style="margin-top:8px">Answer</div><div class="hl">${esc(a.headline)}</div>${limits}${fc}${fixes}${secondOpinion(a, idx)}
+    <details style="margin-top:10px"><summary>Evidence · ${(a.cards || []).length} calculations, sources and assumptions</summary><div class="sm">${esc(a.summary)}</div>${cards}</details>
     <div class="meta">${a.seconds}s · $${(a.cost_usd || 0).toFixed(4)} · ${(a.checks || []).filter(c => c.ok).length}/${(a.checks || []).length} cited runs re-solved to the same result${(a.checks || []).filter(c => !c.ok).map(c => ` · <span style="color:var(--fail)">✗ ${esc(c.item)}: ${esc(c.why || 'not reproduced')}</span>`).join('')}</div></div>`;
 }
 
 function prop(p, i, j, src) {
   const spec = P.built.spec, units = Object.fromEntries(spec.units.map(u => [u.id, u]));
   const cur = path => { const [k, id, f] = path.split('.'); const o = k === 'units' ? units[id] : (spec[k] || {})[id]; return o ? o[f] : undefined; };
-  const diff = (p.changes || []).map(c => `<div><span class="m">- ${esc(c.path)} = ${esc(('from' in c ? c.from : cur(c.path)) ?? '—')}</span><br><span class="p">+ ${esc(c.path)} = ${esc(c.value)}</span></div>`).join('');
+  const diff = (p.changes || []).map(c => `<div>${describe({...c, from: 'from' in c ? c.from : cur(c.path)})}</div>`).join('');
   const v = p.verified ? `<span class="vb y" title="Re-solved in DWSIM with this change at ${Math.round(P.target_scale * 100)}% throughput; every limit of ${esc(p.fixes || '')} within 100 %, nothing else pushed over.">✓ Simulated: ${esc(p.fixes || '')} within limits at ${Math.round(P.target_scale * 100)}%</span>`
     : `<span class="vb n">✗ ${p.unverified_reason ? 'Not verifiable: ' + esc(p.unverified_reason) : p.error ? 'did not solve' : esc((p.still_over?.[0] || p.breaks?.[0] || {}).id || '') + ' still over its limit'}</span>`;
   return `<div class="prop ${p.accepted ? 'done' : ''}"><div class="ph"><b>${esc(p.title)}</b><span class="vb" style="color:var(--muted)">${esc(p.cost_class || '')}</span></div>
@@ -488,7 +572,8 @@ async function accept(i, j, src) {
 async function reload() {
   const keep = P.answers;
   P = await api('project'); P.answers = keep;
-  model(); answers(); revs(); render(await api('state?scale=' + $('scale').value / 100));
+  $('viewTog').style.display = P.has_revisions ? 'flex' : 'none';
+  model(); answers(); revs(); render(await api('state?scale=' + $('scale').value / 100 + (VIEW === 'existing' ? '&view=existing' : '')));
 }
 
 function revs() {
@@ -535,6 +620,7 @@ async function reliefScan() {
     n.textContent = hot.length ? `${tag}: ${hot.map(r => r.side_fluids.join(',')).join(' and ')} side can be blocked in while heated, no relief`
       : `${tag}: ${list.map(r => r.status).join(', ')}`;
     sheet.appendChild(n);
+    placeClear(n, sheet);
   }
 }
 

@@ -249,6 +249,8 @@ def plant_project(case):
             "data_note": w.cfg.get("data_note"), "throughput": w.cfg.get("throughput"), "drawing": "svg" if w.cfg.get("svg") else "pdf" if w.cfg.get("pid_pdf") else "none", "dexpi": bool(w.cfg.get("pid")),
             "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid or {"equipment": [], "connections": [], "valves": [], "control": []}, "basis": w.basis, "model": w.model,
             "built": {k: v for k, v in w.built.items() if k != "result"} if w.built else None,
+            "names": __import__("plantagent.plant", fromlist=["x"]).display_names(w.spec) if w.built else {},
+            "has_revisions": bool(w.revisions),
             "read_confirmed": bool((w.pid or {}).get("confirmed")), "read_corrections": len((w.pid or {}).get("corrections") or []),
             "answers": w.answers, "revisions": [{k: r.get(k) for k in ("rev", "kind", "title", "changes", "capacity_multiple", "at", "user", "reason")}
                                                 for r in w.revisions],
@@ -534,7 +536,13 @@ class Handler(SimpleHTTPRequestHandler):
                 audit.append(case, "ask", self.headers.get("X-User"), "", {"request": body["text"][:500], "model": w.model})
                 return self._send(plant_job(case, lambda w: w.ask(body["text"], body.get("context"), bool(body.get("second_opinion")))))
             if what == "state":
-                return self._send(w.state(float(q.get("scale", 1.0))))
+                sc = float(q.get("scale", 1.0))
+                return self._send(w.existing_state(sc) if q.get("view") == "existing" else w.state(sc))
+            if what == "whatif" and method == "POST":
+                try:
+                    return self._send(w.whatif(body.get("changes") or [], body.get("scale")))
+                except ValueError as e:
+                    return self._send({"error": str(e)}, code=409)
             if what == "capacity":
                 return self._send(w.capacity())
             user = self.headers.get("X-User")
