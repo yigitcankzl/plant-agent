@@ -1,0 +1,1497 @@
+{
+ "case": "chem_c01",
+ "made": "2026-10-29 11:13 +03",
+ "target_scale": 1.2,
+ "revisions": [
+  {
+   "rev": 1,
+   "kind": "change",
+   "title": "Raise H1007 cooling water to 27 m3/h",
+   "changes": [
+    {
+     "path": "feeds.s47130.m3_h",
+     "value": 27.0,
+     "from": 20.0
+    }
+   ],
+   "spec_before": {
+    "compounds": [
+     "Water",
+     "Ethanol"
+    ],
+    "package": "NRTL",
+    "feeds": {
+     "s47121": {
+      "T_C": 50,
+      "P_bar": 1.5,
+      "m3_h": 18.0,
+      "x": {
+       "Water": 0.93,
+       "Ethanol": 0.07
+      }
+     },
+     "s47130": {
+      "T_C": 25,
+      "P_bar": 4.0,
+      "m3_h": 20.0,
+      "x": {
+       "Water": 1.0
+      },
+      "utility": true
+     },
+     "s47140": {
+      "T_C": 7,
+      "P_bar": 4.0,
+      "m3_h": 15.0,
+      "x": {
+       "Water": 1.0
+      },
+      "utility": true
+     }
+    },
+    "units": [
+     {
+      "id": "P4711",
+      "type": "pump",
+      "in": "s47121",
+      "out": "s47122",
+      "dP_bar": 1.0,
+      "kind": "centrifugal"
+     },
+     {
+      "id": "H1007",
+      "type": "hx",
+      "hot": [
+       "s47122",
+       "s47123a"
+      ],
+      "cold": [
+       "s47130",
+       "s47131"
+      ],
+      "U_W_m2K": 600,
+      "area_m2": 46.8,
+      "U_ref_flows_m3_h": [
+       18,
+       20
+      ],
+      "dP_ref_bar": [
+       0.3,
+       0.5
+      ]
+     },
+     {
+      "id": "47123/C1",
+      "type": "valve",
+      "in": "s47123a",
+      "out": "s47123",
+      "P_out_bar": 1.013
+     },
+     {
+      "id": "MIX_TANK",
+      "type": "mixer",
+      "in": [
+       "s47123",
+       "s47127_r"
+      ],
+      "out": "sTankIn"
+     },
+     {
+      "id": "T4750",
+      "type": "tank",
+      "in": "sTankIn",
+      "out": "s47124",
+      "volume_m3": 20.8,
+      "P_bar": 1.013,
+      "residence_basis": "sDispatch"
+     },
+     {
+      "id": "P4712",
+      "type": "pump",
+      "in": "s47124",
+      "out": "s47126a",
+      "dP_bar": 3.5,
+      "kind": "positive_displacement"
+     },
+     {
+      "id": "SPLIT_47126",
+      "type": "splitter",
+      "in": "s47126a",
+      "out": [
+       "s47126c",
+       "sDispatch"
+      ],
+      "fixed_kg_h": {
+       "s47126c": 22020
+      }
+     },
+     {
+      "id": "H1008",
+      "type": "hx",
+      "hot": [
+       "s47126c",
+       "s47127a"
+      ],
+      "cold": [
+       "s47140",
+       "s47141a"
+      ],
+      "U_W_m2K": 600,
+      "area_m2": 46.8,
+      "U_ref_flows_m3_h": [
+       22.5,
+       15
+      ]
+     },
+     {
+      "id": "47127/C1",
+      "type": "valve",
+      "in": "s47127a",
+      "out": "s47127",
+      "dP_bar": 2.5
+     },
+     {
+      "id": "47141/C1",
+      "type": "valve",
+      "in": "s47141a",
+      "out": "s47141",
+      "dP_bar": 0.3
+     },
+     {
+      "id": "RECYC",
+      "type": "recycle",
+      "in": "s47127",
+      "out": "s47127_r",
+      "guess": {
+       "T_C": 15,
+       "kg_h": 22020
+      }
+     }
+    ],
+    "limits": {
+     "P4711": {
+      "max_m3_h": 25,
+      "min_m3_h": 8,
+      "max_kW": 2.2,
+      "max_head_m": 12,
+      "npshr_m": 2.5
+     },
+     "P4712": {
+      "max_m3_h": 50,
+      "max_kW": 7.5,
+      "max_head_m": 40,
+      "psv_set_barg": 6
+     },
+     "H1007": {
+      "area_m2": 46.8,
+      "out_T_C": 35,
+      "side": "hot",
+      "max_area_m2": 60,
+      "max_dP_cold_bar": 1.0
+     },
+     "H1008": {
+      "area_m2": 46.8
+     },
+     "T4750": {
+      "min_residence_min": 60
+     },
+     "s47123": {
+      "max_T_C": 35
+     },
+     "sDispatch": {
+      "max_T_C": 25
+     },
+     "s47130": {
+      "max_m3_h": 30
+     },
+     "s47140": {
+      "max_m3_h": 20
+     }
+    }
+   },
+   "spec_after": {
+    "compounds": [
+     "Water",
+     "Ethanol"
+    ],
+    "package": "NRTL",
+    "feeds": {
+     "s47121": {
+      "T_C": 50,
+      "P_bar": 1.5,
+      "m3_h": 18.0,
+      "x": {
+       "Water": 0.93,
+       "Ethanol": 0.07
+      }
+     },
+     "s47130": {
+      "T_C": 25,
+      "P_bar": 4.0,
+      "m3_h": 27.0,
+      "x": {
+       "Water": 1.0
+      },
+      "utility": true
+     },
+     "s47140": {
+      "T_C": 7,
+      "P_bar": 4.0,
+      "m3_h": 15.0,
+      "x": {
+       "Water": 1.0
+      },
+      "utility": true
+     }
+    },
+    "units": [
+     {
+      "id": "P4711",
+      "type": "pump",
+      "in": "s47121",
+      "out": "s47122",
+      "dP_bar": 1.0,
+      "kind": "centrifugal"
+     },
+     {
+      "id": "H1007",
+      "type": "hx",
+      "hot": [
+       "s47122",
+       "s47123a"
+      ],
+      "cold": [
+       "s47130",
+       "s47131"
+      ],
+      "U_W_m2K": 600,
+      "area_m2": 46.8,
+      "U_ref_flows_m3_h": [
+       18,
+       20
+      ],
+      "dP_ref_bar": [
+       0.3,
+       0.5
+      ]
+     },
+     {
+      "id": "47123/C1",
+      "type": "valve",
+      "in": "s47123a",
+      "out": "s47123",
+      "P_out_bar": 1.013
+     },
+     {
+      "id": "MIX_TANK",
+      "type": "mixer",
+      "in": [
+       "s47123",
+       "s47127_r"
+      ],
+      "out": "sTankIn"
+     },
+     {
+      "id": "T4750",
+      "type": "tank",
+      "in": "sTankIn",
+      "out": "s47124",
+      "volume_m3": 20.8,
+      "P_bar": 1.013,
+      "residence_basis": "sDispatch"
+     },
+     {
+      "id": "P4712",
+      "type": "pump",
+      "in": "s47124",
+      "out": "s47126a",
+      "dP_bar": 3.5,
+      "kind": "positive_displacement"
+     },
+     {
+      "id": "SPLIT_47126",
+      "type": "splitter",
+      "in": "s47126a",
+      "out": [
+       "s47126c",
+       "sDispatch"
+      ],
+      "fixed_kg_h": {
+       "s47126c": 22020
+      }
+     },
+     {
+      "id": "H1008",
+      "type": "hx",
+      "hot": [
+       "s47126c",
+       "s47127a"
+      ],
+      "cold": [
+       "s47140",
+       "s47141a"
+      ],
+      "U_W_m2K": 600,
+      "area_m2": 46.8,
+      "U_ref_flows_m3_h": [
+       22.5,
+       15
+      ]
+     },
+     {
+      "id": "47127/C1",
+      "type": "valve",
+      "in": "s47127a",
+      "out": "s47127",
+      "dP_bar": 2.5
+     },
+     {
+      "id": "47141/C1",
+      "type": "valve",
+      "in": "s47141a",
+      "out": "s47141",
+      "dP_bar": 0.3
+     },
+     {
+      "id": "RECYC",
+      "type": "recycle",
+      "in": "s47127",
+      "out": "s47127_r",
+      "guess": {
+       "T_C": 15,
+       "kg_h": 22020
+      }
+     }
+    ],
+    "limits": {
+     "P4711": {
+      "max_m3_h": 25,
+      "min_m3_h": 8,
+      "max_kW": 2.2,
+      "max_head_m": 12,
+      "npshr_m": 2.5
+     },
+     "P4712": {
+      "max_m3_h": 50,
+      "max_kW": 7.5,
+      "max_head_m": 40,
+      "psv_set_barg": 6
+     },
+     "H1007": {
+      "area_m2": 46.8,
+      "out_T_C": 35,
+      "side": "hot",
+      "max_area_m2": 60,
+      "max_dP_cold_bar": 1.0
+     },
+     "H1008": {
+      "area_m2": 46.8
+     },
+     "T4750": {
+      "min_residence_min": 60
+     },
+     "s47123": {
+      "max_T_C": 35
+     },
+     "sDispatch": {
+      "max_T_C": 25
+     },
+     "s47130": {
+      "max_m3_h": 30
+     },
+     "s47140": {
+      "max_m3_h": 20
+     }
+    }
+   },
+   "capacity_multiple": 1.169,
+   "at": "2026-10-29T11:12:12+0300",
+   "user": "decision-file test",
+   "reason": "decision-file test: Raise H1007 cooling water to 27 m3/h",
+   "proposed_by": "muse-spark-1.3-contributor",
+   "audit": "6a30a40f7eca4e3dbcd4f05f2b7ea20c9196d95d9c2007089428b8d143d18a25",
+   "rev_label": "Rev 1"
+  },
+  {
+   "rev": 2,
+   "kind": "change",
+   "title": "Raise H1008 chilled water to 18 m3/h",
+   "changes": [
+    {
+     "path": "feeds.s47140.m3_h",
+     "value": 18.0,
+     "from": 15.0
+    }
+   ],
+   "spec_before": {
+    "compounds": [
+     "Water",
+     "Ethanol"
+    ],
+    "package": "NRTL",
+    "feeds": {
+     "s47121": {
+      "T_C": 50,
+      "P_bar": 1.5,
+      "m3_h": 18.0,
+      "x": {
+       "Water": 0.93,
+       "Ethanol": 0.07
+      }
+     },
+     "s47130": {
+      "T_C": 25,
+      "P_bar": 4.0,
+      "m3_h": 27.0,
+      "x": {
+       "Water": 1.0
+      },
+      "utility": true
+     },
+     "s47140": {
+      "T_C": 7,
+      "P_bar": 4.0,
+      "m3_h": 15.0,
+      "x": {
+       "Water": 1.0
+      },
+      "utility": true
+     }
+    },
+    "units": [
+     {
+      "id": "P4711",
+      "type": "pump",
+      "in": "s47121",
+      "out": "s47122",
+      "dP_bar": 1.0,
+      "kind": "centrifugal"
+     },
+     {
+      "id": "H1007",
+      "type": "hx",
+      "hot": [
+       "s47122",
+       "s47123a"
+      ],
+      "cold": [
+       "s47130",
+       "s47131"
+      ],
+      "U_W_m2K": 600,
+      "area_m2": 46.8,
+      "U_ref_flows_m3_h": [
+       18,
+       20
+      ],
+      "dP_ref_bar": [
+       0.3,
+       0.5
+      ]
+     },
+     {
+      "id": "47123/C1",
+      "type": "valve",
+      "in": "s47123a",
+      "out": "s47123",
+      "P_out_bar": 1.013
+     },
+     {
+      "id": "MIX_TANK",
+      "type": "mixer",
+      "in": [
+       "s47123",
+       "s47127_r"
+      ],
+      "out": "sTankIn"
+     },
+     {
+      "id": "T4750",
+      "type": "tank",
+      "in": "sTankIn",
+      "out": "s47124",
+      "volume_m3": 20.8,
+      "P_bar": 1.013,
+      "residence_basis": "sDispatch"
+     },
+     {
+      "id": "P4712",
+      "type": "pump",
+      "in": "s47124",
+      "out": "s47126a",
+      "dP_bar": 3.5,
+      "kind": "positive_displacement"
+     },
+     {
+      "id": "SPLIT_47126",
+      "type": "splitter",
+      "in": "s47126a",
+      "out": [
+       "s47126c",
+       "sDispatch"
+      ],
+      "fixed_kg_h": {
+       "s47126c": 22020
+      }
+     },
+     {
+      "id": "H1008",
+      "type": "hx",
+      "hot": [
+       "s47126c",
+       "s47127a"
+      ],
+      "cold": [
+       "s47140",
+       "s47141a"
+      ],
+      "U_W_m2K": 600,
+      "area_m2": 46.8,
+      "U_ref_flows_m3_h": [
+       22.5,
+       15
+      ]
+     },
+     {
+      "id": "47127/C1",
+      "type": "valve",
+      "in": "s47127a",
+      "out": "s47127",
+      "dP_bar": 2.5
+     },
+     {
+      "id": "47141/C1",
+      "type": "valve",
+      "in": "s47141a",
+      "out": "s47141",
+      "dP_bar": 0.3
+     },
+     {
+      "id": "RECYC",
+      "type": "recycle",
+      "in": "s47127",
+      "out": "s47127_r",
+      "guess": {
+       "T_C": 15,
+       "kg_h": 22020
+      }
+     }
+    ],
+    "limits": {
+     "P4711": {
+      "max_m3_h": 25,
+      "min_m3_h": 8,
+      "max_kW": 2.2,
+      "max_head_m": 12,
+      "npshr_m": 2.5
+     },
+     "P4712": {
+      "max_m3_h": 50,
+      "max_kW": 7.5,
+      "max_head_m": 40,
+      "psv_set_barg": 6
+     },
+     "H1007": {
+      "area_m2": 46.8,
+      "out_T_C": 35,
+      "side": "hot",
+      "max_area_m2": 60,
+      "max_dP_cold_bar": 1.0
+     },
+     "H1008": {
+      "area_m2": 46.8
+     },
+     "T4750": {
+      "min_residence_min": 60
+     },
+     "s47123": {
+      "max_T_C": 35
+     },
+     "sDispatch": {
+      "max_T_C": 25
+     },
+     "s47130": {
+      "max_m3_h": 30
+     },
+     "s47140": {
+      "max_m3_h": 20
+     }
+    }
+   },
+   "spec_after": {
+    "compounds": [
+     "Water",
+     "Ethanol"
+    ],
+    "package": "NRTL",
+    "feeds": {
+     "s47121": {
+      "T_C": 50,
+      "P_bar": 1.5,
+      "m3_h": 18.0,
+      "x": {
+       "Water": 0.93,
+       "Ethanol": 0.07
+      }
+     },
+     "s47130": {
+      "T_C": 25,
+      "P_bar": 4.0,
+      "m3_h": 27.0,
+      "x": {
+       "Water": 1.0
+      },
+      "utility": true
+     },
+     "s47140": {
+      "T_C": 7,
+      "P_bar": 4.0,
+      "m3_h": 18.0,
+      "x": {
+       "Water": 1.0
+      },
+      "utility": true
+     }
+    },
+    "units": [
+     {
+      "id": "P4711",
+      "type": "pump",
+      "in": "s47121",
+      "out": "s47122",
+      "dP_bar": 1.0,
+      "kind": "centrifugal"
+     },
+     {
+      "id": "H1007",
+      "type": "hx",
+      "hot": [
+       "s47122",
+       "s47123a"
+      ],
+      "cold": [
+       "s47130",
+       "s47131"
+      ],
+      "U_W_m2K": 600,
+      "area_m2": 46.8,
+      "U_ref_flows_m3_h": [
+       18,
+       20
+      ],
+      "dP_ref_bar": [
+       0.3,
+       0.5
+      ]
+     },
+     {
+      "id": "47123/C1",
+      "type": "valve",
+      "in": "s47123a",
+      "out": "s47123",
+      "P_out_bar": 1.013
+     },
+     {
+      "id": "MIX_TANK",
+      "type": "mixer",
+      "in": [
+       "s47123",
+       "s47127_r"
+      ],
+      "out": "sTankIn"
+     },
+     {
+      "id": "T4750",
+      "type": "tank",
+      "in": "sTankIn",
+      "out": "s47124",
+      "volume_m3": 20.8,
+      "P_bar": 1.013,
+      "residence_basis": "sDispatch"
+     },
+     {
+      "id": "P4712",
+      "type": "pump",
+      "in": "s47124",
+      "out": "s47126a",
+      "dP_bar": 3.5,
+      "kind": "positive_displacement"
+     },
+     {
+      "id": "SPLIT_47126",
+      "type": "splitter",
+      "in": "s47126a",
+      "out": [
+       "s47126c",
+       "sDispatch"
+      ],
+      "fixed_kg_h": {
+       "s47126c": 22020
+      }
+     },
+     {
+      "id": "H1008",
+      "type": "hx",
+      "hot": [
+       "s47126c",
+       "s47127a"
+      ],
+      "cold": [
+       "s47140",
+       "s47141a"
+      ],
+      "U_W_m2K": 600,
+      "area_m2": 46.8,
+      "U_ref_flows_m3_h": [
+       22.5,
+       15
+      ]
+     },
+     {
+      "id": "47127/C1",
+      "type": "valve",
+      "in": "s47127a",
+      "out": "s47127",
+      "dP_bar": 2.5
+     },
+     {
+      "id": "47141/C1",
+      "type": "valve",
+      "in": "s47141a",
+      "out": "s47141",
+      "dP_bar": 0.3
+     },
+     {
+      "id": "RECYC",
+      "type": "recycle",
+      "in": "s47127",
+      "out": "s47127_r",
+      "guess": {
+       "T_C": 15,
+       "kg_h": 22020
+      }
+     }
+    ],
+    "limits": {
+     "P4711": {
+      "max_m3_h": 25,
+      "min_m3_h": 8,
+      "max_kW": 2.2,
+      "max_head_m": 12,
+      "npshr_m": 2.5
+     },
+     "P4712": {
+      "max_m3_h": 50,
+      "max_kW": 7.5,
+      "max_head_m": 40,
+      "psv_set_barg": 6
+     },
+     "H1007": {
+      "area_m2": 46.8,
+      "out_T_C": 35,
+      "side": "hot",
+      "max_area_m2": 60,
+      "max_dP_cold_bar": 1.0
+     },
+     "H1008": {
+      "area_m2": 46.8
+     },
+     "T4750": {
+      "min_residence_min": 60
+     },
+     "s47123": {
+      "max_T_C": 35
+     },
+     "sDispatch": {
+      "max_T_C": 25
+     },
+     "s47130": {
+      "max_m3_h": 30
+     },
+     "s47140": {
+      "max_m3_h": 20
+     }
+    }
+   },
+   "capacity_multiple": 1.169,
+   "at": "2026-10-29T11:12:35+0300",
+   "user": "decision-file test",
+   "reason": "decision-file test: Raise H1008 chilled water to 18 m3/h",
+   "proposed_by": "muse-spark-1.3-contributor",
+   "audit": "02a7c8b280a40bf22eda205bce1ef576f8a40a854aa7ed8d8b6b3d9fb8b94c4a",
+   "rev_label": "Rev 2"
+  },
+  {
+   "rev": 3,
+   "kind": "change",
+   "title": "Raise T4750 working level to 22.1 m3",
+   "changes": [
+    {
+     "path": "units.T4750.volume_m3",
+     "value": 22.1,
+     "from": 20.8
+    }
+   ],
+   "spec_before": {
+    "compounds": [
+     "Water",
+     "Ethanol"
+    ],
+    "package": "NRTL",
+    "feeds": {
+     "s47121": {
+      "T_C": 50,
+      "P_bar": 1.5,
+      "m3_h": 18.0,
+      "x": {
+       "Water": 0.93,
+       "Ethanol": 0.07
+      }
+     },
+     "s47130": {
+      "T_C": 25,
+      "P_bar": 4.0,
+      "m3_h": 27.0,
+      "x": {
+       "Water": 1.0
+      },
+      "utility": true
+     },
+     "s47140": {
+      "T_C": 7,
+      "P_bar": 4.0,
+      "m3_h": 18.0,
+      "x": {
+       "Water": 1.0
+      },
+      "utility": true
+     }
+    },
+    "units": [
+     {
+      "id": "P4711",
+      "type": "pump",
+      "in": "s47121",
+      "out": "s47122",
+      "dP_bar": 1.0,
+      "kind": "centrifugal"
+     },
+     {
+      "id": "H1007",
+      "type": "hx",
+      "hot": [
+       "s47122",
+       "s47123a"
+      ],
+      "cold": [
+       "s47130",
+       "s47131"
+      ],
+      "U_W_m2K": 600,
+      "area_m2": 46.8,
+      "U_ref_flows_m3_h": [
+       18,
+       20
+      ],
+      "dP_ref_bar": [
+       0.3,
+       0.5
+      ]
+     },
+     {
+      "id": "47123/C1",
+      "type": "valve",
+      "in": "s47123a",
+      "out": "s47123",
+      "P_out_bar": 1.013
+     },
+     {
+      "id": "MIX_TANK",
+      "type": "mixer",
+      "in": [
+       "s47123",
+       "s47127_r"
+      ],
+      "out": "sTankIn"
+     },
+     {
+      "id": "T4750",
+      "type": "tank",
+      "in": "sTankIn",
+      "out": "s47124",
+      "volume_m3": 20.8,
+      "P_bar": 1.013,
+      "residence_basis": "sDispatch"
+     },
+     {
+      "id": "P4712",
+      "type": "pump",
+      "in": "s47124",
+      "out": "s47126a",
+      "dP_bar": 3.5,
+      "kind": "positive_displacement"
+     },
+     {
+      "id": "SPLIT_47126",
+      "type": "splitter",
+      "in": "s47126a",
+      "out": [
+       "s47126c",
+       "sDispatch"
+      ],
+      "fixed_kg_h": {
+       "s47126c": 22020
+      }
+     },
+     {
+      "id": "H1008",
+      "type": "hx",
+      "hot": [
+       "s47126c",
+       "s47127a"
+      ],
+      "cold": [
+       "s47140",
+       "s47141a"
+      ],
+      "U_W_m2K": 600,
+      "area_m2": 46.8,
+      "U_ref_flows_m3_h": [
+       22.5,
+       15
+      ]
+     },
+     {
+      "id": "47127/C1",
+      "type": "valve",
+      "in": "s47127a",
+      "out": "s47127",
+      "dP_bar": 2.5
+     },
+     {
+      "id": "47141/C1",
+      "type": "valve",
+      "in": "s47141a",
+      "out": "s47141",
+      "dP_bar": 0.3
+     },
+     {
+      "id": "RECYC",
+      "type": "recycle",
+      "in": "s47127",
+      "out": "s47127_r",
+      "guess": {
+       "T_C": 15,
+       "kg_h": 22020
+      }
+     }
+    ],
+    "limits": {
+     "P4711": {
+      "max_m3_h": 25,
+      "min_m3_h": 8,
+      "max_kW": 2.2,
+      "max_head_m": 12,
+      "npshr_m": 2.5
+     },
+     "P4712": {
+      "max_m3_h": 50,
+      "max_kW": 7.5,
+      "max_head_m": 40,
+      "psv_set_barg": 6
+     },
+     "H1007": {
+      "area_m2": 46.8,
+      "out_T_C": 35,
+      "side": "hot",
+      "max_area_m2": 60,
+      "max_dP_cold_bar": 1.0
+     },
+     "H1008": {
+      "area_m2": 46.8
+     },
+     "T4750": {
+      "min_residence_min": 60
+     },
+     "s47123": {
+      "max_T_C": 35
+     },
+     "sDispatch": {
+      "max_T_C": 25
+     },
+     "s47130": {
+      "max_m3_h": 30
+     },
+     "s47140": {
+      "max_m3_h": 20
+     }
+    }
+   },
+   "spec_after": {
+    "compounds": [
+     "Water",
+     "Ethanol"
+    ],
+    "package": "NRTL",
+    "feeds": {
+     "s47121": {
+      "T_C": 50,
+      "P_bar": 1.5,
+      "m3_h": 18.0,
+      "x": {
+       "Water": 0.93,
+       "Ethanol": 0.07
+      }
+     },
+     "s47130": {
+      "T_C": 25,
+      "P_bar": 4.0,
+      "m3_h": 27.0,
+      "x": {
+       "Water": 1.0
+      },
+      "utility": true
+     },
+     "s47140": {
+      "T_C": 7,
+      "P_bar": 4.0,
+      "m3_h": 18.0,
+      "x": {
+       "Water": 1.0
+      },
+      "utility": true
+     }
+    },
+    "units": [
+     {
+      "id": "P4711",
+      "type": "pump",
+      "in": "s47121",
+      "out": "s47122",
+      "dP_bar": 1.0,
+      "kind": "centrifugal"
+     },
+     {
+      "id": "H1007",
+      "type": "hx",
+      "hot": [
+       "s47122",
+       "s47123a"
+      ],
+      "cold": [
+       "s47130",
+       "s47131"
+      ],
+      "U_W_m2K": 600,
+      "area_m2": 46.8,
+      "U_ref_flows_m3_h": [
+       18,
+       20
+      ],
+      "dP_ref_bar": [
+       0.3,
+       0.5
+      ]
+     },
+     {
+      "id": "47123/C1",
+      "type": "valve",
+      "in": "s47123a",
+      "out": "s47123",
+      "P_out_bar": 1.013
+     },
+     {
+      "id": "MIX_TANK",
+      "type": "mixer",
+      "in": [
+       "s47123",
+       "s47127_r"
+      ],
+      "out": "sTankIn"
+     },
+     {
+      "id": "T4750",
+      "type": "tank",
+      "in": "sTankIn",
+      "out": "s47124",
+      "volume_m3": 22.1,
+      "P_bar": 1.013,
+      "residence_basis": "sDispatch"
+     },
+     {
+      "id": "P4712",
+      "type": "pump",
+      "in": "s47124",
+      "out": "s47126a",
+      "dP_bar": 3.5,
+      "kind": "positive_displacement"
+     },
+     {
+      "id": "SPLIT_47126",
+      "type": "splitter",
+      "in": "s47126a",
+      "out": [
+       "s47126c",
+       "sDispatch"
+      ],
+      "fixed_kg_h": {
+       "s47126c": 22020
+      }
+     },
+     {
+      "id": "H1008",
+      "type": "hx",
+      "hot": [
+       "s47126c",
+       "s47127a"
+      ],
+      "cold": [
+       "s47140",
+       "s47141a"
+      ],
+      "U_W_m2K": 600,
+      "area_m2": 46.8,
+      "U_ref_flows_m3_h": [
+       22.5,
+       15
+      ]
+     },
+     {
+      "id": "47127/C1",
+      "type": "valve",
+      "in": "s47127a",
+      "out": "s47127",
+      "dP_bar": 2.5
+     },
+     {
+      "id": "47141/C1",
+      "type": "valve",
+      "in": "s47141a",
+      "out": "s47141",
+      "dP_bar": 0.3
+     },
+     {
+      "id": "RECYC",
+      "type": "recycle",
+      "in": "s47127",
+      "out": "s47127_r",
+      "guess": {
+       "T_C": 15,
+       "kg_h": 22020
+      }
+     }
+    ],
+    "limits": {
+     "P4711": {
+      "max_m3_h": 25,
+      "min_m3_h": 8,
+      "max_kW": 2.2,
+      "max_head_m": 12,
+      "npshr_m": 2.5
+     },
+     "P4712": {
+      "max_m3_h": 50,
+      "max_kW": 7.5,
+      "max_head_m": 40,
+      "psv_set_barg": 6
+     },
+     "H1007": {
+      "area_m2": 46.8,
+      "out_T_C": 35,
+      "side": "hot",
+      "max_area_m2": 60,
+      "max_dP_cold_bar": 1.0
+     },
+     "H1008": {
+      "area_m2": 46.8
+     },
+     "T4750": {
+      "min_residence_min": 60
+     },
+     "s47123": {
+      "max_T_C": 35
+     },
+     "sDispatch": {
+      "max_T_C": 25
+     },
+     "s47130": {
+      "max_m3_h": 30
+     },
+     "s47140": {
+      "max_m3_h": 20
+     }
+    }
+   },
+   "capacity_multiple": 1.242,
+   "at": "2026-10-29T11:13:00+0300",
+   "user": "decision-file test",
+   "reason": "decision-file test: Raise T4750 working level to 22.1 m3",
+   "proposed_by": "muse-spark-1.3-contributor",
+   "audit": "14220a889ff646d443f2f9662a090331bce0bfcc79cca5e3d3c403243ffce743",
+   "rev_label": "Rev 3"
+  }
+ ],
+ "limits": [
+  {
+   "id": "H1007",
+   "check": "area needed for hot outlet 35 C",
+   "before": 1.062,
+   "after": 0.807,
+   "value_before": 49.71,
+   "value_after": 37.76,
+   "limit": 46.8,
+   "unit": "m2"
+  },
+  {
+   "id": "sDispatch",
+   "check": "temperature vs design",
+   "before": 1.029,
+   "after": 0.956,
+   "value_before": 25.72,
+   "value_after": 23.9,
+   "limit": 25,
+   "unit": "C"
+  },
+  {
+   "id": "T4750",
+   "check": "residence time",
+   "before": 1.027,
+   "after": 0.966,
+   "value_before": 58.4,
+   "value_after": 62.09,
+   "limit": 60,
+   "unit": "min"
+  },
+  {
+   "id": "s47123",
+   "check": "temperature vs design",
+   "before": 1.012,
+   "after": 0.957,
+   "value_before": 35.41,
+   "value_after": 33.5,
+   "limit": 35,
+   "unit": "C"
+  },
+  {
+   "id": "P4711",
+   "check": "head vs rated",
+   "before": 0.878,
+   "after": 0.878,
+   "value_before": 10.54,
+   "value_after": 10.54,
+   "limit": 12,
+   "unit": "m"
+  },
+  {
+   "id": "P4712",
+   "check": "flow vs rated",
+   "before": 0.878,
+   "after": 0.877,
+   "value_before": 43.89,
+   "value_after": 43.86,
+   "limit": 50,
+   "unit": "m3/h"
+  },
+  {
+   "id": "P4711",
+   "check": "flow vs rated",
+   "before": 0.864,
+   "after": 0.864,
+   "value_before": 21.6,
+   "value_after": 21.6,
+   "limit": 25,
+   "unit": "m3/h"
+  },
+  {
+   "id": "s47140",
+   "check": "flow vs 90 % of available supply",
+   "before": 0.833,
+   "after": 1.0,
+   "value_before": 15.0,
+   "value_after": 18.0,
+   "limit": 18.0,
+   "unit": "m3/h"
+  },
+  {
+   "id": "P4712",
+   "check": "shaft power vs motor",
+   "before": 0.813,
+   "after": 0.812,
+   "value_before": 6.1,
+   "value_after": 6.09,
+   "limit": 7.5,
+   "unit": "kW"
+  },
+  {
+   "id": "H1007",
+   "check": "installed area vs frame",
+   "before": 0.78,
+   "after": 0.78,
+   "value_before": 46.8,
+   "value_after": 46.8,
+   "limit": 60,
+   "unit": "m2"
+  },
+  {
+   "id": "s47130",
+   "check": "flow vs 90 % of available supply",
+   "before": 0.741,
+   "after": 1.0,
+   "value_before": 20.0,
+   "value_after": 27.0,
+   "limit": 27.0,
+   "unit": "m3/h"
+  },
+  {
+   "id": "P4712",
+   "check": "discharge vs 90 % of relief set",
+   "before": 0.648,
+   "after": 0.648,
+   "value_before": 3.5,
+   "value_after": 3.5,
+   "limit": 5.4,
+   "unit": "barg"
+  },
+  {
+   "id": "H1007",
+   "check": "cold-side pressure drop vs available",
+   "before": 0.5,
+   "after": 0.858,
+   "value_before": 0.5,
+   "value_after": 0.858,
+   "limit": 1.0,
+   "unit": "bar"
+  },
+  {
+   "id": "P4711",
+   "check": "shaft power vs motor",
+   "before": 0.391,
+   "after": 0.391,
+   "value_before": 0.86,
+   "value_after": 0.86,
+   "limit": 2.2,
+   "unit": "kW"
+  },
+  {
+   "id": "P4711",
+   "check": "flow vs minimum continuous",
+   "before": 0.37,
+   "after": 0.37,
+   "value_before": 21.6,
+   "value_after": 21.6,
+   "limit": 8,
+   "unit": "m3/h"
+  },
+  {
+   "id": "P4711",
+   "check": "NPSH available vs 1.3 x required",
+   "before": 0.238,
+   "after": 0.238,
+   "value_before": 13.67,
+   "value_after": 13.67,
+   "limit": 3.25,
+   "unit": "m"
+  }
+ ],
+ "pssr": [
+  "Verify the cooling water to h1007 can deliver 27 m\u00b3/h at header pressure, and that the branch control valve can pass it.",
+  "Measure the pressure drop across H1007 at the new flow (model: cold side 0.858 bar, hot side 0.417 bar) and compare with the available differential.",
+  "Confirm the cooling water to h1007 return temperature stays within the utility system's limit at the new duty.",
+  "Confirm H1007's relief protection is unchanged by the new duty (see the relief scan section).",
+  "Verify the chilled water to h1008 can deliver 18 m\u00b3/h at header pressure, and that the branch control valve can pass it.",
+  "Confirm the chilled water to h1008 return temperature stays within the utility system's limit at the new duty.",
+  "Confirm H1008's relief protection is unchanged by the new duty (see the relief scan section).",
+  "Confirm the high-level alarm and trip on T4750 leave margin above the new working volume of 22.1 m\u00b3; update the level setpoint in the operating procedure.",
+  "Update the P&ID, equipment datasheets and the operating procedure for every change above.",
+  "Brief the operators on the new setpoints before start-up.",
+  "Record the first 24 h of operation at the new throughput and compare with the model's predicted values in this file."
+ ],
+ "relief": [
+  {
+   "tag": "H1007",
+   "class": "PlateHeatExchanger",
+   "side_fluids": [
+    "MN"
+   ],
+   "status": "no relief on this P&ID",
+   "detail": "no relief device reachable",
+   "thermal_expansion_risk": true,
+   "why": "a heat-exchanger side that can be blocked in while the other side is hot: liquid thermal expansion can exceed the design pressure (API 521 hydraulic expansion; Williams Geismar 2013)"
+  },
+  {
+   "tag": "H1007",
+   "class": "PlateHeatExchanger",
+   "side_fluids": [
+    "WK"
+   ],
+   "status": "no relief on this P&ID",
+   "detail": "no relief device reachable (lines leave the drawing: check the connecting P&ID)",
+   "thermal_expansion_risk": true,
+   "why": "a heat-exchanger side that can be blocked in while the other side is hot: liquid thermal expansion can exceed the design pressure (API 521 hydraulic expansion; Williams Geismar 2013)"
+  },
+  {
+   "tag": "H1008",
+   "class": "TubularHeatExchanger",
+   "side_fluids": [
+    "MN"
+   ],
+   "status": "isolatable",
+   "detail": "relief 47125/SpringLoadedGlobeSafetyValve only through 47126/C7: if one is closed the side has no relief",
+   "thermal_expansion_risk": true,
+   "why": "a heat-exchanger side that can be blocked in while the other side is hot: liquid thermal expansion can exceed the design pressure (API 521 hydraulic expansion; Williams Geismar 2013)"
+  },
+  {
+   "tag": "H1008",
+   "class": "TubularHeatExchanger",
+   "side_fluids": [
+    "QS"
+   ],
+   "status": "no relief on this P&ID",
+   "detail": "no relief device reachable (lines leave the drawing: check the connecting P&ID)",
+   "thermal_expansion_risk": true,
+   "why": "a heat-exchanger side that can be blocked in while the other side is hot: liquid thermal expansion can exceed the design pressure (API 521 hydraulic expansion; Williams Geismar 2013)"
+  },
+  {
+   "tag": "T4750",
+   "class": "Tank",
+   "side_fluids": [
+    "MN"
+   ],
+   "status": "no relief on this P&ID",
+   "detail": "no relief device reachable",
+   "thermal_expansion_risk": false,
+   "why": ""
+  },
+  {
+   "tag": "T4750",
+   "class": "Tank",
+   "side_fluids": [
+    "?"
+   ],
+   "status": "no relief on this P&ID",
+   "detail": "no relief device reachable",
+   "thermal_expansion_risk": false,
+   "why": ""
+  }
+ ],
+ "second_opinion": {
+  "agree": [
+   "feeds.s47130.m3_h: 27.0 vs 27.0",
+   "units.T4750.volume_m3: 22.1 vs 22.1",
+   "reaches the target: yes vs yes"
+  ],
+  "disagree": [
+   "limiting equipment: H1007, H1008, T4750 vs H1007, T4750",
+   "feeds.s47140.m3_h: only the main model changes it",
+   "verified in DWSIM: H1007, H1008, T4750 vs H1007, T4750"
+  ],
+  "status": "partly"
+ },
+ "audit_head": "14220a889ff646d443f2f9662a090331bce0bfcc79cca5e3d3c403243ffce743",
+ "code": "648a410",
+ "model": {
+  "label": "v2-calibrated",
+  "model": "muse-spark-1.3-contributor",
+  "at": "2026-10-28 15:46"
+ }
+}

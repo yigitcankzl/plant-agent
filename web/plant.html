@@ -582,10 +582,22 @@ async function reload() {
   model(); answers(); revs(); render(await api('state?scale=' + $('scale').value / 100 + (VIEW === 'existing' ? '&view=existing' : '')));
 }
 
+async function decisionFile() {
+  $('decOut').textContent = 'Re-solving every limit in DWSIM and writing the pack…';
+  const r = await api('decision', {answer: (P.answers || []).length - 1}).catch(e => ({error: e.message}));
+  if (r.error) { $('decOut').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return; }
+  const label = {'decision.pdf': 'Decision file (PDF)', 'memo.pdf': 'Management memo (PDF)', 'redline.svg': 'Redlined P&ID', 'decision.zip': 'Everything (zip)',
+                 'decision.md': 'Decision file (md)', 'memo.md': 'Memo (md)', 'decision.json': 'Data (JSON)'};
+  $('decOut').innerHTML = `<div style="font-size:12px;margin:4px 0">${r.over_after ? `⚠ ${r.over_after} limits still over at the target` : '✓ All limits within 100 % at the target'} · ${r.pssr_items} PSSR items · draft, not approved</div>`
+    + r.files.map(f => `<a class="btn" style="margin:2px;display:inline-block;text-decoration:none" target="_blank" href="${r.base}${f}">${esc(label[f] || f)}</a>`).join('');
+}
+
 function revs() {
   const a = P.audit;
   $('revs').innerHTML = (P.revisions || []).map(r => `<div class="rev"><div><b>Rev ${r.rev}</b> ${esc(r.title)}<div style="color:var(--muted);font:11px var(--mono)">${r.changes.map(c => esc(c.path) + '=' + esc(c.value)).join(', ')}${r.capacity_multiple ? ' · max ' + Math.round(r.capacity_multiple * 100) + '%' : ''}</div>
       <div style="color:var(--muted);font-size:11px">${esc(r.at || '')} · ${esc(r.user || 'engineer')} · “${esc(r.reason || '')}”</div></div>${r.kind === 'change' ? `<button class="btn" onclick="undo(${r.rev})">Undo</button>` : ''}</div>`).join('') +
+    ((P.revisions || []).some(r => r.kind === 'change') || (P.answers || []).some(x => (x.proposals || []).some(p => p.verified))
+      ? `<div class="rev" style="border-left-color:var(--accent);display:block"><button class="btn go" onclick="decisionFile()" title="Decision file and management memo: changes and reasons, limits before/after re-solved in DWSIM, redlined P&ID, relief impact, PSSR checklist, draft sign-off, audit hash">Make decision file (MOC pack)</button><div id="decOut"></div></div>` : '') +
     (a ? `<div class="rev" style="border-left-color:${a.verify.ok ? 'var(--ok)' : 'var(--fail)'}"><div>Audit trail: ${a.verify.entries} entries · hash chain ${a.verify.ok ? 'intact ✓' : 'BROKEN at ' + a.verify.broken_at}</div><button class="btn" onclick="showAudit()">View</button></div>` : '');
 }
 async function undo(rev) {

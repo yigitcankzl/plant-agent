@@ -502,9 +502,10 @@ class Handler(SimpleHTTPRequestHandler):
         known = set(all_cases())
         if parts[:1] not in (["api"], ["files"], ["wsfiles"]):
             return None
-        if parts[:1] == ["wsfiles"] and len(parts) == 4 and parts[1] in known:
+        if parts[:1] == ["wsfiles"] and len(parts) == 4 and (parts[1] in known or parts[1] in set(all_cases("process"))):
             name = parts[3]
-            allowed = name in {"calc_sheets.xlsx", "memo.md", "markup.dwg", "profile_sheet.dwg", "profile_sheet.dxf"} or name.endswith(("_editable.dxf", "_editable.dwg"))
+            allowed = name in {"calc_sheets.xlsx", "memo.md", "markup.dwg", "profile_sheet.dwg", "profile_sheet.dxf", "decision.md", "decision.pdf",
+                               "memo.pdf", "redline.svg", "decision.json", "decision.zip"} or name.endswith(("_editable.dxf", "_editable.dwg"))
             f = _safe_file(RUNS / "ws" / parts[1], parts[2], name) if allowed else None
             if f:
                 return self._send(f.read_bytes(), mimetypes.guess_type(f.name)[0] or "application/octet-stream")
@@ -556,6 +557,13 @@ class Handler(SimpleHTTPRequestHandler):
                     return self._send(w.restore(int(body.get("rev", 0)), user, body.get("reason")))
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
+            if what == "decision" and method == "POST":  # the MOC pack: recomputed in DWSIM, no model call, so no spending gate
+                from . import decision
+                try:
+                    r = decision.make(w, body.get("answer"))
+                except ValueError as e:
+                    return self._send({"error": str(e)}, code=409)
+                return self._send({**r, "base": f"/wsfiles/{case}/{r['folder']}/"})
             if what == "pidread":  # Muse's read of a PDF schematic and the engineer's confirmed version
                 orig = json.loads(w.pid_file.read_text()) if w.pid_file.exists() else None
                 conf = json.loads(w.confirmed_file.read_text()) if w.confirmed_file.exists() else None

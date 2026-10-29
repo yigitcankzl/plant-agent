@@ -693,7 +693,7 @@ class PlantWorkspace(Study):
         after = patch(self.built["spec"], p["changes"])
         r = {"rev": len(self.revisions) + 1, "kind": "change", "title": p.get("title"), "changes": p["changes"],
              "spec_before": self.built["spec"], "spec_after": after, "capacity_multiple": v["capacity_multiple"],
-             "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "user": user, "reason": reason}
+             "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "user": user, "reason": reason, "proposed_by": p.get("_by") or self.model}
         so = (self.answers[answer].get("second_opinion") or {}) if isinstance(answer, int) and 0 <= answer < len(self.answers) else {}
         r["audit"] = audit.append(self.name, "accept", user, reason, {
             "rev": r["rev"], "title": r["title"], "changes": p["changes"], "verified_capacity_multiple": v["capacity_multiple"],
