@@ -53,7 +53,7 @@ class EquipmentProposalTests(unittest.TestCase):
         self.assertEqual(result["new_equipment"][0]["id"], "K-2")
 
         proposed = patch(BASE, changes)
-        checks = {c["id"]: c["utilisation"] for c in process.run(proposed, 1.2)["checks"]}
+        checks = {c["id"]: c["utilisation"] for c in process.run(proposed, 1.2)["checks"] if "utilisation" in c}
         self.assertAlmostEqual(checks["K-1"], .96, places=2)
         self.assertAlmostEqual(checks["K-2"], .96, places=2)
         self.assertEqual(proposed["limits"]["K-2"]["max_kg_h"], 25000)
