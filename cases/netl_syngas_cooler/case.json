@@ -1,0 +1,13 @@
+{
+  "title": "NETL 2022 Case 2, reformer syngas cooling before water-gas shift",
+  "source": "NETL, Comparison of Commercial, State-of-the-Art, Fossil-Based Hydrogen Production Technologies (2022), Case 2, Exhibit 3-17/3-18 and equipment list",
+  "url": "https://netl.doe.gov/projects/files/ComparisonofCommercialStateofArtFossilBasedHydrogenProductionTechnologies_041222.pdf",
+  "pdf": "raw/factory/netl_hydrogen/NETL_H2_Comparison_2022.pdf",
+  "kind": "designcheck",
+  "allowed_pages": [[96, 96]],
+  "withheld_pages": [[97, 98], [112, 112]],
+  "task_type": "design reproduction",
+  "simulators": ["dwsim"],
+  "redact": false,
+  "question": "Build a DWSIM model of only the Case 2 syngas cooler between BFD streams 8 and 9. Given boundary stream 8 (from the withheld stream table, supplied as the design input): 871 C, 28.3 bar absolute, 240967 kg/h, mole fractions Methane 0.0411, Carbon monoxide 0.1432, Carbon dioxide 0.0124, Hydrogen 0.4609, Water 0.3393, Nitrogen 0.0030. Use a suitable gas property package and cooling equipment. The cooler is a heat-recovery section; model the net syngas-side cooling without inventing a utility-side stream. Name the outlet SYNGAS_TO_SHIFT. Determine its temperature, pressure, total and component mass flows, and cooling duty. Do not use the withheld pages or tune to their outputs. State every assumed outlet setpoint or pressure loss and why; a pure assumed target is not a measured reproduction. Run DWSIM and finish with a run label."
+}

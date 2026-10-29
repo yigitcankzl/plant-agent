@@ -29,6 +29,8 @@ SPEC_HELP = {
              "residence_basis = the product stream that leaves the tank for good (hold time = volume / that flow). "
              "mixer: in [..], out. splitter: in, out [..], fractions [..] or fixed_kg_h {out stream: kg/h} (the first outlet fixed, "
              "the other takes the rest: in a recirculation loop fix the recirculation branch and let the product take the rest). compressor: in, out, P_out_bar, eff_pct. "
+             "flash: in, vapor, liquid (equilibrium phase split at inlet T and P; use a cooler or valve first). "
+             "component_separator: in, product, reject, recover_pct {compound: percent of inlet moles sent to product; omitted compounds default to 100}; fixed-split approximation, not a TEG or PSA design model. "
              "column: in, distillate, bottoms, light_key, heavy_key (compound names), light_key_in_bottoms and "
              "heavy_key_in_distillate (mole fractions), reflux_ratio, P_bar (shortcut method: reports minimum and actual stages, "
              "minimum reflux, condenser and reboiler duty). "
@@ -213,6 +215,25 @@ class _Sheet:
             c.CalcMode, c.POut = self.Comp.CalculationMode.OutletPressure, float(u["P_out_bar"]) * 1e5
             c.AdiabaticEfficiency = float(u.get("eff_pct", 75))  # DWSIM takes percent, like the pump
             return c
+        if t == "flash":
+            v = self._add("Vessel", uid)
+            self._link(self.stream(u["in"]), v)
+            self._link(v, self.stream(u["vapor"]), 0, -1)
+            self._link(v, self.stream(u["liquid"]), 1, -1)
+            return v
+        if t == "component_separator":
+            from DWSIM.UnitOperations.UnitOperations.Auxiliary import ComponentSeparationSpec, SeparationSpec
+            s = self._add("ComponentSeparator", uid)
+            self._link(self.stream(u["in"]), s)
+            self._link(s, self.stream(u["product"]), 0, -1)
+            self._link(s, self.stream(u["reject"]), 1, -1)
+            for c in self.comps:
+                pct = float(u.get("recover_pct", {}).get(c, 100))
+                if not 0 <= pct <= 100:
+                    raise ValueError(f"{uid}: recovery for {c} must be 0-100 percent")
+                s.ComponentSepSpecs.Add(c, ComponentSeparationSpec(c, SeparationSpec.PercentInletMolarFlow, pct, "%"))
+            s.SpecifiedStreamIndex = 0
+            return s
         if t == "column":
             # shortcut distillation (Fenske-Underwood-Gilliland): stages and duties for given key-component splits
             c = self._add("ShortcutColumn", uid)
@@ -254,7 +275,8 @@ class _Sheet:
             try:
                 st[n] = {"T_C": _r(s.GetTemperature() - 273.15, 2), "P_bar": _r(s.GetPressure() / 1e5, 3),
                          "kg_h": _r(s.GetMassFlow() * 3600, 1), "m3_h": _r(s.GetVolumetricFlow() * 3600, 2),
-                         "vapour_frac": _r(float(s.Phases[2].Properties.molarfraction or 0.0), 4)}
+                         "vapour_frac": _r(float(s.Phases[2].Properties.molarfraction or 0.0), 4),
+                         "components_kg_h": {c: _r(s.GetCompoundMassFlow(c) * 3600, 2) for c in self.comps}}
             except Exception as ex:  # noqa: BLE001 - an unsolved stream reports why
                 st[n] = {"error": str(ex)[:120]}
         un = {}
@@ -566,4 +588,17 @@ if __name__ == "__main__":
         print("blocked-in 25->86 C:", bi)
         assert bi["pressure_psig"] > 2000, "heating liquid-full propane by 60 K must reach thousands of psi"
         assert b["points"][2]["bubble_P_bar"] > b["points"][0]["bubble_P_bar"] > 5
+        section = {"compounds": ["Carbon dioxide", "Water"], "package": "Peng-Robinson (PR)",
+                   "feeds": {"IN": {"T_C": 29, "P_bar": 32, "kg_h": 1000,
+                                    "x": {"Carbon dioxide": 0.97, "Water": 0.03}}},
+                   "units": [{"id": "V", "type": "flash", "in": "IN", "vapor": "VAP", "liquid": "LIQ"},
+                             {"id": "DRY", "type": "component_separator", "in": "VAP", "product": "DRY_CO2",
+                              "reject": "WET", "recover_pct": {"Water": 10}}]}
+        sr = run(section)
+        assert not sr["errors"], sr["errors"]
+        ss = sr["streams"]
+        assert abs(ss["VAP"]["kg_h"] + ss["LIQ"]["kg_h"] - 1000) < 1
+        assert ss["LIQ"]["kg_h"] > 0 and ss["VAP"]["kg_h"] > 0
+        assert abs(ss["DRY_CO2"]["kg_h"] + ss["WET"]["kg_h"] - ss["VAP"]["kg_h"]) < 1
+        assert abs(ss["DRY_CO2"]["components_kg_h"]["Water"] / ss["VAP"]["components_kg_h"]["Water"] - 0.1) < 0.02
         print("ok")
