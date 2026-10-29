@@ -38,8 +38,13 @@ SPEC_HELP = {
              "mixer: in [..], out. splitter: in, out [..], fractions [..] or fixed_kg_h {out stream: kg/h} (the first outlet fixed, "
              "the other takes the rest: in a recirculation loop fix the recirculation branch and let the product take the rest). compressor: in, out, P_out_bar, eff_pct. "
              "evaporator: in, vapor, liquid, P_bar (body pressure), evap_frac (fraction of the inlet boiled off), heating [in, out] "
-             "(steam that condenses fully), U_W_m2K, area_m2, x_NaCl (omit for a salt-crystallising body: saturated brine; then "
-             "salt_kg_h is reported; model the brine as Water with the Steam Tables (IAPWS-IF97) package: DWSIM's NRTL has no NaCl electrolyte data and gives about a third of the real boiling point elevation). Applies the NaCl boiling point elevation to the driving force and checks the heater area "
+             "(steam that condenses fully), U_W_m2K, area_m2, optional feed_x_NaCl (feed NaCl mass fraction; default saturated at feed T), "
+             "x_NaCl (body concentration; omit for saturation). The Water stand-in inlet kg/h is TOTAL feed brine, not water alone. "
+             "Reports salt_in_kg_h, salt_kg_h (zero when non-crystallising), crystallising, water_evaporated_per_t_salt, "
+             "bpe_K and sensible_correction_kW. With feed_x_NaCl and heating, evap_frac is a maximum: available steam heat "
+             "can lower boil-up. The simple water stand-in uses Steam Tables (IAPWS-IF97); brine cp corrects feed sensible heat, "
+             "but crystallisation heat and electrolyte phase equilibria are omitted. The stand-in liquid outlet includes "
+             "crystals plus mother liquor; liquid_out_brine_kg_h excludes crystals. Applies NaCl BPE to the driving force and checks heater area "
              "and the heat balance (boil-up vs heat the heating steam gives; >1 means the steam cannot sustain the boil-up). "
              "flash: in, vapor, liquid (equilibrium phase split at inlet T and P; use a cooler or valve first). "
              "component_separator: in, product, reject, recover_pct {compound: percent of inlet moles sent to product; omitted compounds default to 100}; fixed-split approximation, not a TEG or PSA design model. "
@@ -311,9 +316,16 @@ class _Sheet:
                 h.CalcMode, h.OutletVaporFraction = self.Heater.CalculationMode.OutletVaporFraction, vf
                 hs.append(h)
             f = float(u["evap_frac"])
+            if not 0 < f < 1:
+                raise ValueError(f"{uid}: evap_frac must be between 0 and 1")
+            if u.get("feed_x_NaCl") is not None and not 0 <= float(u["feed_x_NaCl"]) <= 0.32:
+                raise ValueError(f"{uid}: feed_x_NaCl must be between 0 and 0.32")
+            if u.get("x_NaCl") is not None and not 0 <= float(u["x_NaCl"]) <= 0.32:
+                raise ValueError(f"{uid}: x_NaCl must be between 0 and 0.32")
             sp.Ratios[0], sp.Ratios[1] = f, 1 - f
             b = hs[0]
             self.__dict__.setdefault("aux_liq", {})[uid] = hs[1]
+            self.__dict__.setdefault("aux_split", {})[uid] = sp
             if u.get("heating"):
                 c = self._add("Cooler", f"{uid}-heating")
                 self._link(self.stream(u["heating"][0]), c); self._link(c, self.stream(u["heating"][1]))
@@ -358,6 +370,27 @@ class _Sheet:
     def solve(self):
         errs = self.mgr.CalculateFlowsheet4(self.sim)
         errs = [str(e.Message)[:200] for e in errs] if errs is not None else []
+        if not errs:
+            for uid, (u, o) in self.units.items():
+                if u["type"] != "evaporator" or u.get("feed_x_NaCl") is None or not u.get("heating"):
+                    continue
+                sp = self.aux_split[uid]
+                for _ in range(4):
+                    r = self.results()["units"][uid]
+                    if r.get("error") or not r.get("heating_kW"):
+                        break
+                    f = float(sp.Ratios[0])
+                    qprime = (o.DeltaQ or 0) / f - (self.aux_liq[uid].DeltaQ or 0) / (1 - f)
+                    if qprime <= 0:
+                        break
+                    next_f = min(float(u["evap_frac"]), max(0.001, f + (r["heating_kW"] - r["boil_kW"]) / qprime))
+                    if abs(next_f - f) < 0.00001:
+                        break
+                    sp.Ratios[0], sp.Ratios[1] = next_f, 1 - next_f
+                    e2 = self.mgr.CalculateFlowsheet4(self.sim)
+                    errs = [str(e.Message)[:200] for e in e2] if e2 is not None else []
+                    if errs:
+                        break
         flowdep = [(u, o) for u, o in self.units.values() if u["type"] == "hx" and (u.get("U_ref_flows_m3_h") or u.get("dP_ref_bar"))]
         pipes = [(u, o) for u, o in self.units.values() if u["type"] == "pipe"]
         self._pipe_values = {}
@@ -430,14 +463,38 @@ class _Sheet:
                 elif t == "evaporator":
                     from . import brine
                     vap = self.streams[u["vapor"]].GetMassFlow() * 3600
-                    x = u.get("x_NaCl")
-                    b = brine.bpe(float(u["P_bar"]), x)
-                    boil = (o.DeltaQ or 0) + (getattr(self, "aux_liq", {})[uid].DeltaQ or 0)
+                    feed = self.streams[u["in"]]
+                    feed_kg_h = feed.GetMassFlow() * 3600
+                    feed_t = feed.GetTemperature() - 273.15
+                    feed_x = float(u["feed_x_NaCl"]) if u.get("feed_x_NaCl") is not None else brine.x_sat(feed_t)
+                    salt_in = feed_kg_h * feed_x
+                    liquid_kg_h = self.streams[u["liquid"]].GetMassFlow() * 3600
+                    b = brine.bpe(float(u["P_bar"]), float(u["x_NaCl"]) if u.get("x_NaCl") is not None else None)
+                    body_x = min(b["x_NaCl"], salt_in / liquid_kg_h) if liquid_kg_h else b["x_NaCl"]
+                    if body_x < b["x_NaCl"]:
+                        b = brine.bpe(float(u["P_bar"]), body_x)
+                    if vap > feed_kg_h - salt_in + 0.1:
+                        r["error"] = "boil-up exceeds water in the feed; reduce evap_frac or increase feed"
+                        salt = liquid_brine = None
+                    else:
+                        salt = max(0.0, (salt_in - liquid_kg_h * body_x) / (1 - body_x))
+                        liquid_brine = liquid_kg_h - salt
+                    feed_cp_t, body_cp_t = max(0, min(150, feed_t)), max(0, min(150, b["t_brine_C"]))
+                    if feed_cp_t != feed_t or body_cp_t != b["t_brine_C"]:
+                        r["error"] = "brine cp correlation valid only from 0 to 150 C"
+                    cp_avg = (brine.cp(feed_cp_t, feed_x) + brine.cp(body_cp_t, body_x)) / 2
+                    water_cp_avg = (brine.cp(feed_cp_t, 0) + brine.cp(body_cp_t, 0)) / 2
+                    correction = feed_kg_h / 3600 * (cp_avg - water_cp_avg) * (b["t_brine_C"] - feed_t)
+                    boil = (o.DeltaQ or 0) + (getattr(self, "aux_liq", {})[uid].DeltaQ or 0) + correction
                     if boil < 0 or (self.streams[u["in"]].GetPhase("Vapor").Properties.molarfraction or 0) > 0.99:
                         r["error"] = ("inlet is vapour in the water stand-in: brine above the water saturation temperature at its "
                                       "pressure only stays liquid through its BPE; give that feed at a pressure where water is liquid")
-                    r.update(boil_kW=_r(boil, 1), vapour_kg_h=_r(vap, 0), brine_T_C=b["t_brine_C"], bpe_K=b["bpe_K"],
-                             salt_kg_h=_r(vap * b["x_NaCl"] / (1 - b["x_NaCl"]), 0) if x is None else None)
+                    r.update(boil_kW=_r(boil, 1), sensible_correction_kW=_r(correction, 1), vapour_kg_h=_r(vap, 0),
+                             brine_T_C=b["t_brine_C"], bpe_K=b["bpe_K"], body_x_NaCl=b["x_NaCl"],
+                             salt_in_kg_h=_r(salt_in, 0), salt_kg_h=_r(salt, 0) if salt is not None else None,
+                             crystallising=salt is not None and salt > 0,
+                             liquid_out_brine_kg_h=_r(liquid_brine, 0) if liquid_brine is not None else None,
+                             water_evaporated_per_t_salt=_r(vap / salt, 2) if salt else None)
                     if u.get("heating"):
                         hc = getattr(self, "aux", {}).get(uid)
                         hs = self.streams[u["heating"][1]]
@@ -855,4 +912,22 @@ if __name__ == "__main__":
         v1 = e1["units"]["V"]
         assert not e1["errors"] and 240000 < v1["vapour_kg_h"] < 255000 and 9 < v1["bpe_K"] < 10.5 and v1["driving_dT_K"] > 5, v1
         assert any(c["check"].startswith("boil-up") and c["utilisation"] > 1 for c in e2["checks"]), e2["checks"]
+        # Same compressor-limited boil-up, with feed adjusted for each water fraction and a small mother-liquor purge.
+        import copy
+        balance = copy.deepcopy(ev)
+        balance["units"][0].pop("heating")
+        balance["units"][0].update(feed_x_NaCl=0.26, evap_frac=0.73)
+        balance["feeds"]["B"]["kg_h"] = 247700 / 0.73
+        rich = run(balance)["units"]["V"]
+        balance["units"][0].update(feed_x_NaCl=0.20, evap_frac=0.79)
+        balance["feeds"]["B"]["kg_h"] = 247700 / 0.79
+        lean = run(balance)["units"]["V"]
+        ratio = (0.20 / 0.80) / (0.26 / 0.74)
+        assert abs(rich["vapour_kg_h"] - lean["vapour_kg_h"]) < 1 and abs(lean["salt_kg_h"] / rich["salt_kg_h"] - ratio) < 0.02
+        heated = copy.deepcopy(ev)
+        heated["units"][0]["feed_x_NaCl"] = 0.26
+        warm = run(heated)["units"]["V"]
+        heated["feeds"]["B"]["T_C"] = 120
+        cold = run(heated)["units"]["V"]
+        assert cold["vapour_kg_h"] < warm["vapour_kg_h"] and cold["sensible_correction_kW"] < warm["sensible_correction_kW"]
         print("ok")

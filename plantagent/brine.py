@@ -1,6 +1,8 @@
-"""NaCl brine thermodynamics for evaporator and crystalliser studies: solution vapour pressure, solubility and boiling
-point elevation (BPE). DWSIM's NRTL without electrolyte parameters gives about a third of the real BPE, so the BPE is
-applied explicitly from Sparrow (2003), Desalination 159:161-170, valid 0-150 C and up to saturation.
+"""NaCl brine thermodynamics for evaporator and crystalliser studies: vapour pressure, solubility, BPE and liquid cp.
+BPE: Sparrow (2003), Desalination 159:161-170, valid 0-150 C and up to saturation. Liquid cp: WaterTAP
+cryst_prop_pack.py, Laliberte (2009) eqs. 10-12 and Sharqawy et al. (2010) eq. 9; local source at
+case-data/raw/nacl_mvr/data_watertap/cryst_prop_pack.py.txt. DWSIM's NRTL without electrolyte parameters gives about
+a third of the real BPE, so the BPE is applied explicitly.
 """
 import math
 
@@ -21,6 +23,17 @@ def p_solution_bar(t, x):
 def x_sat(t):
     """NaCl solubility (mass fraction) at t C."""
     return 0.2628 + 62.75e-6 * t + 1.084e-6 * t ** 2
+
+
+def cp(t, x):
+    """Liquid NaCl brine heat capacity, kJ/(kg K), from WaterTAP's Laliberte (2009) mixture correlation."""
+    if not (0 <= x <= 0.32 and 0 <= t <= 150):
+        raise ValueError("brine cp requires 0-150 C and 0-0.32 NaCl mass fraction")
+    tk = t + 273.15
+    t68 = (tk - 0.00025 * 273.15) / (1 - 0.00025)
+    cp_water = 5.328 - 0.006913 * t68 + 9.6e-6 * t68 ** 2 + 2.5e-9 * t68 ** 3
+    cp_nacl = -0.06936 * math.exp(-0.07821 * t - 11.2762 * x + 3.848 * math.exp(0.01 * t)) + 8.7319 * x ** 1.8125
+    return (1 - x) * cp_water + x * cp_nacl
 
 
 def boiling_t(p_bar, x):
@@ -52,5 +65,7 @@ if __name__ == "__main__":
     assert abs(r100["t_brine_C"] - 100.0) < 0.1 and 7.9 < r100["bpe_K"] < 8.6, r100
     r10 = bpe(1.0, 0.10)
     assert 1.6 < r10["bpe_K"] < 2.2, r10
+    assert 4.1 < cp(100, 0) < 4.3 and 3.2 < cp(100, 0.26) < 3.4
+    assert cp(100, 0.26) < cp(100, 0.20) < cp(100, 0)
     print(r100, bpe(1.70), sep="\n")
     print("ok")
