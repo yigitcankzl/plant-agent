@@ -119,7 +119,14 @@ def change_errors(spec, changes):
                 errors.append(f"change {i + 1} add_unit needs id and type")
                 continue
             if u["id"] in existing or new_ids.count(u["id"]) > 1:
-                errors.append(f"change {i + 1} cannot add duplicate unit {u['id']}")
+                old = (spec.get("limits") or {}).get(u["id"]) or {}
+                newer = c.get("limits") if isinstance(c.get("limits"), dict) else {}
+                raised = [k for k, val in newer.items()
+                          if isinstance(old.get(k), (int, float)) and isinstance(val, (int, float)) and float(val) > float(old[k])]
+                if u["id"] in existing and raised:
+                    errors.append(f"change {i + 1} cannot raise existing limit {u['id']}.{raised[0]}")
+                else:
+                    errors.append(f"change {i + 1} cannot add duplicate unit {u['id']}")
             if u["type"] not in ROUTING_UNITS and not c.get("limits"):
                 errors.append(f"change {i + 1} add_unit {u['id']} needs its own limits")
             if (u["type"] not in ROUTING_UNITS or c.get("limits")) and not str(c.get("rating_source") or "").strip():
@@ -134,6 +141,345 @@ def change_errors(spec, changes):
                     "value" not in r or not streams):
                 errors.append(f"change {i + 1} reroute needs a known unit, connection field and value")
     return errors
+
+
+# Splitter outlet fractions must sum to 1 within this absolute tolerance (0.8333 + 0.1667 is accepted).
+FRACTION_SUM_TOL = 1e-3
+_PATH_FIELDS = {"path", "value"}
+_ADD_FIELDS = {"add_unit", "limits", "rating_source"}
+_REROUTE_FIELDS = {"reroute"}
+_INLET_PORTS = ("in",)
+_OUTLET_PORTS = ("out", "vapor", "liquid", "distillate", "bottoms", "product", "reject")
+_PAIR_PORTS = ("cold", "hot", "heating")  # [inlet, outlet]
+_STREAM_KEEP = ("T_C", "P_bar", "kg_h", "vapour_frac", "components_kg_h")
+
+
+def cited_run_labels(proposal, answer=None):
+    """Run labels the proposal or the answer cards explicitly cite, in first-seen order."""
+    labels = []
+
+    def add(value):
+        if isinstance(value, str):
+            if value and value not in labels:
+                labels.append(value)
+        elif isinstance(value, list):
+            for item in value:
+                add(item)
+
+    if isinstance(proposal, dict):
+        add(proposal.get("runs"))
+        add(proposal.get("cited_runs"))
+        for change in proposal.get("changes") or []:
+            if isinstance(change, dict):
+                add(change.get("runs"))
+    if isinstance(answer, dict):
+        for card in answer.get("cards") or []:
+            if isinstance(card, dict):
+                add(card.get("runs"))
+    return labels
+
+
+def _split_change(change, index):
+    """One canonical object per path, add_unit or reroute. add_unit plus reroute splits; anything else combined is an error."""
+    forms = [key for key in ("path", "add_unit", "reroute") if key in change]
+    number = index + 1
+    if len(forms) <= 1:
+        return [change], [], []
+    if set(forms) != {"add_unit", "reroute"}:
+        joined = " and ".join(forms)
+        return [], [], [f"change {number} combines {joined}; only add_unit plus reroute can be split"]
+    add, route, notes = {}, {}, []
+    for key, value in change.items():
+        if key in _ADD_FIELDS:
+            add[key] = copy.deepcopy(value)
+        elif key in _REROUTE_FIELDS or key == "from":
+            route[key] = copy.deepcopy(value)
+        elif key in _PATH_FIELDS:
+            return [], [], [f"change {number} field {key} belongs on a path change and cannot be placed on add_unit plus reroute"]
+        else:
+            add[key] = copy.deepcopy(value)
+            notes.append(f"kept extra field {key} on the add_unit change")
+    unit = add.get("add_unit") if isinstance(add.get("add_unit"), dict) else {}
+    reroute = route.get("reroute") if isinstance(route.get("reroute"), dict) else {}
+    notes.insert(0, f"split change {number} into add_unit {unit.get('id')} then reroute {reroute.get('unit')}.{reroute.get('field')}")
+    return [add, route], notes, []
+
+
+def _fractions_close(a, b):
+    if not isinstance(a, (list, tuple)) or not isinstance(b, (list, tuple)) or len(a) != len(b):
+        return False
+    try:
+        return all(abs(float(x) - float(y)) <= FRACTION_SUM_TOL for x, y in zip(a, b))
+    except (TypeError, ValueError):
+        return False
+
+
+def _fraction_problem(unit):
+    """None when fractions are present and valid, 'missing' when they can be recovered, otherwise an error."""
+    sid = unit.get("id")
+    fractions = unit.get("fractions")
+    outlets = unit.get("out")
+    n_out = len(outlets) if isinstance(outlets, list) else None
+    if fractions is None:
+        return "missing"
+    if not isinstance(fractions, (list, tuple)) or n_out is None or len(fractions) != n_out:
+        return f"splitter {sid} fractions length must match out ({n_out})"
+    try:
+        numbers = [float(x) for x in fractions]
+    except (TypeError, ValueError):
+        return f"splitter {sid} fractions must be numbers"
+    if any(x < 0 for x in numbers):
+        return f"splitter {sid} fractions must be non-negative"
+    if abs(sum(numbers) - 1.0) > FRACTION_SUM_TOL:
+        return f"splitter {sid} fractions must sum to 1 within {FRACTION_SUM_TOL:g}"
+    return None
+
+
+def _recover_fractions(unit_id, runs, cited):
+    """Fractions from cited logged runs, only when every cited occurrence of this id agrees."""
+    found = []
+    for label in cited:
+        run = runs.get(label) if isinstance(runs, dict) else None
+        if not isinstance(run, dict):
+            continue
+        for unit in (run.get("spec") or {}).get("units") or []:
+            if isinstance(unit, dict) and unit.get("id") == unit_id and isinstance(unit.get("fractions"), list):
+                found.append((label, unit["fractions"]))
+    if not found:
+        return None, None, f"splitter {unit_id} is missing fractions and no cited run supplies them"
+    first = found[0][1]
+    labels = []
+    for label, fractions in found:
+        if not _fractions_close(fractions, first):
+            return None, None, f"splitter {unit_id} fractions are ambiguous across cited runs ({label} disagrees)"
+        if label not in labels:
+            labels.append(label)
+    return [float(x) for x in first], ", ".join(labels), None
+
+
+def _apply_splitter_fractions(changes, runs, cited):
+    notes, errors = [], []
+    for change in changes:
+        unit = change.get("add_unit") if isinstance(change, dict) else None
+        if not isinstance(unit, dict) or unit.get("type") != "splitter":
+            continue
+        problem = _fraction_problem(unit)
+        if problem is None:
+            continue
+        if problem != "missing":
+            errors.append(problem)
+            continue
+        recovered, label, err = _recover_fractions(unit.get("id"), runs, cited)
+        if err:
+            errors.append(err)
+            continue
+        problem = _fraction_problem({**unit, "fractions": recovered})
+        if problem:
+            errors.append(problem)
+            continue
+        unit["fractions"] = recovered
+        change["fractions_source"] = label
+        notes.append(f"recovered fractions for {unit.get('id')} from run {label}")
+    return notes, errors
+
+
+def normalize_proposal(proposal, spec, runs=None, cited=None):
+    """Canonical changes before verify(): one of path, add_unit, reroute per object. Mutates the proposal only when complete.
+
+    Returns errors and leaves `changes` untouched when a field cannot be placed, fractions are missing, or cited runs disagree.
+    `normalized_changes` is a deterministic audit list (empty when nothing was rewritten)."""
+    if not isinstance(proposal, dict):
+        return ["proposal is not an object"]
+    original = proposal.get("changes") or []
+    if not isinstance(original, list):
+        return ["changes must be a list"]
+    labels = cited_run_labels(proposal) if cited is None else list(cited)
+    built, notes, errors = [], [], []
+    for index, change in enumerate(original):
+        if not isinstance(change, dict):
+            built.append(change)
+            continue
+        parts, part_notes, part_errors = _split_change(change, index)
+        built.extend(parts)
+        notes.extend(part_notes)
+        errors.extend(part_errors)
+    if errors:
+        return errors
+    mutable = []
+    for change in built:
+        unit = change.get("add_unit") if isinstance(change, dict) else None
+        if isinstance(unit, dict) and unit.get("type") == "splitter" and unit.get("fractions") is None:
+            mutable.append(copy.deepcopy(change))
+        else:
+            mutable.append(change)
+    frac_notes, frac_errors = _apply_splitter_fractions(mutable, runs or {}, labels)
+    if frac_errors:
+        return frac_errors
+    notes.extend(frac_notes)
+    prior = proposal.get("normalized_changes")
+    kept = list(prior) if isinstance(prior, list) else []
+    if mutable == original and not notes:
+        proposal["normalized_changes"] = kept
+        return []
+    proposal["changes"] = mutable
+    proposal["normalized_changes"] = kept + notes
+    return []
+
+
+def _assumptions(proposal):
+    found = proposal.get("assumptions") if isinstance(proposal, dict) else None
+    return list(found) if isinstance(found, list) else []
+
+
+def _simulator_name(cfg):
+    return "watertap" if (cfg or {}).get("engine") == "watertap" else "dwsim"
+
+
+def _fraction_warnings(proposal):
+    return [note for note in (proposal.get("normalized_changes") or [])
+            if isinstance(note, str) and note.startswith("recovered fractions")]
+
+
+def _stream_names(value):
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, list):
+        return [item for item in value if isinstance(item, str)]
+    return []
+
+
+def _inlets_outlets(unit):
+    inlets, outlets = [], []
+    for key in _INLET_PORTS:
+        inlets += _stream_names(unit.get(key))
+    for key in _OUTLET_PORTS:
+        outlets += _stream_names(unit.get(key))
+    for key in _PAIR_PORTS:
+        pair = unit.get(key)
+        if isinstance(pair, list) and len(pair) >= 2:
+            if isinstance(pair[0], str):
+                inlets.append(pair[0])
+            if isinstance(pair[1], str):
+                outlets.append(pair[1])
+    return inlets, outlets
+
+
+def _downstream_units(spec, seeds):
+    """Unit ids reachable downstream of seeds, seeds included. Pair ports are [inlet, outlet]."""
+    consumes, produces = {}, {}
+    for unit in spec.get("units") or []:
+        if not isinstance(unit, dict) or not unit.get("id"):
+            continue
+        inlets, outlets = _inlets_outlets(unit)
+        for stream in inlets:
+            consumes.setdefault(stream, []).append(unit["id"])
+        for stream in outlets:
+            produces.setdefault(stream, []).append(unit["id"])
+    graph = {}
+    for stream, sources in produces.items():
+        for source in sources:
+            for dest in consumes.get(stream, []):
+                if dest != source:
+                    graph.setdefault(source, set()).add(dest)
+    seen, stack = set(), [seed for seed in seeds if seed]
+    while stack:
+        node = stack.pop()
+        if node in seen:
+            continue
+        seen.add(node)
+        stack.extend(graph.get(node, ()))
+    return seen
+
+
+def _compact_stream(sid, raw):
+    row = {"id": sid}
+    if isinstance(raw, dict):
+        for key in _STREAM_KEEP:
+            if key in raw:
+                row[key] = raw[key]
+        for key, value in raw.items():
+            if key not in row and "component" in key:
+                row[key] = value
+    return row
+
+
+def _blank_calculation(proposal, target, simulator, errors):
+    return {"target_scale": target, "capacity_multiple_before": None, "capacity_multiple_after": None,
+            "limited_by_before": None, "limited_by_after": None, "checks": [], "units": {}, "streams": [],
+            "new_equipment": [], "assumptions": _assumptions(proposal), "simulator": simulator,
+            "errors": list(errors or []), "warnings": _fraction_warnings(proposal)}
+
+
+def _reject_proposal(proposal, target, why, new, simulator, errors=None):
+    return {"verified": False, "fixes": proposal.get("tag") if isinstance(proposal, dict) else None, "still_over": [],
+            "breaks": [], "capacity_multiple": None, "limited_by": None, "reaches_target": False,
+            "over_limits_at_target": [], "target_scale": target, "new_equipment": new, "unverified_reason": why,
+            "calculation": _blank_calculation(proposal, target, simulator, errors if errors is not None else [why])}
+
+
+def _direct_units(proposal):
+    direct = set()
+    tag = proposal.get("tag") if isinstance(proposal, dict) else None
+    if isinstance(tag, str) and tag:
+        direct.add(tag)
+    for change in (proposal.get("changes") or []) if isinstance(proposal, dict) else []:
+        if not isinstance(change, dict):
+            continue
+        if change.get("path"):
+            parts = str(change["path"]).split(".", 2)
+            if len(parts) >= 2 and parts[0] == "units":
+                direct.add(parts[1])
+        elif isinstance(change.get("add_unit"), dict) and change["add_unit"].get("id"):
+            direct.add(change["add_unit"]["id"])
+        elif isinstance(change.get("reroute"), dict) and change["reroute"].get("unit"):
+            direct.add(change["reroute"]["unit"])
+    return direct
+
+
+def _calculation(proposal, target, before_cap, after_cap, before_map, solved, spec, new, simulator):
+    """Compact record of the solve that verify() actually ran. Capacity fields stay None when the solver omitted them."""
+    downstream = _downstream_units(spec, _direct_units(proposal))
+    units_res = solved.get("units") or {}
+    streams_res = solved.get("streams") or {}
+    checks = []
+    for check in solved.get("checks") or []:
+        if not isinstance(check, dict):
+            continue
+        cid, name = check.get("id"), check.get("check")
+        key = (cid, name)
+        before_u = before_map.get(key)
+        changed = "utilisation" in check and (key not in before_map or before_map[key] != check.get("utilisation"))
+        if cid not in downstream and not changed:
+            continue
+        checks.append({"id": cid, "check": name, "before": before_u, "after": check.get("utilisation"),
+                       "value": check.get("value"), "limit": check.get("limit"), "unit": check.get("unit")})
+    interest = set(downstream)
+    for check in checks:
+        if check.get("id"):
+            interest.add(check["id"])
+    stream_ids, seen = [], set()
+    for unit in spec.get("units") or []:
+        if not isinstance(unit, dict) or unit.get("id") not in interest:
+            continue
+        inlets, outlets = _inlets_outlets(unit)
+        for sid in inlets + outlets:
+            if sid not in seen:
+                seen.add(sid)
+                stream_ids.append(sid)
+    return {"target_scale": target,
+            "capacity_multiple_before": before_cap.get("capacity_multiple") if isinstance(before_cap, dict) else None,
+            "capacity_multiple_after": after_cap.get("capacity_multiple") if isinstance(after_cap, dict) else None,
+            "limited_by_before": before_cap.get("limited_by") if isinstance(before_cap, dict) else None,
+            "limited_by_after": after_cap.get("limited_by") if isinstance(after_cap, dict) else None,
+            "checks": checks,
+            "units": {uid: copy.deepcopy(units_res[uid]) for uid in sorted(interest) if uid in units_res},
+            "streams": [_compact_stream(sid, streams_res.get(sid)) for sid in stream_ids if sid in streams_res],
+            "new_equipment": [{"id": item.get("id"), "type": item.get("type"),
+                               "operating_point": copy.deepcopy(units_res.get(item.get("id"))),
+                               "limits": item.get("limits") or {}, "rating_source": item.get("rating_source"),
+                               "status": item.get("status")} for item in new],
+            "assumptions": _assumptions(proposal), "simulator": simulator,
+            "errors": list(solved.get("errors") or []), "warnings": _fraction_warnings(proposal)}
 
 
 OPEN_MODEL = "baseten:meta-models/muse-spark-open-1026"
@@ -810,7 +1156,7 @@ class PlantWorkspace(Study):
         self.gaps = load_gaps(self.model_file.with_name("gaps.json"))
         self.built = json.loads(self.model_file.read_text()) if self.model_file.exists() else None
         if self.built and self.rev_file.exists():  # revisions survive restarts; the latest one is the current model
-            self.revisions = json.loads(self.rev_file.read_text())
+            self.revisions = json.loads(self.rev_file.read_text())  # calculation is optional on older revisions
             if self.revisions:
                 self.built["spec"] = self.revisions[-1]["spec_after"]
                 self.built["result"] = self.revisions[-1].get("result_after")  # None: re-solved on first reproduce
@@ -1154,19 +1500,25 @@ class PlantWorkspace(Study):
 
     def verify(self, p):
         """Re-solve a proposal in DWSIM at the target throughput. It is verified when every limit of the equipment it targets
-        is within 100 % and it pushes no other limit over 100 % that was within it before."""
+        is within 100 % and it pushes no other limit over 100 % that was within it before.
+
+        Changes are canonicalized first. A proposal that fails that check is unverified with capacity_multiple left as None.
+        A solved proposal also carries a calculation record; capacity_multiple remains the after value."""
         target = float(self.cfg.get("target_scale", 1.0))
+        simulator = _simulator_name(self.cfg)
+        norm_errors = normalize_proposal(p, self.spec, getattr(self, "runs", None) or {})
         changes = p.get("changes") or []
         new = added_equipment(changes)
+        if norm_errors:
+            return _reject_proposal(p, target, "; ".join(norm_errors), new, simulator, norm_errors)
         loosened = limit_changes(p)
         invalid = change_errors(self.spec, changes)
         if loosened or invalid:  # a documented rating does not move without a physical change behind it
             why = ("changes a documented limit (" + ", ".join(loosened) + "): a rating only changes with a physical "
                    "modification and its own evidence, so this cannot be verified in the simulator") if loosened else "; ".join(invalid)
-            return {"verified": False, "fixes": p.get("tag"), "still_over": [], "breaks": [], "capacity_multiple": None,
-                    "limited_by": None, "reaches_target": False, "over_limits_at_target": [], "target_scale": target,
-                    "new_equipment": new, "unverified_reason": why}
+            return _reject_proposal(p, target, why, new, simulator)
         before = {(c["id"], c["check"]): c["utilisation"] for c in self.state(target)["checks"] if "utilisation" in c}
+        before_cap = self._capacity_of(self.spec)
         spec = patch(self.spec, changes)
         at = process.run(spec, target)
         cap = process.capacity(spec)
@@ -1182,10 +1534,15 @@ class PlantWorkspace(Study):
                 affected.add(ch["reroute"]["unit"])
         own = [c for c in over if c["id"] in affected]
         broke = [c for c in over if before.get((c["id"], c["check"]), 0) <= 1.0]
+        calculation = _calculation(p, target, before_cap, cap, before, at, spec, new, simulator)
+        model_label = self.built.get("label") if isinstance(getattr(self, "built", None), dict) else None
+        if model_label:
+            calculation["model_label"] = model_label
+        after = cap.get("capacity_multiple") if isinstance(cap, dict) else None
         return {"verified": not at["errors"] and not own and not broke, "fixes": tag, "still_over": own, "breaks": broke,
-                "capacity_multiple": cap.get("capacity_multiple"), "limited_by": cap.get("limited_by"),
+                "capacity_multiple": after, "limited_by": cap.get("limited_by") if isinstance(cap, dict) else None,
                 "reaches_target": not over and not at["errors"], "over_limits_at_target": over, "target_scale": target,
-                "new_equipment": new}
+                "new_equipment": new, "calculation": calculation}
 
     def ask(self, text, context=None, second_opinion=False):
         """Answer a request; with second_opinion the open-weights model answers it independently on the same model and
@@ -1232,6 +1589,8 @@ class PlantWorkspace(Study):
         for k in ("cards", "highlights", "proposals"):
             ans[k] = ans.get(k) if isinstance(ans.get(k), list) else []
         for p in ans["proposals"]:
+            if isinstance(p, dict):  # canonical changes before `from` is attached and before verify()
+                normalize_proposal(p, self.spec, getattr(self, "runs", None) or {}, cited_run_labels(p, ans))
             for c in p.get("changes") or []:  # the value it replaces, for the diff view
                 try:
                     if c.get("reroute"):
@@ -1367,11 +1726,17 @@ class PlantWorkspace(Study):
              "spec_before": self.built["spec"], "spec_after": after, "capacity_multiple": v["capacity_multiple"],
              "new_equipment": v["new_equipment"], "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "user": user,
              "reason": reason, "proposed_by": p.get("_by") or self.model}
+        if v.get("calculation") is not None:
+            r["calculation"] = v["calculation"]
         so = (self.answers[answer].get("second_opinion") or {}) if isinstance(answer, int) and 0 <= answer < len(self.answers) else {}
-        r["audit"] = audit.append(self.name, "accept", user, reason, {
-            "rev": r["rev"], "title": r["title"], "changes": p["changes"], "verified_capacity_multiple": v["capacity_multiple"],
-            "new_equipment": v["new_equipment"], "proposed_by": p.get("_by") or self.model,
-            **({"second_opinion": so["comparison"]["status"], "models_disagree_on": so["comparison"]["disagree"][:8]} if so.get("comparison") else {})})["hash"]
+        details = {"rev": r["rev"], "title": r["title"], "changes": p["changes"],
+                   "verified_capacity_multiple": v["capacity_multiple"], "new_equipment": v["new_equipment"],
+                   "proposed_by": p.get("_by") or self.model,
+                   **({"second_opinion": so["comparison"]["status"], "models_disagree_on": so["comparison"]["disagree"][:8]}
+                      if so.get("comparison") else {})}
+        if v.get("calculation") is not None:
+            details["calculation"] = v["calculation"]
+        r["audit"] = audit.append(self.name, "accept", user, reason, details)["hash"]
         self._commit(r)
         return {**v, "revisions": self.revisions}
 
