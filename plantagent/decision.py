@@ -213,6 +213,14 @@ def make(w, answer=None):
     md += ["", "## 5. Field checks and assumptions", ""]
     md += [f"- Field check: {f.get('item')}. Where: {f.get('where')}. Changes: {f.get('changes')}" for f in (ans or {}).get("field_checks") or []] or ["- No field checks were raised in the answer."]
     md += [f"- Assumption (model): {a}" for a in (w.built.get("assumptions") or [])[:12]]
+    reviewed = (w.built or {}).get("review") or {"status": "ok", "findings": [], "blocking": 0, "energy": {}}
+    gaps = list(getattr(w, "gaps", None) or [])
+    md += ["", "## Model review", "", f"**Status:** {reviewed.get('status', 'ok')}."]
+    md += [f"- **{f.get('severity')}** — {f.get('check')}: {f.get('evidence')}" for f in reviewed.get("findings") or []] or ["- No findings."]
+    if (reviewed.get("energy") or {}).get("note"):
+        md += ["", reviewed["energy"]["note"]]
+    md += ["", "## Capability gaps", ""]
+    md += [f"- {g.get('what')}: {g.get('why')} Needed: {g.get('needed')}." for g in gaps] or ["- None recorded."]
     if so.get("comparison"):
         c = so["comparison"]
         md += ["", "## 6. Second opinion (Muse Spark Open, answered independently)", "", f"Status: **{c['status']}**."]
@@ -233,6 +241,8 @@ def make(w, answer=None):
     diffs = sorted((so.get("comparison") or {}).get("disagree") or [], key=lambda d: d.startswith(("units.", "feeds.", "limits.")))  # outcomes first
     risk = ("the open-weights second opinion disagreed on: " + "; ".join(diffs[:3])) if diffs else \
         "no second-opinion disagreement recorded"
+    if reviewed.get("status") == "model needs review":
+        risk = f"the model needs review ({reviewed.get('blocking', 0)} blocking finding(s)). " + risk
     memo = [f"# Memo: {w.cfg['title']}", "", f"{stamp} · DRAFT, not approved", "",
             f"**Decision asked for:** {w.cfg.get('question')}", "",
             (f"**Recommendation:** no change to the plant is needed. {(ans or {}).get('headline', '')}. " if not changes else
@@ -256,7 +266,8 @@ def make(w, answer=None):
         (out / "redline.svg").write_text(svg)
     data = {"case": w.name, "made": stamp, "target_scale": target, "revisions": revs, "limits": rows, "pssr": checklist,
             "relief": relief_hit, "second_opinion": so.get("comparison"), "audit_head": head, "code": _git_head(),
-            "model": {k: w.built.get(k) for k in ("label", "model", "at")}}
+            "model_review": reviewed, "gaps": gaps,
+            "model": {k: w.built.get(k) for k in ("label", "model", "at", "review_status")}}
     (out / "decision.json").write_text(json.dumps(data, indent=1, default=str))
     files = ["decision.md", "memo.md", "decision.json"] + (["redline.svg"] if svg else [])
     for name, md_ in (("decision.pdf", decision_md), ("memo.pdf", memo_md)):
@@ -270,7 +281,9 @@ def make(w, answer=None):
             z.write(out / f, f)
     files.append("decision.zip")
     audit.append(w.name, "decision_file", None, "decision file generated (draft)", {"folder": out.name, "revisions": len(revs),
-                                                                                       "limits_over_after": len(over_after)})
+                                                                                       "limits_over_after": len(over_after),
+                                                                                       "model_review": reviewed.get("status"),
+                                                                                       "blocking_findings": reviewed.get("blocking")})
     return {"folder": out.name, "files": files, "over_after": len(over_after), "pssr_items": len(checklist), "audit_head": head}
 
 

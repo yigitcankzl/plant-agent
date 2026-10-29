@@ -4,19 +4,21 @@ itself, then answers the engineer's questions with simulator-verified proposals 
 import copy
 import hashlib
 import json
+import re
 import time
 from pathlib import Path
 
 from . import audit, brine, llm, pid, process
 from .docs import DATA
-from .study import ARR, Study, submit
+from .study import ARR, Study, compact, submit, text_tool_calls, unstring
 
 ROOT = Path(__file__).resolve().parent.parent
 S, N, B = {"type": "string"}, {"type": "number"}, {"type": "boolean"}
 
 RULES = ("Rules: every number comes from the P&ID (cite the tag and attribute), the operating data sheet (cite the row), or a "
          "logged simulator run (cite its label). Never invent equipment ratings. State each assumption. Use the simulator, not "
-         "your own arithmetic, for temperatures, duties, areas and capacity.")
+         "your own arithmetic, for temperatures, duties, areas and capacity. If the spec cannot express the physics or the "
+         "change you need, call report_gap instead of approximating or changing a documented limit.")
 
 SUBMIT_MODEL = submit("submit_model", "The process model you built and calibrated.", {
     "label": {"type": "string", "description": "label of the calibrated run_process run (the model)"},
@@ -282,6 +284,351 @@ def coverage(pid_ov, spec):
             "missing_equipment": sorted(tags - set(units))}
 
 
+# process.run does not return stream enthalpy. The smallest addition that closes the flowsheet is one number per stream:
+# enthalpy_kJ_kg (specific enthalpy, kJ/kg) inside each stream of the result. Until that field exists, review_model checks
+# evaporator heating-versus-boil-up duties instead of sum(m*h) + duties.
+ENTHALPY_FIELD = "enthalpy_kJ_kg"
+_ENTHALPY_KEYS = (ENTHALPY_FIELD, "H_kJ_kg")
+ENERGY_TOL = 0.02  # same closure band the evaporator limit uses
+ENERGY_BLOCK = 0.10
+_LINE_TOKEN = re.compile(r"(?<!\d)(\d{3,6})(?!\d)")
+_HEAT = {"hx", "heater", "cooler", "evaporator"}
+_PID_QUANTITY = {"DesignHeatTransferArea": "area", "DesignVolumeFlowRate": "flow", "DesignShaftPower": "power",
+                 "DesignHeatFlowRate": "duty", "NominalCapacity(Volume)": "volume"}
+_SHEET_VALUE = {
+    "area": re.compile(r"([\d][\d,]*(?:\.\d+)?)\s*m(?:2|²)\b", re.I),
+    "flow": re.compile(r"([\d][\d,]*(?:\.\d+)?)\s*m(?:3|³)\s*/\s*h\b", re.I),
+    "volume": re.compile(r"([\d][\d,]*(?:\.\d+)?)\s*m(?:3|³)(?!\s*/)", re.I),
+    "power": re.compile(r"([\d][\d,]*(?:\.\d+)?)\s*kW\b", re.I),
+    "duty": re.compile(r"([\d][\d,]*(?:\.\d+)?)\s*kW\b", re.I),
+}
+
+
+def load_gaps(path):
+    path = Path(path)
+    if not path.exists():
+        return []
+    data = json.loads(path.read_text())
+    return data if isinstance(data, list) else []
+
+
+def record_gap(path, what, why, needed, phase=None):
+    """Append one capability gap. `what`, `why` and `needed` are required; nothing is written if one is blank."""
+    what, why, needed = (str(what or "").strip(), str(why or "").strip(), str(needed or "").strip())
+    if not what or not why or not needed:
+        return {"error": "report_gap needs what, why and needed"}
+    path = Path(path)
+    gaps = load_gaps(path)
+    gap = {"what": what, "why": why, "needed": needed, "phase": phase, "at": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
+    gaps.append(gap)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(gaps, indent=1) + "\n")
+    return {"saved": True, "n": len(gaps), "gap": gap}
+
+
+def collect_gaps(root):
+    """Every gap saved under runs/ws/<case>/gaps.json, one row per gap, for `python -m plantagent.plant --gaps`."""
+    root = Path(root)
+    out = []
+    if not root.exists():
+        return out
+    for f in sorted(root.glob("*/gaps.json")):
+        for g in load_gaps(f):
+            if isinstance(g, dict):
+                out.append({"case": f.parent.name, **g})
+    return out
+
+
+def _finding(severity, check, evidence, items=None):
+    f = {"severity": severity, "check": check, "evidence": evidence[:500]}
+    if items:
+        f["items"] = list(dict.fromkeys(items))
+    return f
+
+
+def _ports(u):
+    ins, outs = [], []
+    for key, bucket in (("in", ins), ("out", outs)):
+        v = u.get(key)
+        if isinstance(v, str):
+            bucket.append(v)
+        elif isinstance(v, list):
+            bucket.extend(x for x in v if isinstance(x, str))
+    for key in ("cold", "hot", "heating"):
+        v = u.get(key)
+        if isinstance(v, (list, tuple)) and len(v) >= 2:
+            ins.append(v[0])
+            outs.append(v[1])
+    for key in ("vapor", "liquid", "distillate", "bottoms", "product", "reject"):
+        if isinstance(u.get(key), str):
+            outs.append(u[key])
+    return ins, outs
+
+
+def _duty_inlets(u):
+    if u.get("type") == "hx" and u.get("hot") and u.get("cold"):
+        return [u["hot"][0], u["cold"][0]]
+    if u.get("type") in ("heater", "cooler") and isinstance(u.get("in"), str):
+        return [u["in"]]
+    if u.get("type") == "evaporator" and u.get("heating"):
+        return [u["heating"][0]]
+    return []
+
+
+def _tag_role(uid, tag):
+    if uid == tag:
+        return "exact"
+    if not uid.startswith(tag) or len(uid) == len(tag):
+        return None
+    rest = uid[len(tag):]
+    if re.fullmatch(r"[A-Z]", rest) or re.fullmatch(r"[-_/][A-Z0-9]", rest):
+        return "parallel"  # C-101A, C-101-B: the P&ID count, drawn as one tag
+    return "extra"
+
+
+def _connections(pid_ov, spec):
+    try:
+        return coverage(pid_ov, spec)["connections"]
+    except (KeyError, TypeError, AttributeError):
+        rows = []
+        for c in (pid_ov or {}).get("connections") or []:
+            rows.append({"from": str(c.get("from") or "").split("(")[0], "to": str(c.get("to") or "").split("(")[0],
+                         "lines": [str(x) for x in c.get("lines") or [] if x], "relief_path": False})
+        return rows
+
+
+def _pid_number(value):
+    m = re.search(r"[-+]?\d[\d,]*(?:\.\d+)?", str(value))
+    return float(m.group(0).replace(",", "")) if m else None
+
+
+def _sheet_numbers(basis, tag, quantity):
+    rx, out = _SHEET_VALUE[quantity], []
+    for line in (basis or "").splitlines():
+        if not re.search(rf"(?<![A-Za-z0-9]){re.escape(tag)}(?![A-Za-z0-9])", line):
+            continue
+        if quantity == "power" and not re.search(r"power|motor|shaft|kW", line, re.I):
+            continue
+        if quantity == "duty" and not re.search(r"duty|heat|kW", line, re.I):
+            continue
+        for m in rx.finditer(line):
+            out.append((float(m.group(1).replace(",", "")), line.strip()))
+    return out
+
+
+def _source_conflicts(pid_ov, basis):
+    findings = []
+    for e in (pid_ov or {}).get("equipment") or []:
+        tag = e.get("tag")
+        if not tag:
+            continue
+        for attr, quantity in _PID_QUANTITY.items():
+            pid_v = _pid_number((e.get("design") or {}).get(attr))
+            if pid_v is None:
+                continue
+            got = _sheet_numbers(basis, tag, quantity)
+            if not got:
+                continue
+            if any(abs(v - pid_v) <= 0.01 * max(abs(v), abs(pid_v), 1e-9) for v, _ in got):
+                continue
+            shown = ", ".join(f"{v:g}" for v, _ in got[:4])
+            findings.append(_finding(
+                "warn", "source conflict",
+                f"P&ID {tag} {attr} is {pid_v:g}; the data sheet gives {shown} for the same quantity ({got[0][1][:160]}).",
+                [tag]))
+    return findings
+
+
+def _enthalpy(stream):
+    if not isinstance(stream, dict):
+        return None
+    for key in _ENTHALPY_KEYS:
+        if isinstance(stream.get(key), (int, float)):
+            return float(stream[key])
+    return None
+
+
+def _boundary_duty_kW(units):
+    """Heat and shaft work crossing the flowsheet boundary. Cooler duty_kW is heat removed (positive in the result).
+    Exchanger and evaporator duties stay inside the material streams, so they are not added again."""
+    q = 0.0
+    for u in (units or {}).values():
+        if not isinstance(u, dict):
+            continue
+        t = u.get("type")
+        if t == "heater":
+            q += float(u.get("duty_kW") or 0)
+        elif t == "cooler":
+            q -= abs(float(u.get("duty_kW") or 0))
+        elif t == "pump":
+            q += float(u.get("kW") or 0)
+        elif t == "compressor":
+            q += float(u.get("duty_kW") or u.get("kW") or 0)
+        elif t == "column":
+            q += float(u.get("reboiler_kW") or 0) - float(u.get("condenser_kW") or 0)
+    return q
+
+
+def _energy(spec, result):
+    """Overall closure when streams carry enthalpy; otherwise evaporator duty closure, and the missing field to add."""
+    note = (f"Streams from process.run have no {ENTHALPY_FIELD}. Add {ENTHALPY_FIELD} (kJ/kg) on each stream to close "
+            "feed and product enthalpy plus duties. Duty checks are the evaporator heat balance (2% band, block above 10%).")
+    info = {"method": "duty", "tolerance": ENERGY_TOL, "proposed_field": ENTHALPY_FIELD, "note": note}
+    findings = []
+    units = (result or {}).get("units") or {}
+    streams = (result or {}).get("streams") or {}
+    produced, consumed = set(), set()
+    for u in spec.get("units") or []:
+        ins, outs = _ports(u)
+        consumed.update(ins)
+        produced.update(outs)
+    feeds = [s for s in (spec.get("feeds") or {}) if s not in produced]
+    products = [s for s in produced if s not in consumed]
+    boundary = feeds + products
+    if boundary and streams and all(_enthalpy(streams.get(s)) is not None and isinstance((streams.get(s) or {}).get("kg_h"), (int, float))
+                                    for s in boundary):
+        inlet = sum((streams[s]["kg_h"] / 3600.0) * _enthalpy(streams[s]) for s in feeds)
+        outlet = sum((streams[s]["kg_h"] / 3600.0) * _enthalpy(streams[s]) for s in products)
+        duty = _boundary_duty_kW(units)
+        gap = inlet - outlet + duty
+        denom = max(abs(inlet), abs(outlet), abs(duty), 1.0)
+        frac = abs(gap) / denom
+        info = {"method": "enthalpy", "tolerance": ENERGY_TOL, "proposed_field": None,
+                "in_kW": round(inlet, 1), "out_kW": round(outlet, 1), "duty_kW": round(duty, 1),
+                "imbalance_kW": round(gap, 1), "fraction": round(frac, 4),
+                "note": "Closed on stream enthalpy plus boundary duties."}
+        if frac > ENERGY_TOL:
+            findings.append(_finding(
+                "block" if frac > ENERGY_BLOCK else "warn", "energy not closed",
+                f"Feed enthalpy {inlet:.1f} kW, product enthalpy {outlet:.1f} kW, boundary duties {duty:.1f} kW, "
+                f"imbalance {gap:.1f} kW ({frac:.1%} of the largest term; tolerance {ENERGY_TOL:.0%})."))
+        return info, findings
+    for uid, u in units.items():
+        if not isinstance(u, dict) or u.get("type") != "evaporator" or u.get("heat_balance_kW") is None or u.get("heating_kW") is None:
+            continue
+        bal, heat, boil = float(u["heat_balance_kW"]), float(u["heating_kW"]), float(u.get("boil_kW") or 0)
+        scale = max(abs(heat), abs(boil), 1.0)
+        frac = abs(bal) / scale
+        if frac > ENERGY_TOL:
+            findings.append(_finding(
+                "block" if frac > ENERGY_BLOCK else "warn", "energy not closed",
+                f"{uid} heat balance is {bal:.1f} kW against heating {heat:.1f} kW and boil-up {boil:.1f} kW "
+                f"({frac:.1%}; tolerance {ENERGY_TOL:.0%}).", [uid]))
+    return info, findings
+
+
+def review_model(spec, result, pid_ov=None, basis=""):
+    """Deterministic model review. No LLM. Findings are block (the model needs review) or warn (a conflict to read)."""
+    spec = spec or {}
+    units = [u for u in spec.get("units") or [] if u.get("id")]
+    unit_ids = {u["id"] for u in units}
+    findings = []
+    tags = [e.get("tag") for e in (pid_ov or {}).get("equipment") or [] if e.get("tag")]
+    tags = sorted(tags, key=len, reverse=True)
+    classes = {e.get("tag"): e.get("class") or "" for e in (pid_ov or {}).get("equipment") or []}
+    role_of = {}
+    for u in units:
+        for tag in tags:
+            role = _tag_role(u["id"], tag)
+            if role:
+                role_of[u["id"]] = (tag, role)
+                break
+    represented = {role_of[u["id"]][0] for u in units if u["id"] in role_of}
+    represented.update(u["id"] for u in units)
+    by_tag = {}
+    for u in units:
+        hit = role_of.get(u["id"])
+        if hit:
+            by_tag.setdefault(hit[0], []).append((u, hit[1]))
+    for tag, group in sorted(by_tag.items()):
+        if len(group) >= 2 and not all(role == "parallel" for _, role in group):
+            shown = ", ".join(f"{u['id']} ({u.get('type')})" for u, _ in group)
+            findings.append(_finding("block", "equipment represented twice",
+                                     f"P&ID {tag} is represented by {shown}.", [u["id"] for u, _ in group]))
+        for u, _ in group:
+            if u.get("type") in ("cooler", "heater") and "desuperheater" in classes.get(tag, "").casefold():
+                findings.append(_finding(
+                    "block", "desuperheater modelled as heat removal",
+                    f"P&ID {tag} is a desuperheater; unit {u['id']} is a {u['type']}, so the superheat is removed as a duty "
+                    "instead of by spray mixing.", [u["id"], tag]))
+    if pid_ov:
+        known = {}
+        for c in _connections(pid_ov, spec):
+            if c.get("relief_path"):
+                continue
+            for line in c.get("lines") or []:
+                known.setdefault(str(line), set()).add(c.get("from"))
+        tears = {u.get("out") for u in units if u.get("type") == "recycle" and isinstance(u.get("out"), str)}
+        for fid in spec.get("feeds") or {}:
+            if fid in tears:
+                continue
+            lines = [t for t in _LINE_TOKEN.findall(str(fid)) if t in known]
+            origins = sorted({o for line in lines for o in known[line] if o and (o in unit_ids or o in represented)})
+            if origins:
+                findings.append(_finding(
+                    "block", "internal source as a free feed",
+                    f"Feed {fid} maps to P&ID line {', '.join(lines)}, which starts at modelled equipment {', '.join(origins)}.",
+                    [fid, *origins]))
+        duty_lines = {}
+        for u in units:
+            if u.get("type") not in _HEAT:
+                continue
+            for stream in _duty_inlets(u):
+                for line in _LINE_TOKEN.findall(str(stream)):
+                    if line in known:
+                        duty_lines.setdefault(line, {}).setdefault(u["id"], stream)
+        for line, owners in sorted(duty_lines.items()):
+            if len(owners) < 2:
+                continue
+            shown = ", ".join(f"{uid} ({stream})" for uid, stream in owners.items())
+            findings.append(_finding(
+                "block", "duty modelled twice",
+                f"P&ID line {line} is a heat-duty inlet of {shown}, so one equipment duty is in the flowsheet twice.",
+                list(owners)))
+        findings.extend(_source_conflicts(pid_ov, basis))
+    if result:
+        errs = [e for e in result.get("errors") or [] if e]
+        if errs:
+            findings.append(_finding("block", "unit did not solve", "Flowsheet errors: " + "; ".join(str(e) for e in errs[:6])))
+        for uid, u in (result.get("units") or {}).items():
+            if isinstance(u, dict) and u.get("error"):
+                findings.append(_finding("block", "unit did not solve", f"{uid}: {u['error']}", [uid]))
+        for c in result.get("checks") or []:
+            if isinstance(c.get("utilisation"), (int, float)) and c["utilisation"] < 0:
+                findings.append(_finding(
+                    "block", "negative utilisation",
+                    f"{c.get('id')} {c.get('check')} utilisation is {c['utilisation']} (value {c.get('value')} {c.get('unit') or ''}).",
+                    [c.get("id")] if c.get("id") else None))
+            elif c.get("error") and "did not solve" in str(c.get("error")).lower():
+                findings.append(_finding("block", "unit did not solve", f"{c.get('id')}: {c['error']}", [c.get("id")] if c.get("id") else None))
+        streams = result.get("streams") or {}
+        for u in units:
+            if u.get("type") != "recycle":
+                continue
+            a, b = streams.get(u.get("in")) or {}, streams.get(u.get("out")) or {}
+            if not a or not b or a.get("error") or b.get("error"):
+                findings.append(_finding("block", "recycle not converged",
+                                         f"{u['id']} has no solved tear stream ({u.get('in')} / {u.get('out')}).", [u["id"]]))
+                continue
+            bad = []
+            if isinstance(a.get("T_C"), (int, float)) and isinstance(b.get("T_C"), (int, float)) and abs(a["T_C"] - b["T_C"]) > 0.5:
+                bad.append(f"T {a['T_C']} vs {b['T_C']} °C")
+            if isinstance(a.get("P_bar"), (int, float)) and isinstance(b.get("P_bar"), (int, float)) and abs(a["P_bar"] - b["P_bar"]) > 0.02:
+                bad.append(f"P {a['P_bar']} vs {b['P_bar']} bar")
+            if isinstance(a.get("kg_h"), (int, float)) and isinstance(b.get("kg_h"), (int, float)):
+                scale = max(abs(a["kg_h"]), abs(b["kg_h"]), 1.0)
+                if abs(a["kg_h"] - b["kg_h"]) > 0.01 * scale:
+                    bad.append(f"flow {a['kg_h']} vs {b['kg_h']} kg/h")
+            if bad:
+                findings.append(_finding("block", "recycle not converged",
+                                         f"{u['id']} tear {u.get('out')} and return {u.get('in')} differ: {', '.join(bad)}.", [u["id"]]))
+    energy, energy_findings = _energy(spec, result)
+    findings.extend(energy_findings)
+    findings.sort(key=lambda f: (0 if f["severity"] == "block" else 1, f["check"], f["evidence"]))
+    status = "model needs review" if any(f["severity"] == "block" for f in findings) else "ok"
+    return {"status": status, "findings": findings, "blocking": sum(f["severity"] == "block" for f in findings), "energy": energy}
+
+
 def historian(path, tags=None, start=None, end=None):
     """Summary of a historian/SCADA export (CSV: a time column, then one column per tag): mean, p5, p95, min, max per tag,
     over an optional time window. Standard library only."""
@@ -343,6 +690,7 @@ class PlantWorkspace(Study):
         self.runs = {}
         self.model_file = ROOT / "runs" / "ws" / case_name / "model.json"
         self.rev_file = self.model_file.with_name("revisions.json")
+        self.gaps = load_gaps(self.model_file.with_name("gaps.json"))
         self.built = json.loads(self.model_file.read_text()) if self.model_file.exists() else None
         if self.built and self.rev_file.exists():  # revisions survive restarts; the latest one is the current model
             self.revisions = json.loads(self.rev_file.read_text())
@@ -351,6 +699,13 @@ class PlantWorkspace(Study):
                 self.built["result"] = self.revisions[-1].get("result_after")  # None: re-solved on first reproduce
         if self.built:
             self.runs[self.built["label"]] = {"spec": self.built["spec"], "purpose": "calibrated model", "result": self.built.get("result")}
+            self.built["gaps"] = self.gaps
+            try:
+                self.built["review"] = review_model(self.built["spec"], self.built.get("result"), self.pid, self.basis)
+            except Exception as e:  # noqa: BLE001 - the workspace still opens; the failure is shown in the drawer
+                self.built["review"] = {"status": "ok", "findings": [], "blocking": 0, "energy": {},
+                                        "error": f"{type(e).__name__}: {e}"}
+            self.built["review_status"] = self.built["review"]["status"]
         self._state = {}
         # pick up the answers of the latest session made on this same model, so a restart keeps the engineer's thread
         for prev in sorted((ROOT / "runs" / "ws" / case_name).glob("2*/answers.json"), reverse=True):
@@ -419,6 +774,11 @@ class PlantWorkspace(Study):
                                      "(API 521 hydraulic expansion), for relief checks.",
               {"compounds": {"type": "array", "items": S}, "x": {"type": "object"}, "T1_C": N, "P1_bar": N, "T2_C": N},
               ["compounds", "x", "T1_C", "P1_bar", "T2_C"]),
+            f("report_gap", "Call this when the flowsheet spec cannot express the physics or the change you need. "
+                            "Do not approximate the effect and do not change a documented limit to stand in for it. "
+                            "Saved on the case and shown to the engineer.",
+              {"what": S, "why": S, "needed": {"type": "string", "description": "what the spec or the tools would have to be able to do"}},
+              ["what", "why", "needed"]),
         ]
 
     def call(self, name, a):
@@ -480,6 +840,8 @@ class PlantWorkspace(Study):
         if name == "get_spec":
             r = self.runs.get(a["label"])
             return {"label": a["label"], "spec": r["spec"]} if r else {"error": f"unknown label; logged: {list(self.runs)}"}
+        if name == "report_gap":
+            return self.add_gap(a.get("what"), a.get("why"), a.get("needed"))
         raise ValueError(f"unknown tool {name}")
 
     def read_drawing(self):
@@ -530,6 +892,7 @@ class PlantWorkspace(Study):
             raise ValueError("confirm the drawing read first: check Muse's reading of the schematic and correct it before a model is built")
         t0, usd0 = time.time(), llm.spent()
         llm.TAG = "plant:" + self.name
+        self._phase = "build"
         sub = self.loop("build", "You are a process engineer building a steady-state simulation model of a unit from its P&ID. " + RULES,
                         f"Unit: {self.cfg['title']}\n\nRead the P&ID and the operating data sheet. Build the DWSIM flowsheet "
                         "with run_process, following the P&ID topology exactly: every process equipment item as a unit with its "
@@ -545,24 +908,130 @@ class PlantWorkspace(Study):
                         "needs, frame limit and available pressure drop; tank hold time; product temperature limits; utility "
                         "supply limits on the utility feed streams. Calibrate against EVERY measured value in the data sheet "
                         "(temperatures, flows, pressure drops) and report measured vs simulated. Run check_coverage on your final "
-                        "model and fix every missing connection that carries normal flow. Then call submit_model. If there are project "
+                        "model and fix every missing connection that carries normal flow. Then call submit_model. A deterministic review "
+                        "checks that submit: if it returns blocking findings, fix the flowsheet and call submit_model once more. "
+                        "If the spec cannot express the fix, call report_gap instead of approximating or changing a documented limit. "
+                        "If there are project "
                         "documents, search them and read only the pages with the equipment data you need (datasheets), at most 6.",
                         self.tools() + [SUBMIT_MODEL], "submit_model", 30)
         run = self.runs.get(sub["label"]) or list(self.runs.values())[-1]
+        reviewed = review_model(run["spec"], run.get("result"), self.pid, self.basis)
         self.built = {"label": sub["label"] if sub["label"] in self.runs else list(self.runs)[-1], "spec": run["spec"],
                       "result": run["result"], "mapping": sub.get("mapping"), "calibration": sub.get("calibration"),
                       "assumptions": sub.get("assumptions"), "model": self.model,
                       "coverage": coverage(self.pid, run["spec"]) if self.pid else None,
                       "read_corrections": len((self.pid or {}).get("corrections") or []), "seconds": round(time.time() - t0),
-                      "cost_usd": round(llm.spent() - usd0, 4), "at": time.strftime("%Y-%m-%d %H:%M")}
+                      "cost_usd": round(llm.spent() - usd0, 4), "at": time.strftime("%Y-%m-%d %H:%M"),
+                      "review": reviewed, "review_status": reviewed["status"], "gaps": self.gaps}
         self.model_file.write_text(json.dumps(self.built, indent=1))
         self.revisions = []
         self.rev_file.write_text("[]")
         audit.append(self.name, "build", None, "model built from the P&ID and data sheet",
-                     {"label": self.built["label"], "model": self.model,
+                     {"label": self.built["label"], "model": self.model, "review_status": reviewed["status"],
                       "coverage_missing": (self.built["coverage"] or {}).get("missing_connections")})
+        self._audit_review(reviewed, None, "model built")
         self._state = {}
         return self.built
+
+    def add_gap(self, what, why, needed):
+        saved = record_gap(self.model_file.with_name("gaps.json"), what, why, needed, phase=getattr(self, "_phase", None))
+        if saved.get("saved"):
+            self.gaps = load_gaps(self.model_file.with_name("gaps.json"))
+            if self.built is not None:
+                self.built["gaps"] = self.gaps
+            audit.append(self.name, "report_gap", None, saved["gap"]["what"],
+                         {"why": saved["gap"]["why"], "needed": saved["gap"]["needed"], "phase": saved["gap"]["phase"]})
+        return saved
+
+    def _audit_review(self, reviewed, user, reason):
+        audit.append(self.name, "model_review", user, reason, {
+            "status": reviewed["status"], "blocking": reviewed["blocking"],
+            "findings": [{"severity": f["severity"], "check": f["check"], "evidence": f["evidence"]} for f in reviewed["findings"]]})
+
+    def _review_run(self, label):
+        run = self.runs.get(label) if label else None
+        if run is None and self.runs:
+            run = list(self.runs.values())[-1]
+        if not run:
+            return review_model({"units": [], "feeds": {}}, None, self.pid, self.basis)
+        return review_model(run["spec"], run.get("result"), self.pid, self.basis)
+
+    def loop(self, phase, system, user, tools, submit_name, max_steps):
+        self._phase = phase
+        if phase != "build" or submit_name != "submit_model":
+            return super().loop(phase, system, user, tools, submit_name, max_steps)
+        return self._build_loop(phase, system, user, tools, submit_name, max_steps)
+
+    def _build_loop(self, phase, system, user, tools, submit_name, max_steps):
+        """Same agent loop as Study.loop, but one rejected submit_model comes back as a tool result.
+        The fix round is at most 8 further steps; the next submit_model is accepted and reviewed again by build()."""
+        messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+        step, limit, fixing = 0, max_steps, False
+        while step < limit:
+            self.steps += 1
+            if not fixing and step == max_steps - 3:
+                messages.append({"role": "user", "content": f"Step limit near. Call {submit_name} now with what you have."})
+            if fixing and step == limit - 3:
+                messages.append({"role": "user", "content": "Fix round is nearly done. Call submit_model now. If the spec cannot express "
+                                 "the fix, call report_gap instead of approximating or changing a documented limit."})
+            msg = llm.complete(self.model, compact(messages), tools=tools)
+            self.log.write(json.dumps({"phase": phase, "step": step, "assistant": msg}) + "\n")
+            if not msg["tool_calls"] and msg.get("content") and "invoke name=" in msg["content"]:
+                msg = {**msg, "tool_calls": text_tool_calls(msg["content"]), "content": ""}
+            if msg.get("content"):
+                self.emit({"kind": "say", "text": msg["content"]})
+            if not msg["tool_calls"]:
+                messages += [{"role": "assistant", "content": msg["content"] or ""},
+                             {"role": "user", "content": f"Use the tools. Finish by calling {submit_name}."}]
+                step += 1
+                continue
+            messages.append({"role": "assistant", "content": msg["content"] or "", "tool_calls": [
+                {"id": t["id"], "type": "function", "function": {"name": t["name"], "arguments": t["arguments"]}}
+                for t in msg["tool_calls"]]})
+            images, rejected = [], False
+            for t in msg["tool_calls"]:
+                try:
+                    args = unstring(json.loads(t["arguments"] or "{}"))
+                except json.JSONDecodeError as e:
+                    args, result = {}, {"error": f"arguments are not valid JSON: {e}"}
+                else:
+                    if t["name"] == submit_name:
+                        blocks = []
+                        if not fixing:
+                            blocks = [f for f in self._review_run(args.get("label"))["findings"] if f["severity"] == "block"]
+                        if blocks:
+                            fixing, rejected = True, True
+                            limit = step + 1 + 8
+                            result = {"accepted": False, "review_status": "model needs review",
+                                      "instruction": "Blocking model-review findings. Fix the flowsheet and call submit_model again. "
+                                                     "If the spec cannot express the physics or the change you need, call report_gap "
+                                                     "instead of approximating or changing a documented limit. This is the only fix round.",
+                                      "findings": [{"severity": f["severity"], "check": f["check"], "evidence": f["evidence"],
+                                                    "items": f.get("items")} for f in blocks[:8]]}
+                        else:
+                            self.log.write(json.dumps({"phase": phase, "submit": args}) + "\n")
+                            self.log.flush()
+                            print(f"  {phase}: submitted after {step + 1} steps")
+                            return args
+                    else:
+                        try:
+                            result = self.call(t["name"], args)
+                        except Exception as e:  # tool errors go back to the engineer, as they would in real work
+                            result = {"error": f"{type(e).__name__}: {e}"}
+                if isinstance(result, dict) and "image" in result:
+                    images.append(result.pop("image"))
+                    result = {"note": f"page {args.get('page')} image attached below"}
+                print(f"  {phase}> {t['name']}({json.dumps(args)[:120]}) -> {json.dumps(result)[:140]}")
+                self.log.write(json.dumps({"phase": phase, "tool": t["name"], "args": args, "result": result}) + "\n")
+                self.emit({"kind": "tool", "name": t["name"], "args": args, "result": result})
+                messages.append({"role": "tool", "tool_call_id": t["id"], "content": json.dumps(result)})
+                if rejected:
+                    break
+            for url in images:
+                messages.append({"role": "user", "content": [{"type": "image_url", "image_url": {"url": url}}]})
+            self.log.flush()
+            step += 1
+        raise RuntimeError(f"{phase}: no {submit_name} after {step} steps")
 
     def verify(self, p):
         """Re-solve a proposal in DWSIM at the target throughput. It is verified when every limit of the equipment it targets
@@ -607,6 +1076,7 @@ class PlantWorkspace(Study):
     def _ask_once(self, text, context=None):
         if not self.built:
             self.build()
+        self._phase = "ask"
         t0, usd0 = time.time(), llm.spent()
         llm.TAG = "plant:" + self.name
         brief = {"unit": self.cfg["title"], "target_throughput_multiple": self.cfg.get("target_scale"),
@@ -800,10 +1270,14 @@ class PlantWorkspace(Study):
     def _commit(self, r):
         # the calibrated label now names the revised model, so its stored result must be the revised one too
         r.setdefault("result_after", process.run(r["spec_after"]))
+        reviewed = review_model(r["spec_after"], r["result_after"], self.pid, self.basis)
+        r["review"] = {"status": reviewed["status"], "blocking": reviewed["blocking"], "findings": reviewed["findings"]}
         self.revisions.append(r)
-        self.built = {**self.built, "spec": r["spec_after"], "result": r["result_after"]}
+        self.built = {**self.built, "spec": r["spec_after"], "result": r["result_after"],
+                      "review": reviewed, "review_status": reviewed["status"], "gaps": self.gaps}
         self.runs[self.built["label"]] = {"spec": r["spec_after"], "purpose": "calibrated model (current revision)", "result": r["result_after"]}
         self.rev_file.write_text(json.dumps(self.revisions, indent=1))
+        self._audit_review(reviewed, r.get("user"), r.get("reason") or r.get("title") or "revision")
         self._state = {}
 
     def state(self, scale=1.0):
@@ -843,6 +1317,10 @@ class PlantWorkspace(Study):
             self._state[key] = demo["capacity"] if demo and demo["spec"] == self.spec else process.capacity(self.spec)
         return self._state[key]
 
+
+if __name__ == "__main__" and len(__import__("sys").argv) > 1 and __import__("sys").argv[1] == "--gaps":
+    print(json.dumps(collect_gaps(ROOT / "runs" / "ws"), indent=1))
+    raise SystemExit
 
 if __name__ == "__main__" and len(__import__("sys").argv) > 2:
     # python -m plantagent.plant --build <case> [model]   |   --precompute <case>

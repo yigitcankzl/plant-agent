@@ -287,6 +287,8 @@
     <div class="drawer-head"><b>Model &amp; sources</b><button class="btn" type="button" aria-label="Close model and sources" onclick="toggleDrawer(false)">Close</button></div>
     <div class="sec"><h4>Equipment load <span id="atScale"></span></h4><div id="eqlist" aria-live="polite"><div class="empty">Loading case data…</div></div></div>
     <div class="sec"><h4>Model <span id="builtBy"></span></h4><div id="modelBox"></div></div>
+    <div class="sec"><h4>Model review</h4><div id="reviewBox"><div class="empty">Runs after the model is built.</div></div></div>
+    <div class="sec"><h4>Capability gaps</h4><div id="gapBox"><div class="empty">None recorded.</div></div></div>
     <div class="sec"><h4>Documents</h4>
       <div class="eq" onclick="showDoc('pid')"><div class="t" id="pidName">Smart P&amp;ID <span>DEXPI XML</span></div><div class="why" id="pidStats"></div></div>
       <div class="eq" onclick="showDoc('basis')"><div class="t">Operating data sheet <span>md</span></div></div>
@@ -606,8 +608,28 @@ function noModel() {
   $('verdict').textContent = 'No model yet';
 }
 
+function fillReview() {
+  const rev = P?.built?.review, gaps = P?.built?.gaps || [];
+  if (!$('reviewBox')) return;
+  if (!rev) {
+    $('reviewBox').innerHTML = '<div class="empty">Runs after the model is built.</div>';
+  } else if (rev.error) {
+    $('reviewBox').innerHTML = `<div style="color:var(--fail);font-size:12px">${esc(rev.error)}</div>`;
+  } else {
+    const fs = rev.findings || [];
+    const head = rev.status === 'model needs review'
+      ? `<div style="color:var(--fail);font-size:12px;margin-bottom:4px">Model needs review · ${rev.blocking ?? fs.filter(f => f.severity === 'block').length} blocking</div>`
+      : `<div style="color:var(--ok);font-size:12px;margin-bottom:4px">No blocking findings</div>`;
+    $('reviewBox').innerHTML = head + (fs.map(f => `<div style="font-size:11.5px;padding:3px 0"><b style="color:var(--${f.severity === 'block' ? 'fail' : 'warn'})">${esc(f.severity)}</b> ${esc(f.check)}<div style="color:var(--muted)">${esc(f.evidence)}</div></div>`).join('')
+      || '<div class="empty">No findings.</div>') + (rev.energy?.note ? `<div style="color:var(--muted);font-size:11px;margin-top:6px">${esc(rev.energy.note)}</div>` : '');
+  }
+  $('gapBox').innerHTML = gaps.length ? gaps.map(g => `<div style="font-size:11.5px;padding:3px 0"><b>${esc(g.what)}</b><div style="color:var(--muted)">${esc(g.why)}</div><div>Needed: ${esc(g.needed)}</div></div>`).join('')
+    : '<div class="empty">None recorded.</div>';
+}
+
 function model() {
   const b = P.built;
+  fillReview();
   if (!b) { $('modelBox').innerHTML = ''; return; }
   $('builtBy').textContent = `${b.model.replace('muse-', '').replace('-contributor', '')} · ${b.seconds}s`;
   $('modelBox').innerHTML = `<div class="why" style="color:var(--muted);font-size:11.5px;margin-bottom:6px">DWSIM flowsheet built by the agent from the P&amp;ID, ${b.spec.units.length} units. Calibration:</div>` +
@@ -667,9 +689,17 @@ function render(st) {
   }
   const top = rows[0], cap = P.capacity;
   const over = rows.filter(c => c.utilisation > 1);
-  $('verdict').innerHTML = over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
-    : `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — tightest: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`;
-  $('verdictSub').innerHTML = cap?.capacity_multiple ? `Simulated maximum: <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? 'Recorded DWSIM solution of this model (re-solved live when the model changes).' : 'Solved live in DWSIM.'}` : '';
+  const blocks = (P.built?.review?.findings || []).filter(f => f.severity === 'block');
+  const capLine = cap?.capacity_multiple ? `Simulated maximum: <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? 'Recorded DWSIM solution of this model (re-solved live when the model changes).' : 'Solved live in DWSIM.'}` : '';
+  if (blocks.length) {
+    const more = blocks.length > 1 ? ` · ${blocks.length - 1} more blocking finding${blocks.length > 2 ? 's' : ''}.` : '';
+    $('verdict').innerHTML = `<span style="color:var(--fail)">Model needs review</span>`;
+    $('verdictSub').innerHTML = `${esc(blocks[0].check)}: ${esc(String(blocks[0].evidence).slice(0, 220))}${more} ${capLine}`;
+  } else {
+    $('verdict').innerHTML = over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
+      : `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — tightest: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`;
+    $('verdictSub').innerHTML = capLine;
+  }
 }
 const fmt = v => typeof v === 'number' ? (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1)) : v;
 const nm = id => (P?.names || {})[id] || id;  // readable name for a unit or stream id; the raw id stays in tooltips
