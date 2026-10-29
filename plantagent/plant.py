@@ -16,7 +16,23 @@ S, N, B = {"type": "string"}, {"type": "number"}, {"type": "boolean"}
 
 RULES = ("Rules: every number comes from the P&ID (cite the tag and attribute), the operating data sheet (cite the row), or a "
          "logged simulator run (cite its label). Never invent equipment ratings. State each assumption. Use the simulator, not "
-         "your own arithmetic, for temperatures, duties, areas and capacity.")
+         "your own arithmetic, for temperatures, duties, areas and capacity. Never raise an existing limits.* rating to make a "
+         "proposal pass. For physical new equipment use add_unit with a complete unit spec, its own limits and a rating_source; "
+         "use routing-only splitter/mixer units and reroute changes when needed so flow actually passes through parallel equipment.")
+
+CHANGE_HELP = ("One change is either {path, value} for an existing operating/model field; "
+               "{add_unit: {complete unit spec}, limits: {that new unit's ratings}, rating_source: 'vendor quote to confirm / "
+               "standard size ...'}; or {reroute: {unit, field, value}} for a process connection. Do not edit limits.* for "
+               "existing equipment. A parallel train normally needs a splitter, the new rated unit, a mixer, and reroutes of "
+               "the existing unit's inlet/outlet. Routing-only splitter/mixer units do not need ratings or a rating_source.")
+
+CHANGE = {"path": {"type": "string", "description": "feeds.<stream>.<field> | units.<id>.<field>; never limits.* for existing equipment"},
+          "value": {"description": "new value for path"},
+          "add_unit": {"type": "object", "description": "complete process unit spec, including id, type and connections"},
+          "limits": {"type": "object", "description": "ratings for add_unit only; stored under limits.<new id>"},
+          "rating_source": {"type": "string", "description": "source or provisional basis, explicitly marked to confirm"},
+          "reroute": {"type": "object", "description": "change a unit connection so the added equipment is in the flow",
+                      "properties": {"unit": S, "field": S, "value": {"description": "stream id or list of stream ids"}}}}
 
 SUBMIT_MODEL = submit("submit_model", "The process model you built and calibrated.", {
     "label": {"type": "string", "description": "label of the calibrated run_process run (the model)"},
@@ -42,10 +58,9 @@ ANSWER = submit("answer", "Final answer, shown on the P&ID and as calc cards (no
     "highlights": ARR({"tag": {"type": "string", "description": "equipment tag on the P&ID, e.g. H1007"}, "text": S,
                        "severity": {"type": "string", "enum": ["ok", "warn", "fail", "info"]}}),
     "proposals": {"type": "array", "description": "fixes, each a change to the model; the workspace re-solves it in DWSIM before "
-                  "the engineer can accept it", "items": {"type": "object", "properties": {
+                  "the engineer can accept it. " + CHANGE_HELP, "items": {"type": "object", "properties": {
                       "title": S, "tag": S,
-                      "changes": ARR({"path": {"type": "string", "description": "feeds.<stream>.<field> | units.<id>.<field> | limits.<id>.<field>"},
-                                      "value": N}),
+                      "changes": ARR(CHANGE),
                       "cost_class": {"type": "string", "enum": ["no capex", "<$100k", "$100k-$1M", ">$1M"]},
                       "why": S}}},
 }, ["headline", "summary", "cards"])
@@ -54,7 +69,68 @@ ANSWER = submit("answer", "Final answer, shown on the P&ID and as calc cards (no
 def limit_changes(p):
     """Paths in a proposal that edit the limits themselves rather than the plant. Installed exchanger area is physical
     (patch moves its area limit with it), so only explicit limits.* edits count."""
-    return [c["path"] for c in p.get("changes") or [] if str(c.get("path", "")).startswith("limits.")]
+    return [c["path"] for c in p.get("changes") or [] if isinstance(c, dict) and str(c.get("path", "")).startswith("limits.")]
+
+
+CONNECTION_FIELDS = {"in", "out", "cold", "hot", "heating", "vapor", "liquid", "product", "reject", "distillate", "bottoms"}
+ROUTING_UNITS = {"mixer", "splitter", "recycle"}
+
+
+def added_equipment(changes):
+    """Physical units introduced by a proposal, retained as evidence instead of being hidden in a dotted diff."""
+    return [{"id": c["add_unit"].get("id"), "type": c["add_unit"].get("type"), "limits": c.get("limits") or {},
+             "rating_source": c.get("rating_source"), "status": "new equipment, rating to confirm"}
+            for c in changes or [] if isinstance(c, dict) and isinstance(c.get("add_unit"), dict) and
+            c["add_unit"].get("type") not in ROUTING_UNITS]
+
+
+def change_errors(spec, changes):
+    """Validate the structural proposal boundary before it reaches the simulator."""
+    existing = {u.get("id") for u in spec.get("units") or []}
+    additions = [c.get("add_unit") for c in changes or [] if isinstance(c, dict) and c.get("add_unit") is not None]
+    new_ids = [u.get("id") for u in additions if isinstance(u, dict) and isinstance(u.get("id"), str)]
+    known, errors = existing | set(new_ids), []
+    for i, c in enumerate(changes or []):
+        if not isinstance(c, dict):
+            errors.append(f"change {i + 1} is not an object")
+            continue
+        forms = sum(k in c for k in ("path", "add_unit", "reroute"))
+        if forms != 1:
+            errors.append(f"change {i + 1} must contain exactly one of path, add_unit or reroute")
+            continue
+        if "path" in c:
+            try:
+                kind, oid, _ = c["path"].split(".", 2)
+            except (AttributeError, ValueError):
+                errors.append(f"change {i + 1} has a bad path")
+                continue
+            if kind not in ("units", "feeds", "limits") or "value" not in c:
+                errors.append(f"change {i + 1} has a bad path or no value")
+            elif kind == "units" and oid not in known:
+                errors.append(f"change {i + 1} names unknown unit {oid}")
+            elif kind == "feeds" and oid not in (spec.get("feeds") or {}):
+                errors.append(f"change {i + 1} names unknown feed {oid}")
+        elif "add_unit" in c:
+            u = c["add_unit"]
+            if not isinstance(u, dict) or not isinstance(u.get("id"), str) or not u["id"] or not isinstance(u.get("type"), str) or not u["type"]:
+                errors.append(f"change {i + 1} add_unit needs id and type")
+                continue
+            if u["id"] in existing or new_ids.count(u["id"]) > 1:
+                errors.append(f"change {i + 1} cannot add duplicate unit {u['id']}")
+            if u["type"] not in ROUTING_UNITS and not c.get("limits"):
+                errors.append(f"change {i + 1} add_unit {u['id']} needs its own limits")
+            if (u["type"] not in ROUTING_UNITS or c.get("limits")) and not str(c.get("rating_source") or "").strip():
+                errors.append(f"change {i + 1} add_unit {u['id']} needs rating_source")
+            if not isinstance(c.get("limits", {}), dict):
+                errors.append(f"change {i + 1} limits must be an object")
+        else:
+            r = c["reroute"]
+            value = r.get("value") if isinstance(r, dict) else None
+            streams = isinstance(value, str) or (isinstance(value, list) and value and all(isinstance(x, str) for x in value))
+            if (not isinstance(r, dict) or r.get("unit") not in known or r.get("field") not in CONNECTION_FIELDS or
+                    "value" not in r or not streams):
+                errors.append(f"change {i + 1} reroute needs a known unit, connection field and value")
+    return errors
 
 
 OPEN_MODEL = "baseten:meta-models/muse-spark-open-1026"
@@ -139,9 +215,23 @@ def display_names(spec):
 def describe_change(spec, c, names=None):
     """'H1007 cooling water flow: 20 → 27 m³/h' for a change path; the raw path stays available for traceability."""
     names = names or display_names(spec)
+    if c.get("add_unit"):
+        u, limits = c["add_unit"], c.get("limits") or {}
+        rating = c.get("rating_source") or "model routing"
+        if limits.get("max_kg_h") is not None:
+            size = f", {limits['max_kg_h'] / 1000:g} t/h suction"
+        elif limits.get("max_kW") is not None:
+            size = f", {limits['max_kW']:g} kW"
+        else:
+            size = ""
+        return f"Adds {u.get('id')} {KIND.get(u.get('type'), u.get('type'))}{size} ({rating})"
+    if c.get("reroute"):
+        r = c["reroute"]
+        old = f"{c.get('from')} → " if c.get("from") is not None else ""
+        return f"Reroutes {names.get(r.get('unit'), r.get('unit'))} {r.get('field')}: {old}{r.get('value')}"
     try:
         kind, oid, field = c["path"].split(".", 2)
-    except ValueError:
+    except (KeyError, ValueError):
         return c.get("path", "")
     label, unit = FIELD.get(field, (field.replace("_", " "), ""))
     who = names.get(oid, oid)
@@ -159,7 +249,19 @@ def compare_answers(a, b):
     la, lb = lim(a), lim(b)
     if la or lb:
         (agree if la == lb else disagree).append(f"limiting equipment: {', '.join(sorted(la)) or 'none'} vs {', '.join(sorted(lb)) or 'none'}")
-    ch = lambda x: {c["path"]: c.get("value") for p in x.get("proposals") or [] for c in p.get("changes") or []}  # noqa: E731
+    def ch(x):
+        out = {}
+        for p in x.get("proposals") or []:
+            for c in p.get("changes") or []:
+                if c.get("path"):
+                    out[c["path"]] = c.get("value")
+                elif c.get("add_unit"):
+                    out[f"add_unit.{c['add_unit'].get('id')}"] = json.dumps(
+                        {"unit": c["add_unit"], "limits": c.get("limits") or {}, "rating_source": c.get("rating_source")}, sort_keys=True)
+                elif c.get("reroute"):
+                    r = c["reroute"]
+                    out[f"reroute.{r.get('unit')}.{r.get('field')}"] = r.get("value")
+        return out
     ca, cb = ch(a), ch(b)
     for path in sorted(ca.keys() | cb.keys()):
         va, vb = ca.get(path), cb.get(path)
@@ -220,10 +322,24 @@ def read_corrections(orig, conf):
 
 
 def patch(spec, changes):
-    """Apply dotted-path changes to a copy of the spec. Installed HX area also moves the area limit (same plates)."""
+    """Apply operating changes, added units and connection reroutes to a copy of the process spec."""
+    errors = change_errors(spec, changes)
+    if errors:
+        raise ValueError("; ".join(errors))
     s = copy.deepcopy(spec)
     units = {u["id"]: u for u in s["units"]}
     for c in changes:
+        if c.get("add_unit"):
+            u = copy.deepcopy(c["add_unit"])
+            s["units"].append(u)
+            units[u["id"]] = u
+            if c.get("limits"):
+                s.setdefault("limits", {})[u["id"]] = copy.deepcopy(c["limits"])
+            continue
+        if c.get("reroute"):
+            r = c["reroute"]
+            units[r["unit"]][r["field"]] = copy.deepcopy(r["value"])
+            continue
         kind, oid, field = c["path"].split(".", 2)
         if kind == "units":
             units[oid][field] = c["value"]
@@ -382,7 +498,8 @@ class PlantWorkspace(Study):
               ["label", "spec"]),
             f("process_capacity", "Throughput multiple of a logged run at which the first stated limit reaches 100 %, and which.",
               {"label": S}, ["label"]),
-            f("get_spec", "Full spec of a logged run (the calibrated model is preloaded), to copy and modify.", {"label": S}, ["label"]),
+            f("get_spec", "Full spec of a logged run (the calibrated model is preloaded), to copy and modify. For a proposal, "
+                          "return explicit changes rather than an opaque replacement spec. " + CHANGE_HELP, {"label": S}, ["label"]),
             f("check_coverage", "Compare a logged run's flowsheet with the P&ID: which equipment-to-equipment connections (by line "
                                 "number) the model reproduces, which it misses, and which P&ID equipment it leaves out.",
               {"label": S}, ["label"]),
@@ -546,7 +663,9 @@ class PlantWorkspace(Study):
                         "supply limits on the utility feed streams. Calibrate against EVERY measured value in the data sheet "
                         "(temperatures, flows, pressure drops) and report measured vs simulated. Run check_coverage on your final "
                         "model and fix every missing connection that carries normal flow. Then call submit_model. If there are project "
-                        "documents, search them and read only the pages with the equipment data you need (datasheets), at most 6.",
+                        "documents, search them and read only the pages with the equipment data you need (datasheets), at most 6. "
+                        "The model you submit is the as-built plant; later alternatives must express physical additions explicitly "
+                        "with add_unit/reroute changes, not by raising an existing rating.",
                         self.tools() + [SUBMIT_MODEL], "submit_model", 30)
         run = self.runs.get(sub["label"]) or list(self.runs.values())[-1]
         self.built = {"label": sub["label"] if sub["label"] in self.runs else list(self.runs)[-1], "spec": run["spec"],
@@ -568,23 +687,36 @@ class PlantWorkspace(Study):
         """Re-solve a proposal in DWSIM at the target throughput. It is verified when every limit of the equipment it targets
         is within 100 % and it pushes no other limit over 100 % that was within it before."""
         target = float(self.cfg.get("target_scale", 1.0))
+        changes = p.get("changes") or []
+        new = added_equipment(changes)
         loosened = limit_changes(p)
-        if loosened:  # a documented rating does not move without a physical change behind it
+        invalid = change_errors(self.spec, changes)
+        if loosened or invalid:  # a documented rating does not move without a physical change behind it
+            why = ("changes a documented limit (" + ", ".join(loosened) + "): a rating only changes with a physical "
+                   "modification and its own evidence, so this cannot be verified in the simulator") if loosened else "; ".join(invalid)
             return {"verified": False, "fixes": p.get("tag"), "still_over": [], "breaks": [], "capacity_multiple": None,
                     "limited_by": None, "reaches_target": False, "over_limits_at_target": [], "target_scale": target,
-                    "unverified_reason": "changes a documented limit (" + ", ".join(loosened) + "): a rating only changes with a "
-                                         "physical modification and its own evidence, so this cannot be verified in the simulator"}
+                    "new_equipment": new, "unverified_reason": why}
         before = {(c["id"], c["check"]): c["utilisation"] for c in self.state(target)["checks"] if "utilisation" in c}
-        spec = patch(self.spec, p.get("changes") or [])
+        spec = patch(self.spec, changes)
         at = process.run(spec, target)
         cap = process.capacity(spec)
         over = [c for c in at["checks"] if c.get("utilisation", 0) > 1.0]
         tag = p.get("tag")
-        own = [c for c in over if c["id"] == tag or any(c["id"] in ch["path"] for ch in p.get("changes") or [])]
+        affected = {tag} if tag else set()
+        for ch in changes:
+            if ch.get("path"):
+                affected.add(ch["path"].split(".", 2)[1])
+            elif ch.get("add_unit"):
+                affected.add(ch["add_unit"]["id"])
+            elif ch.get("reroute"):
+                affected.add(ch["reroute"]["unit"])
+        own = [c for c in over if c["id"] in affected]
         broke = [c for c in over if before.get((c["id"], c["check"]), 0) <= 1.0]
         return {"verified": not at["errors"] and not own and not broke, "fixes": tag, "still_over": own, "breaks": broke,
                 "capacity_multiple": cap.get("capacity_multiple"), "limited_by": cap.get("limited_by"),
-                "reaches_target": not over and not at["errors"], "over_limits_at_target": over, "target_scale": target}
+                "reaches_target": not over and not at["errors"], "over_limits_at_target": over, "target_scale": target,
+                "new_equipment": new}
 
     def ask(self, text, context=None, second_opinion=False):
         """Answer a request; with second_opinion the open-weights model answers it independently on the same model and
@@ -616,7 +748,7 @@ class PlantWorkspace(Study):
                         "model is preloaded (get_spec, then modify and re-run). Answer quickly and precisely and finish with "
                         "`answer`: a plain headline, calc cards, highlights on P&ID tags, and for a fix, proposals as model "
                         "changes (paths into the spec) that respect every utility and frame limit in the data sheet. Give one "
-                        "proposal per limiting equipment item, each with its tag. Prefer the cheapest fix that works: operating "
+                        "proposal per limiting equipment item, each with its tag. " + CHANGE_HELP + " Prefer the cheapest fix that works: operating "
                         "changes within documented limits (levels, setpoints, utility flows), then cleaning a fouled exchanger "
                         "back to its documented clean performance, and only then new equipment. An operating strategy that changes "
                         "with weather or season (floating head pressure, economiser hours, chilled-water reset) is not a single model "
@@ -632,10 +764,14 @@ class PlantWorkspace(Study):
         for p in ans["proposals"]:
             for c in p.get("changes") or []:  # the value it replaces, for the diff view
                 try:
-                    k, oid, fld = c["path"].split(".", 2)
-                    o = next(u for u in self.spec["units"] if u["id"] == oid) if k == "units" else self.spec.get(k, {}).get(oid, {})
-                    c["from"] = o.get(fld)
-                except (ValueError, StopIteration):
+                    if c.get("reroute"):
+                        r = c["reroute"]
+                        c["from"] = next(u for u in self.spec["units"] if u["id"] == r["unit"]).get(r["field"])
+                    elif c.get("path"):
+                        k, oid, fld = c["path"].split(".", 2)
+                        o = next(u for u in self.spec["units"] if u["id"] == oid) if k == "units" else self.spec.get(k, {}).get(oid, {})
+                        c["from"] = o.get(fld)
+                except (KeyError, ValueError, StopIteration):
                     c["from"] = None
             try:
                 p.update(self.verify(p))
@@ -754,15 +890,17 @@ class PlantWorkspace(Study):
             raise ValueError("a reason for the change is required")
         v = self.verify(p)  # never trust the client's copy
         if not v["verified"]:
-            raise ValueError("proposal does not verify in DWSIM: " + json.dumps(v["over_limits_at_target"])[:300])
+            raise ValueError("proposal does not verify in DWSIM: " +
+                             (v.get("unverified_reason") or json.dumps(v["over_limits_at_target"])[:300]))
         after = patch(self.built["spec"], p["changes"])
         r = {"rev": len(self.revisions) + 1, "kind": "change", "title": p.get("title"), "changes": p["changes"],
              "spec_before": self.built["spec"], "spec_after": after, "capacity_multiple": v["capacity_multiple"],
-             "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "user": user, "reason": reason, "proposed_by": p.get("_by") or self.model}
+             "new_equipment": v["new_equipment"], "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "user": user,
+             "reason": reason, "proposed_by": p.get("_by") or self.model}
         so = (self.answers[answer].get("second_opinion") or {}) if isinstance(answer, int) and 0 <= answer < len(self.answers) else {}
         r["audit"] = audit.append(self.name, "accept", user, reason, {
             "rev": r["rev"], "title": r["title"], "changes": p["changes"], "verified_capacity_multiple": v["capacity_multiple"],
-            "proposed_by": p.get("_by") or self.model,
+            "new_equipment": v["new_equipment"], "proposed_by": p.get("_by") or self.model,
             **({"second_opinion": so["comparison"]["status"], "models_disagree_on": so["comparison"]["disagree"][:8]} if so.get("comparison") else {})})["hash"]
         self._commit(r)
         return {**v, "revisions": self.revisions}
