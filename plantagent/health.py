@@ -87,12 +87,14 @@ def critical_u(spec, unit, out_stream, limit_C, scale, lo=100.0, hi=3000.0):
 def check(case):
     cfg = json.loads((ROOT / "cases" / case / "historian_map.json").read_text())
     rows = load(ROOT / "cases" / case / cfg["file"])
-    spec = json.loads((ROOT / "runs" / "ws" / case / "model.json").read_text())["spec"]
+    model = ROOT / "runs" / "ws" / case / "model.json"
+    spec = json.loads(model.read_text())["spec"] if model.exists() else None
     items, exch, meas, quality = [], [], [], []
     last = max(r["day"] for r in rows)
 
     for unit, c in cfg.get("exchangers", {}).items():
-        us = exchanger_u(rows, c)
+        us = ([{"day": r["day"], "U": r[c["u_tag"]]} for r in rows if r.get(c["u_tag"]) is not None]
+              if c.get("u_tag") else exchanger_u(rows, c))
         if len(us) < 10:
             quality.append(f"{unit}: too few valid samples to compute U")
             continue
@@ -100,11 +102,19 @@ def check(case):
         for u in us:
             days.setdefault(int(u["day"]), []).append(u["U"])
         xs, ys = list(days), [statistics.fmean(v) for v in days.values()]
+        reset = None
+        if c.get("reset_jump_pct"):
+            reset = next((i for i in range(len(xs) - 1, 0, -1) if ys[i] > ys[i - 1] * (1 + c["reset_jump_pct"])), None)
+        if reset is not None:
+            xs, ys = xs[reset:], ys[reset:]
         slope, icpt, r2 = trend(xs, ys)
         u_now = statistics.fmean(u["U"] for u in us if u["day"] > last - 3)
         e = {"unit": unit, "U_now": round(u_now, 1), "U_start": round(ys[0], 1), "slope_per_day": round(slope, 2),
-             "r2": round(r2, 2), "change_pct": round((u_now / ys[0] - 1) * 100, 1), "U_clean": c.get("U_clean")}
+             "r2": round(r2, 2), "change_pct": round((u_now / ys[0] - 1) * 100, 1), "U_clean": c.get("U_clean"),
+             "trend_from_day": xs[0]}
         for label, scale in (("today", 1.0), ("target", cfg.get("target_scale"))):
+            if not (spec and c.get("model_out_stream") and c.get("out_limit_C")):
+                continue
             if not scale:
                 continue
             uc = critical_u(spec, unit, c["model_out_stream"], c["out_limit_C"], scale)
@@ -121,12 +131,14 @@ def check(case):
         exch.append(e)
         d_today, d_tgt = e.get("days_to_limit_today"), e.get("days_to_limit_target")
         if slope < 0 and r2 > 0.5:
-            text = (f"{unit} is fouling: U {e['U_start']:.0f} → {u_now:.0f} W/m²K in {last:.0f} days ({e['change_pct']}%). "
+            period = f"since day {xs[0]}" if reset is not None else f"in {last:.0f} days"
+            text = (f"{unit} is fouling: U {e['U_start']:.0f} → {u_now:.0f} W/m²K "
+                    f"{period} ({e['change_pct']}%). "
                     + (f"At today's throughput the {c['out_limit_C']} °C outlet limit is reached in about {d_today} days. "
                        if d_today else "At today's throughput it is already at the outlet limit. " if d_today == 0 else "")
                     + (f"At the target throughput it is already over the limit (needs U ≥ {e['U_critical_target']:.0f})."
                        if d_tgt == 0 else f"At the target throughput the limit is reached in about {d_tgt} days." if d_tgt else "")
-                    + (f" A clean tested at {c['U_clean']} W/m²K." if c.get("U_clean") else ""))
+                    + (f" Clean-reference U: {c['U_clean']} W/m²K." if c.get("U_clean") else ""))
             urgency = 100 - min(d_today if d_today is not None else 0, 99) + (30 if d_tgt == 0 else 0)
             items.append({"urgency": urgency, "unit": unit, "kind": "fouling", "text": text})
 
@@ -142,7 +154,7 @@ def check(case):
         if peak > m["max"] - m.get("warn_margin", 1.0):
             items.append({"urgency": 80 if peak > m["max"] else 50, "unit": m["name"], "kind": "limit",
                           "text": f"{m['name']} peaked at {peak:.1f} against {m['max']} in the last day "
-                                  f"({exceed} of {len(vals)} samples over the limit this month)."})
+                                  f"({exceed} of {len(vals)} samples over the limit in this window)."})
 
     for tag in [k for k in rows[0] if k not in ("day", "time")]:
         vals = [r[tag] for r in rows[-24:] if r.get(tag) is not None]
