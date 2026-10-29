@@ -251,6 +251,10 @@ def plant_project(case):
             "built": {k: v for k, v in w.built.items() if k != "result"} if w.built else None,
             "names": w.names() if w.built else {},
             "has_revisions": bool(w.revisions),
+            "health": (lambda h: {k: h.get(k) for k in ("today", "exchangers", "source_note", "from", "to")} if h else None)(
+                json.loads(w.model_file.with_name("health.json").read_text()) if w.model_file.with_name("health.json").exists() else None),
+            "troubleshootable": list((json.loads((ROOT / "cases" / case / "historian_map.json").read_text()).get("exchangers") or {}).keys())
+            if (ROOT / "cases" / case / "historian_map.json").exists() else [],
             "read_confirmed": bool((w.pid or {}).get("confirmed")), "read_corrections": len((w.pid or {}).get("corrections") or []),
             "answers": w.answers, "revisions": [{k: r.get(k) for k in ("rev", "kind", "title", "changes", "capacity_multiple", "at", "user", "reason")}
                                                 for r in w.revisions],
@@ -564,6 +568,13 @@ class Handler(SimpleHTTPRequestHandler):
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
                 return self._send({**r, "base": f"/wsfiles/{case}/{r['folder']}/"})
+            if what == "health" and method == "POST":  # re-solves the model ~30 times; no model call
+                return self._send(w.morning_check(refresh=True) or {"error": "no historian mapping for this project"})
+            if what == "troubleshoot" and method == "POST":
+                try:
+                    return self._send(w.troubleshoot(body["equipment"], body.get("reading"), body.get("scale")))
+                except (ValueError, KeyError) as e:
+                    return self._send({"error": str(e)}, code=409)
             if what == "pidread":  # Muse's read of a PDF schematic and the engineer's confirmed version
                 orig = json.loads(w.pid_file.read_text()) if w.pid_file.exists() else None
                 conf = json.loads(w.confirmed_file.read_text()) if w.confirmed_file.exists() else None

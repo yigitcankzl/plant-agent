@@ -394,6 +394,14 @@ class PlantWorkspace(Study):
                "bins": {"type": "array", "items": {"type": "object", "description": "{name, hours, scale, changes: [{path, value}], "
                                                                                        "electric_per_kW_duty: {unit: factor}}"}},
                "price_per_kWh": N}, ["label", "units", "bins"]),
+            f("morning_check", "The morning check: exchanger fouling trends from the historian (U now vs at the start, days to the "
+                               "outlet limit at today's and the target throughput), measured limits and data quality, and the top 3 "
+                               "things to look at today.", {}),
+            f("troubleshoot", "Rank the causes of an exchanger's process outlet running out of spec (fouling, utility short of flow, "
+                              "utility too warm, process flow higher than metered, process arriving hotter): each cause is fitted in "
+                              "DWSIM to the symptom and checked against the other historian readings; returns the ranked causes and "
+                              "the field checks that separate causes that both fit.",
+              {"equipment": S, "reading_C": N}, ["equipment"]),
             f("historian", "Summary statistics (mean, p5, p95, min, max) of the plant's historian/SCADA export for chosen tags "
                            "and an optional time window; call with no tags to list what is available.",
               {"tags": {"type": "array", "items": S}, "start": S, "end": S}),
@@ -440,6 +448,10 @@ class PlantWorkspace(Study):
             r = self.runs[a["label"]]
             r["capacity"] = process.capacity(r["spec"])
             return {"label": a["label"], **r["capacity"]}
+        if name == "morning_check":
+            return self.morning_check() or {"note": "no historian mapping for this project"}
+        if name == "troubleshoot":
+            return self.troubleshoot(a["equipment"], a.get("reading_C"))
         if name == "historian":
             if not self.cfg.get("historian"):
                 return {"note": "no historian export in this project"}
@@ -651,6 +663,44 @@ class PlantWorkspace(Study):
                                    any(codes.get(d) == code for d in _re.findall(r"\d{4,}", k))):
                     n[k] = v.replace("Utility supply", fluid).replace("Utility return", fluid + " return")
         return n
+
+    def morning_check(self, refresh=False):
+        """The morning check (plantagent.health): cached, because it re-solves the model ~30 times."""
+        from . import health
+        f = self.model_file.with_name("health.json")
+        if refresh or not f.exists():
+            if not (ROOT / "cases" / self.name / "historian_map.json").exists():
+                return None
+            f.write_text(json.dumps(health.check(self.name), indent=1, default=str))
+        return json.loads(f.read_text())
+
+    def troubleshoot(self, equipment, reading=None, scale=None):
+        """Rank the causes of an exchanger's process outlet running out of spec (plantagent.diagnose). The symptom is the
+        engineer's reading (or the historian's last day); the other readings come from the historian's last day."""
+        from . import diagnose
+        m = json.loads((ROOT / "cases" / self.name / "historian_map.json").read_text())
+        hx = (m.get("exchangers") or {}).get(equipment)
+        if not hx:
+            raise ValueError(f"no historian mapping for {equipment}: troubleshooting needs its measured temperatures and flows")
+        rows = historian(ROOT / "cases" / self.name / m["file"])
+        from .health import load
+        data = load(ROOT / "cases" / self.name / m["file"])
+        last = [r for r in data if r["day"] >= data[-1]["day"] - 1]
+        mean = lambda tag: round(sum(r[tag] for r in last if r.get(tag) is not None) / max(1, sum(r.get(tag) is not None for r in last)), 2)  # noqa: E731
+        u = next(x for x in self.spec["units"] if x["id"] == equipment)
+        prod = next((k for k, f in self.spec["feeds"].items() if not f.get("utility")), None)
+        symptom = {"path": f"streams.{hx['model_out_stream']}.T_C", "value": float(reading) if reading is not None else mean(hx["hot_out"]),
+                   "name": f"{equipment} product out"}
+        obs = [{"path": f"streams.{u['cold'][1]}.T_C", "value": mean(hx["cold_out"]), "name": "utility return", "sigma": 0.3},
+               {"path": f"streams.{u['cold'][0]}.T_C", "value": mean(hx["cold_in"]), "name": "utility supply", "sigma": 0.3},
+               {"path": f"streams.{u['hot'][0]}.T_C", "value": mean(hx["hot_in"]), "name": f"{equipment} product in", "sigma": 0.3},
+               {"path": f"streams.{u['cold'][0]}.m3_h", "value": mean(hx["cold_flow_m3h"]), "name": "utility flow (meter)", "sigma": 0.3}]
+        pf = next((k for k in rows["available"] if k.startswith("FI-") and prod and "product" in k.lower()), None)
+        if pf and prod:
+            obs.append({"path": f"streams.{prod}.m3_h", "value": mean(pf), "name": "product flow (meter)", "sigma": 0.2})
+        r = diagnose.diagnose(self.spec, symptom, obs, diagnose.hypotheses_for(self.spec, equipment, names=self.names()),
+                              float(scale or 1.0))
+        return {**r, "observations": obs, "source_note": m.get("note", "")}
 
     def whatif(self, changes, scale=None):
         """Preview one change in DWSIM at the current throughput: limit checks before and after. Not a revision."""

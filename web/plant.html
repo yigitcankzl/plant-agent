@@ -393,12 +393,36 @@ function equipmentCard(tag) {  // design data, operating values, every limit wit
       <select id="wiField">${editable.map(([k, v]) => `<option value="${k}" data-v="${v}">${esc(FIELDS[k][0])} (${esc(fmt(v))} ${esc(FIELDS[k][1])})</option>`).join('')}</select>
       <input id="wiValue" type="number" step="any" style="width:110px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:4px" value="${editable[0][1]}">
       <button class="btn" onclick="whatIf('${esc(tag)}')">Re-solve</button><div id="wiOut" style="margin-top:8px"></div>` : ''}
+    ${healthOf(tag)}
+    ${(P.troubleshootable || []).includes(tag) ? `<div class="tt" style="margin-top:10px">Troubleshoot (deterministic: each cause fitted in DWSIM, checked against the other historian readings)</div>
+      <span style="font-size:12px">Product out of ${esc(tag)} reads</span> <input id="tsVal" type="number" step="0.1" style="width:80px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:4px" placeholder="last day">
+      <span style="font-size:12px">°C</span> <button class="btn" onclick="troubleshoot('${esc(tag)}')">Find the cause</button><div id="tsOut" style="margin-top:8px"></div>` : ''}
     <div style="margin-top:12px"><button class="btn" onclick="$('modal').classList.remove('on');$('q').value='Why is ${esc(tag)} limiting, and what is the cheapest fix?';$('q').focus()">Ask the copilot about ${esc(tag)}</button></div>`;
   $('wiField') && ($('wiField').onchange = () => { $('wiValue').value = $('wiField').selectedOptions[0].dataset.v; });
   WI = {tag, path};
   $('modal').classList.add('on');
 }
 let WI = null;
+function healthOf(tag) {
+  const x = (P.health?.exchangers || []).find(e => e.unit === tag);
+  if (!x) return '';
+  return `<div class="tt" style="margin-top:10px">Performance trend (historian)</div><table class="ecard">
+    <tr><td>Heat-transfer coefficient</td><td class="v">${fmt(x.U_start)} → <b>${fmt(x.U_now)}</b> W/m²K (${fmt(x.change_pct)} %), clean ${fmt(x.U_clean)}</td></tr>
+    <tr><td>At today's throughput</td><td class="v">${esc(x.status_today || '')}${x.days_to_limit_today != null ? ` · ${fmt(x.days_to_limit_today)} days to the outlet limit` : ''}</td></tr>
+    <tr><td>At the target throughput</td><td class="v">${esc(x.status_target || '')}${x.U_critical_target ? ` · needs U ≥ ${fmt(x.U_critical_target)}` : ''}</td></tr></table>
+    <div style="color:var(--warn);font-size:11px">${esc(P.health.source_note || '')}</div>`;
+}
+async function troubleshoot(tag) {
+  $('tsOut').textContent = 'Fitting each cause in DWSIM…';
+  const v = $('tsVal').value;
+  const r = await api('troubleshoot', {equipment: tag, reading: v === '' ? null : Number(v)}).catch(e => ({error: e.message}));
+  if (r.error) { $('tsOut').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return; }
+  $('tsOut').innerHTML = `<table class="ecard">${r.ranked.map(h => `<tr><td>${esc(h.name)}</td><td class="v">${h.fitted != null ? `${fmt(h.current)} → ${fmt(h.fitted)}` : '—'}</td>
+      <td style="color:var(--${/most likely/.test(h.verdict) ? 'ok' : /consistent/.test(h.verdict) ? 'warn' : 'muted'})">${esc(h.verdict)}</td></tr>`).join('')}</table>
+    ${r.field_checks_to_separate.length ? `<div style="font-size:12px;margin-top:6px"><b>More than one cause fits.</b> Check in the field first:<br>${r.field_checks_to_separate.map(f => '• ' + esc(f)).join('<br>')}</div>`
+      : `<div style="font-size:12px;margin-top:6px">Next: ${esc((r.ranked[0] || {}).action || '')}</div>`}
+    <div style="color:var(--warn);font-size:11px;margin-top:4px">${esc(r.source_note || '')}</div>`;
+}
 async function whatIf(tag) {
   const changes = [{path: WI.path($('wiField').value), from: Number($('wiField').selectedOptions[0].dataset.v), value: Number($('wiValue').value)}];
   $('wiOut').textContent = 'Solving in DWSIM…';
@@ -592,9 +616,18 @@ async function decisionFile() {
     + r.files.map(f => `<a class="btn" style="margin:2px;display:inline-block;text-decoration:none" target="_blank" href="${r.base}${f}">${esc(label[f] || f)}</a>`).join('');
 }
 
+function morning() {  // the morning check: three things to look at today, from the historian against the model
+  const h = P.health;
+  if (!h) return '';
+  return `<div class="rev" style="border-left-color:var(--warn);display:block"><div style="display:flex;justify-content:space-between"><b>Morning check</b>
+      <span style="color:var(--muted);font:11px var(--mono)">${esc((h.from || '').slice(0, 10))} → ${esc((h.to || '').slice(0, 10))}</span></div>
+    ${(h.today || []).map((t, i) => `<div style="font-size:12px;margin:4px 0"><b>${i + 1}.</b> ${esc(t.text)}</div>`).join('')}
+    <div style="color:var(--warn);font-size:11px;margin-top:4px">${esc(h.source_note || '')}</div></div>`;
+}
+
 function revs() {
   const a = P.audit;
-  $('revs').innerHTML = (P.revisions || []).map(r => `<div class="rev"><div><b>Rev ${r.rev}</b> ${esc(r.title)}<div style="color:var(--muted);font:11px var(--mono)">${r.changes.map(c => esc(c.path) + '=' + esc(c.value)).join(', ')}${r.capacity_multiple ? ' · max ' + Math.round(r.capacity_multiple * 100) + '%' : ''}</div>
+  $('revs').innerHTML = morning() + (P.revisions || []).map(r => `<div class="rev"><div><b>Rev ${r.rev}</b> ${esc(r.title)}<div style="color:var(--muted);font:11px var(--mono)">${r.changes.map(c => esc(c.path) + '=' + esc(c.value)).join(', ')}${r.capacity_multiple ? ' · max ' + Math.round(r.capacity_multiple * 100) + '%' : ''}</div>
       <div style="color:var(--muted);font-size:11px">${esc(r.at || '')} · ${esc(r.user || 'engineer')} · “${esc(r.reason || '')}”</div></div>${r.kind === 'change' ? `<button class="btn" onclick="undo(${r.rev})">Undo</button>` : ''}</div>`).join('') +
     ((P.revisions || []).some(r => r.kind === 'change') || (P.answers || []).some(x => (x.proposals || []).some(p => p.verified))
       ? `<div class="rev" style="border-left-color:var(--accent);display:block"><button class="btn go" onclick="decisionFile()" title="Decision file and management memo: changes and reasons, limits before/after re-solved in DWSIM, redlined P&ID, relief impact, PSSR checklist, draft sign-off, audit hash">Make decision file (MOC pack)</button><div id="decOut"></div></div>` : '') +
