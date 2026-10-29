@@ -8,7 +8,7 @@ import re
 import time
 from pathlib import Path
 
-from . import audit, brine, llm, pid, process
+from . import audit, brine, llm, pid, process, ro
 from .docs import DATA
 from .study import ARR, Study, compact, submit, text_tool_calls, unstring
 
@@ -841,7 +841,7 @@ class PlantWorkspace(Study):
     def tools(self):
         f = lambda name, desc, props, req=(): {"type": "function", "function": {  # noqa: E731
             "name": name, "description": desc, "parameters": {"type": "object", "properties": props, "required": list(req)}}}
-        return [
+        tools = [
             f("read_pid", "The smart P&ID: equipment with design data and limits, connections (with inline valves), lines with fluid "
                           "codes, valves, control loops.", {}),
             f("search_documents", "Keyword search over the project documents (tenders, datasheets, reports); returns [doc, page].",
@@ -898,6 +898,24 @@ class PlantWorkspace(Study):
               {"what": S, "why": S, "needed": {"type": "string", "description": "what the spec or the tools would have to be able to do"}},
               ["what", "why", "needed"]),
         ]
+        if (getattr(self, "cfg", None) or {}).get("engine") == "watertap":
+            tools += [
+                f("run_ro", "Solve a WaterTAP reverse-osmosis plant and log it under `label`. Returns stream flow, pressure and TDS, "
+                            "flux, recovery, permeate TDS, specific energy and limit checks (utilisation = value/limit). Spec: " + ro.SPEC_HELP,
+                  {"label": S, "purpose": S, "spec": {"type": "object"}, "scale": {"type": "number", "description": "multiplies the feed flow"}},
+                  ["label", "spec"]),
+                f("ro_capacity", "Largest feed-flow multiple of a logged WaterTAP run at which every check is still within 100 %, and which limit.",
+                  {"label": S}, ["label"]),
+                f("ro_normalize", "ASTM D4516: normalized permeate flow, normalized salt passage and normalized differential pressure "
+                                  "from an actual and a standard condition.",
+                  {"actual": {"type": "object"}, "standard": {"type": "object"}}, ["actual", "standard"]),
+            ]
+        return tools
+
+    def _capacity_of(self, spec):
+        if self.cfg.get("engine") == "watertap":
+            return ro.capacity(spec)
+        return process.capacity(spec)
 
     def call(self, name, a):
         if name == "read_pid":
@@ -928,7 +946,7 @@ class PlantWorkspace(Study):
             return {"label": label, **r}
         if name == "process_capacity":
             r = self.runs[a["label"]]
-            r["capacity"] = process.capacity(r["spec"])
+            r["capacity"] = self._capacity_of(r["spec"])
             return {"label": a["label"], **r["capacity"]}
         if name == "morning_check":
             return self.morning_check() or {"note": "no historian mapping for this project"}
@@ -960,6 +978,32 @@ class PlantWorkspace(Study):
             return {"label": a["label"], "spec": r["spec"]} if r else {"error": f"unknown label; logged: {list(self.runs)}"}
         if name == "report_gap":
             return self.add_gap(a.get("what"), a.get("why"), a.get("needed"))
+        if name == "run_ro":
+            if self.cfg.get("engine") != "watertap":
+                return {"error": "run_ro is for cases with engine watertap"}
+            if isinstance(a.get("spec"), str):
+                try:
+                    a["spec"] = json.loads(a["spec"])
+                except json.JSONDecodeError as e:
+                    return {"error": f"spec is not valid JSON ({e}); send it as an object"}
+            label = a.get("label") or f"run{len(self.runs) + 1}"
+            label = f"{label}-{len(self.runs) + 1}" if label in self.runs else label
+            r = ro.run(a["spec"], float(a.get("scale") or 1.0))
+            self.runs[label] = {"spec": a["spec"], "purpose": a.get("purpose", ""), "scale": a.get("scale") or 1.0, "result": r}
+            return {"label": label, **r}
+        if name == "ro_capacity":
+            if self.cfg.get("engine") != "watertap":
+                return {"error": "ro_capacity is for cases with engine watertap"}
+            r = self.runs[a["label"]]
+            r["capacity"] = ro.capacity(r["spec"])
+            return {"label": a["label"], **r["capacity"]}
+        if name == "ro_normalize":
+            if self.cfg.get("engine") != "watertap":
+                return {"error": "ro_normalize is for cases with engine watertap"}
+            try:
+                return ro.normalize(a["actual"], a["standard"])
+            except (KeyError, ValueError, TypeError) as e:
+                return {"error": str(e)}
         raise ValueError(f"unknown tool {name}")
 
     def read_drawing(self):
@@ -1168,8 +1212,8 @@ class PlantWorkspace(Study):
                     "new_equipment": new, "unverified_reason": why}
         before = {(c["id"], c["check"]): c["utilisation"] for c in self.state(target)["checks"] if "utilisation" in c}
         spec = patch(self.spec, changes)
-        at = process.run(spec, target)
-        cap = process.capacity(spec)
+        at = ro.run(spec, target) if self.cfg.get("engine") == "watertap" else process.run(spec, target)
+        cap = self._capacity_of(spec)
         over = [c for c in at["checks"] if c.get("utilisation", 0) > 1.0]
         tag = p.get("tag")
         affected = {tag} if tag else set()
@@ -1380,7 +1424,7 @@ class PlantWorkspace(Study):
         kept as its own revision kind with an audit entry, so the as-built model and the fix stay visible."""
         if not (reason or "").strip():
             raise ValueError("a reason for the correction is required")
-        cap = process.capacity(spec)
+        cap = self._capacity_of(spec)
         r = {"rev": len(self.revisions) + 1, "kind": "correction", "title": title, "changes": [], "spec_before": self.built["spec"],
              "spec_after": spec, "capacity_multiple": cap.get("capacity_multiple"), "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
              "user": user, "reason": reason}
@@ -1431,6 +1475,8 @@ class PlantWorkspace(Study):
                 # stored DWSIM solutions of this exact model: instant first load, and a clean clone works without DWSIM
                 near = min(demo["states"], key=lambda st: abs(st["scale"] - scale))
                 self._state[key] = {**near, "replayed": True}
+            elif self.cfg.get("engine") == "watertap":
+                self._state[key] = {"scale": scale, **ro.run(self.spec, scale)}
             elif process.available():
                 self._state[key] = {"scale": scale, **process.run(self.spec, scale)}
             else:
@@ -1443,8 +1489,9 @@ class PlantWorkspace(Study):
 
     def precompute(self):
         """Store DWSIM solutions from 80 % to 150 % throughput, so the slider works without DWSIM."""
-        states = [{"scale": round(x / 100, 2), **process.run(self.spec, x / 100)} for x in range(80, 151)]
-        self.model_file.with_name("states.json").write_text(json.dumps({"spec": self.spec, "capacity": process.capacity(self.spec),
+        solve = ro.run if self.cfg.get("engine") == "watertap" else process.run
+        states = [{"scale": round(x / 100, 2), **solve(self.spec, x / 100)} for x in range(80, 151)]
+        self.model_file.with_name("states.json").write_text(json.dumps({"spec": self.spec, "capacity": self._capacity_of(self.spec),
                                                                         "states": states}))
         return len(states)
 
@@ -1452,7 +1499,7 @@ class PlantWorkspace(Study):
         key = "cap:" + hashlib.sha1(json.dumps(self.spec, sort_keys=True).encode()).hexdigest()
         if key not in self._state:
             demo = self._demo()
-            self._state[key] = demo["capacity"] if demo and demo["spec"] == self.spec else process.capacity(self.spec)
+            self._state[key] = demo["capacity"] if demo and demo["spec"] == self.spec else self._capacity_of(self.spec)
         return self._state[key]
 
 
