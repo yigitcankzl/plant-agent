@@ -4,6 +4,7 @@ itself, then answers the engineer's questions with simulator-verified proposals 
 import copy
 import hashlib
 import json
+import math
 import re
 import time
 from pathlib import Path
@@ -43,6 +44,56 @@ SUBMIT_MODEL = submit("submit_model", "The process model you built and calibrate
     "calibration": ARR({"item": S, "measured": S, "simulated": S, "source": S}),
     "assumptions": {"type": "array", "items": S},
 }, ["label", "mapping", "calibration"])
+
+SUBMIT_MODEL_RO = submit("submit_model", "The WaterTAP reverse-osmosis model you built and calibrated.", {
+    "label": {"type": "string", "description": "label of the calibrated run_ro run (the model)"},
+    "mapping": ARR({"tag": S, "modelled_as": S, "source": S}),
+    "calibration": ARR({"item": S, "measured": S, "simulated": S, "source": S}),
+    "assumptions": {"type": "array", "items": S},
+}, ["label", "mapping", "calibration"])
+
+# DWSIM build user prompt: keep byte-stable for non-WaterTAP cases.
+BUILD_DWSIM = (
+    "Read the P&ID and the operating data sheet. Build the DWSIM flowsheet "
+    "with run_process, following the P&ID topology exactly: every process equipment item as a unit with its "
+    "P&ID tag as id, recirculation loops closed with a recycle unit only where the loop temperature is set by "
+    "mixing (e.g. a tank fed by fresh product and a recirculation); a closed circulating loop held at a "
+    "known supply temperature (chilled water, a coolant loop) is modelled once-through instead: a feed at "
+    "its supply temperature and flow, through its heat loads, to the exchanger or chiller that returns it "
+    "to supply temperature. Control valves that carry flow as valves "
+    "with their tags, utilities as feeds with utility: true. Where the site datasheets contradict P&ID "
+    "attributes, use the site data and list the conflict as an assumption; also act on the P&ID data_quality "
+    "warnings. Put in `limits` EVERY rating and requirement you can cite: pump rated and minimum flow, motor "
+    "power, NPSHr and relief set pressure; exchanger installed area with the outlet temperature the process "
+    "needs, frame limit and available pressure drop; tank hold time; product temperature limits; utility "
+    "supply limits on the utility feed streams. Calibrate against EVERY measured value in the data sheet "
+    "(temperatures, flows, pressure drops) and report measured vs simulated. Run check_coverage on your final "
+    "model and fix every missing connection that carries normal flow. Then call submit_model. A deterministic review "
+    "checks that submit: if it returns blocking findings, fix the flowsheet and call submit_model once more. "
+    "If the spec cannot express the fix, call report_gap instead of approximating or changing a documented limit. "
+    "If there are project documents, search them and read only the pages with the equipment data you need "
+    "(datasheets), at most 6. The model you submit is the as-built plant; later alternatives must express physical "
+    "additions explicitly with add_unit/reroute changes, not by raising an existing rating."
+)
+
+BUILD_WATERTAP = (
+    "You are constructing a seawater reverse-osmosis (SWRO) model with WaterTAP. Do not use run_process or "
+    "process_capacity. Build and solve with run_ro; search capacity with ro_capacity. Model the full available process "
+    "boundary: intake/feed condition; pretreatment pressure losses and recoveries; high-pressure pumps; membrane "
+    "stages/trains; one-train-out availability; PX or turbine energy recovery and booster pumps; partial or full second "
+    "pass where documented; post-treatment as documented notes where chemistry is not simulated; permeate and "
+    "concentrate outlets. Every documented rating or requirement must become a WaterTAP check (feed pressure, membrane "
+    "flux, recovery, minimum concentrate flow per vessel, pump power, product TDS, train/vessel/element count and "
+    "availability). Report every unsupported physics through report_gap — especially boron when no boron coefficient is "
+    "available. Before submit_model run at least one design-condition solve, one cold/high-salinity solve, and a "
+    "ro_capacity search. Run check_coverage on the final model. State second-pass and one-train-out assumptions "
+    "explicitly. Then call submit_model. A deterministic WaterTAP review checks that submit: if it returns blocking "
+    "findings, fix the RO spec and call submit_model once more. If the spec cannot express the fix, call report_gap. "
+    "If there are project documents, search them and read only the pages with the equipment data you need, at most 6."
+)
+
+RO_MASS_TOL = 0.02  # feed vs product + concentrate + pretreatment losses
+RO_PRESSURE_TOL_BAR = 0.05
 
 ANSWER = submit("answer", "Final answer, shown on the P&ID and as calc cards (not as chat).", {
     "headline": {"type": "string", "description": "the answer in at most 8 plain words, e.g. 'No - cooler H1007 limits at +17%'"},
@@ -333,6 +384,27 @@ def _assumptions(proposal):
 
 def _simulator_name(cfg):
     return "watertap" if (cfg or {}).get("engine") == "watertap" else "dwsim"
+
+
+def _is_watertap(cfg):
+    return _simulator_name(cfg) == "watertap"
+
+
+def _ro_stages(spec):
+    stages = (spec or {}).get("stages") or (spec or {}).get("stage") or []
+    return [stages] if isinstance(stages, dict) else list(stages)
+
+
+def _ro_feed(spec):
+    return (spec or {}).get("feed") or (spec or {}).get("intake") or {}
+
+
+def _ro_assumptions_text(assumptions):
+    return " ".join(str(a) for a in (assumptions or [])).casefold()
+
+
+def _finite(x):
+    return isinstance(x, (int, float)) and math.isfinite(float(x))
 
 
 def _fraction_warnings(proposal):
@@ -745,6 +817,221 @@ def coverage(pid_ov, spec):
                          "modelled": a in units and b in units and reaches(a, b)})
     return {"connections": rows, "missing_connections": [r for r in rows if not r["modelled"] and not r["relief_path"]],
             "missing_equipment": sorted(tags - set(units))}
+
+
+def _ro_block_items(spec):
+    """Documented WaterTAP blocks that coverage understands (not a DWSIM units[] list)."""
+    spec = spec or {}
+    items, notes, unsupported = [], [], []
+    feed = _ro_feed(spec)
+    if feed:
+        items.append({"id": "feed", "kind": "feed/intake", "modelled": True,
+                      "how": "feed specification"})
+    for i, block in enumerate(spec.get("pretreatment") or []):
+        bid = block.get("id") or f"PT{i + 1}"
+        kind = str(block.get("type") or "media_filter").lower()
+        if kind in ("chemical", "note", "notes"):
+            notes.append({"id": bid, "kind": "pretreatment chemical", "modelled": False,
+                          "how": "note only; chemistry is not simulated", "notes": block.get("notes") or ""})
+        else:
+            items.append({"id": bid, "kind": "pretreatment", "modelled": True,
+                          "how": "specified pressure drop and recovery; concentration unchanged"})
+    hp = spec.get("hp_pump") or spec.get("pump")
+    if hp is not None:
+        items.append({"id": (hp or {}).get("id") or "HP", "kind": "HP pump", "modelled": True, "how": "WaterTAP pump"})
+    for i, stage in enumerate(_ro_stages(spec)):
+        sid = stage.get("id") or f"RO-{i + 1}"
+        items.append({"id": sid, "kind": "first-pass stage/train", "modelled": True, "how": "WaterTAP RO stage"})
+    erd = spec.get("energy_recovery")
+    if erd is not None:
+        kind = str((erd or {}).get("type") or "none").lower()
+        if kind not in ("", "none", "no"):
+            items.append({"id": (erd or {}).get("id") or "ERD", "kind": "energy recovery", "modelled": True,
+                          "how": f"WaterTAP {kind}"})
+        boost = (erd or {}).get("booster_pump")
+        if boost is not None:
+            items.append({"id": (boost or {}).get("id") or "booster", "kind": "booster pump", "modelled": True,
+                          "how": "WaterTAP booster"})
+    second = spec.get("second_pass")
+    if second:
+        items.append({"id": "second_pass", "kind": "second-pass pump/stage", "modelled": True,
+                      "how": "WaterTAP second pass; concentrate recycle to first-pass feed is not closed"})
+        unsupported.append("second-pass concentrate recycle to the first-pass feed (concentrate is an outlet)")
+    items.append({"id": "permeate", "kind": "product path", "modelled": True, "how": "permeate outlet"})
+    items.append({"id": "brine", "kind": "concentrate path", "modelled": True, "how": "concentrate outlet"})
+    post = spec.get("posttreatment")
+    if post is not None:
+        post_note = post if isinstance(post, str) else (post or {}).get("notes") if isinstance(post, dict) else ""
+        post_id = (post.get("id") if isinstance(post, dict) else None) or "posttreatment"
+        notes.append({"id": post_id, "kind": "post-treatment", "modelled": False,
+                      "how": "documented note only; chemistry is not simulated", "notes": post_note or ""})
+    if (feed.get("boron_g_L") is not None or any(str(k).lower() in ("b", "boron", "boric")
+                                                 for k in (feed.get("ions") or feed.get("ion_table") or {}))):
+        needing = list(_ro_stages(spec))
+        if second and second.get("stage"):
+            needing.append(second["stage"])
+        if any(s.get("B_boron_m_per_s") is None for s in needing):
+            unsupported.append("boron passage (feed has boron but B_boron_m_per_s is missing on a stage)")
+    return items, notes, unsupported
+
+
+def ro_coverage(pid_ov, spec, mapping=None):
+    """Deterministic coverage for a WaterTAP RO spec (not spec['units'])."""
+    items, notes, unsupported = _ro_block_items(spec)
+    modelled_ids = {row["id"] for row in items}
+    mapped = []
+    covered_tags = set()
+    for row in mapping or []:
+        if not isinstance(row, dict):
+            continue
+        tag, as_ = row.get("tag"), row.get("modelled_as")
+        if not tag:
+            continue
+        covered_tags.add(tag)
+        mapped.append({"tag": tag, "modelled_as": as_, "source": row.get("source"),
+                       "grouped": as_ in modelled_ids or any(as_ == n["id"] for n in notes),
+                       "note_only": any(as_ == n["id"] for n in notes)})
+    tags = {e["tag"] for e in (pid_ov or {}).get("equipment") or [] if e.get("tag")}
+    missing_equipment = sorted(tags - covered_tags - modelled_ids)
+    missing_connections = []
+    if pid_ov:
+        tag_of = lambda s: str(s).split("(")[0]  # noqa: E731
+        known = covered_tags | modelled_ids
+        for c in pid_ov.get("connections") or []:
+            a, b = tag_of(c.get("from")), tag_of(c.get("to"))
+            if a in tags and b in tags and a != b and not (a in known and b in known):
+                missing_connections.append({"from": a, "to": b, "lines": c.get("lines") or [],
+                                            "relief_path": False, "modelled": False})
+    return {"engine": "watertap",
+            "modelled": items,
+            "mappings": mapped,
+            "notes": notes,
+            "intentionally_not_simulated": notes,
+            "unsupported_physics": unsupported,
+            "missing_equipment": missing_equipment,
+            "missing_connections": missing_connections,
+            "connections": []}
+
+
+def review_ro(spec, result, pid_ov=None, basis="", mapping=None, assumptions=None):
+    """Deterministic WaterTAP model review. Same high-level shape as review_model for the UI."""
+    spec, result = spec or {}, result or {}
+    findings = []
+    assumptions = list(assumptions or [])
+    assum_text = _ro_assumptions_text(assumptions)
+    failing = bool(spec.get("failing_baseline") or result.get("failing_baseline")
+                   or "failing baseline" in assum_text)
+    errs = [e for e in result.get("errors") or [] if e]
+    if errs:
+        findings.append(_finding("block", "solver error", "WaterTAP errors: " + "; ".join(str(e) for e in errs[:6])))
+    feed = _ro_feed(spec)
+    feed_q = feed.get("flow_m3_h")
+    if not _finite(feed_q) or float(feed_q) <= 0:
+        findings.append(_finding("block", "feed flow", "Feed flow_m3_h must be a positive number."))
+    streams = result.get("streams") or {}
+    permeate = streams.get("permeate") or {}
+    brine = streams.get("brine") or {}
+    scale = float(result.get("scale") or 1.0)
+    raw = float(feed_q) * scale if _finite(feed_q) else None
+    if raw is None and _finite((streams.get("intake") or {}).get("flow_m3_h")):
+        raw = float(streams["intake"]["flow_m3_h"])
+    # Flow into the RO after pretreatment: HP suction, else raw reduced by declared recoveries.
+    q_ro = (streams.get("hp_suction") or {}).get("flow_m3_h")
+    if not _finite(q_ro) and _finite(raw):
+        q_ro = raw
+        for block in spec.get("pretreatment") or []:
+            kind = str(block.get("type") or "").lower()
+            if kind in ("chemical", "note", "notes"):
+                continue
+            if block.get("recovery") is not None:
+                q_ro *= float(block["recovery"])
+    pret_loss = (float(raw) - float(q_ro)) if _finite(raw) and _finite(q_ro) else 0.0
+    q_p, q_b = permeate.get("flow_m3_h"), brine.get("flow_m3_h")
+    q_sp = (streams.get("second_pass_concentrate") or {}).get("flow_m3_h") or 0.0
+    if _finite(raw) and _finite(q_p) and _finite(q_b):
+        out = float(q_p) + float(q_b) + (float(q_sp) if _finite(q_sp) else 0.0) + float(pret_loss)
+        gap = float(raw) - out
+        frac = abs(gap) / max(float(raw), 1e-9)
+        if frac > RO_MASS_TOL:
+            findings.append(_finding(
+                "block", "mass balance",
+                f"Feed {raw:g} m3/h vs permeate {q_p:g} + concentrate {q_b:g}"
+                f" + second-pass concentrate {(q_sp if _finite(q_sp) else 0):g} + pretreatment loss {pret_loss:g} "
+                f"(imbalance {gap:g} m3/h, {frac:.1%}; tolerance {RO_MASS_TOL:.0%})."))
+    recovery = result.get("recovery")
+    if _finite(recovery) and _finite(q_p) and _finite(raw) and float(raw) > 0:
+        expected = float(q_p) / float(raw)
+        if abs(float(recovery) - expected) > max(1e-3, RO_MASS_TOL):
+            findings.append(_finding(
+                "block", "recovery inconsistent",
+                f"Reported recovery {float(recovery):.5f} vs permeate/feed {expected:.5f}."))
+    # Pressures: HP discharge at or above stage feed; within documented maxima.
+    hp_out = (streams.get("hp_discharge") or {}).get("P_bar")
+    for stage in result.get("stages") or []:
+        pin = stage.get("feed_pressure_bar")
+        if _finite(hp_out) and _finite(pin) and float(pin) > float(hp_out) + RO_PRESSURE_TOL_BAR:
+            findings.append(_finding(
+                "block", "pressure order",
+                f"Stage {stage.get('id')} feed {pin} bar exceeds HP discharge {hp_out} bar.",
+                [stage.get("id")]))
+    for stage in _ro_stages(spec):
+        lim = stage.get("max_feed_pressure_bar")
+        got = next((s.get("feed_pressure_bar") for s in result.get("stages") or []
+                    if s.get("id") == stage.get("id")), None)
+        if lim is not None and _finite(got) and float(got) > float(lim) + RO_PRESSURE_TOL_BAR and not failing:
+            findings.append(_finding(
+                "block", "pressure above maximum",
+                f"{stage.get('id')} feed {got} bar above max {lim} bar.", [stage.get("id")]))
+    sec = result.get("sec_kWh_m3")
+    if result and not errs:
+        if not _finite(sec) or float(sec) <= 0:
+            findings.append(_finding("block", "SEC", f"Specific energy must be finite and positive; got {sec!r}."))
+        pumps = result.get("pumps_kW") or {}
+        if pumps and not any(_finite(v) and float(v) > 0 for v in pumps.values()):
+            findings.append(_finding("block", "pump power", f"Pump powers must be finite and positive; got {pumps!r}."))
+        tds = result.get("permeate_TDS_g_L")
+        if tds is None:
+            tds = permeate.get("TDS_g_L")
+        if not _finite(tds):
+            findings.append(_finding("block", "product TDS", f"Product TDS must be finite; got {tds!r}."))
+    configured = [s.get("id") or f"RO-{i + 1}" for i, s in enumerate(_ro_stages(spec))]
+    got_stages = {s.get("id") for s in result.get("stages") or [] if isinstance(s, dict)}
+    for sid in configured:
+        if result and not errs and sid not in got_stages:
+            findings.append(_finding("block", "stage missing", f"Configured stage {sid} produced no result.", [sid]))
+    for c in result.get("checks") or []:
+        if not isinstance(c, dict):
+            continue
+        if not _finite(c.get("value")) or not _finite(c.get("limit")) or not _finite(c.get("utilisation")):
+            findings.append(_finding(
+                "block", "check not finite",
+                f"{c.get('id')} {c.get('check')} has non-finite value/limit/utilisation.",
+                [c.get("id")] if c.get("id") else None))
+        elif float(c["utilisation"]) > 1.0 and not failing:
+            findings.append(_finding(
+                "block", "check over 100%",
+                f"{c.get('id')} {c.get('check')} utilisation is {c['utilisation']} at the design condition.",
+                [c.get("id")] if c.get("id") else None))
+    boron = result.get("boron")
+    not_mod = " ".join(str(x) for x in result.get("not_modelled") or []).casefold()
+    if boron == "not modelled" or "boron" in not_mod:
+        findings.append(_finding(
+            "warn", "boron not modelled",
+            "Boron is not modelled (missing B_boron_m_per_s or boron is absent from the solve). "
+            "Do not invent a boron value; report_gap if a boron limit is required."))
+    if "second pass" not in assum_text and "second-pass" not in assum_text and "2nd pass" not in assum_text:
+        findings.append(_finding(
+            "warn", "second-pass assumption",
+            "State explicitly whether a second pass is modelled, partial/full, and that concentrate recycle is or is not closed."))
+    if not any(k in assum_text for k in ("one train", "one-train", "train out", "trains online", "n+1", "availability")):
+        findings.append(_finding(
+            "warn", "train availability",
+            "State the one-train-out / trains-online availability assumption explicitly."))
+    findings.sort(key=lambda f: (0 if f["severity"] == "block" else 1, f["check"], f["evidence"]))
+    status = "model needs review" if any(f["severity"] == "block" for f in findings) else "ok"
+    return {"status": status, "findings": findings,
+            "blocking": sum(f["severity"] == "block" for f in findings),
+            "energy": {"method": "watertap", "tolerance": RO_MASS_TOL, "note": "RO mass/volume balance on m3/h streams."}}
 
 
 # process.run does not return stream enthalpy. The smallest addition that closes the flowsheet is one number per stream:
@@ -1164,7 +1451,8 @@ class PlantWorkspace(Study):
             self.runs[self.built["label"]] = {"spec": self.built["spec"], "purpose": "calibrated model", "result": self.built.get("result")}
             self.built["gaps"] = self.gaps
             try:
-                self.built["review"] = review_model(self.built["spec"], self.built.get("result"), self.pid, self.basis)
+                self.built["review"] = self._review(self.built["spec"], self.built.get("result"),
+                                                    self.built.get("mapping"), self.built.get("assumptions"))
             except Exception as e:  # noqa: BLE001 - the workspace still opens; the failure is shown in the drawer
                 self.built["review"] = {"status": "ok", "findings": [], "blocking": 0, "energy": {},
                                         "error": f"{type(e).__name__}: {e}"}
@@ -1187,23 +1475,46 @@ class PlantWorkspace(Study):
     def tools(self):
         f = lambda name, desc, props, req=(): {"type": "function", "function": {  # noqa: E731
             "name": name, "description": desc, "parameters": {"type": "object", "properties": props, "required": list(req)}}}
-        tools = [
+        shared = [
             f("read_pid", "The smart P&ID: equipment with design data and limits, connections (with inline valves), lines with fluid "
                           "codes, valves, control loops.", {}),
             f("search_documents", "Keyword search over the project documents (tenders, datasheets, reports); returns [doc, page].",
               {"query": S}, ["query"]),
             f("read_document_page", "Text of one page of a project document.", {"doc": S, "page": {"type": "integer"}}, ["doc", "page"]),
             f("read_data_sheet", "The operating data sheet: current operation, process requirements, equipment performance, utilities.", {}),
+            f("get_spec", "Full spec of a logged run (the calibrated model is preloaded), to copy and modify. For a proposal, "
+                          "return explicit changes rather than an opaque replacement spec. " + CHANGE_HELP, {"label": S}, ["label"]),
+            f("check_coverage", "Compare a logged run's model with the P&ID / documented boundary: which equipment is modelled "
+                                "(or mapped to a grouped block / note), which is missing, and which physics is intentionally not "
+                                "simulated.",
+              {"label": S}, ["label"]),
+            f("historian", "Summary statistics (mean, p5, p95, min, max) of the plant's historian/SCADA export for chosen tags "
+                           "and an optional time window; call with no tags to list what is available.",
+              {"tags": {"type": "array", "items": S}, "start": S, "end": S}),
+            f("report_gap", "Call this when the flowsheet spec cannot express the physics or the change you need. "
+                            "Do not approximate the effect and do not change a documented limit to stand in for it. "
+                            "Saved on the case and shown to the engineer.",
+              {"what": S, "why": S, "needed": {"type": "string", "description": "what the spec or the tools would have to be able to do"}},
+              ["what", "why", "needed"]),
+        ]
+        if _is_watertap(getattr(self, "cfg", None)):
+            return shared + [
+                f("run_ro", "Solve a WaterTAP reverse-osmosis plant and log it under `label`. Returns stream flow, pressure and TDS, "
+                            "flux, recovery, permeate TDS, specific energy and limit checks (utilisation = value/limit). Spec: " + ro.SPEC_HELP,
+                  {"label": S, "purpose": S, "spec": {"type": "object"}, "scale": {"type": "number", "description": "multiplies the feed flow"}},
+                  ["label", "spec"]),
+                f("ro_capacity", "Largest feed-flow multiple of a logged WaterTAP run at which every check is still within 100 %, and which limit.",
+                  {"label": S}, ["label"]),
+                f("ro_normalize", "ASTM D4516: normalized permeate flow, normalized salt passage and normalized differential pressure "
+                                  "from an actual and a standard condition.",
+                  {"actual": {"type": "object"}, "standard": {"type": "object"}}, ["actual", "standard"]),
+            ]
+        return shared + [
             f("run_process", "Solve a DWSIM flowsheet and log it under `label`. Returns stream T/P/flows, unit results and every "
                              "limit check (utilisation = value/limit). Spec: " + json.dumps(process.SPEC_HELP),
               {"label": S, "purpose": S, "spec": {"type": "object"}, "scale": {"type": "number", "description": "multiplies non-utility feeds"}},
               ["label", "spec"]),
             f("process_capacity", "Throughput multiple of a logged run at which the first stated limit reaches 100 %, and which.",
-              {"label": S}, ["label"]),
-            f("get_spec", "Full spec of a logged run (the calibrated model is preloaded), to copy and modify. For a proposal, "
-                          "return explicit changes rather than an opaque replacement spec. " + CHANGE_HELP, {"label": S}, ["label"]),
-            f("check_coverage", "Compare a logged run's flowsheet with the P&ID: which equipment-to-equipment connections (by line "
-                                "number) the model reproduces, which it misses, and which P&ID equipment it leaves out.",
               {"label": S}, ["label"]),
             f("annual_energy", "Annual electricity by the bin method: solve a logged model once per bin (e.g. wet-bulb bins) with "
                                "that bin's changes and throughput, then sum electric power x hours. Power counts pumps and "
@@ -1222,9 +1533,6 @@ class PlantWorkspace(Study):
                               "DWSIM to the symptom and checked against the other historian readings; returns the ranked causes and "
                               "the field checks that separate causes that both fit.",
               {"equipment": S, "reading_C": N}, ["equipment"]),
-            f("historian", "Summary statistics (mean, p5, p95, min, max) of the plant's historian/SCADA export for chosen tags "
-                           "and an optional time window; call with no tags to list what is available.",
-              {"tags": {"type": "array", "items": S}, "start": S, "end": S}),
             f("relief_scan", "Deterministic scan of the P&ID: for each side of each equipment item, whether it reaches a relief "
                              "device without passing a valve that could be closed, and which heated sides could be blocked in.", {}),
             f("bubble_pressure", "DWSIM: saturation (bubble-point) pressure of a liquid at each temperature, e.g. a refrigerant's "
@@ -1238,25 +1546,7 @@ class PlantWorkspace(Study):
                                      "(API 521 hydraulic expansion), for relief checks.",
               {"compounds": {"type": "array", "items": S}, "x": {"type": "object"}, "T1_C": N, "P1_bar": N, "T2_C": N},
               ["compounds", "x", "T1_C", "P1_bar", "T2_C"]),
-            f("report_gap", "Call this when the flowsheet spec cannot express the physics or the change you need. "
-                            "Do not approximate the effect and do not change a documented limit to stand in for it. "
-                            "Saved on the case and shown to the engineer.",
-              {"what": S, "why": S, "needed": {"type": "string", "description": "what the spec or the tools would have to be able to do"}},
-              ["what", "why", "needed"]),
         ]
-        if (getattr(self, "cfg", None) or {}).get("engine") == "watertap":
-            tools += [
-                f("run_ro", "Solve a WaterTAP reverse-osmosis plant and log it under `label`. Returns stream flow, pressure and TDS, "
-                            "flux, recovery, permeate TDS, specific energy and limit checks (utilisation = value/limit). Spec: " + ro.SPEC_HELP,
-                  {"label": S, "purpose": S, "spec": {"type": "object"}, "scale": {"type": "number", "description": "multiplies the feed flow"}},
-                  ["label", "spec"]),
-                f("ro_capacity", "Largest feed-flow multiple of a logged WaterTAP run at which every check is still within 100 %, and which limit.",
-                  {"label": S}, ["label"]),
-                f("ro_normalize", "ASTM D4516: normalized permeate flow, normalized salt passage and normalized differential pressure "
-                                  "from an actual and a standard condition.",
-                  {"actual": {"type": "object"}, "standard": {"type": "object"}}, ["actual", "standard"]),
-            ]
-        return tools
 
     def _capacity_of(self, spec):
         if self.cfg.get("engine") == "watertap":
@@ -1280,6 +1570,8 @@ class PlantWorkspace(Study):
         if name == "read_data_sheet":
             return {"text": self.basis}
         if name == "run_process":
+            if _is_watertap(self.cfg):
+                return {"error": "run_process is for DWSIM cases; this case uses run_ro (WaterTAP)"}
             if isinstance(a.get("spec"), str):  # the model sometimes sends the spec as JSON text
                 try:
                     a["spec"] = json.loads(a["spec"])
@@ -1291,6 +1583,8 @@ class PlantWorkspace(Study):
             self.runs[label] = {"spec": a["spec"], "purpose": a.get("purpose", ""), "scale": a.get("scale") or 1.0, "result": r}
             return {"label": label, **r}
         if name == "process_capacity":
+            if _is_watertap(self.cfg):
+                return {"error": "process_capacity is for DWSIM cases; this case uses ro_capacity (WaterTAP)"}
             r = self.runs[a["label"]]
             r["capacity"] = self._capacity_of(r["spec"])
             return {"label": a["label"], **r["capacity"]}
@@ -1309,10 +1603,14 @@ class PlantWorkspace(Study):
                 return {"error": "the relief scan needs a smart (DEXPI) P&ID; this drawing is a PDF read by vision"}
             return pid.relief_scan(DATA / self.cfg["pid"])
         if name == "check_coverage":
+            r = self.runs.get(a["label"])
+            if not r:
+                return {"error": f"unknown label; logged: {list(self.runs)}"}
+            if _is_watertap(self.cfg):
+                return ro_coverage(self.pid, r["spec"], (self.built or {}).get("mapping") if self.built else None)
             if not self.pid:
                 return {"note": "no drawing to compare with"}
-            r = self.runs.get(a["label"])
-            return coverage(self.pid, r["spec"]) if r else {"error": f"unknown label; logged: {list(self.runs)}"}
+            return coverage(self.pid, r["spec"])
         if name == "bubble_pressure":
             return process.bubble(a["compounds"], a["x"], a["T_C"])
         if name == "brine_bpe":
@@ -1392,8 +1690,29 @@ class PlantWorkspace(Study):
         audit.append(self.name, "confirm_read", user, reason, {"corrections": len(corr), "items": corr[:20]})
         return {"corrections": corr, "equipment": len(clean["equipment"]), "connections": len(clean["connections"])}
 
+    def _build_prompt(self):
+        """System and user messages for build(). DWSIM text stays byte-stable; WaterTAP gets an SWRO prompt."""
+        if _is_watertap(self.cfg):
+            return ("You are a process engineer building a seawater reverse-osmosis model with WaterTAP. " + RULES,
+                    f"Unit: {self.cfg['title']}\n\n" + BUILD_WATERTAP, SUBMIT_MODEL_RO)
+        return ("You are a process engineer building a steady-state simulation model of a unit from its P&ID. " + RULES,
+                f"Unit: {self.cfg['title']}\n\n" + BUILD_DWSIM, SUBMIT_MODEL)
+
+    def _review(self, spec, result, mapping=None, assumptions=None):
+        if _is_watertap(self.cfg):
+            return review_ro(spec, result, self.pid, self.basis, mapping, assumptions)
+        return review_model(spec, result, self.pid, self.basis)
+
+    def _coverage(self, spec, mapping=None):
+        if _is_watertap(self.cfg):
+            return ro_coverage(self.pid, spec, mapping)
+        return coverage(self.pid, spec) if self.pid else None
+
+    def _solve(self, spec, scale=1.0):
+        return ro.run(spec, scale) if _is_watertap(self.cfg) else process.run(spec, scale)
+
     def build(self):
-        """The agent reads the P&ID and data sheet and builds + calibrates the DWSIM model itself."""
+        """The agent reads the P&ID and data sheet and builds + calibrates the process model itself."""
         if self.pid is None and self.cfg.get("pid_pdf"):
             self.read_drawing()
         if self.cfg.get("pid_pdf") and not (self.pid or {}).get("confirmed"):
@@ -1401,34 +1720,15 @@ class PlantWorkspace(Study):
         t0, usd0 = time.time(), llm.spent()
         llm.TAG = "plant:" + self.name
         self._phase = "build"
-        sub = self.loop("build", "You are a process engineer building a steady-state simulation model of a unit from its P&ID. " + RULES,
-                        f"Unit: {self.cfg['title']}\n\nRead the P&ID and the operating data sheet. Build the DWSIM flowsheet "
-                        "with run_process, following the P&ID topology exactly: every process equipment item as a unit with its "
-                        "P&ID tag as id, recirculation loops closed with a recycle unit only where the loop temperature is set by "
-                        "mixing (e.g. a tank fed by fresh product and a recirculation); a closed circulating loop held at a "
-                        "known supply temperature (chilled water, a coolant loop) is modelled once-through instead: a feed at "
-                        "its supply temperature and flow, through its heat loads, to the exchanger or chiller that returns it "
-                        "to supply temperature. Control valves that carry flow as valves "
-                        "with their tags, utilities as feeds with utility: true. Where the site datasheets contradict P&ID "
-                        "attributes, use the site data and list the conflict as an assumption; also act on the P&ID data_quality "
-                        "warnings. Put in `limits` EVERY rating and requirement you can cite: pump rated and minimum flow, motor "
-                        "power, NPSHr and relief set pressure; exchanger installed area with the outlet temperature the process "
-                        "needs, frame limit and available pressure drop; tank hold time; product temperature limits; utility "
-                        "supply limits on the utility feed streams. Calibrate against EVERY measured value in the data sheet "
-                        "(temperatures, flows, pressure drops) and report measured vs simulated. Run check_coverage on your final "
-                        "model and fix every missing connection that carries normal flow. Then call submit_model. A deterministic review "
-                        "checks that submit: if it returns blocking findings, fix the flowsheet and call submit_model once more. "
-                        "If the spec cannot express the fix, call report_gap instead of approximating or changing a documented limit. "
-                        "If there are project documents, search them and read only the pages with the equipment data you need "
-                        "(datasheets), at most 6. The model you submit is the as-built plant; later alternatives must express physical "
-                        "additions explicitly with add_unit/reroute changes, not by raising an existing rating.",
-                        self.tools() + [SUBMIT_MODEL], "submit_model", 30)
+        system, user, submit_tool = self._build_prompt()
+        sub = self.loop("build", system, user, self.tools() + [submit_tool], "submit_model", 30)
         run = self.runs.get(sub["label"]) or list(self.runs.values())[-1]
-        reviewed = review_model(run["spec"], run.get("result"), self.pid, self.basis)
+        reviewed = self._review(run["spec"], run.get("result"), sub.get("mapping"), sub.get("assumptions"))
+        cov = self._coverage(run["spec"], sub.get("mapping"))
         self.built = {"label": sub["label"] if sub["label"] in self.runs else list(self.runs)[-1], "spec": run["spec"],
                       "result": run["result"], "mapping": sub.get("mapping"), "calibration": sub.get("calibration"),
-                      "assumptions": sub.get("assumptions"), "model": self.model,
-                      "coverage": coverage(self.pid, run["spec"]) if self.pid else None,
+                      "assumptions": sub.get("assumptions"), "model": self.model, "engine": _simulator_name(self.cfg),
+                      "coverage": cov,
                       "read_corrections": len((self.pid or {}).get("corrections") or []), "seconds": round(time.time() - t0),
                       "cost_usd": round(llm.spent() - usd0, 4), "at": time.strftime("%Y-%m-%d %H:%M"),
                       "review": reviewed, "review_status": reviewed["status"], "gaps": self.gaps}
@@ -1436,8 +1736,10 @@ class PlantWorkspace(Study):
         self.revisions = []
         self.rev_file.write_text("[]")
         audit.append(self.name, "build", None, "model built from the P&ID and data sheet",
-                     {"label": self.built["label"], "model": self.model, "review_status": reviewed["status"],
-                      "coverage_missing": (self.built["coverage"] or {}).get("missing_connections")})
+                     {"label": self.built["label"], "model": self.model, "engine": self.built["engine"],
+                      "review_status": reviewed["status"],
+                      "coverage_missing": (self.built["coverage"] or {}).get("missing_connections")
+                                          or (self.built["coverage"] or {}).get("missing_equipment")})
         self._audit_review(reviewed, None, "model built")
         self._state = {}
         return self.built
@@ -1462,8 +1764,10 @@ class PlantWorkspace(Study):
         if run is None and self.runs:
             run = list(self.runs.values())[-1]
         if not run:
-            return review_model({"units": [], "feeds": {}}, None, self.pid, self.basis)
-        return review_model(run["spec"], run.get("result"), self.pid, self.basis)
+            empty = {"feed": {}, "stages": []} if _is_watertap(self.cfg) else {"units": [], "feeds": {}}
+            return self._review(empty, None)
+        return self._review(run["spec"], run.get("result"), (self.built or {}).get("mapping") if self.built else None,
+                            (self.built or {}).get("assumptions") if self.built else None)
 
     def loop(self, phase, system, user, tools, submit_name, max_steps):
         self._phase = phase
@@ -1564,7 +1868,7 @@ class PlantWorkspace(Study):
         before = {(c["id"], c["check"]): c["utilisation"] for c in self.state(target)["checks"] if "utilisation" in c}
         before_cap = self._capacity_of(self.spec)
         spec = patch(self.spec, changes)
-        at = ro.run(spec, target) if self.cfg.get("engine") == "watertap" else process.run(spec, target)
+        at = self._solve(spec, target)
         cap = self._capacity_of(spec)
         over = [c for c in at["checks"] if c.get("utilisation", 0) > 1.0]
         tag = p.get("tag")
@@ -1729,7 +2033,7 @@ class PlantWorkspace(Study):
         if limit_changes({"changes": changes}):
             raise ValueError("a what-if changes the plant, not its documented limits")
         sc = float(scale or self.cfg.get("target_scale", 1.0))
-        before, after = self.state(sc), process.run(patch(self.spec, changes), sc)
+        before, after = self.state(sc), self._solve(patch(self.spec, changes), sc)
         key = lambda r: {(c["id"], c["check"]): c for c in r["checks"] if "utilisation" in c}  # noqa: E731
         b, a = key(before), key(after)
         return {"scale": sc, "errors": after["errors"], "changes": [{**c, "text": describe_change(self.spec, c)} for c in changes],
@@ -1741,7 +2045,7 @@ class PlantWorkspace(Study):
         """The model as built, before any revision: what the Existing view colours."""
         if not self.revisions:
             return self.state(scale)
-        return {"scale": scale, **process.run(self._built_spec(), scale)}
+        return {"scale": scale, **self._solve(self._built_spec(), scale)}
 
     def reproduce(self, label):
         """A cited run counts only if it exists and re-solves to the same result now."""
@@ -1749,7 +2053,7 @@ class PlantWorkspace(Study):
         if not r:
             return {"item": f"run {label}", "ok": False, "why": "not in the log"}
         try:
-            fresh = process.run(r["spec"], float(r.get("scale") or 1.0))
+            fresh = self._solve(r["spec"], float(r.get("scale") or 1.0))
         except Exception as e:  # noqa: BLE001
             return {"item": f"run {label}", "ok": False, "why": f"does not re-solve: {e}"}
         if r.get("result") is None:  # a revision saved before results were kept: this solve becomes the reference
@@ -1816,11 +2120,12 @@ class PlantWorkspace(Study):
 
     def _commit(self, r):
         # the calibrated label now names the revised model, so its stored result must be the revised one too
-        r.setdefault("result_after", process.run(r["spec_after"]))
-        reviewed = review_model(r["spec_after"], r["result_after"], self.pid, self.basis)
+        r.setdefault("result_after", self._solve(r["spec_after"]))
+        reviewed = self._review(r["spec_after"], r["result_after"], self.built.get("mapping"), self.built.get("assumptions"))
         r["review"] = {"status": reviewed["status"], "blocking": reviewed["blocking"], "findings": reviewed["findings"]}
         self.revisions.append(r)
         self.built = {**self.built, "spec": r["spec_after"], "result": r["result_after"],
+                      "engine": self.built.get("engine") or _simulator_name(self.cfg),
                       "review": reviewed, "review_status": reviewed["status"], "gaps": self.gaps}
         self.runs[self.built["label"]] = {"spec": r["spec_after"], "purpose": "calibrated model (current revision)", "result": r["result_after"]}
         self.rev_file.write_text(json.dumps(self.revisions, indent=1))
@@ -1840,7 +2145,7 @@ class PlantWorkspace(Study):
                 # stored DWSIM solutions of this exact model: instant first load, and a clean clone works without DWSIM
                 near = min(demo["states"], key=lambda st: abs(st["scale"] - scale))
                 self._state[key] = {**near, "replayed": True}
-            elif self.cfg.get("engine") == "watertap":
+            elif _is_watertap(self.cfg):
                 self._state[key] = {"scale": scale, **ro.run(self.spec, scale)}
             elif process.available():
                 self._state[key] = {"scale": scale, **process.run(self.spec, scale)}
@@ -1853,11 +2158,10 @@ class PlantWorkspace(Study):
         return json.loads(f.read_text()) if f.exists() else None
 
     def precompute(self):
-        """Store DWSIM solutions from 80 % to 150 % throughput, so the slider works without DWSIM."""
-        solve = ro.run if self.cfg.get("engine") == "watertap" else process.run
-        states = [{"scale": round(x / 100, 2), **solve(self.spec, x / 100)} for x in range(80, 151)]
+        """Store solved states from 80 % to 150 % throughput, so the slider works without the simulator."""
+        states = [{"scale": round(x / 100, 2), **self._solve(self.spec, x / 100)} for x in range(80, 151)]
         self.model_file.with_name("states.json").write_text(json.dumps({"spec": self.spec, "capacity": self._capacity_of(self.spec),
-                                                                        "states": states}))
+                                                                        "engine": _simulator_name(self.cfg), "states": states}))
         return len(states)
 
     def capacity(self):

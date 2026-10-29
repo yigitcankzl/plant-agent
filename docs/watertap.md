@@ -61,4 +61,14 @@ A 100 m3/h plant built with `ro.run` (one stage, pressure exchanger, 70 bar) sol
 - Temperature change across pretreatment.
 - WAVE, and any number that did not come from the solve.
 
-Cases with `"engine": "watertap"` in `case.json` get `run_ro`, `ro_capacity` and `ro_normalize`, and capacity uses `ro.capacity`. DWSIM cases are unchanged.
+## Build, coverage and review
+
+Cases with `"engine": "watertap"` in `case.json` are built as seawater RO models, not DWSIM flowsheets.
+
+- **Tools.** The builder sees `run_ro` and `ro_capacity` (plus shared reads, `check_coverage`, `report_gap`, `ro_normalize`). It does **not** see `run_process` or `process_capacity`. DWSIM cases keep their existing tool list.
+- **Build prompt.** Instructs a full process boundary (intake, pretreatment losses/recoveries, HP pumps, stages/trains, one-train-out, PX/turbine + booster, second pass where documented, post-treatment as notes, permeate and concentrate), every documented rating as a WaterTAP check, `report_gap` for unsupported physics (especially boron without `B_boron_m_per_s`), and at least one design run, one cold/high-salinity run, and a capacity search before `submit_model`.
+- **Coverage (`ro_coverage`).** Reads the WaterTAP spec structure (feed, pretreatment blocks, HP pump, stages, ERD/booster, second pass, product/concentrate, post-treatment notes) and the submitted mapping. Post-treatment and chemical pretreatment are **notes**, not simulated chemistry. Grouped P&ID tags can map onto one WaterTAP block.
+- **Review (`review_ro`).** Deterministic: solver errors, positive feed, mass/volume balance (feed vs permeate + concentrate + pretreatment losses within 2 %), recovery consistency, pressure order/maxima, finite positive SEC and pump power, finite product TDS, every configured stage present, finite active checks, no check above 100 % at design unless submitted as a failing baseline, boron marked not modelled when coefficients are missing, and explicit second-pass / one-train-out assumptions. Same UI shape as the DWSIM review (`status`, `findings`, `blocking`, `review_status`). An RO spec is never passed to `process.run`, `process.capacity`, `coverage()` or `review_model()`.
+- **Saved model.** `model.json` stores the WaterTAP spec and result, `engine: "watertap"`, coverage, review, assumptions, mapping, gaps, model name, cost and elapsed time. `state()`, `capacity()` and `precompute()` replay through `ro.run` / `ro.capacity`.
+
+DWSIM cases are unchanged: same build prompt, tools, `coverage()` and `review_model()`.
