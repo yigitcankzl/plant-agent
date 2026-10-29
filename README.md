@@ -72,7 +72,12 @@ The P&ID is the DEXPI e.V. reference example C01. Its operating data sheet (`cas
   - the three loops with their temperatures (8/13, 15/20 and 30/38 C)
   - 2 x 750 kW plate exchangers, 14 rear-door exchangers and the dry coolers
 
-  Four attempts to have the agent build a DWSIM model of the plant from it did not give a model we would show. They
+  The engineer-confirm step was added after these failures. The read was checked against the tender and corrected 37
+  times, mostly because the chiller plant, condenser loop and towers are not on this sheet. The fifth build, on the
+  corrected read, had the right equipment. It was still not usable: loop flows scaled with load, pumps were over their
+  rating at today's load, and the coverage check listed 6 missing connections.
+
+  Four earlier attempts to have the agent build a DWSIM model of the plant did not give a model we would show either. They
   either missed the chillers, which are the N+1 question, or put the rear-door exchangers in series. No capacity answer
   is shown for this case.
 - **Project documents.** The agent can search and read tenders and datasheets (`search_documents`,
