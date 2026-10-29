@@ -1,0 +1,16 @@
+{
+  "file": "historian.csv",
+  "note": "SYNTHETIC hourly MVR salt historian, not plant measurements. E-201 U is an inferred scenario signal; its post-boil-out trend is screened without a DWSIM model. Patent Table I gives the baseline flows and temperatures, not these instruments or the compressor power/limit.",
+  "target_scale": 1.2,
+  "exchangers": {
+    "E-201": {
+      "u_tag": "UI-201 E-201 inferred U (W/m2K)",
+      "U_clean": 2500,
+      "reset_jump_pct": 0.15
+    }
+  },
+  "limits": [
+    {"tag": "PI-3002 K-201 discharge (bar a)", "name": "K-201 illustrative discharge ceiling", "max": 3.20, "warn_margin": 0.05},
+    {"tag": "DI-201 E-201 brine rise (K)", "name": "E-201 brine heater rise", "max": 3.0, "warn_margin": 0.2}
+  ]
+}

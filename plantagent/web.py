@@ -253,7 +253,9 @@ def plant_project(case):
             "has_revisions": bool(w.revisions),
             "health": (lambda h: {k: h.get(k) for k in ("today", "exchangers", "source_note", "from", "to")} if h else None)(
                 json.loads(w.model_file.with_name("health.json").read_text()) if w.model_file.with_name("health.json").exists() else None),
-            "troubleshootable": list((json.loads((ROOT / "cases" / case / "historian_map.json").read_text()).get("exchangers") or {}).keys())
+            "troubleshootable": [tag for tag, hx in (json.loads((ROOT / "cases" / case / "historian_map.json").read_text()).get("exchangers") or {}).items()
+                                 # A direct-U signal lacks the hot/cold DWSIM streams required by the fitter.
+                                 if not hx.get("u_tag")]
             if (ROOT / "cases" / case / "historian_map.json").exists() else [],
             "read_confirmed": bool((w.pid or {}).get("confirmed")), "read_corrections": len((w.pid or {}).get("corrections") or []),
             "answers": w.answers, "revisions": [{k: r.get(k) for k in ("rev", "kind", "title", "changes", "capacity_multiple", "at", "user", "reason")}
