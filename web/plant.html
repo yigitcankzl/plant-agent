@@ -42,7 +42,19 @@
   .chip.live::after { content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 6px; border-radius: 50%; background: var(--warn); animation: blink .8s infinite alternate; }
   @keyframes blink { to { opacity: .2; } } @keyframes in { from { opacity: 0; transform: translateY(-3px); } }
   .stage { padding: 10px 18px 24px; }
-  .sheet { position: relative; background: var(--paper); border-radius: 3px; box-shadow: 0 6px 30px rgba(0,0,0,.45); }
+  .pid-viewport { position: relative; height: max(480px, calc(100vh - 240px)); overflow: hidden; cursor: grab; touch-action: none; border: 1px solid #bfcfcb; background: #d8e2df; }
+  .pid-viewport.dragging { cursor: grabbing; }
+  .pid-viewport:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .sheet { position: absolute; left: 0; top: 0; width: 1200px; transform-origin: 0 0; background: var(--paper); border-radius: 3px; box-shadow: 0 6px 30px rgba(0,0,0,.32); }
+  .pid-tools { position: absolute; z-index: 7; top: 12px; left: 12px; display: flex; gap: 3px; padding: 4px; border: 1px solid #95a9a6; border-radius: 6px; background: rgba(18,46,52,.94); box-shadow: 0 2px 12px #12303533; }
+  .pid-tools button { min-width: 32px; min-height: 30px; padding: 3px 7px; border: 0; border-radius: 3px; background: transparent; color: #f2f7f5; font: 700 15px var(--sans); cursor: pointer; }
+  .pid-tools button:hover, .pid-tools button:focus-visible { background: #35616a; outline: 2px solid #9fd9d0; outline-offset: -2px; }
+  .pid-tools button:last-child { font-size: 12px; }
+  .pid-tooltip { position: absolute; z-index: 8; display: none; pointer-events: none; padding: 5px 8px; border-radius: 4px; background: #102e34; color: white; box-shadow: 0 2px 10px #102e3455; font: 12px var(--sans); white-space: nowrap; }
+  .sheet [data-tag]:not([data-tag=""]):hover { filter: drop-shadow(0 0 3px #4da3ff); }
+  .sheet.has-selection svg g[data-tag]:not([data-tag=""]), .sheet.has-selection svg g[data-line], .sheet.has-selection .tagbox { opacity: .18; }
+  .sheet.has-selection svg g[data-tag].focus-active, .sheet.has-selection svg g[data-line].focus-active, .sheet.has-selection .tagbox.focus-active { opacity: 1; }
+  .sheet svg g[data-line].focus-active path, .sheet svg g[data-line].focus-active polyline, .sheet svg g[data-line].focus-active line { stroke-width: 1.6 !important; }
   .sheet svg { width: 100%; height: auto; display: block; }
   .sheet svg g[data-tag] { cursor: pointer; }
   .sheet img { width: 100%; display: block; }
@@ -51,15 +63,19 @@
   .tagbox.u-ok { border-color: #2f9663; background: rgba(47,150,99,.08); }
   .tagbox.u-warn { border-color: #c5871e; background: rgba(197,135,30,.12); }
   .tagbox.u-fail { border-color: #e0392c; background: rgba(224,57,44,.15); animation: blinkbox .9s infinite alternate; }
-  .tagbox.u-sel { border-color: var(--accent); }
+  .tagbox.u-sel { box-shadow: 0 0 0 3px var(--accent); }
   @keyframes blinkbox { to { background: rgba(224,57,44,.02); } }
   .sheet svg g.u-ok * { stroke: #2f9663 !important; }
   .sheet svg g.u-warn * { stroke: #c5871e !important; }
   .sheet svg g.u-fail * { stroke: #e0392c !important; }
   .sheet svg g.u-fail * { stroke-width: 1.6 !important; animation: pulse .9s infinite alternate; }
-  .sheet svg g.u-sel * { stroke: var(--accent) !important; }
+  .sheet svg g.u-sel { filter: drop-shadow(0 0 3px var(--accent)); }
+  .sheet .pdf-guides { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .sheet .pdf-guides path { fill: none; stroke: #167fbb; stroke-width: 2; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; }
+  .pid-viewport.smooth .sheet { transition: transform .32s ease; }
+  @media (prefers-reduced-motion: reduce) { .pid-viewport.smooth .sheet { transition: none; } }
   @keyframes pulse { to { stroke-opacity: .35; } }
-  .badge { position: absolute; transform: translate(-50%, -100%); font: 700 11px var(--mono); padding: 2px 6px; border-radius: 4px; color: white; white-space: nowrap; pointer-events: none; transition: background .25s; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+  .badge { position: absolute; transform: translate(-50%, -100%) scale(var(--inverse-zoom, 1)); transform-origin: center bottom; font: 700 11px var(--mono); padding: 2px 6px; border-radius: 4px; color: white; white-space: nowrap; pointer-events: none; transition: background .25s; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
   .badge.ok { background: rgba(47,150,99,.95); } .badge.warn { background: rgba(197,135,30,.96); } .badge.fail { background: rgba(214,48,38,.97); }
   .badge small { font-weight: 500; opacity: .85; }
   .note { position: absolute; transform: translate(-50%, 8px); max-width: 230px; font: 600 11px var(--sans); color: white; background: rgba(239,90,79,.95); padding: 4px 7px; border-radius: 4px; pointer-events: none; }
@@ -148,7 +164,7 @@
   <main>
     <div class="progress" id="progress"></div>
     <div id="note" style="display:none;margin:8px 18px 0;padding:6px 10px;border:1px solid #5a4a2a;border-radius:5px;color:var(--warn);font-size:12px"></div>
-    <div class="stage" style="position:relative"><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Proposed</button></div><div class="sheet" id="sheet"></div></div>
+    <div class="stage" style="position:relative"><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Proposed</button></div><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing zoom"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
   </main>
 
   <footer>
@@ -189,6 +205,110 @@ async function projects() {
   $('proj').onchange = e => { const [k, c] = e.target.value.split(':'); location.href = (k === 'process' ? 'plant.html' : 'workspace.html') + '?case=' + c; };
 }
 
+const V = {scale: 1, fit: 1, x: 0, y: 0, down: null, moved: false, clickTimer: null};
+const view = $('pidViewport'), sheet = $('sheet');
+function moveDrawing() { sheet.style.transform = `translate(${V.x}px, ${V.y}px) scale(${V.scale})`; sheet.style.setProperty('--inverse-zoom', 1 / V.scale); }
+function fitDrawing() {
+  const w = sheet.offsetWidth, h = sheet.offsetHeight;
+  if (!w || !h) return;
+  V.fit = Math.min((view.clientWidth - 28) / w, (view.clientHeight - 28) / h);
+  V.scale = V.fit; V.x = (view.clientWidth - w * V.scale) / 2; V.y = (view.clientHeight - h * V.scale) / 2;
+  moveDrawing();
+}
+function zoomDrawing(factor, cx = view.clientWidth / 2, cy = view.clientHeight / 2) {
+  const next = Math.max(V.fit * .5, Math.min(V.fit * 12, V.scale * factor));
+  const ratio = next / V.scale;
+  V.x = cx - (cx - V.x) * ratio; V.y = cy - (cy - V.y) * ratio; V.scale = next;
+  moveDrawing();
+}
+function endpoint(s) { return String(s || '').split('(')[0]; }
+function markDrawingLines() {
+  if (P.drawing !== 'svg') return;
+  const groups = [...sheet.querySelectorAll('g[data-pid^="PipingNetworkSystem"]')];
+  for (const c of P.pid.connections || []) for (const line of c.lines || []) {
+    const group = groups.find(g => !g.dataset.line && new RegExp(`(^|\\D)${line.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\D|$)`).test(g.textContent));
+    if (group) { group.dataset.line = line; group.dataset.from = endpoint(c.from); group.dataset.to = endpoint(c.to); }
+  }
+}
+function initViewer() {
+  sheet.style.width = '1200px';
+  sheet.classList.remove('has-selection');
+  sheet.querySelector('.pdf-guides')?.remove();
+  markDrawingLines();
+  requestAnimationFrame(fitDrawing);
+}
+function localPoint(el) {
+  const r = el.getBoundingClientRect(), b = sheet.getBoundingClientRect();
+  return {x: (r.left + r.width / 2 - b.left) / V.scale, y: (r.top - b.top) / V.scale};
+}
+function focusDrawing(tag) {
+  const g = sheet.querySelector(`[data-tag="${CSS.escape(tag)}"]`);
+  if (!g) return;
+  const symbol = g.querySelector('rect,circle,ellipse,path,polygon') || g;
+  const p = localPoint(symbol), r = symbol.getBoundingClientRect(), oldScale = V.scale;
+  V.scale = Math.max(V.scale, V.fit * 2);
+  V.x = view.clientWidth / 2 - p.x * V.scale;
+  V.y = view.clientHeight / 2 - (p.y + r.height / (2 * oldScale)) * V.scale;
+  view.classList.add('smooth'); moveDrawing();
+  setTimeout(() => view.classList.remove('smooth'), 350);
+}
+function selectOnDrawing(tag) {
+  sheet.querySelectorAll('.focus-active,.u-sel').forEach(g => g.classList.remove('focus-active', 'u-sel'));
+  sheet.querySelector('.pdf-guides')?.remove();
+  const g = sheet.querySelector(`[data-tag="${CSS.escape(tag)}"]`);
+  sheet.classList.toggle('has-selection', !!g);
+  if (!g) return;
+  g.classList.add('focus-active', 'u-sel');
+  sheet.querySelectorAll('[data-line]').forEach(line => {
+    if (line.dataset.from === tag || line.dataset.to === tag) line.classList.add('focus-active');
+  });
+  if (P.drawing === 'pdf') {
+    const positions = P.pid.positions || {}, paths = [];
+    for (const c of P.pid.connections || []) {
+      const a = endpoint(c.from), b = endpoint(c.to);
+      if (a !== tag && b !== tag || !positions[a] || !positions[b]) continue;
+      const center = p => [(p.box[0] + p.box[2]) * 500, (p.box[1] + p.box[3]) * 500];
+      const [x1, y1] = center(positions[a]), [x2, y2] = center(positions[b]);
+      paths.push(`<path d="M${x1},${y1} L${x2},${y2}"/>`);
+    }
+    if (paths.length) sheet.insertAdjacentHTML('beforeend', `<svg class="pdf-guides" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-label="Inferred connection guides, not traced pipes">${paths.join('')}</svg>`);
+  }
+}
+view.addEventListener('wheel', e => {
+  e.preventDefault(); const r = view.getBoundingClientRect();
+  zoomDrawing(Math.exp(-e.deltaY * .0015), e.clientX - r.left, e.clientY - r.top);
+}, {passive: false});
+view.addEventListener('dblclick', e => { e.preventDefault(); clearTimeout(V.clickTimer); const r = view.getBoundingClientRect(); zoomDrawing(1.7, e.clientX - r.left, e.clientY - r.top); });
+view.addEventListener('pointerdown', e => {
+  if (e.button !== 0 || e.target.closest('.pid-tools')) return;
+  V.down = {px: e.clientX, py: e.clientY, x: V.x, y: V.y, tag: e.target.closest('[data-tag]')?.dataset.tag}; V.moved = false;
+});
+view.addEventListener('pointermove', e => {
+  const r = view.getBoundingClientRect(), tag = e.target.closest('[data-tag]')?.dataset.tag;
+  const tip = $('pidTooltip');
+  if (tag && !V.moved) {
+    const item = (P?.pid?.equipment || []).find(x => x.tag === tag);
+    tip.textContent = `${tag} · ${P?.names?.[tag] || item?.name || e.target.closest('[data-tag]')?.dataset.name || item?.class || tag}`;
+    tip.style.display = 'block'; tip.style.left = Math.min(e.clientX - r.left + 14, view.clientWidth - tip.offsetWidth - 8) + 'px';
+    tip.style.top = Math.min(e.clientY - r.top + 14, view.clientHeight - tip.offsetHeight - 8) + 'px';
+  } else tip.style.display = 'none';
+  if (!V.down) return;
+  if (!V.moved && Math.hypot(e.clientX - V.down.px, e.clientY - V.down.py) < 5) return;
+  if (!V.moved) { V.moved = true; view.setPointerCapture(e.pointerId); view.classList.add('dragging'); }
+  V.x = V.down.x + e.clientX - V.down.px; V.y = V.down.y + e.clientY - V.down.py; moveDrawing();
+});
+view.addEventListener('pointerup', e => {
+  if (!V.down) return;
+  const tag = V.down.tag, moved = V.moved; V.down = null; V.moved = false; view.classList.remove('dragging');
+  if (view.hasPointerCapture(e.pointerId)) view.releasePointerCapture(e.pointerId);
+  if (!moved && tag) { clearTimeout(V.clickTimer); V.clickTimer = setTimeout(() => select(tag, true), 400); }
+});
+view.addEventListener('pointercancel', () => { V.down = null; V.moved = false; view.classList.remove('dragging'); });
+view.addEventListener('pointerleave', () => { $('pidTooltip').style.display = 'none'; });
+$('zoomIn').onclick = () => zoomDrawing(1.35);
+$('zoomOut').onclick = () => zoomDrawing(1 / 1.35);
+$('zoomFit').onclick = fitDrawing;
+
 async function load() {
   P = await api('project');
   if (P.error) throw new Error(P.error);
@@ -205,7 +325,7 @@ async function load() {
     let svgs = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#555"/></marker></defs>`;
     const outOf = u => [].concat(u.out || [], u.cold ? [u.cold[1]] : [], u.hot ? [u.hot[1]] : []), inOf = u => [].concat(u.in || [], u.cold ? [u.cold[0]] : [], u.hot ? [u.hot[0]] : []);
     us.forEach((a, i) => us.forEach((b, j) => { if (i !== j && outOf(a).some(s => inOf(b).includes(s))) {
-      const A = pos[i], B = pos[j]; svgs += `<line x1="${A.x + W}" y1="${A.y + H / 2}" x2="${B.x}" y2="${B.y + H / 2}" stroke="#555" stroke-width="1.5" marker-end="url(#ar)"/>`; } }));
+      const A = pos[i], B = pos[j]; svgs += `<g data-line="${esc(a.id + '-' + b.id)}" data-from="${esc(a.id)}" data-to="${esc(b.id)}"><line x1="${A.x + W}" y1="${A.y + H / 2}" x2="${B.x}" y2="${B.y + H / 2}" stroke="#555" stroke-width="1.5" marker-end="url(#ar)"/></g>`; } }));
     us.forEach((u, i) => { const p = pos[i]; svgs += `<g data-tag="${esc(u.id)}"><rect x="${p.x}" y="${p.y}" width="${W}" height="${H}" rx="6" fill="#fff" stroke="#333"/>
       <text x="${p.x + W / 2}" y="${p.y + 22}" text-anchor="middle" font-size="13" font-weight="700" font-family="monospace">${esc(u.id)}</text>
       <text x="${p.x + W / 2}" y="${p.y + 40}" text-anchor="middle" font-size="11" fill="#555" font-family="sans-serif">${esc(NAMES[u.type] || u.type)}</text></g>`; });
@@ -221,7 +341,7 @@ async function load() {
     }).join('');
     await new Promise((r, x) => { const im = $('sheet').querySelector('img'); im.complete ? r() : (im.onload = r, im.onerror = () => x(new Error('the drawing image did not load'))); });
   }
-  $('sheet').querySelectorAll('[data-tag]').forEach(g => { if (g.dataset.tag) g.onclick = () => select(g.dataset.tag); });
+  initViewer();
   $('safetySec').style.display = P.dexpi ? '' : 'none';  // the relief scan needs a smart (DEXPI) P&ID
   if (P.drawing === 'none' && !P.dexpi) $('pidStats').textContent = 'equipment and connections from the data sheet';
   if (P.drawing === 'none') $('pidName').innerHTML = P.dexpi ? 'Smart P&amp;ID <span>DEXPI XML · flowsheet drawn from the model</span>' : 'No drawing <span>flowsheet drawn from the model</span>';
@@ -330,20 +450,22 @@ function render(st) {
   sheet.querySelectorAll('.badge').forEach(b => b.remove());
   sheet.querySelectorAll('[data-tag]').forEach(g => g.classList.remove('u-ok', 'u-warn', 'u-fail'));
   sheet.querySelectorAll('.c-ok,.c-warn,.c-fail').forEach(e => e.classList.remove('c-ok', 'c-warn', 'c-fail'));
-  const svgEl = sheet.querySelector('svg'), vb = svgEl?.viewBox?.baseVal;
+  const svgEl = sheet.querySelector('svg');
   const box = sheet.getBoundingClientRect();
   for (const c of rows) {
     const g = sheet.querySelector(`[data-tag="${CSS.escape(c.id)}"]`);
     if (!g) continue;
-    if (g.tagName.toLowerCase() === 'g' && vb) {  // a DEXPI group also holds its datasheet table: colour the symbol only
-      const cut = vb.y + vb.height * 0.72;
-      g.querySelectorAll('path,line,polyline,polygon,circle,ellipse,rect').forEach(e => { try { if (e.getBBox().y < cut) e.classList.add('c-' + sev(c.utilisation)); } catch (x) {} });
+    if (g.tagName.toLowerCase() === 'g' && svgEl) {  // a DEXPI group also holds its datasheet table: colour the symbol only
+      const sr = svgEl.getBoundingClientRect(), cut = sr.top + sr.height * .72;
+      g.querySelectorAll('path,line,polyline,polygon,circle,ellipse,rect').forEach(e => {
+        if (e.getBoundingClientRect().top < cut) e.classList.add('c-' + sev(c.utilisation));
+      });
     } else g.classList.add('u-' + sev(c.utilisation));
     const r = g.getBoundingClientRect();
     const b = document.createElement('div');
     b.className = 'badge ' + sev(c.utilisation);
-    b.style.left = (r.left + r.width / 2 - box.left) + 'px';
-    b.style.top = (r.top - box.top - 4) + 'px';
+    b.style.left = ((r.left + r.width / 2 - box.left) / V.scale) + 'px';
+    b.style.top = ((r.top - box.top - 4) / V.scale) + 'px';
     b.innerHTML = `${esc(c.id)} ${Math.round(c.utilisation * 100)}%`;
     sheet.appendChild(b);
   }
@@ -370,11 +492,11 @@ function describe(c) {
   return `<span title="${esc(c.path)}">${esc(nm(id))} ${esc(label)}: <b>${esc(from)}${esc(fmt(c.value))}</b> ${esc(unit)}</span>`;
 }
 
-function select(tag) {
+function select(tag, fromCanvas = false) {
   document.querySelectorAll('.eq.sel').forEach(e => e.classList.remove('sel'));
   document.querySelectorAll('.eq[data-id]').forEach(e => { if (e.dataset.id === tag) e.classList.add('sel'); });
-  $('sheet').querySelectorAll('.u-sel').forEach(g => g.classList.remove('u-sel'));
-  $('sheet').querySelector(`[data-tag="${CSS.escape(tag)}"]`)?.classList.add('u-sel');
+  selectOnDrawing(tag);
+  if (!fromCanvas) focusDrawing(tag);
   if (P.built && ST) equipmentCard(tag);
 }
 
@@ -507,8 +629,8 @@ function notes(a) {
     if (!g) continue;
     const r = g.getBoundingClientRect(), n = document.createElement('div');
     n.className = 'note ' + (h.severity || 'info');
-    n.style.left = (r.left + r.width / 2 - box.left) + 'px';
-    n.style.top = (r.top - box.top + 22) + 'px';  // the tag's group also holds its datasheet table: anchor at the symbol's top
+    n.style.left = ((r.left + r.width / 2 - box.left) / V.scale) + 'px';
+    n.style.top = ((r.top - box.top + 22) / V.scale) + 'px';  // the tag's group also holds its datasheet table: anchor at the symbol's top
     n.textContent = h.text.length > 90 ? h.text.slice(0, 88) + '…' : h.text;
     n.title = h.text;
     sheet.appendChild(n);
@@ -521,7 +643,7 @@ function placeClear(n, sheet) {  // push a note down until it no longer overlaps
     const hit = [...sheet.querySelectorAll('.note,.badge')].find(o => o !== n && (() => { const b = o.getBoundingClientRect();
       return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom; })());
     if (!hit) return;
-    n.style.top = (parseFloat(n.style.top) + hit.getBoundingClientRect().height + 4) + 'px';
+    n.style.top = (parseFloat(n.style.top) + (hit.getBoundingClientRect().height + 4) / V.scale) + 'px';
   }
 }
 
@@ -667,7 +789,7 @@ async function reliefScan() {
     const b = g.getBoundingClientRect(), n = document.createElement('div');
     const hot = list.filter(r => r.thermal_expansion_risk);
     n.className = 'note ' + (hot.length ? 'fail' : 'warn');
-    n.style.left = (b.left + b.width / 2 - box.left) + 'px'; n.style.top = (b.top - box.top + 22) + 'px';
+    n.style.left = ((b.left + b.width / 2 - box.left) / V.scale) + 'px'; n.style.top = ((b.top - box.top + 22) / V.scale) + 'px';
     n.textContent = hot.length ? `${tag}: ${hot.map(r => r.side_fluids.join(',')).join(' and ')} side can be blocked in while heated, no relief`
       : `${tag}: ${list.map(r => r.status).join(', ')}`;
     sheet.appendChild(n);
@@ -703,7 +825,7 @@ function tourGo(i) {
 function tourEnd() { $('tour').style.display = 'none'; document.querySelectorAll('.tour-on').forEach(e => e.classList.remove('tour-on')); }
 
 $('model').onchange = e => api('model', {model: e.target.value});
-window.onresize = () => ST && render(ST);
+window.onresize = () => { fitDrawing(); if (ST) render(ST); };
 projects().catch(() => { $('proj').innerHTML = '<option>Project list unavailable</option>'; });
 load().then(() => { if (new URLSearchParams(location.search).get('tour') && P?.built) tourGo(0); }).catch(e => {
   $('eqlist').innerHTML = `<div class="empty" role="alert"><b>Could not load this case.</b><br>${esc(e.message)}<br><button class="btn" onclick="location.reload()">Reload the page</button></div>`;

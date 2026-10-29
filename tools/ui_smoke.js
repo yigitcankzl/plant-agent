@@ -13,6 +13,19 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     console.log(stuck || errs.length ? 'FAIL' : 'ok  ', u, stuck ? 'stuck loading' : '', errs.splice(0).join(' | '));
     bad += stuck ? 1 : 0;
   }
+  await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
+  const viewport = p.locator('#pidViewport'), before = await p.locator('#sheet').evaluate(e => new DOMMatrix(getComputedStyle(e).transform).a);
+  const bounds = await viewport.boundingBox();
+  await p.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2); await p.mouse.wheel(0, -200);
+  const after = await p.locator('#sheet').evaluate(e => new DOMMatrix(getComputedStyle(e).transform).a);
+  await p.locator('#zoomFit').click();
+  const tag = p.locator('#sheet [data-tag="H1007"]'); const box = await tag.boundingBox();
+  await p.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await p.mouse.down();
+  await p.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2 + 20, { steps: 5 }); await p.mouse.up();
+  await p.waitForTimeout(500);
+  const draggedSelection = await p.locator('#sheet [data-tag="H1007"]').evaluate(e => e.classList.contains('u-sel'));
+  console.log(after > before && !draggedSelection ? 'ok  ' : 'FAIL', 'P&ID wheel zoom and drag without selection');
+  bad += after > before && !draggedSelection ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=chem_c01&tour=1`); await p.waitForSelector('#tour', { state: 'visible', timeout: 20000 });
   for (let i = 0; i < 6; i++) { await p.waitForTimeout(1200); await p.click('#tourNext'); }
   console.log(errs.length ? 'FAIL' : 'ok  ', 'guided demo, 6 steps', errs.join(' | '));
