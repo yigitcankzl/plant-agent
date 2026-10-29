@@ -348,6 +348,7 @@ class PlantWorkspace(Study):
             self.revisions = json.loads(self.rev_file.read_text())
             if self.revisions:
                 self.built["spec"] = self.revisions[-1]["spec_after"]
+                self.built["result"] = self.revisions[-1].get("result_after")  # None: re-solved on first reproduce
         if self.built:
             self.runs[self.built["label"]] = {"spec": self.built["spec"], "purpose": "calibrated model", "result": self.built.get("result")}
         self._state = {}
@@ -742,6 +743,8 @@ class PlantWorkspace(Study):
             fresh = process.run(r["spec"], float(r.get("scale") or 1.0))
         except Exception as e:  # noqa: BLE001
             return {"item": f"run {label}", "ok": False, "why": f"does not re-solve: {e}"}
+        if r.get("result") is None:  # a revision saved before results were kept: this solve becomes the reference
+            r["result"] = fresh
         same = fresh.get("units") == (r.get("result") or {}).get("units")
         return {"item": f"run {label}", "ok": same, "why": "" if same else "re-solved to a different result"}
 
@@ -795,8 +798,11 @@ class PlantWorkspace(Study):
         return json.loads(self.model_file.read_text())["spec"]
 
     def _commit(self, r):
+        # the calibrated label now names the revised model, so its stored result must be the revised one too
+        r.setdefault("result_after", process.run(r["spec_after"]))
         self.revisions.append(r)
-        self.built = {**self.built, "spec": r["spec_after"]}
+        self.built = {**self.built, "spec": r["spec_after"], "result": r["result_after"]}
+        self.runs[self.built["label"]] = {"spec": r["spec_after"], "purpose": "calibrated model (current revision)", "result": r["result_after"]}
         self.rev_file.write_text(json.dumps(self.revisions, indent=1))
         self._state = {}
 
