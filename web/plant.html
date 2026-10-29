@@ -115,6 +115,8 @@
     <a class="logo" href="home.html" style="color:var(--text);text-decoration:none" title="Back to case library">Plant<span>Agent</span></a>
     <select id="proj" title="Project"></select>
     <div class="cmd"><span class="k">›</span><input id="q" aria-label="Ask about the process unit" placeholder="Ask about this unit… e.g. What limits +20% throughput?" autocomplete="off" disabled></div>
+    <label title="Also ask Meta's open-weights model (Muse Spark Open) independently and compare the two answers. Spends open-model credit."
+      style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);white-space:nowrap"><input type="checkbox" id="so"> + open-model second opinion</label>
     <button class="btn go" id="toTarget" disabled>Find a path to target</button>
     <select id="model" title="Model">
       <option value="muse-spark-1.3-contributor">Muse Spark (contributor)</option>
@@ -394,7 +396,7 @@ async function build() {
 async function ask(text, context) {
   if (busy || !text.trim()) return;
   $('answers').insertAdjacentHTML('afterbegin', `<div class="ans" id="pending"><div class="rq">› <b>${esc(text)}</b></div><div class="meta">working…</div></div>`);
-  const {job} = await api('ask', {text, context});
+  const {job} = await api('ask', {text, context, second_opinion: $('so').checked});
   const j = await follow(job, text);
   $('pending')?.remove();
   if (j.answer) { P.answers.push(j.answer); answers(); notes(j.answer); }
@@ -436,6 +438,20 @@ function compare(a) {  // the alternatives side by side, from what the server re
     ${ps.map(p => `<tr><td>${esc(p.title)}</td><td class="v">${esc(p.fixes || p.tag || '')}</td><td class="v">${p.capacity_multiple ? Math.round(p.capacity_multiple * 100) + '%' : '—'}</td>
       <td>${esc(p.cost_class || '')}</td><td>${p.verified ? '<span style="color:var(--ok)">simulated ✓</span>' : `<span style="color:var(--fail)">${p.unverified_reason ? 'not verifiable' : 'fails'}</span>`}</td></tr>`).join('')}</table></div>`;
 }
+function secondOpinion(a, idx) {  // the open-weights model's independent answer, compared without picking a winner
+  const so = a.second_opinion;
+  if (!so) return '';
+  if (so.error) return `<div class="card warn"><div class="tt">Second opinion · Muse Spark Open</div><div class="res">Not available: ${esc(so.error)}</div></div>`;
+  const c = so.comparison, ok = c.status === 'agree';
+  return `<div class="card ${ok ? 'ok' : 'warn'}"><div class="tt">Second opinion · Muse Spark Open (open weights), answered independently</div>
+    <div class="res">${ok ? '✓ Both models agree' : `⚠ The models ${c.status === 'partly' ? 'partly ' : ''}disagree: an engineer should look`}</div>
+    <div style="font-size:12px">${esc(so.answer.headline || '')}</div>
+    ${c.disagree.length ? `<div style="margin-top:6px;font-size:11.5px;color:var(--warn)">${c.disagree.map(x => '≠ ' + esc(x)).join('<br>')}</div>` : ''}
+    ${c.agree.length ? `<details><summary>${c.agree.length} points agree</summary><div style="font-size:11.5px">${c.agree.map(x => '= ' + esc(x)).join('<br>')}</div></details>` : ''}
+    ${(so.answer.proposals || []).length ? `<details><summary>Open model's ${so.answer.proposals.length} proposals (each re-solved in DWSIM)</summary>${so.answer.proposals.map((p, j) => prop(p, idx, j, 'so')).join('')}</details>` : ''}
+    <div class="meta">${so.answer.seconds}s · $${(so.answer.cost_usd || 0).toFixed(4)} (conservative estimate)</div></div>`;
+}
+
 function ans(a, idx) {
   const cards = (a.cards || []).map(c => `<div class="card ${c.status || ''}"><div class="tt">${esc(c.title)}</div><div class="res">${esc(c.result)}</div>
     ${(c.inputs || []).length ? `<details><summary>${c.inputs.length} inputs (${[...new Set(c.inputs.map(basisOf))].join(', ')}) · runs: ${esc((c.runs || []).join(', ') || 'none')}</summary><table>${c.inputs.map(x => `<tr><td>${esc(x.name)}</td><td class="v">${esc(x.value)}</td><td>${basisChip(basisOf(x))}</td><td class="src">${esc(x.source)}</td></tr>`).join('')}</table></details>` : ''}</div>`).join('');
@@ -443,11 +459,11 @@ function ans(a, idx) {
   const props = (a.proposals || []).map((p, j) => prop(p, idx, j)).join('');
   const cb = a.combined, comb = cb && !cb.error ? `<div class="card ${cb.reaches_target ? 'ok' : 'fail'}"><div class="tt">All ${a.proposals.length} changes together · re-solved in DWSIM</div>
     <div class="res">${cb.reaches_target ? '✓ Reaches ' + Math.round(P.target_scale * 100) + '%' : '✗ Short of target'} · new maximum ${Math.round((cb.capacity_multiple || 0) * 100)}% (${esc(cb.limited_by?.id || '')})</div></div>` : '';
-  return `<div class="ans"><div class="rq">› ${esc(a.request)}</div><div class="hl">${esc(a.headline)}</div><div class="sm">${esc(a.summary)}</div>${fc}${props}${compare(a)}${comb}${cards}
+  return `<div class="ans"><div class="rq">› ${esc(a.request)}</div><div class="hl">${esc(a.headline)}</div><div class="sm">${esc(a.summary)}</div>${fc}${props}${compare(a)}${comb}${secondOpinion(a, idx)}${cards}
     <div class="meta">${a.seconds}s · $${(a.cost_usd || 0).toFixed(4)} · ${(a.checks || []).filter(c => c.ok).length}/${(a.checks || []).length} cited runs re-solved to the same result${(a.checks || []).filter(c => !c.ok).map(c => ` · <span style="color:var(--fail)">✗ ${esc(c.item)}: ${esc(c.why || 'not reproduced')}</span>`).join('')}</div></div>`;
 }
 
-function prop(p, i, j) {
+function prop(p, i, j, src) {
   const spec = P.built.spec, units = Object.fromEntries(spec.units.map(u => [u.id, u]));
   const cur = path => { const [k, id, f] = path.split('.'); const o = k === 'units' ? units[id] : (spec[k] || {})[id]; return o ? o[f] : undefined; };
   const diff = (p.changes || []).map(c => `<div><span class="m">- ${esc(c.path)} = ${esc(('from' in c ? c.from : cur(c.path)) ?? '—')}</span><br><span class="p">+ ${esc(c.path)} = ${esc(c.value)}</span></div>`).join('');
@@ -455,14 +471,15 @@ function prop(p, i, j) {
     : `<span class="vb n">✗ ${p.unverified_reason ? 'Not verifiable: ' + esc(p.unverified_reason) : p.error ? 'did not solve' : esc((p.still_over?.[0] || p.breaks?.[0] || {}).id || '') + ' still over its limit'}</span>`;
   return `<div class="prop ${p.accepted ? 'done' : ''}"><div class="ph"><b>${esc(p.title)}</b><span class="vb" style="color:var(--muted)">${esc(p.cost_class || '')}</span></div>
     <div class="diff">${diff}</div>${p.why ? `<div class="diff" style="color:var(--muted);font-family:var(--sans)">${esc(p.why)}</div>` : ''}
-    <div class="pf">${v}${p.verified ? `<button class="btn go" onclick="accept(${i},${j})" title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature.">Apply as draft model revision</button><button class="btn" onclick="this.closest('.prop').remove()">Dismiss</button>` : ''}${p.accepted ? '<span class="vb y">applied as draft revision</span>' : ''}</div></div>`;
+    <div class="pf">${v}${p.verified ? `<button class="btn go" onclick="accept(${i},${j},'${src || ''}')" title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature.">Apply as draft model revision</button><button class="btn" onclick="this.closest('.prop').remove()">Dismiss</button>` : ''}${p.accepted ? '<span class="vb y">applied as draft revision</span>' : ''}</div></div>`;
 }
 
-async function accept(i, j) {
-  const p = P.answers[i].proposals[j];
+async function accept(i, j, src) {
+  const so = P.answers[i].second_opinion;
+  const p = src === 'so' ? so.answer.proposals[j] : P.answers[i].proposals[j];
   const reason = prompt('Applying this as a DRAFT model revision (not an engineering approval). Reason, kept in the audit trail:', p.title || '');
   if (!reason) return;
-  const r = await api('accept', {proposal: p, reason});
+  const r = await api('accept', {proposal: {...p, _by: src === 'so' ? so.model : undefined}, reason, answer: i});
   if (r.error) { alert(r.error); return; }
   p.accepted = true;
   await reload();

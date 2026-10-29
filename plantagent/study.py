@@ -182,6 +182,26 @@ def unstring(v):
     return v
 
 
+_INVOKE = __import__("re").compile(r"<(?:\w+:)?invoke name=\"([\w.-]+)\">(.*?)</(?:\w+:)?invoke>", __import__("re").S)
+_PARAM = __import__("re").compile(r"<(?:\w+:)?parameter name=\"([\w.-]+)\">(.*?)</(?:\w+:)?parameter>", __import__("re").S)
+
+
+def text_tool_calls(content):
+    """Some open-weights deployments emit a large tool call as text (<x:invoke name=..><x:parameter name=..>..) instead of
+    a structured call; recover those calls so the agent loop does not spin. Parameter values are JSON where they parse."""
+    calls = []
+    for k, (name, body) in enumerate(_INVOKE.findall(content or "")):
+        args = {}
+        for pname, raw in _PARAM.findall(body):
+            raw = raw.strip()
+            try:
+                args[pname] = json.loads(raw)
+            except json.JSONDecodeError:
+                args[pname] = raw
+        calls.append({"id": f"text-call-{k}", "name": name, "arguments": json.dumps(args)})
+    return calls
+
+
 def submit(name, description, properties, required):
     return {"type": "function", "function": {"name": name, "description": description,
             "parameters": {"type": "object", "properties": properties, "required": required}}}
@@ -432,6 +452,8 @@ class Study:
                 messages.append({"role": "user", "content": f"Step limit near. Call {submit_name} now with what you have."})
             msg = llm.complete(self.model, compact(messages), tools=tools)
             self.log.write(json.dumps({"phase": phase, "step": step, "assistant": msg}) + "\n")
+            if not msg["tool_calls"] and msg.get("content") and "invoke name=" in msg["content"]:
+                msg = {**msg, "tool_calls": text_tool_calls(msg["content"]), "content": ""}
             if msg.get("content"):
                 self.emit({"kind": "say", "text": msg["content"]})
             if not msg["tool_calls"]:

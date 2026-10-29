@@ -532,7 +532,7 @@ class Handler(SimpleHTTPRequestHandler):
             if what == "ask" and method == "POST":
                 from . import audit
                 audit.append(case, "ask", self.headers.get("X-User"), "", {"request": body["text"][:500], "model": w.model})
-                return self._send(plant_job(case, lambda w: w.ask(body["text"], body.get("context"))))
+                return self._send(plant_job(case, lambda w: w.ask(body["text"], body.get("context"), bool(body.get("second_opinion")))))
             if what == "state":
                 return self._send(w.state(float(q.get("scale", 1.0))))
             if what == "capacity":
@@ -540,7 +540,7 @@ class Handler(SimpleHTTPRequestHandler):
             user = self.headers.get("X-User")
             if what == "accept" and method == "POST":
                 try:
-                    return self._send(w.accept(body["proposal"], user, body.get("reason")))
+                    return self._send(w.accept(body["proposal"], user, body.get("reason"), body.get("answer")))
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
             if what == "restore" and method == "POST":

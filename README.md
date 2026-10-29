@@ -50,6 +50,33 @@ The P&ID is the DEXPI e.V. reference example C01. Its operating data sheet (`cas
   and the new maximum is 124 %. Accepting re-verifies on the server, and accepted changes become revisions that can be
   undone.
 
+### Second opinion from Meta's open-weights model
+
+Tick **+ open-model second opinion** in the workspace. **Muse Spark Open** (open weights, on Baseten) then answers the
+same request independently, on the same calibrated model and tools.
+
+- **How the answers are compared.** The comparison is deterministic; no third model picks a winner. It checks:
+  - the limiting equipment
+  - each proposed change (same path, values within 10 %)
+  - which proposals verify in DWSIM
+  - the target verdict
+  - the stated annual energy saving
+- **What the engineer sees.** "Both models agree", or the points where they differ, flagged for an engineer to look at.
+- **Applying a fix.** Either model's proposals can be applied as a draft revision only if DWSIM verifies them. The
+  audit entry records which model proposed the change and where the two models disagreed.
+
+Results on the two process cases (`runs/ws/*/second_opinion_answer.json`):
+
+| Case | Agree | Disagree |
+|---|---|---|
+| Chemical unit, +20 % | Cooling water to 27 m3/h and tank level to 22.1 m3; both reach 120 % | The open model missed the third limit, the tank temperature held by the H1008 chilled-water loop |
+| Dairy refrigeration, N+1 and floating head | The new load fits with N+1; the condensers are the closest limit | Annual saving: 1,716 MWh from Muse Spark, 1,330 MWh from Muse Spark Open. A direct bin calculation on the same model gives 1,329 MWh, so the open model was right here. The open model also proposed a fixed 8.6 bar(a) head pressure. DWSIM accepted it, but only because the condenser outlet temperature is not yet tied to wet bulb in the model (a known gap). |
+
+Neither model is always right. The value is in the disagreements the engineer is shown.
+
+The open model sometimes writes a large tool call as text (`<x:invoke name=...>`) instead of a structured call. The
+agent loop recovers these calls (`study.text_tool_calls`). Before this fix the open model could not finish an answer.
+
 ### Safety, records and data the engineer already has
 
 - **Relief protection scan** (`pid.relief_scan`, deterministic, no LLM). For every side of every equipment item it

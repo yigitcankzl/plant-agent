@@ -57,6 +57,55 @@ def limit_changes(p):
     return [c["path"] for c in p.get("changes") or [] if str(c.get("path", "")).startswith("limits.")]
 
 
+OPEN_MODEL = "baseten:meta-models/muse-spark-open-1026"
+
+
+def compare_answers(a, b):
+    """Where two independent answers agree, deterministically: limiting equipment, proposed changes (same path, values
+    within 10 %), DWSIM verification and the verdict. Nothing is chosen; disagreements are for the engineer."""
+    agree, disagree = [], []
+    lim = lambda x: {h["tag"] for h in x.get("highlights") or [] if h.get("severity") in ("fail", "warn")} | \
+        {p.get("tag") for p in x.get("proposals") or [] if p.get("tag")}  # noqa: E731
+    la, lb = lim(a), lim(b)
+    if la or lb:
+        (agree if la == lb else disagree).append(f"limiting equipment: {', '.join(sorted(la)) or 'none'} vs {', '.join(sorted(lb)) or 'none'}")
+    ch = lambda x: {c["path"]: c.get("value") for p in x.get("proposals") or [] for c in p.get("changes") or []}  # noqa: E731
+    ca, cb = ch(a), ch(b)
+    for path in sorted(ca.keys() | cb.keys()):
+        va, vb = ca.get(path), cb.get(path)
+        if va is None or vb is None:
+            disagree.append(f"{path}: only {'the main model' if vb is None else 'the open model'} changes it")
+        elif isinstance(va, (int, float)) and isinstance(vb, (int, float)) and abs(va - vb) <= 0.1 * max(abs(va), abs(vb), 1e-9):
+            agree.append(f"{path}: {va} vs {vb}")
+        else:
+            disagree.append(f"{path}: {va} vs {vb}")
+    ver = lambda x: {p.get("tag") for p in x.get("proposals") or [] if p.get("verified")}  # noqa: E731
+    va, vb = ver(a), ver(b)
+    if va or vb:
+        (agree if va == vb else disagree).append(f"verified in DWSIM: {', '.join(sorted(va)) or 'none'} vs {', '.join(sorted(vb)) or 'none'}")
+    import re as _re
+
+    def energy(x):  # the annual energy saving stated in the answer (MWh), if any
+        for txt in [x.get("headline") or "", x.get("summary") or ""] + [c.get("result") or "" for c in x.get("cards") or []]:
+            m = _re.search(r"sav\w*[^.;]*?([\d][\d,]*\.?\d*)\s*(MWh|GWh)", txt, _re.I)
+            if m:
+                return float(m.group(1).replace(",", "")) * (1000 if m.group(2) == "GWh" else 1)
+        return None
+    ea, eb = energy(a), energy(b)
+    if ea and eb:
+        (agree if abs(ea - eb) <= 0.1 * max(ea, eb) else disagree).append(f"annual energy saving: {ea:,.0f} vs {eb:,.0f} MWh")
+
+    def reach(x):  # None when the answer proposes no change: the verdict is then in its prose, not compared here
+        if (x.get("combined") or {}).get("reaches_target") is not None:
+            return bool(x["combined"]["reaches_target"])
+        ps = x.get("proposals") or []
+        return any(p.get("reaches_target") for p in ps) if ps else None
+    ra, rb = reach(a), reach(b)
+    if ra is not None and rb is not None:
+        (agree if ra == rb else disagree).append(f"reaches the target: {'yes' if ra else 'no'} vs {'yes' if rb else 'no'}")
+    return {"agree": agree, "disagree": disagree, "status": "agree" if not disagree else "disagree" if not agree else "partly"}
+
+
 def read_corrections(orig, conf):
     """What the engineer changed in Muse's read: loops, equipment and connections added, removed or edited."""
     out = []
@@ -429,7 +478,25 @@ class PlantWorkspace(Study):
                 "capacity_multiple": cap.get("capacity_multiple"), "limited_by": cap.get("limited_by"),
                 "reaches_target": not over and not at["errors"], "over_limits_at_target": over, "target_scale": target}
 
-    def ask(self, text, context=None):
+    def ask(self, text, context=None, second_opinion=False):
+        """Answer a request; with second_opinion the open-weights model answers it independently on the same model and
+        tools, and the two answers are compared deterministically (no third model picks a winner)."""
+        ans = self._ask_once(text, context)
+        if second_opinion:
+            main = self.model
+            self.model = OPEN_MODEL
+            try:
+                other = self._ask_once(text, context)
+                ans["second_opinion"] = {"model": OPEN_MODEL, "answer": other, "comparison": compare_answers(ans, other)}
+            except Exception as e:  # noqa: BLE001 - the main answer stands; the missing second opinion is shown
+                ans["second_opinion"] = {"model": OPEN_MODEL, "error": f"{type(e).__name__}: {e}"}
+            finally:
+                self.model = main
+        self.answers.append(ans)
+        (self.dir / "answers.json").write_text(json.dumps(self.answers, indent=1))
+        return ans
+
+    def _ask_once(self, text, context=None):
         if not self.built:
             self.build()
         t0, usd0 = time.time(), llm.spent()
@@ -451,7 +518,7 @@ class PlantWorkspace(Study):
                         "a value that decides the answer is missing or only assumed, say the conclusion is provisional and add a "
                         "field check: what to measure, where, and which conclusion it would change. " + RULES,
                         json.dumps(brief) + "\n\nRequest: " + text + (f"\nContext: {json.dumps(context)}" if context else ""),
-                        self.tools() + [ANSWER], "answer", 18)
+                        self.tools() + [ANSWER], "answer", 26 if llm._host(self.model) else 18)  # the open model takes more turns
         for k in ("cards", "highlights", "proposals"):
             ans[k] = ans.get(k) if isinstance(ans.get(k), list) else []
         for p in ans["proposals"]:
@@ -473,9 +540,7 @@ class PlantWorkspace(Study):
             except Exception as e:  # noqa: BLE001
                 ans["combined"] = {"error": f"{type(e).__name__}: {e}"}
         ans["checks"] = [self.reproduce(r) for r in dict.fromkeys(r for c in ans["cards"] for r in (c.get("runs") or []))]
-        ans.update(seconds=round(time.time() - t0), cost_usd=round(llm.spent() - usd0, 4), request=text)
-        self.answers.append(ans)
-        (self.dir / "answers.json").write_text(json.dumps(self.answers, indent=1))
+        ans.update(seconds=round(time.time() - t0), cost_usd=round(llm.spent() - usd0, 4), request=text, model=self.model)
         return ans
 
     def reproduce(self, label):
@@ -490,7 +555,7 @@ class PlantWorkspace(Study):
         same = fresh.get("units") == (r.get("result") or {}).get("units")
         return {"item": f"run {label}", "ok": same, "why": "" if same else "re-solved to a different result"}
 
-    def accept(self, p, user=None, reason=None):
+    def accept(self, p, user=None, reason=None, answer=None):
         """Accept a verified proposal as a new revision. Revisions are kept on disk and never deleted."""
         if not (reason or "").strip():
             raise ValueError("a reason for the change is required")
@@ -501,8 +566,11 @@ class PlantWorkspace(Study):
         r = {"rev": len(self.revisions) + 1, "kind": "change", "title": p.get("title"), "changes": p["changes"],
              "spec_before": self.built["spec"], "spec_after": after, "capacity_multiple": v["capacity_multiple"],
              "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "user": user, "reason": reason}
-        r["audit"] = audit.append(self.name, "accept", user, reason, {"rev": r["rev"], "title": r["title"], "changes": p["changes"],
-                                                                      "verified_capacity_multiple": v["capacity_multiple"]})["hash"]
+        so = (self.answers[answer].get("second_opinion") or {}) if isinstance(answer, int) and 0 <= answer < len(self.answers) else {}
+        r["audit"] = audit.append(self.name, "accept", user, reason, {
+            "rev": r["rev"], "title": r["title"], "changes": p["changes"], "verified_capacity_multiple": v["capacity_multiple"],
+            "proposed_by": p.get("_by") or self.model,
+            **({"second_opinion": so["comparison"]["status"], "models_disagree_on": so["comparison"]["disagree"][:8]} if so.get("comparison") else {})})["hash"]
         self._commit(r)
         return {**v, "revisions": self.revisions}
 
@@ -590,6 +658,14 @@ if __name__ == "__main__":
     p = patch(s, [{"path": "units.H1.area_m2", "value": 12}, {"path": "feeds.CW.m3_h", "value": 26}])
     assert p["units"][0]["area_m2"] == 12 and p["limits"]["H1"]["area_m2"] == 12 and p["feeds"]["CW"]["m3_h"] == 26
     assert s["units"][0]["area_m2"] == 10
+    A = {"highlights": [{"tag": "H1", "severity": "fail"}], "proposals": [{"tag": "H1", "verified": True, "reaches_target": True,
+                                                                           "changes": [{"path": "feeds.CW.m3_h", "value": 27}]}]}
+    B = {"highlights": [{"tag": "H1", "severity": "fail"}], "proposals": [{"tag": "H1", "verified": True, "reaches_target": True,
+                                                                           "changes": [{"path": "feeds.CW.m3_h", "value": 26}]}]}
+    assert compare_answers(A, B)["status"] == "agree"
+    B["proposals"][0]["changes"] = [{"path": "units.H1.area_m2", "value": 60}]
+    cmp = compare_answers(A, B)
+    assert cmp["status"] in ("partly", "disagree") and any("units.H1.area_m2" in d for d in cmp["disagree"]), cmp
     o = {"loops": [{"name": "CHW", "fluid": "water", "supply_C": 8, "return_C": 13}],
          "equipment": [{"tag": "PHE", "class": "plate heat exchanger", "count": 2, "loops": ["CHW"], "capacity_kW": 750}],
          "connections": [{"from": "PHE", "to": "RDHX", "loop": "CHW"}]}
