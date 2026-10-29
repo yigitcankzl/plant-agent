@@ -14,6 +14,20 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     bad += stuck ? 1 : 0;
   }
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
+  const startsFocused = await p.evaluate(() => !document.querySelector('#infoDrawer').classList.contains('open') &&
+    document.querySelector('#inspectorTitle').textContent === 'Result' && document.querySelector('#scenario').hidden === false);
+  await p.click('#infoBtn'); const drawerOpened = await p.locator('#infoDrawer').evaluate(e => e.classList.contains('open'));
+  await p.click('#infoDrawer .drawer-head button');
+  await p.click('[data-mode="troubleshoot"]');
+  const troubleshootFocused = await p.evaluate(() => document.querySelector('#inspectorTitle').textContent === 'Troubleshoot' && document.querySelector('#scenario').hidden);
+  await p.click('[data-mode="capacity"]');
+  await p.locator('#sheet [data-tag="H1007"]').evaluate(e => e.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 })));
+  await p.locator('#sheet [data-tag="H1007"]').evaluate(e => e.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0 })));
+  await p.waitForTimeout(500);
+  const equipmentFocused = await p.evaluate(() => document.querySelector('#inspectorTitle').textContent === 'Equipment' && !document.querySelector('#answers').hidden);
+  console.log(startsFocused && drawerOpened && troubleshootFocused && equipmentFocused ? 'ok  ' : 'FAIL', 'focused capacity layout, drawer, modes and equipment inspector');
+  bad += startsFocused && drawerOpened && troubleshootFocused && equipmentFocused ? 0 : 1;
+  await p.click('.inspector-back');
   const viewport = p.locator('#pidViewport'), before = await p.locator('#sheet').evaluate(e => new DOMMatrix(getComputedStyle(e).transform).a);
   const bounds = await viewport.boundingBox();
   await p.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2); await p.mouse.wheel(0, -200);
