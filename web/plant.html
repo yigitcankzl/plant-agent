@@ -683,6 +683,17 @@ const OPL = {duty_kW: ['Duty', 'kW'], lmtd_C: ['Log-mean temperature difference'
   T_C: ['Temperature', '°C'], P_bar: ['Pressure', 'bar(a)'], kg_h: ['Mass flow', 'kg/h'], vapour_frac: ['Vapour fraction', ''], min_stages: ['Minimum stages', ''],
   stages: ['Stages needed', ''], min_reflux: ['Minimum reflux ratio', ''], reflux: ['Reflux ratio', ''], condenser_kW: ['Condenser duty', 'kW'], reboiler_kW: ['Reboiler duty', 'kW']};
 function describe(c) {
+  if (c.add_unit) {
+    const u = c.add_unit, l = c.limits || {};
+    const rated = v => Number.isInteger(v) ? v : fmt(v);
+    const size = l.max_kg_h != null ? `, ${rated(l.max_kg_h / 1000)} t/h suction` : l.max_kW != null ? `, ${rated(l.max_kW)} kW` : '';
+    const routing = ['mixer', 'splitter', 'recycle'].includes(u.type), source = c.rating_source || (routing ? 'model routing' : 'rating source not stated');
+    return `<span title="${routing ? 'new process routing' : 'new equipment, rating to confirm'}"><b>Adds ${esc(u.id)} ${esc(String(u.type || 'unit').replace(/_/g, ' '))}${esc(size)}</b> (${esc(source)})</span>`;
+  }
+  if (c.reroute) {
+    const r = c.reroute, from = 'from' in c && c.from != null ? `${fmt(c.from)} → ` : '';
+    return `<span title="reroute"><b>Reroutes ${esc(nm(r.unit))} ${esc(r.field)}</b>: ${esc(from)}${esc(Array.isArray(r.value) ? r.value.join(', ') : r.value)}</span>`;
+  }
   const [k, id, f] = String(c.path || '').split('.'); const [label, unit] = FIELDS[f] || [String(f || '').replace(/_/g, ' '), ''];
   const from = 'from' in c && c.from != null ? `${fmt(c.from)} → ` : '';
   return `<span title="${esc(c.path)}">${esc(nm(id))} ${esc(label)}: <b>${esc(from)}${esc(fmt(c.value))}</b> ${esc(unit)}</span>`;
@@ -906,11 +917,12 @@ function ans(a, idx) {
 function prop(p, i, j, src) {
   const spec = P.built.spec, units = Object.fromEntries(spec.units.map(u => [u.id, u]));
   const cur = path => { const [k, id, f] = path.split('.'); const o = k === 'units' ? units[id] : (spec[k] || {})[id]; return o ? o[f] : undefined; };
-  const diff = (p.changes || []).map(c => `<div>${describe({...c, from: 'from' in c ? c.from : cur(c.path)})}</div>`).join('');
+  const diff = (p.changes || []).map(c => `<div>${describe(c.path ? {...c, from: 'from' in c ? c.from : cur(c.path)} : c)}</div>`).join('');
+  const added = (p.new_equipment || []).map(e => `<span class="vb" style="color:var(--warn)">${esc(e.id)}: new equipment, rating to confirm</span>`).join('');
   const v = p.verified ? `<span class="vb y" title="Re-solved in DWSIM with this change at ${Math.round(P.target_scale * 100)}% throughput; every limit of ${esc(p.fixes || '')} within 100 %, nothing else pushed over.">✓ Simulated: ${esc(p.fixes || '')} within limits at ${Math.round(P.target_scale * 100)}%</span>`
     : `<span class="vb n">✗ ${p.unverified_reason ? 'Not verifiable: ' + esc(p.unverified_reason) : p.error ? 'did not solve' : esc((p.still_over?.[0] || p.breaks?.[0] || {}).id || '') + ' still over its limit'}</span>`;
   return `<div class="prop ${p.accepted ? 'done' : ''}"><div class="ph"><b>${esc(p.title)}</b><span class="vb" style="color:var(--muted)">${esc(p.cost_class || '')}</span></div>
-    <div class="diff">${diff}</div>${p.why ? `<div class="diff" style="color:var(--muted);font-family:var(--sans)">${esc(p.why)}</div>` : ''}
+    <div class="diff">${diff}</div>${added ? `<div class="diff">${added}</div>` : ''}${p.why ? `<div class="diff" style="color:var(--muted);font-family:var(--sans)">${esc(p.why)}</div>` : ''}
     <div class="pf">${v}${p.verified ? `<div class="prop-actions"><button class="btn go" onclick="accept(${i},${j},'${src || ''}')" title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature.">Apply as draft model revision</button><button class="btn" onclick="this.closest('.prop').remove()">Dismiss</button></div>` : ''}${p.accepted ? '<span class="vb y">applied as draft revision</span>' : ''}</div></div>`;
 }
 
@@ -954,7 +966,7 @@ function morning() {  // the morning check: three things to look at today, from 
 
 function revs() {
   const a = P.audit;
-  $('revs').innerHTML = morning() + (P.revisions || []).map(r => `<div class="rev"><div><b>Rev ${r.rev}</b> ${esc(r.title)}<div style="color:var(--muted);font:11px var(--mono)">${r.changes.map(c => esc(c.path) + '=' + esc(c.value)).join(', ')}${r.capacity_multiple ? ' · max ' + Math.round(r.capacity_multiple * 100) + '%' : ''}</div>
+  $('revs').innerHTML = morning() + (P.revisions || []).map(r => `<div class="rev"><div><b>Rev ${r.rev}</b> ${esc(r.title)}<div style="color:var(--muted);font:11px var(--mono)">${r.changes.map(describe).join(', ')}${r.capacity_multiple ? ' · max ' + Math.round(r.capacity_multiple * 100) + '%' : ''}</div>
       <div style="color:var(--muted);font-size:11px">${esc(r.at || '')} · ${esc(r.user || 'engineer')} · “${esc(r.reason || '')}”</div></div>${r.kind === 'change' ? `<button class="btn" onclick="undo(${r.rev})">Undo</button>` : ''}</div>`).join('') +
     ((P.revisions || []).some(r => r.kind === 'change') || (P.answers || []).some(x => (x.proposals || []).some(p => p.verified))
       ? `<div class="rev" style="border-left-color:var(--accent);display:block"><button class="btn go" onclick="decisionFile()" title="Decision file and management memo: changes and reasons, limits before/after re-solved in DWSIM, redlined P&ID, relief impact, PSSR checklist, draft sign-off, audit hash">Make decision file (MOC pack)</button><div id="decOut"></div></div>` : '') +

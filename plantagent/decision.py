@@ -16,7 +16,7 @@ from pathlib import Path
 
 from . import audit, pid, process
 from .docs import DATA
-from .plant import FIELD, PlantWorkspace, describe_change, display_names
+from .plant import FIELD, PlantWorkspace, added_equipment, describe_change, display_names
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -28,8 +28,13 @@ def _git_head():
         return None
 
 
-def _owner(spec, path):
+def _owner(spec, change):
     """The equipment a change acts on: the unit itself, or the unit a utility feed serves."""
+    if change.get("add_unit"):
+        return change["add_unit"]["id"]
+    if change.get("reroute"):
+        return change["reroute"]["unit"]
+    path = change["path"]
     kind, oid, _ = path.split(".", 2)
     if kind == "units":
         return oid
@@ -46,9 +51,21 @@ def pssr(spec, changes, names, at):
     items = []
     units = {u["id"]: u for u in spec.get("units") or []}
     for c in changes:
+        if c.get("add_unit"):
+            u, source = c["add_unit"], c.get("rating_source")
+            if u["type"] in ("mixer", "splitter", "recycle"):
+                items.append(f"Confirm the new {u['id']} routing/manifold in the field, including branch isolation, drains, vents and flow direction.")
+            else:
+                items.append(f"Confirm the rating and materials of new {u['id']} {u['type']} against {source}; attach the vendor datasheet before approval.")
+                items.append(f"Commission new {u['id']}: verify line-up, rotation/direction, controls, alarms, trips and isolation before introducing process fluid.")
+            continue
+        if c.get("reroute"):
+            r = c["reroute"]
+            items.append(f"Walk down the reroute of {r['unit']} {r['field']} to {r['value']}; confirm valves, drains, vents and flow direction match the redline.")
+            continue
         kind, oid, field = c["path"].split(".", 2)
         who, v = names.get(oid, oid), c.get("value")
-        own = _owner(spec, c["path"])
+        own = _owner(spec, c)
         if kind == "feeds" and field in ("m3_h", "kg_h"):
             items.append(f"Verify the {who.lower()} can deliver {v:g} {FIELD[field][1]} at header pressure, and that the branch control valve can pass it.")
             u = (at.get("units") or {}).get(own) or {}
@@ -101,6 +118,9 @@ def redline_svg(w, owners, revs):
                      f'<polygon points="{x + 14},{y - 20} {x + 22},{y - 20} {x + 18},{y - 13}" fill="none" stroke="#d00" stroke-width="0.6"/>'
                      f'<text x="{x + 15.6}" y="{y - 16.5}" font-size="3.4" fill="#d00" font-family="sans-serif">{rev}</text>')
     note = "; ".join(f"{r['rev_label']}: {r['title']}" for r in revs)[:300]
+    additions = [f"{e['id']} ({e['rating_source']})" for e in added_equipment([c for r in revs for c in r["changes"]])]
+    if additions:
+        note += "; NEW: " + ", ".join(additions)
     marks.append(f'<text x="8" y="-288" font-size="4" fill="#d00" font-family="sans-serif">DRAFT REVISION (not approved) - {re.sub("[<>&]", "", note)}</text>')
     return svg.replace("</svg>", "".join(marks) + "</svg>")
 
@@ -157,7 +177,9 @@ def make(w, answer=None):
         proposed = w.spec
     elif ans and any(p.get("verified") for p in ans.get("proposals") or []):
         revs = [{"rev": i + 1, "title": p.get("title"), "changes": p["changes"], "reason": "proposed in the answer, not yet applied",
-                 "user": None, "at": None, "proposed_by": ans.get("model")} for i, p in enumerate(p for p in ans["proposals"] if p.get("verified"))]
+                 "user": None, "at": None, "proposed_by": ans.get("model"),
+                 "new_equipment": p.get("new_equipment") or added_equipment(p["changes"])}
+                for i, p in enumerate(p for p in ans["proposals"] if p.get("verified"))]
         changes = [c for r in revs for c in r["changes"]]
         from .plant import patch
         proposed = patch(built, changes)
@@ -165,7 +187,7 @@ def make(w, answer=None):
         revs, changes, proposed = [], [], built
     else:
         raise ValueError("nothing to decide yet: ask a question, or apply a verified fix as a draft revision")
-    names = w.names()
+    names = {**display_names(proposed), **w.names()}
     before, after = process.run(built, target), process.run(proposed, target)
     bc = {(c["id"], c["check"]): c for c in before["checks"] if "utilisation" in c}
     ac = {(c["id"], c["check"]): c for c in after["checks"] if "utilisation" in c}
@@ -177,7 +199,8 @@ def make(w, answer=None):
     owners = {}
     for r in revs:
         for c in r["changes"]:
-            owners.setdefault(_owner(proposed, c["path"]), r["rev_label"])
+            owners.setdefault(_owner(proposed, c), r["rev_label"])
+    new_equipment = [e for r in revs for e in (r.get("new_equipment") or added_equipment(r["changes"]))]
     relief = pid.relief_scan(DATA / w.cfg["pid"]) if w.cfg.get("pid") else []
     relief_hit = [x for x in relief if x["tag"] in owners and x["status"] != "protected"]
     checklist = pssr(proposed, changes, names, after)
@@ -200,16 +223,24 @@ def make(w, answer=None):
         md += ["| - | No change to the plant: the answer on record needs none | | | |"]
     md += [f"| {r['rev_label']} | {'; '.join(re.sub('<[^>]+>', '', describe_change(built, c, names)) for c in r['changes'])} | {r.get('reason') or ''} | "
            f"{r.get('proposed_by') or r.get('user') or ''} | {r.get('at') or 'not applied'} |" for r in revs]
+    if new_equipment:
+        md += ["", "### New equipment (ratings to confirm)", ""]
+        md += [f"- **{e['id']} {e['type']}** — {e['status']}; source/basis: {e['rating_source']}; limits: `{json.dumps(e['limits'], sort_keys=True)}`"
+               for e in new_equipment]
     md += ["", f"## 2. Limits before and after, at {target * 100:.0f} % (DWSIM, re-solved now)", "",
            "| Equipment or stream | Check | Before | After | Value after | Limit |", "|---|---|---|---|---|---|"]
     md += [f"| {names.get(r['id'], r['id'])} | {r['check']} | {pct(r['before'])} | {pct(r['after'])} | {r['value_after']} {r['unit']} | {r['limit']} {r['unit']} |"
            for r in rows if (r["before"] or 0) > 0.8 or r["after"] > 0.8 or r["id"] in owners]
     md += ["", "## 3. Drawing", "", "Redlined P&ID: `redline.svg` (revision clouds at " + ", ".join(owners) + ")." if w.cfg.get("svg") else
            "This project has no smart P&ID; the changed equipment is: " + ", ".join(owners) + "."]
+    if new_equipment:
+        md += ["", "New items are listed on the redline because they are not yet present in the as-built P&ID: " +
+               ", ".join(e["id"] for e in new_equipment) + "."]
     md += ["", "## 4. Relief protection (P&ID relief scan)", ""]
     md += ([f"- {x['tag']} {', '.join(x['side_fluids'])} side: {x['status']}. {x['detail']}" + (" Heated side that can be blocked in." if x["thermal_expansion_risk"] else "")
-            for x in relief_hit] or ["- No changed equipment side lacks relief on this drawing." if relief else "- No smart P&ID: relief scan not available; review relief manually."])
-    md += ["", "- The changes are operating changes; the relief scan reads the drawing, so its findings above are unchanged by them and still need closing."]
+            for x in relief_hit] or ["- No changed existing-equipment side lacks relief on this drawing." if relief else "- No smart P&ID: relief scan not available; review relief manually."])
+    if new_equipment:
+        md += ["- New equipment is not on the current P&ID; its relief, isolation and control design requires engineering review before approval."]
     md += ["", "## 5. Field checks and assumptions", ""]
     md += [f"- Field check: {f.get('item')}. Where: {f.get('where')}. Changes: {f.get('changes')}" for f in (ans or {}).get("field_checks") or []] or ["- No field checks were raised in the answer."]
     md += [f"- Assumption (model): {a}" for a in (w.built.get("assumptions") or [])[:12]]
@@ -254,7 +285,8 @@ def make(w, answer=None):
     svg = redline_svg(w, owners, revs)
     if svg:
         (out / "redline.svg").write_text(svg)
-    data = {"case": w.name, "made": stamp, "target_scale": target, "revisions": revs, "limits": rows, "pssr": checklist,
+    data = {"case": w.name, "made": stamp, "target_scale": target, "revisions": revs, "new_equipment": new_equipment,
+            "limits": rows, "pssr": checklist,
             "relief": relief_hit, "second_opinion": so.get("comparison"), "audit_head": head, "code": _git_head(),
             "model": {k: w.built.get(k) for k in ("label", "model", "at")}}
     (out / "decision.json").write_text(json.dumps(data, indent=1, default=str))
