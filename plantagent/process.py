@@ -5,6 +5,7 @@ DWSIM runs through pythonnet and must run with cwd = its install dir, so every c
 (about 2 s start-up, then about 0.05 s per solve).
 """
 import json
+import math
 import os
 import subprocess
 import sys
@@ -23,7 +24,12 @@ SPEC_HELP = {
              "pump: in, out, dP_bar or curve [[m3_h, head_m],...], eff_pct, kind: centrifugal|positive_displacement. "
              "hx: cold [in, out], hot [in, out], U_W_m2K, area_m2 (rating: outlets are computed); optional U_ref_flows_m3_h "
              "[hot, cold] (U then varies with flow, each film ~ Q^0.8) and dP_ref_bar [hot, cold] at those flows (dP ~ Q^1.8). "
-             "heater|cooler: in, out, T_out_C or duty_kW (scales: true if that duty grows with throughput, e.g. an IT or process heat load). valve: in, out, dP_bar or kv or P_out_bar. "
+             "heater|cooler: in, out, T_out_C or duty_kW (scales: true if that duty grows with throughput, e.g. an IT or process heat load). "
+             "valve: in, out, dP_bar or kv or P_out_bar; optional cv_rated (US Cv) or kv_rated (one only), "
+             "characteristic: equal_percentage|linear (default equal_percentage), rangeability (default 50), "
+             "min_travel_pct/max_travel_pct (defaults 10/90). Liquid turbulent Cv only: no choking/cavitation/viscosity correction. "
+             "pipe: in, out, length_m, id_mm or dn_mm (DN treated as inside diameter), roughness_mm (default 0.045), "
+             "elevation_m (positive = rise), fittings_K (default 0); liquid Darcy-Weisbach/Colebrook, solved as a DWSIM outlet-pressure valve. "
              "tank: in, out, volume_m3 = WORKING volume (about 80 % of nominal unless the data says otherwise), P_bar = vessel "
              "pressure (an atmospheric tank is about 1.013; the outlet leaves at this pressure, which sets pump suction and NPSH), "
              "residence_basis = the product stream that leaves the tank for good (hold time = volume / that flow). "
@@ -41,7 +47,9 @@ SPEC_HELP = {
               "psv_set_barg (relief valve on the pump discharge: discharge must stay below 90 % of set), area_m2 (installed HX "
               "area), out_T_C (outlet the process needs, side: cold|hot), max_dP_hot_bar, max_dP_cold_bar (available pressure "
               "drop), min_residence_min, max_area_m2 (HX frame limit), and for streams max_T_C, max_P_bar (design limit), "
-              "max_m3_h (utility supply; checked against 90 % of it to keep a margin), must_be_liquid: true (e.g. condenser outlet), min_T_out_C (cooler or condenser: the lowest outlet its heat sink allows at "
+              "max_m3_h (utility supply; checked against 90 % of it to keep a margin), max_velocity_m_s and max_dP_bar (pipe; "
+              "3 m/s is a typical liquid pump-discharge screen per Grundfos guidance, not a universal limit), "
+              "must_be_liquid: true (e.g. condenser outlet), min_T_out_C (cooler or condenser: the lowest outlet its heat sink allows at "
               "design conditions, e.g. design wet bulb + approach for an evaporative condenser)}}. Values come from the P&ID or datasheets; cite them.",
 }
 
@@ -65,6 +73,39 @@ def _r(x, n=0):
         return round(float(x), n)
     except (TypeError, ValueError):
         return None
+
+
+def _valve_sizing(q_m3_s, rho_kg_m3, dp_bar, rated_cv=None, characteristic="equal_percentage", rangeability=50):
+    """Basic ISA/IEC liquid Cv equation; no choked-flow, cavitation or viscosity correction."""
+    if rho_kg_m3 <= 0 or q_m3_s < 0:
+        raise ValueError("valve liquid density and flow must be valid")
+    if dp_bar <= 0 and q_m3_s:
+        return {"cv_required": None, "opening_pct": 100.0 if rated_cv is not None else None,
+                "sizing_error": "no positive liquid pressure drop"}
+    cv = q_m3_s / 0.0000630901964 * math.sqrt((rho_kg_m3 / 999.016) / (dp_bar * 14.5037738)) if q_m3_s else 0.0
+    result = {"cv_required": cv}
+    if rated_cv is not None:
+        if rated_cv <= 0 or rangeability <= 1 or characteristic not in ("equal_percentage", "linear"):
+            raise ValueError("rated Cv must be positive, rangeability > 1, characteristic equal_percentage or linear")
+        fraction = cv / rated_cv
+        opening = (1 + math.log(max(fraction, 1e-300)) / math.log(rangeability)) * 100 if characteristic == "equal_percentage" else \
+            (fraction - 1 / rangeability) / (1 - 1 / rangeability) * 100
+        result["opening_pct"] = max(0.0, opening)
+    return result
+
+
+def _pipe_hydraulics(q_m3_s, rho_kg_m3, mu_pa_s, length_m, diameter_m, roughness_m=0.000045,
+                     elevation_m=0, fittings_K=0):
+    from fluids.friction import friction_factor
+    if (q_m3_s < 0 or rho_kg_m3 <= 0 or mu_pa_s <= 0 or length_m < 0 or diameter_m <= 0 or
+            roughness_m < 0 or fittings_K < 0):
+        raise ValueError("pipe flow/properties/geometry must be nonnegative and diameter, density, viscosity positive")
+    velocity = 4 * q_m3_s / (math.pi * diameter_m ** 2)
+    reynolds = rho_kg_m3 * velocity * diameter_m / mu_pa_s
+    f = friction_factor(Re=reynolds, eD=roughness_m / diameter_m, Method="Colebrook") if reynolds else 0.0
+    dp_bar = (rho_kg_m3 * velocity ** 2 / 2 * (f * length_m / diameter_m + fittings_K) +
+              rho_kg_m3 * 9.80665 * elevation_m) / 1e5
+    return {"velocity_m_s": velocity, "Reynolds": reynolds, "friction_factor": f, "dP_bar": dp_bar}
 
 
 class _Sheet:
@@ -156,6 +197,14 @@ class _Sheet:
                 h.DeltaQ = float(u["duty_kW"]) * (self.scale if u.get("scales") else 1.0)
             return h
         if t == "valve":
+            if u.get("cv_rated") is not None and u.get("kv_rated") is not None:
+                raise ValueError(f"{uid}: specify cv_rated or kv_rated, not both")
+            if u.get("cv_rated") is not None or u.get("kv_rated") is not None:
+                rated = float(u.get("cv_rated", 0) or 0) or float(u.get("kv_rated", 0) or 0) * 1.156
+                lo, hi = float(u.get("min_travel_pct", 10)), float(u.get("max_travel_pct", 90))
+                if rated <= 0 or not 0 <= lo < hi <= 100:
+                    raise ValueError(f"{uid}: positive rating and 0 <= min_travel_pct < max_travel_pct <= 100 required")
+                _valve_sizing(0, 1000, 1, rated, u.get("characteristic", "equal_percentage"), float(u.get("rangeability", 50)))
             v = self._add("Valve", uid)
             self._link(self.stream(u["in"]), v); self._link(v, self.stream(u["out"]))
             if u.get("kv") is not None:
@@ -165,6 +214,19 @@ class _Sheet:
             else:
                 v.CalcMode, v.DeltaP = self.Valve.CalculationMode.DeltaP, float(u.get("dP_bar", 0.5)) * 1e5
             return v
+        if t == "pipe":
+            if u.get("id_mm") is not None and u.get("dn_mm") is not None:
+                raise ValueError(f"{uid}: specify id_mm or dn_mm, not both")
+            diameter = u["id_mm"] if u.get("id_mm") is not None else u.get("dn_mm")
+            if diameter is None:
+                raise ValueError(f"{uid}: id_mm or dn_mm required")
+            _pipe_hydraulics(0, 1000, 0.001, float(u["length_m"]), float(diameter) / 1000,
+                             float(u.get("roughness_mm", 0.045)) / 1000, float(u.get("elevation_m", 0)),
+                             float(u.get("fittings_K", 0)))
+            p = self._add("Valve", uid)
+            self._link(self.stream(u["in"]), p); self._link(p, self.stream(u["out"]))
+            p.CalcMode, p.DeltaP = self.Valve.CalculationMode.DeltaP, 0.0
+            return p
         if t == "tank":
             k = self._add("Tank", uid)
             src = self.stream(u["in"])
@@ -254,7 +316,9 @@ class _Sheet:
         errs = self.mgr.CalculateFlowsheet4(self.sim)
         errs = [str(e.Message)[:200] for e in errs] if errs is not None else []
         flowdep = [(u, o) for u, o in self.units.values() if u["type"] == "hx" and (u.get("U_ref_flows_m3_h") or u.get("dP_ref_bar"))]
-        for _ in range(2 if flowdep and not errs else 0):  # exchanger U and dP follow the solved flows
+        pipes = [(u, o) for u, o in self.units.values() if u["type"] == "pipe"]
+        self._pipe_values = {}
+        for _ in range(2 if (flowdep or pipes) and not errs else 0):  # flow-dependent U, dP and pipe pressure follow solved flows
             for u, o in flowdep:
                 qh = self.streams[u["hot"][0]].GetVolumetricFlow() * 3600
                 qc = self.streams[u["cold"][0]].GetVolumetricFlow() * 3600
@@ -266,6 +330,30 @@ class _Sheet:
                 if u.get("dP_ref_bar"):
                     (dh, dc), (rh, rc) = u["dP_ref_bar"], u.get("U_ref_flows_m3_h") or u["dP_ref_flows_m3_h"]
                     o.HotSidePressureDrop, o.ColdSidePressureDrop = dh * 1e5 * (qh / rh) ** 1.8, dc * 1e5 * (qc / rc) ** 1.8
+            for u, o in pipes:
+                uid = u["id"]
+                s = self.streams[u["in"]]
+                if float(s.Phases[2].Properties.molarfraction or 0) > 0.001:
+                    errs.append(f"{uid}: liquid-only pipe hydraulics; gas/two-phase flow is unsupported")
+                    continue
+                try:
+                    q, rho = float(s.GetVolumetricFlow()), float(s.Phases[0].Properties.density)
+                    mu = float(s.Phases[1].Properties.viscosity or 0)
+                    diameter = u["id_mm"] if u.get("id_mm") is not None else u["dn_mm"]
+                    data = _pipe_hydraulics(q, rho, mu, float(u["length_m"]), float(diameter) / 1000,
+                                            float(u.get("roughness_mm", 0.045)) / 1000, float(u.get("elevation_m", 0)),
+                                            float(u.get("fittings_K", 0)))
+                except (TypeError, ValueError) as ex:
+                    errs.append(f"{uid}: pipe liquid properties unavailable: {ex}")
+                    continue
+                pout = s.GetPressure() - data["dP_bar"] * 1e5
+                if pout <= 0:
+                    errs.append(f"{uid}: calculated outlet pressure is nonpositive")
+                    continue
+                self._pipe_values[uid] = data
+                o.CalcMode, o.OutletPressure = self.Valve.CalculationMode.OutletPressure, pout
+            if errs:
+                break
             e2 = self.mgr.CalculateFlowsheet4(self.sim)
             errs = [str(e.Message)[:200] for e in e2] if e2 is not None else []
         return errs
@@ -300,6 +388,32 @@ class _Sheet:
                          discharge_C=_r(self.streams[u["out"]].GetTemperature() - 273.15, 1))
             elif t == "valve":
                 r.update(dP_bar=_r(o.DeltaP / 1e5, 3))
+                s = self.streams[u["in"]]
+                rated = (float(u["cv_rated"]) if u.get("cv_rated") is not None else float(u["kv_rated"]) * 1.156) if \
+                    (u.get("cv_rated") is not None or u.get("kv_rated") is not None) else None
+                if float(s.Phases[2].Properties.molarfraction or 0) <= 0.001:
+                    dp = (s.GetPressure() - self.streams[u["out"]].GetPressure()) / 1e5
+                    try:
+                        sizing = _valve_sizing(float(s.GetVolumetricFlow()), float(s.Phases[0].Properties.density), dp,
+                                               rated, u.get("characteristic", "equal_percentage"), float(u.get("rangeability", 50)))
+                        r["cv_required"] = _r(sizing["cv_required"], 3)
+                        if rated is not None:
+                            r["opening_pct"] = _r(sizing["opening_pct"], 2)
+                            if sizing.get("sizing_error"):
+                                r["sizing_error"] = sizing["sizing_error"]
+                    except (TypeError, ValueError) as ex:
+                        if rated is not None:
+                            r["sizing_error"] = f"liquid properties unavailable: {ex}"
+                if rated is not None:
+                    if float(s.Phases[2].Properties.molarfraction or 0) > 0.001:
+                        r.update(cv_required=None, opening_pct=None, sizing_error="liquid-only Cv sizing; gas/two-phase unsupported")
+                    r.update(cv_rated=_r(rated, 3), characteristic=u.get("characteristic", "equal_percentage"))
+            elif t == "pipe":
+                data = getattr(self, "_pipe_values", {}).get(uid)
+                if data:
+                    r.update(dP_bar=_r((self.streams[u["in"]].GetPressure() - self.streams[u["out"]].GetPressure()) / 1e5, 4),
+                             velocity_m_s=_r(data["velocity_m_s"], 3), Reynolds=_r(data["Reynolds"], 0),
+                             friction_factor=_r(data["friction_factor"], 5))
             elif t == "column":
                 r.update(min_stages=_r(o.m_Nmin, 1), stages=_r(o.m_N, 1), min_reflux=_r(o.m_Rmin, 3), reflux=_r(o.m_refluxratio, 3),
                          condenser_kW=_r(abs(o.m_Qc or 0), 1), reboiler_kW=_r(abs(o.m_Qb or 0), 1))
@@ -331,7 +445,11 @@ class _Sheet:
 def _checks(sheet, res):
     """Utilisation (value / limit) of every stated limit; >1 means the equipment cannot do it."""
     out = []
-    for key, lim in (sheet.spec.get("limits") or {}).items():
+    limits = sheet.spec.get("limits") or {}
+    rated_valves = {uid for uid, (spec_u, _) in sheet.units.items() if spec_u["type"] == "valve" and
+                    (spec_u.get("cv_rated") is not None or spec_u.get("kv_rated") is not None)}
+    for key in dict.fromkeys((*limits, *sorted(rated_valves))):
+        lim = limits.get(key, {})
         u, s = res["units"].get(key), res["streams"].get(key)
         def add(what, value, limit, unit, higher_is_worse=True):
             if value is None or not limit:
@@ -347,6 +465,17 @@ def _checks(sheet, res):
             add("NPSH available vs 1.3 x required", u["npsha_m"], 1.3 * lim["npshr_m"] if lim.get("npshr_m") else None, "m",
                 higher_is_worse=False)
             add("discharge vs 90 % of relief set", u["discharge_barg"], 0.9 * lim["psv_set_barg"] if lim.get("psv_set_barg") else None, "barg")
+        if u and u["type"] == "valve" and key in rated_valves:
+            spec_u = sheet.units[key][0]
+            if u.get("sizing_error"):
+                out.append({"id": key, "check": "valve liquid sizing", "error": u["sizing_error"], "utilisation": 1.001})
+            else:
+                add("valve opening vs max travel", u.get("opening_pct"), float(spec_u.get("max_travel_pct", 90)), "%")
+                add("valve opening vs min travel", u.get("opening_pct"), float(spec_u.get("min_travel_pct", 10)), "%",
+                    higher_is_worse=False)
+        if u and u["type"] == "pipe":
+            add("velocity vs limit", u.get("velocity_m_s"), lim.get("max_velocity_m_s"), "m/s")
+            add("pressure drop vs available", u.get("dP_bar"), lim.get("max_dP_bar"), "bar")
         if u and u["type"] in ("hx", "heater", "cooler") and lim.get("out_T_C") is not None:
             side = lim.get("side", "cold")
             if u["type"] == "hx" and lim.get("area_m2"):
