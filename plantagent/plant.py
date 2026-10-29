@@ -1498,6 +1498,10 @@ class PlantWorkspace(Study):
             step += 1
         raise RuntimeError(f"{phase}: no {submit_name} after {step} steps")
 
+    def _capacity_of(self, spec):
+        """Capacity search for the active process engine. DWSIM is the default on this branch."""
+        return process.capacity(spec)
+
     def verify(self, p):
         """Re-solve a proposal in DWSIM at the target throughput. It is verified when every limit of the equipment it targets
         is within 100 % and it pushes no other limit over 100 % that was within it before.
@@ -1521,7 +1525,7 @@ class PlantWorkspace(Study):
         before_cap = self._capacity_of(self.spec)
         spec = patch(self.spec, changes)
         at = process.run(spec, target)
-        cap = process.capacity(spec)
+        cap = self._capacity_of(spec)
         over = [c for c in at["checks"] if c.get("utilisation", 0) > 1.0]
         tag = p.get("tag")
         affected = {tag} if tag else set()

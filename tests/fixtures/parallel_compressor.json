@@ -1,0 +1,63 @@
+{
+  "spec": {
+    "compounds": ["Water"],
+    "package": "IAPWS-95",
+    "feeds": {},
+    "units": [
+      {"id": "V-201", "type": "evaporator", "in": "FEED", "vapor": "S3001raw", "liquid": "S2001"},
+      {"id": "OVERHEAD_SPLIT", "type": "splitter", "in": "S3001raw", "out": ["S3101", "S3001"]},
+      {"id": "K-201", "type": "compressor", "in": "S3001", "out": "S3002raw", "P_out_bar": 3.08, "eff_pct": 75},
+      {"id": "D-201MIX", "type": "mixer", "in": ["S3002raw", "TURBINE_EXH"], "out": "S3002"},
+      {"id": "D-201", "type": "cooler", "in": "S3002", "out": "S3003", "T_out_C": 135},
+      {"id": "E-201", "type": "hx", "hot": ["S3003", "S4001"], "cold": ["C0", "C1"], "area_m2": 8800}
+    ],
+    "limits": {"K-201": {"max_kg_h": 250000}, "E-201": {"area_m2": 8800}}
+  },
+  "changes": [
+    {"add_unit": {"id": "K-SPLIT", "type": "splitter", "in": "S3001", "out": ["K201-SUC", "K202-SUC"], "fractions": [0.833, 0.167]}},
+    {"reroute": {"unit": "K-201", "field": "in", "value": "K201-SUC"}},
+    {"reroute": {"unit": "K-201", "field": "out", "value": "K201-DIS"}},
+    {"add_unit": {"id": "K-202", "type": "compressor", "in": "K202-SUC", "out": "K202-DIS", "P_out_bar": 3.08, "eff_pct": 75},
+     "limits": {"max_kg_h": 60000, "max_kW": 3000},
+     "rating_source": "preliminary size; vendor quote to confirm"},
+    {"add_unit": {"id": "K-JOIN", "type": "mixer", "in": ["K201-DIS", "K202-DIS"], "out": "S3002raw"}}
+  ],
+  "calculation": {
+    "target_scale": 1.2,
+    "capacity_multiple_before": 1.0,
+    "capacity_multiple_after": 1.201,
+    "limited_by_before": {"id": "K-201", "check": "suction flow", "utilisation": 1.2},
+    "limited_by_after": {"id": "V-301", "check": "next-limit utilisation", "utilisation": 0.955},
+    "checks": [
+      {"id": "K-201", "check": "suction flow", "before": 1.2, "after": 1.0, "value": 226800, "limit": 226800, "unit": "kg/h"},
+      {"id": "K-201", "check": "shaft power", "before": null, "after": null, "value": 9400, "limit": null, "unit": "kW"},
+      {"id": "K-202", "check": "suction flow", "before": null, "after": 0.757, "value": 45400, "limit": 60000, "unit": "kg/h"},
+      {"id": "K-202", "check": "shaft power", "before": null, "after": 0.627, "value": 1880, "limit": 3000, "unit": "kW"},
+      {"id": "E-201", "check": "clean required area", "before": null, "after": 0.877, "value": 7719, "limit": 8800, "unit": "m2"},
+      {"id": "V-301", "check": "next-limit utilisation", "before": null, "after": 0.955, "value": 95.5, "limit": 100, "unit": "%"}
+    ],
+    "units": {
+      "K-201": {"kg_h": 226800, "kW": 9400},
+      "K-202": {"kg_h": 45400, "kW": 1880},
+      "E-201": {"area_m2": 7719},
+      "V-301": {}
+    },
+    "streams": [
+      {"id": "K202-SUC", "T_C": 105.2, "P_bar": 1.7, "kg_h": 45400, "vapour_frac": 1.0},
+      {"id": "K202-DIS", "T_C": 148.6, "P_bar": 3.08, "kg_h": 45400, "vapour_frac": 1.0},
+      {"id": "K201-SUC", "T_C": 105.2, "P_bar": 1.7, "kg_h": 226800, "vapour_frac": 1.0}
+    ],
+    "new_equipment": [{
+      "id": "K-202",
+      "type": "compressor",
+      "operating_point": {"kg_h": 45400, "kW": 1880, "eff_pct": 75},
+      "limits": {"max_kg_h": 60000, "max_kW": 3000},
+      "rating_source": "preliminary size; vendor quote to confirm",
+      "status": "new equipment, rating to confirm"
+    }],
+    "assumptions": ["Isentropic efficiency 75 % is assumed.", "Split follows the verified suction balance."],
+    "simulator": "dwsim",
+    "errors": [],
+    "warnings": ["Provisional rating is not a vendor selection."]
+  }
+}

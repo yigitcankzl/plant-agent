@@ -17,6 +17,7 @@ from pathlib import Path
 from . import audit, pid, process
 from .docs import DATA
 from .plant import FIELD, PlantWorkspace, added_equipment, describe_change, display_names
+from .proposed import calculation_markdown, datasheet_markdown, overlay, topology
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -52,12 +53,21 @@ def pssr(spec, changes, names, at):
     units = {u["id"]: u for u in spec.get("units") or []}
     for c in changes:
         if c.get("add_unit"):
-            u, source = c["add_unit"], c.get("rating_source")
+            u, source = c["add_unit"], c.get("rating_source") or "to confirm"
             if u["type"] in ("mixer", "splitter", "recycle"):
                 items.append(f"Confirm the new {u['id']} routing/manifold in the field, including branch isolation, drains, vents and flow direction.")
+                items.append(f"Isolation: confirm valves so the new {u['id']} manifold can be separated from the existing line.")
             else:
-                items.append(f"Confirm the rating and materials of new {u['id']} {u['type']} against {source}; attach the vendor datasheet before approval.")
-                items.append(f"Commission new {u['id']}: verify line-up, rotation/direction, controls, alarms, trips and isolation before introducing process fluid.")
+                items.append(f"Isolation: confirm block valves on each nozzle of new {u['id']} before the line is opened to process fluid.")
+                items.append(f"Check valves and backflow: confirm a non-return device so parallel {u['id']} cannot be driven backwards. To confirm.")
+                items.append(f"Controls and parallel load sharing: confirm how {u['id']} shares load with the existing machine, including a manual fallback. To confirm.")
+                items.append(f"Alarms and trips: confirm process and machine alarms and trips for new {u['id']} before start-up. To confirm.")
+                items.append(f"Relief review: confirm relief protection for new {u['id']} and the changed piping. This file does not size a relief device.")
+                items.append(f"Commissioning: confirm line-up, rotation and a no-load check of new {u['id']} before process fluid.")
+                items.append(f"Materials and wet-service suitability of new {u['id']}: to confirm. No materials certificate is on file.")
+                items.append(f"Vendor curve for new {u['id']}: to confirm against {source}. The rating in this file is provisional.")
+                if u["type"] == "compressor":
+                    items.append(f"Turndown and surge: confirm the surge line, anti-surge control and minimum flow for new compressor {u['id']}. To confirm; no vendor curve is on file.")
             continue
         if c.get("reroute"):
             r = c["reroute"]
@@ -95,33 +105,61 @@ def pssr(spec, changes, names, at):
     return list(dict.fromkeys(items))
 
 
-def redline_svg(w, owners, revs):
-    """The DEXPI P&ID with a revision cloud and note at each changed equipment item."""
-    if not w.cfg.get("svg") or not w.cfg.get("pid"):
+def _stored_calculations(revs, ans):
+    found = [r["calculation"] for r in revs or [] if isinstance(r.get("calculation"), dict)]
+    if found:
+        return found
+    return [p["calculation"] for p in (ans or {}).get("proposals") or []
+            if p.get("verified") and isinstance(p.get("calculation"), dict)]
+
+
+def redline_svg(w, owners, revs, calculation=None):
+    """As-built P&ID plus revision marks. A verified physical addition also gets a draft overlay.
+
+    The case SVG file is only read. Equipment that cannot be placed is named in the overlay
+    and is not given a symbol.
+    """
+    if not w.cfg.get("svg"):
         return None
-    svg = (ROOT / "cases" / w.name / w.cfg["svg"]).read_text()
-    g = pid.parse(DATA / w.cfg["pid"])
-    tag_to_id = {n["tag"]: i for i, n in g["nodes"].items() if n["kind"] == "equipment" and n.get("tag")}
-    root = ET.parse(DATA / w.cfg["pid"]).getroot()
-    pos = {}
-    for e in root.findall("Equipment"):
-        loc = e.find("Position/Location")
-        if loc is not None:
-            pos[e.get("ID")] = (float(loc.get("X")), float(loc.get("Y")))
+    svg_path = Path(w.cfg["svg"])
+    if not svg_path.is_absolute():
+        svg_path = ROOT / "cases" / w.name / w.cfg["svg"]
+    svg = svg_path.read_text()
+    changes = [c for r in revs for c in r.get("changes") or []]
+    drawn = False
+    if changes and added_equipment(changes):
+        base = w._built_spec()
+        result = overlay(svg, base, changes, calculation, verified=True)
+        if result["drawn"]:
+            svg, drawn = result["svg"], True
+    if not drawn and not w.cfg.get("pid"):
+        return None
     marks = []
-    for tag, rev in owners.items():
-        p = pos.get(tag_to_id.get(tag))
-        if not p:
-            continue
-        x, y = p[0], -p[1]  # the pyDEXPI rendering flips Y
-        marks.append(f'<ellipse cx="{x}" cy="{y}" rx="16" ry="12" fill="none" stroke="#d00" stroke-width="0.9" stroke-dasharray="2,1.2"/>'
-                     f'<polygon points="{x + 14},{y - 20} {x + 22},{y - 20} {x + 18},{y - 13}" fill="none" stroke="#d00" stroke-width="0.6"/>'
-                     f'<text x="{x + 15.6}" y="{y - 16.5}" font-size="3.4" fill="#d00" font-family="sans-serif">{rev}</text>')
-    note = "; ".join(f"{r['rev_label']}: {r['title']}" for r in revs)[:300]
-    additions = [f"{e['id']} ({e['rating_source']})" for e in added_equipment([c for r in revs for c in r["changes"]])]
-    if additions:
-        note += "; NEW: " + ", ".join(additions)
-    marks.append(f'<text x="8" y="-288" font-size="4" fill="#d00" font-family="sans-serif">DRAFT REVISION (not approved) - {re.sub("[<>&]", "", note)}</text>')
+    if w.cfg.get("pid"):
+        g = pid.parse(DATA / w.cfg["pid"])
+        tag_to_id = {n["tag"]: i for i, n in g["nodes"].items() if n["kind"] == "equipment" and n.get("tag")}
+        root = ET.parse(DATA / w.cfg["pid"]).getroot()
+        pos = {}
+        for e in root.findall("Equipment"):
+            loc = e.find("Position/Location")
+            if loc is not None:
+                pos[e.get("ID")] = (float(loc.get("X")), float(loc.get("Y")))
+        for tag, rev in owners.items():
+            p = pos.get(tag_to_id.get(tag))
+            if not p:
+                continue
+            x, y = p[0], -p[1]  # the pyDEXPI rendering flips Y
+            marks.append(f'<ellipse cx="{x}" cy="{y}" rx="16" ry="12" fill="none" stroke="#d00" stroke-width="0.9" stroke-dasharray="2,1.2"/>'
+                         f'<polygon points="{x + 14},{y - 20} {x + 22},{y - 20} {x + 18},{y - 13}" fill="none" stroke="#d00" stroke-width="0.6"/>'
+                         f'<text x="{x + 15.6}" y="{y - 16.5}" font-size="3.4" fill="#d00" font-family="sans-serif">{rev}</text>')
+    if not drawn:
+        note = "; ".join(f"{r['rev_label']}: {r['title']}" for r in revs)[:300]
+        additions = [f"{e['id']} ({e['rating_source']})" for e in added_equipment(changes)]
+        if additions:
+            note += "; NEW: " + ", ".join(additions)
+        marks.append(f'<text x="8" y="-288" font-size="4" fill="#d00" font-family="sans-serif">DRAFT REVISION (not approved) - {re.sub("[<>&]", "", note)}</text>')
+    if not marks:
+        return svg
     return svg.replace("</svg>", "".join(marks) + "</svg>")
 
 
@@ -178,7 +216,8 @@ def make(w, answer=None):
     elif ans and any(p.get("verified") for p in ans.get("proposals") or []):
         revs = [{"rev": i + 1, "title": p.get("title"), "changes": p["changes"], "reason": "proposed in the answer, not yet applied",
                  "user": None, "at": None, "proposed_by": ans.get("model"),
-                 "new_equipment": p.get("new_equipment") or added_equipment(p["changes"])}
+                 "new_equipment": p.get("new_equipment") or added_equipment(p["changes"]),
+                 "calculation": p.get("calculation")}
                 for i, p in enumerate(p for p in ans["proposals"] if p.get("verified"))]
         changes = [c for r in revs for c in r["changes"]]
         from .plant import patch
@@ -233,8 +272,19 @@ def make(w, answer=None):
            for r in rows if (r["before"] or 0) > 0.8 or r["after"] > 0.8 or r["id"] in owners]
     md += ["", "## 3. Drawing", "", "Redlined P&ID: `redline.svg` (revision clouds at " + ", ".join(owners) + ")." if w.cfg.get("svg") else
            "This project has no smart P&ID; the changed equipment is: " + ", ".join(owners) + "."]
+    calculations = _stored_calculations(revs, ans)
+    if calculations:
+        md += ["", "## Before / Proposed calculation", ""]
+        md += [calculation_markdown(c) for c in calculations]
+        md += ["", "The numbers above are the stored calculation record. They are not re-typed into this file."]
     if new_equipment:
-        md += ["", "New items are listed on the redline because they are not yet present in the as-built P&ID: " +
+        md += ["", datasheet_markdown(changes, calculations[0] if calculations else None)]
+        md += ["", "### Screening, selection, and approval", "",
+               "- **Simulator screening.** The before/proposed figures are a simulator screening solve. They are not a mechanical design.",
+               "- **Provisional equipment selection.** Ratings on new equipment are preliminary and are marked to confirm. They are not a purchased specification.",
+               "- **Vendor and mechanical design approval.** Not granted. Vendor curve, materials, relief sizing and shop design remain to confirm.", ""]
+    if new_equipment:
+        md += ["", "New items are drawn on the draft redline when the topology can be placed. The as-built P&ID is not modified. Items: " +
                ", ".join(e["id"] for e in new_equipment) + "."]
     md += ["", "## 4. Relief protection (P&ID relief scan)", ""]
     md += ([f"- {x['tag']} {', '.join(x['side_fluids'])} side: {x['status']}. {x['detail']}" + (" Heated side that can be blocked in." if x["thermal_expansion_risk"] else "")
@@ -292,10 +342,12 @@ def make(w, answer=None):
     out.mkdir(parents=True, exist_ok=True)
     (out / "decision.md").write_text(decision_md)
     (out / "memo.md").write_text(memo_md)
-    svg = redline_svg(w, owners, revs)
+    calculations = _stored_calculations(revs, ans)
+    svg = redline_svg(w, owners, revs, calculations[0] if calculations else None)
     if svg:
         (out / "redline.svg").write_text(svg)
     data = {"case": w.name, "made": stamp, "target_scale": target, "revisions": revs, "new_equipment": new_equipment,
+            "topology": topology(built, changes), "calculation": calculations,
             "limits": rows, "pssr": checklist,
             "relief": relief_hit, "second_opinion": so.get("comparison"), "audit_head": head, "code": _git_head(),
             "model_review": reviewed, "gaps": gaps,
