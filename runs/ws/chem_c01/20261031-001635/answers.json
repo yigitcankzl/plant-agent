@@ -1,0 +1,3754 @@
+[
+ {
+  "cards": [
+   {
+    "assumptions": [
+     "U varies with flow ~Q^0.8 from fouled test point 600 W/m2K (data sheet)",
+     "Recirculation fixed at 22020 kg/h =22.5 m3/h (data sheet)",
+     "PSV 47125 excluded - standby relief only (ops description)",
+     "Suction trim and isolation valves lumped - fully open negligible dP"
+    ],
+    "inputs": [
+     {
+      "name": "Product feed scaled to 120%",
+      "source": "data sheet Current operation 18.0 m3/h x1.2 + run 1.2x-base s47121 21.6 m3/h",
+      "value": "21.6 m3/h at 50 C"
+     },
+     {
+      "name": "Cooling water held at today",
+      "source": "data sheet Current operation 20 m3/h + run 1.2x-base s47130 20.0 m3/h",
+      "value": "20.0 m3/h at 25 C"
+     },
+     {
+      "name": "Chilled water held at today",
+      "source": "data sheet Current operation 15 m3/h + run 1.2x-base s47140 15.0 m3/h",
+      "value": "15.0 m3/h at 7 C"
+     },
+     {
+      "name": "Tank working volume today",
+      "source": "data sheet T4750 level 80% 20.8 m3 + P&ID T4750 NominalCapacity 26 m3",
+      "value": "20.8 m3"
+     }
+    ],
+    "result": "35.4 C tank inlet, 25.7 C dispatch, 58.4 min hold - all fail",
+    "runs": [
+     "1.2x-base"
+    ],
+    "status": "fail",
+    "title": "120% on today's settings fails three checks"
+   },
+   {
+    "assumptions": [
+     "Capacity scaled from calibrated model with utilities held (run 1.2x-base)",
+     "First limit reached defines capacity"
+    ],
+    "inputs": [
+     {
+      "name": "Capacity multiple",
+      "source": "process_capacity on run 1.2x-base 1.129 limited by sDispatch",
+      "value": "1.129 times today's feed"
+     },
+     {
+      "name": "Dispatch temperature at capacity",
+      "source": "process_capacity checks_at_capacity sDispatch 25.01 C limit 25 C",
+      "value": "25.01 C vs 25 C limit"
+     },
+     {
+      "name": "Tank inlet at capacity",
+      "source": "process_capacity checks_at_capacity s47123 34.92 C limit 35 C",
+      "value": "34.92 C vs 35 C limit"
+     }
+    ],
+    "result": "Dispatch hits 25 C at 1.129 times throughput",
+    "runs": [
+     "1.2x-base"
+    ],
+    "status": "warn",
+    "title": "Capacity without changes stops near 113 percent"
+   },
+   {
+    "assumptions": [
+     "U varies with flow ~Q^0.8, dP ~Q^1.8 from test flows (spec U_ref_flows)",
+     "Tank at max operating level 85% =22.1 m3 (data sheet)",
+     "Utilities at 90% margin: 27 and 18 m3/h (data sheet Plan no utility above 90%)",
+     "All P&ID flow connections modelled; relief standby excluded"
+    ],
+    "inputs": [
+     {
+      "name": "Cooling water raised",
+      "source": "data sheet branch at most 30 m3/h + run 1.2x-util-max s47130 27.0 m3/h",
+      "value": "27.0 m3/h, dP 0.858 bar vs 1.0 bar available"
+     },
+     {
+      "name": "Chilled water raised",
+      "source": "data sheet branch at most 20 m3/h + run 1.2x-util-max s47140 18.0 m3/h",
+      "value": "18.0 m3/h"
+     },
+     {
+      "name": "Tank working volume raised",
+      "source": "data sheet T4750 max 85% 22.1 m3 + run 1.2x-util-max T4750 62.09 min",
+      "value": "22.1 m3"
+     },
+     {
+      "name": "H1007 area needed",
+      "source": "run 1.2x-util-max H1007 37.76 m2 vs installed 46.8 m2 (P&ID 46.8 m2)",
+      "value": "37.76 m2 vs 46.8 m2 installed"
+     }
+    ],
+    "result": "33.5 C inlet, 23.9 C dispatch, 62.1 min hold - all pass",
+    "runs": [
+     "1.2x-util-max"
+    ],
+    "status": "ok",
+    "title": "120% passes with full utilities and high level"
+   }
+  ],
+  "headline": "More cooling plus higher level reaches 120%",
+  "highlights": [
+   {
+    "severity": "fail",
+    "tag": "H1007",
+    "text": "Outlet 35.4C over 35C at 120% today; 33.5C with 27 m3/h cooling"
+   },
+   {
+    "severity": "fail",
+    "tag": "H1008",
+    "text": "Dispatch 25.7C over 25C at 120% today; 23.9C with 18 m3/h chilled"
+   },
+   {
+    "severity": "fail",
+    "tag": "T4750",
+    "text": "Hold 58.4 min under 60 min at 120%; 62.1 min at 85% level"
+   }
+  ],
+  "proposals": [
+   {
+    "changes": [
+     {
+      "path": "feeds.s47130.m3_h",
+      "value": 27.0,
+      "from": 20.0
+     }
+    ],
+    "cost_class": "no capex",
+    "tag": "H1007",
+    "title": "Raise cooling water to 27 cubic metres per hour",
+    "why": "H1007 outlet 33.5C vs 35C limit in run 1.2x-util-max; cold dP 0.858 bar within 1.0 bar available; no clean or plates needed.",
+    "verified": true,
+    "fixes": "H1007",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.169,
+    "limited_by": {
+     "id": "T4750",
+     "check": "residence time",
+     "value": 59.98,
+     "limit": 60,
+     "unit": "min",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "T4750",
+      "check": "residence time",
+      "value": 58.42,
+      "limit": 60,
+      "unit": "min",
+      "utilisation": 1.027
+     }
+    ],
+    "target_scale": 1.2
+   },
+   {
+    "changes": [
+     {
+      "path": "feeds.s47140.m3_h",
+      "value": 18.0,
+      "from": 15.0
+     }
+    ],
+    "cost_class": "no capex",
+    "tag": "H1008",
+    "title": "Raise chilled water to 18 cubic metres per hour",
+    "why": "Dispatch 23.9C vs 25C limit in run 1.2x-util-max; within 20 m3/h branch at 90% margin.",
+    "verified": true,
+    "fixes": "H1008",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.142,
+    "limited_by": {
+     "id": "s47123",
+     "check": "temperature vs design",
+     "value": 35.01,
+     "limit": 35,
+     "unit": "C",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "H1007",
+      "check": "area needed for hot outlet 35 C",
+      "value": 49.71,
+      "limit": 46.8,
+      "unit": "m2",
+      "utilisation": 1.062
+     },
+     {
+      "id": "T4750",
+      "check": "residence time",
+      "value": 58.41,
+      "limit": 60,
+      "unit": "min",
+      "utilisation": 1.027
+     },
+     {
+      "id": "s47123",
+      "check": "temperature vs design",
+      "value": 35.41,
+      "limit": 35,
+      "unit": "C",
+      "utilisation": 1.012
+     },
+     {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.12,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.005
+     }
+    ],
+    "target_scale": 1.2
+   },
+   {
+    "changes": [
+     {
+      "path": "units.T4750.volume_m3",
+      "value": 22.1,
+      "from": 20.8
+     }
+    ],
+    "cost_class": "no capex",
+    "tag": "T4750",
+    "title": "Raise tank working level to 85 percent",
+    "why": "Hold 62.1 min vs 60 min required in run 1.2x-util-max; at max operating level 22.1 m3 below 90% alarm.",
+    "verified": true,
+    "fixes": "T4750",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.129,
+    "limited_by": {
+     "id": "sDispatch",
+     "check": "temperature vs design",
+     "value": 25.01,
+     "limit": 25,
+     "unit": "C",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "H1007",
+      "check": "area needed for hot outlet 35 C",
+      "value": 49.71,
+      "limit": 46.8,
+      "unit": "m2",
+      "utilisation": 1.062
+     },
+     {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.72,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.029
+     },
+     {
+      "id": "s47123",
+      "check": "temperature vs design",
+      "value": 35.41,
+      "limit": 35,
+      "unit": "C",
+      "utilisation": 1.012
+     }
+    ],
+    "target_scale": 1.2
+   }
+  ],
+  "summary": "At 120% on today's settings H1007 outlet is 35.4C, dispatch 25.7C and hold 58.4 min in run 1.2x-base, failing 35C, 25C and 60 min limits. With 27 m3/h cooling, 18 m3/h chilled water and 22.1 m3 tank level all pass at 33.5C, 23.9C and 62.1 min in run 1.2x-util-max.",
+  "combined": {
+   "reaches_target": true,
+   "capacity_multiple": 1.242,
+   "limited_by": {
+    "id": "T4750",
+    "check": "residence time",
+    "value": 59.98,
+    "limit": 60,
+    "unit": "min",
+    "utilisation": 1.0
+   },
+   "over_limits_at_target": []
+  },
+  "checks": [
+   {
+    "item": "run 1.2x-base",
+    "ok": true
+   },
+   {
+    "item": "run 1.2x-base",
+    "ok": true
+   },
+   {
+    "item": "run 1.2x-util-max",
+    "ok": true
+   }
+  ],
+  "seconds": 177,
+  "cost_usd": 0.0474,
+  "request": "Get the unit to 120% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in DWSIM, within every utility and frame limit on the data sheet."
+ },
+ {
+  "cards": [
+   {
+    "assumptions": [
+     "Perfect mixing in T4750 (tank outlet = tank temperature)",
+     "Heat-transfer and pressure-drop flow scaling in calibrated model retained"
+    ],
+    "inputs": [
+     {
+      "basis": "measured",
+      "name": "Product feed today",
+      "source": "Data sheet Current operation line 47121 18.0 m3/h 50 C 1.5 bar(a)",
+      "value": "18.0 m3/h, scaled x1.2 to 21.6 m3/h in run"
+     },
+     {
+      "basis": "measured",
+      "name": "Cooling water today",
+      "source": "Data sheet Current operation 20 m3/h 25 C",
+      "value": "20 m3/h"
+     },
+     {
+      "basis": "measured",
+      "name": "Chilled water today",
+      "source": "Data sheet Current operation 15 m3/h 7 C",
+      "value": "15 m3/h"
+     },
+     {
+      "basis": "measured",
+      "name": "Tank working volume today",
+      "source": "Data sheet Current operation T4750 80% 20.8 m3",
+      "value": "20.8 m3"
+     },
+     {
+      "basis": "documented",
+      "name": "Limits",
+      "source": "Data sheet Process requirements 35 C into tank, 25 C dispatch, 60 min hold",
+      "value": "35 C / 25 C / 60 min"
+     }
+    ],
+    "result": "At 120% on today settings: tank feed 35.4 C, dispatch 25.7 C, hold 58.4 min - all fail",
+    "runs": [
+     "1.2x-base-6"
+    ],
+    "status": "fail",
+    "title": "120% on today's settings fails three checks"
+   },
+   {
+    "assumptions": [
+     "Same mixing and scaling as base case"
+    ],
+    "inputs": [
+     {
+      "basis": "documented",
+      "name": "Cooling branch limit",
+      "source": "Data sheet Site datasheets at most 30 m3/h, plan no utility above 90%",
+      "value": "90% = 27.0 m3/h"
+     },
+     {
+      "basis": "documented",
+      "name": "Cooling dP available",
+      "source": "Data sheet Site datasheets 1.0 bar across H1007",
+      "value": "1.0 bar"
+     },
+     {
+      "basis": "documented",
+      "name": "Tank max operating level",
+      "source": "Data sheet Site datasheets T4750 max 85% 22.1 m3",
+      "value": "22.1 m3"
+     },
+     {
+      "basis": "computed",
+      "name": "H1007 cold-side dP at 27 m3/h",
+      "source": "Run 1.2x-fixed H1007 dP cold 0.858 bar",
+      "value": "0.858 bar < 1.0 bar"
+     },
+     {
+      "basis": "computed",
+      "name": "H1007 outlet at 27 m3/h",
+      "source": "Run 1.2x-fixed s47123 33.5 C",
+      "value": "33.5 C < 35 C"
+     },
+     {
+      "basis": "computed",
+      "name": "Dispatch at 27 m3/h + high level",
+      "source": "Run 1.2x-fixed sDispatch 24.47 C",
+      "value": "24.47 C < 25 C"
+     },
+     {
+      "basis": "computed",
+      "name": "Hold at 22.1 m3",
+      "source": "Run 1.2x-fixed T4750 62.07 min",
+      "value": "62.07 min > 60 min"
+     }
+    ],
+    "result": "With 27 cooling water and 22.1 tank: 33.5 C, 24.5 C, 62.1 min - all pass",
+    "runs": [
+     "1.2x-fixed",
+     "1.2x-cw27-7"
+    ],
+    "status": "ok",
+    "title": "Fixed operating point passes every limit"
+   },
+   {
+    "assumptions": [],
+    "inputs": [
+     {
+      "basis": "documented",
+      "name": "P4711 rating",
+      "source": "Data sheet Site datasheets P4711 rated 25 m3/h at 12 m motor 2.2 kW min 8 m3/h",
+      "value": "25 m3/h / 12 m / 2.2 kW"
+     },
+     {
+      "basis": "documented",
+      "name": "P4712 rating",
+      "source": "Data sheet Site datasheets P4712 max stroke 50 m3/h motor 7.5 kW PSV 6 barg",
+      "value": "50 m3/h / 7.5 kW / 6 barg"
+     },
+     {
+      "basis": "documented",
+      "name": "H1007 frame",
+      "source": "Data sheet Site datasheets frame to 60 m2; P&ID H1007 area 46.8 m2",
+      "value": "46.8 m2 installed < 60 m2"
+     },
+     {
+      "basis": "computed",
+      "name": "Pumps at 120% fixed",
+      "source": "Run 1.2x-fixed P4711 21.6 m3/h 0.86 kW, P4712 43.87 m3/h 6.09 kW",
+      "value": "P4711 86% flow 39% power; P4712 88% flow 81% power"
+     },
+     {
+      "basis": "computed",
+      "name": "Chilled water margin",
+      "source": "Run 1.2x-fixed s47140 15 vs 90% limit 18 m3/h",
+      "value": "83% of 90% supply - no increase needed"
+     },
+     {
+      "basis": "computed",
+      "name": "H1008 duty margin",
+      "source": "Run 1.2x-fixed H1008 duty 202 kW",
+      "value": "202 kW below 313 kW design"
+     },
+     {
+      "basis": "computed",
+      "name": "Chilled-water-only test",
+      "source": "Run 1.2x-chw18-8 with 18 m3/h chilled water alone still 35.4 C and 25.1 C",
+      "value": "Chilled water alone does not fix limits"
+     }
+    ],
+    "result": "Pumps, H1008, relief and frames have margin; no change to H1008 needed",
+    "runs": [
+     "1.2x-fixed",
+     "1.2x-chw18-8"
+    ],
+    "status": "ok",
+    "title": "Other equipment does not limit 120%"
+   }
+  ],
+  "field_checks": [],
+  "headline": "Higher flow possible with more cooling and level",
+  "highlights": [
+   {
+    "severity": "fail",
+    "tag": "H1007",
+    "text": "Limits 120%: needs 49.7 m2 for 35 C, only 46.8 installed - fixed by 27 m3/h cooling"
+   },
+   {
+    "severity": "fail",
+    "tag": "T4750",
+    "text": "Limits 120%: hold 58.4 min under 60 min - fixed by 85% level 22.1 m3"
+   },
+   {
+    "severity": "ok",
+    "tag": "H1008",
+    "text": "Not limiting: dispatch passes with existing 15 m3/h chilled water once H1007 fixed"
+   },
+   {
+    "severity": "ok",
+    "tag": "P4711",
+    "text": "Not limiting: 21.6 m3/h within 25 rated, 0.86 kW within 2.2 kW"
+   },
+   {
+    "severity": "ok",
+    "tag": "P4712",
+    "text": "Not limiting: 43.9 m3/h within 50 rated, 6.09 kW within 7.5 kW"
+   }
+  ],
+  "proposals": [
+   {
+    "changes": [
+     {
+      "path": "feeds.s47130.m3_h",
+      "value": 27.0,
+      "from": 20.0
+     }
+    ],
+    "cost_class": "no capex",
+    "tag": "H1007",
+    "title": "Raise H1007 cooling water to 27 m3/h",
+    "why": "Hot outlet falls 35.4 to 33.5 C and dispatch 25.7 to 24.5 C in run 1.2x-fixed; dP 0.86 bar within 1.0 bar and flow at 90% of 30 m3/h supply.",
+    "verified": true,
+    "fixes": "H1007",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.169,
+    "limited_by": {
+     "id": "T4750",
+     "check": "residence time",
+     "value": 59.98,
+     "limit": 60,
+     "unit": "min",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "T4750",
+      "check": "residence time",
+      "value": 58.42,
+      "limit": 60,
+      "unit": "min",
+      "utilisation": 1.027
+     }
+    ],
+    "target_scale": 1.2
+   },
+   {
+    "changes": [
+     {
+      "path": "units.T4750.volume_m3",
+      "value": 22.1,
+      "from": 20.8
+     }
+    ],
+    "cost_class": "no capex",
+    "tag": "T4750",
+    "title": "Raise T4750 working level to 85% (22.1 m3)",
+    "why": "Hold rises 58.4 to 62.1 min in run 1.2x-fixed, within max operating level 85%; high alarm is 90%.",
+    "verified": true,
+    "fixes": "T4750",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.129,
+    "limited_by": {
+     "id": "sDispatch",
+     "check": "temperature vs design",
+     "value": 25.01,
+     "limit": 25,
+     "unit": "C",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "H1007",
+      "check": "area needed for hot outlet 35 C",
+      "value": 49.71,
+      "limit": 46.8,
+      "unit": "m2",
+      "utilisation": 1.062
+     },
+     {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.72,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.029
+     },
+     {
+      "id": "s47123",
+      "check": "temperature vs design",
+      "value": 35.41,
+      "limit": 35,
+      "unit": "C",
+      "utilisation": 1.012
+     }
+    ],
+    "target_scale": 1.2
+   }
+  ],
+  "summary": "At 120% (21.6 m3/h) today's settings fail tank feed, dispatch and hold. With 27 m3/h cooling water and tank at 22.1 m3 all pass and every pump, utility and frame limit is respected in run 1.2x-fixed.",
+  "combined": {
+   "reaches_target": true,
+   "capacity_multiple": 1.242,
+   "limited_by": {
+    "id": "T4750",
+    "check": "residence time",
+    "value": 59.98,
+    "limit": 60,
+    "unit": "min",
+    "utilisation": 1.0
+   },
+   "over_limits_at_target": []
+  },
+  "checks": [
+   {
+    "item": "run 1.2x-base-6",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run 1.2x-fixed",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run 1.2x-cw27-7",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run 1.2x-chw18-8",
+    "ok": true,
+    "why": ""
+   }
+  ],
+  "seconds": 195,
+  "cost_usd": 0.0168,
+  "request": "Get the unit to 120% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in DWSIM, within every utility and frame limit on the data sheet.",
+  "model": "muse-spark-1.3-contributor",
+  "second_opinion": {
+   "model": "baseten:meta-models/muse-spark-open-1026",
+   "error": "RuntimeError: ask: no answer after 18 steps"
+  }
+ },
+ {
+  "cards": [
+   {
+    "assumptions": [
+     "NRTL package for aqueous ethanol",
+     "Tank perfectly mixed, residence on dispatch flow",
+     "H1007 U varies with flow ~Q^0.8 and dP ~Q^1.8 from tested point",
+     "Pumps 70% efficiency default - power margin large"
+    ],
+    "inputs": [
+     {
+      "basis": "measured",
+      "name": "Product feed at 120%",
+      "source": "Data sheet 18.0 m3/h x1.2 =21.6 m3/h, 50 C",
+      "value": "21.6 m3/h at 50 C"
+     },
+     {
+      "basis": "measured",
+      "name": "Cooling water today",
+      "source": "Data sheet 20 m3/h at 25 C to H1007",
+      "value": "20 m3/h"
+     },
+     {
+      "basis": "measured",
+      "name": "Chilled water today",
+      "source": "Data sheet 15 m3/h at 7 C to H1008",
+      "value": "15 m3/h"
+     },
+     {
+      "basis": "documented",
+      "name": "Tank working volume today",
+      "source": "Data sheet 80% =20.8 m3, P&ID T4750 26 m3 nominal",
+      "value": "20.8 m3"
+     },
+     {
+      "basis": "computed",
+      "name": "H1007 outlet / dispatch / hold",
+      "source": "Run 1.2x-base streams s47123, sDispatch, unit T4750",
+      "value": "35.41 C / 25.72 C / 58.4 min"
+     },
+     {
+      "basis": "computed",
+      "name": "H1007 area needed for 35 C",
+      "source": "Run 1.2x-base checks H1007",
+      "value": "49.71 m2 vs installed 46.8 m2"
+     }
+    ],
+    "result": "35.4C tank feed, 25.7C dispatch, 58.4min hold - all fail",
+    "runs": [
+     "1.2x-base"
+    ],
+    "status": "fail",
+    "title": "120% on today's settings fails"
+   },
+   {
+    "assumptions": [
+     "Same as base card",
+     "Recirculation held 22.5 m3/h (22020 kg/h)",
+     "Cooling 27 m3/h =90% of 30, chilled 18 m3/h =90% of 20"
+    ],
+    "inputs": [
+     {
+      "basis": "documented",
+      "name": "Cooling water max usable",
+      "source": "Data sheet branch max 30 m3/h, plan no utility above 90%",
+      "value": "27.0 m3/h at 25 C"
+     },
+     {
+      "basis": "documented",
+      "name": "Chilled water max usable",
+      "source": "Data sheet branch max 20 m3/h, plan no utility above 90%",
+      "value": "18.0 m3/h at 7 C"
+     },
+     {
+      "basis": "documented",
+      "name": "Tank max operating level",
+      "source": "Data sheet max 85% =22.1 m3",
+      "value": "22.1 m3"
+     },
+     {
+      "basis": "computed",
+      "name": "H1007 outlet / dispatch / hold",
+      "source": "Run 1.2x-fixed streams s47123, sDispatch, unit T4750",
+      "value": "33.5 C / 23.9 C / 62.09 min"
+     },
+     {
+      "basis": "computed",
+      "name": "H1007 cold-side drop vs available",
+      "source": "Run 1.2x-fixed unit H1007 dP cold",
+      "value": "0.858 bar vs 1.0 bar limit"
+     },
+     {
+      "basis": "computed",
+      "name": "Pumps and frame",
+      "source": "Run 1.2x-fixed units P4711 21.6 m3/h 0.86kW, P4712 43.86 m3/h 6.09kW, H1007 46.8/60 m2",
+      "value": "P4711 86%, P4712 88%, frame 78% - all pass"
+     }
+    ],
+    "result": "33.5C tank feed, 23.9C dispatch, 62.1min hold - all pass",
+    "runs": [
+     "1.2x-fixed"
+    ],
+    "status": "ok",
+    "title": "120% with full utilities and full tank passes"
+   },
+   {
+    "assumptions": [
+     "Same as fixed card"
+    ],
+    "inputs": [
+     {
+      "basis": "computed",
+      "name": "Capacity on today's settings",
+      "source": "process_capacity on 1.2x-base",
+      "value": "1.129x limited by dispatch 25C"
+     },
+     {
+      "basis": "computed",
+      "name": "Capacity after fix",
+      "source": "process_capacity on 1.2x-fixed",
+      "value": "1.242x limited by T4750 60min"
+     },
+     {
+      "basis": "documented",
+      "name": "P4711 rating",
+      "source": "Site datasheet 25 m3/h, 12m, 2.2kW supersedes P&ID 200m3/h/60kW",
+      "value": "21.6 m3/h needs 10.54m, 0.86kW - passes"
+     },
+     {
+      "basis": "documented",
+      "name": "P4712 rating + relief",
+      "source": "Site datasheet 50 m3/h 7.5kW, P&ID PSV 47125 set 6 barg",
+      "value": "43.9 m3/h 6.1kW, 3.5barg <90% of 6barg - passes"
+     }
+    ],
+    "result": "Fixed unit holds to 124% of today, then tank hold limits",
+    "runs": [
+     "1.2x-fixed"
+    ],
+    "status": "ok",
+    "title": "Spare capacity after fix"
+   }
+  ],
+  "headline": "120% works with more cooling and level",
+  "highlights": [
+   {
+    "severity": "fail",
+    "tag": "H1007",
+    "text": "Limits at 120% on today: 35.4C vs 35C, needs 49.7m2 vs 46.8m2"
+   },
+   {
+    "severity": "fail",
+    "tag": "H1008",
+    "text": "Limits at 120% on today: dispatch 25.7C vs 25C"
+   },
+   {
+    "severity": "fail",
+    "tag": "T4750",
+    "text": "Limits at 120% on today: 58.4min vs 60min"
+   },
+   {
+    "severity": "ok",
+    "tag": "P4711",
+    "text": "OK to 120%: 21.6m3/h vs 25m3/h, 0.86kW vs 2.2kW"
+   },
+   {
+    "severity": "ok",
+    "tag": "P4712",
+    "text": "OK to 120%: 43.9m3/h vs 50m3/h, 6.1kW vs 7.5kW"
+   }
+  ],
+  "proposals": [
+   {
+    "changes": [
+     {
+      "path": "feeds.s47130.m3_h",
+      "value": 27.0,
+      "from": 20.0
+     }
+    ],
+    "cost_class": "no capex",
+    "tag": "H1007",
+    "title": "Raise cooling water to 27 m3/h",
+    "why": "Brings H1007 outlet 35.4C to 33.5C in run 1.2x-fixed, dP 0.86bar within 1.0bar, flow at 90% of 30m3/h supply.",
+    "verified": true,
+    "fixes": "H1007",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.169,
+    "limited_by": {
+     "id": "T4750",
+     "check": "residence time",
+     "value": 59.98,
+     "limit": 60,
+     "unit": "min",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "T4750",
+      "check": "residence time",
+      "value": 58.42,
+      "limit": 60,
+      "unit": "min",
+      "utilisation": 1.027
+     }
+    ],
+    "target_scale": 1.2
+   },
+   {
+    "changes": [
+     {
+      "path": "feeds.s47140.m3_h",
+      "value": 18.0,
+      "from": 15.0
+     }
+    ],
+    "cost_class": "no capex",
+    "tag": "H1008",
+    "title": "Raise chilled water to 18 m3/h",
+    "why": "Brings dispatch 25.7C to 23.9C in run 1.2x-fixed, flow at 90% of 20m3/h supply.",
+    "verified": true,
+    "fixes": "H1008",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.142,
+    "limited_by": {
+     "id": "s47123",
+     "check": "temperature vs design",
+     "value": 35.01,
+     "limit": 35,
+     "unit": "C",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "H1007",
+      "check": "area needed for hot outlet 35 C",
+      "value": 49.71,
+      "limit": 46.8,
+      "unit": "m2",
+      "utilisation": 1.062
+     },
+     {
+      "id": "T4750",
+      "check": "residence time",
+      "value": 58.41,
+      "limit": 60,
+      "unit": "min",
+      "utilisation": 1.027
+     },
+     {
+      "id": "s47123",
+      "check": "temperature vs design",
+      "value": 35.41,
+      "limit": 35,
+      "unit": "C",
+      "utilisation": 1.012
+     },
+     {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.12,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.005
+     }
+    ],
+    "target_scale": 1.2
+   },
+   {
+    "changes": [
+     {
+      "path": "units.T4750.volume_m3",
+      "value": 22.1,
+      "from": 20.8
+     }
+    ],
+    "cost_class": "no capex",
+    "tag": "T4750",
+    "title": "Raise working level to 85% (22.1 m3)",
+    "why": "Brings hold 58.4min to 62.1min in run 1.2x-fixed, within max operating level.",
+    "verified": true,
+    "fixes": "T4750",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.129,
+    "limited_by": {
+     "id": "sDispatch",
+     "check": "temperature vs design",
+     "value": 25.01,
+     "limit": 25,
+     "unit": "C",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "H1007",
+      "check": "area needed for hot outlet 35 C",
+      "value": 49.71,
+      "limit": 46.8,
+      "unit": "m2",
+      "utilisation": 1.062
+     },
+     {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.72,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.029
+     },
+     {
+      "id": "s47123",
+      "check": "temperature vs design",
+      "value": 35.41,
+      "limit": 35,
+      "unit": "C",
+      "utilisation": 1.012
+     }
+    ],
+    "target_scale": 1.2
+   }
+  ],
+  "summary": "On today's settings 120% fails all three product rules in run 1.2x-base. With cooling to 27, chilled water to 18 and tank to 22.1 cubic metres all pass in run 1.2x-fixed within every pump, utility and frame limit.",
+  "combined": {
+   "reaches_target": true,
+   "capacity_multiple": 1.242,
+   "limited_by": {
+    "id": "T4750",
+    "check": "residence time",
+    "value": 59.98,
+    "limit": 60,
+    "unit": "min",
+    "utilisation": 1.0
+   },
+   "over_limits_at_target": []
+  },
+  "checks": [
+   {
+    "item": "run 1.2x-base",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run 1.2x-fixed",
+    "ok": true,
+    "why": ""
+   }
+  ],
+  "seconds": 194,
+  "cost_usd": 0.0337,
+  "request": "Get the unit to 120% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in DWSIM, within every utility and frame limit on the data sheet.",
+  "model": "muse-spark-1.3-contributor",
+  "second_opinion": {
+   "model": "baseten:meta-models/muse-spark-open-1026",
+   "error": "RuntimeError: ask: no answer after 26 steps"
+  }
+ },
+ {
+  "cards": [
+   {
+    "assumptions": [
+     "U varies with flow ~Q^0.8 and dP ~Q^1.8 from model (assumed standard exponents)",
+     "Recirculation held at 22.5 m3/h per data sheet (measured)",
+     "Utility supply temperatures 25 C cooling water and 7 C chilled water hold (measured)"
+    ],
+    "inputs": [
+     {
+      "basis": "measured",
+      "name": "product feed at 120%",
+      "source": "data sheet Current operation 18.0 m3/h x1.2; run 1.2x-base streams.s47121.m3_h",
+      "value": "21.6 m3/h at 50 C in run 1.2x-base"
+     },
+     {
+      "basis": "measured",
+      "name": "cooling water flow",
+      "source": "data sheet Current operation 20 m3/h; run 1.2x-base feeds.s47130",
+      "value": "20.0 m3/h at 25 C"
+     },
+     {
+      "basis": "measured",
+      "name": "chilled water flow",
+      "source": "data sheet Current operation 15 m3/h; run 1.2x-base feeds.s47140",
+      "value": "15.0 m3/h at 7 C"
+     },
+     {
+      "basis": "documented",
+      "name": "tank working volume",
+      "source": "data sheet T4750 level 80% 20.8 m3; run 1.2x-base units.T4750",
+      "value": "20.8 m3"
+     },
+     {
+      "basis": "documented",
+      "name": "H1007 area installed",
+      "source": "P&ID H1007 DesignHeatTransferArea 46.8 m2; run 1.2x-base units.H1007",
+      "value": "46.8 m2, U 600 W/m2K fouled test"
+     }
+    ],
+    "result": "H1007 outlet 35.4 C, dispatch 25.7 C, hold 58.4 min: fails 35 C, 25 C, 60 min",
+    "runs": [
+     "1.2x-base"
+    ],
+    "status": "fail",
+    "title": "120% on today settings fails all product rules"
+   },
+   {
+    "assumptions": [
+     "Same U scaling and recirculation as base card",
+     "Tank at 85% max operating level per datasheet, below 90% alarm"
+    ],
+    "inputs": [
+     {
+      "basis": "documented",
+      "name": "cooling water raised to plan limit",
+      "source": "data sheet branch at most 30 m3/h plan to 90% =27; run 1.2x-fixed feeds.s47130",
+      "value": "27.0 m3/h, dP-cold 0.86 bar vs 1.0 bar limit"
+     },
+     {
+      "basis": "documented",
+      "name": "chilled water raised to plan limit",
+      "source": "data sheet branch at most 20 m3/h plan to 90% =18; run 1.2x-fixed feeds.s47140",
+      "value": "18.0 m3/h"
+     },
+     {
+      "basis": "documented",
+      "name": "tank raised to max operating level",
+      "source": "data sheet T4750 max 85% 22.1 m3; run 1.2x-fixed units.T4750",
+      "value": "22.1 m3"
+     },
+     {
+      "basis": "computed",
+      "name": "pump utilisation at 120%",
+      "source": "run 1.2x-fixed units.P4711 21.6/25 m3/h, units.P4712 43.9/50 m3/h",
+      "value": "P4711 86%, P4712 88%, motors 39% and 81%"
+     },
+     {
+      "basis": "documented",
+      "name": "H1007 frame limit",
+      "source": "data sheet frame to 60 m2; run 1.2x-fixed checks",
+      "value": "46.8 m2 vs 60 m2, needs 37.8 m2"
+     }
+    ],
+    "result": "H1007 outlet 33.5 C, dispatch 23.9 C, hold 62.1 min: all pass",
+    "runs": [
+     "1.2x-fixed"
+    ],
+    "status": "ok",
+    "title": "120% passes with higher utilities and level"
+   }
+  ],
+  "headline": "120 percent needs more cooling and higher level",
+  "highlights": [
+   {
+    "severity": "fail",
+    "tag": "H1007",
+    "text": "needs 49.7 m2 at 120% on today flows, has 46.8 m2; outlet 35.4C over 35C"
+   },
+   {
+    "severity": "fail",
+    "tag": "H1008",
+    "text": "dispatch 25.7C over 25C at 120% on today chilled flow"
+   },
+   {
+    "severity": "fail",
+    "tag": "T4750",
+    "text": "hold 58.4 min under 60 min at 120% on today level"
+   }
+  ],
+  "proposals": [
+   {
+    "changes": [
+     {
+      "path": "feeds.s47130.m3_h",
+      "value": 27.0,
+      "from": 20.0
+     }
+    ],
+    "cost_class": "no capex",
+    "tag": "H1007",
+    "title": "Raise H1007 cooling water to 27 m3/h",
+    "why": "Closes H1007 outlet from 35.4C to 33.5C in run 1.2x-fixed; at 90% of 30 m3/h supply and dP 0.86/1.0 bar.",
+    "verified": true,
+    "fixes": "H1007",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.169,
+    "limited_by": {
+     "id": "T4750",
+     "check": "residence time",
+     "value": 59.98,
+     "limit": 60,
+     "unit": "min",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "T4750",
+      "check": "residence time",
+      "value": 58.42,
+      "limit": 60,
+      "unit": "min",
+      "utilisation": 1.027
+     }
+    ],
+    "target_scale": 1.2
+   },
+   {
+    "changes": [
+     {
+      "path": "feeds.s47140.m3_h",
+      "value": 18.0,
+      "from": 15.0
+     }
+    ],
+    "cost_class": "no capex",
+    "tag": "H1008",
+    "title": "Raise H1008 chilled water to 18 m3/h",
+    "why": "Closes dispatch from 25.7C to 23.9C in run 1.2x-fixed; at 90% of 20 m3/h supply.",
+    "verified": true,
+    "fixes": "H1008",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.142,
+    "limited_by": {
+     "id": "s47123",
+     "check": "temperature vs design",
+     "value": 35.01,
+     "limit": 35,
+     "unit": "C",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "H1007",
+      "check": "area needed for hot outlet 35 C",
+      "value": 49.71,
+      "limit": 46.8,
+      "unit": "m2",
+      "utilisation": 1.062
+     },
+     {
+      "id": "T4750",
+      "check": "residence time",
+      "value": 58.41,
+      "limit": 60,
+      "unit": "min",
+      "utilisation": 1.027
+     },
+     {
+      "id": "s47123",
+      "check": "temperature vs design",
+      "value": 35.41,
+      "limit": 35,
+      "unit": "C",
+      "utilisation": 1.012
+     },
+     {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.12,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.005
+     }
+    ],
+    "target_scale": 1.2
+   },
+   {
+    "changes": [
+     {
+      "path": "units.T4750.volume_m3",
+      "value": 22.1,
+      "from": 20.8
+     }
+    ],
+    "cost_class": "no capex",
+    "tag": "T4750",
+    "title": "Raise T4750 working level to 22.1 m3",
+    "why": "Raises hold from 58.4 to 62.1 min in run 1.2x-fixed; at 85% max operating level below 90% alarm.",
+    "verified": true,
+    "fixes": "T4750",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.129,
+    "limited_by": {
+     "id": "sDispatch",
+     "check": "temperature vs design",
+     "value": 25.01,
+     "limit": 25,
+     "unit": "C",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "H1007",
+      "check": "area needed for hot outlet 35 C",
+      "value": 49.71,
+      "limit": 46.8,
+      "unit": "m2",
+      "utilisation": 1.062
+     },
+     {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.72,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.029
+     },
+     {
+      "id": "s47123",
+      "check": "temperature vs design",
+      "value": 35.41,
+      "limit": 35,
+      "unit": "C",
+      "utilisation": 1.012
+     }
+    ],
+    "target_scale": 1.2
+   }
+  ],
+  "summary": "At 120% on today settings H1007 outlet 35.4C, dispatch 25.7C and hold 58.4 min fail limits in run 1.2x-base. With cooling to 27, chilled water to 18 and tank to 22.1 m3 all pass at 33.5C, 23.9C and 62.1 min in run 1.2x-fixed within every pump, utility and frame limit.",
+  "combined": {
+   "reaches_target": true,
+   "capacity_multiple": 1.242,
+   "limited_by": {
+    "id": "T4750",
+    "check": "residence time",
+    "value": 59.98,
+    "limit": 60,
+    "unit": "min",
+    "utilisation": 1.0
+   },
+   "over_limits_at_target": []
+  },
+  "checks": [
+   {
+    "item": "run 1.2x-base",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run 1.2x-fixed",
+    "ok": true,
+    "why": ""
+   }
+  ],
+  "seconds": 130,
+  "cost_usd": 0.0061,
+  "request": "Get the unit to 120% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in DWSIM, within every utility and frame limit on the data sheet.",
+  "model": "muse-spark-1.3-contributor",
+  "second_opinion": {
+   "model": "baseten:meta-models/muse-spark-open-1026",
+   "answer": {
+    "headline": "Tank and cooler block 20% rise on today's settings",
+    "summary": "At 21.6 m3/h on today's settings run 120-base fails all three product rules: H1007 outlet 35.4C >35C, dispatch 25.7C >25C, residence 58.4 min <60 min. With cooling-water to 27 m3/h and tank level to 22.1 m3 run 120-CW27-TANK passes at 33.5C, 24.5C and 62.1 min within every pump, dP, utility-90% and frame limit.",
+    "cards": [
+     {
+      "title": "120% on today's settings - fails",
+      "result": "H1007 35.4C >35C, dispatch 25.7C >25C, 58.4 min <60 min",
+      "inputs": [
+       {
+        "name": "Feed 47121",
+        "value": "21.6 m3/h 50C (18.0+20%)",
+        "source": "data sheet Current operation 18.0 m3/h + target 1.2",
+        "basis": "documented"
+       },
+       {
+        "name": "Cooling water WK s47130",
+        "value": "20.0 m3/h 25C",
+        "source": "data sheet Current operation 20 m3/h",
+        "basis": "measured"
+       },
+       {
+        "name": "Chilled water QS s47140",
+        "value": "15.0 m3/h 7C",
+        "source": "data sheet Current operation 15 m3/h",
+        "basis": "measured"
+       },
+       {
+        "name": "Tank T4750 working volume",
+        "value": "20.8 m3 (80% of 26 m3)",
+        "source": "P&ID T4750 NominalCapacity 26 m3; data sheet level 80%",
+        "basis": "documented"
+       },
+       {
+        "name": "H1007 U / area",
+        "value": "600 W/m2K fouled, 46.8 m2",
+        "source": "P&ID H1007 DesignHeatTransferArea 46.8m2; data sheet U600 fouled test",
+        "basis": "documented"
+       },
+       {
+        "name": "Model",
+        "value": "NRTL package, dP scaling 0.3/0.5 bar",
+        "source": "get_spec v2-calibrated; run 120-base",
+        "basis": "computed"
+       }
+      ]
+     },
+     {
+      "title": "H1007 is thermal limit",
+      "result": "Needs 49.7 m2 >46.8 m2 installed to meet 35C",
+      "inputs": [
+       {
+        "name": "H1007 area needed for 35C",
+        "value": "49.7 m2 vs installed 46.8 m2",
+        "source": "run 120-base checks area needed",
+        "basis": "computed"
+       },
+       {
+        "name": "H1007 outlet s47123",
+        "value": "35.41C vs limit 35C",
+        "source": "run 120-base s47123",
+        "basis": "computed"
+       },
+       {
+        "name": "H1007 cold dP at 20 m3/h",
+        "value": "0.50 bar vs 1.0 bar available",
+        "source": "data sheet 0.5 bar at 20 m3/h",
+        "basis": "documented"
+       },
+       {
+        "name": "Cooling branch limit",
+        "value": "30 m3/h, use 90% =27 m3/h",
+        "source": "data sheet max 30 m3/h plan no utility above 90%",
+        "basis": "documented"
+       },
+       {
+        "name": "Pumps check at 120%",
+        "value": "P4711 21.6/25 86%, P4712 43.9/50 88%",
+        "source": "run 120-base P4711/P4712",
+        "basis": "computed"
+       }
+      ]
+     },
+     {
+      "title": "Dispatch 25C also fails due to H1007",
+      "result": "Tank 25.7C >25C; chilled water max alone still fails",
+      "inputs": [
+       {
+        "name": "Dispatch (=tank) T",
+        "value": "25.72C vs 25C limit",
+        "source": "run 120-base sDispatch",
+        "basis": "computed"
+       },
+       {
+        "name": "Chilled water at 90% max",
+        "value": "18.0 m3/h (=90% of 20)",
+        "source": "data sheet max 20 m3/h",
+        "basis": "documented"
+       },
+       {
+        "name": "With CHW 18 alone",
+        "value": "dispatch 25.12C still >25C, H1007 35.4C",
+        "source": "run 120-CHW18",
+        "basis": "computed"
+       },
+       {
+        "name": "With CW 27 alone",
+        "value": "dispatch 24.47C passes without extra CHW",
+        "source": "run 120-CW27",
+        "basis": "computed"
+       }
+      ]
+     },
+     {
+      "title": "Residence limit in T4750",
+      "result": "58.4 min <60 min needs more hold volume",
+      "inputs": [
+       {
+        "name": "Residence basis",
+        "value": "volume / dispatch 21.6 m3/h",
+        "source": "data sheet 60 min on dispatch flow",
+        "basis": "documented"
+       },
+       {
+        "name": "At 20.8 m3",
+        "value": "58.4 min vs 60 min limit",
+        "source": "run 120-base T4750",
+        "basis": "computed"
+       },
+       {
+        "name": "Max operating level",
+        "value": "85% =22.1 m3 (alarm 90%)",
+        "source": "data sheet T4750 max 85% 22.1 m3",
+        "basis": "documented"
+       },
+       {
+        "name": "At 22.1 m3",
+        "value": "62.05 min passes",
+        "source": "run 120-TANK22.1",
+        "basis": "computed"
+       }
+      ]
+     },
+     {
+      "title": "Verified fix: CW 27 + tank 22.1 m3",
+      "result": "33.5C <35C, 24.5C <25C, 62.1 min >60 min ALL PASS",
+      "inputs": [
+       {
+        "name": "CW flow s47130",
+        "value": "27.0 m3/h (=30*0.9)",
+        "source": "data sheet branch limit 30 m3/h",
+        "basis": "documented"
+       },
+       {
+        "name": "H1007 cold dP at 27",
+        "value": "0.86 bar vs 1.0 bar available",
+        "source": "run 120-CW27-TANK H1007",
+        "basis": "computed"
+       },
+       {
+        "name": "H1007 area needed",
+        "value": "37.8 m2 <46.8 m2 installed <60 m2 frame",
+        "source": "run 120-CW27-TANK checks",
+        "basis": "computed"
+       },
+       {
+        "name": "Tank volume",
+        "value": "22.1 m3",
+        "source": "data sheet 85% max",
+        "basis": "documented"
+       },
+       {
+        "name": "Utilities 90% check",
+        "value": "CW 27/27 100%, CHW 15/18 83%",
+        "source": "run 120-CW27-TANK s47130/s47140 checks",
+        "basis": "computed"
+       }
+      ]
+     }
+    ],
+    "runs": [
+     "120-base",
+     "120-CW27-TANK"
+    ],
+    "assumptions": [
+     "Steady-state NRTL for Water-Ethanol 7 mol% ethanol, well-mixed atmospheric T4750 at 1.013 bar",
+     "H1007/H1008 U 600 W/m2K fouled at current flows with flow correction U~Q^0.8 and dP~Q^1.8 (0.3 bar product, 0.5 bar CW at test flows)",
+     "Recirculation fixed 22.5 m3/h (22020 kg/h) by P4712 stroke/SPLIT_47126, PV4712.02 drop 2.5 bar, P4711 dP 1.0 bar, P4712 dP 3.5 bar",
+     "T4750 residence = working volume / dispatch flow (off-page 47126); current 20.8 m3 =80% of 26 m3 nominal",
+     "P4711 centrifugal rated 25 m3/h at 12 m motor 2.2 kW NPSHr 2.5 m (datasheet supersedes P&ID 200 m3/h/60 kW template)",
+     "Isolation/check/reducer/ball valves lumped as negligible; PSV 47125 6 barg only relieves to tank, not in normal model"
+    ],
+    "status": "warn",
+    "highlights": [
+     {
+      "tag": "H1007",
+      "text": "Limits at 120%: needs 49.7 m2 >46.8 m2 to hold outlet to 35C; outlet 35.4C (run 120-base)",
+      "severity": "fail"
+     },
+     {
+      "tag": "T4750",
+      "text": "Limits residence: 58.4 min <60 min at 20.8 m3; passes 62.1 min at 22.1 m3 (run 120-CW27-TANK)",
+      "severity": "fail"
+     },
+     {
+      "tag": "P4711",
+      "text": "OK at 120%: 21.6/25 m3/h 86%, head 10.5/12 m 88%, NPSHa 13.7 m (run 120-base)",
+      "severity": "ok"
+     },
+     {
+      "tag": "P4712",
+      "text": "OK at 120%: 43.9/50 m3/h 88%, 6.1/7.5 kW 81%, discharge 3.5 barg <5.4 barg (90% PSV)",
+      "severity": "ok"
+     },
+     {
+      "tag": "H1008",
+      "text": "Not limiting: dispatch passes at 15 m3/h CHW once H1007 outlet cooled; 24.5C in run 120-CW27-TANK",
+      "severity": "ok"
+     }
+    ],
+    "proposals": [
+     {
+      "title": "H1007: raise cooling-water to 27 m3/h (90% of branch)",
+      "tag": "H1007",
+      "changes": [
+       {
+        "path": "feeds.s47130.m3_h",
+        "value": 27.0,
+        "from": 20.0
+       }
+      ],
+      "cost_class": "no capex",
+      "why": "Cheapest operating change within documented branch limit 30 m3/h at 1.0 bar dP. Verified in DWSIM run 120-CW27-TANK: H1007 outlet 33.5C <35C, area needed 37.8 m2 <46.8 m2, cold dP 0.86 bar <1.0 bar, frame 46.8<60 m2, all pumps/utilities <90% supply.",
+      "verified": true,
+      "fixes": "H1007",
+      "still_over": [],
+      "breaks": [],
+      "capacity_multiple": 1.169,
+      "limited_by": {
+       "id": "T4750",
+       "check": "residence time",
+       "value": 59.98,
+       "limit": 60,
+       "unit": "min",
+       "utilisation": 1.0
+      },
+      "reaches_target": false,
+      "over_limits_at_target": [
+       {
+        "id": "T4750",
+        "check": "residence time",
+        "value": 58.42,
+        "limit": 60,
+        "unit": "min",
+        "utilisation": 1.027
+       }
+      ],
+      "target_scale": 1.2
+     },
+     {
+      "title": "T4750: raise operating level to 85% =22.1 m3",
+      "tag": "T4750",
+      "changes": [
+       {
+        "path": "units.T4750.volume_m3",
+        "value": 22.1,
+        "from": 20.8
+       }
+      ],
+      "cost_class": "no capex",
+      "why": "Cheapest operating change within datasheet max operating level 85% (alarm 90%). Verified in run 120-CW27-TANK: residence 62.1 min >60 min on dispatch 21.6 m3/h, tank atmospheric, within level alarm.",
+      "verified": true,
+      "fixes": "T4750",
+      "still_over": [],
+      "breaks": [],
+      "capacity_multiple": 1.129,
+      "limited_by": {
+       "id": "sDispatch",
+       "check": "temperature vs design",
+       "value": 25.01,
+       "limit": 25,
+       "unit": "C",
+       "utilisation": 1.0
+      },
+      "reaches_target": false,
+      "over_limits_at_target": [
+       {
+        "id": "H1007",
+        "check": "area needed for hot outlet 35 C",
+        "value": 49.71,
+        "limit": 46.8,
+        "unit": "m2",
+        "utilisation": 1.062
+       },
+       {
+        "id": "sDispatch",
+        "check": "temperature vs design",
+        "value": 25.72,
+        "limit": 25,
+        "unit": "C",
+        "utilisation": 1.029
+       },
+       {
+        "id": "s47123",
+        "check": "temperature vs design",
+        "value": 35.41,
+        "limit": 35,
+        "unit": "C",
+        "utilisation": 1.012
+       }
+      ],
+      "target_scale": 1.2
+     }
+    ],
+    "field_checks": [
+     {
+      "item": "H1007 fouling state U and CW supply 25C",
+      "where": "Confirm CW inlet TC in DCS trend and request performance test for U; measure CW flow with ultrasonic at H1007",
+      "changes": "If CW is warmer than 25C in summer or U <600, 27 m3/h may not hold 35C; then cleaning to 900 W/m2K restores margin (run 120-clean outlet 33.0C) or add plates to 60 m2 frame"
+     },
+     {
+      "item": "T4750 level-volume calibration and alarm setpoint",
+      "where": "Tank gauging table vs LT4750.01 reading at 85%/90% in field",
+      "changes": "If 22.1 m3 not achievable (instrument error), residence fails; then reduce dispatch or add buffer volume"
+     },
+     {
+      "item": "P4711/P4712 actual margins at 120%",
+      "where": "Check PI/P4711 discharge, FT 47121/47126, kW on MCC",
+      "changes": "If P4711 trips >25 m3/h or P4712 >50 m3/h due to wear, 120% not holdable; propose impeller/motor upgrade >$100k only then"
+     }
+    ],
+    "combined": {
+     "reaches_target": true,
+     "capacity_multiple": 1.242,
+     "limited_by": {
+      "id": "T4750",
+      "check": "residence time",
+      "value": 59.98,
+      "limit": 60,
+      "unit": "min",
+      "utilisation": 1.0
+     },
+     "over_limits_at_target": []
+    },
+    "checks": [],
+    "seconds": 105,
+    "cost_usd": 0.1505,
+    "request": "Get the unit to 120% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in DWSIM, within every utility and frame limit on the data sheet.",
+    "model": "baseten:meta-models/muse-spark-open-1026"
+   },
+   "comparison": {
+    "agree": [
+     "feeds.s47130.m3_h: 27.0 vs 27.0",
+     "units.T4750.volume_m3: 22.1 vs 22.1",
+     "reaches the target: yes vs yes"
+    ],
+    "disagree": [
+     "limiting equipment: H1007, H1008, T4750 vs H1007, T4750",
+     "feeds.s47140.m3_h: only the main model changes it",
+     "verified in DWSIM: H1007, H1008, T4750 vs H1007, T4750"
+    ],
+    "status": "partly"
+   }
+  }
+ },
+ {
+  "cards": [
+   {
+    "assumptions": [
+     "Even 50/50 process and cooling-water split via balancing valves (assumed)",
+     "New cooler same fouled performance as H1007, U 600 W/m2K (site datasheet test, assumed same fouling)",
+     "Same dP reference 0.3/0.5 bar and flow exponents as H1007 (assumed same plate type)"
+    ],
+    "inputs": [
+     {
+      "basis": "computed",
+      "name": "Product feed at 120%",
+      "source": "data sheet 18.0 m3/h x 1.2 (run 1.2x-H1007B-parallel)",
+      "value": "21.6 m3/h at 50 C"
+     },
+     {
+      "basis": "measured",
+      "name": "Cooling water to H1007/H1007B total",
+      "source": "data sheet current operation 20 m3/h (run 1.2x-H1007B-parallel)",
+      "value": "20 m3/h at 25 C"
+     },
+     {
+      "basis": "measured",
+      "name": "Chilled water to H1008",
+      "source": "data sheet current operation 15 m3/h (run 1.2x-H1007B-parallel)",
+      "value": "15 m3/h at 7 C"
+     },
+     {
+      "basis": "documented",
+      "name": "T4750 working volume",
+      "source": "data sheet 80% level 20.8 m3",
+      "value": "20.8 m3"
+     },
+     {
+      "basis": "documented",
+      "name": "H1007 installed area",
+      "source": "P&ID H1007 DesignHeatTransferArea 46.8 m2",
+      "value": "46.8 m2"
+     },
+     {
+      "basis": "assumed",
+      "name": "H1007B new area",
+      "source": "proposal same size as H1007",
+      "value": "46.8 m2"
+     },
+     {
+      "basis": "documented",
+      "name": "Fouled U both coolers",
+      "source": "site datasheet 600 W/m2K 2024 test",
+      "value": "600 W/m2K"
+     }
+    ],
+    "result": "Tank inlet 34.5C passes; dispatch 25.1C and 58.4 min fail",
+    "runs": [
+     "1.2x-H1007B-parallel"
+    ],
+    "status": "fail",
+    "title": "120% with second H1007 in parallel, today's utilities"
+   }
+  ],
+  "field_checks": [
+   {
+    "changes": "Even split assumed; if one branch takes 60%+ flow its outlet rises ~1-2C and tank inlet could exceed 35C",
+    "item": "Branch flow balance after install",
+    "where": "Measure s47122a/s47122b or H1007/H1007B outlets at T4750 feed, trim balancing valves to 50/50"
+   }
+  ],
+  "headline": "Second cooler fixes tank feed only",
+  "highlights": [
+   {
+    "severity": "ok",
+    "tag": "H1007",
+    "text": "Twin coolers: tank inlet 34.5C passes 35C (was 35.4C single)"
+   },
+   {
+    "severity": "fail",
+    "tag": "T4750",
+    "text": "Dispatch 25.1C fails 25C, hold 58.4 min fails 60 min at 120%"
+   }
+  ],
+  "proposals": [
+   {
+    "changes": [
+     {
+      "add_unit": {
+       "fractions": [
+        0.5,
+        0.5
+       ],
+       "id": "SPLIT_H1007",
+       "in": "s47122",
+       "out": [
+        "s47122a",
+        "s47122b"
+       ],
+       "type": "splitter"
+      }
+     },
+     {
+      "add_unit": {
+       "fractions": [
+        0.5,
+        0.5
+       ],
+       "id": "SPLIT_CW",
+       "in": "s47130",
+       "out": [
+        "s47130a",
+        "s47130b"
+       ],
+       "type": "splitter"
+      }
+     },
+     {
+      "add_unit": {
+       "U_W_m2K": 600,
+       "area_m2": 46.8,
+       "cold": [
+        "s47130b",
+        "s47131b"
+       ],
+       "dP_ref_bar": [
+        0.3,
+        0.5
+       ],
+       "hot": [
+        "s47122b",
+        "s47123b"
+       ],
+       "id": "H1007B",
+       "type": "hx",
+       "U_ref_flows_m3_h": [
+        18,
+        20
+       ]
+      },
+      "limits": {
+       "area_m2": 46.8,
+       "max_area_m2": 60,
+       "max_dP_cold_bar": 1.0,
+       "out_T_C": 35,
+       "side": "hot"
+      },
+      "rating_source": "same size as H1007 - vendor quote to confirm"
+     },
+     {
+      "add_unit": {
+       "id": "MIX_H1007h",
+       "in": [
+        "s47123a",
+        "s47123b"
+       ],
+       "out": "s47123m",
+       "type": "mixer"
+      }
+     },
+     {
+      "reroute": {
+       "field": "hot",
+       "unit": "H1007",
+       "value": [
+        "s47122a",
+        "s47123a"
+       ]
+      },
+      "from": [
+       "s47122",
+       "s47123a"
+      ]
+     },
+     {
+      "reroute": {
+       "field": "cold",
+       "unit": "H1007",
+       "value": [
+        "s47130a",
+        "s47131"
+       ]
+      },
+      "from": [
+       "s47130",
+       "s47131"
+      ]
+     },
+     {
+      "reroute": {
+       "field": "in",
+       "unit": "47123/C1",
+       "value": "s47123m"
+      },
+      "from": "s47123a"
+     }
+    ],
+    "cost_class": "$100k-$1M",
+    "tag": "H1007",
+    "title": "Add second H1007 cooler in parallel (H1007B, same 46.8 m2)",
+    "why": "Halves flow per cooler: tank inlet 35.4C to 34.5C at 120% on today's utilities; dispatch and hold still need chilled-water plus level rises per earlier answers",
+    "normalized_changes": [],
+    "verified": true,
+    "fixes": "H1007",
+    "still_over": [],
+    "breaks": [],
+    "disappeared_checks": [],
+    "capacity_multiple": 1.169,
+    "limited_by": {
+     "id": "T4750",
+     "check": "residence time",
+     "value": 59.98,
+     "limit": 60,
+     "unit": "min",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "T4750",
+      "check": "residence time",
+      "value": 58.41,
+      "limit": 60,
+      "unit": "min",
+      "utilisation": 1.027
+     },
+     {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.13,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.005
+     }
+    ],
+    "target_scale": 1.2,
+    "new_equipment": [
+     {
+      "id": "H1007B",
+      "type": "hx",
+      "limits": {
+       "area_m2": 46.8,
+       "max_area_m2": 60,
+       "max_dP_cold_bar": 1.0,
+       "out_T_C": 35,
+       "side": "hot"
+      },
+      "rating_source": "same size as H1007 - vendor quote to confirm",
+      "status": "new equipment, rating to confirm"
+     }
+    ],
+    "calculation": {
+     "target_scale": 1.2,
+     "capacity_multiple_before": 1.129,
+     "capacity_multiple_after": 1.169,
+     "limited_by_before": {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.01,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.0
+     },
+     "limited_by_after": {
+      "id": "T4750",
+      "check": "residence time",
+      "value": 59.98,
+      "limit": 60,
+      "unit": "min",
+      "utilisation": 1.0
+     },
+     "checks": [
+      {
+       "id": "T4750",
+       "check": "residence time",
+       "before": 1.027,
+       "after": 1.027,
+       "value": 58.41,
+       "limit": 60,
+       "unit": "min"
+      },
+      {
+       "id": "sDispatch",
+       "check": "temperature vs design",
+       "before": 1.029,
+       "after": 1.005,
+       "value": 25.13,
+       "limit": 25,
+       "unit": "C"
+      },
+      {
+       "id": "s47123",
+       "check": "temperature vs design",
+       "before": 1.012,
+       "after": 0.987,
+       "value": 34.54,
+       "limit": 35,
+       "unit": "C"
+      },
+      {
+       "id": "H1007",
+       "check": "area needed for hot outlet 35 C",
+       "before": 1.062,
+       "after": 0.924,
+       "value": 43.22,
+       "limit": 46.8,
+       "unit": "m2"
+      },
+      {
+       "id": "H1007B",
+       "check": "area needed for hot outlet 35 C",
+       "before": null,
+       "after": 0.924,
+       "value": 43.22,
+       "limit": 46.8,
+       "unit": "m2"
+      },
+      {
+       "id": "P4712",
+       "check": "flow vs rated",
+       "before": 0.878,
+       "after": 0.878,
+       "value": 43.88,
+       "limit": 50,
+       "unit": "m3/h"
+      },
+      {
+       "id": "P4712",
+       "check": "shaft power vs motor",
+       "before": 0.813,
+       "after": 0.812,
+       "value": 6.09,
+       "limit": 7.5,
+       "unit": "kW"
+      },
+      {
+       "id": "H1007",
+       "check": "installed area vs frame",
+       "before": 0.78,
+       "after": 0.78,
+       "value": 46.8,
+       "limit": 60,
+       "unit": "m2"
+      },
+      {
+       "id": "H1007B",
+       "check": "installed area vs frame",
+       "before": null,
+       "after": 0.78,
+       "value": 46.8,
+       "limit": 60,
+       "unit": "m2"
+      },
+      {
+       "id": "P4712",
+       "check": "discharge vs 90 % of relief set",
+       "before": 0.648,
+       "after": 0.648,
+       "value": 3.5,
+       "limit": 5.4,
+       "unit": "barg"
+      },
+      {
+       "id": "H1007",
+       "check": "cold-side pressure drop vs available",
+       "before": 0.5,
+       "after": 0.144,
+       "value": 0.144,
+       "limit": 1.0,
+       "unit": "bar"
+      },
+      {
+       "id": "H1007B",
+       "check": "cold-side pressure drop vs available",
+       "before": null,
+       "after": 0.144,
+       "value": 0.144,
+       "limit": 1.0,
+       "unit": "bar"
+      },
+      {
+       "id": "MIX_TANK",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "SPLIT_47126",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "RECYC",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "SPLIT_H1007",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "SPLIT_CW",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "MIX_H1007h",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      }
+     ],
+     "units": {
+      "47123/C1": {
+       "type": "valve",
+       "dP_bar": 1.367,
+       "cv_required": 20.94
+      },
+      "47127/C1": {
+       "type": "valve",
+       "dP_bar": 2.5,
+       "cv_required": 16.264
+      },
+      "47141/C1": {
+       "type": "valve",
+       "dP_bar": 0.3,
+       "cv_required": 31.708
+      },
+      "H1007": {
+       "type": "hx",
+       "duty_kW": 171.0,
+       "lmtd_C": 9.89,
+       "U_W_m2K": 369.7,
+       "area_m2": 46.8,
+       "dP_hot_bar": 0.12,
+       "dP_cold_bar": 0.144
+      },
+      "H1007B": {
+       "type": "hx",
+       "duty_kW": 171.0,
+       "lmtd_C": 9.89,
+       "U_W_m2K": 369.7,
+       "area_m2": 46.8,
+       "dP_hot_bar": 0.12,
+       "dP_cold_bar": 0.144
+      },
+      "H1008": {
+       "type": "hx",
+       "duty_kW": 209.7,
+       "lmtd_C": 7.47,
+       "U_W_m2K": 600.1,
+       "area_m2": 46.8,
+       "dP_hot_bar": 0.0,
+       "dP_cold_bar": 0.0
+      },
+      "MIX_H1007h": {
+       "type": "mixer"
+      },
+      "MIX_TANK": {
+       "type": "mixer"
+      },
+      "P4712": {
+       "type": "pump",
+       "m3_h": 43.88,
+       "head_m": 36.48,
+       "dP_bar": 3.5,
+       "eff_pct": 70.0,
+       "kW": 6.09,
+       "npsha_m": 9.98,
+       "discharge_barg": 3.5,
+       "kind": "positive_displacement"
+      },
+      "RECYC": {
+       "type": "recycle"
+      },
+      "SPLIT_47126": {
+       "type": "splitter"
+      },
+      "SPLIT_CW": {
+       "type": "splitter"
+      },
+      "SPLIT_H1007": {
+       "type": "splitter"
+      },
+      "T4750": {
+       "type": "tank",
+       "residence_min": 58.41,
+       "volume_m3": 20.8,
+       "residence_basis": "sDispatch"
+      }
+     },
+     "streams": [
+      {
+       "id": "s47130a",
+       "T_C": 25.0,
+       "P_bar": 4.0,
+       "kg_h": 9963.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 9963.73,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47122a",
+       "T_C": 50.01,
+       "P_bar": 2.5,
+       "kg_h": 10449.4,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 8762.75,
+        "Ethanol": 1686.62
+       }
+      },
+      {
+       "id": "s47131",
+       "T_C": 39.74,
+       "P_bar": 3.856,
+       "kg_h": 9963.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 9963.73,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47123a",
+       "T_C": 34.51,
+       "P_bar": 2.38,
+       "kg_h": 10449.4,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 8762.75,
+        "Ethanol": 1686.62
+       }
+      },
+      {
+       "id": "s47123m",
+       "T_C": 34.51,
+       "P_bar": 2.38,
+       "kg_h": 20898.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 17525.49,
+        "Ethanol": 3373.24
+       }
+      },
+      {
+       "id": "s47123",
+       "T_C": 34.54,
+       "P_bar": 1.013,
+       "kg_h": 20898.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 17525.49,
+        "Ethanol": 3373.24
+       }
+      },
+      {
+       "id": "s47127_r",
+       "T_C": 16.06,
+       "P_bar": 2.013,
+       "kg_h": 22020.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 18465.77,
+        "Ethanol": 3554.23
+       }
+      },
+      {
+       "id": "sTankIn",
+       "T_C": 25.09,
+       "P_bar": 1.013,
+       "kg_h": 42918.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 35991.27,
+        "Ethanol": 6927.47
+       }
+      },
+      {
+       "id": "s47124",
+       "T_C": 25.09,
+       "P_bar": 1.013,
+       "kg_h": 42918.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 35991.27,
+        "Ethanol": 6927.47
+       }
+      },
+      {
+       "id": "s47126a",
+       "T_C": 25.13,
+       "P_bar": 4.513,
+       "kg_h": 42918.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 35991.27,
+        "Ethanol": 6927.47
+       }
+      },
+      {
+       "id": "s47126c",
+       "T_C": 25.13,
+       "P_bar": 4.513,
+       "kg_h": 22020.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 18465.77,
+        "Ethanol": 3554.23
+       }
+      },
+      {
+       "id": "sDispatch",
+       "T_C": 25.13,
+       "P_bar": 4.513,
+       "kg_h": 20898.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 17525.49,
+        "Ethanol": 3373.24
+       }
+      },
+      {
+       "id": "s47140",
+       "T_C": 7.0,
+       "P_bar": 4.0,
+       "kg_h": 14998.8,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 14998.77,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47141a",
+       "T_C": 19.01,
+       "P_bar": 4.0,
+       "kg_h": 14998.8,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 14998.77,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47127a",
+       "T_C": 15.99,
+       "P_bar": 4.513,
+       "kg_h": 22020.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 18465.77,
+        "Ethanol": 3554.23
+       }
+      },
+      {
+       "id": "s47127",
+       "T_C": 16.06,
+       "P_bar": 2.013,
+       "kg_h": 22020.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 18465.77,
+        "Ethanol": 3554.23
+       }
+      },
+      {
+       "id": "s47141",
+       "T_C": 19.01,
+       "P_bar": 3.7,
+       "kg_h": 14998.8,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 14998.77,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47122",
+       "T_C": 50.01,
+       "P_bar": 2.5,
+       "kg_h": 20898.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 17525.49,
+        "Ethanol": 3373.24
+       }
+      },
+      {
+       "id": "s47122b",
+       "T_C": 50.01,
+       "P_bar": 2.5,
+       "kg_h": 10449.4,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 8762.75,
+        "Ethanol": 1686.62
+       }
+      },
+      {
+       "id": "s47130",
+       "T_C": 25.0,
+       "P_bar": 4.0,
+       "kg_h": 19927.5,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 19927.46,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47130b",
+       "T_C": 25.0,
+       "P_bar": 4.0,
+       "kg_h": 9963.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 9963.73,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47131b",
+       "T_C": 39.74,
+       "P_bar": 3.856,
+       "kg_h": 9963.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 9963.73,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47123b",
+       "T_C": 34.51,
+       "P_bar": 2.38,
+       "kg_h": 10449.4,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 8762.75,
+        "Ethanol": 1686.62
+       }
+      }
+     ],
+     "new_equipment": [
+      {
+       "id": "H1007B",
+       "type": "hx",
+       "operating_point": {
+        "type": "hx",
+        "duty_kW": 171.0,
+        "lmtd_C": 9.89,
+        "U_W_m2K": 369.7,
+        "area_m2": 46.8,
+        "dP_hot_bar": 0.12,
+        "dP_cold_bar": 0.144
+       },
+       "limits": {
+        "area_m2": 46.8,
+        "max_area_m2": 60,
+        "max_dP_cold_bar": 1.0,
+        "out_T_C": 35,
+        "side": "hot"
+       },
+       "rating_source": "same size as H1007 - vendor quote to confirm",
+       "status": "new equipment, rating to confirm"
+      }
+     ],
+     "assumptions": [],
+     "simulator": "dwsim",
+     "errors": [],
+     "warnings": [],
+     "model_label": "v2-calibrated"
+    }
+   }
+  ],
+  "summary": "At 120% with a twin 46.8 m2 cooler on today's 20/15 m3/h utilities, tank inlet falls to 34.5C in run 1.2x-H1007B-parallel, passing the 35C limit. Dispatch stays at 25.1C and hold at 58.4 min, still failing 25C and 60 min, so chilled-water and level rises are still needed.",
+  "artifacts": [],
+  "checks": [
+   {
+    "item": "run 1.2x-H1007B-parallel",
+    "ok": true,
+    "why": ""
+   }
+  ],
+  "seconds": 132,
+  "cost_usd": 0.0058,
+  "request": "Add a second cooler in parallel with H1007, same size, and tell me what it does to the plant at 120%.",
+  "model": "muse-spark-1.3-contributor"
+ },
+ {
+  "cards": [
+   {
+    "assumptions": [
+     "Equal 50/50 split - identical pumps with symmetric piping (assumed)",
+     "Same 1.0 bar differential pressure for each branch (documented operating point)"
+    ],
+    "inputs": [
+     {
+      "basis": "documented",
+      "name": "Feed at 120%",
+      "source": "data sheet 18.0 m3/h x target 1.2",
+      "value": "21.6 m3/h"
+     },
+     {
+      "basis": "documented",
+      "name": "P4711 rating",
+      "source": "site datasheet rated 25 m3/h at 12 m, motor 2.2 kW, min 8 m3/h",
+      "value": "25 m3/h / 2.2 kW / 8 m3/h min"
+     },
+     {
+      "basis": "computed",
+      "name": "Single P4711 at 120%",
+      "source": "run 1.2x-base-check: 21.6 m3/h, 0.86 kW, head 10.54 m",
+      "value": "86% flow, 39% power, 88% head"
+     },
+     {
+      "basis": "computed",
+      "name": "Parallel P4711+P4711B at 120%",
+      "source": "run 1.2x-P4711B-parallel: 10.8 m3/h and 0.43 kW each",
+      "value": "43% flow, 20% power each, above 8 m3/h min"
+     },
+     {
+      "basis": "computed",
+      "name": "Parallel at 100% today",
+      "source": "run 1.0x-P4711B-parallel: 9.0 m3/h each",
+      "value": "9.0 m3/h each, still above 8 m3/h min"
+     }
+    ],
+    "result": "Single pump passes at 21.6 m3/h; twin pumps share 10.8 each",
+    "runs": [
+     "1.2x-base-check",
+     "1.2x-P4711B-parallel",
+     "1.0x-P4711B-parallel"
+    ],
+    "status": "ok",
+    "title": "Feed pump second unit check"
+   },
+   {
+    "assumptions": [
+     "Next standard motor above 7.5 kW is 11 kW IEC frame (assumed - confirm vendor)",
+     "Shaft power unchanged by motor size - same 3.5 bar duty (computed)"
+    ],
+    "inputs": [
+     {
+      "basis": "documented",
+      "name": "P4712 rating",
+      "source": "site datasheet max stroke 50 m3/h, motor 7.5 kW",
+      "value": "50 m3/h / 7.5 kW"
+     },
+     {
+      "basis": "computed",
+      "name": "P4712 duty at 120%",
+      "source": "run 1.2x-base-check: 43.89 m3/h total, 6.1 kW shaft",
+      "value": "43.89 m3/h, 6.1 kW"
+     },
+     {
+      "basis": "computed",
+      "name": "Existing motor utilisation",
+      "source": "run 1.2x-base-check: 6.1 / 7.5 kW",
+      "value": "81% of 7.5 kW - passes"
+     },
+     {
+      "basis": "computed",
+      "name": "11 kW motor utilisation",
+      "source": "run 1.2x-P4712-11kW: 6.1 / 11 kW",
+      "value": "55% of 11 kW - more margin, no process change"
+     }
+    ],
+    "result": "6.1 kW drawn: 81% of 7.5 kW, 55% of 11 kW",
+    "runs": [
+     "1.2x-base-check",
+     "1.2x-P4712-11kW"
+    ],
+    "status": "ok",
+    "title": "Dispatch pump motor check"
+   },
+   {
+    "assumptions": [],
+    "inputs": [
+     {
+      "basis": "documented",
+      "name": "Product limits",
+      "source": "data sheet: tank feed 35 C, dispatch 25 C, hold 60 min",
+      "value": "35 C / 25 C / 60 min"
+     },
+     {
+      "basis": "computed",
+      "name": "With parallel pumps at 120%",
+      "source": "run 1.2x-P4711B-parallel: tank feed 35.4 C, dispatch 25.7 C, hold 58.4 min",
+      "value": "35.4 C, 25.7 C, 58.4 min - all fail"
+     }
+    ],
+    "result": "Pumps do not fix heat or hold: cooling and level still needed",
+    "runs": [
+     "1.2x-P4711B-parallel"
+    ],
+    "status": "fail",
+    "title": "System limits still fail"
+   }
+  ],
+  "field_checks": [
+   {
+    "changes": "If split is uneven one pump could drop below 8 m3/h minimum or overload above 25 m3/h",
+    "item": "Actual flow split with both pumps running and standby philosophy",
+    "where": "Measure branch flows at P4711 discharge headers with clamp-on or test with one pump running vs two"
+   },
+   {
+    "changes": "If next size is 15 kW not 11 kW, cost and frame fit change but conclusion still passes",
+    "item": "Confirm next standard motor size and frame/foundation fit for P4712",
+    "where": "Vendor quote and site check of P4712 motor plinth and starter"
+   }
+  ],
+  "headline": "Pumps cope at 120 percent, cooling still fails",
+  "highlights": [
+   {
+    "severity": "ok",
+    "tag": "P4711",
+    "text": "single 21.6/25 m3/h passes; twin 10.8 each passes min 8"
+   },
+   {
+    "severity": "ok",
+    "tag": "P4712",
+    "text": "6.1 kW is 81% of 7.5 kW, 55% of 11 kW - margin either way"
+   },
+   {
+    "severity": "fail",
+    "tag": "H1007",
+    "text": "35.4 C tank feed exceeds 35 C even with second pump"
+   },
+   {
+    "severity": "fail",
+    "tag": "T4750",
+    "text": "58.4 min hold and 25.7 C dispatch still fail - see answers 1-3 fixes"
+   }
+  ],
+  "proposals": [
+   {
+    "changes": [
+     {
+      "add_unit": {
+       "fractions": [
+        0.5,
+        0.5
+       ],
+       "id": "SPLIT_P4711",
+       "in": "s47121",
+       "out": [
+        "s47121a",
+        "s47121b"
+       ],
+       "type": "splitter"
+      }
+     },
+     {
+      "add_unit": {
+       "dP_bar": 1.0,
+       "id": "P4711B",
+       "in": "s47121b",
+       "kind": "centrifugal",
+       "out": "s47122b",
+       "type": "pump"
+      },
+      "limits": {
+       "max_head_m": 12,
+       "max_kW": 2.2,
+       "max_m3_h": 25,
+       "min_m3_h": 8,
+       "npshr_m": 2.5
+      },
+      "rating_source": "same model as P4711 - site datasheet rated 25 m3/h at 12 m, motor 2.2 kW, min 8 m3/h, NPSHr 2.5 m; vendor quote to confirm"
+     },
+     {
+      "add_unit": {
+       "id": "MIX_P4711",
+       "in": [
+        "s47122a",
+        "s47122b"
+       ],
+       "out": "s47122",
+       "type": "mixer"
+      }
+     },
+     {
+      "reroute": {
+       "field": "in",
+       "unit": "P4711",
+       "value": "s47121a"
+      },
+      "from": "s47121"
+     },
+     {
+      "reroute": {
+       "field": "out",
+       "unit": "P4711",
+       "value": "s47122a"
+      },
+      "from": "s47122"
+     }
+    ],
+    "cost_class": "<$100k",
+    "tag": "P4711",
+    "title": "Add second P4711 pump in parallel (P4711B, same model)",
+    "why": "Gives duty/standby and halves running flow to 10.8 m3/h each at 120% (run 1.2x-P4711B-parallel), still above 8 m3/h minimum. Single pump already passes at 86% flow, so this is resilience not capacity, and does not fix 35.4 C / 25.7 C / 58.4 min failures.",
+    "normalized_changes": [],
+    "verified": true,
+    "fixes": "P4711",
+    "still_over": [],
+    "breaks": [],
+    "disappeared_checks": [],
+    "capacity_multiple": 1.129,
+    "limited_by": {
+     "id": "sDispatch",
+     "check": "temperature vs design",
+     "value": 25.01,
+     "limit": 25,
+     "unit": "C",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "H1007",
+      "check": "area needed for hot outlet 35 C",
+      "value": 49.71,
+      "limit": 46.8,
+      "unit": "m2",
+      "utilisation": 1.062
+     },
+     {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.72,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.029
+     },
+     {
+      "id": "T4750",
+      "check": "residence time",
+      "value": 58.4,
+      "limit": 60,
+      "unit": "min",
+      "utilisation": 1.027
+     },
+     {
+      "id": "s47123",
+      "check": "temperature vs design",
+      "value": 35.41,
+      "limit": 35,
+      "unit": "C",
+      "utilisation": 1.012
+     }
+    ],
+    "target_scale": 1.2,
+    "new_equipment": [
+     {
+      "id": "P4711B",
+      "type": "pump",
+      "limits": {
+       "max_head_m": 12,
+       "max_kW": 2.2,
+       "max_m3_h": 25,
+       "min_m3_h": 8,
+       "npshr_m": 2.5
+      },
+      "rating_source": "same model as P4711 - site datasheet rated 25 m3/h at 12 m, motor 2.2 kW, min 8 m3/h, NPSHr 2.5 m; vendor quote to confirm",
+      "status": "new equipment, rating to confirm"
+     }
+    ],
+    "calculation": {
+     "target_scale": 1.2,
+     "capacity_multiple_before": 1.129,
+     "capacity_multiple_after": 1.129,
+     "limited_by_before": {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.01,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.0
+     },
+     "limited_by_after": {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.01,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.0
+     },
+     "checks": [
+      {
+       "id": "H1007",
+       "check": "area needed for hot outlet 35 C",
+       "before": 1.062,
+       "after": 1.062,
+       "value": 49.71,
+       "limit": 46.8,
+       "unit": "m2"
+      },
+      {
+       "id": "T4750",
+       "check": "residence time",
+       "before": 1.027,
+       "after": 1.027,
+       "value": 58.4,
+       "limit": 60,
+       "unit": "min"
+      },
+      {
+       "id": "P4711",
+       "check": "head vs rated",
+       "before": 0.878,
+       "after": 0.878,
+       "value": 10.54,
+       "limit": 12,
+       "unit": "m"
+      },
+      {
+       "id": "P4712",
+       "check": "flow vs rated",
+       "before": 0.878,
+       "after": 0.878,
+       "value": 43.89,
+       "limit": 50,
+       "unit": "m3/h"
+      },
+      {
+       "id": "P4711B",
+       "check": "head vs rated",
+       "before": null,
+       "after": 0.878,
+       "value": 10.54,
+       "limit": 12,
+       "unit": "m"
+      },
+      {
+       "id": "P4712",
+       "check": "shaft power vs motor",
+       "before": 0.813,
+       "after": 0.813,
+       "value": 6.1,
+       "limit": 7.5,
+       "unit": "kW"
+      },
+      {
+       "id": "H1007",
+       "check": "installed area vs frame",
+       "before": 0.78,
+       "after": 0.78,
+       "value": 46.8,
+       "limit": 60,
+       "unit": "m2"
+      },
+      {
+       "id": "P4711",
+       "check": "flow vs minimum continuous",
+       "before": 0.37,
+       "after": 0.741,
+       "value": 10.8,
+       "limit": 8,
+       "unit": "m3/h"
+      },
+      {
+       "id": "P4711B",
+       "check": "flow vs minimum continuous",
+       "before": null,
+       "after": 0.741,
+       "value": 10.8,
+       "limit": 8,
+       "unit": "m3/h"
+      },
+      {
+       "id": "P4712",
+       "check": "discharge vs 90 % of relief set",
+       "before": 0.648,
+       "after": 0.648,
+       "value": 3.5,
+       "limit": 5.4,
+       "unit": "barg"
+      },
+      {
+       "id": "H1007",
+       "check": "cold-side pressure drop vs available",
+       "before": 0.5,
+       "after": 0.5,
+       "value": 0.5,
+       "limit": 1.0,
+       "unit": "bar"
+      },
+      {
+       "id": "P4711",
+       "check": "flow vs rated",
+       "before": 0.864,
+       "after": 0.432,
+       "value": 10.8,
+       "limit": 25,
+       "unit": "m3/h"
+      },
+      {
+       "id": "P4711B",
+       "check": "flow vs rated",
+       "before": null,
+       "after": 0.432,
+       "value": 10.8,
+       "limit": 25,
+       "unit": "m3/h"
+      },
+      {
+       "id": "P4711",
+       "check": "NPSH available vs 1.3 x required",
+       "before": 0.238,
+       "after": 0.238,
+       "value": 13.67,
+       "limit": 3.25,
+       "unit": "m"
+      },
+      {
+       "id": "P4711B",
+       "check": "NPSH available vs 1.3 x required",
+       "before": null,
+       "after": 0.238,
+       "value": 13.67,
+       "limit": 3.25,
+       "unit": "m"
+      },
+      {
+       "id": "P4711",
+       "check": "shaft power vs motor",
+       "before": 0.391,
+       "after": 0.195,
+       "value": 0.43,
+       "limit": 2.2,
+       "unit": "kW"
+      },
+      {
+       "id": "P4711B",
+       "check": "shaft power vs motor",
+       "before": null,
+       "after": 0.195,
+       "value": 0.43,
+       "limit": 2.2,
+       "unit": "kW"
+      },
+      {
+       "id": "MIX_TANK",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "SPLIT_47126",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "RECYC",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "SPLIT_P4711",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "MIX_P4711",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      }
+     ],
+     "units": {
+      "47123/C1": {
+       "type": "valve",
+       "dP_bar": 1.07,
+       "cv_required": 23.671
+      },
+      "47127/C1": {
+       "type": "valve",
+       "dP_bar": 2.5,
+       "cv_required": 16.265
+      },
+      "47141/C1": {
+       "type": "valve",
+       "dP_bar": 0.3,
+       "cv_required": 31.71
+      },
+      "H1007": {
+       "type": "hx",
+       "duty_kW": 323.1,
+       "lmtd_C": 10.73,
+       "U_W_m2K": 643.7,
+       "area_m2": 46.8,
+       "dP_hot_bar": 0.417,
+       "dP_cold_bar": 0.5
+      },
+      "H1008": {
+       "type": "hx",
+       "duty_kW": 216.6,
+       "lmtd_C": 7.71,
+       "U_W_m2K": 600.2,
+       "area_m2": 46.8,
+       "dP_hot_bar": 0.0,
+       "dP_cold_bar": 0.0
+      },
+      "MIX_P4711": {
+       "type": "mixer"
+      },
+      "MIX_TANK": {
+       "type": "mixer"
+      },
+      "P4711": {
+       "type": "pump",
+       "m3_h": 10.8,
+       "head_m": 10.54,
+       "dP_bar": 1.0,
+       "eff_pct": 70.0,
+       "kW": 0.43,
+       "npsha_m": 13.67,
+       "discharge_barg": 1.487,
+       "kind": "centrifugal"
+      },
+      "P4711B": {
+       "type": "pump",
+       "m3_h": 10.8,
+       "head_m": 10.54,
+       "dP_bar": 1.0,
+       "eff_pct": 70.0,
+       "kW": 0.43,
+       "npsha_m": 13.67,
+       "discharge_barg": 1.487,
+       "kind": "centrifugal"
+      },
+      "P4712": {
+       "type": "pump",
+       "m3_h": 43.89,
+       "head_m": 36.49,
+       "dP_bar": 3.5,
+       "eff_pct": 70.0,
+       "kW": 6.1,
+       "npsha_m": 9.96,
+       "discharge_barg": 3.5,
+       "kind": "positive_displacement"
+      },
+      "RECYC": {
+       "type": "recycle"
+      },
+      "SPLIT_47126": {
+       "type": "splitter"
+      },
+      "SPLIT_P4711": {
+       "type": "splitter"
+      },
+      "T4750": {
+       "type": "tank",
+       "residence_min": 58.4,
+       "volume_m3": 20.8,
+       "residence_basis": "sDispatch"
+      }
+     },
+     "streams": [
+      {
+       "id": "s47121a",
+       "T_C": 50.0,
+       "P_bar": 1.5,
+       "kg_h": 10449.4,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 8762.75,
+        "Ethanol": 1686.62
+       }
+      },
+      {
+       "id": "s47122a",
+       "T_C": 50.01,
+       "P_bar": 2.5,
+       "kg_h": 10449.4,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 8762.75,
+        "Ethanol": 1686.62
+       }
+      },
+      {
+       "id": "s47130",
+       "T_C": 25.0,
+       "P_bar": 4.0,
+       "kg_h": 19927.5,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 19927.46,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47122",
+       "T_C": 50.01,
+       "P_bar": 2.5,
+       "kg_h": 20898.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 17525.49,
+        "Ethanol": 3373.24
+       }
+      },
+      {
+       "id": "s47131",
+       "T_C": 38.93,
+       "P_bar": 3.5,
+       "kg_h": 19927.5,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 19927.46,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47123a",
+       "T_C": 35.38,
+       "P_bar": 2.083,
+       "kg_h": 20898.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 17525.49,
+        "Ethanol": 3373.24
+       }
+      },
+      {
+       "id": "s47123",
+       "T_C": 35.41,
+       "P_bar": 1.013,
+       "kg_h": 20898.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 17525.49,
+        "Ethanol": 3373.24
+       }
+      },
+      {
+       "id": "s47127_r",
+       "T_C": 16.35,
+       "P_bar": 2.013,
+       "kg_h": 22020.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 18465.77,
+        "Ethanol": 3554.23
+       }
+      },
+      {
+       "id": "sTankIn",
+       "T_C": 25.68,
+       "P_bar": 1.013,
+       "kg_h": 42918.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 35991.27,
+        "Ethanol": 6927.47
+       }
+      },
+      {
+       "id": "s47124",
+       "T_C": 25.68,
+       "P_bar": 1.013,
+       "kg_h": 42918.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 35991.27,
+        "Ethanol": 6927.47
+       }
+      },
+      {
+       "id": "s47126a",
+       "T_C": 25.72,
+       "P_bar": 4.513,
+       "kg_h": 42918.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 35991.27,
+        "Ethanol": 6927.47
+       }
+      },
+      {
+       "id": "s47126c",
+       "T_C": 25.72,
+       "P_bar": 4.513,
+       "kg_h": 22020.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 18465.77,
+        "Ethanol": 3554.23
+       }
+      },
+      {
+       "id": "sDispatch",
+       "T_C": 25.72,
+       "P_bar": 4.513,
+       "kg_h": 20898.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 17525.49,
+        "Ethanol": 3373.24
+       }
+      },
+      {
+       "id": "s47140",
+       "T_C": 7.0,
+       "P_bar": 4.0,
+       "kg_h": 14998.8,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 14998.77,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47141a",
+       "T_C": 19.4,
+       "P_bar": 4.0,
+       "kg_h": 14998.8,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 14998.77,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47127a",
+       "T_C": 16.28,
+       "P_bar": 4.513,
+       "kg_h": 22020.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 18465.77,
+        "Ethanol": 3554.23
+       }
+      },
+      {
+       "id": "s47127",
+       "T_C": 16.35,
+       "P_bar": 2.013,
+       "kg_h": 22020.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 18465.77,
+        "Ethanol": 3554.23
+       }
+      },
+      {
+       "id": "s47141",
+       "T_C": 19.41,
+       "P_bar": 3.7,
+       "kg_h": 14998.8,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 14998.77,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47121",
+       "T_C": 50.0,
+       "P_bar": 1.5,
+       "kg_h": 20898.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 17525.49,
+        "Ethanol": 3373.24
+       }
+      },
+      {
+       "id": "s47121b",
+       "T_C": 50.0,
+       "P_bar": 1.5,
+       "kg_h": 10449.4,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 8762.75,
+        "Ethanol": 1686.62
+       }
+      },
+      {
+       "id": "s47122b",
+       "T_C": 50.01,
+       "P_bar": 2.5,
+       "kg_h": 10449.4,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 8762.75,
+        "Ethanol": 1686.62
+       }
+      }
+     ],
+     "new_equipment": [
+      {
+       "id": "P4711B",
+       "type": "pump",
+       "operating_point": {
+        "type": "pump",
+        "m3_h": 10.8,
+        "head_m": 10.54,
+        "dP_bar": 1.0,
+        "eff_pct": 70.0,
+        "kW": 0.43,
+        "npsha_m": 13.67,
+        "discharge_barg": 1.487,
+        "kind": "centrifugal"
+       },
+       "limits": {
+        "max_head_m": 12,
+        "max_kW": 2.2,
+        "max_m3_h": 25,
+        "min_m3_h": 8,
+        "npshr_m": 2.5
+       },
+       "rating_source": "same model as P4711 - site datasheet rated 25 m3/h at 12 m, motor 2.2 kW, min 8 m3/h, NPSHr 2.5 m; vendor quote to confirm",
+       "status": "new equipment, rating to confirm"
+      }
+     ],
+     "assumptions": [],
+     "simulator": "dwsim",
+     "errors": [],
+     "warnings": [],
+     "model_label": "v2-calibrated"
+    }
+   },
+   {
+    "changes": [
+     {
+      "path": "units.P4712.dP_bar",
+      "physical_change": "Replace motor with next standard size 11 kW, check frame, coupling and starter",
+      "rating_source": "standard IEC size above 7.5 kW (7.5 to 11 kW); vendor quote to confirm",
+      "value": 3.5,
+      "from": 3.5
+     }
+    ],
+    "cost_class": "<$100k",
+    "tag": "P4712",
+    "title": "Fit larger 11 kW motor on P4712",
+    "why": "Duty unchanged at 43.89 m3/h and 6.1 kW (run 1.2x-P4712-11kW): 81% of existing 7.5 kW, 55% of 11 kW. No process change, only extra margin.",
+    "normalized_changes": [],
+    "verified": true,
+    "fixes": "P4712",
+    "still_over": [],
+    "breaks": [],
+    "disappeared_checks": [],
+    "capacity_multiple": 1.129,
+    "limited_by": {
+     "id": "sDispatch",
+     "check": "temperature vs design",
+     "value": 25.01,
+     "limit": 25,
+     "unit": "C",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "H1007",
+      "check": "area needed for hot outlet 35 C",
+      "value": 49.71,
+      "limit": 46.8,
+      "unit": "m2",
+      "utilisation": 1.062
+     },
+     {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.72,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.029
+     },
+     {
+      "id": "T4750",
+      "check": "residence time",
+      "value": 58.4,
+      "limit": 60,
+      "unit": "min",
+      "utilisation": 1.027
+     },
+     {
+      "id": "s47123",
+      "check": "temperature vs design",
+      "value": 35.41,
+      "limit": 35,
+      "unit": "C",
+      "utilisation": 1.012
+     }
+    ],
+    "target_scale": 1.2,
+    "new_equipment": [],
+    "calculation": {
+     "target_scale": 1.2,
+     "capacity_multiple_before": 1.129,
+     "capacity_multiple_after": 1.129,
+     "limited_by_before": {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.01,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.0
+     },
+     "limited_by_after": {
+      "id": "sDispatch",
+      "check": "temperature vs design",
+      "value": 25.01,
+      "limit": 25,
+      "unit": "C",
+      "utilisation": 1.0
+     },
+     "checks": [
+      {
+       "id": "T4750",
+       "check": "residence time",
+       "before": 1.027,
+       "after": 1.027,
+       "value": 58.4,
+       "limit": 60,
+       "unit": "min"
+      },
+      {
+       "id": "P4712",
+       "check": "flow vs rated",
+       "before": 0.878,
+       "after": 0.878,
+       "value": 43.89,
+       "limit": 50,
+       "unit": "m3/h"
+      },
+      {
+       "id": "P4712",
+       "check": "shaft power vs motor",
+       "before": 0.813,
+       "after": 0.813,
+       "value": 6.1,
+       "limit": 7.5,
+       "unit": "kW"
+      },
+      {
+       "id": "P4712",
+       "check": "discharge vs 90 % of relief set",
+       "before": 0.648,
+       "after": 0.648,
+       "value": 3.5,
+       "limit": 5.4,
+       "unit": "barg"
+      },
+      {
+       "id": "MIX_TANK",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "SPLIT_47126",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "RECYC",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      }
+     ],
+     "units": {
+      "47127/C1": {
+       "type": "valve",
+       "dP_bar": 2.5,
+       "cv_required": 16.265
+      },
+      "47141/C1": {
+       "type": "valve",
+       "dP_bar": 0.3,
+       "cv_required": 31.71
+      },
+      "H1008": {
+       "type": "hx",
+       "duty_kW": 216.6,
+       "lmtd_C": 7.71,
+       "U_W_m2K": 600.2,
+       "area_m2": 46.8,
+       "dP_hot_bar": 0.0,
+       "dP_cold_bar": 0.0
+      },
+      "MIX_TANK": {
+       "type": "mixer"
+      },
+      "P4712": {
+       "type": "pump",
+       "m3_h": 43.89,
+       "head_m": 36.49,
+       "dP_bar": 3.5,
+       "eff_pct": 70.0,
+       "kW": 6.1,
+       "npsha_m": 9.96,
+       "discharge_barg": 3.5,
+       "kind": "positive_displacement"
+      },
+      "RECYC": {
+       "type": "recycle"
+      },
+      "SPLIT_47126": {
+       "type": "splitter"
+      },
+      "T4750": {
+       "type": "tank",
+       "residence_min": 58.4,
+       "volume_m3": 20.8,
+       "residence_basis": "sDispatch"
+      }
+     },
+     "streams": [
+      {
+       "id": "s47123",
+       "T_C": 35.41,
+       "P_bar": 1.013,
+       "kg_h": 20898.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 17525.49,
+        "Ethanol": 3373.24
+       }
+      },
+      {
+       "id": "s47127_r",
+       "T_C": 16.35,
+       "P_bar": 2.013,
+       "kg_h": 22020.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 18465.77,
+        "Ethanol": 3554.23
+       }
+      },
+      {
+       "id": "sTankIn",
+       "T_C": 25.68,
+       "P_bar": 1.013,
+       "kg_h": 42918.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 35991.27,
+        "Ethanol": 6927.47
+       }
+      },
+      {
+       "id": "s47124",
+       "T_C": 25.68,
+       "P_bar": 1.013,
+       "kg_h": 42918.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 35991.27,
+        "Ethanol": 6927.47
+       }
+      },
+      {
+       "id": "s47126a",
+       "T_C": 25.72,
+       "P_bar": 4.513,
+       "kg_h": 42918.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 35991.27,
+        "Ethanol": 6927.47
+       }
+      },
+      {
+       "id": "s47126c",
+       "T_C": 25.72,
+       "P_bar": 4.513,
+       "kg_h": 22020.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 18465.77,
+        "Ethanol": 3554.23
+       }
+      },
+      {
+       "id": "sDispatch",
+       "T_C": 25.72,
+       "P_bar": 4.513,
+       "kg_h": 20898.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 17525.49,
+        "Ethanol": 3373.24
+       }
+      },
+      {
+       "id": "s47140",
+       "T_C": 7.0,
+       "P_bar": 4.0,
+       "kg_h": 14998.8,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 14998.77,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47141a",
+       "T_C": 19.4,
+       "P_bar": 4.0,
+       "kg_h": 14998.8,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 14998.77,
+        "Ethanol": 0.0
+       }
+      },
+      {
+       "id": "s47127a",
+       "T_C": 16.28,
+       "P_bar": 4.513,
+       "kg_h": 22020.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 18465.77,
+        "Ethanol": 3554.23
+       }
+      },
+      {
+       "id": "s47127",
+       "T_C": 16.35,
+       "P_bar": 2.013,
+       "kg_h": 22020.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 18465.77,
+        "Ethanol": 3554.23
+       }
+      },
+      {
+       "id": "s47141",
+       "T_C": 19.41,
+       "P_bar": 3.7,
+       "kg_h": 14998.8,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 14998.77,
+        "Ethanol": 0.0
+       }
+      }
+     ],
+     "new_equipment": [],
+     "assumptions": [],
+     "simulator": "dwsim",
+     "errors": [],
+     "warnings": [],
+     "model_label": "v2-calibrated"
+    }
+   }
+  ],
+  "summary": "At 120% (21.6 m3/h) single P4711 passes at 86% flow and 39% power in run 1.2x-base-check, and twin pumps pass at 10.8 m3/h each in run 1.2x-P4711B-parallel; P4712 draws 6.1 kW, 81% of 7.5 kW and 55% of 11 kW in runs 1.2x-base-check and 1.2x-P4712-11kW. Neither pump fixes the system: tank feed 35.4 C, dispatch 25.7 C and 58.4 min hold still fail, so cooling and level rises from answers 1-3 are still needed. Drawing Rev B draft rev_b.png / rev_b.svg shows the parallel pump and 11 kW motor annotation.",
+  "artifacts": [
+   {
+    "id": "20261031-002028-rev-b-second-p4711-pump-and-larger-p4712",
+    "kind": "drawing",
+    "title": "Rev B - second P4711 pump and larger P4712 motor",
+    "files": [
+     "rev_b.png",
+     "rev_b.svg"
+    ],
+    "summary": "Draft Rev B P&ID: changes clouded and annotated; the changes not taken from verified proposals are not verified in DWSIM by this tool."
+   }
+  ],
+  "combined": {
+   "reaches_target": false,
+   "capacity_multiple": 1.129,
+   "limited_by": {
+    "id": "sDispatch",
+    "check": "temperature vs design",
+    "value": 25.01,
+    "limit": 25,
+    "unit": "C",
+    "utilisation": 1.0
+   },
+   "over_limits_at_target": [
+    {
+     "id": "H1007",
+     "check": "area needed for hot outlet 35 C",
+     "value": 49.71,
+     "limit": 46.8,
+     "unit": "m2",
+     "utilisation": 1.062
+    },
+    {
+     "id": "sDispatch",
+     "check": "temperature vs design",
+     "value": 25.72,
+     "limit": 25,
+     "unit": "C",
+     "utilisation": 1.029
+    },
+    {
+     "id": "T4750",
+     "check": "residence time",
+     "value": 58.4,
+     "limit": 60,
+     "unit": "min",
+     "utilisation": 1.027
+    },
+    {
+     "id": "s47123",
+     "check": "temperature vs design",
+     "value": 35.41,
+     "limit": 35,
+     "unit": "C",
+     "utilisation": 1.012
+    }
+   ]
+  },
+  "checks": [
+   {
+    "item": "run 1.2x-base-check",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run 1.2x-P4711B-parallel",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run 1.0x-P4711B-parallel",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run 1.2x-P4712-11kW",
+    "ok": true,
+    "why": ""
+   }
+  ],
+  "seconds": 393,
+  "cost_usd": 0.0262,
+  "request": "Add a second pump in parallel with P4711, same model, and separately put a larger motor on P4712 (next standard size). Verify both and draw them on a Rev B.",
+  "model": "muse-spark-1.3-contributor"
+ }
+]
