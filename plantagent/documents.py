@@ -75,6 +75,8 @@ def _changed_units(p):
             out.append(c["add_unit"]["id"])
         elif c.get("reroute"):
             out.append(c["reroute"]["unit"])
+        elif c.get("remove_unit") is not None or c.get("bypass") is not None:
+            out.append(c.get("remove_unit") or (c["bypass"].get("unit") if isinstance(c["bypass"], dict) else c["bypass"]))
         elif str(c.get("path", "")).startswith("units."):
             out.append(c["path"].split(".")[1])
     return list(dict.fromkeys(out))

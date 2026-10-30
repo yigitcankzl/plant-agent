@@ -38,7 +38,11 @@ CHANGE_HELP = ("One change is either {path, value} for an existing operating/mod
                "existing equipment. A physical change to an existing performance field (for example clean U, efficiency or "
                "installed area) also needs physical_change and rating_source; equipment type/kind cannot be edited in place. "
                "A parallel train normally needs a splitter, the new rated unit, a mixer, and reroutes of "
-               "the existing unit's inlet/outlet. Routing-only splitter/mixer units do not need ratings or a rating_source.")
+               "the existing unit's inlet/outlet. Routing-only splitter/mixer units do not need ratings or a rating_source. "
+               "A unit IN SERIES on a line (e.g. a booster pump or preheater on stream S1): add_unit with in=S1 and a new "
+               "out stream, then reroute the unit that consumed S1 to the new stream. Taking equipment out: "
+               "{remove_unit: id, physical_change} (then reroute what used its streams) or {bypass: {unit: id}, physical_change} "
+               "for a one-in/one-out unit whose flow then skips it.")
 
 CHANGE = {"path": {"type": "string", "description": "feeds.<stream>.<field> | units.<id>.<field>; never limits.* for existing equipment"},
           "value": {"description": "new value for path"},
@@ -46,6 +50,8 @@ CHANGE = {"path": {"type": "string", "description": "feeds.<stream>.<field> | un
           "rating_source": {"type": "string", "description": "source for a changed performance value or a new unit rating"},
           "add_unit": {"type": "object", "description": "complete process unit spec, including id, type and connections"},
           "limits": {"type": "object", "description": "ratings for add_unit only; stored under limits.<new id>"},
+          "remove_unit": {"type": "string", "description": "id of an existing unit taken out (needs physical_change)"},
+          "bypass": {"type": "object", "description": "{unit: id} of a one-in/one-out unit the flow now skips (needs physical_change)"},
           "reroute": {"type": "object", "description": "change a unit connection so the added equipment is in the flow",
                       "properties": {"unit": S, "field": S, "value": {"description": "stream id or list of stream ids"}}}}
 
@@ -162,9 +168,16 @@ def change_errors(spec, changes, require_evidence=True):
         if not isinstance(c, dict):
             errors.append(f"change {i + 1} is not an object")
             continue
-        forms = sum(k in c for k in ("path", "add_unit", "reroute"))
+        forms = sum(k in c for k in ("path", "add_unit", "reroute", "remove_unit", "bypass"))
         if forms != 1:
-            errors.append(f"change {i + 1} must contain exactly one of path, add_unit or reroute")
+            errors.append(f"change {i + 1} must contain exactly one of path, add_unit, reroute, remove_unit or bypass")
+            continue
+        if "remove_unit" in c or "bypass" in c:  # taking equipment out is a physical change: it needs a stated reason
+            uid = c.get("remove_unit") if "remove_unit" in c else (c["bypass"] or {}).get("unit") if isinstance(c["bypass"], dict) else c["bypass"]
+            if uid not in existing:
+                errors.append(f"change {i + 1} removes or bypasses unknown unit {uid}")
+            elif require_evidence and not str(c.get("physical_change") or "").strip():
+                errors.append(f"change {i + 1} removing or bypassing {uid} needs physical_change (what is done on site)")
             continue
         if "path" in c:
             try:
@@ -670,6 +683,9 @@ def describe_change(spec, c, names=None):
         r = c["reroute"]
         old = f"{c.get('from')} → " if c.get("from") is not None else ""
         return f"Reroutes {names.get(r.get('unit'), r.get('unit'))} {r.get('field')}: {old}{r.get('value')}"
+    if c.get("remove_unit") is not None or c.get("bypass") is not None:
+        uid = c.get("remove_unit") or (c["bypass"].get("unit") if isinstance(c["bypass"], dict) else c["bypass"])
+        return f"{'Removes' if c.get('remove_unit') is not None else 'Bypasses'} {names.get(uid, uid)} ({c.get('physical_change') or 'reason not stated'})"
     try:
         kind, oid, field = c["path"].split(".", 2)
     except (KeyError, ValueError):
@@ -771,6 +787,27 @@ def patch(spec, changes):
     s = copy.deepcopy(spec)
     units = {u["id"]: u for u in s["units"]}
     for c in changes:
+        if "remove_unit" in c or "bypass" in c:
+            uid = c.get("remove_unit") if "remove_unit" in c else (c["bypass"] or {}).get("unit") if isinstance(c["bypass"], dict) else c["bypass"]
+            gone = units.pop(uid)
+            s["units"] = [u for u in s["units"] if u["id"] != uid]
+            (s.get("limits") or {}).pop(uid, None)
+            if "bypass" in c:  # the flow skips the unit: its inlet stream is renamed to its outlet, so checks on both stay
+                src, out = gone.get("in"), gone.get("out")
+                if not isinstance(src, str) or not isinstance(out, str):
+                    raise ValueError(f"bypass {uid}: only a unit with one inlet and one outlet can be bypassed; use remove_unit and reroute")
+                for u in s["units"]:
+                    for f in CONNECTION_FIELDS:
+                        v = u.get(f)
+                        if v == src:
+                            u[f] = out
+                        elif isinstance(v, list):
+                            u[f] = [out if x == src else x for x in v]
+                if src in (s.get("feeds") or {}):
+                    s["feeds"][out] = s["feeds"].pop(src)
+                if src in (s.get("limits") or {}):
+                    s["limits"].setdefault(out, {}).update(s["limits"].pop(src))
+            continue
         if c.get("add_unit"):
             u = copy.deepcopy(c["add_unit"])
             s["units"].append(u)

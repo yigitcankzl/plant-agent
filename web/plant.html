@@ -764,6 +764,10 @@ function describe(c) {
     const routing = ['mixer', 'splitter', 'recycle'].includes(u.type), source = c.rating_source || (routing ? 'model routing' : 'rating source not stated');
     return `<span title="${routing ? 'new process routing' : 'new equipment, rating to confirm'}"><b>Adds ${esc(u.id)} ${esc(String(u.type || 'unit').replace(/_/g, ' '))}${esc(size)}</b> (${esc(source)})</span>`;
   }
+  if (c.remove_unit != null || c.bypass != null) {
+    const id = c.remove_unit ?? (typeof c.bypass === 'object' ? c.bypass?.unit : c.bypass);
+    return `<span title="equipment taken out"><b>${c.remove_unit != null ? 'Removes' : 'Bypasses'} ${esc(nm(id))}</b>${c.physical_change ? ` (${esc(c.physical_change)})` : ''}</span>`;
+  }
   if (c.reroute) {
     const r = c.reroute, from = 'from' in c && c.from != null ? `${fmt(c.from)} → ` : '';
     return `<span title="reroute"><b>Reroutes ${esc(nm(r.unit))} ${esc(r.field)}</b>: ${esc(from)}${esc(Array.isArray(r.value) ? r.value.join(', ') : r.value)}</span>`;

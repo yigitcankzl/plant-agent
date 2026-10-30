@@ -78,6 +78,11 @@ def pssr(spec, changes, names, at):
             to = ", ".join(r["value"]) if isinstance(r["value"], list) else r["value"]
             items.append(f"Walk down the reroute of {r['unit']} {r['field']} to {to}; confirm valves, drains, vents and flow direction match the Rev B drawing.")
             continue
+        if c.get("remove_unit") is not None or c.get("bypass") is not None:
+            uid = c.get("remove_unit") or (c["bypass"].get("unit") if isinstance(c["bypass"], dict) else c["bypass"])
+            items.append(f"{names.get(uid, uid)} taken out of service ({c.get('physical_change') or 'removal'}): confirm positive isolation, "
+                         "blinds or spool pieces, drained and vented, and that no relief path depended on it (relief scan).")
+            continue
         kind, oid, field = c["path"].split(".", 2)
         who, v = names.get(oid, oid), c.get("value")
         own = _owner(spec, c)
