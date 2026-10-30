@@ -121,7 +121,7 @@ class Sheet:
         vb = [float(v) for v in (self.root.get("viewBox") or "0 0 420 297").replace(",", " ").split()]
         self.vb = vb
         self.occ = set()
-        self.boxes, self.lines = {}, []
+        self.boxes, self.lines, self.texts = {}, [], []
         self._walk(self.root, (1, 0, 0, 1, 0, 0), None, None)
         for box in self.boxes.values():  # nothing is routed or written through (or tight against) a symbol
             self.mark_box((box[0] - 2.5, box[1] - 2.5, box[2] + 2.5, box[3] + 2.5))
@@ -163,7 +163,13 @@ class Sheet:
             box = _text_box(el, m)
             if box:
                 self.mark_box(box)
+                self.texts.append(("".join(el.itertext()).strip(), box, line["line"] if line else None))
             return
+        if name == "g" and line is not None and el.get("transform"):  # an inline valve/instrument symbol on a line
+            p = _apply(m, (0, 0))
+            items = line.setdefault("items", [])
+            if all(abs(p[0] - q[0]) + abs(p[1] - q[1]) > 0.5 for q in items):
+                items.append(p)
         if name == "rect" and _f(el, "width") * _f(el, "height") > 0.5 * self.vb[2] * self.vb[3]:
             return  # the sheet background
         for seg in _segments(el):
@@ -511,6 +517,70 @@ def _line_label(sheet, pts, label, fs):
     return box[0] + 0.5, box[3] - fs * 0.35, box
 
 
+def _parallel_any(uid, by_id, prod, cons, existing_ids):
+    """A new unit fed by a splitter and discharging into a mixer (new or existing) that an existing unit also feeds from
+    the same splitter: drawn parallel to that unit."""
+    unit = by_id.get(uid)
+    if not unit:
+        return None
+    ins, outs = ports(unit)
+    if len(ins) != 1 or len(outs) != 1:
+        return None
+    splitter, mixer = prod.get(ins[0]), (cons.get(outs[0]) or [None])[0]
+    if by_id.get(splitter, {}).get("type") != "splitter" or by_id.get(mixer, {}).get("type") != "mixer":
+        return None
+    for stream in ports(by_id[splitter])[1]:
+        for partner in cons.get(stream) or []:
+            if partner == uid or partner not in existing_ids:
+                continue
+            p_out = next((s for s in ports(by_id[partner])[1] if mixer in (cons.get(s) or [])), None)
+            if p_out:
+                return {"splitter": splitter, "mixer": mixer, "partner": partner, "in_stream": ins[0], "out_stream": outs[0],
+                        "mixer_out": (ports(by_id[mixer])[1] or [None])[0], "partner_out": p_out,
+                        "split_in": (ports(by_id[splitter])[0] or [None])[0]}
+    return None
+
+
+def _note_anchors(sheet, where):
+    """Anchor boxes for a free note at a tag, an inline item ('3003/C1', 'PSV-202', 'FV-301') or a line number; falls back
+    to the nearest match by token. Returns (anchors, resolved label)."""
+    w = re.sub(r"^line\s*", "", where.strip(), flags=re.I)
+    if not w:
+        return [], where
+    box = lambda p, d=2: (p[0] - d, p[1] - d, p[0] + d, p[1] + d)  # noqa: E731
+    if w in sheet.boxes:
+        return [sheet.boxes[w]], w
+    exact = [t for t in sheet.texts if t[0].lower() == w.lower()]
+    if exact:
+        return [exact[0][1]], w
+
+    def line_of(num):
+        return next((ln for ln in sheet.lines if ln["points"] and ln["line"] and
+                     (ln["line"] == num or ln["line"].split("-")[0] == num)), None)
+
+    head, _, item = w.partition("/")
+    ln = line_of(head) or line_of(re.split(r"[-\s]", head)[0])
+    if ln:
+        if item and ln.get("items"):  # the inline item on that line (valve 'C1' on line 3003)
+            named = [t for t in sheet.texts if t[2] == ln["line"] and t[0].lower() == item.lower()]
+            return ([named[0][1]] if named else [box(p) for p in ln["items"]]), f"{ln['line']}/{item}"
+        L = _length(ln["points"])
+        return [box(p) for p in (_along(ln["points"], L * f, False) for f in (0.2, 0.4, 0.6, 0.8)) if p], f"line {ln['line']}"
+    for tok in re.findall(r"[A-Za-z]+-?\d+[A-Za-z0-9.]*|\d{3,}", w):  # nearest: any token that is on the sheet
+        if tok in sheet.boxes:
+            return [sheet.boxes[tok]], tok
+        hit = next((t for t in sheet.texts if t[0].lower() == tok.lower() or t[0].lower().startswith(tok.lower() + "-")), None)
+        if hit:
+            return [hit[1]], tok
+        ln = line_of(tok)
+        if ln:
+            return [box(_along(ln["points"], _length(ln["points"]) / 2, False))], f"line {ln['line']}"
+    tag = next((t for t in sheet.boxes if t and (t in w or w in t)), None)
+    if tag:
+        return [sheet.boxes[tag]], tag
+    return [], where
+
+
 def _flow_axis(a, b):
     dx, dy = b[0] - a[0], b[1] - a[1]
     if abs(dx) >= abs(dy):
@@ -578,7 +648,7 @@ def generate(svg, spec, revisions, names=None, meta=None):
             if not isinstance(add, dict) or add.get("type") in ROUTING_UNITS:
                 continue
             uid, kind = add["id"], add.get("type")
-            info = _parallel(uid, by_id, prod, cons, existing_ids, added_ids)
+            info = _parallel(uid, by_id, prod, cons, existing_ids, added_ids) or _parallel_any(uid, by_id, prod, cons, existing_ids)
             plan = None
             if info and info["partner"] in sheet.boxes:
                 info["upstream"] = _neighbor(info["splitter"], False, by_id, prod, cons, centers)
@@ -601,6 +671,7 @@ def generate(svg, spec, revisions, names=None, meta=None):
             ty = y - 11 - 3.2 * (len(lines) + 1) if above else y + 12
             label_box = (x - 10, ty - 3.2, x - 10 + max(len(t) for t in [title, sub] + lines) * 1.35, ty + 6.4 + 3 * (len(lines) - 1) + 0.8)
             sym_box = (x - 10, y - 8, x + 10, y + 8)
+            sheet.boxes[uid] = sym_box
             sheet.mark_box(sym_box)
             sheet.mark_box(label_box)
             taken.append(label_box)
@@ -671,19 +742,13 @@ def generate(svg, spec, revisions, names=None, meta=None):
         for note in rev.get("notes") or []:  # free notes an engineer asked for, e.g. "bypass to be added here"
             where = str(note.get("tag") or note.get("line") or "").strip()
             text = str(note.get("text") or "").strip()
-            anchors = []
-            if where in sheet.boxes:
-                anchors = [sheet.boxes[where]]
-            else:
-                ln = next((ln for ln in sheet.lines if ln["points"] and ln["line"] in (where, re.sub(r"^line\s*", "", where, flags=re.I))), None)
-                if ln:
-                    L = _length(ln["points"])
-                    anchors = [(p[0] - 2, p[1] - 2, p[0] + 2, p[1] + 2) for p in
-                               (_along(ln["points"], L * f, False) for f in (0.2, 0.4, 0.6, 0.8)) if p]
-            if not anchors or not text:
-                unplaced.append(f"note at {where or '?'}")
+            anchors, label = _note_anchors(sheet, where)
+            if not anchors and text:  # nothing on the sheet matches: the note goes in free space and says so
+                x, y, w_, h_ = sheet.vb
+                anchors, label = [(x + w_ / 2 - 2, y + h_ / 2 - 2, x + w_ / 2 + 2, y + h_ / 2 + 2)], f"{where}: not found on the sheet"
+            if not text:
                 continue
-            words, lines, cur = text.split(), [f"NOTE ({where})"], ""
+            words, lines, cur = text.split(), [f"NOTE ({label})"], ""
             for wd in words:
                 if len(cur) + len(wd) + 1 > 46 and cur:
                     lines.append(cur)
@@ -838,31 +903,81 @@ def svg_png(svg, zoom=4.0):
         return None
 
 
-def render_revision(w, changes, annotations=None, title=None, verified=False):
-    """Rev B sheet for explicit changes (proposal format: path changes, add_unit, reroute) on the current model, plus free
-    notes [{tag | line, text}]. Returns the SVG text. Raises ValueError for a malformed change or a case without a drawing."""
+def _signature(changes):
+    """What a set of changes does, independent of the ids it invents for routing: changed paths and new physical units."""
+    return ({c["path"] for c in changes or [] if c.get("path")} |
+            {c["add_unit"]["id"] for c in changes or [] if isinstance(c.get("add_unit"), dict) and c["add_unit"].get("type") not in ROUTING_UNITS})
+
+
+def select_proposals(w, changes=None, answer=None, proposals=None):
+    """(verified proposals to draw, leftover changes). Proposals are picked by answer index and/or titles (or indices);
+    agent-typed changes that match verified proposals are replaced by the verified ones (their topology and calculation)."""
+    answers = list(getattr(w, "answers", None) or [])
+    if isinstance(answer, int) and -len(answers) <= answer < len(answers):
+        pool = [answers[answer]]
+    else:
+        pool = [a for a in reversed(answers) if any(p.get("verified") for p in a.get("proposals") or [])][:1]
+    verified = [p for a in pool for p in a.get("proposals") or [] if p.get("verified")]
+    chosen = []
+    if proposals:
+        for want in proposals:
+            for i, p in enumerate(verified):
+                hit = (isinstance(want, int) and want == i) or (isinstance(want, str) and want.strip().lower() in str(p.get("title", "")).lower())
+                if hit and p not in chosen:
+                    chosen.append(p)
+    elif answer is not None and not changes:
+        chosen = verified
+    changes = list(changes or [])
+    if changes and verified:
+        mine = _signature(changes)
+        chosen += [p for p in verified if _signature(p["changes"]) & mine and p not in chosen]
+        covered = set().union(*(_signature(p["changes"]) for p in chosen)) if chosen else set()
+        changes = [c for c in changes if not (c.get("path") and c["path"] in covered)]
+        if covered & _signature([c for c in changes if c.get("add_unit")]):  # a verified addition replaces the re-typed topology
+            changes = [c for c in changes if not (c.get("add_unit") or c.get("reroute"))]
+    return chosen, changes
+
+
+def render_revision(w, changes=None, annotations=None, title=None, verified=False, answer=None, proposals=None):
+    """Rev B sheet on the current model: verified proposals (by answer index and/or titles; agent-typed changes that match
+    them are replaced by the verified ones), any further changes (proposal format: path changes, add_unit, reroute), and
+    free notes [{tag | line, text}] at a tag, a line number or an inline item such as '3003/C1' or 'PSV-202'.
+    Returns {'svg', 'proposals', 'verified', ...}. Raises ValueError for a malformed change or a case without a drawing."""
     from .plant import change_errors
     if not w.cfg.get("svg") or not w.built:
         raise ValueError("this project has no SVG P&ID (or no model yet) to draw a revision on")
-    changes, annotations = list(changes or []), list(annotations or [])
-    if not changes and not annotations:
-        raise ValueError("nothing to draw: give changes and/or annotations")
+    chosen, changes = select_proposals(w, changes, answer, proposals)
+    annotations = list(annotations or [])
+    if not chosen and not changes and not annotations:
+        raise ValueError("nothing to draw: give answer/proposals, changes and/or annotations")
     errors = change_errors(w.spec, changes, require_evidence=False) if changes else []
     if errors:
         raise ValueError("; ".join(errors))
-    item = {"rev": 1, "title": title or "Engineer drawing request", "changes": changes, "notes": annotations}
-    return sheet_for(w, w.spec, [item], verified=verified)["svg"]
+    items = [{"rev": i + 1, "title": p.get("title"), "changes": p["changes"], "calculation": p.get("calculation"),
+              "fixes": p.get("fixes"), "tag": p.get("tag")} for i, p in enumerate(chosen)]
+    if changes:
+        items.append({"rev": len(items) + 1, "title": title or "Engineer drawing request", "changes": changes})
+    if annotations:
+        items.append({"rev": len(items) + 1, "title": "Notes (engineer request)", "changes": [], "notes": annotations})
+    all_verified = verified or (bool(chosen) and not changes)
+    r = sheet_for(w, w.spec, items, verified=all_verified)
+    return {**r, "proposals": [p.get("title") for p in chosen], "verified": all_verified}
 
 
 def draw_revision_tool(w, a, by=None, request=None):
     """Agent tool draw_revision: render the sheet and save it as a drawing artifact; returns the artifact meta."""
     from . import artifacts
     title = a.get("title") or "Rev B drawing"
-    svg = render_revision(w, a.get("changes"), a.get("annotations"), title)
+    answer = a.get("answer")
+    r = render_revision(w, a.get("changes"), a.get("annotations"), title, answer=int(answer) if str(answer).lstrip("-").isdigit() else None,
+                        proposals=a.get("proposals"))
+    svg = r["svg"]
     files = {"rev_b.svg": svg}
     png = svg_png(svg)
     if png:
         files["rev_b.png"] = png
     return artifacts.save(w.name, "drawing", title, files, by=by or getattr(w, "model", None), request=request,
                           sources=[f"cases/{w.name}/{w.cfg.get('svg')}", "current model spec"],
-                          summary="Draft Rev B P&ID: changes clouded and annotated; not verified in DWSIM by this tool.")
+                          summary=("Draft Rev B P&ID of the verified proposals: " + "; ".join(r["proposals"]) if r["verified"] else
+                                   "Draft Rev B P&ID: changes clouded and annotated; the changes not taken from verified proposals are "
+                                   "not verified in DWSIM by this tool.") + (f" Not drawn: {', '.join(r['unplaced'])}." if r["unplaced"] else ""))
