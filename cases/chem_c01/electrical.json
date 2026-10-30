@@ -1,0 +1,29 @@
+{
+  "note": "One-line diagram for unit 47. The motor ratings P4711 2.2 kW and P4712 7.5 kW are from the site datasheets in basis.md; every other value is ILLUSTRATIVE (supply, transformer, other site loads, cables).",
+  "buses": [
+    {"id": "MV", "vn_kv": 10.0, "name": "site 10 kV ring", "source": "ILLUSTRATIVE"},
+    {"id": "LV", "vn_kv": 0.4, "name": "400 V MCC unit 47", "source": "ILLUSTRATIVE"}
+  ],
+  "ext_grid": {"bus": "MV", "s_sc_mva": 100, "rx": 0.1, "vm_pu": 1.0, "source": "ILLUSTRATIVE site short-circuit level"},
+  "transformers": [
+    {"id": "TX-47", "hv": "MV", "lv": "LV", "sn_mva": 0.63, "vk_percent": 4.0, "vkr_percent": 1.0, "tap_percent": 0, "source": "ILLUSTRATIVE"}
+  ],
+  "generators": [],
+  "loads": [
+    {"id": "LV-other", "bus": "LV", "p_mw": 0.35, "pf": 0.85, "source": "ILLUSTRATIVE other loads on the same MCC"}
+  ],
+  "cable_types": {
+    "LV-4x4Cu": {"r_ohm_per_km": 4.61, "x_ohm_per_km": 0.09, "c_nf_per_km": 0, "max_i_ka": 0.036, "source": "typical 0.6/1 kV 4x4 mm2 Cu manufacturer values, ILLUSTRATIVE"},
+    "LV-4x10Cu": {"r_ohm_per_km": 1.83, "x_ohm_per_km": 0.085, "c_nf_per_km": 0, "max_i_ka": 0.06, "source": "typical 0.6/1 kV 4x10 mm2 Cu manufacturer values, ILLUSTRATIVE"}
+  },
+  "motors": [
+    {"id": "M-P4711", "unit": "P4711", "bus": "LV", "kw": 2.2, "eff": 0.85, "pf": 0.82, "start": "DOL", "lrc": 7.0,
+     "cable": {"type": "LV-4x4Cu", "length_km": 0.06}, "source": "basis.md site datasheet: P4711 motor 2.2 kW; efficiency, PF, start and cable ILLUSTRATIVE"},
+    {"id": "M-P4712", "unit": "P4712", "bus": "LV", "kw": 7.5, "eff": 0.89, "pf": 0.84, "start": "DOL", "lrc": 7.0,
+     "cable": {"type": "LV-4x4Cu", "length_km": 0.06}, "source": "basis.md site datasheet: P4712 motor 7.5 kW; efficiency, PF, start and cable ILLUSTRATIVE"}
+  ],
+  "unmodelled_drives": [],
+  "new_motor": {"mv_from_kw": 250, "eff": 0.9, "pf": 0.85, "start": "DOL", "lrc": 7.0,
+                "cable_lv": {"type": "LV-4x10Cu", "length_km": 0.06},
+                "source": "ILLUSTRATIVE defaults for a new LV motor feeder: DOL start, locked-rotor current 7 x rated (IEC 60034-12 design N range)"}
+}

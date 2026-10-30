@@ -1,0 +1,37 @@
+{
+  "note": "One-line diagram for the salt plant. Only two facts come from US 5,366,514 Table I: a 1.7 MW steam turbine generator (item 35) that 'is approximately that amount required to drive all electricity' of the plant, and K-201 driven by a gas turbine (so it is not an electrical load). Every other value is ILLUSTRATIVE: voltages, transformer ratings, the utility tie, cable data and the split of the 1.7 MW demand.",
+  "base_mva": 1.0,
+  "buses": [
+    {"id": "UTIL", "vn_kv": 34.5, "name": "utility tie 34.5 kV", "source": "ILLUSTRATIVE"},
+    {"id": "MV", "vn_kv": 4.16, "name": "4.16 kV switchgear", "source": "ILLUSTRATIVE"},
+    {"id": "LV", "vn_kv": 0.48, "name": "480 V MCC", "source": "ILLUSTRATIVE"}
+  ],
+  "ext_grid": {"bus": "UTIL", "s_sc_mva": 250, "rx": 0.1, "vm_pu": 1.0, "source": "ILLUSTRATIVE utility short-circuit level"},
+  "transformers": [
+    {"id": "TX-1", "hv": "UTIL", "lv": "MV", "sn_mva": 2.5, "vk_percent": 6.0, "vkr_percent": 0.9, "tap_percent": 0,
+     "source": "ILLUSTRATIVE: utility tie sized to carry the 1.7 MW plant demand with the generator out (next standard size 2.5 MVA)"},
+    {"id": "TX-2", "hv": "MV", "lv": "LV", "sn_mva": 1.5, "vk_percent": 5.75, "vkr_percent": 1.0, "tap_percent": 2.5,
+     "source": "ILLUSTRATIVE"}
+  ],
+  "generators": [
+    {"id": "STG-1", "bus": "MV", "p_mw": 1.7, "q_mvar": 0.0, "source": "US 5,366,514 Table I item 35: steam turbine generator 1.7 MW"}
+  ],
+  "loads": [
+    {"id": "LV-MCC", "bus": "LV", "p_mw": 1.0, "pf": 0.85,
+     "source": "ILLUSTRATIVE share of the ~1.7 MW plant demand (patent: the generator covers approximately all plant electricity)"}
+  ],
+  "cable_types": {
+    "MV-3x185Al": {"r_ohm_per_km": 0.164, "x_ohm_per_km": 0.11, "c_nf_per_km": 300, "max_i_ka": 0.36, "source": "typical 5 kV 3x185 mm2 Al XLPE manufacturer values, ILLUSTRATIVE"},
+    "MV-3x95Cu": {"r_ohm_per_km": 0.193, "x_ohm_per_km": 0.12, "c_nf_per_km": 260, "max_i_ka": 0.3, "source": "typical 5 kV 3x95 mm2 Cu XLPE manufacturer values, ILLUSTRATIVE"},
+    "LV-3x240Cu": {"r_ohm_per_km": 0.0754, "x_ohm_per_km": 0.08, "c_nf_per_km": 0, "max_i_ka": 0.43, "source": "typical 0.6/1 kV 3x240 mm2 Cu manufacturer values, ILLUSTRATIVE"}
+  },
+  "motors": [
+    {"id": "M-P201", "unit": "P-201", "bus": "MV", "kw": 700, "eff": 0.95, "pf": 0.87, "start": "DOL", "lrc": 6.0,
+     "cable": {"type": "MV-3x95Cu", "length_km": 0.12},
+     "source": "ILLUSTRATIVE forced-circulation pump motor (P-201 is inside the evaporator block in the model, so it runs at its rated kW)"}
+  ],
+  "unmodelled_drives": [{"unit": "K-201", "why": "gas-turbine driven (US 5,366,514): not an electrical load"}],
+  "new_motor": {"mv_from_kw": 250, "eff": 0.96, "pf": 0.9, "start": "DOL", "lrc": 6.0,
+                "cable_mv": {"type": "MV-3x185Al", "length_km": 0.15}, "cable_lv": {"type": "LV-3x240Cu", "length_km": 0.08},
+                "source": "ILLUSTRATIVE defaults for a new motor feeder: DOL start, locked-rotor current 6 x rated (IEC 60034-12 design N range)"}
+}

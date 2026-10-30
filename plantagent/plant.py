@@ -1574,6 +1574,15 @@ class PlantWorkspace(Study):
                             "Saved on the case and shown to the engineer.",
               {"what": S, "why": S, "needed": {"type": "string", "description": "what the spec or the tools would have to be able to do"}},
               ["what", "why", "needed"]),
+            # electrical (plantagent/electrical.py): pandapower load flow + motor-start dip on the plant's one-line diagram
+            f("electrical_check", "Electrical check of new or bigger motors: load flow of the plant's one-line diagram "
+                                  "(cases/<case>/electrical.json) with motor loads from the process solve at `scale`, "
+                                  "transformer and cable loading, bus voltages and the start dip of the largest new/changed "
+                                  "motor. Give `answer` (index of a stored answer: its verified proposals) or `changes`; "
+                                  "`motors` [{unit, kw, start DOL|VFD|SOFT, bus}] overrides a rating or starting method. "
+                                  "Saves a one-line diagram SVG.",
+              {"answer": {"type": "integer"}, "changes": {"type": "array", "items": {"type": "object"}}, "scale": N,
+               "motors": {"type": "array", "items": {"type": "object"}}}),
             # documents (plantagent/documents.py): deterministic, numbers only from the record, saved as draft artifacts
             f("make_document", "Make an engineer document as a DRAFT artifact (markdown + PDF), deterministically from the "
                                "model, simulator solves, P&ID, data sheet and stored answers; every number carries its source. "
@@ -1684,6 +1693,18 @@ class PlantWorkspace(Study):
         if name == "prefeed_assessment":
             from . import prefeed
             return prefeed.make(self, a.get("answer"), a.get("scenarios"), a.get("dynamics"), a.get("economics"))
+        if name == "electrical_check":
+            from . import electrical
+            changes = a.get("changes") or []
+            if a.get("answer") is not None:
+                ans = self.answers[int(a["answer"])] if -len(self.answers) <= int(a["answer"]) < len(self.answers) else None
+                if ans is None:
+                    return {"error": f"no answer {a['answer']}; {len(self.answers)} on record"}
+                changes = [c for p in ans.get("proposals") or [] if p.get("verified") for c in p.get("changes") or []]
+            try:
+                return electrical.for_workspace(self, changes, a.get("scale"), a.get("motors"))
+            except (ValueError, KeyError, RuntimeError) as e:
+                return {"error": str(e)}
         if name == "forecast_fouling":
             try:
                 return self.forecast_fouling(a.get("equipment"), a.get("as_of_day"))
@@ -2186,9 +2207,24 @@ class PlantWorkspace(Study):
                 ans["combined"] = {"error": f"{type(e).__name__}: {e}"}
         ans["checks"] = [self.reproduce(r) for r in dict.fromkeys(r for c in ans["cards"] for r in (c.get("runs") or []))]
         ans.update(seconds=round(time.time() - t0), cost_usd=round(llm.spent() - usd0, 4), request=text, model=self.model)
+        self._electrical_hook(ans)
         from .revb import refresh_answer_drawings  # drawing hook: re-issue this answer's Rev B drawings with the verified status
         refresh_answer_drawings(self, ans)
         return ans
+
+    def _electrical_hook(self, ans):
+        """Verified proposals that add or re-rate a motor carry a one-line electrical check (verify stays process-only)."""
+        from . import electrical
+        if not (electrical.available() and electrical.config(self.name)):
+            return
+        for p in ans.get("proposals") or []:
+            if p.get("verified") and electrical.motor_proposal(self, p):
+                try:
+                    e = electrical.for_workspace(self, p["changes"], p.get("target_scale"), title=f"Electrical check: {p.get('title')}")
+                    p["electrical"] = {k: e.get(k) for k in ("summary", "svg", "start", "transformers", "transformers_before")}
+                    p["electrical"]["over"] = [c for c in e["checks"] if c["utilisation"] > 1]
+                except Exception as ex:  # noqa: BLE001 - the process answer stands; the electrical check says why it failed
+                    p["electrical"] = {"error": f"{type(ex).__name__}: {ex}"[:300]}
 
     def names(self):
         """display_names, with each utility named from the P&ID fluid code and the data sheet (e.g. 'Cooling water to H1007')."""
