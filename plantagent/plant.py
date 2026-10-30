@@ -1585,7 +1585,9 @@ class PlantWorkspace(Study):
             f("prefeed_assessment", "Build a deterministic DRAFT pre-FEED gate for the selected verified design (or the current "
                                     "model): re-solve an operating-envelope matrix, check mass closure, screen provisional new-"
                                     "equipment ratings, critical-loop dynamics when measured FOPDT constants are supplied, changed-"
-                                    "equipment HAZOP/relief cases, and cost/constructability gaps. Saves Markdown, JSON and PDF. "
+                                    "equipment HAZOP/relief cases, and cost/constructability gaps. It also writes one cross-discipline "
+                                    "impact register, ranked decision-changing evidence requests, a change comparison, vendor RFQ duty "
+                                    "sheet and commissioning acceptance plan. Saves Markdown, JSON and PDF. "
                                     "It never invents vendor curves, dynamic constants or costs; omitted inputs stay open.",
               {"answer": {"type": "integer", "description": "stored answer index; default selects the current proposed design"},
                "scenarios": {"type": "array", "items": {"type": "object", "description": "{name, scale, changes, basis}; max 24"}},

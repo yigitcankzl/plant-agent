@@ -9,6 +9,7 @@ Usage: python -m plantagent.prefeed salt_mvr
 import copy
 import json
 import math
+import re
 import time
 from pathlib import Path
 
@@ -18,6 +19,7 @@ from .proposed import datasheet_markdown, present_calculation
 
 ROOT = Path(__file__).resolve().parent.parent
 ROUTING = {"mixer", "splitter", "recycle"}
+DISCIPLINE_STATUS = {"pass", "fail", "open", "not affected"}
 
 
 def _added_equipment(changes):
@@ -98,7 +100,7 @@ def run_envelope(spec, scenarios, solve, patch):
             "status": "not available", "reason": "scenario did not solve", "energy": "not available"}
         rows.append({"name": name, "scale": scale, "basis": raw.get("basis") or "engineer-defined scenario",
                      "pass": not errors and not over, "worst": worst, "over": over, "errors": errors,
-                     "checks": [c for c in checks if c["utilisation"] >= .8],
+                     "checks": [c for c in checks if c["utilisation"] >= .8], "all_checks": checks,
                      "balance": balance})
     governing = max(rows, key=lambda r: (r["worst"] or {}).get("utilisation", 0))
     return {"robust_pass": all(r["pass"] for r in rows), "scenarios": rows,
@@ -158,6 +160,8 @@ def equipment_screen(changes, calculations):
                      "flow_margin": round(flow_margin, 3) if flow_margin else None,
                      "calculated_shaft": shaft, "shaft_unit": row.get("shaft_unit"), "rating_shaft": rating_shaft,
                      "power_margin": round(power_margin, 3) if power_margin else None,
+                     "pressure_ratio": row.get("pressure_ratio"), "head": row.get("head"),
+                     "head_unit": row.get("head_unit"), "inlet": row.get("inlet") or {}, "outlet": row.get("outlet") or {},
                      "rating_source": row.get("rating_source") or equipment.get("rating_source") or "to confirm",
                      "vendor_gate": ["guaranteed curve over min/normal/max flow", "efficiency and driver rating",
                                      "surge/choke or BEP/minimum-flow margin", "materials and seals",
@@ -231,6 +235,189 @@ def constructability(changes, equipment, cost_classes, economics=None):
             "unpriced": [] if quantified else ["installed equipment", "piping/tie-ins", "electrical and controls", "civil/structural", "outage production loss"]}
 
 
+def discipline_register(envelope, equipment, dynamics, hazards, construction, supplied=None):
+    """One change-impact register. Specialist adapters may replace an open row with sourced results."""
+    physical = bool(construction["physical_units"])
+    routed = bool(construction["reroutes"])
+    incomplete = any(e["status"] != "provisional pass" for e in equipment)
+    rows = {
+        "process": {"status": "pass" if envelope["robust_pass"] else "fail",
+                    "summary": "all stated operating scenarios pass" if envelope["robust_pass"] else "at least one operating scenario fails",
+                    "source": "pre-FEED operating-envelope solves"},
+        "mechanical": {"status": "open" if physical else "not affected",
+                       "summary": ("provisional equipment selection; vendor/mechanical approval remains open" if physical else "no new physical equipment"),
+                       "source": "proposal calculation and provisional ratings"},
+        "electrical": {"status": "open" if physical else "not affected",
+                       "summary": "new drivers need load, starting and protection checks" if physical else "no new driver identified",
+                       "source": "constructability gate"},
+        "piping_utilities": {"status": "open" if physical or routed else "not affected",
+                             "summary": "tie-ins, line sizing, supports and utility capacity remain open" if physical or routed else "no piping change identified",
+                             "source": "proposal topology and constructability gate"},
+        "controls": {"status": "open" if physical or routed else "not affected",
+                     "summary": "control narrative, cause/effect and permissives remain open" if physical or routed else "no control change identified",
+                     "source": "proposal topology and dynamic screen"},
+        "process_safety": {"status": "open" if hazards["rows"] else "not affected",
+                           "summary": f"{len(hazards['rows'])} change-focused HAZOP action(s) remain open" if hazards["rows"] else "no changed equipment hazard row",
+                           "source": "change-focused HAZOP/relief screen"},
+        "civil_structural": {"status": "open" if physical else "not affected",
+                             "summary": "plot, access, lifting and foundation checks remain open" if physical else "no new foundation identified",
+                             "source": "constructability gate"},
+    }
+    if incomplete and physical:
+        rows["mechanical"]["summary"] = "one or more provisional equipment ratings are incomplete or fail"
+    if dynamics.get("status") == "fail":
+        rows["controls"].update(status="fail", summary="critical-loop dynamic screen fails")
+    for row in supplied or []:
+        did = str(row.get("id") or "").strip()
+        status = row.get("status")
+        if not did or status not in DISCIPLINE_STATUS or not str(row.get("source") or "").strip():
+            raise ValueError("each supplied discipline result needs id, pass/fail/open/not affected status, and source")
+        if status in ("pass", "fail") and not row.get("checks"):
+            raise ValueError(f"supplied {did} {status} result needs deterministic checks")
+        rows[did] = {"status": status, "summary": str(row.get("summary") or ""),
+                     "source": row["source"], "checks": list(row.get("checks") or [])}
+    return [{"id": did, **row} for did, row in rows.items()]
+
+
+def decision_inputs(changes, field_checks=None):
+    """Rank explicit field checks, or make only the minimum evidence requests implied by the physical changes."""
+    rows = []
+    for n, raw in enumerate(field_checks or [], 1):
+        if not all(str(raw.get(k) or "").strip() for k in ("item", "where", "changes")):
+            raise ValueError("field checks need item, where and changes")
+        priority = int(raw.get("priority") or n)
+        if priority < 1:
+            raise ValueError("field-check priority must be a positive integer")
+        rows.append({"priority": priority, "item": raw["item"], "where": raw["where"],
+                     "changes": raw["changes"], "source": raw.get("source") or "design answer"})
+    if not rows:
+        for change in changes:
+            path = str(change.get("path") or "")
+            if path.endswith(".U_W_m2K"):
+                tag = path.split(".")[1]
+                rows.append({"item": f"Post-work heat-transfer coefficient for {tag}",
+                             "where": "fixed-flow temperature and duty survey after cleaning",
+                             "changes": f"If measured U is below {change.get('value')} W/m2K, re-run the envelope; cleaning alone may not clear the limit",
+                             "source": "verified proposal", "priority": len(rows) + 1})
+            unit = change.get("add_unit") or {}
+            if unit.get("type") not in (None, *ROUTING):
+                rows.append({"item": f"Guaranteed duty and driver curve for {unit['id']}",
+                             "where": "vendor curve at minimum, normal and maximum suction/discharge conditions",
+                             "changes": "If the guaranteed curve misses the calculated duty or provisional rating, resize or reject the proposal",
+                             "source": change.get("rating_source") or "proposal rating to confirm", "priority": len(rows) + 1})
+        if any(c.get("reroute") for c in changes):
+            rows.append({"item": "Tie-in and isolation survey", "where": "proposed Rev B connection points in the field",
+                         "changes": "If isolation, access or line class differs, revise the routing, outage and installed cost",
+                         "source": "proposal topology", "priority": len(rows) + 1})
+    return sorted(rows, key=lambda row: row["priority"])
+
+
+def option_comparison(proposals, envelope):
+    """Compare what is actually on record; do not manufacture numeric Pareto rankings from cost-class labels."""
+    rows = []
+    for p in proposals:
+        cap = p.get("capacity_multiple")
+        reaches = p.get("reaches_target")
+        rows.append({"title": p.get("title") or "untitled change", "verified": bool(p.get("verified")),
+                     "role": "standalone target" if reaches else "partial change" if reaches is False else "not independently solved",
+                     "capacity_multiple": cap, "cost_class": p.get("cost_class") or "not stated",
+                     "physical_units": [c["add_unit"]["id"] for c in p.get("changes") or []
+                                        if c.get("add_unit") and c["add_unit"].get("type") not in ROUTING]})
+    rows.append({"title": "Combined proposed design", "verified": envelope["robust_pass"],
+                 "role": "combined envelope", "capacity_multiple": max(
+                     (r["scale"] for r in envelope["scenarios"] if r["pass"]), default=None),
+                 "cost_class": " + ".join(dict.fromkeys(r["cost_class"] for r in rows)) or "not stated",
+                 "physical_units": [u for r in rows for u in r["physical_units"]]})
+    return {"options": rows, "pareto": "not ranked: sourced numeric cost, outage and energy values are required"}
+
+
+def _direction(check):
+    value, limit, util = check.get("value"), check.get("limit"), check.get("utilisation")
+    if not all(isinstance(x, (int, float)) and math.isfinite(x) for x in (value, limit, util)) or not value or not limit:
+        return None
+    high_error, low_error = abs(util - value / limit), abs(util - limit / value)
+    if abs(high_error - low_error) < 1e-9:
+        words = str(check.get("check") or "").lower()
+        return "min" if any(x in words for x in ("minimum", "npsh", "residence", "min travel")) else "max"
+    return "max" if high_error < low_error else "min"
+
+
+def commissioning_plan(changes, envelope, equipment, observations=None):
+    """Acceptance plan from solved checks; supplied observations close tests against the same documented limit."""
+    tags = {c["add_unit"]["id"] for c in changes if c.get("add_unit") and c["add_unit"].get("type") not in ROUTING}
+    tags |= {c["path"].split(".")[1] for c in changes if str(c.get("path") or "").startswith("units.")}
+    passed = [row for row in envelope["scenarios"] if row["pass"]]
+    target = max(passed or envelope["scenarios"], key=lambda r: r["scale"])
+    tests = []
+    for check in target.get("all_checks") or []:
+        if check.get("id") not in tags or _direction(check) is None:
+            continue
+        slug = re.sub(r"[^a-z0-9]+", "-", f"{check['id']}-{check['check']}".lower()).strip("-")
+        tests.append({"id": slug, "tag": check["id"], "measurement": check["check"],
+                      "predicted": check["value"], "limit": check["limit"], "unit": check.get("unit") or "",
+                      "direction": _direction(check), "status": "open", "source": f"scenario {target['name']}"})
+    for row in equipment:
+        if row["id"] not in {t["tag"] for t in tests}:
+            tests.append({"id": re.sub(r"[^a-z0-9]+", "-", f"{row['id']}-vendor-duty".lower()), "tag": row["id"],
+                          "measurement": "vendor guaranteed operating point", "predicted": row.get("operating_flow"),
+                          "limit": row.get("rating_flow"), "unit": row.get("flow_unit") or "", "direction": "max",
+                          "status": "open", "source": row.get("rating_source") or "rating to confirm"})
+    by_id = {t["id"]: t for t in tests}
+    for observed in observations or []:
+        test = by_id.get(observed.get("test_id"))
+        if not test:
+            raise ValueError(f"unknown commissioning test {observed.get('test_id')}")
+        if not str(observed.get("source") or "").strip():
+            raise ValueError(f"commissioning observation {test['id']} needs a source")
+        value = float(observed["value"])
+        if not math.isfinite(value):
+            raise ValueError(f"commissioning observation {test['id']} must be finite")
+        test["observed"] = value
+        test["observation_source"] = observed["source"]
+        if test.get("limit") is None:
+            test["status"] = "review"
+        else:
+            test["status"] = "pass" if ((value <= test["limit"]) if test["direction"] == "max" else (value >= test["limit"])) else "fail"
+    status = "fail" if any(t["status"] == "fail" for t in tests) else "pass" if tests and all(t["status"] == "pass" for t in tests) else "open"
+    return {"status": status, "scenario": target["name"], "tests": tests,
+            "note": "Open tests are commissioning requirements, not evidence that the installed change passed."}
+
+
+def rfq_markdown(equipment):
+    lines = ["# Vendor RFQ duty sheet", "", "**DRAFT — bidder data and guarantees remain to be supplied.**", ""]
+    if not equipment:
+        return "\n".join(lines + ["No new physical equipment in this design.", ""])
+    for row in equipment:
+        lines += [f"## {row['id']} — {row['type']}", "",
+                  f"- Calculated operating flow: {_fmt(row.get('operating_flow'))} {row.get('flow_unit') or ''}",
+                  f"- Provisional rated flow: {_fmt(row.get('rating_flow'))} {row.get('flow_unit') or ''}",
+                  f"- Calculated shaft load: {_fmt(row.get('calculated_shaft'))} {row.get('shaft_unit') or ''}",
+                  f"- Provisional driver rating: {_fmt(row.get('rating_shaft'))} {row.get('shaft_unit') or ''}",
+                  f"- Rating basis: {row.get('rating_source') or 'to confirm'}"]
+        if row.get("pressure_ratio") is not None:
+            lines.append(f"- Calculated pressure ratio: {_fmt(row['pressure_ratio'])}")
+        if row.get("head") is not None:
+            lines.append(f"- Calculated head: {_fmt(row['head'])} {row.get('head_unit') or ''}")
+        lines += ["", "Bidder shall return:", ""]
+        lines += [f"- {item}" for item in row["vendor_gate"]]
+        lines += ["- guaranteed performance at minimum, normal and maximum duty", "- exceptions and required auxiliaries", ""]
+    return "\n".join(lines)
+
+
+def commissioning_markdown(plan):
+    lines = ["# Commissioning acceptance plan", "", "**DRAFT — acceptance readings require traceable field sources.**", "",
+             f"Scenario basis: {plan['scenario']}. Overall status: **{plan['status'].upper()}**.", "",
+             "| Test | Tag | Measurement | Predicted | Acceptance limit | Observed | Status | Source |",
+             "|---|---|---|---:|---:|---:|---|---|"]
+    for row in plan["tests"]:
+        op = "≤" if row["direction"] == "max" else "≥"
+        lines.append(f"| {row['id']} | {row['tag']} | {row['measurement']} | {_fmt(row.get('predicted'))} {row['unit']} | "
+                     f"{op} {_fmt(row.get('limit'))} {row['unit']} | {_fmt(row.get('observed'))} | {row['status']} | "
+                     f"{row.get('observation_source') or row['source']} |")
+    lines += ["", plan["note"], ""]
+    return "\n".join(lines)
+
+
 def _fmt(value):
     if value is None:
         return "—"
@@ -251,7 +438,21 @@ def markdown(data, datasheets=""):
                      f"{worst.get('id', '—')} {worst.get('check', '')} | {_fmt(worst.get('utilisation'))} | "
                      f"{_fmt(bal.get('mass_error_pct'))}% | {row['basis']} |")
     lines += ["", "Energy closure: " + "; ".join(sorted({r["balance"].get("energy", "not available") for r in env["scenarios"]})), "",
-              "## Preliminary equipment selection", ""]
+              "## Discipline impact register", "", "| Discipline | Status | Impact | Evidence |", "|---|---|---|---|"]
+    lines += [f"| {r['id'].replace('_', ' ').title()} | {r['status']} | {r['summary']} | {r['source']} |" for r in data["disciplines"]]
+    lines += ["", "## Decision-changing evidence", ""]
+    if data["decision_inputs"]:
+        lines += ["| Priority | Evidence needed | Where / how | Decision changed | Source |", "|---:|---|---|---|---|"]
+        lines += [f"| {r['priority']} | {r['item']} | {r['where']} | {r['changes']} | {r['source']} |" for r in data["decision_inputs"]]
+    else:
+        lines += ["No decision-changing field input was identified from the recorded changes."]
+    lines += ["", "## Change portfolio", "", "| Change | Role | Verified | Capacity | Cost class | New equipment |",
+              "|---|---|---|---:|---|---|"]
+    for row in data["options"]["options"]:
+        capacity = f"{row['capacity_multiple'] * 100:.1f}%" if isinstance(row.get("capacity_multiple"), (int, float)) else "—"
+        lines.append(f"| {row['title']} | {row['role']} | {'yes' if row['verified'] else 'no'} | {capacity} | "
+                     f"{row['cost_class']} | {', '.join(row['physical_units']) or '—'} |")
+    lines += ["", data["options"]["pareto"], "", "## Preliminary equipment selection", ""]
     if data["equipment"]:
         lines += ["| Tag | Type | Status | Flow margin | Driver margin | Rating source |", "|---|---|---|---:|---:|---|"]
         for row in data["equipment"]:
@@ -284,6 +485,15 @@ def markdown(data, datasheets=""):
     else:
         lines += ["No sourced numerical estimate supplied; these items remain unpriced: " + "; ".join(con["unpriced"]) + ".", ""]
     lines += [f"- {x}" for x in con["checks"]]
+    com = data["commissioning"]
+    lines += ["", "## Commissioning acceptance", "", f"Status: **{com['status'].upper()}** against scenario {com['scenario']}.", ""]
+    if com["tests"]:
+        lines += ["| Test | Tag | Measurement | Limit | Status |", "|---|---|---|---:|---|"]
+        for row in com["tests"]:
+            op = "≤" if row["direction"] == "max" else "≥"
+            lines.append(f"| {row['id']} | {row['tag']} | {row['measurement']} | {op} {_fmt(row.get('limit'))} {row['unit']} | {row['status']} |")
+    else:
+        lines += ["No solved acceptance check maps to the changed equipment; define the acceptance measurements before issue."]
     lines += ["", "## Gate and limitations", "", "- A pass means all stated simulator checks passed in all stated scenarios; it is not mechanical or vendor approval.",
               "- New equipment remains provisional until guaranteed curves and materials are checked.",
               "- The automated hazard register does not replace a multidisciplinary HAZOP or relief-system design.",
@@ -291,7 +501,7 @@ def markdown(data, datasheets=""):
     return "\n".join(lines)
 
 
-def make(w, answer=None, scenarios=None, dynamics=None, economics=None):
+def make(w, answer=None, scenarios=None, dynamics=None, economics=None, commissioning=None, disciplines=None):
     """Build and save the deterministic pre-FEED gate for the selected verified design (or current model)."""
     if not w.built:
         raise ValueError("no model built yet")
@@ -344,15 +554,26 @@ def make(w, answer=None, scenarios=None, dynamics=None, economics=None):
                 proposal = {**proposal, "calculation": calculations[0]}
     equipment = equipment_screen(changes, calculations)
     relief = pid.relief_scan(DATA / w.cfg["pid"]) if w.cfg.get("pid") else []
+    dynamic = dynamic_screen(dynamics)
+    hazards = hazard_screen(spec, changes, relief)
+    construction = constructability(changes, equipment, [p.get("cost_class") or "not stated" for p in proposals], economics)
+    discipline_rows = discipline_register(envelope, equipment, dynamic, hazards, construction,
+                                          disciplines if disciplines is not None else cfg.get("disciplines"))
+    inputs = decision_inputs(changes, cfg.get("field_checks") or (selected or {}).get("field_checks"))
+    options = option_comparison(proposals, envelope)
+    commission = commissioning_plan(changes, envelope, equipment,
+                                     commissioning if commissioning is not None else cfg.get("commissioning"))
     data = {"case": w.name, "made": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
             "design_answer": (selected or {}).get("headline"), "proposal_titles": [p.get("title") for p in proposals],
-            "envelope": envelope, "equipment": equipment, "dynamics": dynamic_screen(dynamics),
-            "hazards": hazard_screen(spec, changes, relief),
-            "constructability": constructability(changes, equipment, [p.get("cost_class") or "not stated" for p in proposals], economics)}
+            "envelope": envelope, "equipment": equipment, "dynamics": dynamic, "hazards": hazards,
+            "constructability": construction, "disciplines": discipline_rows, "decision_inputs": inputs,
+            "options": options, "commissioning": commission}
     sheets = "\n\n".join(datasheet_markdown(p.get("changes"), p.get("calculation") or (calculations[0] if calculations else None))
                             for p in proposals if p.get("changes"))
     text = markdown(data, sheets)
-    files = {"prefeed.md": text, "prefeed.json": json.dumps(data, indent=2)}
+    files = {"prefeed.md": text, "prefeed.json": json.dumps(data, indent=2),
+             "impact-register.json": json.dumps(discipline_rows, indent=2),
+             "vendor-rfq.md": rfq_markdown(equipment), "commissioning.md": commissioning_markdown(commission)}
     try:
         import tempfile
         from .decision import _pdf
@@ -363,8 +584,10 @@ def make(w, answer=None, scenarios=None, dynamics=None, economics=None):
     except Exception as error:  # markdown and JSON remain the authoritative artifacts
         data["pdf_error"] = f"{type(error).__name__}: {error}"
         files["prefeed.json"] = json.dumps(data, indent=2)
+    open_disciplines = sum(r["status"] in ("open", "fail") for r in discipline_rows)
     summary = ("Robust pass" if envelope["robust_pass"] else "Not robust") + \
-              f" across {len(envelope['scenarios'])} operating scenarios; {len(equipment)} provisional equipment item(s)."
+              f" across {len(envelope['scenarios'])} operating scenarios; {len(equipment)} provisional equipment item(s); " \
+              f"{open_disciplines} discipline gate(s) open or failed; commissioning {commission['status']}."
     meta = artifacts.save(w.name, "analysis", "Pre-FEED design gate", files, by="PlantAgent (deterministic)",
                           sources=[f"cases/{w.name}/case.json", f"runs/ws/{w.name}/model.json"] +
                                   ([f"cases/{w.name}/prefeed.json"] if cfg_path.exists() else []), summary=summary)

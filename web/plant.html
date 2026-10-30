@@ -1460,8 +1460,13 @@ async function prefeedFile() {
   if (r.error) { out.innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return; }
   const assessment = r.assessment || {}, env = assessment.envelope || {};
   const fileUrl = f => `/api/plant/${CASE}/artifact/${encodeURIComponent(r.id)}/${encodeURIComponent(f)}`;
-  out.innerHTML = `<div style="font-size:12px;margin:4px 0">${env.robust_pass ? '✓ Robust pass' : '⚠ Not robust'} across ${(env.scenarios || []).length} scenarios · draft, not approved</div>`
-    + (r.files || []).map(f => `<a class="btn" style="margin:2px;display:inline-block;text-decoration:none" target="_blank" href="${fileUrl(f)}">${esc(f)}</a>`).join('');
+  const open = (assessment.disciplines || []).filter(d => d.status === 'open' || d.status === 'fail').length;
+  const gates = (assessment.disciplines || []).map(d => `<span class="chip ${d.status === 'pass' ? 'done' : d.status === 'fail' ? 'err' : d.status === 'open' ? 'sim' : 'doc'}" title="${esc(d.summary || '')}">${esc(d.id.replaceAll('_',' '))}: ${esc(d.status)}</span>`).join(' ');
+  const labels = {'prefeed.pdf':'Full pre-FEED gate (PDF)','prefeed.md':'Full gate (Markdown)','prefeed.json':'Gate data (JSON)',
+                  'impact-register.json':'Discipline impacts','vendor-rfq.md':'Vendor RFQ duty sheet','commissioning.md':'Commissioning plan'};
+  out.innerHTML = `<div style="font-size:12px;margin:4px 0">${env.robust_pass ? '✓ Robust pass' : '⚠ Not robust'} across ${(env.scenarios || []).length} scenarios · ${open} discipline gates open/failed · commissioning ${esc((assessment.commissioning || {}).status || 'open')} · draft, not approved</div>`
+    + `<div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">${gates}</div>`
+    + (r.files || []).map(f => `<a class="btn" style="margin:2px;display:inline-block;text-decoration:none" target="_blank" href="${fileUrl(f)}">${esc(labels[f] || f)}</a>`).join('');
 }
 function openDecisionPack() {
   $('historyDetails').open = true;
