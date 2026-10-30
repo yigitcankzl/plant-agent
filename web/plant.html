@@ -772,7 +772,7 @@ function describe(c) {
 }
 
 const ROUTING = new Set(['mixer', 'splitter', 'recycle']);
-const calcNum = v => (v == null || v === '') ? 'to confirm' : String(v);
+const calcNum = v => (v == null || v === '') ? 'to confirm' : typeof v === 'number' ? String(Number(v.toPrecision(4))) : String(v);
 function qty(value, unit) {
   if (value == null) return [null, unit];
   if (unit === 'kg/h' && Math.abs(value) >= 1000) return [value / 1000, 't/h'];

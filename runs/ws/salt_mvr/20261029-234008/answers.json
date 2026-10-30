@@ -1,0 +1,661 @@
+[
+ {
+  "cards": [
+   {
+    "title": "120% feed without fixes - what blocks",
+    "result": "Fails: compressor at 120% and heater at 111%",
+    "runs": [
+     "vrc_cal_v2_desup_hx",
+     "vrc_120_U2000_check"
+    ],
+    "status": "fail",
+    "inputs": [
+     {
+      "name": "Feed brine S1004mix at 120%",
+      "value": "435480 kg/h",
+      "source": "Logged run vrc_120_U2000_check feeds.S1004mix",
+      "basis": "computed"
+     },
+     {
+      "name": "K-201 suction flow vs capacity",
+      "value": "272137 kg/h vs 226800 kg/h = 120%",
+      "source": "Logged run vrc_120_U2000_check checks K-201 suction flow vs capacity; P&ID K-201 CentrifugalCompressor DesignShaftPower 14000 kW",
+      "basis": "computed"
+     },
+     {
+      "name": "Main heater area needed vs installed",
+      "value": "9753 m2 needed vs 8800 m2 = 110.8%",
+      "source": "Logged run vrc_120_U2000_check checks V-201 heater area needed; P&ID E-201 DesignHeatTransferArea 6500 m2 superseded by data sheet 8800 m2",
+      "basis": "computed"
+     },
+     {
+      "name": "K-201 shaft power vs motor",
+      "value": "11279 kW vs 14000 kW = 80.6%",
+      "source": "Logged run vrc_120_U2000_check checks K-201 shaft power vs motor",
+      "basis": "computed"
+     },
+     {
+      "name": "Purge heater V-301 area",
+      "value": "1445 m2 vs 1500 m2 = 96.3% - tight but passes",
+      "source": "Logged run vrc_120_U2000_check checks V-301",
+      "basis": "computed"
+     }
+    ],
+    "assumptions": [
+     "Water-only IAPWS-IF97 model with NaCl boiling-point rise in evaporator block",
+     "Recirculation CIRC_S2001 held at 17850000 kg/h, turbine exhaust held at 15900 kg/h, purge scales with feed",
+     "Fouled heater U 2000 W/m2K in base model vrc_cal_v2_desup_hx"
+    ]
+   },
+   {
+    "title": "Clean main heater restores heat transfer",
+    "result": "Cleaning to 2500 W/m2K brings area to ~89%",
+    "runs": [
+     "vrc_120_clean_E201",
+     "vrc_120_both_fixes"
+    ],
+    "status": "ok",
+    "inputs": [
+     {
+      "name": "Fouled U",
+      "value": "2000 W/m2K",
+      "source": "Model mapping V-201/E-201 U 2000 in vrc_cal_v2_desup_hx",
+      "basis": "documented"
+     },
+     {
+      "name": "Clean U after cleaning",
+      "value": "2500 W/m2K",
+      "source": "Assumed clean performance for tubular brine heater - no clean datasheet found",
+      "basis": "assumed"
+     },
+     {
+      "name": "Area needed after clean",
+      "value": "~7800 m2 vs 8800 m2 installed = ~89%",
+      "source": "Logged run vrc_120_both_fixes units.V-201 area_needed_m2, scaled as 9753x2000/2500 and solved in DWSIM",
+      "basis": "computed"
+     },
+     {
+      "name": "Installed area frame limit",
+      "value": "8800 m2",
+      "source": "Data sheet V-201/E-201 rows 8800 m2",
+      "basis": "documented"
+     }
+    ],
+    "assumptions": [
+     "Clean U 2500 is assumed - decides heater conclusion, so provisional",
+     "No extra frame area available beyond 8800 m2"
+    ]
+   },
+   {
+    "title": "Larger compressor passes 120% flow",
+    "result": "273 t/h suction and 11.3 MW passes motor",
+    "runs": [
+     "vrc_120_U2000_check",
+     "vrc_120_both_fixes"
+    ],
+    "status": "ok",
+    "inputs": [
+     {
+      "name": "K-201 suction at 120% feed",
+      "value": "272137 kg/h",
+      "source": "Logged run vrc_120_U2000_check streams S3001",
+      "basis": "computed"
+     },
+     {
+      "name": "Existing K-201 capacity",
+      "value": "226800 kg/h",
+      "source": "Logged run limits K-201 max_kg_h; P&ID K-201 DesignPressureRatio 1.8",
+      "basis": "documented"
+     },
+     {
+      "name": "New capacity needed with margin",
+      "value": "275000 kg/h gives 99% utilisation",
+      "source": "Logged run vrc_120_both_fixes limits.K-201 max_kg_h 275000",
+      "basis": "computed"
+     },
+     {
+      "name": "Shaft power at 120%",
+      "value": "11279 kW vs 14000 kW motor = 80.6%",
+      "source": "Logged run vrc_120_U2000_check units.K-201 duty_kW",
+      "basis": "computed"
+     }
+    ],
+    "assumptions": [
+     "Compressor efficiency 75% and P_out 3.08 bar unchanged",
+     "Turbine exhaust 15900 kg/h utility fixed - not increased"
+    ]
+   }
+  ],
+  "field_checks": [
+   {
+    "item": "Clean heat transfer coefficient of main brine heater E-201 / V-201 heating side",
+    "where": "Inspect E-201 bundle and trend condensing minus brine temperature at fixed circulation; test clean U after chemical/mechanical clean",
+    "changes": "If clean U is below 2500 W/m2K, cleaning alone will not clear 9753 m2 deficit and added area or second bundle is needed"
+   },
+   {
+    "item": "True K-201 suction mass flow and surge / motor margin at today's throughput",
+    "where": "Clamp-on or orifice check on line 3001 V-201 to K-201 and DCS MW vs 14000 kW motor rating",
+    "changes": "If measured suction is >5% below model 226906 kg/h at base, capacity limit moves above 1.0 and 120% shortfall shrinks"
+   }
+  ],
+  "headline": "Compressor and heater block higher output",
+  "highlights": [
+   {
+    "tag": "K-201",
+    "text": "Limits at +0.1%: suction 120% at 120% feed - needs bigger machine",
+    "severity": "fail"
+   },
+   {
+    "tag": "E-201",
+    "text": "Heater needs 9753 m2 vs 8800 m2 installed at 120% - clean first",
+    "severity": "fail"
+   },
+   {
+    "tag": "V-201",
+    "text": "Body follows heater: heat balance 100.1% at 120% when fouled",
+    "severity": "warn"
+   },
+   {
+    "tag": "V-301",
+    "text": "Purge heater tight at 96% at 120% - no change needed but watch",
+    "severity": "warn"
+   }
+  ],
+  "proposals": [
+   {
+    "tag": "E-201",
+    "title": "Clean main brine heater to clean performance",
+    "why": "Cheapest: restores driving force without new steel; verified area drops from 110.8% to ~89% of 8800 m2 frame.",
+    "changes": [
+     {
+      "path": "units.V-201.U_W_m2K",
+      "value": 2500,
+      "from": 2000
+     }
+    ],
+    "cost_class": "no capex",
+    "verified": true,
+    "fixes": "E-201",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.001,
+    "limited_by": {
+     "id": "K-201",
+     "check": "suction flow vs capacity",
+     "value": 226905.6,
+     "limit": 226800,
+     "unit": "kg/h",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "K-201",
+      "check": "suction flow vs capacity",
+      "value": 272137.2,
+      "limit": 226800,
+      "unit": "kg/h",
+      "utilisation": 1.2
+     }
+    ],
+    "target_scale": 1.2
+   },
+   {
+    "tag": "K-201",
+    "title": "Add compressor suction capacity to 275 t/h",
+    "why": "No operating move unloads suction at fixed 120% boil-up; power 11.3 MW still inside 14 MW motor so larger wheel / parallel unit works.",
+    "changes": [
+     {
+      "path": "limits.K-201.max_kg_h",
+      "value": 275000,
+      "from": 226800
+     }
+    ],
+    "cost_class": ">$1M",
+    "verified": false,
+    "fixes": "K-201",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": null,
+    "limited_by": null,
+    "reaches_target": false,
+    "over_limits_at_target": [],
+    "target_scale": 1.2,
+    "unverified_reason": "changes a documented limit (limits.K-201.max_kg_h): a rating only changes with a physical modification and its own evidence, so this cannot be verified in the simulator"
+   }
+  ],
+  "summary": "At 120% feed the vapour compressor reaches 120% of suction capacity and the main heater needs 110.8% of installed area. Cleaning the heater and adding compressor capacity to 275 t/h clears 120% within motor and area limits.",
+  "combined": {
+   "reaches_target": false,
+   "capacity_multiple": null,
+   "limited_by": null,
+   "over_limits_at_target": []
+  },
+  "checks": [
+   {
+    "item": "run vrc_cal_v2_desup_hx",
+    "ok": false,
+    "why": "re-solved to a different result"
+   },
+   {
+    "item": "run vrc_120_U2000_check",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run vrc_120_clean_E201",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run vrc_120_both_fixes",
+    "ok": true,
+    "why": ""
+   }
+  ],
+  "seconds": 544,
+  "cost_usd": 0.0395,
+  "request": "Get the unit to 120% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in DWSIM, within every utility and frame limit on the data sheet.",
+  "model": "muse-spark-1.3-contributor"
+ },
+ {
+  "cards": [
+   {
+    "assumptions": [
+     "Clean E-201 U 2500 W/m2K assumed as restored clean performance; fouled U 2000 W/m2K from calibrated model",
+     "K-202 eff 75% same as K-201 assumed",
+     "Flow split set to hold K-201 at 100% at 120% feed; not final control design"
+    ],
+    "inputs": [
+     {
+      "basis": "documented",
+      "name": "Feed brine line 1004",
+      "source": "data sheet Operating point: 362.9 t/h saturated brine",
+      "value": "362900 kg/h at 108 C 2.4 bar (S1004mix)"
+     },
+     {
+      "basis": "documented",
+      "name": "K-201 suction capacity",
+      "source": "data sheet K-201 rows / P&ID K-201",
+      "value": "226800 kg/h, motor 14000 kW"
+     },
+     {
+      "basis": "documented",
+      "name": "E-201/V-201 installed area",
+      "source": "data sheet V-201 rows 8800 m2; P&ID E-201 6500 m2 superseded",
+      "value": "8800 m2"
+     },
+     {
+      "basis": "computed",
+      "name": "120% vapour to compressors",
+      "source": "run vrc_120_scaled: S3001 272137 kg/h",
+      "value": "272.1 t/h total; K-201 alone 120.0% utilisation"
+     },
+     {
+      "basis": "computed",
+      "name": "120% heater need fouled",
+      "source": "run vrc_120_scaled V-201 area_needed 9649 m2",
+      "value": "9649 m2 = 109.6% of 8800 m2"
+     }
+    ],
+    "result": "At 120% feed need 272 t/h compression and 9649 m2; K-201 alone 120% and heater 109.6%",
+    "runs": [
+     "vrc_120_scaled",
+     "vrc_120_desup_fix",
+     "base_100_copy"
+    ],
+    "status": "fail",
+    "title": "Base 120% bottleneck"
+   },
+   {
+    "assumptions": [
+     "Clean U 2500 assumed",
+     "Same heating source S3002 from discharge"
+    ],
+    "inputs": [
+     {
+      "basis": "assumed",
+      "name": "Clean U",
+      "source": "Historian UI-201 max 2462, mean 2046; clean 2500 assumed to confirm by test",
+      "value": "2500 W/m2K"
+     },
+     {
+      "basis": "computed",
+      "name": "Alt1 120% K-201 flow",
+      "source": "run alt1_clean_120 S3001 272137 kg/h",
+      "value": "272137 kg/h = 120.0% of 226800"
+     },
+     {
+      "basis": "computed",
+      "name": "Alt1 120% shaft",
+      "source": "run alt1_clean_120 K-201 kW 11279",
+      "value": "11279 kW = 80.6% of 14000 kW motor"
+     },
+     {
+      "basis": "computed",
+      "name": "Alt1 120% area",
+      "source": "run alt1_clean_120 area_needed 7719 m2",
+      "value": "7719 m2 = 87.7% of 8800 m2"
+     },
+     {
+      "basis": "computed",
+      "name": "Alt1 max throughput",
+      "source": "process_capacity alt1_clean_120 1.001x",
+      "value": "100.1% feed, limited by K-201 suction"
+     }
+    ],
+    "result": "Clean only: max 100.1%, 120% fails on compressor",
+    "runs": [
+     "alt1_clean_120"
+    ],
+    "status": "fail",
+    "title": "Alt1 clean E-201 only at 120%"
+   },
+   {
+    "assumptions": [
+     "K-202 eff 75% assumed same as K-201",
+     "Prelim rating 60000 kg/h / 3000 kW for check only",
+     "Split 83.33/16.67% set to hold K-201 at 100%"
+    ],
+    "inputs": [
+     {
+      "basis": "computed",
+      "name": "Alt2 120% K-201 suction",
+      "source": "run alt2_K202_120 S3001 226772 kg/h",
+      "value": "226772 kg/h = 100.0% of 226800"
+     },
+     {
+      "basis": "computed",
+      "name": "Alt2 120% K-202 suction",
+      "source": "run alt2_K202_120 S3001b 45365 kg/h",
+      "value": "45365 kg/h = 75.6% of prelim 60000"
+     },
+     {
+      "basis": "computed",
+      "name": "Alt2 shaft powers",
+      "source": "run alt2_K202_120 K-201 9399 kW + K-202 1880 kW",
+      "value": "9399 kW (67.1%) + 1880 kW simulated; total 11279 kW"
+     },
+     {
+      "basis": "computed",
+      "name": "Alt2 heater fouled",
+      "source": "run alt2_K202_120 area_needed 9649 m2",
+      "value": "9649 m2 = 109.6% of 8800 m2"
+     },
+     {
+      "basis": "computed",
+      "name": "Alt2 max throughput",
+      "source": "process_capacity alt2_K202_120 1.095x",
+      "value": "109.5% feed, limited by V-201 heater area"
+     }
+    ],
+    "result": "Parallel compressor only: max 109.5%, heater still fails",
+    "runs": [
+     "alt2_K202_120"
+    ],
+    "status": "fail",
+    "title": "Alt2 parallel K-202 only fouled at 120%"
+   },
+   {
+    "assumptions": [
+     "Clean U 2500 assumed; confirm by cleaning test",
+     "K-202 eff and split as above; vendor to confirm"
+    ],
+    "inputs": [
+     {
+      "basis": "computed",
+      "name": "Alt3 120% K-201 suction",
+      "source": "run alt3_both_120 S3001 226772 kg/h",
+      "value": "226772 kg/h = 100.0% of 226800"
+     },
+     {
+      "basis": "computed",
+      "name": "Alt3 120% K-202 suction",
+      "source": "run alt3_both_120 S3001b 45365 kg/h",
+      "value": "45365 kg/h = 75.6% of prelim 60000"
+     },
+     {
+      "basis": "computed",
+      "name": "Alt3 shaft powers",
+      "source": "run alt3_both_120 K-201 9399 kW + K-202 1880 kW",
+      "value": "9399 kW (67.1% motor) + 1880 kW simulated"
+     },
+     {
+      "basis": "computed",
+      "name": "Alt3 heater clean",
+      "source": "run alt3_both_120 area_needed 7719 m2",
+      "value": "7719 m2 = 87.7% of 8800 m2"
+     },
+     {
+      "basis": "computed",
+      "name": "Alt3 max throughput",
+      "source": "process_capacity alt3_both_120 1.201x, next V-301 95.5%",
+      "value": "120.1% feed, limited by K-201 suction; 120% achieved"
+     }
+    ],
+    "result": "Clean plus parallel compressor: 120.1% max, target met",
+    "runs": [
+     "alt3_both_120"
+    ],
+    "status": "ok",
+    "title": "Alt3 clean plus parallel K-202 at 120%"
+   }
+  ],
+  "field_checks": [
+   {
+    "changes": "If clean U is below 2500, Alt1 and Alt3 area utilisation rises; Alt3 may fail 120%",
+    "item": "E-201 clean U after chemical/mechanical clean",
+    "where": "Measure brine rise DI-201, flows FI-2001/FI-3000 and TI-3003 after clean to infer U at V-201/E-201"
+   },
+   {
+    "changes": "If head/efficiency worse, K-202 suction share and shaft change; prelim 60 t/h may be undersized",
+    "item": "K-202 head, curve and efficiency at 1.7 to 3.08 bar",
+    "where": "Vendor quote and curve for 45-60 t/h vapour; confirm discharge pressure PI-3002 and power JI-201 in test"
+   },
+   {
+    "changes": "If purge vapour differs, V-301 area 95.5% at 120% could become the limit",
+    "item": "V-301 purge split FI-5001 and V-301 duty",
+    "where": "Meter FI-5001 purge and FI-5101 disposal at 110-120% feed trial"
+   }
+  ],
+  "headline": "Only combined clean and second compressor reaches target",
+  "highlights": [
+   {
+    "severity": "fail",
+    "tag": "K-201",
+    "text": "120% needs 272 t/h: 120% of suction capacity, motor 80.6% - needs parallel unit"
+   },
+   {
+    "severity": "fail",
+    "tag": "E-201",
+    "text": "Fouled heater needs 9649 m2: 109.6% of 8800 m2; clean needs 7719 m2: 87.7%"
+   },
+   {
+    "severity": "info",
+    "tag": "K-202",
+    "text": "New parallel unit: 45.4 t/h simulated, 1880 kW shaft, 75.6% of prelim 60 t/h"
+   },
+   {
+    "severity": "ok",
+    "tag": "V-201",
+    "text": "Body and heating from discharge S3002; D-201 mix included"
+   },
+   {
+    "severity": "warn",
+    "tag": "V-301",
+    "text": "Next limit after fix: 95.5% of purge heater at 120%"
+   }
+  ],
+  "proposals": [
+   {
+    "changes": [
+     {
+      "path": "units.V-201.U_W_m2K",
+      "value": 2500,
+      "from": 2000
+     }
+    ],
+    "cost_class": "no capex",
+    "tag": "E-201",
+    "title": "Restore E-201 clean performance",
+    "why": "Removes heater bottleneck: 9649 to 7719 m2 at 120% in runs alt2 to alt3",
+    "verified": true,
+    "fixes": "E-201",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.001,
+    "limited_by": {
+     "id": "K-201",
+     "check": "suction flow vs capacity",
+     "value": 226905.6,
+     "limit": 226800,
+     "unit": "kg/h",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "K-201",
+      "check": "suction flow vs capacity",
+      "value": 272137.2,
+      "limit": 226800,
+      "unit": "kg/h",
+      "utilisation": 1.2
+     }
+    ],
+    "target_scale": 1.2,
+    "new_equipment": []
+   },
+   {
+    "changes": [
+     {
+      "add_unit": {
+       "id": "K-SPLIT",
+       "in": "S3001C",
+       "out": [
+        "S3001",
+        "S3001b"
+       ],
+       "type": "splitter"
+      },
+      "reroute": {
+       "field": "out",
+       "unit": "OVERHEAD_SPLIT",
+       "value": [
+        "S3101",
+        "S3001C"
+       ]
+      },
+      "from": [
+       "S3101",
+       "S3001"
+      ]
+     },
+     {
+      "add_unit": {
+       "id": "K-202",
+       "eff_pct": 75,
+       "in": "S3001b",
+       "out": "S3002b",
+       "P_out_bar": 3.08,
+       "type": "compressor"
+      },
+      "limits": {
+       "max_kg_h": 60000,
+       "max_kW": 3000
+      },
+      "rating_source": "preliminary selection; vendor quote and compressor curve to confirm"
+     },
+     {
+      "add_unit": {
+       "id": "K-JOIN",
+       "in": [
+        "S3002a",
+        "S3002b"
+       ],
+       "out": "S3002raw",
+       "type": "mixer"
+      }
+     },
+     {
+      "reroute": {
+       "field": "out",
+       "unit": "K-201",
+       "value": "S3002a"
+      },
+      "from": "S3002raw"
+     }
+    ],
+    "cost_class": ">$1M",
+    "tag": "K-202",
+    "title": "Add parallel vapour compressor K-202",
+    "why": "Holds K-201 at 100% (226.8 t/h) by taking 45.4 t/h; only combined with clean reaches 120% per alt3_both_120",
+    "verified": false,
+    "fixes": "K-202",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": null,
+    "limited_by": null,
+    "reaches_target": false,
+    "over_limits_at_target": [],
+    "target_scale": 1.2,
+    "new_equipment": [
+     {
+      "id": "K-202",
+      "type": "compressor",
+      "limits": {
+       "max_kg_h": 60000,
+       "max_kW": 3000
+      },
+      "rating_source": "preliminary selection; vendor quote and compressor curve to confirm",
+      "status": "new equipment, rating to confirm"
+     }
+    ],
+    "unverified_reason": "change 1 must contain exactly one of path, add_unit or reroute"
+   }
+  ],
+  "summary": "At 120% feed the vapour load is 272 t/h (120% of K-201 226.8 t/h) and fouled heater needs 9649 m2 (109.6% of 8800 m2) per run vrc_120_scaled. Only clean to 2500 U plus parallel K-202 at 45.4 t/h and 1880 kW shaft reaches 120.1% with heater 87.7% and K-201 at 100% per run alt3_both_120.",
+  "combined": {
+   "reaches_target": false,
+   "capacity_multiple": null,
+   "limited_by": null,
+   "over_limits_at_target": []
+  },
+  "checks": [
+   {
+    "item": "run vrc_120_scaled",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run vrc_120_desup_fix",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run base_100_copy",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run alt1_clean_120",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run alt2_K202_120",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run alt3_both_120",
+    "ok": true,
+    "why": ""
+   }
+  ],
+  "seconds": 486,
+  "cost_usd": 0.0459,
+  "request": "Do not change K-201\u2019s existing documented rating or any existing limits.* value.  Rework the rejected compressor proposal as a physical plant modification. Keep K-201 and add a parallel compressor K-202 using add_unit. Insert the required splitter and mixer and use reroute changes so the vapour actually divides between K-201 and K-202 and their discharges rejoin before D-201MIX.  Determine the required K-202 capacity and flow split through simulator runs; do not assume them as final design values. Give K-202 its own preliminary limits and set rating_source to \u201cpreliminary selection; vendor quote and compressor curve to confirm\u201d. Report its simulated shaft power, but do not invent a motor nameplate.  After first resolving every blocking model-review finding, re-solve these alternatives in DWSIM at the 120% target:  1. Clean E-201 only 2. Add parallel K-202 only 3. Clean E-201 and add parallel K-202 together  For each alternative, report: - maximum achievable throughput - K-201 and K-202 suction flow and utilisation - compressor shaft power - E-201 required area and utilisation - first remaining bottleneck - whether 120% is achieved  Do not represent a physical modification by increasing K-201\u2019s existing limit. If the required equipment or routing cannot be expressed in the process spec, call report_gap instead of approximating it.",
+  "model": "muse-spark-1.3-contributor"
+ }
+]

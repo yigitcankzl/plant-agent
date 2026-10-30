@@ -1,0 +1,222 @@
+[
+ {
+  "cards": [
+   {
+    "assumptions": [
+     "Membrane A=2e-12 m/Pa/s, B=2e-08 m/s are ILLUSTRATIVE in buildup-erd-only spec - conclusion provisional",
+     "Per-train feed basis 100 m3/h scaled linearly to full 8.33 MGD/train"
+    ],
+    "inputs": [
+     {
+      "basis": "documented",
+      "name": "Cold corner TDS",
+      "source": "request ~49,000 mg/L + feasibility p3-5/p34 max discussion",
+      "value": "49.0 g/L TDS"
+     },
+     {
+      "basis": "documented",
+      "name": "Cold corner temperature",
+      "source": "P&ID E-101 ChannelTemperatureRange 60 to 95 F",
+      "value": "15.6 C (60 F)"
+     },
+     {
+      "basis": "documented",
+      "name": "HP / membrane pressure ceiling",
+      "source": "get_spec buildup-erd-only hp_pump.max_bar + stages max_feed_pressure_bar",
+      "value": "75.9 bar (1100 psi)"
+     },
+     {
+      "basis": "computed",
+      "name": "Recovery at max pressure cold-salty",
+      "source": "run cold-salty-maxP",
+      "value": "0.416 at 75.9 bar, permeate 0.405 g/L"
+     }
+    ],
+    "result": "0.42 recovery vs 0.60 target - 60% not reachable at allowed pressure",
+    "runs": [
+     "cold-salty-maxP",
+     "cold-salty-69bar"
+    ],
+    "title": "Cold salty corner at pressure ceiling"
+   },
+   {
+    "assumptions": [
+     "Same illustrative membrane parameters as above"
+    ],
+    "inputs": [
+     {
+      "basis": "documented",
+      "name": "Average feed",
+      "source": "data sheet / feasibility 36,000 ppm average",
+      "value": "36.1 g/L at 23.9 C (75 F)"
+     },
+     {
+      "basis": "computed",
+      "name": "Recovery at 69 bar average",
+      "source": "run avg-69bar-check",
+      "value": "0.483 at 69.0 bar"
+     },
+     {
+      "basis": "computed",
+      "name": "Recovery at max pressure average",
+      "source": "run avg-maxP-check",
+      "value": "0.542 at 75.9 bar"
+     }
+    ],
+    "result": "Even average water reaches only 0.54 at 75.9 bar in this calibration",
+    "runs": [
+     "avg-69bar-check",
+     "avg-maxP-check"
+    ],
+    "title": "Design-point check shows model is pressure-short"
+   },
+   {
+    "assumptions": [
+     "Linear scale from 100 m3/h model basis to full-train flow",
+     "5 trains must each deliver full share when 1 of 6 is out"
+    ],
+    "inputs": [
+     {
+      "basis": "documented",
+      "name": "Permeate per train",
+      "source": "P&ID RO-201 PermeatePerTrain 5 MGD",
+      "value": "5 MGD per train"
+     },
+     {
+      "basis": "documented",
+      "name": "Installed / duty trains",
+      "source": "P&ID RO-201 6 installed 5 duty; feasibility p6-8",
+      "value": "6 installed, 5 needed for 25 MGD"
+     },
+     {
+      "basis": "documented",
+      "name": "SWRO brine per train at 60%",
+      "source": "feasibility p6-8 brine 3.33 MGD per train",
+      "value": "3.33 MGD brine => 8.33 MGD feed per train"
+     },
+     {
+      "basis": "computed",
+      "name": "Permeate per train at 0.416 recovery",
+      "source": "run cold-salty-maxP recovery 0.41588",
+      "value": "~3.5 MGD per train => ~17.5 MGD from 5 trains < 25 MGD"
+     }
+    ],
+    "result": "With one train out, 5 trains deliver ~17-18 MGD, short ~7 MGD",
+    "runs": [
+     "cold-salty-maxP"
+    ],
+    "title": "Finished-water duty with one train out"
+   },
+   {
+    "assumptions": [
+     "E-101 preheat to ~80 F documented as operating intent, evaluated as single condition here"
+    ],
+    "inputs": [
+     {
+      "basis": "documented",
+      "name": "Preheat intent",
+      "source": "feasibility p34 response: preheat to about 80 degrees for 60% recovery",
+      "value": "~80 F target"
+     },
+     {
+      "basis": "computed",
+      "name": "49 g/L heated to 75 F at max P",
+      "source": "run cold-salty-heated75F-maxP",
+      "value": "0.402 recovery"
+     },
+     {
+      "basis": "computed",
+      "name": "49 g/L heated to 90 F at max P",
+      "source": "run cold-salty-heated90F-maxP",
+      "value": "0.389 recovery"
+     }
+    ],
+    "result": "Heating alone does not reach 0.60 in this model - new area needed",
+    "runs": [
+     "cold-salty-heated75F-maxP",
+     "cold-salty-heated90F-maxP"
+    ],
+    "title": "Heating option tested"
+   }
+  ],
+  "field_checks": [
+   {
+    "changes": "If clean A is 2-3x higher, 60% at 75.9 bar at 49 g/L may become feasible and no new train needed; if lower, shortfall grows",
+    "item": "Clean membrane water/salt permeabilities A, B and achievable flux at 49 g/L, 60 F",
+    "where": "Pilot test or vendor projection for selected SWRO element at 60 F / 49,000 mg/L; confirm Hydranautics v8.5 run on feasibility p4-23"
+   },
+   {
+    "changes": "If max is 41-42,000 mg/L not 49,000, required pressure and number of extra trains drops sharply",
+    "item": "True cold-corner maximum TDS in Ship Channel",
+    "where": "TCEQ / intake sampling record review - feasibility p34 notes max may be 41-42k not 49k mg/L"
+   },
+   {
+    "changes": "If HP pumps / vessels rated above 1100 psi, higher pressure operation could be allowed without new trains",
+    "item": "Nameplate max discharge / vessel rating for P-201 and RO-201 vessels",
+    "where": "P-201 pump curve/nameplate and RO-201 vessel datasheet in P&ID workspace"
+   }
+  ],
+  "headline": "No - pressure caps output below 25 MGD",
+  "highlights": [
+   {
+    "severity": "fail",
+    "tag": "RO-201",
+    "text": "First limit: feed pressure at 75.9 bar ceiling, only ~0.42 recovery vs 0.60 target"
+   },
+   {
+    "severity": "fail",
+    "tag": "P-201",
+    "text": "High-pressure pump at discharge ceiling 75.9 bar, 100% utilised"
+   },
+   {
+    "severity": "warn",
+    "tag": "IN-101",
+    "text": "Lower-recovery workaround needs ~60 MGD intake vs 42 MGD concept"
+   },
+   {
+    "severity": "info",
+    "tag": "E-101",
+    "text": "Preheat to ~80F helps per study but alone does not close gap in model"
+   }
+  ],
+  "proposals": [],
+  "status": "fail",
+  "summary": "At 60 F and 49,000 mg/L the model reaches only 0.42 recovery at the 75.9 bar ceiling versus 0.60 target, so 5 available trains make about 17.5 MGD not 25 MGD. First limits are RO-201 membrane pressure and P-201 discharge pressure both at 100%. Cheapest lasting fix is added parallel seawater train capacity with its own pump.",
+  "checks": [
+   {
+    "item": "run cold-salty-maxP",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run cold-salty-69bar",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run avg-69bar-check",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run avg-maxP-check",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run cold-salty-heated75F-maxP",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run cold-salty-heated90F-maxP",
+    "ok": true,
+    "why": ""
+   }
+  ],
+  "seconds": 359,
+  "cost_usd": 0.0326,
+  "request": "Can this 25 MGD concept hold about 60 percent overall recovery and the finished-water duty on the cold, salty corner of the ship-channel record (about 60 F and 49,000 mg/L TDS) with one seawater train out of service? What limits it first, and what is the cheapest way to stay at 25 MGD?",
+  "model": "muse-spark-1.3-contributor"
+ }
+]

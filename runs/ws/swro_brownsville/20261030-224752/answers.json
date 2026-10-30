@@ -1,0 +1,424 @@
+[
+ {
+  "headline": "No \u2014 cold salty corner falls short",
+  "summary": "At 60 \u00b0F and 49,000 mg/L, the logged run \u201cbaseline-cold-salty-1train\u201d reaches only 47.2% recovery and 0.539 g/L permeate salt at the documented 75.84 bar pressure cap, against the study targets of about 60% recovery and 0.5 g/L in the model. No tested operating option using the existing documented pressure, pump motor or membrane limits passes; the cheapest credible route is new higher-pressure pumping and membrane-pressure equipment, vendor-quoted and re-solved before acceptance, so this conclusion is provisional on the missing membrane projection data noted below.",
+  "cards": [
+   {
+    "title": "Cold, salty corner \u2014 duty check with one train out",
+    "status": "fail",
+    "result": "47.2% recovery, 0.539 g/L salt \u2014 both miss target",
+    "inputs": [
+     {
+      "name": "Feed temperature",
+      "value": "15.5556 \u00b0C (60 \u00b0F)",
+      "basis": "documented",
+      "source": "Operating data sheet, Source water row (2004 PDF p.192); run baseline-cold-salty-1train"
+     },
+     {
+      "name": "Feed salt",
+      "value": "49 g/L (49,000 mg/L)",
+      "basis": "documented",
+      "source": "Operating data sheet, Source water row (2004 PDF pp.112, 189); run baseline-cold-salty-1train"
+     },
+     {
+      "name": "Feed flow in the per-train model",
+      "value": "1314.379 m3/h",
+      "basis": "computed",
+      "source": "Logged run baseline-cold-salty-1train, feed specification"
+     },
+     {
+      "name": "Overall recovery requirement",
+      "value": "0.60 fraction",
+      "basis": "documented",
+      "source": "P&ID RO-201 design.OverallRecovery; operating data sheet, Seawater RO row (2004 PDF p.195)"
+     },
+     {
+      "name": "Finished output concept",
+      "value": "25 MGD from five 5 MGD seawater trains, sixth train spare; one out still leaves the five duty trains",
+      "basis": "documented",
+      "source": "P&ID RO-201 design.PermeatePerTrain, InstalledTrains=6, DutyTrains=5; operating data sheet, Capacity row (2004 PDF p.195)"
+     },
+     {
+      "name": "Model permeate-salt target",
+      "value": "0.5 g/L",
+      "basis": "documented",
+      "source": "Logged run baseline-cold-salty-1train target_TDS_g_L; study first-pass description is about 380 ppm at average feed (2004 PDF p.196), so this model target is provisional"
+     },
+     {
+      "name": "Simulated recovery",
+      "value": "0.47215 fraction",
+      "basis": "computed",
+      "source": "Logged run baseline-cold-salty-1train"
+     },
+     {
+      "name": "Simulated permeate salt",
+      "value": "0.53921 g/L",
+      "basis": "computed",
+      "source": "Logged run baseline-cold-salty-1train"
+     },
+     {
+      "name": "Simulated feed pressure",
+      "value": "75.84 bar, at the cap",
+      "basis": "computed",
+      "source": "Logged run baseline-cold-salty-1train; documented pump about 1,100 psig (2004 PDF p.197)"
+     }
+    ],
+    "assumptions": [
+     "The calibrated model represents one seawater train at its design feed; plant output is five such duty trains with the sixth as spare, as documented on RO-201.",
+     "The partial second pass, stabilisation and disinfection are documented notes only and are not simulated (check_coverage for cold-salty-failing-baseline), so finished-water salt after blending, boron, stabilisation and disinfection are not proven by these runs.",
+     "Membrane area and permeability in the model are not stated in the cited study sections \u2014 the study expressly marks membrane area/flux as not stated \u2014 so the pressure/recovery result is provisional on a vendor projection at this corner."
+    ],
+    "runs": [
+     "baseline-cold-salty-1train"
+    ]
+   },
+   {
+    "title": "What limits it first",
+    "status": "fail",
+    "result": "Second membrane stage starved at the pressure cap",
+    "inputs": [
+     {
+      "name": "Second-stage recovery in the cold run",
+      "value": "0.1387 fraction against the 0.333 design check (utilisation 2.401)",
+      "basis": "computed",
+      "source": "ro_capacity checks for logged run baseline-cold-salty-1train"
+     },
+     {
+      "name": "Overall recovery check",
+      "value": "0.4721 fraction against 0.60 minimum (utilisation 1.271)",
+      "basis": "computed",
+      "source": "ro_capacity checks for logged run baseline-cold-salty-1train"
+     },
+     {
+      "name": "Pump and first-stage pressure",
+      "value": "75.84 bar against 75.84 bar maximum (utilisation 1.0)",
+      "basis": "computed",
+      "source": "Logged run baseline-cold-salty-1train checks; P&ID P-201 service and 1,100 psig pump description (2004 PDF p.197)"
+     },
+     {
+      "name": "Pump motor rating",
+      "value": "2162.5 kW (2,900 HP) variable-speed motor, checked net of the Pelton turbine",
+      "basis": "documented",
+      "source": "Operating data sheet, Process row (2004 PDF p.197); P&ID T-201, one turbine per train"
+     },
+     {
+      "name": "Pressure that 60% would need in a diagnostic run",
+      "value": "95 bar gives 0.6056 recovery but still 0.5287 g/L salt",
+      "basis": "computed",
+      "source": "Logged diagnostic run pressure-scan-95bar \u2014 above the documented cap, not proposed as an operating change to existing kit"
+     }
+    ],
+    "assumptions": [
+     "The first physical bottleneck is driving force at the salty tail of the second stage: with the feed already at the 1,100 psig-class cap, the concentrated second-stage feed cannot be pushed to its design recovery.",
+     "Raising the setpoint on the existing pump or vessels is not allowed \u2014 it would exceed the documented ratings in the data sheet (2004 PDF p.197) and the model limits."
+    ],
+    "runs": [
+     "baseline-cold-salty-1train",
+     "pressure-scan-95bar"
+    ]
+   },
+   {
+    "title": "Cheaper operating options that were tested \u2014 none passes",
+    "status": "warn",
+    "result": "Heating, spare train, more second-stage area, more feed all fail",
+    "inputs": [
+     {
+      "name": "Heating feed to 90 \u00b0F in the model",
+      "value": "Recovery falls to 0.44225; permeate salt 0.55283 g/L",
+      "basis": "computed",
+      "source": "Logged run heat-90F-per-train; heater E-101 and 60\u201395 \u00b0F range documented on P&ID E-101 and data sheet (2004 PDF p.192)"
+     },
+     {
+      "name": "Heating feed to 75 \u00b0F and 95 \u00b0F in the model",
+      "value": "Recovery 0.45709 at 75 \u00b0F and 0.43735 at 95 \u00b0F, both at the 75.84 bar cap",
+      "basis": "computed",
+      "source": "Logged runs heat-75F-per-train and heat-95F-per-train"
+     },
+     {
+      "name": "Bringing the spare train into duty (six trains sharing the same total feed)",
+      "value": "Recovery 0.49434, permeate salt 0.63496 g/L, pressure still at cap; motor check passes at 1900.3 kW of 2162.5 kW",
+      "basis": "computed",
+      "source": "Logged run test-6trains-duty-scale0833"
+     },
+     {
+      "name": "Doubling second-stage membrane area at the documented cap",
+      "value": "Recovery 0.52816, permeate salt worsens to 0.71323 g/L, motor check 2360.1 kW against 2162.5 kW",
+      "basis": "computed",
+      "source": "Logged run test-area-stage2-double"
+     },
+     {
+      "name": "Raising feed flow per train",
+      "value": "At 1670 m3/h: recovery 0.43586 and motor check 2715.1 kW against 2162.5 kW",
+      "basis": "computed",
+      "source": "Logged run test-feed-up-scale127"
+     }
+    ],
+    "assumptions": [
+     "In this simulator the membrane water permeability is a fixed input, so warming the feed only raises osmotic pressure and salt passage; the study's rule that heating lowers required pump pressure by about 1% per \u00b0F (2004 PDF p.192) is therefore not credited as a rescue, and heating is not proposed.",
+     "Because E-101 is a note-only item in the model (check_coverage for cold-salty-failing-baseline), the heating conclusion is provisional on steam availability and a temperature-corrected vendor membrane projection."
+    ],
+    "runs": [
+     "heat-90F-per-train",
+     "heat-75F-per-train",
+     "heat-95F-per-train",
+     "test-6trains-duty-scale0833",
+     "test-area-stage2-double",
+     "test-feed-up-scale127"
+    ]
+   }
+  ],
+  "highlights": [
+   {
+    "tag": "RO-201",
+    "severity": "fail",
+    "text": "Limits first: at 60 \u00b0F and 49,000 mg/L the second stage reaches only 0.1387 recovery against its 0.333 design check and overall recovery is 0.472 against about 0.60 (runs baseline-cold-salty-1train, ro_capacity), at the 75.84 bar pressure cap."
+   },
+   {
+    "tag": "P-201",
+    "severity": "fail",
+    "text": "Already at its documented about 1,100 psig discharge cap (75.84 bar, 2004 PDF p.197); a diagnostic 95 bar run reaches 60.6% recovery but is not permitted on this pump or the existing vessels and still gives 0.529 g/L salt (run pressure-scan-95bar)."
+   },
+   {
+    "tag": "E-101",
+    "severity": "warn",
+    "text": "Documented steam heating (60\u201395 \u00b0F channel range, P&ID E-101) does not rescue the corner in the simulator \u2014 90 \u00b0F gives 0.442 recovery (run heat-90F-per-train) \u2014 and the heater is note-only in the model, so do not rely on it without a vendor projection."
+   },
+   {
+    "tag": "F-101",
+    "severity": "info",
+    "text": "Pretreatment is two duty plus one spare 21 MGD trains (P&ID F-101); it is not the first limit found in the cold-corner runs."
+   },
+   {
+    "tag": "RO-301",
+    "severity": "warn",
+    "text": "Second pass is one duty plus one spare 11.1 MGD-feed train at about 90% recovery (P&ID RO-301), but it is a documented note only in this model, so finished-water quality after the partial second pass is unproven here."
+   },
+   {
+    "tag": "D-601",
+    "severity": "info",
+    "text": "Brine diffuser is documented for 16.67 MGD at 60% recovery for the 25 MGD plant (P&ID D-601); at the simulated 47.2% recovery the brine flow would be larger, which needs checking before any low-recovery workaround is accepted."
+   }
+  ],
+  "proposals": [
+   {
+    "tag": "P-201",
+    "title": "Add a higher-pressure feed pump train \u2014 do not uprate the existing pump",
+    "why": "The existing pump is already at its documented about 1,100 psig (75.84 bar) cap while recovery is only 47.2%; a diagnostic run at 95 bar is the first point that reaches about 60% recovery, so new, properly rated pumping is required rather than a setpoint increase (runs baseline-cold-salty-1train and pressure-scan-95bar).",
+    "cost_class": ">$1M",
+    "changes": [
+     {
+      "add_unit": {
+       "id": "P-201B",
+       "type": "CentrifugalPump",
+       "service": "SWRO high-pressure feed, higher-pressure replacement train pump",
+       "efficiency": 0.8,
+       "P_out_bar": 95,
+       "inlet": "CF-101 outlet / hp_suction",
+       "outlet": "RO-201 high-pressure feed header"
+      },
+      "limits": {
+       "max_bar": 95,
+       "max_kW": 4290
+      },
+      "rating_source": "vendor quote to confirm / standard size to be confirmed against logged diagnostic run pressure-scan-95bar (95 bar, HP pump 4289.99 kW before turbine recovery); existing P-201 limits are not changed"
+     }
+    ],
+    "normalized_changes": [],
+    "verified": false,
+    "error": "KeyError: 'units'"
+   },
+   {
+    "tag": "RO-201",
+    "title": "Add a higher-pressure membrane train rated for the diagnostic pressure",
+    "why": "The membrane vessels and second stage are the first limit: second-stage recovery is 0.1387 against 0.333 and feed pressure is capped at 75.84 bar (run baseline-cold-salty-1train). Existing RO-201 pressure ratings must not be raised; a new rated train, fed in parallel through a splitter and recombined through a mixer, is the physical route to the 95 bar diagnostic condition, and even then permeate salt was 0.529 g/L before the unmodelled second pass, so vendor performance must be confirmed.",
+    "cost_class": ">$1M",
+    "changes": [
+     {
+      "add_unit": {
+       "id": "SP-201",
+       "type": "Splitter",
+       "inlet": "CF-101 outlet",
+       "outlets": [
+        "RO-201",
+        "RO-201HP"
+       ]
+      }
+     },
+     {
+      "add_unit": {
+       "id": "RO-201HP",
+       "type": "ReverseOsmosisUnit",
+       "service": "high-pressure seawater RO train, two stages, six-element vessels as per RO-201 arrangement",
+       "area_m2_stage1": 35000,
+       "area_m2_stage2": 25000,
+       "A_m_per_Pa_s": 2e-12,
+       "B_m_per_s": 2e-08,
+       "max_feed_pressure_bar": 95,
+       "inlet": "SP-201",
+       "permeate_outlet": "MX-201",
+       "concentrate_outlet": "T-201 / brine header"
+      },
+      "limits": {
+       "max_feed_pressure_bar": 95
+      },
+      "rating_source": "vendor quote to confirm / standard size to be confirmed; membrane area and permeability are the logged model values from cold-salty-failing-baseline and are not stated in the 2004 study, so the rating and guaranteed recovery/TDS at 60 \u00b0F and 49,000 mg/L must come from the membrane vendor"
+     },
+     {
+      "add_unit": {
+       "id": "MX-201",
+       "type": "Mixer",
+       "inlets": [
+        "RO-201 permeate",
+        "RO-201HP permeate"
+       ],
+       "outlet": "RO-301 feed"
+      }
+     },
+     {
+      "reroute": {
+       "unit": "RO-201",
+       "field": "inlet",
+       "value": "SP-201"
+      },
+      "from": null
+     },
+     {
+      "reroute": {
+       "unit": "RO-201",
+       "field": "permeate_outlet",
+       "value": "MX-201"
+      },
+      "from": null
+     }
+    ],
+    "normalized_changes": [],
+    "verified": false,
+    "fixes": "RO-201",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": null,
+    "limited_by": null,
+    "reaches_target": false,
+    "over_limits_at_target": [],
+    "target_scale": 1.0,
+    "new_equipment": [
+     {
+      "id": "SP-201",
+      "type": "Splitter",
+      "limits": {},
+      "rating_source": null,
+      "status": "new equipment, rating to confirm"
+     },
+     {
+      "id": "RO-201HP",
+      "type": "ReverseOsmosisUnit",
+      "limits": {
+       "max_feed_pressure_bar": 95
+      },
+      "rating_source": "vendor quote to confirm / standard size to be confirmed; membrane area and permeability are the logged model values from cold-salty-failing-baseline and are not stated in the 2004 study, so the rating and guaranteed recovery/TDS at 60 \u00b0F and 49,000 mg/L must come from the membrane vendor",
+      "status": "new equipment, rating to confirm"
+     },
+     {
+      "id": "MX-201",
+      "type": "Mixer",
+      "limits": {},
+      "rating_source": null,
+      "status": "new equipment, rating to confirm"
+     }
+    ],
+    "unverified_reason": "change 1 add_unit SP-201 needs its own limits; change 1 add_unit SP-201 needs rating_source; change 3 add_unit MX-201 needs its own limits; change 3 add_unit MX-201 needs rating_source; change 4 reroute needs a known unit, connection field and value; change 5 reroute needs a known unit, connection field and value",
+    "calculation": {
+     "target_scale": 1.0,
+     "capacity_multiple_before": null,
+     "capacity_multiple_after": null,
+     "limited_by_before": null,
+     "limited_by_after": null,
+     "checks": [],
+     "units": {},
+     "streams": [],
+     "new_equipment": [],
+     "assumptions": [],
+     "simulator": "watertap",
+     "errors": [
+      "change 1 add_unit SP-201 needs its own limits; change 1 add_unit SP-201 needs rating_source; change 3 add_unit MX-201 needs its own limits; change 3 add_unit MX-201 needs rating_source; change 4 reroute needs a known unit, connection field and value; change 5 reroute needs a known unit, connection field and value"
+     ],
+     "warnings": []
+    }
+   }
+  ],
+  "field_checks": [
+   {
+    "item": "Guaranteed membrane performance at the cold, salty corner (water permeability, salt passage and required pressure at 60% recovery)",
+    "where": "Take a full ion analysis of Brownsville Ship Channel water at IN-101 during cold, high-salinity conditions and obtain a temperature-corrected vendor membrane projection / pilot result at 60 \u00b0F and 49,000 mg/L for RO-201",
+    "changes": "Decisive: the study does not print a full ion table or membrane area/flux (data sheet, Source water and Not in the study rows), and the model's recovery, pressure and salt results all rest on assumed membrane inputs. If the vendor projection reaches 60% at or below 75.84 bar with acceptable salt, the existing trains could pass and the new high-pressure equipment proposals would not be needed; if it needs about 95 bar, the no-go conclusion stands."
+   },
+   {
+    "item": "Steam actually available to E-101 in cold weather, and the true pressure saving from heating",
+    "where": "Confirm steam header pressure, flow and temperature on line 5001 to E-101 with the co-located power plant, and get the heating benefit from the same vendor projection above",
+    "changes": "The study credits about 1% pressure reduction per \u00b0F heated (2004 PDF p.192), but the simulator's fixed-permeability model shows heating making recovery worse (runs heat-75F/90F/95F-per-train). If verified heating plus vendor membranes bring the required pressure within 75.84 bar, heating on the existing E-101 would become the cheapest fix and displace the new-equipment proposals."
+   },
+   {
+    "item": "Nameplate confirmation of the pump motor, turbine coupling and vessel pressure rating",
+    "where": "Field nameplates on P-201 motor, T-201 Pelton turbine and RO-201 pressure vessels",
+    "changes": "Confirms the 2,900 HP motor and about 1,100 psig class used from 2004 PDF p.197; if installed vessels or pump are in fact rated materially above 95 bar, the fix could become an operating change instead of new equipment \u2014 do not assume this."
+   },
+   {
+    "item": "Whether finished-water quality is met after the partial second pass",
+    "where": "Confirm the required finished-water salt and any boron limit with the owner and model or pilot RO-301 at the cold-corner first-pass permeate quality",
+    "changes": "The model checks first-pass permeate against 0.5 g/L and the second pass is note-only (check_coverage); the study picks no finished-water boron limit in the cited pages. If blending after RO-301 meets the real finished-water limit, only recovery/pressure need fixing; if not, second-pass capacity or membranes must be added to the fix."
+   }
+  ],
+  "combined": {
+   "reaches_target": false,
+   "capacity_multiple": null,
+   "limited_by": null,
+   "over_limits_at_target": []
+  },
+  "checks": [
+   {
+    "item": "run baseline-cold-salty-1train",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run pressure-scan-95bar",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run heat-90F-per-train",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run heat-75F-per-train",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run heat-95F-per-train",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run test-6trains-duty-scale0833",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run test-area-stage2-double",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run test-feed-up-scale127",
+    "ok": true,
+    "why": ""
+   }
+  ],
+  "seconds": 550,
+  "cost_usd": 3.8187,
+  "request": "Can this 25 MGD concept hold about 60 percent overall recovery and the finished-water duty on the cold, salty corner of the ship-channel record (about 60 F and 49,000 mg/L TDS) with one seawater train out of service? What limits it first, and what is the cheapest way to stay at 25 MGD? Propose each change, verified in the simulator; where a limit needs new equipment, propose it as added equipment with its rating source.",
+  "model": "muse-wonder-1.0"
+ }
+]
