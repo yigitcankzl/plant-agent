@@ -30,7 +30,10 @@ SPEC_HELP = (
     "max_flux_lmh or max_flux_gfd (train-average membrane flux), optional max_lead_flux_lmh or max_lead_flux_gfd, "
     "max_feed_pressure_bar, min_concentrate_m3_h_per_vessel, recovery (minimum design recovery), permeate_P_bar, "
     "resolution 0D|1D}]; energy_recovery {type PX|turbine|none, efficiency, booster_pump {efficiency, max_kW}, P_out_bar}; "
-    "second_pass {fraction, hp_pump, stage}; posttreatment notes; target_TDS_g_L; optional min_overall_recovery and target_boron_g_L. "
+    "second_pass {fraction, hp_pump, stage}; posttreatment notes; target_TDS_g_L; optional min_overall_recovery and target_boron_g_L; "
+    "optional trains {installed, in_service}: then feed.flow_m3_h is the PLANT feed, split equally over the trains in service, "
+    "and pump/stage checks are per train; added_trains [{id, count, stages, hp_pump, energy_recovery}] are parallel trains "
+    "with their own ratings (normally created by an add_unit type ro_train proposal change). "
     "Boron is reported only when the feed includes it and the stage sets B_boron_m_per_s."
 )
 
@@ -481,7 +484,9 @@ def _build(job):
             raise ValueError("second_pass.hp_pump.P_out_bar is required")
         m.fs.sp = L["Pump"](property_package=prop)
         _fix_pump(m.fs.sp, sp_hp.get("efficiency"), sp_hp.get("P_out_bar"))
-        m.fs.spro, _sp_area = _add_ro(m.fs, "spro", prop, sp_stage, job["boron_g_L"], job["flow_m3_h"])
+        # channel width from the second pass's own feed (first-pass permeate x fraction), not the plant feed
+        sp_feed = job["flow_m3_h"] * float(job["stages"][0].get("recovery") or 0.45) * fraction
+        m.fs.spro, _sp_area = _add_ro(m.fs, "spro", prop, sp_stage, job["boron_g_L"], sp_feed)
         m.fs.sp_brine = L["Product"](property_package=prop)
         arcs.append(("a_sp_brine", m.fs.spro.retentate, m.fs.sp_brine.inlet))
         if fraction < 1:
@@ -603,6 +608,13 @@ def _initialize(m, job):
             propagate(m.fs.a_erd)
             m.fs.erd.initialize()
     if job["second"]:
+        if len(ros) > 1:  # the permeate mixer feeds the second pass: initialize it from the stages first
+            for i in range(len(ros)):
+                propagate(getattr(m.fs, f"a_perm{i}"))
+            m.fs.pmix.initialize()
+        if hasattr(m.fs, "spsplit"):
+            propagate(m.fs.a_to_split)
+            m.fs.spsplit.initialize()
         propagate(m.fs.a_sp_in)
         m.fs.sp.initialize()
         propagate(m.fs.a_sp_ro)
@@ -785,7 +797,7 @@ def _pack(m, job, solve_s):
                       "flux_lead": "feed-end flux of the membrane channel"}}
 
 
-def _solve(spec, scale=1.0):
+def _solve_train(spec, scale=1.0):
     t0 = time.perf_counter()
     try:
         job = _prepare(spec, scale)
@@ -815,6 +827,83 @@ def _solve(spec, scale=1.0):
         return out
     except (RuntimeError, ValueError) as ex:
         return {"scale": scale, "errors": [str(ex)], "checks": [], "solve_s": round(time.perf_counter() - t0, 3)}
+
+
+_PLANT_CHECK_IDS = ("permeate", "plant")
+_SHARED_IDS = ("HP", "booster", "second_pass")
+_PLANT_STREAMS = ("hp_suction", "brine", "second_pass_concentrate")
+
+
+def _solve(spec, scale=1.0):
+    """A plant of trains: `trains` {installed, in_service} of the spec's train plus `added_trains` (plantagent.ro_changes).
+    The plant feed is split equally over every train in service; each distinct train is solved once and multiplied.
+    Without trains/added_trains the spec is one train, as before."""
+    trains, added = spec.get("trains") or {}, spec.get("added_trains") or []
+    if not trains and not added:
+        return _solve_train(spec, scale)
+    t0 = time.perf_counter()
+    n = int(trains.get("in_service", trains.get("installed", 1)))
+    total = n + sum(int(a.get("count", 1)) for a in added)
+    feed = dict(spec.get("feed") or spec.get("intake") or {})
+    if total < 1 or not feed.get("flow_m3_h"):
+        return {"scale": scale, "errors": ["no train in service or no plant feed flow"], "checks": [], "solve_s": 0.0}
+    per = float(feed["flow_m3_h"]) * float(scale) / total
+    base = {k: v for k, v in spec.items() if k not in ("trains", "added_trains", "intake")}
+    base["feed"] = {**feed, "flow_m3_h": per}
+    runs = [("", n, base)] if n > 0 else []
+    for a in added:
+        s = {**base, "stages": a["stages"], "hp_pump": a["hp_pump"], "energy_recovery": a.get("energy_recovery") or base.get("energy_recovery")}
+        runs.append((a["id"], int(a.get("count", 1)), s))
+    out = {"scale": scale, "errors": [], "checks": [], "stages": [], "streams": {}, "pumps_kW": {}, "trains": [], "not_modelled": []}
+    products, totals, intake_q, plant_kW = [], {}, float(feed["flow_m3_h"]) * float(scale), 0.0
+    for tid, count, s in runs:
+        r = _solve_train(s, 1.0)
+        prefix = f"{tid}: " if tid else ""
+        out["errors"] += [prefix + e for e in r.get("errors") or []]
+        if r.get("errors"):
+            continue
+        for c in r["checks"]:
+            if c["id"] in _PLANT_CHECK_IDS:
+                continue
+            out["checks"].append({**c, "id": f"{tid}-{c['id']}"} if tid and c["id"] in _SHARED_IDS else c)
+        out["stages"] += r["stages"]
+        for sid, row in r["streams"].items():
+            out["streams"][f"{tid}:{sid}" if tid else sid] = row
+        out["pumps_kW"].update({(f"{tid}-{k}" if tid else k): v for k, v in r["pumps_kW"].items()})
+        plant_kW += sum(r["pumps_kW"].values()) * count
+        products.append({**r["streams"]["permeate"], "flow_m3_h": r["streams"]["permeate"]["flow_m3_h"] * count})
+        for key in _PLANT_STREAMS:  # plant totals, so the plant mass balance closes; per-train rows keep their stage ids
+            if key in r["streams"]:
+                totals.setdefault(key, []).append({**r["streams"][key], "flow_m3_h": r["streams"][key]["flow_m3_h"] * count})
+        out["trains"].append({"id": tid or "existing", "count": count, "feed_m3_h_per_train": round(per, 4),
+                              "permeate_m3_h_per_train": r["streams"]["permeate"]["flow_m3_h"],
+                              "feed_pressure_bar": r["feed_pressure_bar"], "sec_kWh_m3": r["sec_kWh_m3"]})
+        for k in ("feed_pressure_bar", "flux_lmh_avg", "flux_lmh_lead", "flux_gfd_avg", "ro_recovery"):
+            out.setdefault(k, r.get(k))
+        out["not_modelled"] += [x for x in r.get("not_modelled") or [] if x not in out["not_modelled"]]
+        out.setdefault("notes", r.get("notes"))
+    out["solve_s"] = round(time.perf_counter() - t0, 3)
+    if out["errors"] or not products:
+        out["checks"] = []
+        return out
+    product = _blend(products)
+    out["streams"]["permeate"] = product
+    out["streams"].update({k: _blend(v) for k, v in totals.items()})
+    out["streams"]["intake"] = {**out["streams"].get("intake", {}), "flow_m3_h": round(intake_q, 4)}
+    out["pumps_kW"]["plant_total"] = round(plant_kW, 4)
+    out.update({"recovery": round(product["flow_m3_h"] / intake_q, 5), "permeate_TDS_g_L": product["TDS_g_L"],
+                "boron": product.get("boron_g_L", "not modelled"),
+                "sec_kWh_m3": round(plant_kW / product["flow_m3_h"], 4) if product["flow_m3_h"] else None})
+    out["not_modelled"].append("train flow split: the plant feed is split equally over the trains in service "
+                               "(in a real plant each train's HP pump drive sets its own flow)")
+    if trains.get("installed"):
+        _add_check(out["checks"], "trains", "trains in service vs installed", n, trains["installed"], "trains")
+    _add_check(out["checks"], "permeate", "permeate TDS vs target", product["TDS_g_L"], spec.get("target_TDS_g_L"), "g/L")
+    _add_check(out["checks"], "plant", "overall recovery vs minimum", product["flow_m3_h"] / intake_q,
+               spec.get("min_overall_recovery"), "fraction", higher_is_worse=False)
+    _add_check(out["checks"], "permeate", "boron vs target", product.get("boron_g_L"), spec.get("target_boron_g_L"), "g/L")
+    out["checks"].sort(key=lambda c: -c["utilisation"])
+    return out
 
 
 def _capacity(spec):
