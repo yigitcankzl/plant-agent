@@ -1,0 +1,404 @@
+[
+ {
+  "key": "capacity",
+  "request": "Can the plant reach the target throughput? What limits it first and what is the cheapest way there?",
+  "headline": "Yes - more cooling and level reach 120%",
+  "seconds": 203,
+  "cost_usd": 0.0221,
+  "tools": [
+   "check_coverage",
+   "get_spec",
+   "process_capacity",
+   "read_data_sheet",
+   "read_pid",
+   "run_process"
+  ],
+  "proposals": [
+   {
+    "title": "Raise H1007 cooling water to 27 m3/h",
+    "verified": true,
+    "why_not": null
+   },
+   {
+    "title": "Raise H1008 chilled water to 18 m3/h",
+    "verified": true,
+    "why_not": null
+   },
+   {
+    "title": "Raise T4750 working level to 22.1 m3",
+    "verified": true,
+    "why_not": null
+   }
+  ],
+  "artifacts": [],
+  "reaches_target": true,
+  "gaps": []
+ },
+ {
+  "key": "whatif_sweep",
+  "request": "Show how the limits change if the main feed temperature varies from 10 C below to 10 C above today's value, with a chart.",
+  "headline": "Colder feed eases cooling, not hold time",
+  "seconds": 62,
+  "cost_usd": 0.01,
+  "tools": [
+   "get_spec",
+   "sweep"
+  ],
+  "proposals": [],
+  "artifacts": [
+   [
+    "chart",
+    "Feed T sensitivity at 1.2x throughput"
+   ]
+  ],
+  "reaches_target": null,
+  "gaps": []
+ },
+ {
+  "key": "datasheet",
+  "request": "Prepare a data sheet for the most heavily loaded equipment item at the target throughput.",
+  "headline": "Cooler H1007 is tightest at 120 percent",
+  "seconds": 200,
+  "cost_usd": 0.0135,
+  "tools": [
+   "get_spec",
+   "make_document",
+   "read_data_sheet",
+   "read_pid"
+  ],
+  "proposals": [],
+  "artifacts": [
+   [
+    "document",
+    "Data sheet H1007"
+   ]
+  ],
+  "reaches_target": null,
+  "gaps": []
+ },
+ {
+  "key": "summary",
+  "request": "Write a one-page summary of the last verified answer for my manager.",
+  "headline": "Product cooler limits higher output",
+  "seconds": 71,
+  "cost_usd": 0.0056,
+  "tools": [
+   "make_document"
+  ],
+  "proposals": [],
+  "artifacts": [
+   [
+    "document",
+    "Summary of answer 9"
+   ]
+  ],
+  "reaches_target": null,
+  "gaps": []
+ },
+ {
+  "key": "work_order",
+  "request": "Prepare a maintenance work order for the cheapest no-capex fix in the last verified answer.",
+  "headline": "Work order ready for cooling increase",
+  "seconds": 73,
+  "cost_usd": 0.0055,
+  "tools": [
+   "make_document"
+  ],
+  "proposals": [],
+  "artifacts": [
+   [
+    "document",
+    "Work order H1007: Raise H1007 cooling water to 27 m3/h"
+   ]
+  ],
+  "reaches_target": null,
+  "gaps": []
+ },
+ {
+  "key": "drawing",
+  "request": "Draw the proposed design from the last verified proposals as a Rev B P&ID and add a note at the most loaded item.",
+  "headline": "Rev B drawing shows cooler fix",
+  "seconds": 39,
+  "cost_usd": 0.0051,
+  "tools": [
+   "draw_revision"
+  ],
+  "proposals": [],
+  "artifacts": [
+   [
+    "drawing",
+    "Rev B - H1007 cooling increase for 120 percent throughput"
+   ]
+  ],
+  "reaches_target": null,
+  "gaps": []
+ },
+ {
+  "key": "relief",
+  "request": "Is every equipment item protected by a relief device? List the sides that are not and what you would do.",
+  "headline": "No - coolers, pump and tank unprotected",
+  "seconds": 147,
+  "cost_usd": 0.0149,
+  "tools": [
+   "read_data_sheet",
+   "read_pid",
+   "relief_scan",
+   "report_gap",
+   "search_documents"
+  ],
+  "proposals": [],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "Adding relief protection for the unprotected sides (H1007 both sides, H1008 both sides, T4750 vent, H1008 isolation by 47126/C7)",
+    "why": "The spec has no PSV/vent/thermal-expansion physics; relief protection cannot be expressed as a path change, add_unit pump/hx/valve, or reroute, so no verified proposal can be returned for this fix",
+    "needed": "A relief-device / vent unit type in the flowsheet spec (set pressure, relieving capacity, connections) so adding thermal relief valves and tank vents can be proposed as model changes and re-solved",
+    "phase": "ask",
+    "at": "2026-10-31T00:50:27+0300"
+   }
+  ]
+ },
+ {
+  "key": "unknown",
+  "request": "Calculate the noise level at the compressor or pump nearest the control room.",
+  "headline": "Noise level cannot be calculated here",
+  "seconds": 68,
+  "cost_usd": 0.0116,
+  "tools": [
+   "default.answer",
+   "read_data_sheet",
+   "read_pid",
+   "report_gap",
+   "search_documents"
+  ],
+  "proposals": [],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "Adding relief protection for the unprotected sides (H1007 both sides, H1008 both sides, T4750 vent, H1008 isolation by 47126/C7)",
+    "why": "The spec has no PSV/vent/thermal-expansion physics; relief protection cannot be expressed as a path change, add_unit pump/hx/valve, or reroute, so no verified proposal can be returned for this fix",
+    "needed": "A relief-device / vent unit type in the flowsheet spec (set pressure, relieving capacity, connections) so adding thermal relief valves and tank vents can be proposed as model changes and re-solved",
+    "phase": "ask",
+    "at": "2026-10-31T00:50:27+0300"
+   },
+   {
+    "what": "noise level at the pump nearest the control room",
+    "why": "P&ID C01 and data sheet give only pump hydraulics and motor kW (P4711 2.2 kW, P4712 7.5 kW) with no sound power data, no control-room location, and no pump-to-room distances. The DWSIM spec has pump/hx/valve/tank/mixer/splitter/recycle physics only, no acoustic or sound-propagation calculation, so noise cannot be solved from a logged run. Estimating from motor size alone would be inventing ratings.",
+    "needed": "Acoustic source data and layout: vendor sound power/pressure levels for P4711 and P4712 at duty, distance and direction from each pump to control room, plot plan, control-room wall construction and background level, plus an acoustic propagation model in the flowsheet spec.",
+    "phase": "ask",
+    "at": "2026-10-31T00:51:37+0300"
+   }
+  ]
+ },
+ {
+  "key": "add_parallel",
+  "request": "Add a second pump in parallel with P4711, same model, and tell me what it does at 120%.",
+  "headline": "Second pump halves load, plant still limited",
+  "seconds": 202,
+  "cost_usd": 0.0215,
+  "tools": [
+   "get_spec",
+   "run_process"
+  ],
+  "proposals": [
+   {
+    "title": "Add second P4711 in parallel",
+    "verified": true,
+    "why_not": null
+   }
+  ],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "Adding relief protection for the unprotected sides (H1007 both sides, H1008 both sides, T4750 vent, H1008 isolation by 47126/C7)",
+    "why": "The spec has no PSV/vent/thermal-expansion physics; relief protection cannot be expressed as a path change, add_unit pump/hx/valve, or reroute, so no verified proposal can be returned for this fix",
+    "needed": "A relief-device / vent unit type in the flowsheet spec (set pressure, relieving capacity, connections) so adding thermal relief valves and tank vents can be proposed as model changes and re-solved",
+    "phase": "ask",
+    "at": "2026-10-31T00:50:27+0300"
+   },
+   {
+    "what": "noise level at the pump nearest the control room",
+    "why": "P&ID C01 and data sheet give only pump hydraulics and motor kW (P4711 2.2 kW, P4712 7.5 kW) with no sound power data, no control-room location, and no pump-to-room distances. The DWSIM spec has pump/hx/valve/tank/mixer/splitter/recycle physics only, no acoustic or sound-propagation calculation, so noise cannot be solved from a logged run. Estimating from motor size alone would be inventing ratings.",
+    "needed": "Acoustic source data and layout: vendor sound power/pressure levels for P4711 and P4712 at duty, distance and direction from each pump to control room, plot plan, control-room wall construction and background level, plus an acoustic propagation model in the flowsheet spec.",
+    "phase": "ask",
+    "at": "2026-10-31T00:51:37+0300"
+   }
+  ]
+ },
+ {
+  "key": "add_series",
+  "request": "Add a booster pump in series on the line between P4711 and H1007 (2 bar rise) and check it at 120%.",
+  "headline": "Booster does not fix cooling at 120%",
+  "seconds": 128,
+  "cost_usd": 0.0148,
+  "tools": [
+   "get_spec",
+   "read_data_sheet",
+   "read_pid",
+   "run_process"
+  ],
+  "proposals": [
+   {
+    "title": "Add 2 bar booster pump in series between P4711 and H1007",
+    "verified": false,
+    "why_not": "still over: H1007"
+   }
+  ],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "Adding relief protection for the unprotected sides (H1007 both sides, H1008 both sides, T4750 vent, H1008 isolation by 47126/C7)",
+    "why": "The spec has no PSV/vent/thermal-expansion physics; relief protection cannot be expressed as a path change, add_unit pump/hx/valve, or reroute, so no verified proposal can be returned for this fix",
+    "needed": "A relief-device / vent unit type in the flowsheet spec (set pressure, relieving capacity, connections) so adding thermal relief valves and tank vents can be proposed as model changes and re-solved",
+    "phase": "ask",
+    "at": "2026-10-31T00:50:27+0300"
+   },
+   {
+    "what": "noise level at the pump nearest the control room",
+    "why": "P&ID C01 and data sheet give only pump hydraulics and motor kW (P4711 2.2 kW, P4712 7.5 kW) with no sound power data, no control-room location, and no pump-to-room distances. The DWSIM spec has pump/hx/valve/tank/mixer/splitter/recycle physics only, no acoustic or sound-propagation calculation, so noise cannot be solved from a logged run. Estimating from motor size alone would be inventing ratings.",
+    "needed": "Acoustic source data and layout: vendor sound power/pressure levels for P4711 and P4712 at duty, distance and direction from each pump to control room, plot plan, control-room wall construction and background level, plus an acoustic propagation model in the flowsheet spec.",
+    "phase": "ask",
+    "at": "2026-10-31T00:51:37+0300"
+   }
+  ]
+ },
+ {
+  "key": "bypass",
+  "request": "What happens if we bypass the control valve 47123/C1 (remove it and fit a spool piece)?",
+  "headline": "Bypass changes cooling almost not at all",
+  "seconds": 184,
+  "cost_usd": 0.0271,
+  "tools": [
+   "get_spec",
+   "read_data_sheet",
+   "read_pid",
+   "run_process"
+  ],
+  "proposals": [
+   {
+    "title": "Bypass 47123/C1 with spool piece",
+    "verified": true,
+    "why_not": null
+   }
+  ],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "Adding relief protection for the unprotected sides (H1007 both sides, H1008 both sides, T4750 vent, H1008 isolation by 47126/C7)",
+    "why": "The spec has no PSV/vent/thermal-expansion physics; relief protection cannot be expressed as a path change, add_unit pump/hx/valve, or reroute, so no verified proposal can be returned for this fix",
+    "needed": "A relief-device / vent unit type in the flowsheet spec (set pressure, relieving capacity, connections) so adding thermal relief valves and tank vents can be proposed as model changes and re-solved",
+    "phase": "ask",
+    "at": "2026-10-31T00:50:27+0300"
+   },
+   {
+    "what": "noise level at the pump nearest the control room",
+    "why": "P&ID C01 and data sheet give only pump hydraulics and motor kW (P4711 2.2 kW, P4712 7.5 kW) with no sound power data, no control-room location, and no pump-to-room distances. The DWSIM spec has pump/hx/valve/tank/mixer/splitter/recycle physics only, no acoustic or sound-propagation calculation, so noise cannot be solved from a logged run. Estimating from motor size alone would be inventing ratings.",
+    "needed": "Acoustic source data and layout: vendor sound power/pressure levels for P4711 and P4712 at duty, distance and direction from each pump to control room, plot plan, control-room wall construction and background level, plus an acoustic propagation model in the flowsheet spec.",
+    "phase": "ask",
+    "at": "2026-10-31T00:51:37+0300"
+   }
+  ]
+ },
+ {
+  "key": "remove",
+  "request": "Take H1008 out of service: what does the unit then manage, and what fails first?",
+  "headline": "Cooler out: dispatch too hot at any flow",
+  "seconds": 210,
+  "cost_usd": 0.0237,
+  "tools": [
+   "get_spec",
+   "process_capacity",
+   "read_data_sheet",
+   "read_pid",
+   "run_process"
+  ],
+  "proposals": [],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "Adding relief protection for the unprotected sides (H1007 both sides, H1008 both sides, T4750 vent, H1008 isolation by 47126/C7)",
+    "why": "The spec has no PSV/vent/thermal-expansion physics; relief protection cannot be expressed as a path change, add_unit pump/hx/valve, or reroute, so no verified proposal can be returned for this fix",
+    "needed": "A relief-device / vent unit type in the flowsheet spec (set pressure, relieving capacity, connections) so adding thermal relief valves and tank vents can be proposed as model changes and re-solved",
+    "phase": "ask",
+    "at": "2026-10-31T00:50:27+0300"
+   },
+   {
+    "what": "noise level at the pump nearest the control room",
+    "why": "P&ID C01 and data sheet give only pump hydraulics and motor kW (P4711 2.2 kW, P4712 7.5 kW) with no sound power data, no control-room location, and no pump-to-room distances. The DWSIM spec has pump/hx/valve/tank/mixer/splitter/recycle physics only, no acoustic or sound-propagation calculation, so noise cannot be solved from a logged run. Estimating from motor size alone would be inventing ratings.",
+    "needed": "Acoustic source data and layout: vendor sound power/pressure levels for P4711 and P4712 at duty, distance and direction from each pump to control room, plot plan, control-room wall construction and background level, plus an acoustic propagation model in the flowsheet spec.",
+    "phase": "ask",
+    "at": "2026-10-31T00:51:37+0300"
+   }
+  ]
+ },
+ {
+  "key": "upsize",
+  "request": "Put a larger motor on P4712, next standard size, and check it.",
+  "headline": "Larger motor not needed, cooling still fails",
+  "seconds": 144,
+  "cost_usd": 0.0115,
+  "tools": [
+   "get_spec",
+   "read_data_sheet",
+   "read_pid",
+   "run_process"
+  ],
+  "proposals": [],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "Adding relief protection for the unprotected sides (H1007 both sides, H1008 both sides, T4750 vent, H1008 isolation by 47126/C7)",
+    "why": "The spec has no PSV/vent/thermal-expansion physics; relief protection cannot be expressed as a path change, add_unit pump/hx/valve, or reroute, so no verified proposal can be returned for this fix",
+    "needed": "A relief-device / vent unit type in the flowsheet spec (set pressure, relieving capacity, connections) so adding thermal relief valves and tank vents can be proposed as model changes and re-solved",
+    "phase": "ask",
+    "at": "2026-10-31T00:50:27+0300"
+   },
+   {
+    "what": "noise level at the pump nearest the control room",
+    "why": "P&ID C01 and data sheet give only pump hydraulics and motor kW (P4711 2.2 kW, P4712 7.5 kW) with no sound power data, no control-room location, and no pump-to-room distances. The DWSIM spec has pump/hx/valve/tank/mixer/splitter/recycle physics only, no acoustic or sound-propagation calculation, so noise cannot be solved from a logged run. Estimating from motor size alone would be inventing ratings.",
+    "needed": "Acoustic source data and layout: vendor sound power/pressure levels for P4711 and P4712 at duty, distance and direction from each pump to control room, plot plan, control-room wall construction and background level, plus an acoustic propagation model in the flowsheet spec.",
+    "phase": "ask",
+    "at": "2026-10-31T00:51:37+0300"
+   }
+  ]
+ },
+ {
+  "key": "utility",
+  "request": "Cooling water may only supply 22 m3/h in summer. Does the 120% case still work?",
+  "headline": "No - dispatch too hot, tank hold short",
+  "seconds": 101,
+  "cost_usd": 0.0113,
+  "tools": [
+   "get_spec",
+   "read_data_sheet",
+   "read_pid",
+   "run_process"
+  ],
+  "proposals": [],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "Adding relief protection for the unprotected sides (H1007 both sides, H1008 both sides, T4750 vent, H1008 isolation by 47126/C7)",
+    "why": "The spec has no PSV/vent/thermal-expansion physics; relief protection cannot be expressed as a path change, add_unit pump/hx/valve, or reroute, so no verified proposal can be returned for this fix",
+    "needed": "A relief-device / vent unit type in the flowsheet spec (set pressure, relieving capacity, connections) so adding thermal relief valves and tank vents can be proposed as model changes and re-solved",
+    "phase": "ask",
+    "at": "2026-10-31T00:50:27+0300"
+   },
+   {
+    "what": "noise level at the pump nearest the control room",
+    "why": "P&ID C01 and data sheet give only pump hydraulics and motor kW (P4711 2.2 kW, P4712 7.5 kW) with no sound power data, no control-room location, and no pump-to-room distances. The DWSIM spec has pump/hx/valve/tank/mixer/splitter/recycle physics only, no acoustic or sound-propagation calculation, so noise cannot be solved from a logged run. Estimating from motor size alone would be inventing ratings.",
+    "needed": "Acoustic source data and layout: vendor sound power/pressure levels for P4711 and P4712 at duty, distance and direction from each pump to control room, plot plan, control-room wall construction and background level, plus an acoustic propagation model in the flowsheet spec.",
+    "phase": "ask",
+    "at": "2026-10-31T00:51:37+0300"
+   }
+  ]
+ }
+]

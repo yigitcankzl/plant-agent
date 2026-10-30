@@ -2202,6 +2202,7 @@ class PlantWorkspace(Study):
         llm.set_tag("plant:" + self.name)
         brief = {"unit": self.cfg["title"], "target_throughput_multiple": self.cfg.get("target_scale"),
                  "model_label": self.built["label"], "model_mapping": self.built.get("mapping"),
+                 "tag_aliases": {**(self.cfg.get("model_aliases") or {}), "note": self.cfg.get("model_aliases_note")} if self.cfg.get("model_aliases") else None,
                  "revisions": [r["title"] for r in self.revisions],
                  # earlier answers with their index, so a document or drawing request can point at one instead of re-solving
                  "earlier_answers": [{"answer": i, "headline": x.get("headline"), "summary": x.get("summary"),
@@ -2233,6 +2234,15 @@ class PlantWorkspace(Study):
         for k in ("cards", "highlights", "proposals"):
             ans[k] = ans.get(k) if isinstance(ans.get(k), list) else []
         ans["artifacts"] = list(self._artifacts)  # files the tools produced for this request (documents, drawings, charts)
+        aliases = self.cfg.get("model_aliases") or {}
+        unit_ids = {u.get("id") for u in self.spec.get("units") or []}
+        for p in ans["proposals"]:  # a drawing tag modelled inside another unit (E-201 heats inside V-201) maps to that unit
+            for c in (p.get("changes") or []) if isinstance(p, dict) else []:
+                k, _, rest = str(c.get("path") or "").partition(".")
+                oid, _, fld = rest.partition(".")
+                if k == "units" and oid in aliases and oid not in unit_ids:
+                    c["path"] = f"units.{aliases[oid]}.{fld}"
+                    p.setdefault("normalized_changes", []).append(f"{oid} is modelled inside {aliases[oid]}: path set to {c['path']}")
         for p in ans["proposals"]:
             if isinstance(p, dict):  # canonical changes before `from` is attached and before verify()
                 normalize_proposal(p, self.spec, getattr(self, "runs", None) or {}, cited_run_labels(p, ans))

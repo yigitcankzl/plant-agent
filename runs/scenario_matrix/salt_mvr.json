@@ -1,0 +1,360 @@
+[
+ {
+  "key": "capacity",
+  "request": "Can the plant reach the target throughput? What limits it first and what is the cheapest way there?",
+  "headline": "No - vapour compressor limits plant today",
+  "seconds": 264,
+  "cost_usd": 0.0273,
+  "tools": [
+   "get_spec",
+   "process_capacity",
+   "read_data_sheet",
+   "read_pid",
+   "run_process"
+  ],
+  "proposals": [
+   {
+    "title": "Add 49.5 tonne per hour parallel compressor K-202",
+    "verified": true,
+    "why_not": null
+   },
+   {
+    "title": "Clean main heater E-201",
+    "verified": true,
+    "why_not": null
+   },
+   {
+    "title": "Hold purge steam at today's rate",
+    "verified": true,
+    "why_not": null
+   }
+  ],
+  "artifacts": [],
+  "reaches_target": true,
+  "gaps": []
+ },
+ {
+  "key": "whatif_sweep",
+  "request": "Show how the limits change if the main feed temperature varies from 10 C below to 10 C above today's value, with a chart.",
+  "headline": "Warmer feed helps heater, compressor still full",
+  "seconds": 99,
+  "cost_usd": 0.0099,
+  "tools": [
+   "get_spec",
+   "read_data_sheet",
+   "sweep"
+  ],
+  "proposals": [],
+  "artifacts": [
+   [
+    "chart",
+    "Main feed temperature sensitivity at 120% feed"
+   ]
+  ],
+  "reaches_target": null,
+  "gaps": []
+ },
+ {
+  "key": "datasheet",
+  "request": "Prepare a data sheet for the most heavily loaded equipment item at the target throughput.",
+  "headline": "Data sheet ready for compressor K-201",
+  "seconds": 59,
+  "cost_usd": 0.0035,
+  "tools": [
+   "make_document"
+  ],
+  "proposals": [],
+  "artifacts": [
+   [
+    "document",
+    "Data sheet K-201"
+   ]
+  ],
+  "reaches_target": null,
+  "gaps": []
+ },
+ {
+  "key": "summary",
+  "request": "Write a one-page summary of the last verified answer for my manager.",
+  "headline": "Salt plant needs upgrades to reach target",
+  "seconds": 137,
+  "cost_usd": 0.0095,
+  "tools": [
+   "make_document"
+  ],
+  "proposals": [],
+  "artifacts": [
+   [
+    "document",
+    "Summary of answer 9"
+   ]
+  ],
+  "reaches_target": null,
+  "gaps": []
+ },
+ {
+  "key": "work_order",
+  "request": "Prepare a maintenance work order for the cheapest no-capex fix in the last verified answer.",
+  "headline": "Work order ready: clean main heater",
+  "seconds": 29,
+  "cost_usd": 0.0028,
+  "tools": [
+   "make_document"
+  ],
+  "proposals": [
+   {
+    "title": "Clean main heater E-201",
+    "verified": true,
+    "why_not": null
+   }
+  ],
+  "artifacts": [
+   [
+    "document",
+    "Work order E-201: Clean main heater E-201"
+   ]
+  ],
+  "reaches_target": null,
+  "gaps": []
+ },
+ {
+  "key": "drawing",
+  "request": "Draw the proposed design from the last verified proposals as a Rev B P&ID and add a note at the most loaded item.",
+  "headline": "Revised drawing done, compressor noted",
+  "seconds": 75,
+  "cost_usd": 0.0083,
+  "tools": [
+   "draw_revision",
+   "get_spec",
+   "read_data_sheet",
+   "read_pid"
+  ],
+  "proposals": [],
+  "artifacts": [
+   [
+    "drawing",
+    "Rev B - 120% capacity upgrade with parallel compressor"
+   ]
+  ],
+  "reaches_target": null,
+  "gaps": []
+ },
+ {
+  "key": "relief",
+  "request": "Is every equipment item protected by a relief device? List the sides that are not and what you would do.",
+  "headline": "No - eight sides lack secure relief protection",
+  "seconds": 73,
+  "cost_usd": 0.0081,
+  "tools": [
+   "read_pid",
+   "relief_scan"
+  ],
+  "proposals": [],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": []
+ },
+ {
+  "key": "unknown",
+  "request": "Calculate the noise level at the compressor or pump nearest the control room.",
+  "headline": "Cannot calculate noise - locations and sound ratings missing",
+  "seconds": 96,
+  "cost_usd": 0.0124,
+  "tools": [
+   "historian",
+   "read_data_sheet",
+   "read_pid",
+   "report_gap",
+   "search_documents"
+  ],
+  "proposals": [],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "noise level at the compressor or pump nearest the control room",
+    "why": "P&ID has K-201, P-201, P-101 with no location coordinates and no acoustic ratings; data sheet has process ratings only (flows, areas, pressures) and no sound-power or distance rows; historian has no noise tags; DWSIM spec has no acoustic/propagation physics so the effect cannot be solved, and generic correlations would invent ratings against the rules",
+    "needed": "Equipment sound-power levels (dBA per octave or overall for K-201, P-201, P-101), distances/layout coordinates of control room relative to each machine, and an acoustic propagation/building-attenuation model in the spec/tools",
+    "phase": "ask",
+    "at": "2026-10-31T00:51:25+0300"
+   }
+  ]
+ },
+ {
+  "key": "add_parallel",
+  "request": "Add a parallel vapour compressor K-202 sized for the 120% case and verify it.",
+  "headline": "Second compressor unloads first, heaters still limit",
+  "seconds": 175,
+  "cost_usd": 0.0183,
+  "tools": [
+   "get_spec",
+   "read_data_sheet",
+   "read_pid",
+   "run_process"
+  ],
+  "proposals": [
+   {
+    "title": "Add parallel vapour compressor K-202",
+    "verified": true,
+    "why_not": null
+   }
+  ],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "noise level at the compressor or pump nearest the control room",
+    "why": "P&ID has K-201, P-201, P-101 with no location coordinates and no acoustic ratings; data sheet has process ratings only (flows, areas, pressures) and no sound-power or distance rows; historian has no noise tags; DWSIM spec has no acoustic/propagation physics so the effect cannot be solved, and generic correlations would invent ratings against the rules",
+    "needed": "Equipment sound-power levels (dBA per octave or overall for K-201, P-201, P-101), distances/layout coordinates of control room relative to each machine, and an acoustic propagation/building-attenuation model in the spec/tools",
+    "phase": "ask",
+    "at": "2026-10-31T00:51:25+0300"
+   }
+  ]
+ },
+ {
+  "key": "add_series",
+  "request": "Add a second desuperheater in series after D-201 and tell me if it changes anything.",
+  "headline": "No - second desuperheater changes nothing",
+  "seconds": 215,
+  "cost_usd": 0.026,
+  "tools": [
+   "get_spec",
+   "read_data_sheet",
+   "read_pid",
+   "run_process"
+  ],
+  "proposals": [
+   {
+    "title": "Add second desuperheater D-202 after D-201",
+    "verified": false,
+    "why_not": "still over: V-201, V-201"
+   }
+  ],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "noise level at the compressor or pump nearest the control room",
+    "why": "P&ID has K-201, P-201, P-101 with no location coordinates and no acoustic ratings; data sheet has process ratings only (flows, areas, pressures) and no sound-power or distance rows; historian has no noise tags; DWSIM spec has no acoustic/propagation physics so the effect cannot be solved, and generic correlations would invent ratings against the rules",
+    "needed": "Equipment sound-power levels (dBA per octave or overall for K-201, P-201, P-101), distances/layout coordinates of control room relative to each machine, and an acoustic propagation/building-attenuation model in the spec/tools",
+    "phase": "ask",
+    "at": "2026-10-31T00:51:25+0300"
+   }
+  ]
+ },
+ {
+  "key": "bypass",
+  "request": "What happens if the purge evaporator V-301 is bypassed for a week (purge liquor straight to disposal)?",
+  "headline": "Main unit runs, purge waste nearly doubles",
+  "seconds": 213,
+  "cost_usd": 0.0302,
+  "tools": [
+   "get_spec",
+   "read_data_sheet",
+   "read_pid",
+   "run_process"
+  ],
+  "proposals": [],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "noise level at the compressor or pump nearest the control room",
+    "why": "P&ID has K-201, P-201, P-101 with no location coordinates and no acoustic ratings; data sheet has process ratings only (flows, areas, pressures) and no sound-power or distance rows; historian has no noise tags; DWSIM spec has no acoustic/propagation physics so the effect cannot be solved, and generic correlations would invent ratings against the rules",
+    "needed": "Equipment sound-power levels (dBA per octave or overall for K-201, P-201, P-101), distances/layout coordinates of control room relative to each machine, and an acoustic propagation/building-attenuation model in the spec/tools",
+    "phase": "ask",
+    "at": "2026-10-31T00:51:25+0300"
+   }
+  ]
+ },
+ {
+  "key": "fouling",
+  "request": "The main heater is fouling. Below which heat-transfer coefficient must production drop? Chart it.",
+  "headline": "Cut output below 1900 watts per square-metre-kelvin",
+  "seconds": 185,
+  "cost_usd": 0.0194,
+  "tools": [
+   "get_spec",
+   "read_data_sheet",
+   "read_pid",
+   "sweep"
+  ],
+  "proposals": [],
+  "artifacts": [
+   [
+    "chart",
+    "foul_E201_U_at_100pct"
+   ],
+   [
+    "chart",
+    "foul_E201_U_refined_100pct"
+   ]
+  ],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "noise level at the compressor or pump nearest the control room",
+    "why": "P&ID has K-201, P-201, P-101 with no location coordinates and no acoustic ratings; data sheet has process ratings only (flows, areas, pressures) and no sound-power or distance rows; historian has no noise tags; DWSIM spec has no acoustic/propagation physics so the effect cannot be solved, and generic correlations would invent ratings against the rules",
+    "needed": "Equipment sound-power levels (dBA per octave or overall for K-201, P-201, P-101), distances/layout coordinates of control room relative to each machine, and an acoustic propagation/building-attenuation model in the spec/tools",
+    "phase": "ask",
+    "at": "2026-10-31T00:51:25+0300"
+   }
+  ]
+ },
+ {
+  "key": "feed_conc",
+  "request": "If the feed brine arrives at 22 wt% NaCl instead of saturated, what happens to salt production?",
+  "headline": "Dilute feed cuts salt by 41 percent",
+  "seconds": 157,
+  "cost_usd": 0.0148,
+  "tools": [
+   "get_spec",
+   "read_data_sheet",
+   "read_pid",
+   "run_process"
+  ],
+  "proposals": [],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "noise level at the compressor or pump nearest the control room",
+    "why": "P&ID has K-201, P-201, P-101 with no location coordinates and no acoustic ratings; data sheet has process ratings only (flows, areas, pressures) and no sound-power or distance rows; historian has no noise tags; DWSIM spec has no acoustic/propagation physics so the effect cannot be solved, and generic correlations would invent ratings against the rules",
+    "needed": "Equipment sound-power levels (dBA per octave or overall for K-201, P-201, P-101), distances/layout coordinates of control room relative to each machine, and an acoustic propagation/building-attenuation model in the spec/tools",
+    "phase": "ask",
+    "at": "2026-10-31T00:51:25+0300"
+   }
+  ]
+ },
+ {
+  "key": "upsize",
+  "request": "Replace the main heater E-201 with a 10,000 m2 unit and check the 120% case.",
+  "headline": "Bigger heater fits but compressor still limits",
+  "seconds": 174,
+  "cost_usd": 0.0145,
+  "tools": [
+   "get_spec",
+   "read_data_sheet",
+   "read_pid",
+   "run_process"
+  ],
+  "proposals": [
+   {
+    "title": "Replace E-201 with 10,000 m2 unit",
+    "verified": true,
+    "why_not": null
+   }
+  ],
+  "artifacts": [],
+  "reaches_target": null,
+  "gaps": [
+   {
+    "what": "noise level at the compressor or pump nearest the control room",
+    "why": "P&ID has K-201, P-201, P-101 with no location coordinates and no acoustic ratings; data sheet has process ratings only (flows, areas, pressures) and no sound-power or distance rows; historian has no noise tags; DWSIM spec has no acoustic/propagation physics so the effect cannot be solved, and generic correlations would invent ratings against the rules",
+    "needed": "Equipment sound-power levels (dBA per octave or overall for K-201, P-201, P-101), distances/layout coordinates of control room relative to each machine, and an acoustic propagation/building-attenuation model in the spec/tools",
+    "phase": "ask",
+    "at": "2026-10-31T00:51:25+0300"
+   }
+  ]
+ }
+]
