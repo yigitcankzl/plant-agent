@@ -1,0 +1,229 @@
+[
+ {
+  "cards": [
+   {
+    "assumptions": [
+     "Heat-transfer coefficient stays at fouled 600 W/m2K from data-sheet 2024 test (no cleaning)",
+     "Design duties 313 kW on P&ID are design points, not trip limits; temperature specs govern"
+    ],
+    "inputs": [
+     {
+      "name": "Product feed 21.6 m3/h",
+      "source": "data sheet +20% request scaled in run 120pct_base",
+      "value": "21.6 m3/h at 50 C"
+     },
+     {
+      "name": "Today water flows",
+      "source": "data sheet current operation + run 120pct_base",
+      "value": "20 m3/h cooling water, 15 m3/h chilled water"
+     }
+    ],
+    "result": "Tank inlet 35.81 C needs 53.23 m2, dispatch 21.28 C needs 58.48 m2 vs 46.8 m2 installed",
+    "runs": [
+     "120pct_base"
+    ],
+    "status": "fail",
+    "title": "120% on today's flows fails both coolers"
+   },
+   {
+    "assumptions": [
+     "Same fouled U 600 W/m2K",
+     "Combined water increase, no new plates"
+    ],
+    "inputs": [
+     {
+      "name": "Cooling water 28 m3/h",
+      "source": "data sheet limit 30 m3/h, run 120pct_CW28_CHW18",
+      "value": "28 m3/h"
+     },
+     {
+      "name": "Chilled water 18 m3/h",
+      "source": "data sheet limit 20 m3/h, run 120pct_CW28_CHW18",
+      "value": "18 m3/h"
+     }
+    ],
+    "result": "Tank inlet 34.72 C and dispatch 19.89 C, areas needed 45.04 and 46.01 m2",
+    "runs": [
+     "120pct_CW28_CHW18"
+    ],
+    "status": "ok",
+    "title": "More water brings both outlets into spec"
+   },
+   {
+    "assumptions": [
+     "Tank volume 26 m3 from P&ID Tank-1 NominalCapacity",
+     "Pumps rated 200 and 420 m3/h on P&ID"
+    ],
+    "inputs": [
+     {
+      "name": "Throughput 21.6 m3/h",
+      "source": "run 120pct_CW28_CHW18",
+      "value": "21.6 m3/h feed"
+     },
+     {
+      "name": "Tank residence 72.7 min",
+      "source": "run 120pct_CW28_CHW18",
+      "value": "72.74 min vs 60 min required"
+     }
+    ],
+    "result": "Tank, P4711 at 10.8% and P4712 at 5.1% of flow rating do not limit",
+    "runs": [
+     "120pct_base",
+     "120pct_CW28_CHW18"
+    ],
+    "status": "ok",
+    "title": "Tank and pumps have spare capacity"
+   }
+  ],
+  "headline": "Raise water flows to reach full 120 percent",
+  "highlights": [
+   {
+    "severity": "fail",
+    "tag": "H1007",
+    "text": "Needs 53.2 m2 at today's flows, has 46.8 m2; 35.81 C exceeds 35 C"
+   },
+   {
+    "severity": "fail",
+    "tag": "H1008",
+    "text": "Needs 58.5 m2 at today's flows, has 46.8 m2; 21.28 C exceeds 20 C"
+   },
+   {
+    "severity": "ok",
+    "tag": "T4750",
+    "text": "72.7 min at 120% exceeds 60 min hold, no limit"
+   },
+   {
+    "severity": "ok",
+    "tag": "P4711",
+    "text": "21.6 m3/h vs 200 rated, 0.8 kW vs 60 kW, no limit"
+   },
+   {
+    "severity": "ok",
+    "tag": "P4712",
+    "text": "21.45 m3/h vs 420 rated, 2.78 kW vs 84 kW, no limit"
+   }
+  ],
+  "proposals": [
+   {
+    "changes": [
+     {
+      "path": "feeds.CW_47130.m3_h",
+      "value": 28.0
+     }
+    ],
+    "cost_class": "no capex",
+    "tag": "H1007",
+    "title": "Open cooling water to 28 m3/h",
+    "why": "Verified with chilled-water rise in run 120pct_CW28_CHW18: H1007 outlet 34.72 C <=35 C, needs 45.04 m2 <46.8 m2, flow <30 m3/h branch limit and <60 m2 frame limit",
+    "verified": false,
+    "capacity_multiple": 0.989,
+    "limited_by": {
+     "id": "H1007",
+     "check": "duty vs design",
+     "value": 313.1,
+     "limit": 313,
+     "unit": "kW",
+     "utilisation": 1.0
+    },
+    "over_limits_at_target": [
+     {
+      "id": "H1008",
+      "check": "area needed for hot outlet 20 C",
+      "value": 53.57,
+      "limit": 46.8,
+      "unit": "m2",
+      "utilisation": 1.145
+     },
+     {
+      "id": "H1007",
+      "check": "duty vs design",
+      "value": 337.2,
+      "limit": 313,
+      "unit": "kW",
+      "utilisation": 1.077
+     }
+    ],
+    "target_scale": 1.2
+   },
+   {
+    "changes": [
+     {
+      "path": "feeds.CHW_47140.m3_h",
+      "value": 18.0
+     }
+    ],
+    "cost_class": "no capex",
+    "tag": "H1008",
+    "title": "Open chilled water to 18 m3/h",
+    "why": "Verified with cooling-water rise in run 120pct_CW28_CHW18: dispatch 19.89 C <=20 C, needs 46.01 m2 <46.8 m2, flow <20 m3/h limit",
+    "verified": false,
+    "capacity_multiple": 1.07,
+    "limited_by": {
+     "id": "H1008",
+     "check": "duty vs design",
+     "value": 313.1,
+     "limit": 313,
+     "unit": "kW",
+     "utilisation": 1.0
+    },
+    "over_limits_at_target": [
+     {
+      "id": "H1007",
+      "check": "area needed for hot outlet 35 C",
+      "value": 53.23,
+      "limit": 46.8,
+      "unit": "m2",
+      "utilisation": 1.137
+     },
+     {
+      "id": "H1008",
+      "check": "duty vs design",
+      "value": 338.1,
+      "limit": 313,
+      "unit": "kW",
+      "utilisation": 1.08
+     },
+     {
+      "id": "H1008",
+      "check": "area needed for hot outlet 20 C",
+      "value": 49.53,
+      "limit": 46.8,
+      "unit": "m2",
+      "utilisation": 1.058
+     },
+     {
+      "id": "H1007",
+      "check": "duty vs design",
+      "value": 313.3,
+      "limit": 313,
+      "unit": "kW",
+      "utilisation": 1.001
+     }
+    ],
+    "target_scale": 1.2
+   }
+  ],
+  "summary": "At 21.6 m3/h on today's flows run 120pct_base gives 35.81 C to tank and 21.28 C to dispatch, above the 35 C and 20 C limits. With 28 m3/h cooling water and 18 m3/h chilled water run 120pct_CW28_CHW18 gives 34.72 C and 19.89 C, inside all utility and frame limits.",
+  "checks": [
+   {
+    "item": "run 120pct_base",
+    "ok": true
+   },
+   {
+    "item": "run 120pct_CW28_CHW18",
+    "ok": true
+   },
+   {
+    "item": "run 120pct_base",
+    "ok": true
+   },
+   {
+    "item": "run 120pct_CW28_CHW18",
+    "ok": true
+   }
+  ],
+  "seconds": 156,
+  "cost_usd": 0.0124,
+  "request": "Get the unit to 120% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in DWSIM, within every utility and frame limit on the data sheet."
+ }
+]

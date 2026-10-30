@@ -1,0 +1,307 @@
+[
+ {
+  "headline": "Both coolers block 120 percent throughput",
+  "summary": "At 120% (21.6 m3/h) both coolers miss targets in run 120pct_base: H1007 makes 35.81 C vs 35 C limit and H1008 makes 21.28 C vs 20 C limit. Raising cooling water to 30 m3/h and chilled water to 20 m3/h together passes in run 120pct_maxUtil: 34.54 C and 19.37 C, within all utility and frame limits.",
+  "cards": [
+   {
+    "title": "First cooler too warm at higher flow",
+    "result": "35.81 C vs 35 C limit, needs 53.23 m2 vs 46.8 m2 installed",
+    "status": "fail",
+    "runs": [
+     "120pct_base"
+    ],
+    "inputs": [
+     {
+      "name": "Product feed at 120%",
+      "source": "run 120pct_base: Feed_47121 21.6 m3/h (data sheet 18.0 m3/h x1.2)",
+      "value": "21.6 m3/h"
+     },
+     {
+      "name": "H1007 hot outlet",
+      "source": "run 120pct_base: S_47123 35.81 C",
+      "value": "35.81 C"
+     },
+     {
+      "name": "H1007 limit",
+      "source": "data sheet row: Product entering T4750 must be at or below 35 C",
+      "value": "35 C"
+     },
+     {
+      "name": "Area needed vs installed",
+      "source": "run 120pct_base check: 53.23 m2 vs limit 46.8 m2 (P&ID PlateHeatExchanger-1 DesignHeatTransferArea 46.8 m2)",
+      "value": "113.7% utilisation"
+     }
+    ],
+    "assumptions": [
+     "U 600 W/m2K fouled service from data sheet performance row",
+     "Cooling water 20 m3/h at 25 C as today per data sheet"
+    ]
+   },
+   {
+    "title": "Second cooler too warm at higher flow",
+    "result": "21.28 C vs 20 C limit, needs 58.48 m2 vs 46.8 m2 installed",
+    "status": "fail",
+    "runs": [
+     "120pct_base"
+    ],
+    "inputs": [
+     {
+      "name": "H1008 hot outlet",
+      "source": "run 120pct_base: Product_Dispatch 21.28 C",
+      "value": "21.28 C"
+     },
+     {
+      "name": "H1008 limit",
+      "source": "data sheet row: Product to dispatch after H1008 must be at or below 20 C",
+      "value": "20 C"
+     },
+     {
+      "name": "Area needed vs installed",
+      "source": "run 120pct_base check: 58.48 m2 vs 46.8 m2",
+      "value": "125% utilisation"
+     }
+    ],
+    "assumptions": [
+     "U 600 W/m2K fouled service from data sheet performance row",
+     "Chilled water 15 m3/h at 8 C as today per data sheet",
+     "H1007 outlet 35.81 C feeds H1008 in this run"
+    ]
+   },
+   {
+    "title": "Tank and pumps do not limit",
+    "result": "Tank 72.7 min vs 60 min, pumps under 11% of flow rating",
+    "status": "ok",
+    "runs": [
+     "120pct_base"
+    ],
+    "inputs": [
+     {
+      "name": "T4750 residence",
+      "source": "run 120pct_base: T4750 72.71 min vs limit 60 min",
+      "value": "72.71 min"
+     },
+     {
+      "name": "T4750 requirement",
+      "source": "data sheet row: T4750 must give at least 60 min residence",
+      "value": "60 min"
+     },
+     {
+      "name": "P4711 flow",
+      "source": "run 120pct_base: P4711 21.6 m3/h vs limit 200 m3/h",
+      "value": "10.8% utilisation"
+     },
+     {
+      "name": "P4712 flow",
+      "source": "run 120pct_base: P4712 21.46 m3/h vs limit 420 m3/h",
+      "value": "5.1% utilisation"
+     },
+     {
+      "name": "Pump powers",
+      "source": "run 120pct_base: P4711 0.8 kW vs 60 kW, P4712 2.78 kW vs 84 kW",
+      "value": "1.3% and 3.3%"
+     }
+    ],
+    "assumptions": [
+     "Tank volume 26 m3 from calibrated model spec",
+     "Pump ratings from model limits from P&ID P4711 P4712"
+    ]
+   },
+   {
+    "title": "More water fixes both coolers together",
+    "result": "34.54 C and 19.37 C, both pass within utility limits",
+    "status": "ok",
+    "runs": [
+     "120pct_CW30only",
+     "120pct_CHW20only",
+     "120pct_maxUtil",
+     "120pct_CW26_CHW18",
+     "120pct_clean+CHW18"
+    ],
+    "inputs": [
+     {
+      "name": "H1007 with CW 30 alone",
+      "source": "run 120pct_CW30only: S_47123 34.54 C, needs 43.97 m2 (94.0%)",
+      "value": "34.54 C pass"
+     },
+     {
+      "name": "H1008 with CHW 20 alone",
+      "source": "run 120pct_CHW20only: Product_Dispatch 19.92 C, needs 46.26 m2 (98.8%)",
+      "value": "19.92 C pass"
+     },
+     {
+      "name": "Both at max utilities",
+      "source": "run 120pct_maxUtil: S_47123 34.54 C and Product_Dispatch 19.37 C",
+      "value": "both pass"
+     },
+     {
+      "name": "Utility limits",
+      "source": "data sheet rows: cooling-water branch at most 30 m3/h, chilled-water at most 20 m3/h",
+      "value": "30/30 and 20/20 within limits"
+     },
+     {
+      "name": "Frame limit untouched",
+      "source": "data sheet row: H1007 frame accepts up to 60 m2, installed 46.8 m2",
+      "value": "46.8/60 no new plates"
+     }
+    ],
+    "assumptions": [
+     "No cleaning, no new plates, U stays 600 W/m2K",
+     "Both flow increases applied together; either alone leaves the other cooler failing"
+    ]
+   }
+  ],
+  "highlights": [
+   {
+    "tag": "H1007",
+    "severity": "fail",
+    "text": "Fails 120%: 35.81 C vs 35 C, needs 53.23 m2 vs 46.8 m2"
+   },
+   {
+    "tag": "H1008",
+    "severity": "fail",
+    "text": "Fails 120%: 21.28 C vs 20 C, needs 58.48 m2 vs 46.8 m2"
+   },
+   {
+    "tag": "T4750",
+    "severity": "ok",
+    "text": "Passes: 72.7 min vs 60 min required"
+   },
+   {
+    "tag": "P4711",
+    "severity": "ok",
+    "text": "Passes: 21.6 m3/h vs 200 rated, 0.8 kW vs 60"
+   },
+   {
+    "tag": "P4712",
+    "severity": "ok",
+    "text": "Passes: 21.46 m3/h vs 420 rated, 2.78 kW vs 84"
+   }
+  ],
+  "proposals": [
+   {
+    "tag": "H1007",
+    "title": "Turn up cooling water to use spare header",
+    "changes": [
+     {
+      "path": "feeds.CW_47130.m3_h",
+      "value": 30
+     }
+    ],
+    "cost_class": "no capex",
+    "why": "Cheapest for H1007: operating change only. Verified in 120pct_CW30only (34.54 C, 94% area) and together in 120pct_maxUtil. Within DN80 limit 30 m3/h, frame stays 46.8/60 m2.",
+    "verified": true,
+    "fixes": "H1007",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.149,
+    "limited_by": {
+     "id": "H1008",
+     "check": "area needed for hot outlet 20 C",
+     "value": 46.82,
+     "limit": 46.8,
+     "unit": "m2",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "H1008",
+      "check": "area needed for hot outlet 20 C",
+      "value": 52.76,
+      "limit": 46.8,
+      "unit": "m2",
+      "utilisation": 1.127
+     }
+    ],
+    "target_scale": 1.2
+   },
+   {
+    "tag": "H1008",
+    "title": "Turn up chilled water to use spare header",
+    "changes": [
+     {
+      "path": "feeds.CHW_47140.m3_h",
+      "value": 20
+     }
+    ],
+    "cost_class": "no capex",
+    "why": "Cheapest for H1008: operating change only. Verified in 120pct_CHW20only (19.92 C, 98.8% area) and together in 120pct_maxUtil (19.37 C). Within branch limit 20 m3/h. Both increases needed together; cleaning H1007 to 900 still needed CHW 18 in 120pct_clean+CHW18 so costs more.",
+    "verified": true,
+    "fixes": "H1008",
+    "still_over": [],
+    "breaks": [],
+    "capacity_multiple": 1.109,
+    "limited_by": {
+     "id": "H1007",
+     "check": "area needed for hot outlet 35 C",
+     "value": 46.82,
+     "limit": 46.8,
+     "unit": "m2",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "H1007",
+      "check": "area needed for hot outlet 35 C",
+      "value": 53.23,
+      "limit": 46.8,
+      "unit": "m2",
+      "utilisation": 1.137
+     }
+    ],
+    "target_scale": 1.2
+   }
+  ],
+  "combined": {
+   "reaches_target": true,
+   "capacity_multiple": 1.251,
+   "limited_by": {
+    "id": "H1008",
+    "check": "area needed for hot outlet 20 C",
+    "value": 46.82,
+    "limit": 46.8,
+    "unit": "m2",
+    "utilisation": 1.0
+   },
+   "over_limits_at_target": []
+  },
+  "checks": [
+   {
+    "item": "run 120pct_base",
+    "ok": true
+   },
+   {
+    "item": "run 120pct_base",
+    "ok": true
+   },
+   {
+    "item": "run 120pct_base",
+    "ok": true
+   },
+   {
+    "item": "run 120pct_CW30only",
+    "ok": true
+   },
+   {
+    "item": "run 120pct_CHW20only",
+    "ok": true
+   },
+   {
+    "item": "run 120pct_maxUtil",
+    "ok": true
+   },
+   {
+    "item": "run 120pct_CW26_CHW18",
+    "ok": true
+   },
+   {
+    "item": "run 120pct_clean+CHW18",
+    "ok": true
+   }
+  ],
+  "seconds": 150,
+  "cost_usd": 0.0111,
+  "request": "Get the unit to 120% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in DWSIM, within every utility and frame limit on the data sheet."
+ }
+]
