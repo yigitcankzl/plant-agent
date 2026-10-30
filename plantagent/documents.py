@@ -61,7 +61,11 @@ def _safe(name):
 def _answer(w, index):
     if not w.answers:
         return None, None
-    i = int(index) if index is not None and str(index).lstrip("-").isdigit() else len(w.answers) - 1
+    if index is None or not str(index).lstrip("-").isdigit():  # default: the answer that stands for the proposed design
+        from .revb import design_answer
+        d = design_answer(w.answers)
+        return (w.answers.index(d), d) if d is not None else (len(w.answers) - 1, w.answers[-1])
+    i = int(index)
     if not -len(w.answers) <= i < len(w.answers):
         raise ValueError(f"answer index {index} out of range: {len(w.answers)} answers on record")
     i %= len(w.answers)
@@ -419,7 +423,7 @@ def make(w, kind, subject=None, scale=None, answer=None, by=None, request=None):
         import tempfile
         from pathlib import Path
         with tempfile.TemporaryDirectory() as d:
-            _pdf(text, Path(d) / "x.pdf")
+            _pdf([text], Path(d) / "x.pdf")  # _pdf takes markdown parts, one per page group
             files[f"{stem}.pdf"] = (Path(d) / "x.pdf").read_bytes()
     except Exception as e:  # noqa: BLE001 - the markdown stands without the PDF
         summary_ += f" (PDF failed: {type(e).__name__}: {e})"
