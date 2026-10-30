@@ -103,7 +103,10 @@ class WebSecurityTests(unittest.TestCase):
         self.addCleanup(lambda: web._finish_job("sample", job) if not web.JOBS[job]["done"] else None)
         with self.assertRaises(web.BusyError):
             web._new_job("sample")
+        with self.assertRaises(web.BusyError):
+            web._case_call("sample", lambda: None)
         web._finish_job("sample", job)
+        self.assertEqual(web._case_call("sample", lambda: "ok"), "ok")
         second = web._new_job("sample")
         web._finish_job("sample", second)
 

@@ -220,11 +220,23 @@ def _finish_job(case, job):
     _case_lock(case).release()
 
 
+def _case_call(case, function):
+    """Run one synchronous workspace mutation without racing a background job for the same case."""
+    lock = _case_lock(case)
+    if not lock.acquire(blocking=False):
+        raise BusyError(f"{case} already has a running job")
+    try:
+        return function()
+    finally:
+        lock.release()
+
+
 def workspace(case):
     from .copilot import Workspace
-    if case not in WORKSPACES:
-        WORKSPACES[case] = Workspace(case, os.getenv("COPILOT_MODEL", "muse-spark-1.3-contributor"))
-    return WORKSPACES[case]
+    with _JOB_LOCK:
+        if case not in WORKSPACES:
+            WORKSPACES[case] = Workspace(case, os.getenv("COPILOT_MODEL", "muse-spark-1.3-contributor"))
+        return WORKSPACES[case]
 
 
 def ws_project(case):
@@ -252,14 +264,15 @@ def ws_project(case):
 
 def plant(case):
     from .plant import PlantWorkspace
-    if case not in PLANTS:
-        cfg = json.loads((ROOT / "cases" / case / "case.json").read_text())
-        default = os.getenv("PRIVATE_MODEL", "muse-spark-1.3") if cfg.get("uploaded") else "muse-spark-1.3-contributor"
-        selected = os.getenv("COPILOT_MODEL", default)
-        if cfg.get("uploaded") and selected.endswith("-contributor") and os.getenv("ALLOW_PRIVATE_CONTRIBUTOR") != "1":
-            selected = default
-        PLANTS[case] = PlantWorkspace(case, selected)
-    return PLANTS[case]
+    with _JOB_LOCK:
+        if case not in PLANTS:
+            cfg = json.loads((ROOT / "cases" / case / "case.json").read_text())
+            default = os.getenv("PRIVATE_MODEL", "muse-spark-1.3") if cfg.get("uploaded") else "muse-spark-1.3-contributor"
+            selected = os.getenv("COPILOT_MODEL", default)
+            if cfg.get("uploaded") and selected.endswith("-contributor") and os.getenv("ALLOW_PRIVATE_CONTRIBUTOR") != "1":
+                selected = default
+            PLANTS[case] = PlantWorkspace(case, selected)
+        return PLANTS[case]
 
 
 def plant_job(case, fn):
@@ -635,26 +648,28 @@ class Handler(SimpleHTTPRequestHandler):
             user = self.headers.get("X-User")
             if what == "accept" and method == "POST":
                 try:
-                    return self._send(w.accept(body["proposal"], user, body.get("reason"), body.get("answer")))
+                    return self._send(_case_call(case, lambda: w.accept(body["proposal"], user, body.get("reason"), body.get("answer"))))
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
             if what == "restore" and method == "POST":
                 try:
-                    return self._send(w.restore(int(body.get("rev", 0)), user, body.get("reason")))
+                    return self._send(_case_call(case, lambda: w.restore(int(body.get("rev", 0)), user, body.get("reason"))))
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
             if what == "decision" and method == "POST":  # the MOC pack: recomputed in DWSIM, no model call, so no spending gate
                 from . import decision
                 try:
-                    r = decision.make(w, body.get("answer"))
+                    r = _case_call(case, lambda: decision.make(w, body.get("answer")))
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
                 return self._send({**r, "base": f"/wsfiles/{case}/{r['folder']}/"})
             if what == "health" and method == "POST":  # re-solves the model ~30 times; no model call
-                return self._send(w.morning_check(refresh=True) or {"error": "no historian mapping for this project"})
+                return self._send(_case_call(case, lambda: w.morning_check(refresh=True)) or
+                                  {"error": "no historian mapping for this project"})
             if what == "troubleshoot" and method == "POST":
                 try:
-                    return self._send(w.troubleshoot(body["equipment"], body.get("reading"), body.get("scale")))
+                    return self._send(_case_call(case, lambda: w.troubleshoot(
+                        body["equipment"], body.get("reading"), body.get("scale"))))
                 except (ValueError, KeyError) as e:
                     return self._send({"error": str(e)}, code=409)
             if what == "pidread":  # Muse's read of a PDF schematic and the engineer's confirmed version
@@ -664,7 +679,8 @@ class Handler(SimpleHTTPRequestHandler):
                                    "confirmed": (conf or {}).get("raw"), "corrections": (conf or {}).get("corrections") or []})
             if what == "confirmread" and method == "POST":
                 try:
-                    return self._send(w.confirm_read(body.get("read") or {}, user, body.get("reason")))
+                    return self._send(_case_call(case, lambda: w.confirm_read(
+                        body.get("read") or {}, user, body.get("reason"))))
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
             if what == "relief":
@@ -679,7 +695,7 @@ class Handler(SimpleHTTPRequestHandler):
                     return self._send({"error": "unknown model"}, code=400)
                 if w.cfg.get("uploaded") and str(body["model"]).endswith("-contributor") and os.getenv("ALLOW_PRIVATE_CONTRIBUTOR") != "1":
                     return self._send({"error": "contributor models are disabled for uploaded private project data"}, code=409)
-                w.model = body["model"]
+                _case_call(case, lambda: setattr(w, "model", body["model"]))
                 return self._send({"model": w.model})
         if parts == ["api", "newproject"] and method == "POST":
             try:
@@ -702,7 +718,7 @@ class Handler(SimpleHTTPRequestHandler):
                 from .llm import PRICES
                 if body["model"] not in PRICES and not __import__("plantagent.llm", fromlist=["x"])._host(str(body["model"])):
                     return self._send({"error": "unknown model"}, code=400)
-                workspace(case).model = body["model"]
+                _case_call(case, lambda: setattr(workspace(case), "model", body["model"]))
                 return self._send({"model": body["model"]})
             if what == "readsheet" and method == "POST":
                 from . import cad
@@ -764,7 +780,7 @@ class Handler(SimpleHTTPRequestHandler):
                     return self._send({"error": "upload a .dxf or .dwg"}, code=400)
                 f = w.dir / ("in_" + name)
                 f.write_bytes(self._body(MAX_UPLOAD))
-                result = import_cad(w, f)
+                result = _case_call(case, lambda: import_cad(w, f))
                 audit.append(case, "import", self.headers.get("X-User"), "CAD import applied",
                              {"file": name, "changes": len(result.get("changes") or [])})
                 return self._send(result)
@@ -775,21 +791,22 @@ class Handler(SimpleHTTPRequestHandler):
             if what == "export" and method == "POST":
                 if body.get("kind") == "memo":
                     _require_runs()
-                return self._send(ws_export(case, body["kind"]))
+                return self._send(_case_call(case, lambda: ws_export(case, body["kind"])))
             if what == "elements":
                 from .copilot import elements
                 return self._send(elements(workspace(case), q["label"]))
             if what == "edit" and method == "POST":
                 from .copilot import edit
                 from . import audit
-                result = edit(workspace(case), body["label"], body["element"], body["field"], body["value"])
+                result = _case_call(case, lambda: edit(
+                    workspace(case), body["label"], body["element"], body["field"], body["value"]))
                 audit.append(case, "edit", self.headers.get("X-User"), body.get("reason", ""),
                              {k: body.get(k) for k in ("element", "field", "value")})
                 return self._send(result)
             if what == "editable" and method == "POST":
                 from .copilot import export_editable
                 w = workspace(case)
-                f = export_editable(w, body["label"])
+                f = _case_call(case, lambda: export_editable(w, body["label"]))
                 base = f"/wsfiles/{case}/{w.dir.name}/"
                 return self._send({"dxf": base + f.name, "dwg": base + f.with_suffix(".dwg").name if f.with_suffix(".dwg").exists() else None})
             if what == "problems":
@@ -810,7 +827,8 @@ class Handler(SimpleHTTPRequestHandler):
             if what == "photoapply" and method == "POST":
                 from .copilot import apply_photo
                 from . import audit
-                result = apply_photo(workspace(case), body["run"], body["pump"], body["gpm"], body["head"], body.get("note", ""))
+                result = _case_call(case, lambda: apply_photo(
+                    workspace(case), body["run"], body["pump"], body["gpm"], body["head"], body.get("note", "")))
                 audit.append(case, "photoapply", self.headers.get("X-User"), body.get("note", ""),
                              {k: body.get(k) for k in ("run", "pump", "gpm", "head")})
                 return self._send(result)
@@ -820,7 +838,7 @@ class Handler(SimpleHTTPRequestHandler):
                 from .copilot import problems, restore
                 from . import audit
                 w = workspace(case)
-                r = restore(w, body.get("rev", 0))
+                r = _case_call(case, lambda: restore(w, body.get("rev", 0)))
                 audit.append(case, "restore", self.headers.get("X-User"), body.get("reason", ""), {"rev": body.get("rev", 0)})
                 return self._send({**r, "issues": problems(w)})
             if what == "accept" and method == "POST":
@@ -828,7 +846,7 @@ class Handler(SimpleHTTPRequestHandler):
                 from . import audit
                 w = workspace(case)
                 try:
-                    r = accept(w, body)
+                    r = _case_call(case, lambda: accept(w, body))
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
                 audit.append(case, "accept", self.headers.get("X-User"), body.get("reason", ""),
