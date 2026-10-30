@@ -2034,13 +2034,20 @@ class PlantWorkspace(Study):
         llm.set_tag("plant:" + self.name)
         brief = {"unit": self.cfg["title"], "target_throughput_multiple": self.cfg.get("target_scale"),
                  "model_label": self.built["label"], "model_mapping": self.built.get("mapping"),
-                 "revisions": [r["title"] for r in self.revisions], "earlier_answers": [a["summary"] for a in self.answers[-4:]]}
+                 "revisions": [r["title"] for r in self.revisions],
+                 # earlier answers with their index, so a document or drawing request can point at one instead of re-solving
+                 "earlier_answers": [{"answer": i, "headline": x.get("headline"), "summary": x.get("summary"),
+                                      "verified_proposals": [p.get("title") for p in (x.get("proposals") or []) if isinstance(p, dict) and p.get("verified")]}
+                                     for i, x in list(enumerate(self.answers))[-4:]]}
         ans = self.loop("ask", "You are the process engineering copilot inside the engineer's P&ID workspace. The calibrated DWSIM "
                         "model is preloaded (get_spec, then modify and re-run). The engineer may ask a question OR give an instruction: change "
                         "or add equipment in the model, draw it, write a document, or analyse a scenario. Do what is asked with "
                         "the tools: a model change the engineer asks for is returned as a proposal (a draft the workspace re-solves; "
                         "propose it even if it does not reach the target, and report its effect); a what-if over a range of a value "
-                        "uses sweep; documents and drawings are made with their tools when available, and the summary names "
+                        "uses sweep. When the request asks for a document (data sheet, calculation sheet, summary for a manager, "
+                        "work order), call make_document once per document FIRST, pointing `answer` at the earlier answer that "
+                        "holds the analysis (earlier_answers lists them with their index); do not redo an analysis that an "
+                        "earlier answer already verified. Drawings use their drawing tool when available. The summary names "
                         "the files produced. Answer quickly and precisely and finish with "
                         "`answer`: a plain headline, calc cards, highlights on P&ID tags, and for a fix, proposals as model "
                         "changes (paths into the spec) that respect every utility and frame limit in the data sheet. Give one "
