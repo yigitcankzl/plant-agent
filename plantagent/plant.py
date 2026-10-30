@@ -1544,11 +1544,16 @@ class PlantWorkspace(Study):
         ]
         # ---- drawing tool (plantagent/revb.py): a Rev B sheet for changes and notes the engineer asks for
         if (getattr(self, "cfg", None) or {}).get("svg"):
-            shared = shared + [f("draw_revision", "Draw a draft Rev B of the project P&ID: the changes (same format as proposal changes: "
-                                                  "path changes, add_unit, reroute) drawn in with revision clouds, value callouts and a revision "
-                                                  "block, plus free notes [{tag or line, text}] (e.g. 'bypass to be added here'). Saved as a "
-                                                  "drawing artifact; it does not verify the changes in the simulator.",
-                                 {"changes": {"type": "array", "items": {"type": "object"}},
+            shared = shared + [f("draw_revision", "Draw a draft Rev B of the project P&ID with revision clouds, value callouts and a "
+                                                  "revision block; saved as a drawing artifact. Preferred: give `answer` (index of the answer, "
+                                                  "-1 = latest) and/or `proposals` (titles or indices of its verified proposals) so the "
+                                                  "verified proposals are drawn exactly; do not re-type their changes. `changes` (proposal "
+                                                  "format: path changes, add_unit, reroute) only for something not in a verified proposal; "
+                                                  "changes that match a verified proposal are replaced by it. `annotations` are free notes "
+                                                  "[{tag, text}] at an equipment tag, a line number ('3003') or an inline item ('3003/C1', "
+                                                  "'PSV-202'), e.g. 'car-seal open'. Does not run the simulator.",
+                                 {"answer": {"type": "integer"}, "proposals": {"type": "array", "items": S},
+                                  "changes": {"type": "array", "items": {"type": "object"}},
                                   "annotations": {"type": "array", "items": {"type": "object", "description": "{tag or line, text}"}},
                                   "title": S})]
         # ---- end drawing tool

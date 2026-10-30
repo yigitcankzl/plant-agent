@@ -1,0 +1,924 @@
+{
+ "source": "runs/ws/salt_mvr/20261030-235532/log.jsonl (muse-spark-1.3-contributor, tool draw_revision)",
+ "args": {
+  "annotations": [
+   {
+    "tag": "3003/C1",
+    "text": "Isolation valve to be car-seal open (CSO) - only relief path via line 3003, do not close in operation"
+   },
+   {
+    "tag": "K-202",
+    "text": "New parallel compressor, 49.5 t/h to 3.08 bar (verified in run vrc_120_K202_clean)"
+   },
+   {
+    "tag": "E-201",
+    "text": "Clean back to U 2500 W/m2K (from fouled 2000)"
+   }
+  ],
+  "changes": [
+   {
+    "path": "units.V-201.U_W_m2K",
+    "physical_change": "Clean main circulating heater E-201 back to clean performance",
+    "rating_source": "documented clean U 2500 W/m2K to confirm - standard clean performance",
+    "value": 2500
+   },
+   {
+    "add_unit": {
+     "id": "S3001_SPLIT",
+     "in": "S3001",
+     "out": [
+      "S3001_to_K201",
+      "S3001_to_K202"
+     ],
+     "type": "splitter"
+    },
+    "limits": {},
+    "rating_source": "routing-only splitter - no rating required"
+   },
+   {
+    "add_unit": {
+     "eff_pct": 75,
+     "id": "K-202",
+     "in": "S3001_to_K202",
+     "out": "S3002_K202",
+     "P_out_bar": 3.08,
+     "type": "compressor"
+    },
+    "limits": {
+     "max_kg_h": 49500,
+     "max_kW": 3100
+    },
+    "rating_source": "vendor quote to confirm - standard size 49.5 t/h at 3.08 bar discharge"
+   },
+   {
+    "reroute": {
+     "field": "in",
+     "unit": "K-201",
+     "value": "S3001_to_K201"
+    }
+   },
+   {
+    "reroute": {
+     "field": "in",
+     "unit": "D-201MIX",
+     "value": [
+      "S3002raw",
+      "TURBINE_EXH",
+      "S3002_K202"
+     ]
+    }
+   },
+   {
+    "path": "units.OVERHEAD_SPLIT.fractions",
+    "value": [
+     0.07,
+     0.93
+    ]
+   }
+  ],
+  "title": "Rev B - 120% capacity: parallel K-202, E-201 clean, purge steam cap"
+ },
+ "spec": {
+  "compounds": [
+   "Water"
+  ],
+  "package": "Steam Tables (IAPWS-IF97)",
+  "feeds": {
+   "S1004mix": {
+    "T_C": 108,
+    "P_bar": 2.4,
+    "kg_h": 362900,
+    "x": {
+     "Water": 1.0
+    }
+   },
+   "TURBINE_EXH": {
+    "T_C": 200,
+    "P_bar": 3.08,
+    "kg_h": 15900,
+    "x": {
+     "Water": 1.0
+    }
+   },
+   "PURGEFEED": {
+    "T_C": 125.6,
+    "P_bar": 2.73,
+    "kg_h": 47600,
+    "x": {
+     "Water": 1.0
+    }
+   }
+  },
+  "units": [
+   {
+    "id": "V-201",
+    "type": "evaporator",
+    "in": "S1004mix",
+    "vapor": "S3001raw",
+    "liquid": "S2001slurry",
+    "P_bar": 1.7,
+    "evap_frac": 0.6825,
+    "heating": [
+     "S3002",
+     "S4001"
+    ],
+    "U_W_m2K": 2000,
+    "area_m2": 8800,
+    "salt_out_T_C": 65
+   },
+   {
+    "id": "OVERHEAD_SPLIT",
+    "type": "splitter",
+    "in": "S3001raw",
+    "out": [
+     "S3101",
+     "S3001"
+    ],
+    "fractions": [
+     0.0843762616067824,
+     0.9156237383932176
+    ]
+   },
+   {
+    "id": "K-201",
+    "type": "compressor",
+    "in": "S3001",
+    "out": "S3002raw",
+    "P_out_bar": 3.08,
+    "eff_pct": 75
+   },
+   {
+    "id": "D-201MIX",
+    "type": "mixer",
+    "in": [
+     "S3002raw",
+     "TURBINE_EXH"
+    ],
+    "out": "S3002"
+   },
+   {
+    "id": "5001/FV-301",
+    "type": "valve",
+    "in": "PURGEFEED",
+    "out": "S5001",
+    "P_out_bar": 1.01
+   },
+   {
+    "id": "V-301",
+    "type": "evaporator",
+    "in": "S5001",
+    "vapor": "S3201raw",
+    "liquid": "S5101",
+    "P_bar": 1.01,
+    "evap_frac": 0.6,
+    "heating": [
+     "S3101",
+     "S4101"
+    ],
+    "U_W_m2K": 1500,
+    "area_m2": 1500,
+    "feed_x_NaCl": 0.2875
+   }
+  ],
+  "limits": {
+   "K-201": {
+    "max_kg_h": 226800,
+    "max_kW": 14000
+   },
+   "V-201": {
+    "area_m2": 8800
+   },
+   "V-301": {
+    "area_m2": 1500
+   }
+  }
+ },
+ "answer": {
+  "headline": "Clean heater, add 49.5 tonne compressor, cap purge steam",
+  "proposals": [
+   {
+    "title": "Clean main heater E-201",
+    "verified": true,
+    "changes": [
+     {
+      "path": "units.V-201.U_W_m2K",
+      "physical_change": "Clean E-201 circulating heater to documented clean performance",
+      "rating_source": "data sheet E-201 2500 W/m2K clean (ILLUSTRATIVE - vendor to confirm)",
+      "value": 2500,
+      "from": 2000
+     }
+    ],
+    "calculation": {
+     "target_scale": 1.2,
+     "capacity_multiple_before": 1.001,
+     "capacity_multiple_after": 1.001,
+     "limited_by_before": {
+      "id": "K-201",
+      "check": "suction flow vs capacity",
+      "value": 226905.6,
+      "limit": 226800,
+      "unit": "kg/h",
+      "utilisation": 1.0
+     },
+     "limited_by_after": {
+      "id": "K-201",
+      "check": "suction flow vs capacity",
+      "value": 226905.6,
+      "limit": 226800,
+      "unit": "kg/h",
+      "utilisation": 1.0
+     },
+     "checks": [
+      {
+       "id": "K-201",
+       "check": "suction flow vs capacity",
+       "before": 1.2,
+       "after": 1.2,
+       "value": 272137.2,
+       "limit": 226800,
+       "unit": "kg/h"
+      },
+      {
+       "id": "V-301",
+       "check": "heater area needed (BPE included) vs installed",
+       "before": 1.061,
+       "after": 1.061,
+       "value": 1591.0,
+       "limit": 1500,
+       "unit": "m2"
+      },
+      {
+       "id": "V-201",
+       "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+       "before": 0.994,
+       "after": 0.994,
+       "value": 187369.4,
+       "limit": 188444.69400000002,
+       "unit": "kW"
+      },
+      {
+       "id": "V-301",
+       "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+       "before": 0.98,
+       "after": 0.98,
+       "value": 15434.3,
+       "limit": 15742.884000000002,
+       "unit": "kW"
+      },
+      {
+       "id": "V-201",
+       "check": "heater area needed (BPE included) vs installed",
+       "before": 1.113,
+       "after": 0.89,
+       "value": 7836.0,
+       "limit": 8800,
+       "unit": "m2"
+      },
+      {
+       "id": "K-201",
+       "check": "shaft power vs motor",
+       "before": 0.806,
+       "after": 0.806,
+       "value": 11279.24,
+       "limit": 14000,
+       "unit": "kW"
+      },
+      {
+       "id": "OVERHEAD_SPLIT",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "D-201MIX",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      }
+     ],
+     "units": {
+      "D-201MIX": {
+       "type": "mixer"
+      },
+      "K-201": {
+       "type": "compressor",
+       "duty_kW": 11279.24,
+       "kW": 11279.24,
+       "discharge_C": 191.5
+      },
+      "OVERHEAD_SPLIT": {
+       "type": "splitter"
+      },
+      "V-201": {
+       "type": "evaporator",
+       "boil_kW": 187369.4,
+       "sensible_correction_kW": 794.1,
+       "brine_sensible_kW": 6660.7,
+       "water_sensible_kW": 3670.5,
+       "vapor_superheat_kW": 1664.0,
+       "crystallisation_kW": 2152.5,
+       "crystal_cooling_kW": 1707.6,
+       "vapour_kg_h": 297215.0,
+       "brine_T_C": 124.86,
+       "bpe_K": 9.69,
+       "body_x_NaCl": 0.2875,
+       "salt_in_kg_h": 122902.0,
+       "salt_kg_h": 116702.0,
+       "crystallising": true,
+       "liquid_out_brine_kg_h": 21563.0,
+       "water_evaporated_per_t_salt": 2.55,
+       "heating_kW": 184749.7,
+       "condensing_C": 134.43,
+       "driving_dT_K": 9.57,
+       "heat_balance_kW": -2619.7,
+       "area_needed_m2": 7836.0,
+       "area_m2": 8800,
+       "U_W_m2K": 2500
+      },
+      "V-301": {
+       "type": "evaporator",
+       "boil_kW": 15434.3,
+       "sensible_correction_kW": 383.1,
+       "brine_sensible_kW": 455.1,
+       "water_sensible_kW": 5.1,
+       "vapor_superheat_kW": 134.9,
+       "crystallisation_kW": 201.8,
+       "crystal_cooling_kW": 0.0,
+       "vapour_kg_h": 26769.0,
+       "brine_T_C": 108.68,
+       "bpe_K": 8.72,
+       "body_x_NaCl": 0.2824,
+       "salt_in_kg_h": 16422.0,
+       "salt_kg_h": 10941.0,
+       "crystallising": true,
+       "liquid_out_brine_kg_h": 19410.0,
+       "water_evaporated_per_t_salt": 2.45,
+       "heating_kW": 15434.2,
+       "condensing_C": 115.15,
+       "driving_dT_K": 6.47,
+       "heat_balance_kW": -0.1,
+       "area_needed_m2": 1591.0,
+       "area_m2": 1500,
+       "U_W_m2K": 1500
+      }
+     },
+     "streams": [
+      {
+       "id": "S1004mix",
+       "T_C": 108.0,
+       "P_bar": 2.4,
+       "kg_h": 435480.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 435480.0
+       }
+      },
+      {
+       "id": "S3002",
+       "T_C": 192.05,
+       "P_bar": 3.08,
+       "kg_h": 291217.2,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 291217.2
+       }
+      },
+      {
+       "id": "S3001raw",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 297215.1,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 297215.1
+       }
+      },
+      {
+       "id": "S2001slurry",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 138264.9,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 138264.9
+       }
+      },
+      {
+       "id": "S4001",
+       "T_C": 134.43,
+       "P_bar": 3.08,
+       "kg_h": 291217.2,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 291217.2
+       }
+      },
+      {
+       "id": "S3101",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 25077.9,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 25077.9
+       }
+      },
+      {
+       "id": "S3001",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 272137.2,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 272137.2
+       }
+      },
+      {
+       "id": "S3002raw",
+       "T_C": 191.49,
+       "P_bar": 3.08,
+       "kg_h": 272137.2,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 272137.2
+       }
+      },
+      {
+       "id": "TURBINE_EXH",
+       "T_C": 200.0,
+       "P_bar": 3.08,
+       "kg_h": 19080.0,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 19080.0
+       }
+      },
+      {
+       "id": "S5001",
+       "T_C": 99.88,
+       "P_bar": 1.01,
+       "kg_h": 57120.0,
+       "vapour_frac": 0.0483,
+       "components_kg_h": {
+        "Water": 57120.0
+       }
+      },
+      {
+       "id": "S3201raw",
+       "T_C": 99.88,
+       "P_bar": 1.01,
+       "kg_h": 26769.2,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 26769.16
+       }
+      },
+      {
+       "id": "S5101",
+       "T_C": 99.88,
+       "P_bar": 1.01,
+       "kg_h": 30350.8,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 30350.84
+       }
+      },
+      {
+       "id": "S4101",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 25077.9,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 25077.9
+       }
+      }
+     ],
+     "new_equipment": [],
+     "assumptions": [],
+     "simulator": "dwsim",
+     "errors": [],
+     "warnings": [],
+     "model_label": "vrc_cal_v2_desup_hx"
+    },
+    "fixes": "E-201",
+    "tag": "E-201",
+    "cost_class": "<$100k"
+   },
+   {
+    "title": "Add parallel compressor K-202",
+    "verified": false,
+    "changes": [
+     {
+      "add_unit": {
+       "id": "K202_SPLIT",
+       "in": "S3001",
+       "out": [
+        "S3001a",
+        "S3001b"
+       ],
+       "type": "splitter"
+      },
+      "path": "units.K202_SPLIT.fractions",
+      "value": [
+       0.8208,
+       0.1792
+      ],
+      "from": null
+     },
+     {
+      "add_unit": {
+       "eff_pct": 75,
+       "id": "K-202",
+       "in": "S3001b",
+       "out": "S3002rawB",
+       "P_out_bar": 3.08,
+       "type": "compressor"
+      },
+      "limits": {
+       "max_kg_h": 55000,
+       "max_kW": 3000
+      },
+      "rating_source": "vendor quote to confirm - standard size 55 t/h, 3.0 MW motor"
+     },
+     {
+      "reroute": {
+       "field": "in",
+       "unit": "K-201",
+       "value": "S3001a"
+      },
+      "from": "S3001"
+     },
+     {
+      "reroute": {
+       "field": "out",
+       "unit": "K-201",
+       "value": "S3002rawA"
+      },
+      "from": "S3002raw"
+     },
+     {
+      "reroute": {
+       "field": "in",
+       "unit": "D-201MIX",
+       "value": [
+        "S3002rawA",
+        "S3002rawB",
+        "TURBINE_EXH"
+       ]
+      },
+      "from": [
+       "S3002raw",
+       "TURBINE_EXH"
+      ]
+     }
+    ],
+    "calculation": {
+     "target_scale": 1.2,
+     "capacity_multiple_before": null,
+     "capacity_multiple_after": null,
+     "limited_by_before": null,
+     "limited_by_after": null,
+     "checks": [],
+     "units": {},
+     "streams": [],
+     "new_equipment": [],
+     "assumptions": [],
+     "simulator": "dwsim",
+     "errors": [
+      "change 1 combines path and add_unit; only add_unit plus reroute can be split"
+     ],
+     "warnings": []
+    },
+    "fixes": "K-202",
+    "tag": "K-202",
+    "cost_class": "$100k-$1M"
+   },
+   {
+    "title": "Hold purge steam at today's rate",
+    "verified": true,
+    "changes": [
+     {
+      "path": "units.OVERHEAD_SPLIT.fractions",
+      "value": [
+       0.0703,
+       0.9297
+      ],
+      "from": [
+       0.0843762616067824,
+       0.9156237383932176
+      ]
+     }
+    ],
+    "calculation": {
+     "target_scale": 1.2,
+     "capacity_multiple_before": 1.001,
+     "capacity_multiple_after": 0.985,
+     "limited_by_before": {
+      "id": "K-201",
+      "check": "suction flow vs capacity",
+      "value": 226905.6,
+      "limit": 226800,
+      "unit": "kg/h",
+      "utilisation": 1.0
+     },
+     "limited_by_after": {
+      "id": "K-201",
+      "check": "suction flow vs capacity",
+      "value": 226905.6,
+      "limit": 226800,
+      "unit": "kg/h",
+      "utilisation": 1.0
+     },
+     "checks": [
+      {
+       "id": "K-201",
+       "check": "suction flow vs capacity",
+       "before": 1.2,
+       "after": 1.218,
+       "value": 276320.9,
+       "limit": 226800,
+       "unit": "kg/h"
+      },
+      {
+       "id": "V-201",
+       "check": "heater area needed (BPE included) vs installed",
+       "before": 1.113,
+       "after": 1.113,
+       "value": 9794.0,
+       "limit": 8800,
+       "unit": "m2"
+      },
+      {
+       "id": "V-201",
+       "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+       "before": 0.994,
+       "after": 0.98,
+       "value": 187369.4,
+       "limit": 191150.652,
+       "unit": "kW"
+      },
+      {
+       "id": "V-301",
+       "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+       "before": 0.98,
+       "after": 0.98,
+       "value": 12859.5,
+       "limit": 13116.588,
+       "unit": "kW"
+      },
+      {
+       "id": "V-301",
+       "check": "heater area needed (BPE included) vs installed",
+       "before": 1.061,
+       "after": 0.883,
+       "value": 1325.0,
+       "limit": 1500,
+       "unit": "m2"
+      },
+      {
+       "id": "K-201",
+       "check": "shaft power vs motor",
+       "before": 0.806,
+       "after": 0.818,
+       "value": 11452.64,
+       "limit": 14000,
+       "unit": "kW"
+      },
+      {
+       "id": "OVERHEAD_SPLIT",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "D-201MIX",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      }
+     ],
+     "units": {
+      "D-201MIX": {
+       "type": "mixer"
+      },
+      "K-201": {
+       "type": "compressor",
+       "duty_kW": 11452.64,
+       "kW": 11452.64,
+       "discharge_C": 191.5
+      },
+      "OVERHEAD_SPLIT": {
+       "type": "splitter"
+      },
+      "V-201": {
+       "type": "evaporator",
+       "boil_kW": 187369.4,
+       "sensible_correction_kW": 794.1,
+       "brine_sensible_kW": 6660.7,
+       "water_sensible_kW": 3670.5,
+       "vapor_superheat_kW": 1664.0,
+       "crystallisation_kW": 2152.5,
+       "crystal_cooling_kW": 1707.6,
+       "vapour_kg_h": 297215.0,
+       "brine_T_C": 124.86,
+       "bpe_K": 9.69,
+       "body_x_NaCl": 0.2875,
+       "salt_in_kg_h": 122902.0,
+       "salt_kg_h": 116702.0,
+       "crystallising": true,
+       "liquid_out_brine_kg_h": 21563.0,
+       "water_evaporated_per_t_salt": 2.55,
+       "heating_kW": 187402.6,
+       "condensing_C": 134.43,
+       "driving_dT_K": 9.57,
+       "heat_balance_kW": 33.1,
+       "area_needed_m2": 9794.0,
+       "area_m2": 8800,
+       "U_W_m2K": 2000
+      },
+      "V-301": {
+       "type": "evaporator",
+       "boil_kW": 12859.5,
+       "sensible_correction_kW": 392.3,
+       "brine_sensible_kW": 455.1,
+       "water_sensible_kW": 5.1,
+       "vapor_superheat_kW": 114.1,
+       "crystallisation_kW": 171.9,
+       "crystal_cooling_kW": 0.0,
+       "vapour_kg_h": 22647.0,
+       "brine_T_C": 108.68,
+       "bpe_K": 8.72,
+       "body_x_NaCl": 0.2824,
+       "salt_in_kg_h": 16422.0,
+       "salt_kg_h": 9318.0,
+       "crystallising": true,
+       "liquid_out_brine_kg_h": 25154.0,
+       "water_evaporated_per_t_salt": 2.43,
+       "heating_kW": 12859.4,
+       "condensing_C": 115.15,
+       "driving_dT_K": 6.47,
+       "heat_balance_kW": -0.2,
+       "area_needed_m2": 1325.0,
+       "area_m2": 1500,
+       "U_W_m2K": 1500
+      }
+     },
+     "streams": [
+      {
+       "id": "S1004mix",
+       "T_C": 108.0,
+       "P_bar": 2.4,
+       "kg_h": 435480.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 435480.0
+       }
+      },
+      {
+       "id": "S3002",
+       "T_C": 192.04,
+       "P_bar": 3.08,
+       "kg_h": 295400.9,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 295400.88
+       }
+      },
+      {
+       "id": "S3001raw",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 297215.1,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 297215.1
+       }
+      },
+      {
+       "id": "S2001slurry",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 138264.9,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 138264.9
+       }
+      },
+      {
+       "id": "S4001",
+       "T_C": 134.43,
+       "P_bar": 3.08,
+       "kg_h": 295400.9,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 295400.88
+       }
+      },
+      {
+       "id": "S3101",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 20894.2,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 20894.22
+       }
+      },
+      {
+       "id": "S3001",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 276320.9,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 276320.88
+       }
+      },
+      {
+       "id": "S3002raw",
+       "T_C": 191.49,
+       "P_bar": 3.08,
+       "kg_h": 276320.9,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 276320.88
+       }
+      },
+      {
+       "id": "TURBINE_EXH",
+       "T_C": 200.0,
+       "P_bar": 3.08,
+       "kg_h": 19080.0,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 19080.0
+       }
+      },
+      {
+       "id": "S5001",
+       "T_C": 99.88,
+       "P_bar": 1.01,
+       "kg_h": 57120.0,
+       "vapour_frac": 0.0483,
+       "components_kg_h": {
+        "Water": 57120.0
+       }
+      },
+      {
+       "id": "S3201raw",
+       "T_C": 99.88,
+       "P_bar": 1.01,
+       "kg_h": 22647.3,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 22647.34
+       }
+      },
+      {
+       "id": "S5101",
+       "T_C": 99.88,
+       "P_bar": 1.01,
+       "kg_h": 34472.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 34472.66
+       }
+      },
+      {
+       "id": "S4101",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 20894.2,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 20894.22
+       }
+      }
+     ],
+     "new_equipment": [],
+     "assumptions": [],
+     "simulator": "dwsim",
+     "errors": [],
+     "warnings": [],
+     "model_label": "vrc_cal_v2_desup_hx"
+    },
+    "fixes": "E-301",
+    "tag": "E-301",
+    "cost_class": "no capex"
+   }
+  ]
+ }
+}
