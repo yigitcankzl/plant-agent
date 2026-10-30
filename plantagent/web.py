@@ -618,6 +618,10 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send({"error": "unknown job"}, code=404)
             off = int(q.get("offset", 0))
             return self._send({**j, "events": j["events"][off:], "offset": len(j["events"])})
+        if parts[:2] == ["api", "plant"] and len(parts) == 6 and parts[3] == "artifact" and parts[2] in set(all_cases("process")):
+            from . import artifacts
+            f = artifacts.file(parts[2], parts[4], parts[5])
+            return self._send(f.read_bytes(), mimetypes.guess_type(f.name)[0] or "application/octet-stream") if f else self._send({"error": "not found"}, code=404)
         if parts[:2] == ["api", "plant"] and len(parts) == 4 and parts[2] in set(all_cases("process")):
             case, what = parts[2], parts[3]
             if method == "POST" and what in ("build", "ask"):
@@ -626,6 +630,9 @@ class Handler(SimpleHTTPRequestHandler):
             w = plant(case)
             if what == "project":
                 return self._send(plant_project(case))
+            if what == "artifacts":
+                from . import artifacts
+                return self._send(artifacts.list_(case))
             if what == "svg":
                 f = _safe_file(ROOT / "cases" / case, w.cfg["svg"])
                 return self._send(f.read_bytes(), "image/svg+xml") if f else self._send({"error": "not found"}, code=404)
