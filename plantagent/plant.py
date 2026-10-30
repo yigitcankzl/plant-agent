@@ -1585,7 +1585,8 @@ class PlantWorkspace(Study):
                                                   "revision block; saved as a drawing artifact. Preferred: give `answer` (index of the answer, "
                                                   "-1 = latest) and/or `proposals` (titles or indices of its verified proposals) so the "
                                                   "verified proposals are drawn exactly; do not re-type their changes. `changes` (proposal "
-                                                  "format: path changes, add_unit, reroute) only for something not in a verified proposal; "
+                                                  "format: path changes, add_unit (parallel or in series on a line), reroute, {remove_unit: id}, {bypass: {unit: id}}) only "
+                                                  "for something not in a verified proposal; "
                                                   "changes that match a verified proposal are replaced by it. `annotations` are free notes "
                                                   "[{tag, text}] at an equipment tag, a line number ('3003') or an inline item ('3003/C1', "
                                                   "'PSV-202'), e.g. 'car-seal open'. Does not run the simulator.",
@@ -2160,6 +2161,8 @@ class PlantWorkspace(Study):
                 ans["combined"] = {"error": f"{type(e).__name__}: {e}"}
         ans["checks"] = [self.reproduce(r) for r in dict.fromkeys(r for c in ans["cards"] for r in (c.get("runs") or []))]
         ans.update(seconds=round(time.time() - t0), cost_usd=round(llm.spent() - usd0, 4), request=text, model=self.model)
+        from .revb import refresh_answer_drawings  # drawing hook: re-issue this answer's Rev B drawings with the verified status
+        refresh_answer_drawings(self, ans)
         return ans
 
     def names(self):
