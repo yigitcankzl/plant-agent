@@ -22,6 +22,9 @@
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 13px 14px; display: flex; flex-direction: column; gap: 6px; }
   .card:hover { border-color: #3d4a59; }
+  .card .pitch { font-size: 13px; line-height: 1.45; }
+  .featured .card { border-color: #2f5f55; }
+  details.library { margin-top: 26px; } details.library > summary { cursor: pointer; font-weight: 600; font-size: 15px; padding: 10px 0; color: var(--muted); }
   .card .t { font-weight: 600; font-size: 14px; }
   .card .k { color: var(--muted); font-size: 12px; text-transform: capitalize; }
   .score { font: 600 12px var(--mono); }
@@ -94,9 +97,14 @@
     Draft engineering output for review by a licensed engineer.</div>
 </div>
 <script>
+// the three interactive workspaces to open first; everything else is the evidence library below
+const FEATURED = [["chem_c01", "Can this unit run 20 % more? Three limits found, three verified fixes, before/after on the P&ID."],
+  ["salt_mvr", "Salt evaporator from a real patent: the AI-built model is checked, corrected on the record, and a parallel compressor verified."],
+  ["swro_brownsville", "Blind test on a 2004 desalination study: does the agent reach the engineers' 2008 conclusion on its own?"]];
 const SECTORS = [
   ["Water and wastewater", "💧", ["roseburg", "stpete_swwrf", "west_norriton", "pinole_tm15", "goochland_egps", "edgebrook", "stanislaus_surge", "glwa_120in_break", "ltown"]],
-  ["Chemical process plants", "⚗", ["chem_c01", "salt_mvr"]],
+  ["Chemical process plants", "⚗", ["netl_co2_compression", "netl_syngas_cooler", "bt_column_debottleneck"]],
+  ["Desalination", "🌊", ["swro_monterey"]],
   ["Food and beverage", "🥛", ["dairy_refrig"]],
   ["Oil, gas and petrochemical", "🔥", ["williams_geismar", "csb_pascagoula"]],
   ["Data centers and campus cooling", "❄", ["dc_iitk", "kstate_chw", "lbnl_gsa_dc"]],
@@ -114,10 +122,9 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
     [projects.filter(p => p.kind !== "process").length, "documented facilities"], [types.size, "engineering task types"],
     [graded.length, "blind studies"], [Math.round(mean * 100) + "%", "engineer conclusions matched (model-graded mean)"]]
     .map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join("");
-  document.getElementById("groups").innerHTML = SECTORS.map(([name, icon, ids]) => {
-    const cards = ids.filter(id => by[id] || ws[id]).map(id => {
+  const card = (id, pitch) => {
       const c = by[id], p = ws[id];
-      const title = (c?.title || p.title).split(",")[0];
+      const title = (c?.title || p.title).split(", ")[0];
       const task = c?.task_type || p.task_type;
       const score = c?.benchmark && c.score != null ? `<div class="score">Matched ${Math.round(c.score * 100)}% of the engineers' conclusions</div><div class="bar"><i style="width:${c.score * 100}%"></i></div>` :
         p?.kind === "process" ? `<div class="score" style="color:var(--muted)">${p.built ? "Model built by the agent from the drawing and data sheet" : "Drawing read by Muse; simulation model not reliable yet"}</div>` : `<div class="score" style="color:var(--muted)">Not benchmarked</div>`;
@@ -125,10 +132,16 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
         p?.workspace ? `<a class="btn go" href="workspace.html?case=${id}">Explore case</a>` : "";
       const replay = c?.runs?.length ? `<a class="btn" href="index.html?case=${id}">View study replay</a>` : "";
       return `<div class="card"><div class="t">${esc(title)}</div><div class="k">${esc(task)}</div>
-        <div class="sims">${(p?.kind === "process" ? ["DWSIM"] : c?.simulators_used?.length ? c.simulators_used : ["documents only"]).map(s => `<span class="sim">${s}</span>`).join("")}</div>${score}<div class="acts">${open}${replay}</div></div>`;
-    }).join("");
+        ${pitch ? `<div class="pitch">${esc(pitch)}</div>` : ""}
+        <div class="sims">${(p?.kind === "process" ? [p.engine === "watertap" ? "WaterTAP" : "DWSIM"] : c?.simulators_used?.length ? c.simulators_used : ["documents only"]).map(s => `<span class="sim">${s}</span>`).join("")}</div>${score}<div class="acts">${open}${replay}</div></div>`;
+  };
+  const featured = FEATURED.filter(([id]) => by[id] || ws[id]).map(([id, pitch]) => card(id, pitch)).join("");
+  const library = SECTORS.map(([name, icon, ids]) => {
+    const cards = ids.filter(id => by[id] || ws[id]).map(id => card(id)).join("");
     return cards ? `<h2><i>${icon}</i>${name}</h2><div class="grid">${cards}</div>` : "";
   }).join("");
+  document.getElementById("groups").innerHTML = `<h2><i>★</i>Start here</h2><div class="grid featured">${featured}</div>
+    <details class="library"><summary>Evidence library: ${graded.length} blind studies on real engineering reports, and more plants</summary>${library}</details>`;
 })().catch(() => { document.getElementById("groups").innerHTML = '<p class="foot">Cases could not be loaded. Start the PlantAgent server and reload this page.</p>'; });
 document.getElementById("newForm").onsubmit = async e => {
   e.preventDefault();

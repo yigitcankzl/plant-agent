@@ -710,7 +710,8 @@ class Handler(SimpleHTTPRequestHandler):
                                 "workspace": "workspace" in Case(n).cfg} for n in all_cases()] +
                               [{"case": n, "kind": "process", "built": (RUNS / "ws" / n / "model.json").exists(),
                                 "title": json.loads((ROOT / "cases" / n / "case.json").read_text())["title"],
-                                "task_type": json.loads((ROOT / "cases" / n / "case.json").read_text())["task_type"], "workspace": True}
+                                "task_type": json.loads((ROOT / "cases" / n / "case.json").read_text())["task_type"], "workspace": True,
+                                "engine": json.loads((ROOT / "cases" / n / "case.json").read_text()).get("engine", "dwsim")}
                                for n in all_cases("process")])
         if parts[:2] == ["api", "ws"] and len(parts) == 4 and parts[2] in known:
             case, what = parts[2], parts[3]
