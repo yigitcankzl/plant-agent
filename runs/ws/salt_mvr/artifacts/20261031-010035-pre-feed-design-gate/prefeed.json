@@ -1,0 +1,627 @@
+{
+  "case": "salt_mvr",
+  "made": "2026-10-31T01:00:35+0300",
+  "design_answer": "Yes, with cleaning and extra compression",
+  "proposal_titles": [
+    "Clean the main circulating heater back to its clean performance",
+    "Add a small parallel vapour compressor K-202",
+    "Hold purge-heater steam at today's rate by trimming the overhead split"
+  ],
+  "envelope": {
+    "robust_pass": false,
+    "scenarios": [
+      {
+        "name": "Clean design at today's rate",
+        "scale": 1.0,
+        "basis": "US 5,366,514 Table I operating point; E-201 clean U is the illustrative post-clean value in basis.md",
+        "pass": true,
+        "worst": {
+          "id": "V-201",
+          "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+          "value": 156141.2,
+          "limit": 159289.42200000002,
+          "unit": "kW",
+          "utilisation": 0.98
+        },
+        "over": [],
+        "errors": [],
+        "checks": [
+          {
+            "id": "V-201",
+            "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+            "value": 156141.2,
+            "limit": 159289.42200000002,
+            "unit": "kW",
+            "utilisation": 0.98
+          },
+          {
+            "id": "V-301",
+            "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+            "value": 10718.8,
+            "limit": 10933.074,
+            "unit": "kW",
+            "utilisation": 0.98
+          },
+          {
+            "id": "K-201",
+            "check": "suction flow vs capacity",
+            "value": 189011.5,
+            "limit": 226800,
+            "unit": "kg/h",
+            "utilisation": 0.833
+          }
+        ],
+        "balance": {
+          "status": "ok",
+          "feeds": [
+            "S1004mix",
+            "TURBINE_EXH",
+            "PURGEFEED"
+          ],
+          "products": [
+            "S2001slurry",
+            "S3002",
+            "S3101",
+            "S3201raw",
+            "S5101"
+          ],
+          "mass_in_kg_h": 426400.0,
+          "mass_out_kg_h": 426400.1,
+          "mass_error_pct": 0.0,
+          "component_error_pct": {
+            "Water": 0.0
+          },
+          "energy": "not available: boundary streams do not carry enthalpy_kJ_kg"
+        }
+      },
+      {
+        "name": "Clean design at sales target",
+        "scale": 1.2,
+        "basis": "basis.md request: 3,000 short t/d (+20%)",
+        "pass": true,
+        "worst": {
+          "id": "K-201",
+          "check": "suction flow vs capacity",
+          "value": 226813.8,
+          "limit": 226800,
+          "unit": "kg/h",
+          "utilisation": 1.0
+        },
+        "over": [],
+        "errors": [],
+        "checks": [
+          {
+            "id": "K-201",
+            "check": "suction flow vs capacity",
+            "value": 226813.8,
+            "limit": 226800,
+            "unit": "kg/h",
+            "utilisation": 1.0
+          },
+          {
+            "id": "V-201",
+            "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+            "value": 187369.4,
+            "limit": 191147.388,
+            "unit": "kW",
+            "utilisation": 0.98
+          },
+          {
+            "id": "V-301",
+            "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+            "value": 12862.6,
+            "limit": 13119.75,
+            "unit": "kW",
+            "utilisation": 0.98
+          },
+          {
+            "id": "K-202",
+            "check": "suction flow vs capacity",
+            "value": 49502.0,
+            "limit": 55000,
+            "unit": "kg/h",
+            "utilisation": 0.9
+          },
+          {
+            "id": "V-201",
+            "check": "heater area needed (BPE included) vs installed",
+            "value": 7836.0,
+            "limit": 8800,
+            "unit": "m2",
+            "utilisation": 0.89
+          },
+          {
+            "id": "V-301",
+            "check": "heater area needed (BPE included) vs installed",
+            "value": 1326.0,
+            "limit": 1500,
+            "unit": "m2",
+            "utilisation": 0.884
+          },
+          {
+            "id": "K-202",
+            "check": "shaft power vs motor",
+            "value": 2051.71,
+            "limit": 2400,
+            "unit": "kW",
+            "utilisation": 0.855
+          }
+        ],
+        "balance": {
+          "status": "ok",
+          "feeds": [
+            "S1004mix",
+            "TURBINE_EXH",
+            "PURGEFEED"
+          ],
+          "products": [
+            "S2001slurry",
+            "S3002",
+            "S3101",
+            "S3201raw",
+            "S5101"
+          ],
+          "mass_in_kg_h": 511680.0,
+          "mass_out_kg_h": 511680.0,
+          "mass_error_pct": 0.0,
+          "component_error_pct": {
+            "Water": 0.0
+          },
+          "energy": "not available: boundary streams do not carry enthalpy_kJ_kg"
+        }
+      },
+      {
+        "name": "Target with heater fouled back to current U",
+        "scale": 1.2,
+        "basis": "basis.md equipment ratings: E-201 U 2,000 W/m2K in service",
+        "pass": false,
+        "worst": {
+          "id": "V-201",
+          "check": "heater area needed (BPE included) vs installed",
+          "value": 9794.0,
+          "limit": 8800,
+          "unit": "m2",
+          "utilisation": 1.113
+        },
+        "over": [
+          {
+            "id": "V-201",
+            "check": "heater area needed (BPE included) vs installed",
+            "value": 9794.0,
+            "limit": 8800,
+            "unit": "m2",
+            "utilisation": 1.113
+          }
+        ],
+        "errors": [],
+        "checks": [
+          {
+            "id": "V-201",
+            "check": "heater area needed (BPE included) vs installed",
+            "value": 9794.0,
+            "limit": 8800,
+            "unit": "m2",
+            "utilisation": 1.113
+          },
+          {
+            "id": "K-201",
+            "check": "suction flow vs capacity",
+            "value": 226813.8,
+            "limit": 226800,
+            "unit": "kg/h",
+            "utilisation": 1.0
+          },
+          {
+            "id": "V-201",
+            "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+            "value": 187369.4,
+            "limit": 191147.388,
+            "unit": "kW",
+            "utilisation": 0.98
+          },
+          {
+            "id": "V-301",
+            "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+            "value": 12862.6,
+            "limit": 13119.75,
+            "unit": "kW",
+            "utilisation": 0.98
+          },
+          {
+            "id": "K-202",
+            "check": "suction flow vs capacity",
+            "value": 49502.0,
+            "limit": 55000,
+            "unit": "kg/h",
+            "utilisation": 0.9
+          },
+          {
+            "id": "V-301",
+            "check": "heater area needed (BPE included) vs installed",
+            "value": 1326.0,
+            "limit": 1500,
+            "unit": "m2",
+            "utilisation": 0.884
+          },
+          {
+            "id": "K-202",
+            "check": "shaft power vs motor",
+            "value": 2051.71,
+            "limit": 2400,
+            "unit": "kW",
+            "utilisation": 0.855
+          }
+        ],
+        "balance": {
+          "status": "ok",
+          "feeds": [
+            "S1004mix",
+            "TURBINE_EXH",
+            "PURGEFEED"
+          ],
+          "products": [
+            "S2001slurry",
+            "S3002",
+            "S3101",
+            "S3201raw",
+            "S5101"
+          ],
+          "mass_in_kg_h": 511680.0,
+          "mass_out_kg_h": 511680.0,
+          "mass_error_pct": 0.0,
+          "component_error_pct": {
+            "Water": 0.0
+          },
+          "energy": "not available: boundary streams do not carry enthalpy_kJ_kg"
+        }
+      },
+      {
+        "name": "Target with five-point existing-compressor efficiency sensitivity",
+        "scale": 1.2,
+        "basis": "engineering sensitivity around the provisional 75% efficiency; vendor curve required",
+        "pass": true,
+        "worst": {
+          "id": "K-201",
+          "check": "suction flow vs capacity",
+          "value": 226813.8,
+          "limit": 226800,
+          "unit": "kg/h",
+          "utilisation": 1.0
+        },
+        "over": [],
+        "errors": [],
+        "checks": [
+          {
+            "id": "K-201",
+            "check": "suction flow vs capacity",
+            "value": 226813.8,
+            "limit": 226800,
+            "unit": "kg/h",
+            "utilisation": 1.0
+          },
+          {
+            "id": "V-301",
+            "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+            "value": 12862.6,
+            "limit": 13119.75,
+            "unit": "kW",
+            "utilisation": 0.98
+          },
+          {
+            "id": "V-201",
+            "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+            "value": 187369.4,
+            "limit": 191832.318,
+            "unit": "kW",
+            "utilisation": 0.977
+          },
+          {
+            "id": "K-202",
+            "check": "suction flow vs capacity",
+            "value": 49502.0,
+            "limit": 55000,
+            "unit": "kg/h",
+            "utilisation": 0.9
+          },
+          {
+            "id": "V-201",
+            "check": "heater area needed (BPE included) vs installed",
+            "value": 7836.0,
+            "limit": 8800,
+            "unit": "m2",
+            "utilisation": 0.89
+          },
+          {
+            "id": "V-301",
+            "check": "heater area needed (BPE included) vs installed",
+            "value": 1326.0,
+            "limit": 1500,
+            "unit": "m2",
+            "utilisation": 0.884
+          },
+          {
+            "id": "K-202",
+            "check": "shaft power vs motor",
+            "value": 2051.71,
+            "limit": 2400,
+            "unit": "kW",
+            "utilisation": 0.855
+          }
+        ],
+        "balance": {
+          "status": "ok",
+          "feeds": [
+            "S1004mix",
+            "TURBINE_EXH",
+            "PURGEFEED"
+          ],
+          "products": [
+            "S2001slurry",
+            "S3002",
+            "S3101",
+            "S3201raw",
+            "S5101"
+          ],
+          "mass_in_kg_h": 511680.0,
+          "mass_out_kg_h": 511680.0,
+          "mass_error_pct": 0.0,
+          "component_error_pct": {
+            "Water": 0.0
+          },
+          "energy": "not available: boundary streams do not carry enthalpy_kJ_kg"
+        }
+      }
+    ],
+    "governing": {
+      "scenario": "Target with heater fouled back to current U",
+      "id": "V-201",
+      "check": "heater area needed (BPE included) vs installed",
+      "value": 9794.0,
+      "limit": 8800,
+      "unit": "m2",
+      "utilisation": 1.113
+    }
+  },
+  "equipment": [
+    {
+      "id": "K-202",
+      "type": "compressor",
+      "status": "provisional pass",
+      "operating_flow": null,
+      "flow_unit": null,
+      "rating_flow": 55.0,
+      "flow_margin": null,
+      "calculated_shaft": 2.02068,
+      "shaft_unit": "MW",
+      "rating_shaft": 2.4,
+      "power_margin": 1.188,
+      "rating_source": "vendor quote to confirm / standard size 55 t/h suction, 2,400 kW shaft at pressure ratio 1.8 (3.08 bar discharge) - proposed rating only, not an existing rating",
+      "vendor_gate": [
+        "guaranteed curve over min/normal/max flow",
+        "efficiency and driver rating",
+        "surge/choke or BEP/minimum-flow margin",
+        "materials and seals",
+        "noise/vibration",
+        "nozzle loads and mechanical design"
+      ]
+    }
+  ],
+  "dynamics": {
+    "status": "not run",
+    "reason": "no measured dynamic model",
+    "needed": [
+      "equipment liquid/vapour holdup",
+      "controller action and tuning",
+      "valve/drive response",
+      "step-test time constant and dead time",
+      "trip and permissive logic"
+    ]
+  },
+  "hazards": {
+    "method": "automated change-focused HAZOP/relief screening; team HAZOP and API/ISO sizing remain required",
+    "rows": [
+      {
+        "tag": "V-201",
+        "type": "evaporator",
+        "deviation": "High pressure",
+        "cause": "vapour outlet blocked",
+        "consequence": "vessel overpressure",
+        "existing_safeguard": "protected",
+        "action": "verify relief load and discharge destination",
+        "status": "open"
+      },
+      {
+        "tag": "V-201",
+        "type": "evaporator",
+        "deviation": "High level",
+        "cause": "outlet restriction/control failure",
+        "consequence": "carryover to compressor",
+        "existing_safeguard": "protected",
+        "action": "confirm independent high-high trip",
+        "status": "open"
+      },
+      {
+        "tag": "K-202",
+        "type": "compressor",
+        "deviation": "No flow / trip",
+        "cause": "trip, isolation or surge",
+        "consequence": "loss of production; recycle heating",
+        "existing_safeguard": "new equipment: relief and isolation to confirm",
+        "action": "confirm anti-surge, trip and restart logic",
+        "status": "open"
+      },
+      {
+        "tag": "K-202",
+        "type": "compressor",
+        "deviation": "High pressure",
+        "cause": "blocked discharge or control failure",
+        "consequence": "overpressure upstream/downstream",
+        "existing_safeguard": "new equipment: relief and isolation to confirm",
+        "action": "size relief/depressuring case; check discharge system",
+        "status": "open"
+      },
+      {
+        "tag": "K-201",
+        "type": "compressor",
+        "deviation": "No flow / trip",
+        "cause": "trip, isolation or surge",
+        "consequence": "loss of production; recycle heating",
+        "existing_safeguard": "protected",
+        "action": "confirm anti-surge, trip and restart logic",
+        "status": "open"
+      },
+      {
+        "tag": "K-201",
+        "type": "compressor",
+        "deviation": "High pressure",
+        "cause": "blocked discharge or control failure",
+        "consequence": "overpressure upstream/downstream",
+        "existing_safeguard": "protected",
+        "action": "size relief/depressuring case; check discharge system",
+        "status": "open"
+      },
+      {
+        "tag": "D-201MIX",
+        "type": "mixer",
+        "deviation": "No flow",
+        "cause": "isolation or failure",
+        "consequence": "loss of process function",
+        "existing_safeguard": "not shown on relief scan",
+        "action": "confirm alarms, trips and operating response",
+        "status": "open"
+      },
+      {
+        "tag": "OVERHEAD_SPLIT",
+        "type": "splitter",
+        "deviation": "No flow",
+        "cause": "isolation or failure",
+        "consequence": "loss of process function",
+        "existing_safeguard": "not shown on relief scan",
+        "action": "confirm alarms, trips and operating response",
+        "status": "open"
+      }
+    ],
+    "relief_findings": [
+      {
+        "tag": "P-101",
+        "class": "CentrifugalPump",
+        "side_fluids": [
+          "BR"
+        ],
+        "status": "no relief on this P&ID",
+        "detail": "no relief device reachable (lines leave the drawing: check the connecting P&ID)",
+        "thermal_expansion_risk": false,
+        "why": ""
+      },
+      {
+        "tag": "E-101",
+        "class": "TubularHeatExchanger",
+        "side_fluids": [
+          "BR"
+        ],
+        "status": "no relief on this P&ID",
+        "detail": "no relief device reachable",
+        "thermal_expansion_risk": true,
+        "why": "a heat-exchanger side that can be blocked in while the other side is hot: liquid thermal expansion can exceed the design pressure (API 521 hydraulic expansion; Williams Geismar 2013)"
+      },
+      {
+        "tag": "E-102",
+        "class": "PlateHeatExchanger",
+        "side_fluids": [
+          "BR"
+        ],
+        "status": "isolatable",
+        "detail": "relief 7001/PSV-201 only through 1004/LV-201: if one is closed the side has no relief",
+        "thermal_expansion_risk": true,
+        "why": "a heat-exchanger side that can be blocked in while the other side is hot: liquid thermal expansion can exceed the design pressure (API 521 hydraulic expansion; Williams Geismar 2013)"
+      },
+      {
+        "tag": "E-102",
+        "class": "PlateHeatExchanger",
+        "side_fluids": [
+          "ST"
+        ],
+        "status": "no relief on this P&ID",
+        "detail": "no relief device reachable",
+        "thermal_expansion_risk": true,
+        "why": "a heat-exchanger side that can be blocked in while the other side is hot: liquid thermal expansion can exceed the design pressure (API 521 hydraulic expansion; Williams Geismar 2013)"
+      },
+      {
+        "tag": "E-201",
+        "class": "TubularHeatExchanger",
+        "side_fluids": [
+          "ST"
+        ],
+        "status": "isolatable",
+        "detail": "relief 7002/PSV-202 only through 3003/C1: if one is closed the side has no relief",
+        "thermal_expansion_risk": true,
+        "why": "a heat-exchanger side that can be blocked in while the other side is hot: liquid thermal expansion can exceed the design pressure (API 521 hydraulic expansion; Williams Geismar 2013)"
+      },
+      {
+        "tag": "E-301",
+        "class": "TubularHeatExchanger",
+        "side_fluids": [
+          "ST"
+        ],
+        "status": "isolatable",
+        "detail": "relief 7001/PSV-201 only through 3101/C1: if one is closed the side has no relief",
+        "thermal_expansion_risk": true,
+        "why": "a heat-exchanger side that can be blocked in while the other side is hot: liquid thermal expansion can exceed the design pressure (API 521 hydraulic expansion; Williams Geismar 2013)"
+      },
+      {
+        "tag": "T-401",
+        "class": "Tank",
+        "side_fluids": [
+          "ST"
+        ],
+        "status": "no relief on this P&ID",
+        "detail": "no relief device reachable",
+        "thermal_expansion_risk": false,
+        "why": ""
+      },
+      {
+        "tag": "T-401",
+        "class": "Tank",
+        "side_fluids": [
+          "CD"
+        ],
+        "status": "no relief on this P&ID",
+        "detail": "no relief device reachable (lines leave the drawing: check the connecting P&ID)",
+        "thermal_expansion_risk": false,
+        "why": ""
+      }
+    ]
+  },
+  "constructability": {
+    "physical_units": [
+      "K-202"
+    ],
+    "reroutes": 2,
+    "tie_ins": "to confirm on the Rev B line list",
+    "outage_required": true,
+    "cost_classes": [
+      "<$100k",
+      ">$1M",
+      "no capex"
+    ],
+    "quantified": null,
+    "checks": [
+      "Plot space, access and lifting study",
+      "Foundation and nozzle-load design",
+      "Electrical load, starter and cable study",
+      "Vendor lead time and spares",
+      "Materials/corrosion review",
+      "Tie-in list, isolation plan and shutdown window",
+      "Line sizing, supports, stress and hydrotest",
+      "Control narrative and cause/effect update",
+      "Cleaning method, waste handling, inspection and post-clean performance test"
+    ],
+    "unpriced": [
+      "installed equipment",
+      "piping/tie-ins",
+      "electrical and controls",
+      "civil/structural",
+      "outage production loss"
+    ]
+  }
+}
