@@ -180,7 +180,7 @@ def run(n, model, prior=False):
                 "savings_log_errors": errs}
 
     with ThreadPoolExecutor(4) as ex:
-        rows = list(ex.map(one, ids))
+        rows = list(ex.map(llm.inherit_tag(one), ids))
     keys = ["recall_exact", "recall_family", "savings_recall_family", "precision_family"]
     summary = {"model": model, "industry_prior": prior, "plants": len(rows), "seconds": round(time.time() - t0), "cost_usd": round(llm.spent() - usd0, 4),
                "agent": {k: round(statistics.mean(r["agent_score"][k] for r in rows), 3) for k in keys},

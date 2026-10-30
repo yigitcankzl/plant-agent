@@ -39,6 +39,16 @@ def current_tag():
     return getattr(_TAG, "value", "")
 
 
+def inherit_tag(function):
+    """Carry the caller's spend label into a worker thread."""
+    tag = current_tag()
+
+    def call(*args, **kwargs):
+        set_tag(tag)
+        return function(*args, **kwargs)
+    return call
+
+
 def _load_env():
     env = ROOT / ".env"
     if env.exists():

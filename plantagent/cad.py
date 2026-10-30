@@ -168,7 +168,7 @@ def locate_labels(pdf, page, cols=3, rows=2, overlap=0.08, zoom=2.5, model="muse
         return llm.chat(model, [{"role": "system", "content": TILE_PROMPT},
                                 {"role": "user", "content": [{"type": "image_url", "image_url": {"url": t[4]}}]}], temperature=0)
     with ThreadPoolExecutor(len(tiles)) as ex:
-        texts = list(ex.map(read_tile, tiles))
+        texts = list(ex.map(llm.inherit_tag(read_tile), tiles))
     found = []
     for (fx0, fy0, fx1, fy1, _), text in zip(tiles, texts):
         if True:

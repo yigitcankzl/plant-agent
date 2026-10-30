@@ -98,6 +98,9 @@ class WebSecurityTests(unittest.TestCase):
             self.assertEqual(self.request("GET", "/api/job/nope", headers=auth)[0], 404)
             self.assertEqual(self.request("POST", "/api/newproject", b"{}", {**auth, "Content-Type": "application/json"})[0], 403)
 
+    def test_forwarded_local_request_is_treated_as_remote(self):
+        self.assertEqual(self.request("GET", "/api/job/nope", headers={"X-Forwarded-For": "203.0.113.4"})[0], 403)
+
     def test_one_mutating_job_per_case(self):
         job = web._new_job("sample")
         self.addCleanup(lambda: web._finish_job("sample", job) if not web.JOBS[job]["done"] else None)

@@ -584,7 +584,8 @@ class Handler(SimpleHTTPRequestHandler):
         except ValueError:
             local = host == "localhost"
         token = os.getenv("WEB_AUTH_TOKEN", "").strip()
-        protected = bool(token) or not local
+        forwarded = self.headers.get("Forwarded") or self.headers.get("X-Forwarded-For")
+        protected = bool(token) or not local or bool(forwarded)
         if not protected:
             return
         supplied = self.headers.get("Authorization", "")
@@ -734,10 +735,12 @@ class Handler(SimpleHTTPRequestHandler):
                     pdf.write_bytes(data)
                     t0 = time.time()
                     from . import llm as _llm
+                    _llm.set_tag("ws:" + case)
                     calls0 = _llm.LEDGER.read_text().count("\n") if _llm.LEDGER.exists() else 0
                     from concurrent.futures import ThreadPoolExecutor
                     with ThreadPoolExecutor(2) as ex:  # the full-sheet read and the tiled read run at the same time
-                        f1, f2 = ex.submit(cad.read_profile, pdf, page), ex.submit(cad.locate_labels, pdf, page)
+                        f1 = ex.submit(_llm.inherit_tag(cad.read_profile), pdf, page)
+                        f2 = ex.submit(_llm.inherit_tag(cad.locate_labels), pdf, page)
                         (reading, png), located = f1.result(), f2.result()
                     els, extra = cad.reconcile(reading, located)
                 return self._send({"png": "data:image/png;base64," + base64.b64encode(png).decode(), "title": reading.get("title"),

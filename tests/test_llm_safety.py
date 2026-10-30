@@ -58,6 +58,11 @@ class LlmSafetyTests(unittest.TestCase):
                 llm.complete("muse-spark-1.3", [{"role": "user", "content": "hello"}], max_tokens=100)
         self.assertEqual(client.calls, 0)
 
+    def test_spend_tag_can_be_inherited_by_worker_threads(self):
+        llm.set_tag("sheet:one")
+        with ThreadPoolExecutor(1) as pool:
+            self.assertEqual(pool.submit(llm.inherit_tag(llm.current_tag)).result(), "sheet:one")
+
 
 if __name__ == "__main__":
     unittest.main()
