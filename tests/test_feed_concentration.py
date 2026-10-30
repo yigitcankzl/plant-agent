@@ -20,6 +20,11 @@ class BrineCp(unittest.TestCase):
         with self.assertRaises(ValueError):
             brine.cp(100, 0.5)
 
+    def test_bpe_rejects_extrapolation(self):
+        for pressure, fraction in ((0, 0.2), (1.7, -0.01), (1.7, 0.33), (100, 0.2)):
+            with self.subTest(pressure=pressure, fraction=fraction), self.assertRaises(ValueError):
+                brine.bpe(pressure, fraction)
+
 
 @unittest.skipUnless(process.available(), "DWSIM unavailable")
 class Evaporator(unittest.TestCase):
@@ -69,6 +74,16 @@ class Evaporator(unittest.TestCase):
         self.assertFalse(warm["errors"] or cold["errors"])
         self.assertLess(cold["units"]["V"]["vapour_kg_h"], warm["units"]["V"]["vapour_kg_h"])
         self.assertAlmostEqual(cold["units"]["V"]["boil_kW"], cold["units"]["V"]["heating_kW"], delta=1)
+
+    def test_bpe_energy_correction_includes_vapour_superheat(self):
+        result = process.run(spec(feed_t=60))
+        self.assertFalse(result["errors"])
+        unit = result["units"]["V"]
+        expected = unit["vapour_kg_h"] / 3600 * 2.08 * unit["bpe_K"]
+        self.assertAlmostEqual(unit["vapor_superheat_kW"], expected, delta=0.2)
+        self.assertAlmostEqual(unit["sensible_correction_kW"],
+                               unit["brine_sensible_kW"] - unit["water_sensible_kW"] +
+                               unit["vapor_superheat_kW"], delta=0.2)
 
 
 if __name__ == "__main__":

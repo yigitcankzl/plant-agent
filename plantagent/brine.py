@@ -38,7 +38,13 @@ def cp(t, x):
 
 def boiling_t(p_bar, x):
     """Temperature at which the solution boils at p_bar (bisection on the vapour pressure)."""
-    lo, hi = -5.0, 200.0
+    if not isinstance(p_bar, (int, float)) or not math.isfinite(float(p_bar)) or p_bar <= 0:
+        raise ValueError("brine boiling point requires a positive finite pressure")
+    if not isinstance(x, (int, float)) or not math.isfinite(float(x)) or not 0 <= x <= 0.32:
+        raise ValueError("brine boiling point requires 0-0.32 NaCl mass fraction")
+    lo, hi = 0.0, 150.0
+    if not p_solution_bar(lo, x) <= p_bar <= p_solution_bar(hi, x):
+        raise ValueError("brine boiling point is outside the Sparrow correlation range of 0-150 C")
     for _ in range(60):
         mid = (lo + hi) / 2
         lo, hi = (mid, hi) if p_solution_bar(mid, x) < p_bar else (lo, mid)
@@ -48,6 +54,8 @@ def boiling_t(p_bar, x):
 def bpe(p_bar, x=None):
     """Boiling point elevation (K) at p_bar for mass fraction x (saturated brine when x is None)."""
     t_water = boiling_t(p_bar, 0.0)
+    if x is not None and (not isinstance(x, (int, float)) or not math.isfinite(float(x)) or not 0 <= x <= 0.32):
+        raise ValueError("brine BPE requires 0-0.32 NaCl mass fraction")
     if x is None:  # saturated: iterate because solubility depends on temperature
         t = t_water
         for _ in range(20):

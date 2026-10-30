@@ -1,7 +1,9 @@
 import json
+import io
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from plantagent import process
 from plantagent.plant import (ENERGY_TOL, ENTHALPY_FIELD, RULES, PlantWorkspace, collect_gaps, record_gap,
@@ -54,6 +56,26 @@ def _checks(review):
 
 
 class ModelReviewTests(unittest.TestCase):
+    def test_build_never_accepts_a_second_blocked_submission(self):
+        workspace = object.__new__(PlantWorkspace)
+        workspace.steps, workspace.model, workspace.cfg = 0, "test", {}
+        workspace.log, workspace.emit = io.StringIO(), lambda event: None
+        workspace._review_run = lambda label: {"findings": [
+            {"severity": "block", "check": "bad topology", "evidence": "still wrong"}]}
+        submit = {"tool_calls": [{"id": "1", "name": "submit_model",
+                                  "arguments": json.dumps({"label": "bad"})}], "content": ""}
+        tool = [{"type": "function", "function": {"name": "submit_model", "parameters": {}}}]
+        with patch("plantagent.plant.llm.complete", return_value=submit) as complete:
+            with self.assertRaisesRegex(RuntimeError, "no submit_model"):
+                workspace._build_loop("build", "system", "user", tool, "submit_model", 2)
+        self.assertGreater(complete.call_count, 1)
+
+    def test_rebuild_with_revision_history_is_refused(self):
+        workspace = object.__new__(PlantWorkspace)
+        workspace.revisions = [{"rev": 1}]
+        with self.assertRaisesRegex(ValueError, "revisions exist"):
+            workspace.build()
+
     def test_rules_and_gap_tool(self):
         self.assertIn("call report_gap instead of approximating or changing a documented limit", RULES)
         names = [t["function"]["name"] for t in PlantWorkspace.tools(None)]
@@ -113,6 +135,17 @@ class ModelReviewTests(unittest.TestCase):
         self.assertIn("unit did not solve", checks)
         self.assertIn("negative utilisation", checks)
         self.assertIn("recycle not converged", checks)
+
+    def test_generic_dwsim_without_checks_blocks_but_downhill_pipe_does_not(self):
+        spec = {"feeds": {}, "units": [{"id": "X", "type": "dwsim", "class": "Pump"}]}
+        blocked = review_model(spec, {"errors": [], "streams": {}, "units": {}, "checks": [
+            {"id": "X", "check": "no limit check for this unit type", "type": "dwsim"}]}, None, "")
+        self.assertIn("generic unit has no engineering limit checks", _checks(blocked))
+        pipe = {"feeds": {}, "units": [{"id": "L", "type": "pipe"}]}
+        downhill = review_model(pipe, {"errors": [], "streams": {}, "units": {}, "checks": [
+            {"id": "L", "check": "pressure drop vs available", "utilisation": -0.2,
+             "value": -0.4, "limit": 2, "unit": "bar"}]}, None, "")
+        self.assertNotIn("negative utilisation", _checks(downhill))
 
     def test_report_gap_persists_and_aggregates(self):
         with tempfile.TemporaryDirectory() as d:

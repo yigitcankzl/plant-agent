@@ -55,6 +55,51 @@ def salt_proposal():
 
 
 class ProposalProofTests(unittest.TestCase):
+    def test_existing_structure_and_performance_need_real_physical_changes(self):
+        structural = change_errors(BASE, [{"path": "units.K-1.kind", "value": "positive_displacement"}])
+        self.assertTrue(any("cannot edit existing unit structure" in error for error in structural))
+        unsupported = change_errors(BASE, [{"path": "units.K-1.eff_pct", "value": 85}])
+        self.assertTrue(any("needs physical_change and rating_source" in error for error in unsupported))
+        supported = change_errors(BASE, [{"path": "units.K-1.eff_pct", "value": 85,
+                                          "physical_change": "replace impeller",
+                                          "rating_source": "vendor curve VC-12 to confirm"}])
+        self.assertEqual(supported, [])
+
+    def test_verify_rejects_a_proposal_that_removes_a_limit_check(self):
+        w = workspace()
+        before = {"errors": [], "units": {"K-1": {}}, "streams": {},
+                  "checks": [{"id": "K-1", "check": "head vs curve", "utilisation": 0.8}]}
+        after = {"errors": [], "units": {"K-1": {}}, "streams": {}, "checks": []}
+        w.state = lambda scale: before
+        w._solve = lambda changed, scale: after
+        w._capacity_of = lambda changed: {"capacity_multiple": 1.5, "limited_by": None}
+        result = w.verify({"tag": "K-1", "changes": [{"path": "units.K-1.eff_pct", "value": 80,
+                                                        "physical_change": "new impeller",
+                                                        "rating_source": "vendor curve to confirm"}]})
+        self.assertFalse(result["verified"])
+        self.assertFalse(result["reaches_target"])
+        self.assertIn("removes existing limit checks", result["unverified_reason"])
+        self.assertEqual(result["disappeared_checks"], [{"id": "K-1", "check": "head vs curve"}])
+
+    def test_capacity_search_never_turns_solver_failure_into_capacity(self):
+        def solver_fails(scale):
+            if scale > 1:
+                return None, [], ["did not converge"]
+            check = {"id": "K", "check": "flow", "utilisation": 0.8}
+            return check, [check], []
+
+        failed = process._capacity_search(solver_fails)
+        self.assertIsNone(failed["capacity_multiple"])
+        self.assertEqual(failed["capacity_lower_bound"], 1.0)
+        self.assertIn("solver failed", failed["note"])
+
+        def no_limit(scale):
+            check = {"id": "K", "check": "flow", "utilisation": scale / 10}
+            return check, [check], []
+
+        unbounded = process._capacity_search(no_limit, max_scale=2)
+        self.assertIsNone(unbounded["capacity_multiple"])
+        self.assertEqual(unbounded["capacity_lower_bound"], 2)
     def test_fraction_tolerance_accepts_the_logged_split(self):
         self.assertLessEqual(abs(0.8333 + 0.1667 - 1), FRACTION_SUM_TOL)
         p = {"changes": [{"add_unit": {"id": "K-SPLIT", "type": "splitter", "in": "F",

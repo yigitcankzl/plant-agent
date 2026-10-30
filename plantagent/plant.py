@@ -27,14 +27,17 @@ RULES = ("Rules: every number comes from the P&ID (cite the tag and attribute), 
 CHANGE_HELP = ("One change is either {path, value} for an existing operating/model field; "
                "{add_unit: {complete unit spec}, limits: {that new unit's ratings}, rating_source: 'vendor quote to confirm / "
                "standard size ...'}; or {reroute: {unit, field, value}} for a process connection. Do not edit limits.* for "
-               "existing equipment. A parallel train normally needs a splitter, the new rated unit, a mixer, and reroutes of "
+               "existing equipment. A physical change to an existing performance field (for example clean U, efficiency or "
+               "installed area) also needs physical_change and rating_source; equipment type/kind cannot be edited in place. "
+               "A parallel train normally needs a splitter, the new rated unit, a mixer, and reroutes of "
                "the existing unit's inlet/outlet. Routing-only splitter/mixer units do not need ratings or a rating_source.")
 
 CHANGE = {"path": {"type": "string", "description": "feeds.<stream>.<field> | units.<id>.<field>; never limits.* for existing equipment"},
           "value": {"description": "new value for path"},
+          "physical_change": {"type": "string", "description": "physical work that changes an existing performance field"},
+          "rating_source": {"type": "string", "description": "source for a changed performance value or a new unit rating"},
           "add_unit": {"type": "object", "description": "complete process unit spec, including id, type and connections"},
           "limits": {"type": "object", "description": "ratings for add_unit only; stored under limits.<new id>"},
-          "rating_source": {"type": "string", "description": "source or provisional basis, explicitly marked to confirm"},
           "reroute": {"type": "object", "description": "change a unit connection so the added equipment is in the flow",
                       "properties": {"unit": S, "field": S, "value": {"description": "stream id or list of stream ids"}}}}
 
@@ -128,6 +131,9 @@ def limit_changes(p):
 
 CONNECTION_FIELDS = {"in", "out", "cold", "hot", "heating", "vapor", "liquid", "product", "reject", "distillate", "bottoms"}
 ROUTING_UNITS = {"mixer", "splitter", "recycle"}
+_STRUCTURAL_UNIT_FIELDS = {"id", "type", "kind", *CONNECTION_FIELDS}
+_PHYSICAL_UNIT_FIELDS = {"U_W_m2K", "area_m2", "eff_pct", "efficiency", "cv_rated", "kv_rated", "rangeability",
+                         "diameter_m", "id_mm", "dn_mm", "length_m", "roughness_mm", "stages", "feed_stage"}
 
 
 def added_equipment(changes):
@@ -138,7 +144,7 @@ def added_equipment(changes):
             c["add_unit"].get("type") not in ROUTING_UNITS]
 
 
-def change_errors(spec, changes):
+def change_errors(spec, changes, require_evidence=True):
     """Validate the structural proposal boundary before it reaches the simulator."""
     existing = {u.get("id") for u in spec.get("units") or []}
     additions = [c.get("add_unit") for c in changes or [] if isinstance(c, dict) and c.get("add_unit") is not None]
@@ -154,7 +160,7 @@ def change_errors(spec, changes):
             continue
         if "path" in c:
             try:
-                kind, oid, _ = c["path"].split(".", 2)
+                kind, oid, field = c["path"].split(".", 2)
             except (AttributeError, ValueError):
                 errors.append(f"change {i + 1} has a bad path")
                 continue
@@ -164,6 +170,12 @@ def change_errors(spec, changes):
                 errors.append(f"change {i + 1} names unknown unit {oid}")
             elif kind == "feeds" and oid not in (spec.get("feeds") or {}):
                 errors.append(f"change {i + 1} names unknown feed {oid}")
+            elif kind == "units" and field in _STRUCTURAL_UNIT_FIELDS:
+                errors.append(f"change {i + 1} cannot edit existing unit structure {oid}.{field}; use reroute or add_unit")
+            elif require_evidence and kind == "units" and (field in _PHYSICAL_UNIT_FIELDS or
+                                      field.startswith(("max_", "min_", "rated_")) or "curve" in field.casefold()):
+                if not str(c.get("physical_change") or "").strip() or not str(c.get("rating_source") or "").strip():
+                    errors.append(f"change {i + 1} {oid}.{field} needs physical_change and rating_source")
         elif "add_unit" in c:
             u = c["add_unit"]
             if not isinstance(u, dict) or not isinstance(u.get("id"), str) or not u["id"] or not isinstance(u.get("type"), str) or not u["type"]:
@@ -744,7 +756,8 @@ def read_corrections(orig, conf):
 
 def patch(spec, changes):
     """Apply operating changes, added units and connection reroutes to a copy of the process spec."""
-    errors = change_errors(spec, changes)
+    # Proposal evidence is checked by verify(); internal sensitivity and rendering patches use the same mechanics.
+    errors = change_errors(spec, changes, require_evidence=False)
     if errors:
         raise ValueError("; ".join(errors))
     s = copy.deepcopy(spec)
@@ -1344,7 +1357,13 @@ def review_model(spec, result, pid_ov=None, basis=""):
             if isinstance(u, dict) and u.get("error"):
                 findings.append(_finding("block", "unit did not solve", f"{uid}: {u['error']}", [uid]))
         for c in result.get("checks") or []:
-            if isinstance(c.get("utilisation"), (int, float)) and c["utilisation"] < 0:
+            if c.get("check") == "no limit check for this unit type" and c.get("type") == "dwsim":
+                findings.append(_finding(
+                    "block", "generic unit has no engineering limit checks",
+                    f"{c.get('id')} is a generic DWSIM unit; its class-specific ratings are not mapped to capacity checks.",
+                    [c.get("id")] if c.get("id") else None))
+            elif (isinstance(c.get("utilisation"), (int, float)) and c["utilisation"] < 0 and
+                  c.get("check") != "pressure drop vs available"):
                 findings.append(_finding(
                     "block", "negative utilisation",
                     f"{c.get('id')} {c.get('check')} utilisation is {c['utilisation']} (value {c.get('value')} {c.get('unit') or ''}).",
@@ -1454,8 +1473,10 @@ class PlantWorkspace(Study):
                 self.built["review"] = self._review(self.built["spec"], self.built.get("result"),
                                                     self.built.get("mapping"), self.built.get("assumptions"))
             except Exception as e:  # noqa: BLE001 - the workspace still opens; the failure is shown in the drawer
-                self.built["review"] = {"status": "ok", "findings": [], "blocking": 0, "energy": {},
-                                        "error": f"{type(e).__name__}: {e}"}
+                finding = _finding("block", "model review failed",
+                                   f"Model review raised {type(e).__name__}: {e}")
+                self.built["review"] = {"status": "model needs review", "findings": [finding], "blocking": 1,
+                                        "energy": {}, "error": f"{type(e).__name__}: {e}"}
             self.built["review_status"] = self.built["review"]["status"]
         self._state = {}
         # pick up the answers of the latest session made on this same model, so a restart keeps the engineer's thread
@@ -1713,6 +1734,8 @@ class PlantWorkspace(Study):
 
     def build(self):
         """The agent reads the P&ID and data sheet and builds + calibrates the process model itself."""
+        if getattr(self, "revisions", []):
+            raise ValueError("cannot rebuild while revisions exist; archive or explicitly reset the revision history first")
         if self.pid is None and self.cfg.get("pid_pdf"):
             self.read_drawing()
         if self.cfg.get("pid_pdf") and not (self.pid or {}).get("confirmed"):
@@ -1724,6 +1747,9 @@ class PlantWorkspace(Study):
         sub = self.loop("build", system, user, self.tools() + [submit_tool], "submit_model", 30)
         run = self.runs.get(sub["label"]) or list(self.runs.values())[-1]
         reviewed = self._review(run["spec"], run.get("result"), sub.get("mapping"), sub.get("assumptions"))
+        if reviewed["blocking"]:
+            raise RuntimeError("submitted model still has blocking review findings: " +
+                               "; ".join(f["check"] for f in reviewed["findings"] if f["severity"] == "block"))
         cov = self._coverage(run["spec"], sub.get("mapping"))
         self.built = {"label": sub["label"] if sub["label"] in self.runs else list(self.runs)[-1], "spec": run["spec"],
                       "result": run["result"], "mapping": sub.get("mapping"), "calibration": sub.get("calibration"),
@@ -1776,8 +1802,8 @@ class PlantWorkspace(Study):
         return self._build_loop(phase, system, user, tools, submit_name, max_steps)
 
     def _build_loop(self, phase, system, user, tools, submit_name, max_steps):
-        """Same agent loop as Study.loop, but one rejected submit_model comes back as a tool result.
-        The fix round is at most 8 further steps; the next submit_model is accepted and reviewed again by build()."""
+        """Same agent loop as Study.loop, but a blocked submit_model comes back as a tool result.
+        The fix round is at most 8 further steps and every later submission is reviewed too."""
         messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
         step, limit, fixing = 0, max_steps, False
         while step < limit:
@@ -1812,16 +1838,15 @@ class PlantWorkspace(Study):
                     args, result = {}, {"error": f"arguments are not valid JSON: {e}"}
                 else:
                     if t["name"] == submit_name:
-                        blocks = []
-                        if not fixing:
-                            blocks = [f for f in self._review_run(args.get("label"))["findings"] if f["severity"] == "block"]
+                        blocks = [f for f in self._review_run(args.get("label"))["findings"] if f["severity"] == "block"]
                         if blocks:
+                            if not fixing:
+                                limit = step + 1 + 8
                             fixing, rejected = True, True
-                            limit = step + 1 + 8
                             result = {"accepted": False, "review_status": "model needs review",
                                       "instruction": "Blocking model-review findings. Fix the flowsheet and call submit_model again. "
                                                      "If the spec cannot express the physics or the change you need, call report_gap "
-                                                     "instead of approximating or changing a documented limit. This is the only fix round.",
+                                                     "instead of approximating or changing a documented limit.",
                                       "findings": [{"severity": f["severity"], "check": f["check"], "evidence": f["evidence"],
                                                     "items": f.get("items")} for f in blocks[:8]]}
                         else:
@@ -1868,7 +1893,8 @@ class PlantWorkspace(Study):
             why = ("changes a documented limit (" + ", ".join(loosened) + "): a rating only changes with a physical "
                    "modification and its own evidence, so this cannot be verified in the simulator") if loosened else "; ".join(invalid)
             return _reject_proposal(p, target, why, new, simulator)
-        before = {(c["id"], c["check"]): c["utilisation"] for c in self.state(target)["checks"] if "utilisation" in c}
+        before_state = self.state(target)
+        before = {(c["id"], c["check"]): c["utilisation"] for c in before_state["checks"] if "utilisation" in c}
         before_cap = self._capacity_of(self.spec)
         spec = patch(self.spec, changes)
         at = self._solve(spec, target)
@@ -1886,14 +1912,27 @@ class PlantWorkspace(Study):
         own = [c for c in over if c["id"] in affected]
         broke = [c for c in over if before.get((c["id"], c["check"]), 0) <= 1.0]
         calculation = _calculation(p, target, before_cap, cap, before, at, spec, new, simulator)
+        after_checks = {(c["id"], c["check"]): c["utilisation"] for c in at.get("checks") or [] if "utilisation" in c}
+        disappeared = [{"id": uid, "check": check} for uid, check in before if (uid, check) not in after_checks]
+        unchecked = [c for c in at.get("checks") or [] if c.get("id") in affected and
+                     c.get("check") == "no limit check for this unit type" and c.get("type") not in ROUTING_UNITS]
+        invalid_reason = None
+        if disappeared:
+            invalid_reason = "proposal removes existing limit checks: " + ", ".join(f"{c['id']} {c['check']}" for c in disappeared)
+        elif unchecked:
+            invalid_reason = "proposal adds or changes equipment with no engineering limit check: " + ", ".join(c["id"] for c in unchecked)
+        if invalid_reason:
+            calculation.setdefault("errors", []).append(invalid_reason)
         model_label = self.built.get("label") if isinstance(getattr(self, "built", None), dict) else None
         if model_label:
             calculation["model_label"] = model_label
         after = cap.get("capacity_multiple") if isinstance(cap, dict) else None
-        return {"verified": not at["errors"] and not own and not broke, "fixes": tag, "still_over": own, "breaks": broke,
+        return {"verified": not invalid_reason and not at["errors"] and not own and not broke, "fixes": tag,
+                "still_over": own, "breaks": broke, "disappeared_checks": disappeared,
                 "capacity_multiple": after, "limited_by": cap.get("limited_by") if isinstance(cap, dict) else None,
-                "reaches_target": not over and not at["errors"], "over_limits_at_target": over, "target_scale": target,
-                "new_equipment": new, "calculation": calculation}
+                "reaches_target": not invalid_reason and not over and not at["errors"], "over_limits_at_target": over,
+                "target_scale": target, "new_equipment": new, "calculation": calculation,
+                **({"unverified_reason": invalid_reason} if invalid_reason else {})}
 
     def ask(self, text, context=None, second_opinion=False):
         """Answer a request; with second_opinion the open-weights model answers it independently on the same model and

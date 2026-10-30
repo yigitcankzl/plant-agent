@@ -141,12 +141,23 @@ def run_case(name, model):
         study.log.close()
 
     process_runs = [(label, item) for label, item in study.surges.items() if "units" in item.get("spec", {})]
-    final_label, final_item = process_runs[-1] if process_runs else (None, None)
+    valid_runs = [(label, item) for label, item in process_runs if not (item.get("result") or {}).get("errors")]
+    submitted_label = submission.get("run_label") if isinstance(submission, dict) else None
+    submitted_item = study.surges.get(submitted_label) if submitted_label else None
+    submitted_errors = (submitted_item.get("result") or {}).get("errors") if submitted_item else None
+    if submission and (not submitted_item or "units" not in submitted_item.get("spec", {}) or submitted_errors):
+        reason = (f"submitted run label {submitted_label!r} has solve errors: {submitted_errors}" if submitted_errors else
+                  f"submitted run label {submitted_label!r} does not name a solved DWSIM process run")
+        failure = (failure + "; " if failure else "") + reason
+        final_label, final_item = submitted_label, None
+    else:
+        final_label, final_item = submitted_label, submitted_item
     final_run = {**final_item["result"], "spec": final_item["spec"]} if final_item else None
     # The key was not passed to Study or the model; scoring begins after its tool loop.
     result = {"case": name, "model": model, "allowed_pages": case.pages,
               "withheld_pages": sorted(withheld), "leak_hits": leaks, "submission": submission,
-              "failure": failure, "final_run_label": final_label, "dwsim_runs": len(process_runs),
+              "failure": failure, "final_run_label": final_label, "dwsim_runs": len(valid_runs),
+              "dwsim_attempts": len(process_runs),
               "steps": study.steps, "wall_time_s": round(time.time() - started, 1),
               "spend_usd": round(_spend()[provider] - baseline[provider], 5),
               "model_run_cost_usd": round(_spend()[provider] - spend_before, 5),
@@ -155,7 +166,7 @@ def run_case(name, model):
     path = output / (time.strftime("%Y%m%d-%H%M%S") + "-" + provider + ".json")
     path.write_text(json.dumps(result, indent=2))
     print(json.dumps({"result": str(path), "model": model, "failure": failure,
-                      "score": result["score"]["overall"], "dwsim_runs": len(process_runs),
+                      "score": result["score"]["overall"], "dwsim_runs": len(valid_runs),
                       "task_spend_usd": result["spend_usd"]}, indent=2))
     return result
 

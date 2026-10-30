@@ -252,8 +252,33 @@ def validate_dwsim_unit(u):
         if name not in props:
             raise ValueError(f"{uid}: property {name!r} is not settable on {cls}. Valid properties: {_prop_list(props)}")
         meta = props[name]
-        if meta["kind"] == "enum" and str(value) not in meta["values"]:
-            raise ValueError(f"{uid}: {name}={value!r} is not valid. Valid {name}: {', '.join(meta['values'])}")
+        kind = meta["kind"]
+        if kind == "enum":
+            if not isinstance(value, str) or value not in meta["values"]:
+                raise ValueError(f"{uid}: {name}={value!r} is not valid. Valid {name}: {', '.join(meta['values'])}")
+        elif kind == "bool":
+            if not isinstance(value, bool):
+                raise ValueError(f"{uid}: {name} must be true or false, not {value!r}")
+        elif kind == "int":
+            if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+                raise ValueError(f"{uid}: {name} must be a positive integer")
+        elif kind == "float":
+            if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(float(value)):
+                raise ValueError(f"{uid}: {name} must be a finite number")
+            number = float(value)
+            unit = meta["unit"]
+            if unit == "fraction" and not 0 <= number <= 1:
+                raise ValueError(f"{uid}: {name} must be between 0 and 1")
+            if unit == "percent" and not 0 <= number <= 100:
+                raise ValueError(f"{uid}: {name} must be between 0 and 100 percent")
+            if unit == "K" and "TemperatureChange" not in name and number <= 0:
+                raise ValueError(f"{uid}: {name} must be above 0 K")
+            if unit in ("m", "m2", "m3") and number <= 0:
+                raise ValueError(f"{uid}: {name} must be positive")
+            if name in ("POut", "OutletPressure", "FlashPressure") and number <= 0:
+                raise ValueError(f"{uid}: {name} must be positive")
+        elif kind == "str" and not isinstance(value, str):
+            raise ValueError(f"{uid}: {name} must be text")
     for name in u.get("report") or []:
         if name not in props:
             raise ValueError(f"{uid}: property {name!r} cannot be reported on {cls}. Valid properties: {_prop_list(props)}")
@@ -921,17 +946,25 @@ class _Sheet:
                     else:
                         salt = max(0.0, (salt_in - liquid_kg_h * body_x) / (1 - body_x))
                         liquid_brine = liquid_kg_h - salt
-                    feed_cp_t, body_cp_t = max(0, min(150, feed_t)), max(0, min(150, b["t_brine_C"]))
-                    if feed_cp_t != feed_t or body_cp_t != b["t_brine_C"]:
+                    feed_cp_t = max(0, min(150, feed_t))
+                    body_cp_t = max(0, min(150, b["t_brine_C"]))
+                    water_cp_t = max(0, min(150, b["t_water_C"]))
+                    if feed_cp_t != feed_t or body_cp_t != b["t_brine_C"] or water_cp_t != b["t_water_C"]:
                         r["error"] = "brine cp correlation valid only from 0 to 150 C"
                     cp_avg = (brine.cp(feed_cp_t, feed_x) + brine.cp(body_cp_t, body_x)) / 2
-                    water_cp_avg = (brine.cp(feed_cp_t, 0) + brine.cp(body_cp_t, 0)) / 2
-                    correction = feed_kg_h / 3600 * (cp_avg - water_cp_avg) * (b["t_brine_C"] - feed_t)
+                    water_cp_avg = (brine.cp(feed_cp_t, 0) + brine.cp(water_cp_t, 0)) / 2
+                    brine_sensible = feed_kg_h / 3600 * cp_avg * (b["t_brine_C"] - feed_t)
+                    water_sensible = feed_kg_h / 3600 * water_cp_avg * (b["t_water_C"] - feed_t)
+                    # DWSIM's water stand-in ends at water saturation. Real vapour leaves saturated brine superheated by BPE.
+                    vapor_superheat = vap / 3600 * 2.08 * b["bpe_K"]
+                    correction = brine_sensible - water_sensible + vapor_superheat
                     boil = (o.DeltaQ or 0) + (getattr(self, "aux_liq", {})[uid].DeltaQ or 0) + correction
                     if boil < 0 or (self.streams[u["in"]].GetPhase("Vapor").Properties.molarfraction or 0) > 0.99:
                         r["error"] = ("inlet is vapour in the water stand-in: brine above the water saturation temperature at its "
                                       "pressure only stays liquid through its BPE; give that feed at a pressure where water is liquid")
-                    r.update(boil_kW=_r(boil, 1), sensible_correction_kW=_r(correction, 1), vapour_kg_h=_r(vap, 0),
+                    r.update(boil_kW=_r(boil, 1), sensible_correction_kW=_r(correction, 1),
+                             brine_sensible_kW=_r(brine_sensible, 1), water_sensible_kW=_r(water_sensible, 1),
+                             vapor_superheat_kW=_r(vapor_superheat, 1), vapour_kg_h=_r(vap, 0),
                              brine_T_C=b["t_brine_C"], bpe_K=b["bpe_K"], body_x_NaCl=b["x_NaCl"],
                              salt_in_kg_h=_r(salt_in, 0), salt_kg_h=_r(salt, 0) if salt is not None else None,
                              crystallising=salt is not None and salt > 0,
@@ -1103,7 +1136,8 @@ def _checks(sheet, res):
                     higher_is_worse=False)
         if u and u["type"] == "pipe":
             add("velocity vs limit", u.get("velocity_m_s"), lim.get("max_velocity_m_s"), "m/s")
-            add("pressure drop vs available", u.get("dP_bar"), lim.get("max_dP_bar"), "bar")
+            # A downhill line can gain pressure. Only the positive loss consumes the available pressure-drop budget.
+            add("pressure drop vs available", max(0.0, u.get("dP_bar") or 0.0), lim.get("max_dP_bar"), "bar")
         if u and u["type"] in ("hx", "heater", "cooler") and lim.get("out_T_C") is not None:
             side = lim.get("side", "cold")
             if u["type"] == "hx" and lim.get("area_m2"):
@@ -1173,6 +1207,64 @@ UTILITY_MARGIN = 0.9  # never plan a utility at more than 90 % of its stated sup
 _MGR = None
 
 
+def _capacity_search(worst, max_scale=5.0):
+    """Bracket a stated physical limit; a failed solve is uncertainty, never a capacity result."""
+    base, base_checks, errors = worst(1.0)
+    common = {"checks_at_base": base_checks}
+    if errors:
+        return {"capacity_multiple": None, "limited_by": base, "errors": errors, **common,
+                "note": "the base case did not solve, so no capacity was calculated"}
+    if base is None:
+        return {"error": "no limits to check; add `limits` with values from the P&ID or datasheets", "errors": errors}
+    if base["utilisation"] > 1:
+        feasible = []
+        for scale in (0.1, 0.2, 0.4, 0.6, 0.8):
+            check, checks, solve_errors = worst(scale)
+            if not solve_errors and check is not None and check["utilisation"] <= 1:
+                feasible.append((scale, check, checks))
+        if not feasible:
+            return {"capacity_multiple": None, "limited_by": base, "errors": [], **common,
+                    "note": "the base case is already over a limit and no feasible lower throughput was found down to 10 %"}
+        lo, _, _ = feasible[-1]
+        hi = 1.0
+    else:
+        lo = hi = 1.0
+        while hi < max_scale:
+            trial = min(max_scale, hi * 1.25)
+            check, _, solve_errors = worst(trial)
+            if solve_errors:
+                return {"capacity_multiple": None, "capacity_lower_bound": round(lo, 3), "limited_by": None,
+                        "errors": solve_errors, **common,
+                        "note": "the solver failed before a physical limit was bracketed; the last feasible scale is a lower bound"}
+            if check is None:
+                return {"capacity_multiple": None, "capacity_lower_bound": round(lo, 3), "limited_by": None,
+                        "errors": [], **common, "note": "no limit check remained while searching for capacity"}
+            hi = trial
+            if check["utilisation"] > 1:
+                break
+            lo = hi
+        if hi >= max_scale and check["utilisation"] <= 1:
+            return {"capacity_multiple": None, "capacity_lower_bound": round(lo, 3), "limited_by": base,
+                    "errors": [], **common,
+                    "note": "no stated limit was reached through the maximum searched throughput"}
+    for _ in range(12):
+        mid = (lo + hi) / 2
+        check, _, solve_errors = worst(mid)
+        if solve_errors or check is None:
+            return {"capacity_multiple": None, "capacity_lower_bound": round(lo, 3), "limited_by": None,
+                    "errors": solve_errors, **common,
+                    "note": "the solver failed inside the capacity bracket; no physical capacity is claimed"}
+        lo, hi = (lo, mid) if check["utilisation"] > 1 else (mid, hi)
+    check, at_capacity, solve_errors = worst(lo)
+    if solve_errors or check is None:
+        return {"capacity_multiple": None, "capacity_lower_bound": round(lo, 3), "limited_by": None,
+                "errors": solve_errors, **common,
+                "note": "the final capacity point did not solve; no physical capacity is claimed"}
+    return {"capacity_multiple": round(lo, 3), "limited_by": check, "checks_at_capacity": at_capacity,
+            "errors": [], **common,
+            "note": "multiple of the current feed flows at which the first stated limit reaches 100 %"}
+
+
 def _worker(a):
     global _MGR
     mgr = _MGR = _MGR or _dwsim()
@@ -1190,25 +1282,7 @@ def _worker(a):
             res = sh.results()
             ch = [c for c in _checks(sh, res) if "utilisation" in c]
             return (max(ch, key=lambda c: c["utilisation"]) if ch else None), ch, errs
-        base, base_checks, errs = worst(1.0)
-        if base is None:
-            return {"error": "no limits to check; add `limits` with values from the P&ID or datasheets", "errors": errs}
-        lo, hi = (0.1, 1.0) if base["utilisation"] > 1 else (1.0, 1.0)
-        over = lambda w, errs: w is None or bool(errs) or w["utilisation"] > 1  # a solve that fails counts as over the limit  # noqa: E731
-        while base["utilisation"] <= 1 and hi < 5:
-            hi *= 1.25
-            w, _, e = worst(hi)
-            if over(w, e):
-                break
-            lo = hi
-        for _ in range(12):
-            mid = (lo + hi) / 2
-            w, _, e = worst(mid)
-            lo, hi = (lo, mid) if over(w, e) else (mid, hi)
-        w, at_cap, _ = worst(lo)
-        return {"capacity_multiple": round(lo, 3), "limited_by": w, "checks_at_capacity": at_cap,
-                "checks_at_base": base_checks, "errors": errs,
-                "note": "multiple of the current feed flows at which the first stated limit reaches 100 %"}
+        return _capacity_search(worst)
     if op == "bubble":
         # pressure a blocked-in liquid reaches when heated to T (bubble point): a trapped-liquid overpressure check
         import System

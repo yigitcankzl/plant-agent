@@ -29,6 +29,15 @@ class DWSIMAllowlistTests(unittest.TestCase):
                                          "set": {"CalcMode": "NotAMode"}})
         self.assertIn("Delta_P", str(caught.exception))
 
+    def test_property_values_are_typed_and_bounded(self):
+        base = {"id": "R", "type": "dwsim", "class": "RCT_PFR", "in": ["A"], "out": ["B"]}
+        for values in ({"Volume": -1}, {"Volume": float("nan")}, {"UseUserDefinedPressureDrop": "false"},
+                       {"CatalystVoidFraction": 1.1}):
+            with self.subTest(values=values), self.assertRaises(ValueError):
+                process.validate_dwsim_unit({**base, "set": values})
+        props = process.validate_dwsim_unit({**base, "set": {"Volume": 1.0, "UseUserDefinedPressureDrop": False}})
+        self.assertIn("Volume", props)
+
     def test_fair_capacity_factor_and_flood_fraction_rises_with_vapour(self):
         # Lygeros and Magoulas fit of Fair's chart at 0.5 m spacing and F_LV = 0.1.
         self.assertAlmostEqual(process._fair_csb(0.5, 0.1), 0.0823, places=3)
