@@ -29,7 +29,8 @@ RULES = ("Rules: every number comes from the P&ID (cite the tag and attribute), 
          "proposal pass. If the spec cannot express the physics or change, call report_gap instead of approximating or changing a "
          "documented limit. For physical "
          "new equipment use add_unit with a complete unit spec, its own limits and a rating_source; "
-         "use routing-only splitter/mixer units and reroute changes when needed so flow actually passes through parallel equipment.")
+         "use routing-only splitter/mixer units and reroute changes when needed so flow actually passes through parallel equipment. "
+         "Make data sheets, calculation sheets, summaries and work orders with make_document, never by writing them yourself.")
 
 CHANGE_HELP = ("One change is either {path, value} for an existing operating/model field; "
                "{add_unit: {complete unit spec}, limits: {that new unit's ratings}, rating_source: 'vendor quote to confirm / "
@@ -1532,6 +1533,14 @@ class PlantWorkspace(Study):
                             "Saved on the case and shown to the engineer.",
               {"what": S, "why": S, "needed": {"type": "string", "description": "what the spec or the tools would have to be able to do"}},
               ["what", "why", "needed"]),
+            # documents (plantagent/documents.py): deterministic, numbers only from the record, saved as draft artifacts
+            f("make_document", "Make an engineer document as a DRAFT artifact (markdown + PDF), deterministically from the "
+                               "model, simulator solves, P&ID, data sheet and stored answers; every number carries its source. "
+                               "kind: datasheet (subject = equipment tag, existing or added by a proposal), calc_sheet (subject = "
+                               "'unit' or 'unit: check words'), summary (subject = answer index), work_order (subject = tag "
+                               "of a proposal, e.g. a clean). answer = index of a stored answer (default: the latest).",
+              {"kind": {"type": "string", "enum": ["datasheet", "calc_sheet", "summary", "work_order"]}, "subject": S,
+               "scale": N, "answer": {"type": "integer"}}, ["kind"]),
         ]
         if _is_watertap(getattr(self, "cfg", None)):
             return shared + [
@@ -1598,6 +1607,12 @@ class PlantWorkspace(Study):
         return r
 
     def _call_tool(self, name, a):
+        if name == "make_document":
+            from . import documents
+            try:
+                return documents.make(self, a["kind"], a.get("subject"), a.get("scale"), a.get("answer"), by=self.model)
+            except (ValueError, KeyError) as e:
+                return {"error": str(e)}
         if name == "read_pid":
             return self.pid or {"note": "this project has no drawing: take the equipment and connections from the data sheet"}
         if name == "search_documents":
