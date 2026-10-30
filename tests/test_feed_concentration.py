@@ -95,7 +95,19 @@ class Evaporator(unittest.TestCase):
         self.assertAlmostEqual(unit["vapor_superheat_kW"], expected, delta=0.2)
         self.assertAlmostEqual(unit["sensible_correction_kW"],
                                unit["brine_sensible_kW"] - unit["water_sensible_kW"] +
-                               unit["vapor_superheat_kW"], delta=0.2)
+                               unit["vapor_superheat_kW"] - unit["crystallisation_kW"] - unit["crystal_cooling_kW"], delta=0.2)
+
+    def test_crystallisation_and_elutriation_heat_are_credited(self):
+        plain = process.run(spec(feed_t=60))["units"]["V"]
+        self.assertAlmostEqual(plain["crystallisation_kW"], (plain["salt_kg_h"] or 0) / 3600 * 66.4, delta=0.2)
+        self.assertEqual(plain["crystal_cooling_kW"], 0.0)
+        cooled_spec = spec(feed_t=60)
+        cooled_spec["units"][0]["salt_out_T_C"] = 65
+        cooled = process.run(cooled_spec)["units"]["V"]
+        if (plain["salt_kg_h"] or 0) > 0:
+            expected = plain["salt_kg_h"] / 3600 * 0.88 * (plain["brine_T_C"] - 65)
+            self.assertAlmostEqual(cooled["crystal_cooling_kW"], expected, delta=0.5)
+            self.assertLess(cooled["boil_kW"], plain["boil_kW"])
 
     def test_closed_circulation_uses_net_streams_for_balance(self):
         s = spec(feed_t=60, feed_kg_h=100000, evap_frac=50000 / 1000000)

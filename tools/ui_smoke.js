@@ -26,7 +26,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.click('[data-mode="capacity"]');
   await p.locator('#sheet [data-tag="H1007"]').evaluate(e => e.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 })));
   await p.locator('#sheet [data-tag="H1007"]').evaluate(e => e.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0 })));
-  await p.waitForTimeout(500);
+  await p.waitForFunction(() => document.querySelector('#inspectorTitle').textContent === 'Equipment', null, { timeout: 15000 }).catch(() => {});
   const equipmentFocused = await p.evaluate(() => document.querySelector('#inspectorTitle').textContent === 'Equipment' && !document.querySelector('#answers').hidden);
   console.log(startsFocused && drawerOpened && troubleshootFocused && equipmentFocused ? 'ok  ' : 'FAIL', 'focused capacity layout, drawer, modes and equipment inspector');
   bad += startsFocused && drawerOpened && troubleshootFocused && equipmentFocused ? 0 : 1;
@@ -47,6 +47,21 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     Number(P?.capacity?.capacity_multiple || 0) >= 1);
   console.log(saltReady ? 'ok  ' : 'FAIL', 'salt model review and replayed capacity');
   bad += saltReady ? 0 : 1;
+  // the UI rule under test does not depend on which case happens to be blocked today: force a blocking review on salt_mvr
+  await p.route('**/api/plant/salt_mvr/project', async route => {
+    const res = await route.fetch(); const d = await res.json();
+    d.built = d.built || {};
+    d.built.review = { ...(d.built.review || {}), status: 'model needs review', blocking: 1,
+      findings: [{ severity: 'block', check: 'forced for the smoke test', evidence: 'injected', items: [] }] };
+    d.built.review_status = 'model needs review';
+    await route.fulfill({ response: res, json: d });
+  });
+  await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
+  await p.unroute('**/api/plant/salt_mvr/project');
+  const blockedIsReadOnly = await p.evaluate(() => Number(P?.built?.review?.blocking || 0) > 0 &&
+    !document.querySelector('#answers .prop-actions') && ![...document.querySelectorAll('button')].some(b => /decision file/i.test(b.textContent)));
+  console.log(blockedIsReadOnly ? 'ok  ' : 'FAIL', 'blocked model cannot apply proposals or issue a pack');
+  bad += blockedIsReadOnly ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
   const viewport = p.locator('#pidViewport'), before = await p.locator('#sheet').evaluate(e => new DOMMatrix(getComputedStyle(e).transform).a);
   const bounds = await viewport.boundingBox();

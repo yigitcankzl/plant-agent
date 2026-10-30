@@ -1236,7 +1236,7 @@
  {
   "rev": 3,
   "kind": "correction",
-  "title": "Close the V-201 forced-circulation loop and account for desuperheating spray",
+  "title": "Model review: circulation internal to the evaporator, crystallisation and elutriation heat, purge-evaporator balance",
   "changes": [],
   "spec_before": {
    "compounds": [
@@ -1396,56 +1396,24 @@
      "x": {
       "Water": 1.0
      }
-    },
-    "DESUP_WATER": {
-     "T_C": 82,
-     "P_bar": 3.08,
-     "kg_h": 9019,
-     "x": {
-      "Water": 1.0
-     }
     }
    },
    "units": [
     {
-     "id": "V201_FEED_MIX",
-     "type": "mixer",
-     "in": [
-      "S1004mix",
-      "CIRC_RETURN"
-     ],
-     "out": "V201_FEED"
-    },
-    {
-     "id": "V201_LIQ_SPLIT",
-     "type": "splitter",
-     "in": "V201_LIQ",
-     "out": [
-      "S2001slurry",
-      "CIRC_S2001"
-     ],
-     "fixed_kg_h": {
-      "S2001slurry": 115220.75
-     },
-     "fixed_scales": true
-    },
-    {
      "id": "V-201",
      "type": "evaporator",
-     "in": "V201_FEED",
+     "in": "S1004mix",
      "vapor": "S3001raw",
-     "liquid": "V201_LIQ",
+     "liquid": "S2001slurry",
      "P_bar": 1.7,
-     "evap_frac": 0.013599111069626474,
+     "evap_frac": 0.6825,
      "heating": [
       "S3002",
       "S4001"
      ],
      "U_W_m2K": 2000,
      "area_m2": 8800,
-     "net_feed": "S1004mix",
-     "net_liquid": "S2001slurry",
-     "heat_balance_tolerance_pct": 10
+     "salt_out_T_C": 65
     },
     {
      "id": "OVERHEAD_SPLIT",
@@ -1473,18 +1441,9 @@
      "type": "mixer",
      "in": [
       "S3002raw",
-      "TURBINE_EXH",
-      "DESUP_WATER"
+      "TURBINE_EXH"
      ],
      "out": "S3002"
-    },
-    {
-     "id": "P-201",
-     "type": "pump",
-     "in": "CIRC_S2001",
-     "out": "S2002",
-     "dP_bar": 1.33,
-     "eff_pct": 80
     },
     {
      "id": "5001/FV-301",
@@ -1500,1665 +1459,14 @@
      "vapor": "S3201raw",
      "liquid": "S5101",
      "P_bar": 1.01,
-     "evap_frac": 0.44,
+     "evap_frac": 0.6,
      "heating": [
       "S3101",
       "S4101"
      ],
      "U_W_m2K": 1500,
      "area_m2": 1500,
-     "heat_balance_tolerance_pct": 10
-    },
-    {
-     "id": "V201_RECYCLE",
-     "type": "recycle",
-     "in": "S2002",
-     "out": "CIRC_RETURN",
-     "guess": {
-      "T_C": 125.6,
-      "P_bar": 2.73,
-      "kg_h": 17850000,
-      "x": {
-       "Water": 1.0
-      }
-     }
-    }
-   ],
-   "limits": {
-    "K-201": {
-     "max_kg_h": 226800,
-     "max_kW": 14000
-    },
-    "V-201": {
-     "area_m2": 8800
-    },
-    "V-301": {
-     "area_m2": 1500
-    }
-   }
-  },
-  "capacity_multiple": null,
-  "at": "2026-10-30T17:08:56+0300",
-  "user": "model review",
-  "reason": "Line 2001 was an external 17,850 t/h feed even though the P&ID shows it leaving V-201. The correction closes V-201 liquid -> splitter -> P-201 -> recycle -> V-201, uses the fresh brine and net slurry streams for the salt/heat balance, and adds the 9.019 t/h desuperheating-water mass implied by the patent Table I difference between compressor+turbine steam and the 251.7 t/h heater flow. No equipment rating was changed.",
-  "result_after": {
-   "scale": 1.0,
-   "errors": [],
-   "streams": {
-    "S1004mix": {
-     "T_C": 108.0,
-     "P_bar": 2.4,
-     "kg_h": 362900.0,
-     "m3_h": 380.99,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 362900.0
-     }
-    },
-    "TURBINE_EXH": {
-     "T_C": 200.0,
-     "P_bar": 3.08,
-     "kg_h": 15900.0,
-     "m3_h": 11090.7,
-     "vapour_frac": 1.0,
-     "components_kg_h": {
-      "Water": 15900.0
-     }
-    },
-    "PURGEFEED": {
-     "T_C": 125.6,
-     "P_bar": 2.73,
-     "kg_h": 47600.0,
-     "m3_h": 50.72,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 47600.0
-     }
-    },
-    "DESUP_WATER": {
-     "T_C": 82.0,
-     "P_bar": 3.08,
-     "kg_h": 9019.0,
-     "m3_h": 9.29,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 9019.0
-     }
-    },
-    "CIRC_RETURN": {
-     "T_C": 115.17,
-     "P_bar": 3.03,
-     "kg_h": 17850000.0,
-     "m3_h": 18848.69,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 17850000.0
-     }
-    },
-    "V201_FEED": {
-     "T_C": 115.04,
-     "P_bar": 2.4,
-     "kg_h": 18212900.0,
-     "m3_h": 19230.41,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 18212900.0
-     }
-    },
-    "V201_LIQ": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 17965220.7,
-     "m3_h": 18971.37,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 17965220.75
-     }
-    },
-    "S2001slurry": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 115220.7,
-     "m3_h": 121.67,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 115220.75
-     }
-    },
-    "CIRC_S2001": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 17850000.0,
-     "m3_h": 18849.69,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 17850000.0
-     }
-    },
-    "V-201-in": {
-     "T_C": 115.05,
-     "P_bar": 1.7,
-     "kg_h": 18212900.0,
-     "m3_h": 19231.29,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 18212900.0
-     }
-    },
-    "V-201-part0": {
-     "T_C": 115.05,
-     "P_bar": 1.7,
-     "kg_h": 247679.2,
-     "m3_h": 261.53,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 247679.25
-     }
-    },
-    "S3001raw": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 247679.2,
-     "m3_h": 255415.96,
-     "vapour_frac": 1.0,
-     "components_kg_h": {
-      "Water": 247679.25
-     }
-    },
-    "V-201-part1": {
-     "T_C": 115.05,
-     "P_bar": 1.7,
-     "kg_h": 17965220.7,
-     "m3_h": 18969.77,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 17965220.75
-     }
-    },
-    "S3002": {
-     "T_C": 149.47,
-     "P_bar": 3.08,
-     "kg_h": 251700.0,
-     "m3_h": 155102.4,
-     "vapour_frac": 1.0,
-     "components_kg_h": {
-      "Water": 251700.0
-     }
-    },
-    "S4001": {
-     "T_C": 134.43,
-     "P_bar": 3.08,
-     "kg_h": 251700.0,
-     "m3_h": 270.34,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 251700.0
-     }
-    },
-    "S3101": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 20898.2,
-     "m3_h": 21551.08,
-     "vapour_frac": 1.0,
-     "components_kg_h": {
-      "Water": 20898.25
-     }
-    },
-    "S3001": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 226781.0,
-     "m3_h": 233865.32,
-     "vapour_frac": 1.0,
-     "components_kg_h": {
-      "Water": 226781.0
-     }
-    },
-    "S3002raw": {
-     "T_C": 191.49,
-     "P_bar": 3.08,
-     "kg_h": 226781.0,
-     "m3_h": 155135.03,
-     "vapour_frac": 1.0,
-     "components_kg_h": {
-      "Water": 226781.0
-     }
-    },
-    "S2002": {
-     "T_C": 115.17,
-     "P_bar": 3.03,
-     "kg_h": 17850000.0,
-     "m3_h": 18848.69,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 17850000.0
-     }
-    },
-    "S5001": {
-     "T_C": 99.88,
-     "P_bar": 1.01,
-     "kg_h": 47600.0,
-     "m3_h": 3906.94,
-     "vapour_frac": 0.0483,
-     "components_kg_h": {
-      "Water": 47600.0
-     }
-    },
-    "V-301-in": {
-     "T_C": 99.88,
-     "P_bar": 1.01,
-     "kg_h": 47600.0,
-     "m3_h": 3906.94,
-     "vapour_frac": 0.0483,
-     "components_kg_h": {
-      "Water": 47600.0
-     }
-    },
-    "V-301-part0": {
-     "T_C": 99.88,
-     "P_bar": 1.01,
-     "kg_h": 20944.0,
-     "m3_h": 1719.05,
-     "vapour_frac": 0.0483,
-     "components_kg_h": {
-      "Water": 20944.0
-     }
-    },
-    "S3201raw": {
-     "T_C": 99.88,
-     "P_bar": 1.01,
-     "kg_h": 20944.0,
-     "m3_h": 35150.83,
-     "vapour_frac": 1.0,
-     "components_kg_h": {
-      "Water": 20944.0
-     }
-    },
-    "V-301-part1": {
-     "T_C": 99.88,
-     "P_bar": 1.01,
-     "kg_h": 26656.0,
-     "m3_h": 2187.89,
-     "vapour_frac": 0.0483,
-     "components_kg_h": {
-      "Water": 26656.0
-     }
-    },
-    "S5101": {
-     "T_C": 99.88,
-     "P_bar": 1.01,
-     "kg_h": 26656.0,
-     "m3_h": 27.81,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 26656.0
-     }
-    },
-    "S4101": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 20898.2,
-     "m3_h": 22.07,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 20898.25
-     }
-    }
-   },
-   "units": {
-    "V201_FEED_MIX": {
-     "type": "mixer"
-    },
-    "V201_LIQ_SPLIT": {
-     "type": "splitter"
-    },
-    "V-201": {
-     "type": "evaporator",
-     "boil_kW": 158488.4,
-     "sensible_correction_kW": 3878.5,
-     "brine_sensible_kW": 5550.6,
-     "water_sensible_kW": 3058.7,
-     "vapor_superheat_kW": 1386.7,
-     "vapour_kg_h": 247679.0,
-     "brine_T_C": 124.86,
-     "bpe_K": 9.69,
-     "body_x_NaCl": 0.2875,
-     "salt_in_kg_h": 102418.0,
-     "salt_kg_h": 97252.0,
-     "crystallising": true,
-     "liquid_out_brine_kg_h": 17969.0,
-     "water_evaporated_per_t_salt": 2.55,
-     "heating_kW": 153402.6,
-     "condensing_C": 134.43,
-     "driving_dT_K": 9.57,
-     "heat_balance_kW": -5085.8,
-     "area_needed_m2": 8285.0,
-     "area_m2": 8800,
-     "U_W_m2K": 2000
-    },
-    "OVERHEAD_SPLIT": {
-     "type": "splitter"
-    },
-    "K-201": {
-     "type": "compressor",
-     "duty_kW": 9399.37,
-     "kW": 9399.37,
-     "discharge_C": 191.5
-    },
-    "D-201MIX": {
-     "type": "mixer"
-    },
-    "P-201": {
-     "type": "pump",
-     "m3_h": 18849.69,
-     "head_m": 14.32,
-     "dP_bar": 1.33,
-     "eff_pct": 80.0,
-     "kW": 870.49,
-     "npsha_m": 0.0,
-     "discharge_barg": 2.017,
-     "kind": "centrifugal"
-    },
-    "5001/FV-301": {
-     "type": "valve",
-     "dP_bar": 1.72,
-     "cv_required": 43.334
-    },
-    "V-301": {
-     "type": "evaporator",
-     "boil_kW": 12169.1,
-     "sensible_correction_kW": 481.3,
-     "brine_sensible_kW": 380.0,
-     "water_sensible_kW": 4.2,
-     "vapor_superheat_kW": 105.5,
-     "vapour_kg_h": 20944.0,
-     "brine_T_C": 108.68,
-     "bpe_K": 8.72,
-     "body_x_NaCl": 0.2824,
-     "salt_in_kg_h": 13322.0,
-     "salt_kg_h": 8075.0,
-     "crystallising": true,
-     "liquid_out_brine_kg_h": 18581.0,
-     "water_evaporated_per_t_salt": 2.59,
-     "heating_kW": 12861.8,
-     "condensing_C": 115.15,
-     "driving_dT_K": 6.47,
-     "heat_balance_kW": 692.8,
-     "area_needed_m2": 1254.0,
-     "area_m2": 1500,
-     "U_W_m2K": 1500
-    },
-    "V201_RECYCLE": {
-     "type": "recycle"
-    }
-   },
-   "checks": [
-    {
-     "id": "V-201",
-     "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
-     "value": 158488.4,
-     "limit": 156470.652,
-     "unit": "kW",
-     "utilisation": 1.013
-    },
-    {
-     "id": "K-201",
-     "check": "suction flow vs capacity",
-     "value": 226781.0,
-     "limit": 226800,
-     "unit": "kg/h",
-     "utilisation": 1.0
-    },
-    {
-     "id": "V-201",
-     "check": "heater area needed (BPE included) vs installed",
-     "value": 8285.0,
-     "limit": 8800,
-     "unit": "m2",
-     "utilisation": 0.941
-    },
-    {
-     "id": "V-301",
-     "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
-     "value": 12169.1,
-     "limit": 13119.036,
-     "unit": "kW",
-     "utilisation": 0.928
-    },
-    {
-     "id": "V-301",
-     "check": "heater area needed (BPE included) vs installed",
-     "value": 1254.0,
-     "limit": 1500,
-     "unit": "m2",
-     "utilisation": 0.836
-    },
-    {
-     "id": "K-201",
-     "check": "shaft power vs motor",
-     "value": 9399.37,
-     "limit": 14000,
-     "unit": "kW",
-     "utilisation": 0.671
-    },
-    {
-     "id": "V201_FEED_MIX",
-     "check": "no limit check for this unit type",
-     "type": "mixer"
-    },
-    {
-     "id": "V201_LIQ_SPLIT",
-     "check": "no limit check for this unit type",
-     "type": "splitter"
-    },
-    {
-     "id": "OVERHEAD_SPLIT",
-     "check": "no limit check for this unit type",
-     "type": "splitter"
-    },
-    {
-     "id": "D-201MIX",
-     "check": "no limit check for this unit type",
-     "type": "mixer"
-    },
-    {
-     "id": "V201_RECYCLE",
-     "check": "no limit check for this unit type",
-     "type": "recycle"
-    }
-   ]
-  },
-  "review": {
-   "status": "ok",
-   "blocking": 0,
-   "findings": [
-    {
-     "severity": "warn",
-     "check": "energy not closed",
-     "evidence": "V-201 heat balance is -5085.8 kW against heating 153402.6 kW and boil-up 158488.4 kW (3.2%; tolerance 2%).",
-     "items": [
-      "V-201"
-     ]
-    },
-    {
-     "severity": "warn",
-     "check": "energy not closed",
-     "evidence": "V-301 heat balance is 692.8 kW against heating 12861.8 kW and boil-up 12169.1 kW (5.4%; tolerance 2%).",
-     "items": [
-      "V-301"
-     ]
-    },
-    {
-     "severity": "warn",
-     "check": "source conflict",
-     "evidence": "P&ID E-201 DesignHeatTransferArea is 6500; the data sheet gives 8800 for the same quantity (- E-201 circulating heater: 8,800 m\u00b2, U 2,000 W/m\u00b2K in service (ILLUSTRATIVE; 2,500 W/m\u00b2K clean).).",
-     "items": [
-      "E-201"
-     ]
-    },
-    {
-     "severity": "warn",
-     "check": "source conflict",
-     "evidence": "P&ID P-201 DesignVolumeFlowRate is 12000; the data sheet gives 15000 for the same quantity (- P-201 forced-circulation pump: 15,000 m\u00b3/h rated (ILLUSTRATIVE).).",
-     "items": [
-      "P-201"
-     ]
-    }
-   ]
-  },
-  "audit": "4607f34aed9739bf3d3d260f70a38bdfd5f748d117b9f1e62399d3fb8dc7acb4"
- },
- {
-  "rev": 4,
-  "kind": "correction",
-  "title": "Use the documented stand-in closure tolerance for the salt heat balances",
-  "changes": [],
-  "spec_before": {
-   "compounds": [
-    "Water"
-   ],
-   "package": "Steam Tables (IAPWS-IF97)",
-   "feeds": {
-    "S1004mix": {
-     "T_C": 108,
-     "P_bar": 2.4,
-     "kg_h": 362900,
-     "x": {
-      "Water": 1.0
-     }
-    },
-    "TURBINE_EXH": {
-     "T_C": 200,
-     "P_bar": 3.08,
-     "kg_h": 15900,
-     "x": {
-      "Water": 1.0
-     }
-    },
-    "PURGEFEED": {
-     "T_C": 125.6,
-     "P_bar": 2.73,
-     "kg_h": 47600,
-     "x": {
-      "Water": 1.0
-     }
-    },
-    "DESUP_WATER": {
-     "T_C": 82,
-     "P_bar": 3.08,
-     "kg_h": 9019,
-     "x": {
-      "Water": 1.0
-     }
-    }
-   },
-   "units": [
-    {
-     "id": "V201_FEED_MIX",
-     "type": "mixer",
-     "in": [
-      "S1004mix",
-      "CIRC_RETURN"
-     ],
-     "out": "V201_FEED"
-    },
-    {
-     "id": "V201_LIQ_SPLIT",
-     "type": "splitter",
-     "in": "V201_LIQ",
-     "out": [
-      "S2001slurry",
-      "CIRC_S2001"
-     ],
-     "fixed_kg_h": {
-      "S2001slurry": 115220.75
-     },
-     "fixed_scales": true
-    },
-    {
-     "id": "V-201",
-     "type": "evaporator",
-     "in": "V201_FEED",
-     "vapor": "S3001raw",
-     "liquid": "V201_LIQ",
-     "P_bar": 1.7,
-     "evap_frac": 0.013599111069626474,
-     "heating": [
-      "S3002",
-      "S4001"
-     ],
-     "U_W_m2K": 2000,
-     "area_m2": 8800,
-     "net_feed": "S1004mix",
-     "net_liquid": "S2001slurry",
-     "heat_balance_tolerance_pct": 10
-    },
-    {
-     "id": "OVERHEAD_SPLIT",
-     "type": "splitter",
-     "in": "S3001raw",
-     "out": [
-      "S3101",
-      "S3001"
-     ],
-     "fractions": [
-      0.0843762616067824,
-      0.9156237383932176
-     ]
-    },
-    {
-     "id": "K-201",
-     "type": "compressor",
-     "in": "S3001",
-     "out": "S3002raw",
-     "P_out_bar": 3.08,
-     "eff_pct": 75
-    },
-    {
-     "id": "D-201MIX",
-     "type": "mixer",
-     "in": [
-      "S3002raw",
-      "TURBINE_EXH",
-      "DESUP_WATER"
-     ],
-     "out": "S3002"
-    },
-    {
-     "id": "P-201",
-     "type": "pump",
-     "in": "CIRC_S2001",
-     "out": "S2002",
-     "dP_bar": 1.33,
-     "eff_pct": 80
-    },
-    {
-     "id": "5001/FV-301",
-     "type": "valve",
-     "in": "PURGEFEED",
-     "out": "S5001",
-     "P_out_bar": 1.01
-    },
-    {
-     "id": "V-301",
-     "type": "evaporator",
-     "in": "S5001",
-     "vapor": "S3201raw",
-     "liquid": "S5101",
-     "P_bar": 1.01,
-     "evap_frac": 0.44,
-     "heating": [
-      "S3101",
-      "S4101"
-     ],
-     "U_W_m2K": 1500,
-     "area_m2": 1500,
-     "heat_balance_tolerance_pct": 10
-    },
-    {
-     "id": "V201_RECYCLE",
-     "type": "recycle",
-     "in": "S2002",
-     "out": "CIRC_RETURN",
-     "guess": {
-      "T_C": 125.6,
-      "P_bar": 2.73,
-      "kg_h": 17850000,
-      "x": {
-       "Water": 1.0
-      }
-     }
-    }
-   ],
-   "limits": {
-    "K-201": {
-     "max_kg_h": 226800,
-     "max_kW": 14000
-    },
-    "V-201": {
-     "area_m2": 8800
-    },
-    "V-301": {
-     "area_m2": 1500
-    }
-   }
-  },
-  "spec_after": {
-   "compounds": [
-    "Water"
-   ],
-   "package": "Steam Tables (IAPWS-IF97)",
-   "feeds": {
-    "S1004mix": {
-     "T_C": 108,
-     "P_bar": 2.4,
-     "kg_h": 362900,
-     "x": {
-      "Water": 1.0
-     }
-    },
-    "TURBINE_EXH": {
-     "T_C": 200,
-     "P_bar": 3.08,
-     "kg_h": 15900,
-     "x": {
-      "Water": 1.0
-     }
-    },
-    "PURGEFEED": {
-     "T_C": 125.6,
-     "P_bar": 2.73,
-     "kg_h": 47600,
-     "x": {
-      "Water": 1.0
-     }
-    },
-    "DESUP_WATER": {
-     "T_C": 82,
-     "P_bar": 3.08,
-     "kg_h": 9019,
-     "x": {
-      "Water": 1.0
-     }
-    }
-   },
-   "units": [
-    {
-     "id": "V201_FEED_MIX",
-     "type": "mixer",
-     "in": [
-      "S1004mix",
-      "CIRC_RETURN"
-     ],
-     "out": "V201_FEED"
-    },
-    {
-     "id": "V201_LIQ_SPLIT",
-     "type": "splitter",
-     "in": "V201_LIQ",
-     "out": [
-      "S2001slurry",
-      "CIRC_S2001"
-     ],
-     "fixed_kg_h": {
-      "S2001slurry": 115220.75
-     },
-     "fixed_scales": true
-    },
-    {
-     "id": "V-201",
-     "type": "evaporator",
-     "in": "V201_FEED",
-     "vapor": "S3001raw",
-     "liquid": "V201_LIQ",
-     "P_bar": 1.7,
-     "evap_frac": 0.013599111069626474,
-     "heating": [
-      "S3002",
-      "S4001"
-     ],
-     "U_W_m2K": 2000,
-     "area_m2": 8800,
-     "net_feed": "S1004mix",
-     "net_liquid": "S2001slurry",
-     "heat_balance_tolerance_pct": 10
-    },
-    {
-     "id": "OVERHEAD_SPLIT",
-     "type": "splitter",
-     "in": "S3001raw",
-     "out": [
-      "S3101",
-      "S3001"
-     ],
-     "fractions": [
-      0.0843762616067824,
-      0.9156237383932176
-     ]
-    },
-    {
-     "id": "K-201",
-     "type": "compressor",
-     "in": "S3001",
-     "out": "S3002raw",
-     "P_out_bar": 3.08,
-     "eff_pct": 75
-    },
-    {
-     "id": "D-201MIX",
-     "type": "mixer",
-     "in": [
-      "S3002raw",
-      "TURBINE_EXH",
-      "DESUP_WATER"
-     ],
-     "out": "S3002"
-    },
-    {
-     "id": "P-201",
-     "type": "pump",
-     "in": "CIRC_S2001",
-     "out": "S2002",
-     "dP_bar": 1.33,
-     "eff_pct": 80
-    },
-    {
-     "id": "5001/FV-301",
-     "type": "valve",
-     "in": "PURGEFEED",
-     "out": "S5001",
-     "P_out_bar": 1.01
-    },
-    {
-     "id": "V-301",
-     "type": "evaporator",
-     "in": "S5001",
-     "vapor": "S3201raw",
-     "liquid": "S5101",
-     "P_bar": 1.01,
-     "evap_frac": 0.44,
-     "heating": [
-      "S3101",
-      "S4101"
-     ],
-     "U_W_m2K": 1500,
-     "area_m2": 1500,
-     "heat_balance_tolerance_pct": 10
-    },
-    {
-     "id": "V201_RECYCLE",
-     "type": "recycle",
-     "in": "S2002",
-     "out": "CIRC_RETURN",
-     "guess": {
-      "T_C": 125.6,
-      "P_bar": 2.73,
-      "kg_h": 17850000,
-      "x": {
-       "Water": 1.0
-      }
-     },
-     "guess_scales": true
-    }
-   ],
-   "limits": {
-    "K-201": {
-     "max_kg_h": 226800,
-     "max_kW": 14000
-    },
-    "V-201": {
-     "area_m2": 8800
-    },
-    "V-301": {
-     "area_m2": 1500
-    }
-   }
-  },
-  "capacity_multiple": null,
-  "at": "2026-10-30T17:13:07+0300",
-  "user": "Yigitcan Kizil",
-  "reason": "The water/brine stand-in omits crystallisation heat and electrolyte phase equilibrium. The model review already treats energy gaps below 10% as warnings; use the same explicit 10% model-closure tolerance in capacity checks. This changes no physical equipment rating.",
-  "result_after": {
-   "scale": 1.0,
-   "errors": [],
-   "streams": {
-    "S1004mix": {
-     "T_C": 108.0,
-     "P_bar": 2.4,
-     "kg_h": 362900.0,
-     "m3_h": 380.99,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 362900.0
-     }
-    },
-    "TURBINE_EXH": {
-     "T_C": 200.0,
-     "P_bar": 3.08,
-     "kg_h": 15900.0,
-     "m3_h": 11090.7,
-     "vapour_frac": 1.0,
-     "components_kg_h": {
-      "Water": 15900.0
-     }
-    },
-    "PURGEFEED": {
-     "T_C": 125.6,
-     "P_bar": 2.73,
-     "kg_h": 47600.0,
-     "m3_h": 50.72,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 47600.0
-     }
-    },
-    "DESUP_WATER": {
-     "T_C": 82.0,
-     "P_bar": 3.08,
-     "kg_h": 9019.0,
-     "m3_h": 9.29,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 9019.0
-     }
-    },
-    "CIRC_RETURN": {
-     "T_C": 115.17,
-     "P_bar": 3.03,
-     "kg_h": 17850000.0,
-     "m3_h": 18848.69,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 17850000.0
-     }
-    },
-    "V201_FEED": {
-     "T_C": 115.04,
-     "P_bar": 2.4,
-     "kg_h": 18212900.0,
-     "m3_h": 19230.41,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 18212900.0
-     }
-    },
-    "V201_LIQ": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 17965220.7,
-     "m3_h": 18971.37,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 17965220.75
-     }
-    },
-    "S2001slurry": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 115220.7,
-     "m3_h": 121.67,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 115220.75
-     }
-    },
-    "CIRC_S2001": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 17850000.0,
-     "m3_h": 18849.69,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 17850000.0
-     }
-    },
-    "V-201-in": {
-     "T_C": 115.05,
-     "P_bar": 1.7,
-     "kg_h": 18212900.0,
-     "m3_h": 19231.29,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 18212900.0
-     }
-    },
-    "V-201-part0": {
-     "T_C": 115.05,
-     "P_bar": 1.7,
-     "kg_h": 247679.2,
-     "m3_h": 261.53,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 247679.25
-     }
-    },
-    "S3001raw": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 247679.2,
-     "m3_h": 255415.96,
-     "vapour_frac": 1.0,
-     "components_kg_h": {
-      "Water": 247679.25
-     }
-    },
-    "V-201-part1": {
-     "T_C": 115.05,
-     "P_bar": 1.7,
-     "kg_h": 17965220.7,
-     "m3_h": 18969.77,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 17965220.75
-     }
-    },
-    "S3002": {
-     "T_C": 149.47,
-     "P_bar": 3.08,
-     "kg_h": 251700.0,
-     "m3_h": 155102.4,
-     "vapour_frac": 1.0,
-     "components_kg_h": {
-      "Water": 251700.0
-     }
-    },
-    "S4001": {
-     "T_C": 134.43,
-     "P_bar": 3.08,
-     "kg_h": 251700.0,
-     "m3_h": 270.34,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 251700.0
-     }
-    },
-    "S3101": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 20898.2,
-     "m3_h": 21551.08,
-     "vapour_frac": 1.0,
-     "components_kg_h": {
-      "Water": 20898.25
-     }
-    },
-    "S3001": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 226781.0,
-     "m3_h": 233865.32,
-     "vapour_frac": 1.0,
-     "components_kg_h": {
-      "Water": 226781.0
-     }
-    },
-    "S3002raw": {
-     "T_C": 191.49,
-     "P_bar": 3.08,
-     "kg_h": 226781.0,
-     "m3_h": 155135.03,
-     "vapour_frac": 1.0,
-     "components_kg_h": {
-      "Water": 226781.0
-     }
-    },
-    "S2002": {
-     "T_C": 115.17,
-     "P_bar": 3.03,
-     "kg_h": 17850000.0,
-     "m3_h": 18848.69,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 17850000.0
-     }
-    },
-    "S5001": {
-     "T_C": 99.88,
-     "P_bar": 1.01,
-     "kg_h": 47600.0,
-     "m3_h": 3906.94,
-     "vapour_frac": 0.0483,
-     "components_kg_h": {
-      "Water": 47600.0
-     }
-    },
-    "V-301-in": {
-     "T_C": 99.88,
-     "P_bar": 1.01,
-     "kg_h": 47600.0,
-     "m3_h": 3906.94,
-     "vapour_frac": 0.0483,
-     "components_kg_h": {
-      "Water": 47600.0
-     }
-    },
-    "V-301-part0": {
-     "T_C": 99.88,
-     "P_bar": 1.01,
-     "kg_h": 20944.0,
-     "m3_h": 1719.05,
-     "vapour_frac": 0.0483,
-     "components_kg_h": {
-      "Water": 20944.0
-     }
-    },
-    "S3201raw": {
-     "T_C": 99.88,
-     "P_bar": 1.01,
-     "kg_h": 20944.0,
-     "m3_h": 35150.83,
-     "vapour_frac": 1.0,
-     "components_kg_h": {
-      "Water": 20944.0
-     }
-    },
-    "V-301-part1": {
-     "T_C": 99.88,
-     "P_bar": 1.01,
-     "kg_h": 26656.0,
-     "m3_h": 2187.89,
-     "vapour_frac": 0.0483,
-     "components_kg_h": {
-      "Water": 26656.0
-     }
-    },
-    "S5101": {
-     "T_C": 99.88,
-     "P_bar": 1.01,
-     "kg_h": 26656.0,
-     "m3_h": 27.81,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 26656.0
-     }
-    },
-    "S4101": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 20898.2,
-     "m3_h": 22.07,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 20898.25
-     }
-    }
-   },
-   "units": {
-    "V201_FEED_MIX": {
-     "type": "mixer"
-    },
-    "V201_LIQ_SPLIT": {
-     "type": "splitter"
-    },
-    "V-201": {
-     "type": "evaporator",
-     "boil_kW": 158488.4,
-     "sensible_correction_kW": 3878.5,
-     "brine_sensible_kW": 5550.6,
-     "water_sensible_kW": 3058.7,
-     "vapor_superheat_kW": 1386.7,
-     "vapour_kg_h": 247679.0,
-     "brine_T_C": 124.86,
-     "bpe_K": 9.69,
-     "body_x_NaCl": 0.2875,
-     "salt_in_kg_h": 102418.0,
-     "salt_kg_h": 97252.0,
-     "crystallising": true,
-     "liquid_out_brine_kg_h": 17969.0,
-     "water_evaporated_per_t_salt": 2.55,
-     "heating_kW": 153402.6,
-     "condensing_C": 134.43,
-     "driving_dT_K": 9.57,
-     "heat_balance_kW": -5085.8,
-     "area_needed_m2": 8285.0,
-     "area_m2": 8800,
-     "U_W_m2K": 2000
-    },
-    "OVERHEAD_SPLIT": {
-     "type": "splitter"
-    },
-    "K-201": {
-     "type": "compressor",
-     "duty_kW": 9399.37,
-     "kW": 9399.37,
-     "discharge_C": 191.5
-    },
-    "D-201MIX": {
-     "type": "mixer"
-    },
-    "P-201": {
-     "type": "pump",
-     "m3_h": 18849.69,
-     "head_m": 14.32,
-     "dP_bar": 1.33,
-     "eff_pct": 80.0,
-     "kW": 870.49,
-     "npsha_m": 0.0,
-     "discharge_barg": 2.017,
-     "kind": "centrifugal"
-    },
-    "5001/FV-301": {
-     "type": "valve",
-     "dP_bar": 1.72,
-     "cv_required": 43.334
-    },
-    "V-301": {
-     "type": "evaporator",
-     "boil_kW": 12169.1,
-     "sensible_correction_kW": 481.3,
-     "brine_sensible_kW": 380.0,
-     "water_sensible_kW": 4.2,
-     "vapor_superheat_kW": 105.5,
-     "vapour_kg_h": 20944.0,
-     "brine_T_C": 108.68,
-     "bpe_K": 8.72,
-     "body_x_NaCl": 0.2824,
-     "salt_in_kg_h": 13322.0,
-     "salt_kg_h": 8075.0,
-     "crystallising": true,
-     "liquid_out_brine_kg_h": 18581.0,
-     "water_evaporated_per_t_salt": 2.59,
-     "heating_kW": 12861.8,
-     "condensing_C": 115.15,
-     "driving_dT_K": 6.47,
-     "heat_balance_kW": 692.8,
-     "area_needed_m2": 1254.0,
-     "area_m2": 1500,
-     "U_W_m2K": 1500
-    },
-    "V201_RECYCLE": {
-     "type": "recycle"
-    }
-   },
-   "checks": [
-    {
-     "id": "K-201",
-     "check": "suction flow vs capacity",
-     "value": 226781.0,
-     "limit": 226800,
-     "unit": "kg/h",
-     "utilisation": 1.0
-    },
-    {
-     "id": "V-201",
-     "check": "heater area needed (BPE included) vs installed",
-     "value": 8285.0,
-     "limit": 8800,
-     "unit": "m2",
-     "utilisation": 0.941
-    },
-    {
-     "id": "V-201",
-     "check": "boil-up duty vs heat from the heating steam (10 % closure tolerance)",
-     "value": 158488.4,
-     "limit": 168742.86000000002,
-     "unit": "kW",
-     "utilisation": 0.939
-    },
-    {
-     "id": "V-301",
-     "check": "boil-up duty vs heat from the heating steam (10 % closure tolerance)",
-     "value": 12169.1,
-     "limit": 14147.98,
-     "unit": "kW",
-     "utilisation": 0.86
-    },
-    {
-     "id": "V-301",
-     "check": "heater area needed (BPE included) vs installed",
-     "value": 1254.0,
-     "limit": 1500,
-     "unit": "m2",
-     "utilisation": 0.836
-    },
-    {
-     "id": "K-201",
-     "check": "shaft power vs motor",
-     "value": 9399.37,
-     "limit": 14000,
-     "unit": "kW",
-     "utilisation": 0.671
-    },
-    {
-     "id": "V201_FEED_MIX",
-     "check": "no limit check for this unit type",
-     "type": "mixer"
-    },
-    {
-     "id": "V201_LIQ_SPLIT",
-     "check": "no limit check for this unit type",
-     "type": "splitter"
-    },
-    {
-     "id": "OVERHEAD_SPLIT",
-     "check": "no limit check for this unit type",
-     "type": "splitter"
-    },
-    {
-     "id": "D-201MIX",
-     "check": "no limit check for this unit type",
-     "type": "mixer"
-    },
-    {
-     "id": "V201_RECYCLE",
-     "check": "no limit check for this unit type",
-     "type": "recycle"
-    }
-   ]
-  },
-  "review": {
-   "status": "ok",
-   "blocking": 0,
-   "findings": [
-    {
-     "severity": "warn",
-     "check": "energy not closed",
-     "evidence": "V-201 heat balance is -5085.8 kW against heating 153402.6 kW and boil-up 158488.4 kW (3.2%; tolerance 2%).",
-     "items": [
-      "V-201"
-     ]
-    },
-    {
-     "severity": "warn",
-     "check": "energy not closed",
-     "evidence": "V-301 heat balance is 692.8 kW against heating 12861.8 kW and boil-up 12169.1 kW (5.4%; tolerance 2%).",
-     "items": [
-      "V-301"
-     ]
-    },
-    {
-     "severity": "warn",
-     "check": "source conflict",
-     "evidence": "P&ID E-201 DesignHeatTransferArea is 6500; the data sheet gives 8800 for the same quantity (- E-201 circulating heater: 8,800 m\u00b2, U 2,000 W/m\u00b2K in service (ILLUSTRATIVE; 2,500 W/m\u00b2K clean).).",
-     "items": [
-      "E-201"
-     ]
-    },
-    {
-     "severity": "warn",
-     "check": "source conflict",
-     "evidence": "P&ID P-201 DesignVolumeFlowRate is 12000; the data sheet gives 15000 for the same quantity (- P-201 forced-circulation pump: 15,000 m\u00b3/h rated (ILLUSTRATIVE).).",
-     "items": [
-      "P-201"
-     ]
-    }
-   ]
-  },
-  "audit": "d1f4af7dd28beb8ec44012b75f48100d5647485425134268def2b9f85f1f92b2"
- },
- {
-  "rev": 5,
-  "kind": "correction",
-  "title": "Scale the V-201 recycle tear guess during capacity search",
-  "changes": [],
-  "spec_before": {
-   "compounds": [
-    "Water"
-   ],
-   "package": "Steam Tables (IAPWS-IF97)",
-   "feeds": {
-    "S1004mix": {
-     "T_C": 108,
-     "P_bar": 2.4,
-     "kg_h": 362900,
-     "x": {
-      "Water": 1.0
-     }
-    },
-    "TURBINE_EXH": {
-     "T_C": 200,
-     "P_bar": 3.08,
-     "kg_h": 15900,
-     "x": {
-      "Water": 1.0
-     }
-    },
-    "PURGEFEED": {
-     "T_C": 125.6,
-     "P_bar": 2.73,
-     "kg_h": 47600,
-     "x": {
-      "Water": 1.0
-     }
-    },
-    "DESUP_WATER": {
-     "T_C": 82,
-     "P_bar": 3.08,
-     "kg_h": 9019,
-     "x": {
-      "Water": 1.0
-     }
-    }
-   },
-   "units": [
-    {
-     "id": "V201_FEED_MIX",
-     "type": "mixer",
-     "in": [
-      "S1004mix",
-      "CIRC_RETURN"
-     ],
-     "out": "V201_FEED"
-    },
-    {
-     "id": "V201_LIQ_SPLIT",
-     "type": "splitter",
-     "in": "V201_LIQ",
-     "out": [
-      "S2001slurry",
-      "CIRC_S2001"
-     ],
-     "fixed_kg_h": {
-      "S2001slurry": 115220.75
-     },
-     "fixed_scales": true
-    },
-    {
-     "id": "V-201",
-     "type": "evaporator",
-     "in": "V201_FEED",
-     "vapor": "S3001raw",
-     "liquid": "V201_LIQ",
-     "P_bar": 1.7,
-     "evap_frac": 0.013599111069626474,
-     "heating": [
-      "S3002",
-      "S4001"
-     ],
-     "U_W_m2K": 2000,
-     "area_m2": 8800,
-     "net_feed": "S1004mix",
-     "net_liquid": "S2001slurry",
-     "heat_balance_tolerance_pct": 10
-    },
-    {
-     "id": "OVERHEAD_SPLIT",
-     "type": "splitter",
-     "in": "S3001raw",
-     "out": [
-      "S3101",
-      "S3001"
-     ],
-     "fractions": [
-      0.0843762616067824,
-      0.9156237383932176
-     ]
-    },
-    {
-     "id": "K-201",
-     "type": "compressor",
-     "in": "S3001",
-     "out": "S3002raw",
-     "P_out_bar": 3.08,
-     "eff_pct": 75
-    },
-    {
-     "id": "D-201MIX",
-     "type": "mixer",
-     "in": [
-      "S3002raw",
-      "TURBINE_EXH",
-      "DESUP_WATER"
-     ],
-     "out": "S3002"
-    },
-    {
-     "id": "P-201",
-     "type": "pump",
-     "in": "CIRC_S2001",
-     "out": "S2002",
-     "dP_bar": 1.33,
-     "eff_pct": 80
-    },
-    {
-     "id": "5001/FV-301",
-     "type": "valve",
-     "in": "PURGEFEED",
-     "out": "S5001",
-     "P_out_bar": 1.01
-    },
-    {
-     "id": "V-301",
-     "type": "evaporator",
-     "in": "S5001",
-     "vapor": "S3201raw",
-     "liquid": "S5101",
-     "P_bar": 1.01,
-     "evap_frac": 0.44,
-     "heating": [
-      "S3101",
-      "S4101"
-     ],
-     "U_W_m2K": 1500,
-     "area_m2": 1500,
-     "heat_balance_tolerance_pct": 10
-    },
-    {
-     "id": "V201_RECYCLE",
-     "type": "recycle",
-     "in": "S2002",
-     "out": "CIRC_RETURN",
-     "guess": {
-      "T_C": 125.6,
-      "P_bar": 2.73,
-      "kg_h": 17850000,
-      "x": {
-       "Water": 1.0
-      }
-     },
-     "guess_scales": true
-    }
-   ],
-   "limits": {
-    "K-201": {
-     "max_kg_h": 226800,
-     "max_kW": 14000
-    },
-    "V-201": {
-     "area_m2": 8800
-    },
-    "V-301": {
-     "area_m2": 1500
-    }
-   }
-  },
-  "spec_after": {
-   "compounds": [
-    "Water"
-   ],
-   "package": "Steam Tables (IAPWS-IF97)",
-   "feeds": {
-    "S1004mix": {
-     "T_C": 108,
-     "P_bar": 2.4,
-     "kg_h": 362900,
-     "x": {
-      "Water": 1.0
-     }
-    },
-    "TURBINE_EXH": {
-     "T_C": 200,
-     "P_bar": 3.08,
-     "kg_h": 15900,
-     "x": {
-      "Water": 1.0
-     }
-    },
-    "PURGEFEED": {
-     "T_C": 125.6,
-     "P_bar": 2.73,
-     "kg_h": 47600,
-     "x": {
-      "Water": 1.0
-     }
-    },
-    "DESUP_WATER": {
-     "T_C": 82,
-     "P_bar": 3.08,
-     "kg_h": 9019,
-     "x": {
-      "Water": 1.0
-     }
-    }
-   },
-   "units": [
-    {
-     "id": "V201_FEED_MIX",
-     "type": "mixer",
-     "in": [
-      "S1004mix",
-      "CIRC_RETURN"
-     ],
-     "out": "V201_FEED"
-    },
-    {
-     "id": "V201_LIQ_SPLIT",
-     "type": "splitter",
-     "in": "V201_LIQ",
-     "out": [
-      "S2001slurry",
-      "CIRC_S2001"
-     ],
-     "fixed_kg_h": {
-      "S2001slurry": 115220.75
-     },
-     "fixed_scales": true
-    },
-    {
-     "id": "V-201",
-     "type": "evaporator",
-     "in": "V201_FEED",
-     "vapor": "S3001raw",
-     "liquid": "V201_LIQ",
-     "P_bar": 1.7,
-     "evap_frac": 0.013599111069626474,
-     "heating": [
-      "S3002",
-      "S4001"
-     ],
-     "U_W_m2K": 2000,
-     "area_m2": 8800,
-     "net_feed": "S1004mix",
-     "net_liquid": "S2001slurry",
-     "heat_balance_tolerance_pct": 10
-    },
-    {
-     "id": "OVERHEAD_SPLIT",
-     "type": "splitter",
-     "in": "S3001raw",
-     "out": [
-      "S3101",
-      "S3001"
-     ],
-     "fractions": [
-      0.0843762616067824,
-      0.9156237383932176
-     ]
-    },
-    {
-     "id": "K-201",
-     "type": "compressor",
-     "in": "S3001",
-     "out": "S3002raw",
-     "P_out_bar": 3.08,
-     "eff_pct": 75
-    },
-    {
-     "id": "D-201MIX",
-     "type": "mixer",
-     "in": [
-      "S3002raw",
-      "TURBINE_EXH",
-      "DESUP_WATER"
-     ],
-     "out": "S3002"
-    },
-    {
-     "id": "P-201",
-     "type": "pump",
-     "in": "CIRC_S2001",
-     "out": "S2002",
-     "dP_bar": 1.33,
-     "eff_pct": 80
-    },
-    {
-     "id": "5001/FV-301",
-     "type": "valve",
-     "in": "PURGEFEED",
-     "out": "S5001",
-     "P_out_bar": 1.01
-    },
-    {
-     "id": "V-301",
-     "type": "evaporator",
-     "in": "S5001",
-     "vapor": "S3201raw",
-     "liquid": "S5101",
-     "P_bar": 1.01,
-     "evap_frac": 0.44,
-     "heating": [
-      "S3101",
-      "S4101"
-     ],
-     "U_W_m2K": 1500,
-     "area_m2": 1500,
-     "heat_balance_tolerance_pct": 10
-    },
-    {
-     "id": "V201_RECYCLE",
-     "type": "recycle",
-     "in": "S2002",
-     "out": "CIRC_RETURN",
-     "guess": {
-      "T_C": 125.6,
-      "P_bar": 2.73,
-      "kg_h": 17850000,
-      "x": {
-       "Water": 1.0
-      }
-     },
-     "guess_scales": true
+     "feed_x_NaCl": 0.2875
     }
    ],
    "limits": {
@@ -3175,9 +1483,9 @@
    }
   },
   "capacity_multiple": 1.001,
-  "at": "2026-10-30T17:15:08+0300",
-  "user": "Yigitcan Kizil",
-  "reason": "The recycle is an internal stream and its initial solver guess must scale with plant throughput. Keeping the 17,850 t/h guess fixed caused false non-convergence above the base rate; no physical rating or process topology changes.",
+  "at": "2026-10-30T17:19:44+0300",
+  "user": "plantagent (model review)",
+  "reason": "Model review fixes. (1) P-201 forced circulation is internal to the V-201/E-201 evaporator block (line 2001 starts at V-201): the free CIRC_S2001 feed and P-201 are removed; the circulating heater duty, area and U stay on V-201 and the pump hydraulics are not modelled. (2) V-201 energy: NaCl crystallisation heat (66.4 kJ/kg, now credited by the evaporator model) and crystal cooling in the elutriation legs (salt_out_T_C 65 C: 98 t/h elutriating brine at 60 C plus 5 K approach, an ASSUMPTION) close the Table I balance within 0.6 % with the Table I boil-up kept (247.7 t/h); feed concentration stays saturated at the feed temperature (0.282), consistent with the patent salt balance (94.9 t/h salt plus purge salt from 362.9 t/h feed). (3) V-301: the purge feed is V-201 mother liquor (feed_x_NaCl 0.2875, saturated at 1.70 bar) and evap_frac 0.6 is a maximum, so the boil-up follows the heat of the 20.9 t/h excess vapour and the heat balance closes.",
   "result_after": {
    "scale": 1.0,
    "errors": [],
@@ -3212,81 +1520,21 @@
       "Water": 47600.0
      }
     },
-    "DESUP_WATER": {
-     "T_C": 82.0,
-     "P_bar": 3.08,
-     "kg_h": 9019.0,
-     "m3_h": 9.29,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 9019.0
-     }
-    },
-    "CIRC_RETURN": {
-     "T_C": 115.17,
-     "P_bar": 3.03,
-     "kg_h": 17850000.0,
-     "m3_h": 18848.69,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 17850000.0
-     }
-    },
-    "V201_FEED": {
-     "T_C": 115.04,
-     "P_bar": 2.4,
-     "kg_h": 18212900.0,
-     "m3_h": 19230.41,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 18212900.0
-     }
-    },
-    "V201_LIQ": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 17965220.7,
-     "m3_h": 18971.37,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 17965220.75
-     }
-    },
-    "S2001slurry": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 115220.7,
-     "m3_h": 121.67,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 115220.75
-     }
-    },
-    "CIRC_S2001": {
-     "T_C": 115.15,
-     "P_bar": 1.7,
-     "kg_h": 17850000.0,
-     "m3_h": 18849.69,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 17850000.0
-     }
-    },
     "V-201-in": {
-     "T_C": 115.05,
+     "T_C": 108.01,
      "P_bar": 1.7,
-     "kg_h": 18212900.0,
-     "m3_h": 19231.29,
+     "kg_h": 362900.0,
+     "m3_h": 381.01,
      "vapour_frac": 0.0,
      "components_kg_h": {
-      "Water": 18212900.0
+      "Water": 362900.0
      }
     },
     "V-201-part0": {
-     "T_C": 115.05,
+     "T_C": 108.01,
      "P_bar": 1.7,
      "kg_h": 247679.2,
-     "m3_h": 261.53,
+     "m3_h": 260.04,
      "vapour_frac": 0.0,
      "components_kg_h": {
       "Water": 247679.25
@@ -3303,33 +1551,43 @@
      }
     },
     "V-201-part1": {
-     "T_C": 115.05,
+     "T_C": 108.01,
      "P_bar": 1.7,
-     "kg_h": 17965220.7,
-     "m3_h": 18969.77,
+     "kg_h": 115220.8,
+     "m3_h": 120.97,
      "vapour_frac": 0.0,
      "components_kg_h": {
-      "Water": 17965220.75
+      "Water": 115220.75
+     }
+    },
+    "S2001slurry": {
+     "T_C": 115.15,
+     "P_bar": 1.7,
+     "kg_h": 115220.8,
+     "m3_h": 121.67,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 115220.75
      }
     },
     "S3002": {
-     "T_C": 149.47,
+     "T_C": 192.05,
      "P_bar": 3.08,
-     "kg_h": 251700.0,
-     "m3_h": 155102.4,
+     "kg_h": 242681.0,
+     "m3_h": 166225.76,
      "vapour_frac": 1.0,
      "components_kg_h": {
-      "Water": 251700.0
+      "Water": 242681.0
      }
     },
     "S4001": {
      "T_C": 134.43,
      "P_bar": 3.08,
-     "kg_h": 251700.0,
-     "m3_h": 270.34,
+     "kg_h": 242681.0,
+     "m3_h": 260.66,
      "vapour_frac": 0.0,
      "components_kg_h": {
-      "Water": 251700.0
+      "Water": 242681.0
      }
     },
     "S3101": {
@@ -3362,16 +1620,6 @@
       "Water": 226781.0
      }
     },
-    "S2002": {
-     "T_C": 115.17,
-     "P_bar": 3.03,
-     "kg_h": 17850000.0,
-     "m3_h": 18848.69,
-     "vapour_frac": 0.0,
-     "components_kg_h": {
-      "Water": 17850000.0
-     }
-    },
     "S5001": {
      "T_C": 99.88,
      "P_bar": 1.01,
@@ -3395,41 +1643,41 @@
     "V-301-part0": {
      "T_C": 99.88,
      "P_bar": 1.01,
-     "kg_h": 20944.0,
-     "m3_h": 1719.05,
+     "kg_h": 22307.5,
+     "m3_h": 1830.97,
      "vapour_frac": 0.0483,
      "components_kg_h": {
-      "Water": 20944.0
+      "Water": 22307.48
      }
     },
     "S3201raw": {
      "T_C": 99.88,
      "P_bar": 1.01,
-     "kg_h": 20944.0,
-     "m3_h": 35150.83,
+     "kg_h": 22307.5,
+     "m3_h": 37439.19,
      "vapour_frac": 1.0,
      "components_kg_h": {
-      "Water": 20944.0
+      "Water": 22307.48
      }
     },
     "V-301-part1": {
      "T_C": 99.88,
      "P_bar": 1.01,
-     "kg_h": 26656.0,
-     "m3_h": 2187.89,
+     "kg_h": 25292.5,
+     "m3_h": 2075.97,
      "vapour_frac": 0.0483,
      "components_kg_h": {
-      "Water": 26656.0
+      "Water": 25292.52
      }
     },
     "S5101": {
      "T_C": 99.88,
      "P_bar": 1.01,
-     "kg_h": 26656.0,
-     "m3_h": 27.81,
+     "kg_h": 25292.5,
+     "m3_h": 26.39,
      "vapour_frac": 0.0,
      "components_kg_h": {
-      "Water": 26656.0
+      "Water": 25292.52
      }
     },
     "S4101": {
@@ -3444,19 +1692,15 @@
     }
    },
    "units": {
-    "V201_FEED_MIX": {
-     "type": "mixer"
-    },
-    "V201_LIQ_SPLIT": {
-     "type": "splitter"
-    },
     "V-201": {
      "type": "evaporator",
-     "boil_kW": 158488.4,
-     "sensible_correction_kW": 3878.5,
+     "boil_kW": 156141.2,
+     "sensible_correction_kW": 661.8,
      "brine_sensible_kW": 5550.6,
      "water_sensible_kW": 3058.7,
      "vapor_superheat_kW": 1386.7,
+     "crystallisation_kW": 1793.8,
+     "crystal_cooling_kW": 1423.0,
      "vapour_kg_h": 247679.0,
      "brine_T_C": 124.86,
      "bpe_K": 9.69,
@@ -3466,11 +1710,11 @@
      "crystallising": true,
      "liquid_out_brine_kg_h": 17969.0,
      "water_evaporated_per_t_salt": 2.55,
-     "heating_kW": 153402.6,
+     "heating_kW": 153958.1,
      "condensing_C": 134.43,
      "driving_dT_K": 9.57,
-     "heat_balance_kW": -5085.8,
-     "area_needed_m2": 8285.0,
+     "heat_balance_kW": -2183.1,
+     "area_needed_m2": 8162.0,
      "area_m2": 8800,
      "U_W_m2K": 2000
     },
@@ -3486,17 +1730,6 @@
     "D-201MIX": {
      "type": "mixer"
     },
-    "P-201": {
-     "type": "pump",
-     "m3_h": 18849.69,
-     "head_m": 14.32,
-     "dP_bar": 1.33,
-     "eff_pct": 80.0,
-     "kW": 870.49,
-     "npsha_m": 0.0,
-     "discharge_barg": 2.017,
-     "kind": "centrifugal"
-    },
     "5001/FV-301": {
      "type": "valve",
      "dP_bar": 1.72,
@@ -3504,30 +1737,29 @@
     },
     "V-301": {
      "type": "evaporator",
-     "boil_kW": 12169.1,
-     "sensible_correction_kW": 481.3,
-     "brine_sensible_kW": 380.0,
+     "boil_kW": 12861.8,
+     "sensible_correction_kW": 319.3,
+     "brine_sensible_kW": 379.3,
      "water_sensible_kW": 4.2,
-     "vapor_superheat_kW": 105.5,
-     "vapour_kg_h": 20944.0,
+     "vapor_superheat_kW": 112.4,
+     "crystallisation_kW": 168.2,
+     "crystal_cooling_kW": 0.0,
+     "vapour_kg_h": 22307.0,
      "brine_T_C": 108.68,
      "bpe_K": 8.72,
      "body_x_NaCl": 0.2824,
-     "salt_in_kg_h": 13322.0,
-     "salt_kg_h": 8075.0,
+     "salt_in_kg_h": 13685.0,
+     "salt_kg_h": 9117.0,
      "crystallising": true,
-     "liquid_out_brine_kg_h": 18581.0,
-     "water_evaporated_per_t_salt": 2.59,
+     "liquid_out_brine_kg_h": 16175.0,
+     "water_evaporated_per_t_salt": 2.45,
      "heating_kW": 12861.8,
      "condensing_C": 115.15,
      "driving_dT_K": 6.47,
-     "heat_balance_kW": 692.8,
-     "area_needed_m2": 1254.0,
+     "heat_balance_kW": 0.0,
+     "area_needed_m2": 1326.0,
      "area_m2": 1500,
      "U_W_m2K": 1500
-    },
-    "V201_RECYCLE": {
-     "type": "recycle"
     }
    },
    "checks": [
@@ -3541,35 +1773,35 @@
     },
     {
      "id": "V-201",
-     "check": "heater area needed (BPE included) vs installed",
-     "value": 8285.0,
-     "limit": 8800,
-     "unit": "m2",
-     "utilisation": 0.941
+     "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+     "value": 156141.2,
+     "limit": 157037.26200000002,
+     "unit": "kW",
+     "utilisation": 0.994
+    },
+    {
+     "id": "V-301",
+     "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+     "value": 12861.8,
+     "limit": 13119.036,
+     "unit": "kW",
+     "utilisation": 0.98
     },
     {
      "id": "V-201",
-     "check": "boil-up duty vs heat from the heating steam (10 % closure tolerance)",
-     "value": 158488.4,
-     "limit": 168742.86000000002,
-     "unit": "kW",
-     "utilisation": 0.939
-    },
-    {
-     "id": "V-301",
-     "check": "boil-up duty vs heat from the heating steam (10 % closure tolerance)",
-     "value": 12169.1,
-     "limit": 14147.98,
-     "unit": "kW",
-     "utilisation": 0.86
+     "check": "heater area needed (BPE included) vs installed",
+     "value": 8162.0,
+     "limit": 8800,
+     "unit": "m2",
+     "utilisation": 0.927
     },
     {
      "id": "V-301",
      "check": "heater area needed (BPE included) vs installed",
-     "value": 1254.0,
+     "value": 1326.0,
      "limit": 1500,
      "unit": "m2",
-     "utilisation": 0.836
+     "utilisation": 0.884
     },
     {
      "id": "K-201",
@@ -3580,16 +1812,6 @@
      "utilisation": 0.671
     },
     {
-     "id": "V201_FEED_MIX",
-     "check": "no limit check for this unit type",
-     "type": "mixer"
-    },
-    {
-     "id": "V201_LIQ_SPLIT",
-     "check": "no limit check for this unit type",
-     "type": "splitter"
-    },
-    {
      "id": "OVERHEAD_SPLIT",
      "check": "no limit check for this unit type",
      "type": "splitter"
@@ -3598,52 +1820,14 @@
      "id": "D-201MIX",
      "check": "no limit check for this unit type",
      "type": "mixer"
-    },
-    {
-     "id": "V201_RECYCLE",
-     "check": "no limit check for this unit type",
-     "type": "recycle"
     }
    ]
   },
   "review": {
    "status": "ok",
    "blocking": 0,
-   "findings": [
-    {
-     "severity": "warn",
-     "check": "energy not closed",
-     "evidence": "V-201 heat balance is -5085.8 kW against heating 153402.6 kW and boil-up 158488.4 kW (3.2%; tolerance 2%).",
-     "items": [
-      "V-201"
-     ]
-    },
-    {
-     "severity": "warn",
-     "check": "energy not closed",
-     "evidence": "V-301 heat balance is 692.8 kW against heating 12861.8 kW and boil-up 12169.1 kW (5.4%; tolerance 2%).",
-     "items": [
-      "V-301"
-     ]
-    },
-    {
-     "severity": "warn",
-     "check": "source conflict",
-     "evidence": "P&ID E-201 DesignHeatTransferArea is 6500; the data sheet gives 8800 for the same quantity (- E-201 circulating heater: 8,800 m\u00b2, U 2,000 W/m\u00b2K in service (ILLUSTRATIVE; 2,500 W/m\u00b2K clean).).",
-     "items": [
-      "E-201"
-     ]
-    },
-    {
-     "severity": "warn",
-     "check": "source conflict",
-     "evidence": "P&ID P-201 DesignVolumeFlowRate is 12000; the data sheet gives 15000 for the same quantity (- P-201 forced-circulation pump: 15,000 m\u00b3/h rated (ILLUSTRATIVE).).",
-     "items": [
-      "P-201"
-     ]
-    }
-   ]
+   "findings": []
   },
-  "audit": "4dbc239b528a6920ade9920265c0ca5df5b5ab1545f9f1e0dbe2349bd4210e56"
+  "audit": "5c64af92023b96efb08ada8cb167a38ef7fc223cd1ae6d9252f548ef066edc60"
  }
 ]
