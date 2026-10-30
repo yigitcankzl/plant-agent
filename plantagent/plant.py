@@ -1542,6 +1542,16 @@ class PlantWorkspace(Study):
               {"kind": {"type": "string", "enum": ["datasheet", "calc_sheet", "summary", "work_order"]}, "subject": S,
                "scale": N, "answer": {"type": "integer"}}, ["kind"]),
         ]
+        # ---- drawing tool (plantagent/revb.py): a Rev B sheet for changes and notes the engineer asks for
+        if (getattr(self, "cfg", None) or {}).get("svg"):
+            shared = shared + [f("draw_revision", "Draw a draft Rev B of the project P&ID: the changes (same format as proposal changes: "
+                                                  "path changes, add_unit, reroute) drawn in with revision clouds, value callouts and a revision "
+                                                  "block, plus free notes [{tag or line, text}] (e.g. 'bypass to be added here'). Saved as a "
+                                                  "drawing artifact; it does not verify the changes in the simulator.",
+                                 {"changes": {"type": "array", "items": {"type": "object"}},
+                                  "annotations": {"type": "array", "items": {"type": "object", "description": "{tag or line, text}"}},
+                                  "title": S})]
+        # ---- end drawing tool
         if _is_watertap(getattr(self, "cfg", None)):
             return shared + [
                 f("run_ro", "Solve a WaterTAP reverse-osmosis plant and log it under `label`. Returns stream flow, pressure and TDS, "
@@ -1612,6 +1622,12 @@ class PlantWorkspace(Study):
             try:
                 return documents.make(self, a["kind"], a.get("subject"), a.get("scale"), a.get("answer"), by=self.model)
             except (ValueError, KeyError) as e:
+                return {"error": str(e)}
+        if name == "draw_revision":  # drawing tool block (plantagent/revb.py)
+            from .revb import draw_revision_tool
+            try:
+                return draw_revision_tool(self, a)
+            except ValueError as e:
                 return {"error": str(e)}
         if name == "read_pid":
             return self.pid or {"note": "this project has no drawing: take the equipment and connections from the data sheet"}

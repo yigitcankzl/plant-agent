@@ -358,7 +358,7 @@ const api = async (p, body) => { const r = await fetch(`/api/plant/${CASE}/${p}`
   if (!r.ok) throw new Error(data?.error || `Case data unavailable (${r.status})`);
   if (!data) throw new Error('Invalid response from the case server');
   return data; };
-let P = null, ST = null, busy = false, base = null;
+let P = null, ST = null, busy = false, base = null, PENDING_CARD = null;
 const NAMES = {pump: 'Pump', hx: 'Heat exchanger', tank: 'Tank', valve: 'Valve', heater: 'Heater / heat load', cooler: 'Cooler', compressor: 'Compressor', mixer: 'Mixer', splitter: 'Splitter', recycle: 'Loop closure'};
 const sev = u => u > 1.0 ? 'fail' : u > 0.9 ? 'warn' : 'ok';
 const simulator = () => (P?.built?.engine || P?.engine) === 'watertap' ? 'WaterTAP' : 'DWSIM';
@@ -545,8 +545,7 @@ async function load() {
     const r = await fetch(`/api/plant/${CASE}/svg`);
     if (!r.ok) throw new Error(`the P&ID drawing did not load (HTTP ${r.status})`);
     AS_BUILT = await r.text();
-    $('sheet').innerHTML = AS_BUILT;
-    if (VIEW === 'proposed') appendProposedOverlay();
+    await showSheet();
   } else {  // a PDF schematic read by Muse vision: the sheet as an image, one positioned box per tag
     $('sheet').innerHTML = `<img src="/api/plant/${CASE}/sheet.png" alt="schematic">` + Object.entries(P.pid.positions || {}).map(([t, p]) => {
       const [x0, y0, x1, y1] = p.box, pad = .012;
@@ -677,6 +676,7 @@ function worstBy(checks) {
 
 function render(st) {
   ST = st;
+  if (PENDING_CARD) { const t = PENDING_CARD; PENDING_CARD = null; setTimeout(() => equipmentCard(t), 0); }  // a click that came before the first solve
   const w = worstBy(st.checks), units = Object.fromEntries((P.built.spec.units || []).map(u => [u.id, u]));
   const s = st.scale;
   $('atScale').textContent = Math.round(s * 100) + '%';
@@ -823,7 +823,30 @@ function presentCalc(c) {
   }
   return c;
 }
-let AS_BUILT = null;
+let AS_BUILT = null, REV_B = {key: null, svg: null};
+// Proposed view: the Rev B sheet re-issued by the server (changes drawn in, clouds, revision block). The client-side
+// overlay is only a fallback when the server cannot generate the sheet, and says so on the drawing.
+async function proposedSheet() {
+  const answer = P?.has_changes ? '' : `&answer=${(P?.answers || []).length - 1}`;
+  const key = `${answer}|${(P?.revisions || []).length}`;
+  if (REV_B.key === key) return REV_B.svg;
+  let svg = null;
+  try { const r = await fetch(`/api/plant/${CASE}/svg?view=proposed${answer}`); if (r.ok) svg = await r.text(); } catch (e) { svg = null; }
+  REV_B = {key, svg};
+  return svg;
+}
+async function showSheet() {
+  const wantB = VIEW === 'proposed' && !modelBlocked() && (P?.has_changes || latestProposedChanges().length > 0);
+  const revB = wantB ? await proposedSheet() : null;
+  $('sheet').innerHTML = revB || AS_BUILT;
+  $('sheet').dataset.sheet = revB ? 'rev-b' : (wantB ? 'overlay-fallback' : 'rev-a');
+  initViewer();
+  if (wantB && !revB) {
+    appendProposedOverlay();
+    const svg = $('sheet').querySelector('svg'), vb = svg?.viewBox?.baseVal;
+    if (vb) svg.insertAdjacentHTML('beforeend', `<text x="${vb.x + 8}" y="${vb.y + 6}" font-size="4" font-weight="700" fill="#b45309" font-family="sans-serif" pointer-events="none">FALLBACK: draft overlay only (the Rev B sheet could not be generated)</text>`);
+  }
+}
 function streamPorts(u) {
   const ins = [], outs = [];
   const add = (bucket, v) => { if (typeof v === 'string' && v) bucket.push(v); else if (Array.isArray(v) && v.every(x => typeof x === 'string')) bucket.push(...v.filter(Boolean)); };
@@ -861,7 +884,7 @@ function proposedTopology(spec, changes) {
 }
 function verifiedDesigns() {
   const out = [];
-  for (const a of P?.answers || []) for (const p of a.proposals || []) {
+  for (const a of [...(P?.answers || [])].reverse()) for (const p of a.proposals || []) {  // latest answer first, as the Rev B sheet
     if (p.verified && (p.changes || []).some(c => c.add_unit && !ROUTING.has(c.add_unit.type))) out.push(p);
   }
   if (out.length) return out;
@@ -1053,6 +1076,7 @@ function placeDraftNotes() {
   if (VIEW !== 'proposed') return;
   const sheet = $('sheet'), box = sheet.getBoundingClientRect();
   sheet.querySelectorAll('.draft-note').forEach(n => n.remove());
+  if (sheet.dataset.sheet === 'rev-b') return;  // the Rev B sheet carries the ratings in its own tag labels
   for (const g of sheet.querySelectorAll('g[data-new="true"]')) {
     if (ROUTING.has(g.dataset.name)) continue;
     const design = verifiedDesigns()[0];
@@ -1106,6 +1130,7 @@ function select(tag, fromCanvas = false) {
   selectOnDrawing(tag);
   if (!fromCanvas) focusDrawing(tag);
   if (P.built && ST) equipmentCard(tag);
+  else if (P.built) PENDING_CARD = tag;  // the state is still solving (e.g. the Rev B what-if): show the card when it arrives
 }
 
 function equipmentCard(tag) {  // design data, operating values, every limit with its margin, and a what-if
@@ -1222,11 +1247,7 @@ async function stateForView(scale) {
 }
 async function setView(v) {
   VIEW = v; $('vExisting').classList.toggle('on', v === 'existing'); $('vProposed').classList.toggle('on', v === 'proposed');
-  if (AS_BUILT && P?.drawing === 'svg') {
-    $('sheet').innerHTML = AS_BUILT;
-    initViewer();
-    if (v === 'proposed') appendProposedOverlay();
-  }
+  if (AS_BUILT && P?.drawing === 'svg') await showSheet();
   render(await stateForView($('scale').value / 100));
 }
 let tmr = null;
@@ -1405,7 +1426,7 @@ async function reload() {
   P = await api('project'); P.answers = keep;
   syncViewToggle();
   model(); answers(); revs(); renderTroubleshootMode();
-  if (AS_BUILT && P.drawing === 'svg') { $('sheet').innerHTML = AS_BUILT; initViewer(); if (VIEW === 'proposed') appendProposedOverlay(); }
+  if (AS_BUILT && P.drawing === 'svg') await showSheet();
   render(await stateForView($('scale').value / 100));
   showMode(ACTIVE_MODE);
 }
@@ -1414,7 +1435,7 @@ async function decisionFile() {
   $('decOut').textContent = 'Re-solving every limit in DWSIM and writing the pack…';
   const r = await api('decision', {answer: (P.answers || []).length - 1}).catch(e => ({error: e.message}));
   if (r.error) { $('decOut').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return; }
-  const label = {'decision.pdf': 'Decision file (PDF)', 'memo.pdf': 'Management memo (PDF)', 'redline.svg': 'Redlined P&ID', 'decision.zip': 'Everything (zip)',
+  const label = {'decision.pdf': 'MOC file (PDF)', 'memo.pdf': 'Management memo (PDF)', 'rev_b.svg': 'P&ID Rev B (proposed)', 'rev_a.svg': 'P&ID Rev A (existing)', 'rev_b.png': 'Rev B (PNG)', 'redline.svg': 'Redline (same as Rev B)', 'decision.zip': 'Everything (zip)',
                  'decision.md': 'Decision file (md)', 'memo.md': 'Memo (md)', 'decision.json': 'Data (JSON)'};
   $('decOut').innerHTML = `<div style="font-size:12px;margin:4px 0">${r.over_after ? `⚠ ${r.over_after} limits still over at the target` : '✓ All limits within 100 % at the target'} · ${r.pssr_items} PSSR items · draft, not approved</div>`
     + r.files.map(f => `<a class="btn" style="margin:2px;display:inline-block;text-decoration:none" target="_blank" href="${r.base}${f}">${esc(label[f] || f)}</a>`).join('');
