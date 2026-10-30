@@ -9,6 +9,8 @@ models read the documents and the drawing, then run real simulators:
 - a gravity hydraulic-profile solver
 - **TSNet** transients
 - extended-period SCADA calibration
+- **DWSIM** for process plants
+- **WaterTAP** for seawater reverse osmosis screening
 
 The answer comes back as a **proposed change verified in the simulator**. The engineer accepts or rejects it, like a
 code diff, and accepted changes are drawn on the real sheet and exported as **DWG**. Every number cites a page or a
@@ -87,7 +89,9 @@ agent loop recovers these calls (`study.text_tool_calls`). Before this fix the o
     API 521 blocked-in cooling-water case.
   - It also finds that H1008's product side reaches PSV 47125 only through a ball valve.
 - **Audit trail** (`plantagent/audit.py`).
-  - It is append-only and hash-chained, so editing or deleting any entry breaks the chain, and `verify()` reports where.
+  - It is append-only and hash-chained, so editing an entry breaks the chain and `verify()` reports where. The chain is
+    an internal consistency check, not an external signature: deleting the tail cannot be detected unless the last hash
+    and entry count are published outside the writable run directory.
   - Each entry records user, time with time zone, action and reason.
   - Accepting a change requires a reason. Undo never deletes history: it adds a revert revision.
   - Revisions are kept on disk.
@@ -138,8 +142,13 @@ DWSIM (`plantagent/process.py`) runs headless through pythonnet as one long-live
   critical liquid fill when isolated, the pressure stays at the vapour pressure; above that fill, hydraulic expansion
   governs. For Williams Geismar the critical fill is 70 %; the CSB found the reboiler was at least 65.5 % full. The same tools are available in blind studies
   (`"simulators": ["dwsim"]`).
-- **Limits of the layer:** steady state only. There is no control-valve Cv sizing or line hydraulics yet, and U is
-  scaled from one test point, not computed from exchanger geometry.
+- **Everyday liquid hydraulics:** rated control valves report required US Cv and travel for linear or equal-percentage
+  characteristics. Pipe segments report Darcy-Weisbach/Colebrook pressure drop, velocity and Reynolds number, and take
+  fittings and elevation into account.
+- **Limits of the layer:** steady state only. Valve sizing is an incompressible-liquid screen without choking,
+  cavitation, flashing, installed-characteristic or actuator-force calculations. Pipe calculations omit two-phase and
+  compressible flow, heat transfer, water hammer, erosion and fouling. Exchanger U is scaled from one test point, not
+  computed from exchanger geometry.
 
 The first model of this unit put H1008 in series instead of in the recirculation loop. It is kept in
 `runs/ws/chem_c01/model_v1_series.json`. An independent practitioner review caught it, which is why the coverage check now
@@ -186,10 +195,14 @@ What the workspace shows:
 
 The separate [NETL design-reproduction check](evidence/designcheck/README.md) compares agent-built DWSIM outlet states with withheld published stream tables (deterministic thresholds, not an LLM judge):
 
-| NETL 2022 Case 2 section | Muse contributor within ±10% | Muse Spark Open / Baseten within ±10% |
-|---|---:|---:|
-| Syngas cooler (streams 8→9) | 8/10; T and duty missed | 8/10; T and duty missed |
-| CO2 compression/drying (18+19→20) | 5/7; water and aftercooler missed | 4/7; water, aftercooler and invalid pump power missed |
+| NETL 2022 Case 2 section | Supplied-inlet conservation | Inferred design outputs: Muse contributor | Inferred design outputs: Muse Spark Open |
+|---|---:|---:|---:|
+| Syngas cooler (streams 8→9) | 8/8 within ±10% | 0/2: T and duty missed | 0/2: T and duty missed |
+| CO2 compression/drying (18+19→20) | 2/2 within ±10% | 3/5: water and aftercooler missed | 2/5: water, aftercooler and pressure-raising power missed |
+
+The conservation column mainly proves that the submitted inlet flow and composition survive the model. The inferred
+design-output columns are the harder reproduction result; the full raw metric table remains in
+[`evidence/designcheck/README.md`](evidence/designcheck/README.md).
 
 On each real project, the pages holding the engineers' conclusions are **withheld** from the agent. Recommendation
 clauses are redacted, and a leak check runs against the answer key. The agent then does the study, and
@@ -254,8 +267,9 @@ Under a strict JSON schema it sometimes degenerates into whitespace. The client 
 ## Run it
 
 ```bash
-python -m venv .venv && .venv/bin/pip install openai wntr pymupdf ezdxf openpyxl matplotlib scipy pillow fluids pythonnet pandas
-echo "META_API_KEY=..." > .env                 # Meta Model API key
+python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
+cp .env.example .env                            # then add keys; keep mode 0600
+chmod 600 .env
 .venv/bin/python -m plantagent.web --port 8765  # open http://127.0.0.1:8765/workspace.html?case=roseburg
 .venv/bin/python -m plantagent.study --case roseburg   # a full blind study (about 20 min, about $0.20 on Spark contributor)
 .venv/bin/python -m plantagent.grade                   # grade the latest runs against the engineers
