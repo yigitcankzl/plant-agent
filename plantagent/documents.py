@@ -180,6 +180,30 @@ def _connections(w, tag):
     return out
 
 
+def _electrical_rows(w, p, tag, scale):
+    """Motor feeder rows for a new or re-rated motor (plantagent.electrical load flow), with their sources."""
+    from . import electrical
+    cfg = electrical.config(w.name)
+    if not (p and cfg and electrical.available() and tag in electrical.motor_changes(cfg, p.get("changes") or [])):
+        return []
+    try:
+        e = electrical.for_workspace(w, p["changes"], scale, save=False)
+    except Exception as ex:  # noqa: BLE001 - the data sheet stands without it
+        return ["", "## Electrical (motor feeder)", "", f"Electrical check not available: {type(ex).__name__}: {ex}"]
+    m = next(x for x in e["motors"] if x["unit"] == tag)
+    src, f = f"pandapower load flow on cases/{w.name}/electrical.json at {_n(scale * 100)} %", f"cases/{w.name}/electrical.json"
+    rows = [("Motor rating", _n(m["kw"]), "kW", "proposal rating (rating_source above)"),
+            ("Shaft power at this throughput", _n(m["shaft_kW"]), "kW", m["shaft_source"]),
+            ("Supply bus", m["bus"], "", f + " (bus chosen for spare transformer capacity unless the change names one)"),
+            ("Starting method", m["start"], "", f + " new-motor default, ILLUSTRATIVE")]
+    rows += [(f"{t['id']} loading", _n(t["loading_percent"]), "%", src) for t in e["transformers"]]
+    if e.get("start"):
+        rows.append((f"Start dip at the motor terminal ({e['start']['method']})", _n(e["start"]["terminal_dip_percent"]), "%",
+                     src + "; locked-rotor impedance, generators not credited"))
+    rows += [(f"OVER: {c['id']} {c['check']}", _n(c["value"]), "%", c["basis"]) for c in e["checks"] if c["utilisation"] > 1]
+    return ["", "## Electrical (motor feeder)", ""] + _table(("Field", "Value", "Unit", "Source"), rows)
+
+
 def datasheet(w, tag, scale=None, answer=None):
     i, ans = _answer(w, answer)
     p = _proposal(ans, tag)
@@ -224,6 +248,7 @@ def datasheet(w, tag, scale=None, answer=None):
         md += _table(("Check", "Value", "Limit", "Utilisation", "Source"),
                      [(c["check"], f"{_n(c['value'])} {c.get('unit') or ''}", f"{_n(c['limit'])} {c.get('unit') or ''}",
                        f"{_n(c['utilisation'] * 100)} %", src) for c in checks])
+    md += _electrical_rows(w, p, tag, scale)
     lines = _sheet_lines(w, tag, uid)
     if lines:
         md += ["", "## Operating data sheet rows on this tag", ""]

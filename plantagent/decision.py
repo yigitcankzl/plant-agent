@@ -118,6 +118,24 @@ def pssr(spec, changes, names, at):
     return list(dict.fromkeys(items))
 
 
+def electrical_section(w, changes, built, target):
+    """'Electrical' lines for the risk section when the changes add or re-rate a motor (plantagent.electrical)."""
+    from . import electrical
+    cfg = electrical.config(w.name)
+    if not (cfg and electrical.available() and electrical.motor_changes(cfg, changes)):
+        return []
+    try:
+        e = electrical.for_workspace(w, changes, target, spec=built, title="Electrical check for the decision pack")
+    except Exception as ex:  # noqa: BLE001 - the pack stands without it, and says so
+        return ["", "### 6.1b Electrical (one-line load flow)", "", f"- Not available: {type(ex).__name__}: {ex}"]
+    md = ["", "### 6.1b Electrical (one-line load flow, pandapower)", "", f"- {e['summary']}.",
+          f"- One-line diagram: `{e.get('svg')}` (artifact). Network: cases/{w.name}/electrical.json; {cfg.get('note', '')}", "",
+          "| Item | Check | Value | Limit | Basis |", "|---|---|---|---|---|"]
+    md += [f"| {c['id']} | {c['check']} | {c['value']} % | {c['limit']} % | {c['basis']} |"
+           for c in e["checks"] if c["utilisation"] > 0.8 or "start" in c["check"] or "transformer" in c["check"]]
+    return md
+
+
 def _stored_calculations(revs, ans):
     found = [r["calculation"] for r in revs or [] if isinstance(r.get("calculation"), dict)]
     if found:
@@ -494,6 +512,7 @@ def make(w, answer=None):
             for x in relief_hit] or ["- No changed existing equipment side lacks relief on this drawing." if relief else "- No smart P&ID: relief scan not available; review relief manually."])
     if new_equipment:
         md += ["- New equipment is not on the as-built P&ID: its relief, isolation and control design need engineering review before approval."]
+    md += electrical_section(w, changes, built, target)
     md += ["", "### 6.2 Pre-startup safety review (PSSR), generated from the changes", ""]
     md += [f"- [ ] {i}" for i in checklist]
     md += ["", "### 6.3 Second opinion", ""]

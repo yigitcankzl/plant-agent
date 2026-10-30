@@ -1410,6 +1410,14 @@ function ans(a, idx) {
     <div class="meta">${a.seconds}s · AI cost $${(a.cost_usd || 0).toFixed(4)} · ${(a.checks || []).filter(c => c.ok).length}/${(a.checks || []).length} cited runs re-solved to the same result${(a.checks || []).filter(c => !c.ok).map(c => ` · <span style="color:var(--fail)">✗ ${esc(c.item)}: ${esc(c.why || 'not reproduced')}</span>`).join('')}</div></div>`;
 }
 
+function electricalLine(p) {  // one-line load flow of a proposal's new/bigger motor (plantagent/electrical.py)
+  const e = p.electrical;
+  if (!e) return '';
+  if (e.error) return `<div class="diff electrical-line" style="color:var(--muted);font-family:var(--sans)">Electrical check failed: ${esc(e.error)}</div>`;
+  const bad = (e.over || []).length;
+  return `<div class="diff electrical-line" style="font-family:var(--sans);color:${bad ? 'var(--fail)' : 'var(--ok, #15803d)'}">Electrical check: ${esc(e.summary)}${e.svg ? ` · <a href="${esc(e.svg)}" target="_blank">one-line diagram</a>` : ''}</div>`;
+}
+
 function prop(p, i, j, src) {
   const spec = P.built.spec, units = Object.fromEntries(spec.units.map(u => [u.id, u]));
   const cur = path => { const [k, id, f] = path.split('.'); const o = k === 'units' ? units[id] : (spec[k] || {})[id]; return o ? o[f] : undefined; };
@@ -1419,7 +1427,7 @@ function prop(p, i, j, src) {
     : `<span class="vb n">✗ ${p.unverified_reason ? 'Not verifiable: ' + esc(p.unverified_reason) : p.error ? 'did not solve' : esc((p.still_over?.[0] || p.breaks?.[0] || {}).id || '') + ' still over its limit'}</span>`;
   return `<div class="prop ${p.accepted ? 'done' : ''}"><div class="ph"><b>${esc(p.title)}</b><span class="vb" style="color:var(--muted)">${esc(p.cost_class || '')}</span></div>
     <div class="diff">${diff}</div>${added ? `<div class="diff">${added}</div>` : ''}${p.why ? `<div class="diff" style="color:var(--muted);font-family:var(--sans)">${esc(p.why)}</div>` : ''}
-    ${calcSheet(p)}
+    ${calcSheet(p)}${electricalLine(p)}
     <div class="pf">${v}${p.verified && !modelBlocked() ? `<div class="prop-actions"><button class="btn go" onclick="accept(${i},${j},'${src || ''}')" title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature.">Apply as draft model revision</button><button class="btn" onclick="this.closest('.prop').remove()">Dismiss</button></div>` : ''}${p.accepted ? '<span class="vb y">applied as draft revision</span>' : ''}</div></div>`;
 }
 
