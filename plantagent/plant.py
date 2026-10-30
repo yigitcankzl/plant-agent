@@ -10,7 +10,7 @@ import re
 import time
 from pathlib import Path
 
-from . import audit, brine, llm, pid, process, ro
+from . import audit, brine, llm, pid, process, ro, ro_changes
 from .docs import DATA
 from .study import ARR, Study, compact, submit, text_tool_calls, unstring
 
@@ -154,6 +154,8 @@ def added_equipment(changes):
 
 def change_errors(spec, changes, require_evidence=True):
     """Validate the structural proposal boundary before it reaches the simulator."""
+    if ro_changes.is_ro(spec):
+        return ro_changes.change_errors(spec, changes, require_evidence)
     existing = {u.get("id") for u in spec.get("units") or []}
     additions = [c.get("add_unit") for c in changes or [] if isinstance(c, dict) and c.get("add_unit") is not None]
     new_ids = [u.get("id") for u in additions if isinstance(u, dict) and isinstance(u.get("id"), str)]
@@ -765,6 +767,8 @@ def read_corrections(orig, conf):
 def patch(spec, changes):
     """Apply operating changes, added units and connection reroutes to a copy of the process spec."""
     # Proposal evidence is checked by verify(); internal sensitivity and rendering patches use the same mechanics.
+    if ro_changes.is_ro(spec):  # WaterTAP RO spec: paths into its blocks, added trains
+        return ro_changes.patch(spec, changes)
     errors = change_errors(spec, changes, require_evidence=False)
     if errors:
         raise ValueError("; ".join(errors))
@@ -1515,7 +1519,7 @@ class PlantWorkspace(Study):
             f("read_document_page", "Text of one page of a project document.", {"doc": S, "page": {"type": "integer"}}, ["doc", "page"]),
             f("read_data_sheet", "The operating data sheet: current operation, process requirements, equipment performance, utilities.", {}),
             f("get_spec", "Full spec of a logged run (the calibrated model is preloaded), to copy and modify. For a proposal, "
-                          "return explicit changes rather than an opaque replacement spec. " + CHANGE_HELP, {"label": S}, ["label"]),
+                          "return explicit changes rather than an opaque replacement spec. " + (ro_changes.CHANGE_HELP if _is_watertap(getattr(self, "cfg", None)) else CHANGE_HELP), {"label": S}, ["label"]),
             f("sweep", "Parameter study: re-solve a logged run with ONE input varied over the given values (e.g. feed temperature, "
                        "salinity, a utility flow, fouled U) at a throughput multiple; returns the utilisation of the tightest "
                        "checks per value and saves a chart for the engineer. Use it for 'what if X changes' and sensitivity requests.",
@@ -1989,7 +1993,8 @@ class PlantWorkspace(Study):
         simulator = _simulator_name(self.cfg)
         norm_errors = normalize_proposal(p, self.spec, getattr(self, "runs", None) or {})
         changes = p.get("changes") or []
-        new = added_equipment(changes)
+        is_ro = ro_changes.is_ro(self.spec)
+        new = ro_changes.added_trains(changes, self.spec) if is_ro else added_equipment(changes)
         if norm_errors:
             return _reject_proposal(p, target, "; ".join(norm_errors), new, simulator, norm_errors)
         loosened = limit_changes(p)
@@ -2007,18 +2012,24 @@ class PlantWorkspace(Study):
         over = [c for c in at["checks"] if c.get("utilisation", 0) > 1.0]
         tag = p.get("tag")
         affected = {tag} if tag else set()
-        for ch in changes:
+        for ch in ([] if is_ro else changes):
             if ch.get("path"):
                 affected.add(ch["path"].split(".", 2)[1])
             elif ch.get("add_unit"):
                 affected.add(ch["add_unit"]["id"])
             elif ch.get("reroute"):
                 affected.add(ch["reroute"]["unit"])
+        if is_ro:  # RO paths are block.field / stages.<id>.field: map them to the ids their checks carry
+            affected = ({tag} if tag else set()) | ro_changes.affected(self.spec, changes)
+            affected |= {i for i in ro_changes.ids(self.spec) if tag and i.startswith(tag)}  # tag RO-201 covers RO-201-stage2
         own = [c for c in over if c["id"] in affected]
         broke = [c for c in over if before.get((c["id"], c["check"]), 0) <= 1.0]
         calculation = _calculation(p, target, before_cap, cap, before, at, spec, new, simulator)
         after_checks = {(c["id"], c["check"]): c["utilisation"] for c in at.get("checks") or [] if "utilisation" in c}
-        disappeared = [{"id": uid, "check": check} for uid, check in before if (uid, check) not in after_checks]
+        removed = ro_changes.removed(self.spec, changes) if is_ro else set()  # e.g. a second pass switched off
+        # a failed solve has no checks at all: the solver error is the reason, not vanished checks
+        disappeared = [] if at.get("errors") else [{"id": uid, "check": check} for uid, check in before
+                                                    if (uid, check) not in after_checks and uid not in removed]
         unchecked = [c for c in at.get("checks") or [] if c.get("id") in affected and
                      c.get("check") == "no limit check for this unit type" and c.get("type") not in ROUTING_UNITS]
         invalid_reason = None
@@ -2083,7 +2094,7 @@ class PlantWorkspace(Study):
                         "the files produced. Answer quickly and precisely and finish with "
                         "`answer`: a plain headline, calc cards, highlights on P&ID tags, and for a fix, proposals as model "
                         "changes (paths into the spec) that respect every utility and frame limit in the data sheet. Give one "
-                        "proposal per limiting equipment item, each with its tag. " + CHANGE_HELP + " Prefer the cheapest fix that works: operating "
+                        "proposal per limiting equipment item, each with its tag. " + (ro_changes.CHANGE_HELP if _is_watertap(self.cfg) else CHANGE_HELP) + " Prefer the cheapest fix that works: operating "
                         "changes within documented limits (levels, setpoints, utility flows), then cleaning a fouled exchanger "
                         "back to its documented clean performance, and only then new equipment. An operating strategy that changes "
                         "with weather or season (floating head pressure, economiser hours, chilled-water reset) is not a single model "

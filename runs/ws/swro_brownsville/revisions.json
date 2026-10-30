@@ -1,1 +1,423 @@
-[]
+[
+ {
+  "rev": 1,
+  "kind": "correction",
+  "title": "Express the plant as six installed trains with five in service",
+  "changes": [],
+  "spec_before": {
+   "feed": {
+    "flow_m3_h": 1314.379091666667,
+    "TDS_g_L": 49,
+    "T_C": 15.5556,
+    "P_bar": 2
+   },
+   "pretreatment": [
+    {
+     "id": "F-101",
+     "type": "media_filter",
+     "dP_bar": 0.5,
+     "recovery": 1,
+     "notes": "ballasted flocculation; pressure drop illustrative"
+    },
+    {
+     "id": "E-101",
+     "type": "note",
+     "notes": "steam feed heating is documented but not credited at the cold-corner failing baseline"
+    },
+    {
+     "id": "CF-101",
+     "type": "cartridge_filter",
+     "dP_bar": 0.5,
+     "recovery": 1,
+     "notes": "5 micrometre; pressure drop illustrative"
+    }
+   ],
+   "hp_pump": {
+    "id": "P-201",
+    "efficiency": 0.8,
+    "P_out_bar": 75.84,
+    "max_bar": 75.84,
+    "max_kW": 2162.5
+   },
+   "stages": [
+    {
+     "id": "RO-201-stage1",
+     "area_m2": 35000,
+     "A_m_per_Pa_s": 2e-12,
+     "B_m_per_s": 2e-08,
+     "max_feed_pressure_bar": 75.84,
+     "recovery": 0.4
+    },
+    {
+     "id": "RO-201-stage2",
+     "area_m2": 25000,
+     "A_m_per_Pa_s": 2e-12,
+     "B_m_per_s": 2e-08,
+     "max_feed_pressure_bar": 75.84,
+     "recovery": 0.333
+    }
+   ],
+   "energy_recovery": {
+    "id": "T-201",
+    "type": "turbine",
+    "efficiency": 0.85
+   },
+   "target_TDS_g_L": 0.5,
+   "min_overall_recovery": 0.6,
+   "failing_baseline": true,
+   "posttreatment": {
+    "id": "posttreatment",
+    "notes": "partial second pass, stabilization and disinfection; not simulated"
+   }
+  },
+  "spec_after": {
+   "feed": {
+    "flow_m3_h": 6571.895458333334,
+    "TDS_g_L": 49,
+    "T_C": 15.5556,
+    "P_bar": 2
+   },
+   "pretreatment": [
+    {
+     "id": "F-101",
+     "type": "media_filter",
+     "dP_bar": 0.5,
+     "recovery": 1,
+     "notes": "ballasted flocculation; pressure drop illustrative"
+    },
+    {
+     "id": "E-101",
+     "type": "note",
+     "notes": "steam feed heating is documented but not credited at the cold-corner failing baseline"
+    },
+    {
+     "id": "CF-101",
+     "type": "cartridge_filter",
+     "dP_bar": 0.5,
+     "recovery": 1,
+     "notes": "5 micrometre; pressure drop illustrative"
+    }
+   ],
+   "hp_pump": {
+    "id": "P-201",
+    "efficiency": 0.8,
+    "P_out_bar": 75.84,
+    "max_bar": 75.84,
+    "max_kW": 2162.5
+   },
+   "stages": [
+    {
+     "id": "RO-201-stage1",
+     "area_m2": 35000,
+     "A_m_per_Pa_s": 2e-12,
+     "B_m_per_s": 2e-08,
+     "max_feed_pressure_bar": 75.84,
+     "recovery": 0.4
+    },
+    {
+     "id": "RO-201-stage2",
+     "area_m2": 25000,
+     "A_m_per_Pa_s": 2e-12,
+     "B_m_per_s": 2e-08,
+     "max_feed_pressure_bar": 75.84,
+     "recovery": 0.333
+    }
+   ],
+   "energy_recovery": {
+    "id": "T-201",
+    "type": "turbine",
+    "efficiency": 0.85
+   },
+   "target_TDS_g_L": 0.5,
+   "min_overall_recovery": 0.6,
+   "failing_baseline": true,
+   "posttreatment": {
+    "id": "posttreatment",
+    "notes": "partial second pass, stabilization and disinfection; not simulated"
+   },
+   "trains": {
+    "installed": 6,
+    "in_service": 5
+   }
+  },
+  "capacity_multiple": null,
+  "at": "2026-10-31T00:32:18+0300",
+  "user": null,
+  "reason": "The model was one representative 5 MGD train multiplied by five in the assumptions. It now carries trains {installed 6, in_service 5} and the 25 MGD plant feed (5 x 1314.38 m3/h), split equally per train, so N-1/N and added-train proposals are expressible; per-train physics and checks are unchanged (feasibility study: six 5 MGD seawater trains, one out of service).",
+  "result_after": {
+   "scale": 1.0,
+   "errors": [],
+   "checks": [
+    {
+     "id": "RO-201-stage2",
+     "check": "minimum recovery vs design",
+     "value": 0.1387,
+     "limit": 0.333,
+     "unit": "fraction",
+     "utilisation": 2.401
+    },
+    {
+     "id": "plant",
+     "check": "overall recovery vs minimum",
+     "value": 0.4721,
+     "limit": 0.6,
+     "unit": "fraction",
+     "utilisation": 1.271
+    },
+    {
+     "id": "permeate",
+     "check": "permeate TDS vs target",
+     "value": 0.5392,
+     "limit": 0.5,
+     "unit": "g/L",
+     "utilisation": 1.078
+    },
+    {
+     "id": "RO-201-stage1",
+     "check": "minimum recovery vs design",
+     "value": 0.387,
+     "limit": 0.4,
+     "unit": "fraction",
+     "utilisation": 1.034
+    },
+    {
+     "id": "P-201",
+     "check": "net shaft power vs motor after turbine recovery",
+     "value": 2225.0985,
+     "limit": 2162.5,
+     "unit": "kW",
+     "utilisation": 1.029
+    },
+    {
+     "id": "RO-201-stage1",
+     "check": "feed pressure vs max",
+     "value": 75.84,
+     "limit": 75.84,
+     "unit": "bar",
+     "utilisation": 1.0
+    },
+    {
+     "id": "P-201",
+     "check": "discharge pressure vs max",
+     "value": 75.84,
+     "limit": 75.84,
+     "unit": "bar",
+     "utilisation": 1.0
+    },
+    {
+     "id": "RO-201-stage2",
+     "check": "feed pressure vs max",
+     "value": 74.2652,
+     "limit": 75.84,
+     "unit": "bar",
+     "utilisation": 0.979
+    },
+    {
+     "id": "trains",
+     "check": "trains in service vs installed",
+     "value": 5.0,
+     "limit": 6.0,
+     "unit": "trains",
+     "utilisation": 0.833
+    }
+   ],
+   "stages": [
+    {
+     "id": "RO-201-stage1",
+     "area_m2": 35000.0,
+     "recovery": 0.38702,
+     "feed_pressure_bar": 75.84,
+     "flux_lmh_avg": 14.5157,
+     "flux_gfd_avg": 8.5537,
+     "flux_lmh_lead": 22.26,
+     "flux_gfd_lead": 13.1173,
+     "resolution": "0D",
+     "permeate_TDS_g_L": 0.34914,
+     "concentrate_m3_h": 806.6661
+    },
+    {
+     "id": "RO-201-stage2",
+     "area_m2": 25000.0,
+     "recovery": 0.1387,
+     "feed_pressure_bar": 74.2652,
+     "flux_lmh_avg": 4.4686,
+     "flux_gfd_avg": 2.6332,
+     "flux_lmh_lead": 6.7714,
+     "flux_gfd_lead": 3.9902,
+     "resolution": "0D",
+     "permeate_TDS_g_L": 1.40337,
+     "concentrate_m3_h": 695.1573
+    }
+   ],
+   "streams": {
+    "intake": {
+     "flow_m3_h": 6571.8955,
+     "P_bar": 2.0,
+     "T_C": 15.5556,
+     "TDS_g_L": 49.0,
+     "modelled": "feed specification"
+    },
+    "F-101": {
+     "flow_m3_h": 1314.3791,
+     "P_bar": 1.5,
+     "T_C": 15.5556,
+     "TDS_g_L": 49.0,
+     "modelled": "specified pressure drop and recovery; concentration unchanged"
+    },
+    "E-101": {
+     "flow_m3_h": 1314.3791,
+     "P_bar": 1.5,
+     "T_C": 15.5556,
+     "TDS_g_L": 49.0,
+     "modelled": "note only; chemistry is not simulated",
+     "notes": "steam feed heating is documented but not credited at the cold-corner failing baseline"
+    },
+    "CF-101": {
+     "flow_m3_h": 1314.3791,
+     "P_bar": 1.0,
+     "T_C": 15.5556,
+     "TDS_g_L": 49.0,
+     "modelled": "specified pressure drop and recovery; concentration unchanged"
+    },
+    "hp_suction": {
+     "flow_m3_h": 6571.8955,
+     "P_bar": 1.0,
+     "T_C": 15.556,
+     "TDS_g_L": 49.0
+    },
+    "hp_discharge": {
+     "flow_m3_h": 1314.3791,
+     "P_bar": 75.84,
+     "T_C": 15.556,
+     "TDS_g_L": 49.0
+    },
+    "RO-201-stage1_permeate": {
+     "flow_m3_h": 508.6954,
+     "P_bar": 1.0132,
+     "T_C": 15.556,
+     "TDS_g_L": 0.34914
+    },
+    "RO-201-stage1_concentrate": {
+     "flow_m3_h": 806.6661,
+     "P_bar": 74.2652,
+     "T_C": 15.556,
+     "TDS_g_L": 79.62027
+    },
+    "RO-201-stage2_permeate": {
+     "flow_m3_h": 111.8836,
+     "P_bar": 1.0132,
+     "T_C": 15.556,
+     "TDS_g_L": 1.40337
+    },
+    "RO-201-stage2_concentrate": {
+     "flow_m3_h": 695.1573,
+     "P_bar": 73.5429,
+     "T_C": 15.556,
+     "TDS_g_L": 92.16612
+    },
+    "brine": {
+     "flow_m3_h": 3475.7865,
+     "P_bar": 1.0132,
+     "T_C": 15.556,
+     "TDS_g_L": 92.16612
+    },
+    "permeate": {
+     "flow_m3_h": 3102.895,
+     "P_bar": 1.0132,
+     "T_C": 15.556,
+     "TDS_g_L": 0.53921
+    }
+   },
+   "pumps_kW": {
+    "HP": 3415.5601,
+    "turbine": -1190.4616,
+    "plant_total": 11125.4925
+   },
+   "trains": [
+    {
+     "id": "existing",
+     "count": 5,
+     "feed_m3_h_per_train": 1314.3791,
+     "permeate_m3_h_per_train": 620.579,
+     "feed_pressure_bar": 75.84,
+     "sec_kWh_m3": 3.5855
+    }
+   ],
+   "not_modelled": [
+    "boron (pass boron in the feed and B_boron_m_per_s on each stage to track it)",
+    "per-element flux profile (0D reports feed-end flux as the lead value and the length-averaged flux; set resolution to 1D to discretize the vessel)",
+    "pretreatment chemistry (filters are a specified pressure drop and recovery; chemical steps are notes)",
+    "post-treatment reactions (stored as notes)",
+    "train flow split: the plant feed is split equally over the trains in service (in a real plant each train's HP pump drive sets its own flow)"
+   ],
+   "feed_pressure_bar": 75.84,
+   "flux_lmh_avg": 14.5157,
+   "flux_lmh_lead": 22.26,
+   "flux_gfd_avg": 8.5537,
+   "ro_recovery": 0.47215,
+   "notes": {
+    "chemicals": [
+     {
+      "id": "E-101",
+      "notes": "steam feed heating is documented but not credited at the cold-corner failing baseline"
+     }
+    ],
+    "posttreatment": "partial second pass, stabilization and disinfection; not simulated",
+    "pretreatment": "specified pressure drop and recovery at constant concentration",
+    "flux_lead": "feed-end flux of the membrane channel"
+   },
+   "solve_s": 0.978,
+   "recovery": 0.47215,
+   "permeate_TDS_g_L": 0.53921,
+   "boron": "not modelled",
+   "sec_kWh_m3": 3.5855
+  },
+  "review": {
+   "status": "ok",
+   "blocking": 0,
+   "findings": [
+    {
+     "severity": "warn",
+     "check": "failing-baseline limit",
+     "evidence": "P-201 net shaft power vs motor after turbine recovery utilisation is 1.029 at the design condition. This is retained as a documented failing baseline, not a passing design.",
+     "items": [
+      "P-201"
+     ]
+    },
+    {
+     "severity": "warn",
+     "check": "failing-baseline limit",
+     "evidence": "RO-201-stage1 minimum recovery vs design utilisation is 1.034 at the design condition. This is retained as a documented failing baseline, not a passing design.",
+     "items": [
+      "RO-201-stage1"
+     ]
+    },
+    {
+     "severity": "warn",
+     "check": "failing-baseline limit",
+     "evidence": "RO-201-stage2 minimum recovery vs design utilisation is 2.401 at the design condition. This is retained as a documented failing baseline, not a passing design.",
+     "items": [
+      "RO-201-stage2"
+     ]
+    },
+    {
+     "severity": "warn",
+     "check": "failing-baseline limit",
+     "evidence": "permeate permeate TDS vs target utilisation is 1.078 at the design condition. This is retained as a documented failing baseline, not a passing design.",
+     "items": [
+      "permeate"
+     ]
+    },
+    {
+     "severity": "warn",
+     "check": "failing-baseline limit",
+     "evidence": "plant overall recovery vs minimum utilisation is 1.271 at the design condition. This is retained as a documented failing baseline, not a passing design.",
+     "items": [
+      "plant"
+     ]
+    }
+   ]
+  },
+  "audit": "f46ef5416c898ff049137a823819c23251ee73bb1e5397fa10a65f25f70f8d72"
+ }
+]
