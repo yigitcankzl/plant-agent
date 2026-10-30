@@ -884,9 +884,16 @@ function proposedTopology(spec, changes) {
   }
   return {units, existing: new Set([...baseIds].filter(id => !addedIds.has(id))), added: addedIds};
 }
+// same rule as revb.design_answer: latest answer whose verified changes reach the target, else latest with any verified
+function designAnswer() {
+  const has = (P?.answers || []).filter(a => (a.proposals || []).some(p => p.verified));
+  const reach = has.filter(a => a.combined?.reaches_target);
+  return (reach.length ? reach : has).at(-1);
+}
 function verifiedDesigns() {
   const out = [];
-  for (const a of [...(P?.answers || [])].reverse()) for (const p of a.proposals || []) {  // latest answer first, as the Rev B sheet
+  const d = designAnswer();
+  for (const a of d ? [d] : []) for (const p of a.proposals || []) {  // the design answer, as the Rev B sheet
     if (p.verified && (p.changes || []).some(c => c.add_unit && !ROUTING.has(c.add_unit.type))) out.push(p);
   }
   if (out.length) return out;
@@ -1234,7 +1241,7 @@ let VIEW = 'proposed';
 function latestProposedChanges() {
   if (P?.has_changes || modelBlocked()) return [];
   // the latest answer that proposed verified changes: a later question or command without proposals must not hide it
-  const answer = [...(P?.answers || [])].reverse().find(a => (a.proposals || []).some(p => p.verified));
+  const answer = designAnswer();
   return (answer?.proposals || []).filter(p => p.verified).flatMap(p => p.changes || []);
 }
 async function stateForView(scale) {

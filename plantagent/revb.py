@@ -869,6 +869,15 @@ def sheet_for(w, base, items, verified=True):
     return generate(path.read_text(), base, items, names, meta)
 
 
+def design_answer(answers):
+    """The answer whose verified proposals stand for the proposed design: the latest one whose changes together reach
+    the target, else the latest one with any verified proposal. Later questions and commands without proposals
+    (a chart, a document) do not replace it."""
+    has = [a for a in answers if any(p.get("verified") for p in a.get("proposals") or [])]
+    reach = [a for a in has if (a.get("combined") or {}).get("reaches_target")]
+    return (reach or has or [None])[-1]
+
+
 def workspace_items(w, answer=None):
     """(base spec, revision items) for the applied change revisions or, if none, an answer's verified proposals."""
     revs = [r for r in w.revisions if r.get("kind") == "change"]
@@ -876,7 +885,7 @@ def workspace_items(w, answer=None):
         return revs[0]["spec_before"], [{"rev": i + 1, "title": r.get("title"), "changes": r["changes"],
                                          "calculation": r.get("calculation")} for i, r in enumerate(revs)]
     ans = (w.answers[answer] if isinstance(answer, int) and 0 <= answer < len(w.answers) else
-           (w.answers[-1] if w.answers else None))
+           design_answer(w.answers))
     props = [p for p in (ans or {}).get("proposals") or [] if p.get("verified")]
     return w.spec, [{"rev": i + 1, "title": p.get("title"), "changes": p["changes"], "calculation": p.get("calculation"),
                      "fixes": p.get("fixes"), "tag": p.get("tag")} for i, p in enumerate(props)]
@@ -916,7 +925,7 @@ def select_proposals(w, changes=None, answer=None, proposals=None):
     if isinstance(answer, int) and -len(answers) <= answer < len(answers):
         pool = [answers[answer]]
     else:
-        pool = [a for a in reversed(answers) if any(p.get("verified") for p in a.get("proposals") or [])][:1]
+        pool = [a for a in [design_answer(answers)] if a]
     verified = [p for a in pool for p in a.get("proposals") or [] if p.get("verified")]
     chosen = []
     if proposals:
