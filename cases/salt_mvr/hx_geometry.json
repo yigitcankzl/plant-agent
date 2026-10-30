@@ -1,0 +1,123 @@
+{
+ "_note": "Heat-exchanger geometry for plantagent/hxdetail.py. Every field names its source; ILLUSTRATIVE marks values that are not in the patent, the P&ID or the data sheet (typical construction for the service, to be replaced by the vendor data sheet).",
+ "E-201": {
+  "type": "shell_and_tube",
+  "service": "VRC evaporator forced-circulation heater: saturated NaCl brine slurry in the tubes, compressor-discharge steam condensing on the shell",
+  "model_unit": "V-201",
+  "aliases": [
+   "V-201"
+  ],
+  "model_U": {
+   "path": "units.V-201.U_W_m2K",
+   "why": "the model folds E-201 into the V-201 evaporator heating (area 8,800 m2, U 2,000 W/m2K in service, 2,500 W/m2K clean on the data sheet)"
+  },
+  "tube_side": "cold",
+  "orientation": "horizontal",
+  "fluids": {
+   "cold": {
+    "model": "nacl_brine",
+    "x_NaCl": "saturated",
+    "source": "data sheet: brine in V-201 saturated in salt; solubility from plantagent/brine.py x_sat at the heater inlet temperature"
+   },
+   "hot": {
+    "model": "steam_condensing",
+    "source": "data sheet: steam to E-201 after D-201 at 3.08 bar(a), condensate leaves saturated"
+   }
+  },
+  "circulation": {
+   "rise_K": {
+    "value": 3.0,
+    "source": "data sheet Process requirements: brine temperature rise through E-201 at most 3 K"
+   },
+   "rated_m3_h": {
+    "value": 15000,
+    "source": "data sheet Equipment ratings: P-201 forced-circulation pump 15,000 m3/h rated (ILLUSTRATIVE)"
+   }
+  },
+  "geometry": {
+   "area_m2": {
+    "value": 8800,
+    "source": "data sheet Equipment ratings (E-201 8,800 m2, ILLUSTRATIVE in the data sheet)",
+    "illustrative": true
+   },
+   "tube_od_m": {
+    "value": 0.0381,
+    "source": "ILLUSTRATIVE: 1.5 in tubes, common in salt-slurry heaters to limit plugging",
+    "illustrative": true
+   },
+   "tube_wall_m": {
+    "value": 0.00165,
+    "source": "ILLUSTRATIVE: 16 BWG wall",
+    "illustrative": true
+   },
+   "tube_length_m": {
+    "value": 12.0,
+    "source": "ILLUSTRATIVE",
+    "illustrative": true
+   },
+   "tube_passes": {
+    "value": 1,
+    "source": "ILLUSTRATIVE: single-pass forced-circulation heater",
+    "illustrative": true
+   },
+   "tube_pitch_m": {
+    "value": 0.0476,
+    "source": "ILLUSTRATIVE: 1.25 x OD",
+    "illustrative": true
+   },
+   "layout_angle_deg": {
+    "value": 30,
+    "source": "ILLUSTRATIVE: triangular",
+    "illustrative": true
+   },
+   "baffle_spacing_m": {
+    "value": 3.0,
+    "source": "ILLUSTRATIVE: tube-support spacing near the TEMA maximum unsupported span for 1.5 in tubes (no cross-flow baffles on a condensing shell)",
+    "illustrative": true
+   },
+   "baffle_cut": {
+    "value": 0.25,
+    "source": "ILLUSTRATIVE",
+    "illustrative": true
+   },
+   "tube_k_W_mK": {
+    "value": 16.4,
+    "source": "ILLUSTRATIVE material titanium grade 2 (handbook thermal conductivity about 16 W/m K)",
+    "illustrative": true
+   },
+   "tube_roughness_m": {
+    "value": 1.5e-06,
+    "source": "drawn tube, fluids.material_roughness typical",
+    "illustrative": true
+   }
+  },
+  "fouling_m2K_W": {
+   "tube": {
+    "value": 0.000176,
+    "source": "typical practice for saturated NaCl brine circulation: 0.001 h ft2 F/Btu (no TEMA RGP-T-2.4 entry for crystallising brine; scaling is governed by velocity and supersaturation)"
+   },
+   "shell": {
+    "value": 8.8e-05,
+    "source": "TEMA RGP-T-2.4: steam, oil-free, 0.0005 h ft2 F/Btu"
+   }
+  },
+  "limits": {
+   "tube_velocity_min_m_s": {
+    "value": 1.5,
+    "source": "typical practice for forced-circulation crystalliser heaters (1.5-3 m/s): below it the slurry settles and the tubes scale"
+   },
+   "tube_velocity_max_m_s": {
+    "value": 3.0,
+    "source": "typical practice (erosion by salt crystals)"
+   },
+   "dP_tube_max_bar": {
+    "value": 0.8,
+    "source": "ILLUSTRATIVE: part of the P-201 differential 1.33 bar (model) available to the heater"
+   },
+   "dP_shell_max_bar": {
+    "value": 0.1,
+    "source": "typical practice for a condensing-steam shell at 3 bar(a): a few % of the absolute pressure"
+   }
+  }
+ }
+}

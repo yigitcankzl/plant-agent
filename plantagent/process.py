@@ -1373,8 +1373,11 @@ def _worker(a):
             s.SetTemperature(273.15 + float(pt["T_C"]))
             s.SetPressure(float(pt["P_bar"]) * 1e5)
             errs = mgr.CalculateFlowsheet4(sim)
+            liq = s.Phases[3].Properties  # liquid-phase transport properties (heat-exchanger rating, plantagent/hxdetail.py)
             out.append({**pt, "density_kg_m3": round(s.GetMassFlow() / s.GetVolumetricFlow(), 2),
                         "vapour_frac": round(float(s.Phases[2].Properties.molarfraction or 0.0), 4),
+                        "liquid": {"density_kg_m3": float(liq.density or 0), "viscosity_Pa_s": float(liq.viscosity or 0),
+                                   "k_W_mK": float(liq.thermalConductivity or 0), "cp_kJ_kgK": float(liq.heatCapacityCp or 0)},
                         "errors": [str(e.Message)[:120] for e in errs] if errs is not None else []})
         return {"compounds": spec["compounds"], "x": spec["x"], "points": out}
     raise ValueError(op)

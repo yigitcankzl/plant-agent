@@ -1619,6 +1619,41 @@ class PlantWorkspace(Study):
                                   "annotations": {"type": "array", "items": {"type": "object", "description": "{tag or line, text}"}},
                                   "title": S})]
         # ---- end drawing tool
+        # ---- heat-exchanger detail + combustion tools (plantagent/hxdetail.py, plantagent/combustion.py)
+        if not _is_watertap(getattr(self, "cfg", None)):
+            shared = shared + [
+                f("hx_detail", "Detailed thermal-hydraulic rating of ONE heat exchanger (shell-and-tube or plate) with the ht/fluids "
+                               "correlations: tube/channel velocity, tube- and shell-side h (Gnielinski, Bell-Delaware, condensing "
+                               "film), U clean and with TEMA fouling, area required vs installed, tube/shell pressure drop, and "
+                               "screening checks (velocity window, scaling velocity for salting brine, dP vs allowable, model U vs "
+                               "correlation U > 20 %). Duty, flows and temperatures come from a DWSIM solve at `scale`; with `answer` "
+                               "the answer's proposal on this exchanger is applied (a cleaning proposal rates the clean condition). "
+                               "Saves a calculation-sheet artifact. Use for 'check the heater tube velocities', 'is E-201 thermally "
+                               "OK after cleaning', 'what U should this exchanger have', 'pressure drop of H1008'.",
+                  {"tag": {"type": "string", "description": "exchanger tag, e.g. E-201 (also V-201 for its heater), H1007, H1008"},
+                   "scale": {"type": "number", "description": "throughput multiple of the solve (default 1.0)"},
+                   "answer": {"type": "integer", "description": "stored answer index whose proposal on this tag is applied"},
+                   "condition": {"type": "string", "enum": ["fouled", "clean"], "description": "fouling allowance (default: fouled, clean for a cleaning proposal)"}},
+                  ["tag"]),
+                f("combustion_check", "Combustion / fired-equipment screening with Cantera: adiabatic flame temperature, flue-gas "
+                                      "composition, O2 and flow, efficiency by the ASME PTC 4 stack-loss method, and a NOx screening "
+                                      "(equilibrium and thermal NO). On a plant with a gas turbine + HRSG on record (salt plant): the "
+                                      "documented operation and one scenario: `steam_scale` (e.g. 1.2 = +20 % HRSG steam, the duct "
+                                      "firing it needs is solved) or `firing_scale` (e.g. 1.2 = +20 % total fuel, the extra fired in a "
+                                      "duct burner), giving steam, stack temperature, pinch, gas into the superheater and NOx added. "
+                                      "Otherwise screens one burner from firing_kW, fuel, excess air or flue O2, air preheat and "
+                                      "stack temperature. Saves a calculation-sheet artifact. Use for 'what does +20 % firing do to the "
+                                      "stack temperature / NOx', 'can the HRSG support +20 % steam', 'boiler efficiency at this O2'.",
+                  {"steam_scale": N, "firing_scale": N,
+                   "exhaust_T_C": {"type": "number", "description": "override the illustrative turbine exhaust temperature (sensitivity)"},
+                   "scale": {"type": "number", "description": "process throughput multiple for the turbine shaft power (default 1.0)"},
+                   "firing_kW": {"type": "number", "description": "burner mode: firing rate, kW on `basis`"},
+                   "basis": {"type": "string", "enum": ["HHV", "LHV"]},
+                   "fuel": {"type": "object", "description": "mole fractions, GRI-Mech species (CH4, C2H6, C3H8, H2, CO, CO2, N2); default typical natural gas"},
+                   "excess_air_pct": N, "o2_dry_pct": N, "air_T_C": N, "stack_T_C": N,
+                   "residence_s": {"type": "number", "description": "residence time at flame temperature for the thermal-NO screening"}}),
+            ]
+        # ---- end heat-exchanger detail + combustion tools
         if _is_watertap(getattr(self, "cfg", None)):
             return shared + [
                 f("run_ro", "Solve a WaterTAP reverse-osmosis plant and log it under `label`. Returns stream flow, pressure and TDS, "
@@ -1722,6 +1757,23 @@ class PlantWorkspace(Study):
                 return draw_revision_tool(self, a)
             except ValueError as e:
                 return {"error": str(e)}
+        # ---- heat-exchanger detail + combustion tools
+        if name == "hx_detail":
+            from . import hxdetail
+            try:
+                return hxdetail.hx_detail(self, a["tag"], a.get("scale"), a.get("answer"), a.get("condition"), by=self.model)
+            except (ValueError, KeyError) as e:
+                return {"error": str(e)}
+        if name == "combustion_check":
+            from . import combustion
+            keys = ("steam_scale", "firing_scale", "exhaust_T_C", "residence_s", "scale", "fuel", "firing_kW", "excess_air_pct",
+                    "o2_dry_pct", "air_T_C", "stack_T_C")
+            try:
+                return combustion.combustion_check(self, **{k: a[k] for k in keys if a.get(k) is not None},
+                                                   basis=a.get("basis") or "HHV", by=self.model)
+            except (ValueError, KeyError) as e:
+                return {"error": str(e)}
+        # ---- end heat-exchanger detail + combustion tools
         if name == "read_pid":
             return self.pid or {"note": "this project has no drawing: take the equipment and connections from the data sheet"}
         if name == "search_documents":
