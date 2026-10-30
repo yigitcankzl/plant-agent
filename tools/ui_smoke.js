@@ -1,12 +1,15 @@
 // UI smoke test: every page loads in a fresh browser without script errors or a stuck "Loading", and the guided demo runs.
 // node tools/ui_smoke.js [base_url] [screenshot_dir]   (Playwright from PLAYWRIGHT or the local npx cache)
-const { chromium } = require(process.env.PLAYWRIGHT || '/home/kizil/.npm/_npx/e41f203b7505f1fb/node_modules/playwright');
+let playwright;
+try { playwright = require(process.env.PLAYWRIGHT || 'playwright'); }
+catch (_) { playwright = require('/home/kizil/.npm/_npx/e41f203b7505f1fb/node_modules/playwright'); }
+const { chromium } = playwright;
 const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] || '/tmp/pwtest';
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   let bad = 0;
-  for (const u of ['home.html', 'plant.html?case=chem_c01', 'plant.html?case=dairy_refrig', 'plant.html?case=swro_monterey', 'plant.html?case=swro_brownsville', 'workspace.html?case=roseburg', 'index.html?case=williams_geismar']) {
+  for (const u of ['home.html', 'plant.html?case=chem_c01', 'plant.html?case=dairy_refrig', 'plant.html?case=salt_mvr', 'plant.html?case=swro_monterey', 'plant.html?case=swro_brownsville', 'workspace.html?case=roseburg', 'index.html?case=williams_geismar']) {
     await p.goto(`${BASE}/${u}`); await p.waitForTimeout(u.startsWith('home') ? 2500 : 8000);
     const stuck = (await p.content()).includes('Loading case data');
     await p.screenshot({ path: `${OUT}/${u.replace(/[^a-z0-9]+/gi, '_')}.png` });
@@ -39,6 +42,12 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   });
   console.log(readableAnswer ? 'ok  ' : 'FAIL', 'result inspector uses stacked field checks and proposal actions');
   bad += readableAnswer ? 0 : 1;
+  await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
+  const blockedIsReadOnly = await p.evaluate(() => Number(P?.built?.review?.blocking || 0) > 0 &&
+    !document.querySelector('#answers .prop-actions') && ![...document.querySelectorAll('button')].some(b => /decision file/i.test(b.textContent)));
+  console.log(blockedIsReadOnly ? 'ok  ' : 'FAIL', 'blocked model cannot apply proposals or issue a pack');
+  bad += blockedIsReadOnly ? 0 : 1;
+  await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
   const viewport = p.locator('#pidViewport'), before = await p.locator('#sheet').evaluate(e => new DOMMatrix(getComputedStyle(e).transform).a);
   const bounds = await viewport.boundingBox();
   await p.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2); await p.mouse.wheel(0, -200);

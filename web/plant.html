@@ -362,6 +362,7 @@ let P = null, ST = null, busy = false, base = null;
 const NAMES = {pump: 'Pump', hx: 'Heat exchanger', tank: 'Tank', valve: 'Valve', heater: 'Heater / heat load', cooler: 'Cooler', compressor: 'Compressor', mixer: 'Mixer', splitter: 'Splitter', recycle: 'Loop closure'};
 const sev = u => u > 1.0 ? 'fail' : u > 0.9 ? 'warn' : 'ok';
 const simulator = () => (P?.built?.engine || P?.engine) === 'watertap' ? 'WaterTAP' : 'DWSIM';
+const modelBlocked = () => Number(P?.built?.review?.blocking || 0) > 0;
 let ACTIVE_MODE = 'capacity';
 
 function toggleDrawer(open) {
@@ -375,7 +376,15 @@ function renderTroubleshootMode() {
   const today = P.health?.today || [], units = P.troubleshootable || [];
   $('troublePanel').innerHTML = `<h3>Morning troubleshooting</h3><p>Start with the historian signal, then inspect the affected equipment and fit likely causes in DWSIM.</p>
     ${today.length ? `<div class="card warn"><div class="tt">What needs attention</div>${today.map((x, i) => `<div style="margin:7px 0"><b>${i + 1}.</b> ${esc(x.text)}</div>`).join('')}</div>` : '<div class="card"><div class="res">No historian alert is available for this case.</div></div>'}
+    ${P.has_historian && !P.health ? `<div class="card warn"><div class="tt">Historian available</div><div style="margin:6px 0">${esc(P.historian_note || 'Run the deterministic morning check.')}</div><button class="btn go" onclick="refreshHealth()">Run morning check</button></div>` : ''}
     <div class="mode-list">${units.map(tag => `<button class="btn" onclick="select('${esc(tag)}')"><b>${esc(nm(tag))}</b><br><span style="color:var(--muted)">Inspect readings and test likely causes</span></button>`).join('') || '<span style="color:var(--muted)">No equipment has a configured troubleshooting model.</span>'}</div>`;
+}
+
+async function refreshHealth() {
+  $('troublePanel').insertAdjacentHTML('afterbegin', '<div class="card"><div class="res">Running historian trend checks…</div></div>');
+  const health = await api('health', {}).catch(e => ({error: e.message}));
+  if (health.error) { alert(health.error); return; }
+  P.health = health; renderTroubleshootMode(); revs();
 }
 
 function showMode(mode) {
@@ -403,7 +412,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleDrawer
 
 async function projects() {
   const ps = await fetch('/api/projects').then(r => r.json());
-  $('proj').innerHTML = ps.filter(p => p.workspace).map(p => `<option value="${p.kind}:${p.case}" ${p.case === CASE ? 'selected' : ''}>${p.kind === 'process' ? '⚗ ' : '💧 '}${esc(p.title)}</option>`).join('');
+  $('proj').innerHTML = ps.filter(p => p.workspace && (p.kind !== 'process' || p.built || p.case === CASE)).map(p => `<option value="${p.kind}:${p.case}" ${p.case === CASE ? 'selected' : ''}>${p.kind === 'process' ? '⚗ ' : '💧 '}${esc(p.title)}</option>`).join('');
   $('proj').onchange = e => { const [k, c] = e.target.value.split(':'); location.href = (k === 'process' ? 'plant.html' : 'workspace.html') + '?case=' + c; };
 }
 
@@ -561,10 +570,13 @@ async function load() {
   $('scale').value = Math.round(P.target_scale * 100);
   syncViewToggle();
   model(); answers(); revs();
-  if (P.built) render(P.at_target); else noModel();
+  if (P.built) render(await stateForView(P.target_scale)); else noModel();
   $('q').disabled = false;
   $('askBtn').disabled = false;
   $('toTarget').disabled = false;
+  $('toTarget').textContent = (P.answers || []).length ? 'Show saved analysis' : 'Analyze target';
+  $('model').value = P.model;
+  $('model').onchange = async e => { await api('model', {model: e.target.value}); P.model = e.target.value; };
   showMode(ACTIVE_MODE);
 }
 
@@ -653,7 +665,8 @@ function model() {
     coverage +
     ((P.pid.data_quality || []).length ? `<details style="margin-top:6px"><summary style="color:var(--warn)">⚠ ${P.pid.data_quality.length} P&amp;ID data problems</summary>${P.pid.data_quality.map(a => `<div style="font-size:11.5px;color:var(--muted);padding:2px 0">• ${esc(a)}</div>`).join('')}</details>` : '') +
     `<details style="margin-top:6px"><summary>${(b.assumptions || []).length} assumptions</summary>${(b.assumptions || []).map(a => `<div style="font-size:11.5px;color:var(--muted);padding:2px 0">• ${esc(a)}</div>`).join('')}</details>` +
-    `<div style="margin-top:8px"><button class="btn" onclick="build()">Rebuild model</button></div>`;
+    (P.has_revisions ? '<div style="margin-top:8px;color:var(--warn);font-size:11px">Rebuild is locked while revision history exists.</div>' :
+      `<div style="margin-top:8px"><button class="btn" onclick="build()">Rebuild model</button></div>`);
 }
 
 function worstBy(checks) {
@@ -844,7 +857,7 @@ function verifiedDesigns() {
   return out;
 }
 function syncViewToggle() {
-  const verified = (P?.answers || []).some(a => (a.proposals || []).some(p => p.verified));
+  const verified = !modelBlocked() && (P?.answers || []).some(a => (a.proposals || []).some(p => p.verified));
   $('viewTog').style.display = (P?.has_revisions || verified) ? 'flex' : 'none';
 }
 function tagCenter(g) {
@@ -960,6 +973,7 @@ function cloudPath(box) {
   return d + ' Z';
 }
 function appendProposedOverlay() {
+  if (modelBlocked()) return;
   const design = verifiedDesigns()[0];
   const svg = $('sheet').querySelector('svg');
   if (!design || !P.built?.spec || !svg || svg.querySelector('#proposed-draft')) return;
@@ -1175,6 +1189,21 @@ async function applyWhatIf() {
 }
 
 let VIEW = 'proposed';
+function latestProposedChanges() {
+  if (P?.has_revisions || modelBlocked()) return [];
+  const answer = (P?.answers || []).at(-1);
+  return (answer?.proposals || []).filter(p => p.verified).flatMap(p => p.changes || []);
+}
+async function stateForView(scale) {
+  if (VIEW === 'proposed') {
+    const changes = latestProposedChanges();
+    if (changes.length) {
+      const preview = await api('whatif', {changes, scale});
+      if (!preview.errors?.length) return {scale, ...preview.state_after};
+    }
+  }
+  return api(`state?scale=${scale}${VIEW === 'existing' ? '&view=existing' : ''}`);
+}
 async function setView(v) {
   VIEW = v; $('vExisting').classList.toggle('on', v === 'existing'); $('vProposed').classList.toggle('on', v === 'proposed');
   if (AS_BUILT && P?.drawing === 'svg') {
@@ -1182,7 +1211,7 @@ async function setView(v) {
     initViewer();
     if (v === 'proposed') appendProposedOverlay();
   }
-  render(await api(`state?scale=${$('scale').value / 100}${v === 'existing' ? '&view=existing' : ''}`));
+  render(await stateForView($('scale').value / 100));
 }
 let tmr = null;
 $('scale').oninput = () => {
@@ -1190,7 +1219,7 @@ $('scale').oninput = () => {
   const s = $('scale').value / 100;
   $('flowv').innerHTML = base ? `${(base.m3_h * s).toFixed(1)} <small>${base.unit} · solving…</small>` : '…';
   clearTimeout(tmr);
-  tmr = setTimeout(async () => render(await api('state?scale=' + s + (VIEW === 'existing' ? '&view=existing' : ''))), 120);
+  tmr = setTimeout(async () => render(await stateForView(s)), 120);
 };
 
 function chip(e) {
@@ -1275,7 +1304,8 @@ function answers() {
     (list.length > 1 ? `<details class="ans"><summary>History · ${list.length - 1} earlier questions</summary>${list.slice(1).map((a, i) => ans(a, P.answers.length - 2 - i)).join('')}</details>` : '') :
     `<div class="empty"><b>What would you like to test?</b><br>Ask about an equipment limit, or find a path to the target throughput.
      <div class="sugg">${['What limits +20% throughput?', 'Which exchanger is closest to its limit, and why?', 'How much headroom does the cooling water have?'].map(s => `<button class="btn" onclick="ask('${s}')">${s}</button>`).join('')}</div></div>`;
-  $('spend').textContent = list.length ? '$' + list.reduce((t, a) => t + (a.cost_usd || 0), 0).toFixed(3) : '';
+  $('spend').textContent = list.length ? 'AI cost $' + list.reduce((t, a) => t + (a.cost_usd || 0), 0).toFixed(3) : '';
+  $('spend').title = 'Estimated model API cost for the answers shown; simulator runs are local.';
 }
 
 const BASIS = {documented: ['in document', '#4da3ff'], measured: ['measured', '#3fb67a'], computed: ['computed', '#e3a33a'], assumed: ['assumed', '#ef5a4f']};
@@ -1316,10 +1346,12 @@ function ans(a, idx) {
   const lim = (a.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity)).slice(0, 3);
   const limits = lim.length ? `<section class="answer-section"><h4>What limits the target</h4><div class="limit-list">${lim.map(h => `<div class="limit-item"><b style="color:var(--${h.severity === 'fail' ? 'fail' : 'warn'})">${esc(h.tag)}</b><span>${esc(h.text)}</span></div>`).join('')}</div></section>` : '';
   const fixes = (a.proposals || []).length ? `<section class="answer-section"><h4>Recommended changes</h4>${props}</section>${compare(a)}${comb}` : '';
-  return `<div class="ans"><div class="answer-hero"><span class="answer-label">Decision</span><div class="hl">${esc(a.headline)}</div></div>${limits}${fc}${fixes}${secondOpinion(a, idx)}
+  const blocked = modelBlocked() ? `<div class="card fail"><div class="tt">Model blocked</div><div class="res">Correct the model-review findings before applying changes or issuing a decision pack.</div></div>` : '';
+  const pack = !modelBlocked() && (a.proposals || []).some(p => p.verified) ? `<div style="margin-top:14px"><button class="btn go" onclick="openDecisionPack()">Preview full proposed design and decision pack</button></div>` : '';
+  return `<div class="ans"><div class="answer-hero"><span class="answer-label">Decision</span><div class="hl">${esc(a.headline)}</div></div>${blocked}${limits}${fc}${fixes}${pack}${secondOpinion(a, idx)}
     <details class="evidence-block"><summary>Evidence · ${(a.cards || []).length} calculations, sources and assumptions</summary><div class="sm">${esc(a.summary)}</div>${cards}</details>
     <details class="request-block"><summary>Original request</summary><div class="rq">${esc(a.request)}</div></details>
-    <div class="meta">${a.seconds}s · $${(a.cost_usd || 0).toFixed(4)} · ${(a.checks || []).filter(c => c.ok).length}/${(a.checks || []).length} cited runs re-solved to the same result${(a.checks || []).filter(c => !c.ok).map(c => ` · <span style="color:var(--fail)">✗ ${esc(c.item)}: ${esc(c.why || 'not reproduced')}</span>`).join('')}</div></div>`;
+    <div class="meta">${a.seconds}s · AI cost $${(a.cost_usd || 0).toFixed(4)} · ${(a.checks || []).filter(c => c.ok).length}/${(a.checks || []).length} cited runs re-solved to the same result${(a.checks || []).filter(c => !c.ok).map(c => ` · <span style="color:var(--fail)">✗ ${esc(c.item)}: ${esc(c.why || 'not reproduced')}</span>`).join('')}</div></div>`;
 }
 
 function prop(p, i, j, src) {
@@ -1332,7 +1364,7 @@ function prop(p, i, j, src) {
   return `<div class="prop ${p.accepted ? 'done' : ''}"><div class="ph"><b>${esc(p.title)}</b><span class="vb" style="color:var(--muted)">${esc(p.cost_class || '')}</span></div>
     <div class="diff">${diff}</div>${added ? `<div class="diff">${added}</div>` : ''}${p.why ? `<div class="diff" style="color:var(--muted);font-family:var(--sans)">${esc(p.why)}</div>` : ''}
     ${calcSheet(p)}
-    <div class="pf">${v}${p.verified ? `<div class="prop-actions"><button class="btn go" onclick="accept(${i},${j},'${src || ''}')" title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature.">Apply as draft model revision</button><button class="btn" onclick="this.closest('.prop').remove()">Dismiss</button></div>` : ''}${p.accepted ? '<span class="vb y">applied as draft revision</span>' : ''}</div></div>`;
+    <div class="pf">${v}${p.verified && !modelBlocked() ? `<div class="prop-actions"><button class="btn go" onclick="accept(${i},${j},'${src || ''}')" title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature.">Apply as draft model revision</button><button class="btn" onclick="this.closest('.prop').remove()">Dismiss</button></div>` : ''}${p.accepted ? '<span class="vb y">applied as draft revision</span>' : ''}</div></div>`;
 }
 
 async function accept(i, j, src) {
@@ -1352,7 +1384,7 @@ async function reload() {
   syncViewToggle();
   model(); answers(); revs(); renderTroubleshootMode();
   if (AS_BUILT && P.drawing === 'svg') { $('sheet').innerHTML = AS_BUILT; initViewer(); if (VIEW === 'proposed') appendProposedOverlay(); }
-  render(await api('state?scale=' + $('scale').value / 100 + (VIEW === 'existing' ? '&view=existing' : '')));
+  render(await stateForView($('scale').value / 100));
   showMode(ACTIVE_MODE);
 }
 
@@ -1364,6 +1396,11 @@ async function decisionFile() {
                  'decision.md': 'Decision file (md)', 'memo.md': 'Memo (md)', 'decision.json': 'Data (JSON)'};
   $('decOut').innerHTML = `<div style="font-size:12px;margin:4px 0">${r.over_after ? `⚠ ${r.over_after} limits still over at the target` : '✓ All limits within 100 % at the target'} · ${r.pssr_items} PSSR items · draft, not approved</div>`
     + r.files.map(f => `<a class="btn" style="margin:2px;display:inline-block;text-decoration:none" target="_blank" href="${r.base}${f}">${esc(label[f] || f)}</a>`).join('');
+}
+function openDecisionPack() {
+  $('historyDetails').open = true;
+  decisionFile();
+  setTimeout(() => $('decOut')?.scrollIntoView({behavior: 'smooth', block: 'center'}), 50);
 }
 
 function morning() {  // the morning check: three things to look at today, from the historian against the model
@@ -1379,7 +1416,7 @@ function revs() {
   const a = P.audit;
   $('revs').innerHTML = morning() + (P.revisions || []).map(r => `<div class="rev"><div><b>Rev ${r.rev}</b> ${esc(r.title)}<div style="color:var(--muted);font:11px var(--mono)">${r.changes.map(describe).join(', ')}${r.capacity_multiple ? ' · max ' + Math.round(r.capacity_multiple * 100) + '%' : ''}</div>
       <div style="color:var(--muted);font-size:11px">${esc(r.at || '')} · ${esc(r.user || 'engineer')} · “${esc(r.reason || '')}”</div></div>${r.kind === 'change' ? `<button class="btn" onclick="undo(${r.rev})">Undo</button>` : ''}</div>`).join('') +
-    ((P.revisions || []).some(r => r.kind === 'change') || (P.answers || []).some(x => (x.proposals || []).some(p => p.verified))
+    (!modelBlocked() && ((P.revisions || []).some(r => r.kind === 'change') || (P.answers || []).some(x => (x.proposals || []).some(p => p.verified)))
       ? `<div class="rev" style="border-left-color:var(--accent);display:block"><button class="btn go" onclick="decisionFile()" title="Decision file and management memo: changes and reasons, limits before/after re-solved in DWSIM, redlined P&ID, relief impact, PSSR checklist, draft sign-off, audit hash">Make decision file (MOC pack)</button><div id="decOut"></div></div>` : '') +
     (a ? `<div class="rev" style="border-left-color:${a.verify.ok ? 'var(--ok)' : 'var(--fail)'}"><div>Audit trail: ${a.verify.entries} entries · hash chain ${a.verify.ok ? 'intact ✓' : 'BROKEN at ' + a.verify.broken_at}</div><button class="btn" onclick="showAudit()">View</button></div>` : '');
 }
@@ -1429,6 +1466,9 @@ $('q').onkeydown = e => { if (e.key === 'Enter') { ask($('q').value); $('q').val
 $('askBtn').onclick = () => { ask($('q').value); $('q').value = ''; };
 $('toTarget').onclick = () => {
   const target = Number($('scale').value);
+  if ((P.answers || []).length && target === Math.round(P.target_scale * 100)) {
+    showMode('capacity'); $('rightScroll').scrollTo({top: 0, behavior: 'smooth'}); return;
+  }
   ask(`Get the unit to ${target}% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in DWSIM, within every utility and frame limit on the data sheet.`);
 };
 // ---- guided demo: question -> source drawing -> limit -> proposal -> before/after -> evidence ----
