@@ -138,7 +138,7 @@ def check(case):
                        if d_today else "At today's throughput it is already at the outlet limit. " if d_today == 0 else "")
                     + (f"At the target throughput it is already over the limit (needs U ≥ {e['U_critical_target']:.0f})."
                        if d_tgt == 0 else f"At the target throughput the limit is reached in about {d_tgt} days." if d_tgt else "")
-                    + (f" Clean-reference U: {c['U_clean']} W/m²K." if c.get("U_clean") else ""))
+                    + (f" Clean-reference U: {c['U_clean']} W/m²K." if c.get("U_clean") else "")).replace("  ", " ")
             urgency = 100 - min(d_today if d_today is not None else 0, 99) + (30 if d_tgt == 0 else 0)
             items.append({"urgency": urgency, "unit": unit, "kind": "fouling", "text": text})
 
