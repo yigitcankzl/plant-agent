@@ -196,10 +196,12 @@ class Sheet:
 def _num(v):
     if isinstance(v, (int, float)) and not isinstance(v, bool):
         a = abs(v)
-        if a >= 1000:
+        if a >= 10000:
             return f"{v:,.0f}"
-        if a >= 100:
+        if a >= 1000:
             return f"{v:.0f}"
+        if a >= 100:
+            return f"{v:.1f}".rstrip("0").rstrip(".")  # 4 significant digits
         if a >= 10:
             return f"{v:.1f}".rstrip("0").rstrip(".")
         return f"{v:.2f}".rstrip("0").rstrip(".")
@@ -208,6 +210,7 @@ def _num(v):
 
 def qty(v, unit):
     """Rounded quantity with its unit; kg/h and kW above 1000 are shown as t/h and MW."""
+    unit = {"m2": "m²", "m3": "m³", "m3/h": "m³/h", "C": "°C"}.get(unit, unit)
     if isinstance(v, (int, float)) and unit == "kg/h" and abs(v) >= 1000:
         return f"{_num(v / 1000)} t/h"
     if isinstance(v, (int, float)) and unit == "kW" and abs(v) >= 1000:
@@ -324,6 +327,23 @@ def _best_route(sheet, a, b, ends=None):
 def _union(boxes):
     boxes = [b for b in boxes if b]
     return (min(b[0] for b in boxes), min(b[1] for b in boxes), max(b[2] for b in boxes), max(b[3] for b in boxes))
+
+
+def _clusters(boxes, gap=14):
+    """Merge boxes that lie within `gap` of each other; returns the merged boxes."""
+    out = [b for b in boxes if b]
+    merged = True
+    while merged:
+        merged = False
+        for i in range(len(out)):
+            for j in range(i + 1, len(out)):
+                if _overlap(out[i], out[j], gap):
+                    out[i] = _union([out[i], out.pop(j)])
+                    merged = True
+                    break
+            if merged:
+                break
+    return out
 
 
 def _grow(box, d):
@@ -517,7 +537,8 @@ def _rating(limits):
 
 
 def _source(text):
-    return _short(re.split(r"\s+/\s+|\s+-\s+", str(text or "to confirm"))[0], 40)
+    t = re.split(r"\s+/\s+|\s+-\s+", str(text or "to confirm"))[0].strip()
+    return t if len(t) <= 52 else t[:51] + "…"
 
 
 # ---------------------------------------------------------------- the sheet
@@ -635,7 +656,7 @@ def generate(svg, spec, revisions, names=None, meta=None):
                          f'<circle cx="{b[0]:.1f}" cy="{b[1]:.1f}" r="0.6" fill="{NOTE}"/>{_callout_svg(box, lines, n)}</g>')
             sheet.mark_box(box)
             taken.append(box)
-            boxes += [box, abox]
+            boxes.append(_union([box, abox]))  # callout, leader and anchor stay in one cloud
             drawn.append(f"{tag}: {value_text(c, names)}")
         for c in changes:
             r = c.get("reroute")
@@ -647,8 +668,43 @@ def generate(svg, spec, revisions, names=None, meta=None):
                     drawn.append(f"line {ln['line']} rerouted ({r['field']} of {r['unit']})")
                 else:
                     unplaced.append(f"reroute of {r['unit']}")
-        if boxes:
-            cb = _grow(_union(boxes), 3)
+        for note in rev.get("notes") or []:  # free notes an engineer asked for, e.g. "bypass to be added here"
+            where = str(note.get("tag") or note.get("line") or "").strip()
+            text = str(note.get("text") or "").strip()
+            anchors = []
+            if where in sheet.boxes:
+                anchors = [sheet.boxes[where]]
+            else:
+                ln = next((ln for ln in sheet.lines if ln["points"] and ln["line"] in (where, re.sub(r"^line\s*", "", where, flags=re.I))), None)
+                if ln:
+                    L = _length(ln["points"])
+                    anchors = [(p[0] - 2, p[1] - 2, p[0] + 2, p[1] + 2) for p in
+                               (_along(ln["points"], L * f, False) for f in (0.2, 0.4, 0.6, 0.8)) if p]
+            if not anchors or not text:
+                unplaced.append(f"note at {where or '?'}")
+                continue
+            words, lines, cur = text.split(), [f"NOTE ({where})"], ""
+            for wd in words:
+                if len(cur) + len(wd) + 1 > 46 and cur:
+                    lines.append(cur)
+                    cur = wd
+                else:
+                    cur = f"{cur} {wd}".strip()
+            lines.append(cur)
+            abox, box = _place_callout(sheet, anchors, lines[:5], taken, cloud_boxes)
+            if not box:
+                unplaced.append(f"note at {where}")
+                continue
+            a, b = _leader(box, abox)
+            parts.append(f'<g data-rev="{n}" data-note="{esc(where)}" class="revb-note" pointer-events="none">'
+                         f'<line x1="{a[0]:.1f}" y1="{a[1]:.1f}" x2="{b[0]:.1f}" y2="{b[1]:.1f}" stroke="{NOTE}" stroke-width="0.35"/>'
+                         f'<circle cx="{b[0]:.1f}" cy="{b[1]:.1f}" r="0.6" fill="{NOTE}"/>{_callout_svg(box, lines[:5], n)}</g>')
+            sheet.mark_box(box)
+            taken.append(box)
+            boxes.append(_union([box, abox]))  # callout, leader and anchor stay in one cloud
+            drawn.append(f"note at {where}: {_short(text, 60)}")
+        for cb in _clusters(boxes):  # one cloud per changed area; a revision acting in two places gets two clouds
+            cb = _grow(cb, 3)
             clouds.append(cb)
             cloud_boxes.append(cb)
             parts.append(f'<g data-rev-cloud="{n}" pointer-events="none"><path d="{_cloud_rect(cb)}" fill="none" stroke="{CLOUD}" '
@@ -683,7 +739,8 @@ def _issue(svg, sheet, parts, markers, revisions, report, unplaced, meta):
         blk.append(f'<text x="{cx}" y="{ty}" font-size="2.3" font-weight="700" fill="{INK}">{t}</text>')
     for i, (rev, cells) in enumerate((("A", ("as received", "Existing plant as drawn (issued for reference)", "-", "-", "-")),
                                       ("B", (date, f"Proposed: {len(revisions)} change(s) marked by clouds 1-{len(revisions)}; "
-                                                   "verified in DWSIM at the target", "PlantAgent", "", "")))):
+                                                   + ("verified in DWSIM at the target" if meta.get("verified", True)
+                                                      else "NOT verified in DWSIM: drawing request only"), "PlantAgent", "", "")))):
         yy = ty + 3.6 * (i + 1)
         colour = CLOUD if rev == "B" else INK
         blk.append(f'<text x="{cols[0]}" y="{yy}" font-size="2.5" font-weight="700" fill="{colour}">{rev}</text>')
@@ -697,13 +754,14 @@ def _issue(svg, sheet, parts, markers, revisions, report, unplaced, meta):
         blk.append(_triangle(L + 6, ry - 0.9, rev["rev"], 0.62))
         detail = "; ".join(rep["drawn"])
         detail = detail if len(detail) <= 120 else detail[:119] + "…"
-        blk.append(f'<text x="{L + 11}" y="{ry}" font-size="2.3" fill="{INK}"><tspan font-weight="700">{esc(_short(rev.get("title"), 70))}</tspan>'
+        blk.append(f'<text x="{L + 11}" y="{ry:.1f}" font-size="2.3" fill="{INK}"><tspan font-weight="700">{esc(_short(rev.get("title"), 70))}</tspan>'
                    f'<tspan fill="#526b6c">  {esc(detail)}</tspan></text>')
     if unplaced:
         blk.append(f'<text x="{L + 3}" y="{yy + 5.4 + 4.2 * rows}" font-size="2.3" fill="{CLOUD}">Not drawn (no free position '
                    f'found; see the decision file): {esc(", ".join(unplaced))}</text>')
+    checked = "verified in DWSIM" if meta.get("verified", True) else "NOT verified in DWSIM"
     blk.append(f'<text x="{R - 3}" y="{top + strip - 5}" font-size="2.2" text-anchor="end" fill="#526b6c">Generated by PlantAgent, '
-               f'verified in DWSIM, to be checked by a licensed engineer. New equipment ratings: vendor quote to confirm.</text>')
+               f'{checked}, to be checked by a licensed engineer. New equipment ratings: vendor quote to confirm.</text>')
     blk.append("</g>")
     body = defs + '<g id="rev-b" data-revision="B">' + "".join(parts) + "</g>" + "".join(blk)
     out = re.sub(r"\bRev A\b", "Rev B", svg)
@@ -721,34 +779,90 @@ def _issue(svg, sheet, parts, markers, revisions, report, unplaced, meta):
 
 # ---------------------------------------------------------------- from a workspace
 
-def from_workspace(w, answer=None):
-    """Rev B of the case drawing for the applied change revisions or, if none, an answer's verified proposals.
-    Returns None when the case has no SVG drawing or nothing to draw."""
+def case_svg(w):
+    """Path of the case's SVG P&ID, or None."""
     from pathlib import Path
-    from .plant import display_names, patch
-    if not w.cfg.get("svg") or not w.built:
+    if not w.cfg.get("svg"):
         return None
-    svg_path = Path(w.cfg["svg"])
-    if not svg_path.is_absolute():
-        svg_path = Path(__file__).resolve().parent.parent / "cases" / w.name / w.cfg["svg"]
-    revs = [r for r in w.revisions if r.get("kind") == "change"]
-    if revs:
-        base = revs[0]["spec_before"]
-        items = [{"rev": i + 1, "title": r.get("title"), "changes": r["changes"], "calculation": r.get("calculation")}
-                 for i, r in enumerate(revs)]
-    else:
-        ans = (w.answers[answer] if isinstance(answer, int) and 0 <= answer < len(w.answers) else
-               (w.answers[-1] if w.answers else None))
-        props = [p for p in (ans or {}).get("proposals") or [] if p.get("verified")]
-        if not props:
-            return None
-        base = w.spec
-        items = [{"rev": i + 1, "title": p.get("title"), "changes": p["changes"], "calculation": p.get("calculation"),
-                  "fixes": p.get("fixes"), "tag": p.get("tag")} for i, p in enumerate(props)]
+    p = Path(w.cfg["svg"])
+    return p if p.is_absolute() else Path(__file__).resolve().parent.parent / "cases" / w.name / w.cfg["svg"]
+
+
+def sheet_for(w, base, items, verified=True):
+    """Rev B of the case drawing for revision items [{rev, title, changes, calculation, fixes, tag, notes}] on `base`."""
+    from .plant import display_names, patch
+    path = case_svg(w)
+    if not path or not path.exists():
+        return None
     try:
-        after = patch(base, [c for r in items for c in r["changes"]])
+        after = patch(base, [c for r in items for c in r.get("changes") or []])
     except ValueError:
         after = base
     names = {**display_names(after), **w.names()}
-    meta = {"title": w.cfg.get("title"), "drawing": f"{w.name} P&ID · Rev B (proposed) · {time.strftime('%Y-%m-%d')}"}
-    return generate(svg_path.read_text(), base, items, names, meta)
+    meta = {"title": w.cfg.get("title"), "verified": verified,
+            "drawing": f"{w.name} P&ID · Rev B ({'proposed' if verified else 'draft'}) · {time.strftime('%Y-%m-%d')}"}
+    return generate(path.read_text(), base, items, names, meta)
+
+
+def workspace_items(w, answer=None):
+    """(base spec, revision items) for the applied change revisions or, if none, an answer's verified proposals."""
+    revs = [r for r in w.revisions if r.get("kind") == "change"]
+    if revs:
+        return revs[0]["spec_before"], [{"rev": i + 1, "title": r.get("title"), "changes": r["changes"],
+                                         "calculation": r.get("calculation")} for i, r in enumerate(revs)]
+    ans = (w.answers[answer] if isinstance(answer, int) and 0 <= answer < len(w.answers) else
+           (w.answers[-1] if w.answers else None))
+    props = [p for p in (ans or {}).get("proposals") or [] if p.get("verified")]
+    return w.spec, [{"rev": i + 1, "title": p.get("title"), "changes": p["changes"], "calculation": p.get("calculation"),
+                     "fixes": p.get("fixes"), "tag": p.get("tag")} for i, p in enumerate(props)]
+
+
+def from_workspace(w, answer=None):
+    """Rev B of the case drawing for the applied change revisions or, if none, an answer's verified proposals.
+    Returns None when the case has no SVG drawing or nothing to draw."""
+    if not w.cfg.get("svg") or not w.built:
+        return None
+    base, items = workspace_items(w, answer)
+    return sheet_for(w, base, items) if items else None
+
+
+# ---------------------------------------------------------------- agent tool: draw a revision on request
+
+def svg_png(svg, zoom=4.0):
+    """PNG bytes of an SVG sheet (pymupdf); None when it cannot be rendered."""
+    try:
+        import pymupdf
+        doc = pymupdf.open(stream=svg.encode(), filetype="svg")
+        return doc[0].get_pixmap(matrix=pymupdf.Matrix(zoom, zoom)).tobytes("png")
+    except Exception:  # noqa: BLE001 - the SVG is the artifact; the PNG is a convenience
+        return None
+
+
+def render_revision(w, changes, annotations=None, title=None, verified=False):
+    """Rev B sheet for explicit changes (proposal format: path changes, add_unit, reroute) on the current model, plus free
+    notes [{tag | line, text}]. Returns the SVG text. Raises ValueError for a malformed change or a case without a drawing."""
+    from .plant import change_errors
+    if not w.cfg.get("svg") or not w.built:
+        raise ValueError("this project has no SVG P&ID (or no model yet) to draw a revision on")
+    changes, annotations = list(changes or []), list(annotations or [])
+    if not changes and not annotations:
+        raise ValueError("nothing to draw: give changes and/or annotations")
+    errors = change_errors(w.spec, changes, require_evidence=False) if changes else []
+    if errors:
+        raise ValueError("; ".join(errors))
+    item = {"rev": 1, "title": title or "Engineer drawing request", "changes": changes, "notes": annotations}
+    return sheet_for(w, w.spec, [item], verified=verified)["svg"]
+
+
+def draw_revision_tool(w, a, by=None, request=None):
+    """Agent tool draw_revision: render the sheet and save it as a drawing artifact; returns the artifact meta."""
+    from . import artifacts
+    title = a.get("title") or "Rev B drawing"
+    svg = render_revision(w, a.get("changes"), a.get("annotations"), title)
+    files = {"rev_b.svg": svg}
+    png = svg_png(svg)
+    if png:
+        files["rev_b.png"] = png
+    return artifacts.save(w.name, "drawing", title, files, by=by or getattr(w, "model", None), request=request,
+                          sources=[f"cases/{w.name}/{w.cfg.get('svg')}", "current model spec"],
+                          summary="Draft Rev B P&ID: changes clouded and annotated; not verified in DWSIM by this tool.")

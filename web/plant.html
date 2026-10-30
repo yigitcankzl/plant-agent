@@ -358,7 +358,7 @@ const api = async (p, body) => { const r = await fetch(`/api/plant/${CASE}/${p}`
   if (!r.ok) throw new Error(data?.error || `Case data unavailable (${r.status})`);
   if (!data) throw new Error('Invalid response from the case server');
   return data; };
-let P = null, ST = null, busy = false, base = null;
+let P = null, ST = null, busy = false, base = null, PENDING_CARD = null;
 const NAMES = {pump: 'Pump', hx: 'Heat exchanger', tank: 'Tank', valve: 'Valve', heater: 'Heater / heat load', cooler: 'Cooler', compressor: 'Compressor', mixer: 'Mixer', splitter: 'Splitter', recycle: 'Loop closure'};
 const sev = u => u > 1.0 ? 'fail' : u > 0.9 ? 'warn' : 'ok';
 const simulator = () => (P?.built?.engine || P?.engine) === 'watertap' ? 'WaterTAP' : 'DWSIM';
@@ -676,6 +676,7 @@ function worstBy(checks) {
 
 function render(st) {
   ST = st;
+  if (PENDING_CARD) { const t = PENDING_CARD; PENDING_CARD = null; setTimeout(() => equipmentCard(t), 0); }  // a click that came before the first solve
   const w = worstBy(st.checks), units = Object.fromEntries((P.built.spec.units || []).map(u => [u.id, u]));
   const s = st.scale;
   $('atScale').textContent = Math.round(s * 100) + '%';
@@ -1129,6 +1130,7 @@ function select(tag, fromCanvas = false) {
   selectOnDrawing(tag);
   if (!fromCanvas) focusDrawing(tag);
   if (P.built && ST) equipmentCard(tag);
+  else if (P.built) PENDING_CARD = tag;  // the state is still solving (e.g. the Rev B what-if): show the card when it arrives
 }
 
 function equipmentCard(tag) {  // design data, operating values, every limit with its margin, and a what-if
@@ -1426,7 +1428,7 @@ async function decisionFile() {
   $('decOut').textContent = 'Re-solving every limit in DWSIM and writing the pack…';
   const r = await api('decision', {answer: (P.answers || []).length - 1}).catch(e => ({error: e.message}));
   if (r.error) { $('decOut').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return; }
-  const label = {'decision.pdf': 'Decision file (PDF)', 'memo.pdf': 'Management memo (PDF)', 'redline.svg': 'Redlined P&ID', 'decision.zip': 'Everything (zip)',
+  const label = {'decision.pdf': 'MOC file (PDF)', 'memo.pdf': 'Management memo (PDF)', 'rev_b.svg': 'P&ID Rev B (proposed)', 'rev_a.svg': 'P&ID Rev A (existing)', 'rev_b.png': 'Rev B (PNG)', 'redline.svg': 'Redline (same as Rev B)', 'decision.zip': 'Everything (zip)',
                  'decision.md': 'Decision file (md)', 'memo.md': 'Memo (md)', 'decision.json': 'Data (JSON)'};
   $('decOut').innerHTML = `<div style="font-size:12px;margin:4px 0">${r.over_after ? `⚠ ${r.over_after} limits still over at the target` : '✓ All limits within 100 % at the target'} · ${r.pssr_items} PSSR items · draft, not approved</div>`
     + r.files.map(f => `<a class="btn" style="margin:2px;display:inline-block;text-decoration:none" target="_blank" href="${r.base}${f}">${esc(label[f] || f)}</a>`).join('');

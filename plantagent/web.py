@@ -608,7 +608,7 @@ class Handler(SimpleHTTPRequestHandler):
         if parts[:1] == ["wsfiles"] and len(parts) == 4 and (parts[1] in known or parts[1] in set(all_cases("process"))):
             name = parts[3]
             allowed = name in {"calc_sheets.xlsx", "memo.md", "markup.dwg", "profile_sheet.dwg", "profile_sheet.dxf", "decision.md", "decision.pdf",
-                               "memo.pdf", "redline.svg", "decision.json", "decision.zip"} or name.endswith(("_editable.dxf", "_editable.dwg"))
+                               "memo.pdf", "redline.svg", "rev_a.svg", "rev_b.svg", "rev_b.png", "decision.json", "decision.zip"} or name.endswith(("_editable.dxf", "_editable.dwg"))
             f = _safe_file(RUNS / "ws" / parts[1], parts[2], name) if allowed else None
             if f:
                 return self._send(f.read_bytes(), mimetypes.guess_type(f.name)[0] or "application/octet-stream")
