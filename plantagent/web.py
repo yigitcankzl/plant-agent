@@ -311,6 +311,8 @@ def plant_project(case):
             "built": {k: v for k, v in w.built.items() if k != "result"} if w.built else None,
             "names": w.names() if w.built else {},
             "has_revisions": bool(w.revisions),
+            # design changes only: model corrections fix the model itself and are part of the Existing plant
+            "has_changes": any(r.get("kind") != "correction" for r in w.revisions),
             "health": (lambda h: {k: h.get(k) for k in ("today", "exchangers", "source_note", "from", "to")} if h else None)(
                 json.loads(w.model_file.with_name("health.json").read_text()) if w.model_file.with_name("health.json").exists() else None),
             "has_historian": bool(historian_cfg), "historian_note": historian_cfg.get("note"),

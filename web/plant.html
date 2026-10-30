@@ -873,7 +873,7 @@ function verifiedDesigns() {
 }
 function syncViewToggle() {
   const verified = !modelBlocked() && (P?.answers || []).some(a => (a.proposals || []).some(p => p.verified));
-  $('viewTog').style.display = (P?.has_revisions || verified) ? 'flex' : 'none';
+  $('viewTog').style.display = (P?.has_changes || verified) ? 'flex' : 'none';
 }
 function tagCenter(g) {
   const shapes = [...g.querySelectorAll('path,circle,rect,ellipse,polygon,polyline,line')];
@@ -1205,7 +1205,7 @@ async function applyWhatIf() {
 
 let VIEW = 'proposed';
 function latestProposedChanges() {
-  if (P?.has_revisions || modelBlocked()) return [];
+  if (P?.has_changes || modelBlocked()) return [];
   const answer = (P?.answers || []).at(-1);
   return (answer?.proposals || []).filter(p => p.verified).flatMap(p => p.changes || []);
 }

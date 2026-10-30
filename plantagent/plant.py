@@ -2096,9 +2096,11 @@ class PlantWorkspace(Study):
 
     def existing_state(self, scale):
         """The model as built, before any revision: what the Existing view colours."""
-        if not self.revisions:
+        # Existing = the corrected model before the first design change; model corrections are not plant changes
+        first = next((r for r in self.revisions if r.get("kind") != "correction"), None)
+        if not first:
             return self.state(scale)
-        return {"scale": scale, **self._solve(self._built_spec(), scale)}
+        return {"scale": scale, **self._solve(first["spec_before"], scale)}
 
     def reproduce(self, label):
         """A cited run counts only if it exists and re-solves to the same result now."""
