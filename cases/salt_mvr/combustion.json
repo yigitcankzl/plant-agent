@@ -1,0 +1,35 @@
+{
+ "_note": "Gas turbine and heat-recovery steam generator of US 5,366,514 FIG. I (patent items 37 and 27) for plantagent/combustion.py. Tags GT-201 / HRSG-201 are ours (the PlantAgent P&ID stops at the VRC loop). Every value names its source; ILLUSTRATIVE marks values the patent does not give.",
+ "fuel": {
+  "composition_mol": {"value": {"CH4": 0.931, "C2H6": 0.032, "C3H8": 0.007, "CO2": 0.01, "N2": 0.02},
+                      "source": "ILLUSTRATIVE: typical US pipeline natural gas; the patent gives no fuel analysis", "illustrative": true},
+  "heating_value_basis": "LHV",
+  "heating_value_basis_source": "ASSUMPTION: gas-turbine fuel input is conventionally quoted on LHV; the patent does not state the basis"
+ },
+ "gas_turbine": {
+  "tag": "GT-201",
+  "fuel_MMBtu_h": {"value": 112.28, "source": "US 5,366,514 Table I: natural gas to combustion gas turbine (CGT) 112.28 MMBtu/hr, 80 F, 600 psig"},
+  "ambient_T_C": {"value": 26.7, "source": "US 5,366,514 Table I: '@ 80 F ambient'"},
+  "shaft_kW": {"from_model": "units.K-201.kW", "source": "DWSIM K-201 shaft power of the solved model (the turbine drives the vapour compressor only, patent col. 7)"},
+  "exhaust_T_C": {"value": 485, "source": "ILLUSTRATIVE: typical exhaust temperature of the Solar Mars-class industrial turbine the patent names; vendor performance data not on record", "illustrative": true},
+  "loss_pct": {"value": 1.5, "source": "ILLUSTRATIVE: gearbox, bearing and casing losses of the fuel input", "illustrative": true}
+ },
+ "hrsg": {
+  "tag": "HRSG-201",
+  "steam_lb_h": {"value": 35000, "source": "US 5,366,514 Table I line 32: high-pressure steam 35,000 lb/h"},
+  "steam_P_psig": {"value": 600, "source": "US 5,366,514 Table I line 32: 600 psig"},
+  "steam_T_F": {"value": 820, "source": "US 5,366,514 Table I line 32: 820 F"},
+  "feedwater_T_C": {"value": 82.2, "source": "US 5,366,514: HRSG feed from the condensate storage tank (col. 7); Table I line 24 condensate 180 F (approx)"},
+  "economizer_approach_K": {"value": 10, "source": "ILLUSTRATIVE: design economiser approach to saturation", "illustrative": true},
+  "casing_loss_pct": {"value": 1.0, "source": "ILLUSTRATIVE: HRSG casing/radiation loss of the gas-side duty", "illustrative": true},
+  "ua_gas_exponent": {"value": 0.6, "source": "typical practice for off-design HRSG rating: gas-side-controlled UA scales with gas flow^0.6 (e.g. Ganapathy, Waste Heat Boiler Deskbook)"},
+  "min_pinch_K": {"value": 8, "source": "typical practice: evaporator pinch not below about 8 K"},
+  "min_economizer_approach_K": {"value": 5, "source": "typical practice: economiser approach at least about 5 K to avoid steaming"},
+  "stack_dew_margin_K": {"value": 20, "source": "typical practice: keep a non-condensing stack above the water dew point with a margin"}
+ },
+ "duct_burner": {
+  "installed": {"value": false, "source": "US 5,366,514 describes an unfired HRSG (no supplementary firing)"},
+  "residence_s": {"value": 0.02, "source": "ILLUSTRATIVE: residence time at the local flame temperature for the thermal-NO screening", "illustrative": true},
+  "min_O2_wet_pct": {"value": 11, "source": "typical practice: duct burners need roughly 11 % O2 or more in the turbine exhaust for stable firing"}
+ }
+}
