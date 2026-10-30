@@ -700,6 +700,13 @@ class Handler(SimpleHTTPRequestHandler):
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
                 return self._send({**r, "base": f"/wsfiles/{case}/{r['folder']}/"})
+            if what == "prefeed" and method == "POST":  # deterministic scenario gate; no paid model call
+                from . import prefeed
+                try:
+                    return self._send(_case_call(case, lambda: prefeed.make(
+                        w, body.get("answer"), body.get("scenarios"), body.get("dynamics"), body.get("economics"))))
+                except ValueError as e:
+                    return self._send({"error": str(e)}, code=409)
             if what == "health" and method == "POST":  # re-solves the model ~30 times; no model call
                 return self._send(_case_call(case, lambda: w.morning_check(refresh=True)) or
                                   {"error": "no historian mapping for this project"})

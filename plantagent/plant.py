@@ -1582,6 +1582,17 @@ class PlantWorkspace(Study):
                                "of a proposal, e.g. a clean). answer = index of a stored answer (default: the latest).",
               {"kind": {"type": "string", "enum": ["datasheet", "calc_sheet", "summary", "work_order"]}, "subject": S,
                "scale": N, "answer": {"type": "integer"}}, ["kind"]),
+            f("prefeed_assessment", "Build a deterministic DRAFT pre-FEED gate for the selected verified design (or the current "
+                                    "model): re-solve an operating-envelope matrix, check mass closure, screen provisional new-"
+                                    "equipment ratings, critical-loop dynamics when measured FOPDT constants are supplied, changed-"
+                                    "equipment HAZOP/relief cases, and cost/constructability gaps. Saves Markdown, JSON and PDF. "
+                                    "It never invents vendor curves, dynamic constants or costs; omitted inputs stay open.",
+              {"answer": {"type": "integer", "description": "stored answer index; default selects the current proposed design"},
+               "scenarios": {"type": "array", "items": {"type": "object", "description": "{name, scale, changes, basis}; max 24"}},
+               "dynamics": {"type": "array", "items": {"type": "object", "description": "measured FOPDT screen: name, variable, "
+                                                                                         "initial, final, time_constant_s, dead_time_s, "
+                                                                                         "duration_s, low_limit/high_limit, unit, source"}},
+               "economics": {"type": "object", "description": "optional sourced capex_low/high, outage_days, production_value_per_day, currency, source"}}),
         ]
         # ---- drawing tool (plantagent/revb.py): a Rev B sheet for changes and notes the engineer asks for
         if (getattr(self, "cfg", None) or {}).get("svg"):
@@ -1670,6 +1681,9 @@ class PlantWorkspace(Study):
         return r
 
     def _call_tool(self, name, a):
+        if name == "prefeed_assessment":
+            from . import prefeed
+            return prefeed.make(self, a.get("answer"), a.get("scenarios"), a.get("dynamics"), a.get("economics"))
         if name == "forecast_fouling":
             try:
                 return self.forecast_fouling(a.get("equipment"), a.get("as_of_day"))

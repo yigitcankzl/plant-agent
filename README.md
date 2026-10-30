@@ -165,6 +165,16 @@ DWSIM (`plantagent/process.py`) runs headless through pythonnet as one long-live
   compressible flow, heat transfer, water hammer, erosion and fouling. Exchanger U is scaled from one test point, not
   computed from exchanger geometry.
 
+### Pre-FEED design gate
+
+`prefeed_assessment` turns a verified proposal into one deterministic draft gate: it re-solves up to 24 clean/fouled,
+minimum/normal/maximum and off-design scenarios; reports boundary mass closure and the missing enthalpy needed for an
+energy closure; screens new-equipment flow and driver margins; writes a preliminary equipment data sheet; opens a
+change-focused HAZOP/relief register; and lists tie-ins, outage, electrical, civil, controls and unpriced cost items.
+It saves Markdown, JSON and PDF artifacts and makes no paid model call. A critical-loop dynamic screen runs only when
+an engineer supplies sourced first-order/dead-time constants and limits. It is explicitly not a vendor curve, rigorous
+plant dynamic model, multidisciplinary HAZOP, relief sizing or construction approval.
+
 The first model of this unit put H1008 in series instead of in the recirculation loop. It is kept in
 `runs/ws/chem_c01/model_v1_series.json`. An independent practitioner review caught it, which is why the coverage check now
 exists.

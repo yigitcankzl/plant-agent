@@ -1,0 +1,110 @@
+{
+  "design": {
+    "title": "Clean E-201, add parallel K-202 and hold purge steam",
+    "source": "Previously simulator-verified salt_mvr design replayed deterministically; all new-equipment ratings remain provisional",
+    "proposals": [
+      {
+        "title": "Clean the main circulating heater back to its clean performance",
+        "verified": true,
+        "cost_class": "<$100k",
+        "changes": [
+          {
+            "path": "units.V-201.U_W_m2K",
+            "from": 2000,
+            "value": 2500,
+            "physical_change": "Clean E-201 and confirm U by a post-clean temperature/flow survey",
+            "rating_source": "basis.md: 2,500 W/m2K clean is ILLUSTRATIVE and must be confirmed"
+          }
+        ]
+      },
+      {
+        "title": "Add a small parallel vapour compressor K-202",
+        "verified": true,
+        "cost_class": ">$1M",
+        "changes": [
+          {
+            "add_unit": {
+              "id": "K-201_SPLIT",
+              "type": "splitter",
+              "in": "S3001",
+              "out": ["S3001_K201", "S3001_K202"],
+              "fractions": [0.82085, 0.17915]
+            }
+          },
+          {
+            "add_unit": {
+              "id": "K-202",
+              "type": "compressor",
+              "in": "S3001_K202",
+              "out": "S3002_K202",
+              "P_out_bar": 3.08,
+              "eff_pct": 75
+            },
+            "limits": {"max_kg_h": 55000, "max_kW": 2400},
+            "rating_source": "provisional 55 t/h suction, 2,400 kW at pressure ratio 1.8; vendor quote and guaranteed curve to confirm"
+          },
+          {
+            "add_unit": {
+              "id": "K201_JOIN",
+              "type": "mixer",
+              "in": ["S3002raw", "S3002_K202"],
+              "out": "S3002comp"
+            }
+          },
+          {"reroute": {"unit": "K-201", "field": "in", "value": "S3001_K201"}, "from": "S3001"},
+          {"reroute": {"unit": "D-201MIX", "field": "in", "value": ["S3002comp", "TURBINE_EXH"]}, "from": ["S3002raw", "TURBINE_EXH"]}
+        ]
+      },
+      {
+        "title": "Hold purge-heater steam at today's rate",
+        "verified": true,
+        "cost_class": "no capex",
+        "changes": [
+          {
+            "path": "units.OVERHEAD_SPLIT.fractions",
+            "from": [0.0843762616067824, 0.9156237383932176],
+            "value": [0.070317, 0.929683]
+          }
+        ]
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Clean design at today's rate",
+      "scale": 1.0,
+      "basis": "US 5,366,514 Table I operating point; E-201 clean U is the illustrative post-clean value in basis.md"
+    },
+    {
+      "name": "Clean design at sales target",
+      "scale": 1.2,
+      "basis": "basis.md request: 3,000 short t/d (+20%)"
+    },
+    {
+      "name": "Target with heater fouled back to current U",
+      "scale": 1.2,
+      "changes": [
+        {
+          "path": "units.V-201.U_W_m2K",
+          "value": 2000
+        }
+      ],
+      "basis": "basis.md equipment ratings: E-201 U 2,000 W/m2K in service"
+    },
+    {
+      "name": "Target with five-point existing-compressor efficiency sensitivity",
+      "scale": 1.2,
+      "changes": [
+        {
+          "path": "units.K-201.eff_pct",
+          "value": 70
+        }
+      ],
+      "basis": "engineering sensitivity around the provisional 75% efficiency; vendor curve required"
+    }
+  ],
+  "dynamics": [],
+  "economics": {
+    "source": "No sourced installed-cost or outage estimate in the case documents; retain cost classes only"
+  }
+}
