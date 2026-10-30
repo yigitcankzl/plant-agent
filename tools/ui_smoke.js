@@ -42,7 +42,17 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   });
   console.log(readableAnswer ? 'ok  ' : 'FAIL', 'result inspector uses stacked field checks and proposal actions');
   bad += readableAnswer ? 0 : 1;
+  // the UI rule under test does not depend on which case happens to be blocked today: force a blocking review on salt_mvr
+  await p.route('**/api/plant/salt_mvr/project', async route => {
+    const res = await route.fetch(); const d = await res.json();
+    d.built = d.built || {};
+    d.built.review = { ...(d.built.review || {}), status: 'model needs review', blocking: 1,
+      findings: [{ severity: 'block', check: 'forced for the smoke test', evidence: 'injected', items: [] }] };
+    d.built.review_status = 'model needs review';
+    await route.fulfill({ response: res, json: d });
+  });
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
+  await p.unroute('**/api/plant/salt_mvr/project');
   const blockedIsReadOnly = await p.evaluate(() => Number(P?.built?.review?.blocking || 0) > 0 &&
     !document.querySelector('#answers .prop-actions') && ![...document.querySelectorAll('button')].some(b => /decision file/i.test(b.textContent)));
   console.log(blockedIsReadOnly ? 'ok  ' : 'FAIL', 'blocked model cannot apply proposals or issue a pack');

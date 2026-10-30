@@ -39,11 +39,13 @@ SPEC_HELP = {
              "the other takes the rest: in a recirculation loop fix the recirculation branch and let the product take the rest). compressor: in, out, P_out_bar, eff_pct. "
              "evaporator: in, vapor, liquid, P_bar (body pressure), evap_frac (fraction of the inlet boiled off), heating [in, out] "
              "(steam that condenses fully), U_W_m2K, area_m2, optional feed_x_NaCl (feed NaCl mass fraction; default saturated at feed T), "
-             "x_NaCl (body concentration; omit for saturation). The Water stand-in inlet kg/h is TOTAL feed brine, not water alone. "
+             "x_NaCl (body concentration; omit for saturation), optional salt_out_T_C (crystals leave the elutriation legs cooled to this "
+             "temperature by the cold elutriating brine; the heat stays in the body). The Water stand-in inlet kg/h is TOTAL feed brine, not water alone. "
              "Reports salt_in_kg_h, salt_kg_h (zero when non-crystallising), crystallising, water_evaporated_per_t_salt, "
              "bpe_K and sensible_correction_kW. With feed_x_NaCl and heating, evap_frac is a maximum: available steam heat "
              "can lower boil-up. The simple water stand-in uses Steam Tables (IAPWS-IF97); brine cp corrects feed sensible heat, "
-             "but crystallisation heat and electrolyte phase equilibria are omitted. The stand-in liquid outlet includes "
+             "the heat released by crystallising NaCl (66.4 kJ/kg) is credited to the body, but electrolyte phase equilibria are "
+             "omitted. The stand-in liquid outlet includes "
              "crystals plus mother liquor; liquid_out_brine_kg_h excludes crystals. Applies NaCl BPE to the driving force and checks heater area "
              "and the heat balance (boil-up vs heat the heating steam gives; >1 means the steam cannot sustain the boil-up). "
              "flash: in, vapor, liquid (equilibrium phase split at inlet T and P; use a cooler or valve first). "
@@ -957,14 +959,21 @@ class _Sheet:
                     water_sensible = feed_kg_h / 3600 * water_cp_avg * (b["t_water_C"] - feed_t)
                     # DWSIM's water stand-in ends at water saturation. Real vapour leaves saturated brine superheated by BPE.
                     vapor_superheat = vap / 3600 * 2.08 * b["bpe_K"]
-                    correction = brine_sensible - water_sensible + vapor_superheat
+                    # NaCl dissolves endothermically (+3.88 kJ/mol), so crystallising it releases 66.4 kJ per kg of salt
+                    # into the body; the water stand-in does not see it
+                    crystallisation = (salt or 0.0) / 3600 * 66.4
+                    # elutriation legs: cold brine rising through the salt bed cools the crystals before they leave, and that
+                    # heat stays in the body (crystal cp 0.88 kJ/kgK); omitted when salt_out_T_C is not given
+                    crystal_cooling = ((salt or 0.0) / 3600 * 0.88 * max(0.0, b["t_brine_C"] - float(u["salt_out_T_C"]))
+                                       if u.get("salt_out_T_C") is not None else 0.0)
+                    correction = brine_sensible - water_sensible + vapor_superheat - crystallisation - crystal_cooling
                     boil = (o.DeltaQ or 0) + (getattr(self, "aux_liq", {})[uid].DeltaQ or 0) + correction
                     if boil < 0 or (self.streams[u["in"]].GetPhase("Vapor").Properties.molarfraction or 0) > 0.99:
                         r["error"] = ("inlet is vapour in the water stand-in: brine above the water saturation temperature at its "
                                       "pressure only stays liquid through its BPE; give that feed at a pressure where water is liquid")
                     r.update(boil_kW=_r(boil, 1), sensible_correction_kW=_r(correction, 1),
                              brine_sensible_kW=_r(brine_sensible, 1), water_sensible_kW=_r(water_sensible, 1),
-                             vapor_superheat_kW=_r(vapor_superheat, 1), vapour_kg_h=_r(vap, 0),
+                             vapor_superheat_kW=_r(vapor_superheat, 1), crystallisation_kW=_r(crystallisation, 1), crystal_cooling_kW=_r(crystal_cooling, 1), vapour_kg_h=_r(vap, 0),
                              brine_T_C=b["t_brine_C"], bpe_K=b["bpe_K"], body_x_NaCl=b["x_NaCl"],
                              salt_in_kg_h=_r(salt_in, 0), salt_kg_h=_r(salt, 0) if salt is not None else None,
                              crystallising=salt is not None and salt > 0,
