@@ -1,0 +1,614 @@
+{
+ "label": "ultimate-first-pass-screen",
+ "spec": {
+  "feed": {
+   "flow_m3_h": 3605.15408,
+   "TDS_g_L": 37,
+   "boron_g_L": 0.0054,
+   "T_C": 8,
+   "P_bar": 2
+  },
+  "pretreatment": [
+   {
+    "id": "F-101",
+    "type": "media_filter",
+    "dP_bar": 0.3,
+    "recovery": 1,
+    "notes": "hydraulic screen; pressure drop illustrative"
+   },
+   {
+    "id": "CHEM-101",
+    "type": "chemical",
+    "notes": "hypochlorite, SBS, acid and antiscalant; chemistry not simulated"
+   },
+   {
+    "id": "CF-101",
+    "type": "cartridge_filter",
+    "dP_bar": 0.2758,
+    "recovery": 1,
+    "notes": "5 micrometre; clean differential pressure maximum 4 psi"
+   }
+  ],
+  "hp_pump": {
+   "id": "P-201",
+   "efficiency": 0.8,
+   "max_bar": 68.9476
+  },
+  "stages": [
+   {
+    "id": "RO-201",
+    "area_m2_per_element": 37.16,
+    "elements_per_vessel": 7,
+    "vessels": 528,
+    "A_m_per_Pa_s": 2e-12,
+    "B_m_per_s": 1e-08,
+    "max_flux_gfd": 8.75,
+    "max_feed_pressure_bar": 68.9476,
+    "recovery": 0.42,
+    "permeate_P_bar": 1,
+    "resolution": "0D"
+   }
+  ],
+  "energy_recovery": {
+   "id": "ER-201",
+   "type": "PX",
+   "efficiency": 0.95,
+   "booster_pump": {
+    "id": "P-202",
+    "efficiency": 0.75
+   }
+  },
+  "target_TDS_g_L": 0.3,
+  "target_boron_g_L": 0.0005,
+  "min_overall_recovery": 0.42,
+  "posttreatment": {
+   "id": "posttreatment",
+   "notes": "partial second-pass RO, UV, CO2/calcite, NaOH, orthophosphate and chlorine; not simulated"
+  }
+ },
+ "result": {
+  "scale": 1.0,
+  "errors": [],
+  "solve_s": 2.424,
+  "recovery": 0.42,
+  "ro_recovery": 0.42,
+  "feed_pressure_bar": 57.9466,
+  "permeate_TDS_g_L": 0.18218,
+  "boron": "not modelled",
+  "sec_kWh_m3": 2.1151,
+  "flux_lmh_avg": 11.0207,
+  "flux_lmh_lead": 17.2129,
+  "flux_gfd_avg": 6.4942,
+  "pumps_kW": {
+   "HP": 2967.9678,
+   "booster": 234.6788
+  },
+  "streams": {
+   "intake": {
+    "flow_m3_h": 3605.1541,
+    "P_bar": 2.0,
+    "T_C": 8.0,
+    "TDS_g_L": 37.0,
+    "modelled": "feed specification",
+    "boron_g_L": 0.0054
+   },
+   "F-101": {
+    "flow_m3_h": 3605.1541,
+    "P_bar": 1.7,
+    "T_C": 8.0,
+    "TDS_g_L": 37.0,
+    "modelled": "specified pressure drop and recovery; concentration unchanged",
+    "boron_g_L": 0.0054
+   },
+   "CHEM-101": {
+    "flow_m3_h": 3605.1541,
+    "P_bar": 1.7,
+    "T_C": 8.0,
+    "TDS_g_L": 37.0,
+    "modelled": "note only; chemistry is not simulated",
+    "boron_g_L": 0.0054,
+    "notes": "hypochlorite, SBS, acid and antiscalant; chemistry not simulated"
+   },
+   "CF-101": {
+    "flow_m3_h": 3605.1541,
+    "P_bar": 1.4242,
+    "T_C": 8.0,
+    "TDS_g_L": 37.0,
+    "modelled": "specified pressure drop and recovery; concentration unchanged",
+    "boron_g_L": 0.0054
+   },
+   "hp_suction": {
+    "flow_m3_h": 3605.1541,
+    "P_bar": 1.4242,
+    "T_C": 8.0,
+    "TDS_g_L": 37.0
+   },
+   "hp_discharge": {
+    "flow_m3_h": 3605.1541,
+    "P_bar": 57.9466,
+    "T_C": 8.0,
+    "TDS_g_L": 37.0
+   },
+   "RO-201_permeate": {
+    "flow_m3_h": 1514.1647,
+    "P_bar": 1.0,
+    "T_C": 8.0,
+    "TDS_g_L": 0.18218
+   },
+   "RO-201_concentrate": {
+    "flow_m3_h": 2092.8777,
+    "P_bar": 57.7345,
+    "T_C": 8.0,
+    "TDS_g_L": 63.60374
+   },
+   "brine": {
+    "flow_m3_h": 2092.8777,
+    "P_bar": 1.4242,
+    "T_C": 8.0,
+    "TDS_g_L": 63.60374
+   },
+   "permeate": {
+    "flow_m3_h": 1514.1647,
+    "P_bar": 1.0,
+    "T_C": 8.0,
+    "TDS_g_L": 0.18218
+   }
+  },
+  "stages": [
+   {
+    "id": "RO-201",
+    "area_m2": 137343.36,
+    "recovery": 0.42,
+    "feed_pressure_bar": 57.9466,
+    "flux_lmh_avg": 11.0207,
+    "flux_gfd_avg": 6.4942,
+    "flux_lmh_lead": 17.2129,
+    "flux_gfd_lead": 10.1431,
+    "resolution": "0D",
+    "permeate_TDS_g_L": 0.18218,
+    "concentrate_m3_h": 2092.8777
+   }
+  ],
+  "checks": [
+   {
+    "id": "RO-201",
+    "check": "minimum recovery vs design",
+    "value": 0.42,
+    "limit": 0.42,
+    "unit": "fraction",
+    "utilisation": 1.0
+   },
+   {
+    "id": "plant",
+    "check": "overall recovery vs minimum",
+    "value": 0.42,
+    "limit": 0.42,
+    "unit": "fraction",
+    "utilisation": 1.0
+   },
+   {
+    "id": "RO-201",
+    "check": "feed pressure vs max",
+    "value": 57.9466,
+    "limit": 68.9476,
+    "unit": "bar",
+    "utilisation": 0.84
+   },
+   {
+    "id": "P-201",
+    "check": "discharge pressure vs max",
+    "value": 57.9466,
+    "limit": 68.9476,
+    "unit": "bar",
+    "utilisation": 0.84
+   },
+   {
+    "id": "RO-201",
+    "check": "average flux vs max",
+    "value": 11.0207,
+    "limit": 14.8488,
+    "unit": "LMH",
+    "utilisation": 0.742
+   },
+   {
+    "id": "permeate",
+    "check": "permeate TDS vs target",
+    "value": 0.1822,
+    "limit": 0.3,
+    "unit": "g/L",
+    "utilisation": 0.607
+   }
+  ],
+  "not_modelled": [
+   "boron is in the feed but B_boron_m_per_s is not set on every stage, so boron passage is not modelled",
+   "per-element flux profile (0D reports feed-end flux as the lead value and the length-averaged flux; set resolution to 1D to discretize the vessel)",
+   "pretreatment chemistry (filters are a specified pressure drop and recovery; chemical steps are notes)",
+   "post-treatment reactions (stored as notes)"
+  ],
+  "notes": {
+   "chemicals": [
+    {
+     "id": "CHEM-101",
+     "notes": "hypochlorite, SBS, acid and antiscalant; chemistry not simulated"
+    }
+   ],
+   "posttreatment": "partial second-pass RO, UV, CO2/calcite, NaOH, orthophosphate and chlorine; not simulated",
+   "pretreatment": "specified pressure drop and recovery at constant concentration",
+   "flux_lead": "feed-end flux of the membrane channel"
+  }
+ },
+ "mapping": [
+  {
+   "tag": "WF-101",
+   "modelled_as": "feed",
+   "source": "RFP pp. 331, 428"
+  },
+  {
+   "tag": "MX-101",
+   "modelled_as": "F-101",
+   "source": "grouped pretreatment hydraulic block; RFP pp. 338-342"
+  },
+  {
+   "tag": "F-101",
+   "modelled_as": "F-101",
+   "source": "grouped pretreatment hydraulic block; RFP pp. 338-342"
+  },
+  {
+   "tag": "T-101",
+   "modelled_as": "F-101",
+   "source": "grouped pretreatment hydraulic block; RFP pp. 338-342"
+  },
+  {
+   "tag": "P-101",
+   "modelled_as": "F-101",
+   "source": "grouped pretreatment hydraulic block; RFP pp. 338-342"
+  },
+  {
+   "tag": "CF-101",
+   "modelled_as": "CF-101",
+   "source": "RFP p. 345"
+  },
+  {
+   "tag": "P-201",
+   "modelled_as": "P-201",
+   "source": "RFP p. 348"
+  },
+  {
+   "tag": "RO-201",
+   "modelled_as": "RO-201",
+   "source": "RFP pp. 346-347"
+  },
+  {
+   "tag": "ER-201",
+   "modelled_as": "ER-201",
+   "source": "RFP p. 350"
+  },
+  {
+   "tag": "P-202",
+   "modelled_as": "P-202",
+   "source": "RFP p. 350"
+  },
+  {
+   "tag": "P-301",
+   "modelled_as": "posttreatment",
+   "source": "documented downstream block; note only"
+  },
+  {
+   "tag": "RO-301",
+   "modelled_as": "posttreatment",
+   "source": "documented downstream block; note only"
+  },
+  {
+   "tag": "UV-401",
+   "modelled_as": "posttreatment",
+   "source": "documented downstream block; note only"
+  },
+  {
+   "tag": "CC-401",
+   "modelled_as": "posttreatment",
+   "source": "documented downstream block; note only"
+  },
+  {
+   "tag": "T-501",
+   "modelled_as": "posttreatment",
+   "source": "documented downstream block; note only"
+  },
+  {
+   "tag": "P-501",
+   "modelled_as": "posttreatment",
+   "source": "documented downstream block; note only"
+  },
+  {
+   "tag": "B-601",
+   "modelled_as": "brine",
+   "source": "RFP pp. 358-359"
+  },
+  {
+   "tag": "P-601",
+   "modelled_as": "brine",
+   "source": "RFP pp. 358-359"
+  },
+  {
+   "tag": "W-201",
+   "modelled_as": "F-101",
+   "source": "filter washwater grouped with pretreatment; RFP pp. 340-341"
+  }
+ ],
+ "calibration": [],
+ "assumptions": [
+  "Cold/salty design corner is 8 C and 37 PSS from RFP p. 428.",
+  "Nine first-pass trains are installed at ultimate capacity; eight are online with one train out. The aggregate area is 8 x 66 vessels x 7 elements x 37.16 m2; 66 vessels per train is an ILLUSTRATIVE flux-cap screen, not an RFP vessel count.",
+  "At scale 1.0 the aggregate feed corresponds to 9.6 MGD first-pass permeate; the 12.8 MGD question is scale 1.333333 with all eight duty trains.",
+  "A=2e-12 m/Pa/s, B=1e-8 m/s and booster efficiency 75% are ILLUSTRATIVE; HP efficiency 80%, PX efficiency 95%, recovery 42%, maximum average flux 8.75 gfd and maximum pressure 1000 psi are from the RFP.",
+  "Partial second pass and its concentrate recycle are omitted because the RFP gives no membrane transport projection. Boron passage is not modelled; the result proves only the first-pass hydraulic screen."
+ ],
+ "model": "deterministic WaterTAP screening",
+ "engine": "watertap",
+ "coverage": {
+  "engine": "watertap",
+  "modelled": [
+   {
+    "id": "feed",
+    "kind": "feed/intake",
+    "modelled": true,
+    "how": "feed specification"
+   },
+   {
+    "id": "F-101",
+    "kind": "pretreatment",
+    "modelled": true,
+    "how": "specified pressure drop and recovery; concentration unchanged"
+   },
+   {
+    "id": "CF-101",
+    "kind": "pretreatment",
+    "modelled": true,
+    "how": "specified pressure drop and recovery; concentration unchanged"
+   },
+   {
+    "id": "P-201",
+    "kind": "HP pump",
+    "modelled": true,
+    "how": "WaterTAP pump"
+   },
+   {
+    "id": "RO-201",
+    "kind": "first-pass stage/train",
+    "modelled": true,
+    "how": "WaterTAP RO stage"
+   },
+   {
+    "id": "ER-201",
+    "kind": "energy recovery",
+    "modelled": true,
+    "how": "WaterTAP px"
+   },
+   {
+    "id": "P-202",
+    "kind": "booster pump",
+    "modelled": true,
+    "how": "WaterTAP booster"
+   },
+   {
+    "id": "permeate",
+    "kind": "product path",
+    "modelled": true,
+    "how": "permeate outlet"
+   },
+   {
+    "id": "brine",
+    "kind": "concentrate path",
+    "modelled": true,
+    "how": "concentrate outlet"
+   }
+  ],
+  "mappings": [
+   {
+    "tag": "WF-101",
+    "modelled_as": "feed",
+    "source": "RFP pp. 331, 428",
+    "grouped": true,
+    "note_only": false
+   },
+   {
+    "tag": "MX-101",
+    "modelled_as": "F-101",
+    "source": "grouped pretreatment hydraulic block; RFP pp. 338-342",
+    "grouped": true,
+    "note_only": false
+   },
+   {
+    "tag": "F-101",
+    "modelled_as": "F-101",
+    "source": "grouped pretreatment hydraulic block; RFP pp. 338-342",
+    "grouped": true,
+    "note_only": false
+   },
+   {
+    "tag": "T-101",
+    "modelled_as": "F-101",
+    "source": "grouped pretreatment hydraulic block; RFP pp. 338-342",
+    "grouped": true,
+    "note_only": false
+   },
+   {
+    "tag": "P-101",
+    "modelled_as": "F-101",
+    "source": "grouped pretreatment hydraulic block; RFP pp. 338-342",
+    "grouped": true,
+    "note_only": false
+   },
+   {
+    "tag": "CF-101",
+    "modelled_as": "CF-101",
+    "source": "RFP p. 345",
+    "grouped": true,
+    "note_only": false
+   },
+   {
+    "tag": "P-201",
+    "modelled_as": "P-201",
+    "source": "RFP p. 348",
+    "grouped": true,
+    "note_only": false
+   },
+   {
+    "tag": "RO-201",
+    "modelled_as": "RO-201",
+    "source": "RFP pp. 346-347",
+    "grouped": true,
+    "note_only": false
+   },
+   {
+    "tag": "ER-201",
+    "modelled_as": "ER-201",
+    "source": "RFP p. 350",
+    "grouped": true,
+    "note_only": false
+   },
+   {
+    "tag": "P-202",
+    "modelled_as": "P-202",
+    "source": "RFP p. 350",
+    "grouped": true,
+    "note_only": false
+   },
+   {
+    "tag": "P-301",
+    "modelled_as": "posttreatment",
+    "source": "documented downstream block; note only",
+    "grouped": true,
+    "note_only": true
+   },
+   {
+    "tag": "RO-301",
+    "modelled_as": "posttreatment",
+    "source": "documented downstream block; note only",
+    "grouped": true,
+    "note_only": true
+   },
+   {
+    "tag": "UV-401",
+    "modelled_as": "posttreatment",
+    "source": "documented downstream block; note only",
+    "grouped": true,
+    "note_only": true
+   },
+   {
+    "tag": "CC-401",
+    "modelled_as": "posttreatment",
+    "source": "documented downstream block; note only",
+    "grouped": true,
+    "note_only": true
+   },
+   {
+    "tag": "T-501",
+    "modelled_as": "posttreatment",
+    "source": "documented downstream block; note only",
+    "grouped": true,
+    "note_only": true
+   },
+   {
+    "tag": "P-501",
+    "modelled_as": "posttreatment",
+    "source": "documented downstream block; note only",
+    "grouped": true,
+    "note_only": true
+   },
+   {
+    "tag": "B-601",
+    "modelled_as": "brine",
+    "source": "RFP pp. 358-359",
+    "grouped": true,
+    "note_only": false
+   },
+   {
+    "tag": "P-601",
+    "modelled_as": "brine",
+    "source": "RFP pp. 358-359",
+    "grouped": true,
+    "note_only": false
+   },
+   {
+    "tag": "W-201",
+    "modelled_as": "F-101",
+    "source": "filter washwater grouped with pretreatment; RFP pp. 340-341",
+    "grouped": true,
+    "note_only": false
+   }
+  ],
+  "notes": [
+   {
+    "id": "CHEM-101",
+    "kind": "pretreatment chemical",
+    "modelled": false,
+    "how": "note only; chemistry is not simulated",
+    "notes": "hypochlorite, SBS, acid and antiscalant; chemistry not simulated"
+   },
+   {
+    "id": "posttreatment",
+    "kind": "post-treatment",
+    "modelled": false,
+    "how": "documented note only; chemistry is not simulated",
+    "notes": "partial second-pass RO, UV, CO2/calcite, NaOH, orthophosphate and chlorine; not simulated"
+   }
+  ],
+  "intentionally_not_simulated": [
+   {
+    "id": "CHEM-101",
+    "kind": "pretreatment chemical",
+    "modelled": false,
+    "how": "note only; chemistry is not simulated",
+    "notes": "hypochlorite, SBS, acid and antiscalant; chemistry not simulated"
+   },
+   {
+    "id": "posttreatment",
+    "kind": "post-treatment",
+    "modelled": false,
+    "how": "documented note only; chemistry is not simulated",
+    "notes": "partial second-pass RO, UV, CO2/calcite, NaOH, orthophosphate and chlorine; not simulated"
+   }
+  ],
+  "unsupported_physics": [
+   "boron passage (feed has boron but B_boron_m_per_s is missing on a stage)"
+  ],
+  "missing_equipment": [],
+  "missing_connections": [],
+  "connections": []
+ },
+ "read_corrections": [],
+ "seconds": 2.424,
+ "cost_usd": 0.0,
+ "at": "2026-10-30T17:18:27+0300",
+ "review": {
+  "status": "ok",
+  "findings": [
+   {
+    "severity": "warn",
+    "check": "boron not modelled",
+    "evidence": "Boron is not modelled (missing B_boron_m_per_s or boron is absent from the solve). Do not invent a boron value; report_gap if a boron limit is required."
+   }
+  ],
+  "blocking": 0,
+  "energy": {
+   "method": "watertap",
+   "tolerance": 0.02,
+   "note": "RO mass/volume balance on m3/h streams."
+  }
+ },
+ "review_status": "ok",
+ "gaps": [
+  {
+   "what": "finished-water boron and partial second-pass performance",
+   "why": "The RFP requires partial second-pass treatment and 0.5 mg/L average boron, but supplies no membrane boron permeability or vendor projection. WaterTAP second-pass screening did not converge without inventing those inputs.",
+   "needed": "vendor first/second-pass projection with boron transport, pH and second-pass concentrate disposition",
+   "phase": "build"
+  },
+  {
+   "what": "vendor-confirmed first-pass vessel count and membrane permeability",
+   "why": "The RFP states flux, recovery, pressure and element area but not the selected vessel count or A/B transport coefficients.",
+   "needed": "bidder membrane projection and selected array",
+   "phase": "build"
+  }
+ ]
+}

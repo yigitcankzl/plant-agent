@@ -40,6 +40,9 @@ SPEC_HELP = {
              "evaporator: in, vapor, liquid, P_bar (body pressure), evap_frac (fraction of the inlet boiled off), heating [in, out] "
              "(steam that condenses fully), U_W_m2K, area_m2, optional feed_x_NaCl (feed NaCl mass fraction; default saturated at feed T), "
              "x_NaCl (body concentration; omit for saturation). The Water stand-in inlet kg/h is TOTAL feed brine, not water alone. "
+             "For a closed forced-circulation loop, net_feed and net_liquid name the fresh feed and net liquid product streams used "
+             "for the salt and sensible-heat balance; in and liquid remain the full circulating streams. Optional "
+             "heat_balance_tolerance_pct defaults to 2; raise it only to a documented model-closure tolerance, never as equipment headroom. "
              "Reports salt_in_kg_h, salt_kg_h (zero when non-crystallising), crystallising, water_evaporated_per_t_salt, "
              "bpe_K and sensible_correction_kW. With feed_x_NaCl and heating, evap_frac is a maximum: available steam heat "
              "can lower boil-up. The simple water stand-in uses Steam Tables (IAPWS-IF97); brine cp corrects feed sensible heat, "
@@ -72,7 +75,8 @@ SPEC_HELP = {
              "A wrong class or property raises an error that lists the valid names. No arbitrary reflection. "
              "Reactions, feed stage and column specs are not generic properties: use reactor and distillation for those. "
              "recycle: in (the calculated return stream), out (the tear stream used upstream, e.g. into a mixer), guess "
-             "{T_C, kg_h} (closes recirculation loops). Streams are created by name the first time they appear. Model EVERY "
+             "{T_C, P_bar, kg_h, x} (closes recirculation loops); guess_scales: true scales that initial tear value during "
+             "capacity search. Streams are created by name the first time they appear. Model EVERY "
              "connection on the P&ID that carries process flow (recirculation loops included) or say why it is excluded.",
     "limits": "{unit or stream id: {max_m3_h, min_m3_h (pump minimum continuous flow), max_kW (pump or compressor motor), max_kg_h (compressor suction capacity), max_discharge_C (compressor), max_head_m, npshr_m, "
               "psv_set_barg (relief valve on the pump discharge: discharge must stay below 90 % of set), area_m2 (installed HX "
@@ -637,7 +641,8 @@ class _Sheet:
             g = u.get("guess") or {}
             ref = next((f for f in self.spec.get("feeds", {}).values() if not f.get("utility")), {})
             self._feed(tear, {"T_C": g.get("T_C", ref.get("T_C", 25)), "P_bar": g.get("P_bar", ref.get("P_bar", 1.5)),
-                              "kg_h": g.get("kg_h", ref.get("kg_h") or float(ref.get("m3_h", 1)) * 1000), "x": g.get("x", ref.get("x", {}))}, 1.0)
+                              "kg_h": g.get("kg_h", ref.get("kg_h") or float(ref.get("m3_h", 1)) * 1000), "x": g.get("x", ref.get("x", {}))},
+                       self.scale if u.get("guess_scales") else 1.0)
             self._link(self.stream(u["in"]), r); self._link(r, tear)
             r.MaximumIterations = 300
             return r
@@ -930,12 +935,18 @@ class _Sheet:
                 elif t == "evaporator":
                     from . import brine
                     vap = self.streams[u["vapor"]].GetMassFlow() * 3600
-                    feed = self.streams[u["in"]]
+                    feed_name = u.get("net_feed") or u["in"]
+                    liquid_name = u.get("net_liquid") or u["liquid"]
+                    if feed_name not in self.streams or liquid_name not in self.streams:
+                        missing = feed_name if feed_name not in self.streams else liquid_name
+                        r["error"] = f"balance stream {missing} does not exist"
+                        continue
+                    feed = self.streams[feed_name]
                     feed_kg_h = feed.GetMassFlow() * 3600
                     feed_t = feed.GetTemperature() - 273.15
                     feed_x = float(u["feed_x_NaCl"]) if u.get("feed_x_NaCl") is not None else brine.x_sat(feed_t)
                     salt_in = feed_kg_h * feed_x
-                    liquid_kg_h = self.streams[u["liquid"]].GetMassFlow() * 3600
+                    liquid_kg_h = self.streams[liquid_name].GetMassFlow() * 3600
                     b = brine.bpe(float(u["P_bar"]), float(u["x_NaCl"]) if u.get("x_NaCl") is not None else None)
                     body_x = min(b["x_NaCl"], salt_in / liquid_kg_h) if liquid_kg_h else b["x_NaCl"]
                     if body_x < b["x_NaCl"]:
@@ -1152,8 +1163,9 @@ def _checks(sheet, res):
             elif (u.get("boil_kW") or 0) > 0:
                 add("heater area needed (BPE included) vs installed", u.get("area_needed_m2"), u.get("area_m2"), "m2")
             if u.get("heat_balance_kW") is not None and (u["boil_kW"] or 0) > 0 and not u.get("error"):
-                # ponytail: 2 % energy-closure tolerance (feed preheat, losses); a real shortfall is far larger
-                add("boil-up duty vs heat from the heating steam (2 % closure tolerance)", u["boil_kW"], u["heating_kW"] * 1.02, "kW")
+                tolerance = float(sheet.units[key][0].get("heat_balance_tolerance_pct", 2))
+                add(f"boil-up duty vs heat from the heating steam ({tolerance:g} % closure tolerance)",
+                    u["boil_kW"], u["heating_kW"] * (1 + tolerance / 100), "kW")
         if u and u["type"] == "compressor":
             add("suction flow vs capacity", (res["streams"].get(sheet.units[key][0]["in"]) or {}).get("kg_h"), lim.get("max_kg_h"), "kg/h")
             add("shaft power vs motor", u["kW"], lim.get("max_kW"), "kW")

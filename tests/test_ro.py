@@ -110,9 +110,9 @@ class RoTests(unittest.TestCase):
         }
         base = ro.run(spec)
         self.assertFalse(base.get("errors"), base)
-        lead = base["flux_lmh_lead"]
-        self.assertGreater(lead, 1)
-        spec["stages"][0]["max_flux_lmh"] = round(lead * 1.2, 4)
+        average = base["flux_lmh_avg"]
+        self.assertGreater(average, 1)
+        spec["stages"][0]["max_flux_lmh"] = round(average * 1.2, 4)
         cap = ro.capacity(spec)
         self.assertFalse(cap.get("errors"), cap)
         self.assertGreater(cap["capacity_multiple"], 1.05)
@@ -120,6 +120,11 @@ class RoTests(unittest.TestCase):
         self.assertIn("flux", cap["limited_by"]["check"])
         self.assertGreater(cap["limited_by"]["utilisation"], 0.95)
         self.assertLessEqual(cap["limited_by"]["utilisation"], 1.0)
+
+    def test_minimum_check_marks_zero_recovery_over_limit(self):
+        checks = []
+        ro._add_check(checks, "plant", "overall recovery vs minimum", 0, 0.6, "fraction", higher_is_worse=False)
+        self.assertGreater(checks[0]["utilisation"], 1)
 
     def test_normalize_hand_example(self):
         actual = {"Q_permeate": 80, "T_C": 20, "P_feed": 40, "dP": 2, "P_permeate": 1,
@@ -292,12 +297,27 @@ class RoTests(unittest.TestCase):
 
     def test_boron_gap_is_honest(self):
         spec = _tiny_spec()
+        spec["target_boron_g_L"] = 0.0005
         result = _ok_result(spec)
         review = review_ro(spec, result, assumptions=["one train out", "second pass omitted"])
         boron = next(f for f in review["findings"] if f["check"] == "boron not modelled")
         self.assertEqual(boron["severity"], "warn")
         self.assertIn("not modelled", boron["evidence"].casefold())
         self.assertNotIn("mg/L", boron["evidence"])
+
+    def test_boron_gap_is_not_reported_when_the_project_has_no_boron_requirement(self):
+        review = review_ro(_tiny_spec(), _ok_result(_tiny_spec()),
+                           assumptions=["one train out", "second pass omitted"])
+        self.assertFalse(any(f["check"] == "boron not modelled" for f in review["findings"]))
+
+    def test_failing_baseline_keeps_over_limit_as_an_explicit_warning(self):
+        spec = _tiny_spec(failing_baseline=True)
+        result = _ok_result(spec)
+        result["checks"][0]["utilisation"] = 1.2
+        review = review_ro(spec, result, assumptions=["one train out", "second pass omitted", "failing baseline"])
+        finding = next(f for f in review["findings"] if f["check"] == "failing-baseline limit")
+        self.assertEqual(finding["severity"], "warn")
+        self.assertIn("not a passing design", finding["evidence"])
 
     def test_ro_coverage_notes_posttreatment(self):
         spec = _tiny_spec()
@@ -322,6 +342,38 @@ class RoTests(unittest.TestCase):
         review = review_ro(spec, result, assumptions=["one train online", "no second pass"])
         self.assertFalse(any(f["check"] == "mass balance" and f["severity"] == "block" for f in review["findings"]),
                          review)
+
+    def test_watertap_state_replays_when_watertap_is_unavailable(self):
+        ws = _ws("watertap")
+        spec, result = _tiny_spec(), _ok_result(_tiny_spec())
+        ws.built = {"label": "design", "spec": spec, "result": result, "engine": "watertap"}
+        ws.model_file = Path(tempfile.mkdtemp()) / "model.json"
+        ws.model_file.write_text("{}")
+        ws.model_file.with_name("states.json").write_text(json.dumps({"spec": spec, "capacity": {},
+            "engine": "watertap", "states": [{"scale": 1.0, **result}]}))
+        with mock.patch.object(ro, "available", return_value=False), \
+             mock.patch.object(process, "available", return_value=True), \
+             mock.patch.object(ro, "run", side_effect=AssertionError("must replay")):
+            self.assertTrue(ws.state(1.2)["replayed"])
+
+    def test_turbine_motor_check_uses_recovered_shaft_power(self):
+        _watertap()
+        spec = _tiny_spec(energy_recovery={"type": "turbine", "efficiency": 0.85})
+        result = ro.run(spec)
+        self.assertFalse(result.get("errors"), result)
+        check = next(c for c in result["checks"] if "after turbine recovery" in c["check"])
+        self.assertAlmostEqual(check["value"], result["pumps_kW"]["HP"] + result["pumps_kW"]["turbine"], places=3)
+        self.assertAlmostEqual(result["streams"]["hp_discharge"]["TDS_g_L"], spec["feed"]["TDS_g_L"], places=2)
+        self.assertAlmostEqual(result["streams"]["brine"]["TDS_g_L"],
+                               result["streams"]["RO-1_concentrate"]["TDS_g_L"], places=3)
+
+    def test_aggregate_train_can_exceed_watertap_default_area_bound(self):
+        _watertap()
+        spec = _tiny_spec(feed={"flow_m3_h": 3600, "TDS_g_L": 37, "T_C": 8, "P_bar": 2})
+        spec["hp_pump"].pop("P_out_bar")
+        spec["stages"][0].update(area_m2=110000, vessels=440, recovery=0.42)
+        result = ro.run(spec)
+        self.assertFalse(result.get("errors"), result)
 
 
 if __name__ == "__main__":

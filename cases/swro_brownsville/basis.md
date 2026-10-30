@@ -26,6 +26,11 @@ Seawater RO: six parallel trains, 5 MGD permeate each, two stages, six-element p
 
 Energy recovery selected in the screening is a Pelton wheel, one turbine per seawater train. The positive-displacement work exchanger was the other alternative and was not the preferred selection (2004 PDF p.145). Without energy recovery the study says each seawater high-pressure pump would be about 4,000 HP (2004 PDF p.143).
 
+The conceptual-design pump for each seawater train is approximately 1,100 psig with a 2,900 HP variable-speed motor (2004 PDF p.197).
+The mechanically coupled Pelton turbine contributes shaft work and is described as reducing electrical demand by about
+33 percent (2004 PDF p.197). A motor check must therefore compare the motor with pump shaft demand net of the turbine,
+not with the gross pump duty before recovered shaft work.
+
 Second pass: two brackish trains, one of them spare. Each is rated for about 11.1 MGD of feed at the required pressure, with a 300 HP variable-speed drive. Recovery is about 90 percent. Concentrate is recycled ahead of the seawater trains so the composite recovery stays about 60 percent (2004 PDF p.195 and p.196).
 
 Stabilization is intended to add about 40 mg/L of calcium. Both pebble lime and calcite filters were screened (2004 PDF p.144 and p.109). The study does not pick a finished-water boron limit in the pages used here.

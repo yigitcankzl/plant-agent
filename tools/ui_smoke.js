@@ -43,10 +43,10 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   console.log(readableAnswer ? 'ok  ' : 'FAIL', 'result inspector uses stacked field checks and proposal actions');
   bad += readableAnswer ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
-  const blockedIsReadOnly = await p.evaluate(() => Number(P?.built?.review?.blocking || 0) > 0 &&
-    !document.querySelector('#answers .prop-actions') && ![...document.querySelectorAll('button')].some(b => /decision file/i.test(b.textContent)));
-  console.log(blockedIsReadOnly ? 'ok  ' : 'FAIL', 'blocked model cannot apply proposals or issue a pack');
-  bad += blockedIsReadOnly ? 0 : 1;
+  const saltReady = await p.evaluate(() => Number(P?.built?.review?.blocking || 0) === 0 &&
+    Number(P?.capacity?.capacity_multiple || 0) >= 1);
+  console.log(saltReady ? 'ok  ' : 'FAIL', 'salt model review and replayed capacity');
+  bad += saltReady ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
   const viewport = p.locator('#pidViewport'), before = await p.locator('#sheet').evaluate(e => new DOMMatrix(getComputedStyle(e).transform).a);
   const bounds = await viewport.boundingBox();

@@ -1027,14 +1027,17 @@ def review_ro(spec, result, pid_ov=None, basis="", mapping=None, assumptions=Non
                 "block", "check not finite",
                 f"{c.get('id')} {c.get('check')} has non-finite value/limit/utilisation.",
                 [c.get("id")] if c.get("id") else None))
-        elif float(c["utilisation"]) > 1.0 and not failing:
+        elif float(c["utilisation"]) > 1.0:
             findings.append(_finding(
-                "block", "check over 100%",
-                f"{c.get('id')} {c.get('check')} utilisation is {c['utilisation']} at the design condition.",
+                "warn" if failing else "block", "failing-baseline limit" if failing else "check over 100%",
+                f"{c.get('id')} {c.get('check')} utilisation is {c['utilisation']} at the design condition."
+                + (" This is retained as a documented failing baseline, not a passing design." if failing else ""),
                 [c.get("id")] if c.get("id") else None))
     boron = result.get("boron")
     not_mod = " ".join(str(x) for x in result.get("not_modelled") or []).casefold()
-    if boron == "not modelled" or "boron" in not_mod:
+    feed_boron = feed.get("boron_g_L") is not None or any(
+        str(k).lower() in ("b", "boron", "boric") for k in (feed.get("ions") or feed.get("ion_table") or {}))
+    if (spec.get("target_boron_g_L") is not None or feed_boron) and (boron == "not modelled" or "boron" in not_mod):
         findings.append(_finding(
             "warn", "boron not modelled",
             "Boron is not modelled (missing B_boron_m_per_s or boron is absent from the solve). "
@@ -2199,8 +2202,9 @@ class PlantWorkspace(Study):
         if key not in self._state:
             demo = self._demo()
             hit = demo and demo["spec"] == self.spec and min(abs(st["scale"] - scale) for st in demo["states"]) < 0.006
-            if hit or (demo and demo["spec"] == self.spec and not process.available()):
-                # stored DWSIM solutions of this exact model: instant first load, and a clean clone works without DWSIM
+            simulator_available = ro.available() if _is_watertap(self.cfg) else process.available()
+            if hit or (demo and demo["spec"] == self.spec and not simulator_available):
+                # stored simulator solutions of this exact model: instant first load and clean-clone replay
                 near = min(demo["states"], key=lambda st: abs(st["scale"] - scale))
                 self._state[key] = {**near, "replayed": True}
             elif _is_watertap(self.cfg):

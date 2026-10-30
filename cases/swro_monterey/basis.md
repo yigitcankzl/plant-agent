@@ -103,6 +103,11 @@ First-pass RO (RFP PDF p.346 and p.347):
 
 The number of vessels and elements is not stated. (ILLUSTRATIVE) screening at the flux cap, not a design: 1.6 MGD is 1,600,000 gpd; divided by 8.75 gfd that is 182,857 square feet; divided by 400 square feet that is 458 elements; at 7 per vessel that is 66 vessels. A real design will use a lower flux and a different count.
 
+The RFP gives one maximum membrane flux rate for the first-pass train; it does not give a separate lead-element flux
+limit (RFP PDF p.346). The WaterTAP screen therefore compares 8.75 gfd with train-average permeate flow divided by
+installed membrane area. Feed-end flux is still reported as diagnostic output, but is not checked against an invented
+second limit.
+
 Second pass: at least 40 percent of first-pass permeate, or a complete second pass (RFP PDF p.343). Maximum recovery 90 percent, maximum flux 18 gfd, at most 7 elements per vessel, brackish elements at least 99.0 percent rejection, feed pH at most 10. Caustic is dosed to raise pH for boron removal (RFP PDF p.347). One VFD feed pump per second-pass train, minimum efficiency 70 percent (RFP PDF p.349, printed 2-22). Sodium hydroxide, 50 percent, specific gravity 1.4: second-pass dose 5 / 10 / 20 mg/L and finished-water dose 2 / 3 / 5 mg/L (RFP PDF p.381, printed 2-54).
 
 UV is downstream of the membranes and upstream of stabilization. Case 1 is the basis of design: 2-log Cryptosporidium from UV on top of 2-log from RO, toward 4-log Cryptosporidium, 5-log Giardia and 6-log virus. Reactors are N+1, previously validated, minimum UVT 95 percent, maximum flow at least 11.2 MGD for the 9.6 MGD design. A required alternative deletes UV if the regulator agrees (RFP PDF p.364 and p.365).

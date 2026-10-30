@@ -696,8 +696,15 @@ function render(st) {
   sheet.querySelectorAll('.c-ok,.c-warn,.c-fail').forEach(e => e.classList.remove('c-ok', 'c-warn', 'c-fail'));
   const svgEl = sheet.querySelector('svg');
   const box = sheet.getBoundingClientRect();
+  const tagById = Object.fromEntries((P.built.coverage?.mappings || []).map(m => [m.modelled_as, m.tag]));
+  const drawingRows = {};
   for (const c of rows) {
-    const g = sheet.querySelector(`[data-tag="${CSS.escape(c.id)}"]`);
+    const tag = tagById[c.id] || c.id;
+    if (!drawingRows[tag] || c.utilisation > drawingRows[tag].utilisation) drawingRows[tag] = c;
+  }
+  const placedBadges = [];
+  for (const [tag, c] of Object.entries(drawingRows)) {
+    const g = sheet.querySelector(`[data-tag="${CSS.escape(tag)}"]`);
     if (!g) continue;
     if (g.tagName.toLowerCase() === 'g' && svgEl) {  // a DEXPI group also holds its datasheet table: colour the symbol only
       const sr = svgEl.getBoundingClientRect(), cut = sr.top + sr.height * .72;
@@ -709,9 +716,17 @@ function render(st) {
     const b = document.createElement('div');
     b.className = 'badge ' + sev(c.utilisation);
     b.style.left = ((r.left + r.width / 2 - box.left) / V.scale) + 'px';
-    b.style.top = ((r.top - box.top - 4) / V.scale) + 'px';
-    b.innerHTML = `${esc(c.id)} ${Math.round(c.utilisation * 100)}%`;
+    let badgeTop = (r.top - box.top - 4) / V.scale;
+    b.style.top = badgeTop + 'px';
+    b.innerHTML = `${esc(tag)} ${Math.round(c.utilisation * 100)}%`;
     sheet.appendChild(b);
+    for (let i = 0; i < 5; i++) {
+      const br = b.getBoundingClientRect();
+      if (!placedBadges.some(p => br.left < p.right && br.right > p.left && br.top < p.bottom && br.bottom > p.top)) break;
+      badgeTop -= (br.height + 4) / V.scale;
+      b.style.top = badgeTop + 'px';
+    }
+    placedBadges.push(b.getBoundingClientRect());
   }
   placeDraftNotes();
   const top = rows[0], cap = P.capacity;

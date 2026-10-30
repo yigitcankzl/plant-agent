@@ -76,6 +76,21 @@ Results on the two process cases (`runs/ws/*/second_opinion_answer.json`):
 
 Neither model is always right. The value is in the disagreements the engineer is shown.
 
+### Seawater RO screens
+
+The two SWRO workspaces use WaterTAP and committed replay states; neither result is a vendor membrane design.
+
+- **Monterey:** the ultimate arrangement is screened as nine installed first-pass trains, eight online with one out.
+  At 12.8 MGD, 8 C and 37 PSS, the aggregate first pass solves at 8.66 gfd average flux against the RFP's 8.75 gfd
+  maximum and 64.36 bar against 68.95 bar maximum. Average membrane flux is first at its limit at 1.348 times the
+  9.6 MGD base. The answer remains provisional: partial second-pass performance and boron passage are not claimed
+  because the RFP has no selected membrane transport projection.
+- **Brownsville:** the illustrative membrane area and transport coefficients are calibrated at the study's average
+  75 F / 36,100 mg/L condition to 60.5% recovery and 0.382 g/L first-pass TDS. The same array at the requested
+  60 F / 49,000 mg/L corner and approximately 1,100 psig reaches only 47.2% recovery and 0.539 g/L. It is committed
+  as a labelled failing baseline, not made green by changing the documented pressure or recovery. A vendor/pilot
+  projection and a coupled second-pass recycle are required before claiming 25 MGD finished water.
+
 The open model sometimes writes a large tool call as text (`<x:invoke name=...>`) instead of a structured call. The
 agent loop recovers these calls (`study.text_tool_calls`). Before this fix the open model could not finish an answer.
 

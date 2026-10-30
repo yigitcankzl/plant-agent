@@ -27,9 +27,10 @@ SPEC_HELP = (
     "(chemicals are notes; filters are a specified pressure drop and recovery); "
     "hp_pump {efficiency, P_out_bar or omit to solve the pressure that meets the first stage's recovery, max_bar, max_kW}; "
     "stages [{id, area_m2 or area_m2_per_element+elements_per_vessel+vessels, A_m_per_Pa_s and B_m_per_s or membrane, "
-    "max_flux_lmh or max_flux_gfd, max_feed_pressure_bar, min_concentrate_m3_h_per_vessel, recovery, permeate_P_bar, "
+    "max_flux_lmh or max_flux_gfd (train-average membrane flux), optional max_lead_flux_lmh or max_lead_flux_gfd, "
+    "max_feed_pressure_bar, min_concentrate_m3_h_per_vessel, recovery (minimum design recovery), permeate_P_bar, "
     "resolution 0D|1D}]; energy_recovery {type PX|turbine|none, efficiency, booster_pump {efficiency, max_kW}, P_out_bar}; "
-    "second_pass {fraction, hp_pump, stage}; posttreatment notes; target_TDS_g_L. "
+    "second_pass {fraction, hp_pump, stage}; posttreatment notes; target_TDS_g_L; optional min_overall_recovery and target_boron_g_L. "
     "Boron is reported only when the feed includes it and the stage sets B_boron_m_per_s."
 )
 
@@ -228,6 +229,14 @@ def _flux_limit_lmh(stage):
     return None
 
 
+def _lead_flux_limit_lmh(stage):
+    if stage.get("max_lead_flux_lmh") is not None:
+        return float(stage["max_lead_flux_lmh"])
+    if stage.get("max_lead_flux_gfd") is not None:
+        return float(stage["max_lead_flux_gfd"]) * GFD_TO_LMH
+    return None
+
+
 def _prepare(spec, scale):
     feed = spec.get("feed") or spec.get("intake")
     if not feed:
@@ -281,7 +290,8 @@ def _prepare(spec, scale):
             "ion_note": ion_note, "streams": streams, "chemicals": chemicals, "stages": stages, "hp": hp,
             "solve_pressure": hp.get("P_out_bar") is None, "erd": _erd_kind(spec),
             "erd_spec": spec.get("energy_recovery") or {}, "second": spec.get("second_pass"),
-            "target_TDS_g_L": spec.get("target_TDS_g_L"), "post": spec.get("posttreatment")}
+            "target_TDS_g_L": spec.get("target_TDS_g_L"), "target_boron_g_L": spec.get("target_boron_g_L"),
+            "min_overall_recovery": spec.get("min_overall_recovery"), "post": spec.get("posttreatment")}
 
 
 def _boot():
@@ -345,7 +355,12 @@ def _add_ro(fs, name, prop, stage, boron, flow_m3_h):
     unit.feed_side.channel_height.fix(float(stage.get("channel_height_m", 1e-3)))
     unit.feed_side.spacer_porosity.fix(float(stage.get("spacer_porosity", 0.9)))
     unit.permeate.pressure[0].fix(float(stage.get("permeate_P_bar", 1.01325)) * 1e5)
-    unit.width.fix(_width(stage, area, flow_m3_h))
+    width = _width(stage, area, flow_m3_h)
+    if unit.width.ub is not None and width > unit.width.ub:
+        unit.width.setub(width)
+    unit.width.fix(width)
+    if unit.area.ub is not None and area > unit.area.ub:
+        unit.area.setub(area)
     unit.area.fix(area)
     unit.recovery_mass_phase_comp.setlb(None)
     unit.flux_mass_phase_comp.setlb(None)
@@ -630,7 +645,7 @@ def _lmh(ro, mass_flux):
 def _add_check(out, uid, what, observed, limit, unit, higher_is_worse=True):
     if observed is None or limit is None or float(limit) == 0:
         return
-    util = float(observed) / float(limit) if higher_is_worse else float(limit) / float(observed)
+    util = float(observed) / float(limit) if higher_is_worse else (float(limit) / float(observed) if float(observed) else 9.99)
     out.append({"id": uid, "check": what, "value": round(float(observed), 4), "limit": round(float(limit), 4),
                 "unit": unit, "utilisation": round(util, 3)})
 
@@ -641,7 +656,9 @@ def _pack(m, job, solve_s):
     boron = job["boron_g_L"] is not None
     streams = dict(job["streams"])
     streams["hp_suction"] = _prop_stream(m.fs.feed.properties[0], boron)
-    streams["hp_discharge"] = _prop_stream(m.fs.hp.control_volume.properties_out[0], boron)
+    # Report the solved RO inlet. Some pressure-changer outlet concentration auxiliaries retain
+    # their initialization value even though the connected RO state has converged.
+    streams["hp_discharge"] = _prop_stream(m._ros[0].feed_side.properties_in[0], boron)
     stage_rows, checks, first_perms = [], [], []
     for i, (ro, stage) in enumerate(zip(m._ros, job["stages"])):
         xs = sorted({key[1] for key in ro.flux_mass_phase_comp.keys()})
@@ -664,32 +681,38 @@ def _pack(m, job, solve_s):
         flux_lim = _flux_limit_lmh(stage)
         _add_check(checks, sid, "feed pressure vs max", pin, stage.get("max_feed_pressure_bar"), "bar")
         _add_check(checks, sid, "average flux vs max", avg, flux_lim, "LMH")
-        _add_check(checks, sid, "lead-element flux vs max", lead, flux_lim, "LMH")
+        _add_check(checks, sid, "lead-element flux vs local max", lead, _lead_flux_limit_lmh(stage), "LMH")
         if stage.get("vessels") and stage.get("min_concentrate_m3_h_per_vessel") is not None:
             _add_check(checks, sid, "concentrate flow vs minimum per vessel",
                        conc["flow_m3_h"] / float(stage["vessels"]), stage["min_concentrate_m3_h_per_vessel"],
                        "m3/h", higher_is_worse=False)
-        _add_check(checks, sid, "recovery vs design", recovery, stage.get("recovery"), "fraction")
+        _add_check(checks, sid, "minimum recovery vs design", recovery, stage.get("recovery"), "fraction",
+                   higher_is_worse=False)
     # Product/brine blocks close the network, but their intensive properties stay at the initial
     # state. Report the unit states, which the solve actually updated.
     train = first_perms[0] if len(first_perms) == 1 else _blend(first_perms)
+    brine = dict(streams[f"{stage_rows[-1]['id']}_concentrate"])
     if job["erd"] == "pressure_exchanger":
-        brine = _prop_stream(m.fs.px.brine_side.properties_out[0], boron)
+        brine["P_bar"] = _prop_stream(m.fs.px.brine_side.properties_out[0], boron)["P_bar"]
     elif job["erd"] == "pump_as_turbine":
-        brine = _prop_stream(m.fs.erd.control_volume.properties_out[0], boron)
-    else:
-        brine = dict(streams[f"{stage_rows[-1]['id']}_concentrate"])
+        brine["P_bar"] = _prop_stream(m.fs.erd.control_volume.properties_out[0], boron)["P_bar"]
     streams["brine"] = brine
     pumps = {"HP": round(float(value(m.fs.hp.work_mechanical[0])) / 1000.0, 4)}
     _add_check(checks, job["hp"].get("id") or "HP", "discharge pressure vs max",
                streams["hp_discharge"]["P_bar"], job["hp"].get("max_bar"), "bar")
-    _add_check(checks, job["hp"].get("id") or "HP", "shaft power vs motor", pumps["HP"], job["hp"].get("max_kW"), "kW")
     if job["erd"] == "pressure_exchanger":
+        _add_check(checks, job["hp"].get("id") or "HP", "shaft power vs motor",
+                   pumps["HP"], job["hp"].get("max_kW"), "kW")
         pumps["booster"] = round(float(value(m.fs.booster.work_mechanical[0])) / 1000.0, 4)
         boost = job["erd_spec"].get("booster_pump") or {}
         _add_check(checks, "booster", "shaft power vs motor", pumps["booster"], boost.get("max_kW"), "kW")
     elif job["erd"] == "pump_as_turbine":
         pumps["turbine"] = round(float(value(m.fs.erd.work_mechanical[0])) / 1000.0, 4)
+        _add_check(checks, job["hp"].get("id") or "HP", "net shaft power vs motor after turbine recovery",
+                   max(0.0, pumps["HP"] + pumps["turbine"]), job["hp"].get("max_kW"), "kW")
+    else:
+        _add_check(checks, job["hp"].get("id") or "HP", "shaft power vs motor",
+                   pumps["HP"], job["hp"].get("max_kW"), "kW")
     if job["second"]:
         pumps["second_pass"] = round(float(value(m.fs.sp.work_mechanical[0])) / 1000.0, 4)
         sp_hp = job["second"].get("hp_pump") or {}
@@ -704,8 +727,10 @@ def _pack(m, job, solve_s):
         sp_rec = float(value(m.fs.spro.recovery_vol_phase[0, "Liq"]))
         _add_check(checks, sp_stage.get("id") or "RO-2P", "feed pressure vs max", sp_pin, sp_stage.get("max_feed_pressure_bar"), "bar")
         _add_check(checks, sp_stage.get("id") or "RO-2P", "average flux vs max", sp_avg, _flux_limit_lmh(sp_stage), "LMH")
-        _add_check(checks, sp_stage.get("id") or "RO-2P", "lead-element flux vs max", sp_lead, _flux_limit_lmh(sp_stage), "LMH")
-        _add_check(checks, sp_stage.get("id") or "RO-2P", "recovery vs design", sp_rec, sp_stage.get("recovery"), "fraction")
+        _add_check(checks, sp_stage.get("id") or "RO-2P", "lead-element flux vs local max", sp_lead,
+                   _lead_flux_limit_lmh(sp_stage), "LMH")
+        _add_check(checks, sp_stage.get("id") or "RO-2P", "minimum recovery vs design", sp_rec,
+                   sp_stage.get("recovery"), "fraction", higher_is_worse=False)
         sp_perm = _prop_stream(m.fs.spro.mixed_permeate[0], boron)
         streams["second_pass_permeate"] = sp_perm
         streams["second_pass_concentrate"] = _prop_stream(m.fs.spro.feed_side.properties_out[0], boron)
@@ -741,6 +766,9 @@ def _pack(m, job, solve_s):
     post = job["post"]
     post_note = post if isinstance(post, str) else (post or {}).get("notes") if isinstance(post, dict) else None
     _add_check(checks, "permeate", "permeate TDS vs target", product["TDS_g_L"], job["target_TDS_g_L"], "g/L")
+    _add_check(checks, "plant", "overall recovery vs minimum", product["flow_m3_h"] / intake_q,
+               job["min_overall_recovery"], "fraction", higher_is_worse=False)
+    _add_check(checks, "permeate", "boron vs target", product.get("boron_g_L"), job["target_boron_g_L"], "g/L")
     checks.sort(key=lambda c: -c["utilisation"])
     return {"scale": None, "errors": [], "solve_s": round(solve_s, 3),
             "recovery": round(product["flow_m3_h"] / intake_q, 5) if intake_q else None,

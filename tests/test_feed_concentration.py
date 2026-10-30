@@ -1,6 +1,8 @@
 """Feed-concentration and heat-limited evaporator regression tests."""
 import copy
 import unittest
+from types import SimpleNamespace
+from unittest import mock
 
 from plantagent import brine, process
 
@@ -28,6 +30,16 @@ class BrineCp(unittest.TestCase):
 
 @unittest.skipUnless(process.available(), "DWSIM unavailable")
 class Evaporator(unittest.TestCase):
+    def test_recycle_guess_can_scale_with_capacity_case(self):
+        sheet = process._Sheet.__new__(process._Sheet)
+        sheet.scale, sheet.spec = 1.25, {"feeds": {"F": {"T_C": 20, "kg_h": 100}}}
+        sheet._add = mock.Mock(return_value=SimpleNamespace(MaximumIterations=0))
+        sheet.stream = mock.Mock(side_effect=lambda name: name)
+        sheet._feed, sheet._link = mock.Mock(), mock.Mock()
+        sheet._unit({"id": "R", "type": "recycle", "in": "back", "out": "tear",
+                     "guess": {"kg_h": 1000}, "guess_scales": True})
+        self.assertEqual(sheet._feed.call_args.args[-1], 1.25)
+
     def test_crystal_and_liquid_mass_balances(self):
         r = process.run(spec(feed_t=60))
         self.assertFalse(r["errors"])
@@ -84,6 +96,35 @@ class Evaporator(unittest.TestCase):
         self.assertAlmostEqual(unit["sensible_correction_kW"],
                                unit["brine_sensible_kW"] - unit["water_sensible_kW"] +
                                unit["vapor_superheat_kW"], delta=0.2)
+
+    def test_closed_circulation_uses_net_streams_for_balance(self):
+        s = spec(feed_t=60, feed_kg_h=100000, evap_frac=50000 / 1000000)
+        s["feeds"]["BF"] = {"T_C": 60, "P_bar": 3, "kg_h": 1000000, "x": {"Water": 1}}
+        s["units"] = [
+            {**s["units"][0], "in": "BF", "liquid": "LT", "net_feed": "B", "net_liquid": "L"},
+            {"id": "S", "type": "splitter", "in": "LT", "out": ["L", "RS"],
+             "fixed_kg_h": {"L": 50000}},
+        ]
+        result = process.run(s)
+        self.assertFalse(result["errors"], result)
+        unit = result["units"]["V"]
+        self.assertAlmostEqual(unit["salt_in_kg_h"], 26000, delta=2)
+        self.assertAlmostEqual(unit["vapour_kg_h"], 50000, delta=2)
+        self.assertAlmostEqual(unit["salt_kg_h"] + unit["liquid_out_brine_kg_h"] + unit["vapour_kg_h"],
+                               100000, delta=3)
+
+    def test_heat_balance_tolerance_is_explicit_model_closure_not_a_rating(self):
+        s = spec(feed_kg_h=362900, evap_frac=0.68)
+        s["units"][0].update(heating=["ST", "C"], U_W_m2K=2000, area_m2=8800,
+                             heat_balance_tolerance_pct=10)
+        s["units"].extend([{"id": "SP", "type": "splitter", "in": "VAP", "out": ["SUC", "X"],
+                            "fixed_kg_h": {"SUC": 226800}},
+                           {"id": "K", "type": "compressor", "in": "SUC", "out": "ST",
+                            "P_out_bar": 3.08, "eff_pct": 78}])
+        result = process.run(s)
+        check = next(c for c in result["checks"] if "closure tolerance" in c["check"])
+        self.assertIn("10 %", check["check"])
+        self.assertAlmostEqual(check["limit"], result["units"]["V"]["heating_kW"] * 1.10, delta=0.2)
 
 
 if __name__ == "__main__":
