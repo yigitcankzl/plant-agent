@@ -375,6 +375,7 @@ function renderTroubleshootMode() {
   if (!P) return;
   const today = P.health?.today || [], units = P.troubleshootable || [];
   $('troublePanel').innerHTML = `<h3>Morning troubleshooting</h3><p>Start with the historian signal, then inspect the affected equipment and fit likely causes in DWSIM.</p>
+    ${forecastCard()}
     ${today.length ? `<div class="card warn"><div class="tt">What needs attention</div>${today.map((x, i) => `<div style="margin:7px 0"><b>${i + 1}.</b> ${esc(x.text)}</div>`).join('')}</div>` : '<div class="card"><div class="res">No historian alert is available for this case.</div></div>'}
     ${P.has_historian && !P.health ? `<div class="card warn"><div class="tt">Historian available</div><div style="margin:6px 0">${esc(P.historian_note || 'Run the deterministic morning check.')}</div><button class="btn go" onclick="refreshHealth()">Run morning check</button></div>` : ''}
     <div class="mode-list">${units.map(tag => `<button class="btn" onclick="select('${esc(tag)}')"><b>${esc(nm(tag))}</b><br><span style="color:var(--muted)">Inspect readings and test likely causes</span></button>`).join('') || '<span style="color:var(--muted)">No equipment has a configured troubleshooting model.</span>'}</div>`;
@@ -384,7 +385,8 @@ async function refreshHealth() {
   $('troublePanel').insertAdjacentHTML('afterbegin', '<div class="card"><div class="res">Running historian trend checks…</div></div>');
   const health = await api('health', {}).catch(e => ({error: e.message}));
   if (health.error) { alert(health.error); return; }
-  P.health = health; renderTroubleshootMode(); revs();
+  P.health = health; P.forecast = (await api('project').catch(() => ({}))).forecast || P.forecast;
+  renderTroubleshootMode(); revs();
 }
 
 function showMode(mode) {
@@ -1447,12 +1449,27 @@ function openDecisionPack() {
 }
 
 function morning() {  // the morning check: three things to look at today, from the historian against the model
-  const h = P.health;
+  const h = P.health || (P.forecast ? {from: P.forecast.points_start, to: P.forecast.as_of, source_note: P.forecast.source_note} : null);
   if (!h) return '';
   return `<div class="rev" style="border-left-color:var(--warn);display:block"><div style="display:flex;justify-content:space-between"><b>Morning check</b>
       <span style="color:var(--muted);font:11px var(--mono)">${esc((h.from || '').slice(0, 10))} → ${esc((h.to || '').slice(0, 10))}</span></div>
+    ${forecastCard()}
     ${(h.today || []).map((t, i) => `<div style="font-size:12px;margin:4px 0"><b>${i + 1}.</b> ${esc(t.text)}</div>`).join('')}
     <div style="color:var(--warn);font-size:11px;margin-top:4px">${esc(h.source_note || '')}</div></div>`;
+}
+
+function forecastCard() {  // fouling forecast: historian trend + simulator limit, stored by the morning check (plantagent/forecast.py)
+  const f = P.forecast;
+  if (!f || !f.headline) return '';
+  const e = f.energy, b = f.backtest, price = f.product_price;
+  return `<div class="card forecast-card" style="margin:6px 0;border-left:3px solid ${f.status === 'past the limit' ? 'var(--bad, #b91c1c)' : 'var(--warn)'}">
+    <div class="tt">Fouling forecast · ${esc(f.tag)}</div>
+    <div style="font-size:13px;margin:4px 0"><b>${esc(f.headline)}</b></div>
+    <div style="font:11px var(--mono);color:var(--muted)">${esc(f.fit_text || '')} · limit U ${Math.round(f.U_critical || 0)} W/m²K (${esc(f.first_limit?.id || '')} ${esc(f.first_limit?.check || '')}), model ${esc(f.model || '')}</div>
+    ${e ? `<div style="font-size:12px;margin-top:3px">Compressor power already +${e.extra_kW} kW since cleaning (${esc(e.tag.split(' ')[0])}) ≈ $${e.usd_per_day.toLocaleString()}/d.</div>` : ''}
+    ${b ? `<div style="font-size:12px;margin-top:3px">Back-test: on ${esc(b.as_of)} this check said the limit is reached on ${esc(b.said_limit_date)}.</div>` : ''}
+    <div style="color:var(--warn);font-size:11px;margin-top:3px">Prices are ${esc(price?.source || 'assumed')} (${price?.value} ${esc(price?.unit || '')}${e ? `; ${e.price.value} ${esc(e.price.unit)}` : ''}).</div>
+    ${f.chart ? `<a href="${esc(f.chart)}" target="_blank"><img src="${esc(f.chart)}" alt="U trend and forecast" style="width:100%;margin-top:6px;border:1px solid var(--line, #ddd)"></a>` : ''}</div>`;
 }
 
 function revs() {

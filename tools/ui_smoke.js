@@ -62,6 +62,13 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     !document.querySelector('#answers .prop-actions') && ![...document.querySelectorAll('button')].some(b => /decision file/i.test(b.textContent)));
   console.log(blockedIsReadOnly ? 'ok  ' : 'FAIL', 'blocked model cannot apply proposals or issue a pack');
   bad += blockedIsReadOnly ? 0 : 1;
+  await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
+  await p.click('[data-mode="troubleshoot"]'); await p.waitForTimeout(800);
+  const forecastShown = await p.evaluate(() => { const c = document.querySelector('#troublePanel .forecast-card');
+    return !!c && /E-201 (passed|reaches) its limit/.test(c.textContent) && /verified in DWSIM/i.test(c.textContent) && !!c.querySelector('img'); });
+  await p.screenshot({ path: `${OUT}/salt_forecast_card.png` });
+  console.log(forecastShown ? 'ok  ' : 'FAIL', 'salt morning-check fouling forecast card');
+  bad += forecastShown ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
   const viewport = p.locator('#pidViewport'), before = await p.locator('#sheet').evaluate(e => new DOMMatrix(getComputedStyle(e).transform).a);
   const bounds = await viewport.boundingBox();
