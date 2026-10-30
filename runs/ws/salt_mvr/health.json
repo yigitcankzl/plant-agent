@@ -1,0 +1,69 @@
+{
+ "case": "salt_mvr",
+ "source": "historian.csv",
+ "source_note": "SYNTHETIC hourly MVR salt historian, not plant measurements. E-201 U is an inferred scenario signal; its post-boil-out trend is screened without a DWSIM model. Patent Table I gives the baseline flows and temperatures, not these instruments or the compressor power/limit.",
+ "from": "2026-08-30T00:00",
+ "to": "2026-10-28T23:00",
+ "samples": 1440,
+ "today": [
+  {
+   "urgency": 100,
+   "unit": "E-201",
+   "kind": "fouling",
+   "text": "E-201 is fouling: U 2443 \u2192 1746 W/m\u00b2K since day 35 (-28.5%).  Clean-reference U: 2500 W/m\u00b2K."
+  },
+  {
+   "urgency": 80,
+   "unit": "K-201 illustrative discharge ceiling",
+   "kind": "limit",
+   "text": "K-201 illustrative discharge ceiling peaked at 3.2 against 3.2 in the last day (48 of 1432 samples over the limit in this window)."
+  }
+ ],
+ "all": [
+  {
+   "urgency": 100,
+   "unit": "E-201",
+   "kind": "fouling",
+   "text": "E-201 is fouling: U 2443 \u2192 1746 W/m\u00b2K since day 35 (-28.5%).  Clean-reference U: 2500 W/m\u00b2K."
+  },
+  {
+   "urgency": 80,
+   "unit": "K-201 illustrative discharge ceiling",
+   "kind": "limit",
+   "text": "K-201 illustrative discharge ceiling peaked at 3.2 against 3.2 in the last day (48 of 1432 samples over the limit in this window)."
+  }
+ ],
+ "exchangers": [
+  {
+   "unit": "E-201",
+   "U_now": 1746.3,
+   "U_start": 2442.6,
+   "slope_per_day": -30.37,
+   "r2": 1.0,
+   "change_pct": -28.5,
+   "U_clean": 2500,
+   "trend_from_day": 35
+  }
+ ],
+ "measured_limits": [
+  {
+   "tag": "PI-3002 K-201 discharge (bar a)",
+   "name": "K-201 illustrative discharge ceiling",
+   "last_day_max": 3.21,
+   "limit": 3.2,
+   "margin": -0.01,
+   "exceedances": 48,
+   "samples": 1432
+  },
+  {
+   "tag": "DI-201 E-201 brine rise (K)",
+   "name": "E-201 brine heater rise",
+   "last_day_max": 2.67,
+   "limit": 3.0,
+   "margin": 0.33,
+   "exceedances": 0,
+   "samples": 1432
+  }
+ ],
+ "data_quality": []
+}
