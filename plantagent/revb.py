@@ -12,6 +12,7 @@ Generic over any case SVG whose equipment sits in `<g data-tag>` groups (DEXPI r
 Free space is found on an occupancy grid built from the drawing's own geometry (transforms included), so nothing is
 placed on top of existing linework or text when there is room. The case SVG file is only read.
 """
+import json
 import math
 import re
 import time
@@ -581,6 +582,174 @@ def _note_anchors(sheet, where):
     return [], where
 
 
+def _special(c):
+    """Change forms the drawing understands before the simulator does: {"remove_unit": id} and {"bypass": {"unit": id}}."""
+    return isinstance(c, dict) and ("remove_unit" in c or "bypass" in c)
+
+
+def _special_unit(c):
+    v = c.get("remove_unit") if "remove_unit" in c else c.get("bypass")
+    return v.get("unit") or v.get("id") if isinstance(v, dict) else v
+
+
+def _out_of_service(spec, changes):
+    """{unit: 'removed' | 'bypassed'}: explicit remove_unit / bypass changes, and units a reroute skips (the rerouted unit
+    now takes the stream that used to feed an existing unit whose outlet fed it)."""
+    out = {}
+    for c in changes or []:
+        if _special(c):
+            out[_special_unit(c)] = "removed" if "remove_unit" in c else "bypassed"
+    units = {u["id"]: u for u in spec.get("units") or []}
+    consumer = {}
+    for u in units.values():
+        for st in ports(u)[0]:
+            consumer.setdefault(st, u["id"])
+    for c in changes or []:
+        r = c.get("reroute")
+        if not isinstance(r, dict) or r.get("field") != "in" or r.get("unit") not in units:
+            continue
+        old = set(ports(units[r["unit"]])[0])
+        new = set(r["value"] if isinstance(r["value"], list) else [r["value"]])
+        for st in new - old:
+            b = consumer.get(st)
+            if b and b != r["unit"] and units[b].get("type") not in ROUTING_UNITS and set(ports(units[b])[1]) & old:
+                out.setdefault(b, "bypassed")
+    return out
+
+
+def _hatch(box, step=2.2):
+    x0, y0, x1, y1 = box
+    segs = []
+    c = x0 - y1
+    while c < x1 - y0:
+        a, b = max(x0, c + y0), min(x1, c + y1)
+        if b > a:
+            segs.append(f"M{a:.1f},{a - c:.1f} L{b:.1f},{b - c:.1f}")
+        c += step
+    return " ".join(segs)
+
+
+def _draw_out_of_service(sheet, n, uid, how, marker):
+    """Hatch and label a removed or bypassed unit; a bypassed one gets a bypass line from its inlet to its outlet line."""
+    if uid not in sheet.boxes:
+        return None
+    box = _grow(sheet.boxes[uid], 1.5)
+    x0, y0, x1, y1 = box
+    label = "REMOVED" if how == "removed" else "BYPASSED (out of service)"
+    g = [f'<g data-rev="{n}" data-out-of-service="{esc(uid)}" data-status="{how}" pointer-events="none">',
+         f'<path d="{_hatch(box)}" stroke="{CLOUD}" stroke-width="0.3" fill="none"/>']
+    if how == "removed":
+        g.append(f'<path d="M{x0:.1f},{y0:.1f} L{x1:.1f},{y1:.1f} M{x0:.1f},{y1:.1f} L{x1:.1f},{y0:.1f}" stroke="{CLOUD}" stroke-width="0.7"/>')
+    tw = len(f"{uid} {label}") * 2.8 * 0.56
+    spots = [(x0, y1 + 0.6), (x0, y0 - 4.2), (x1 + 1.5, (y0 + y1) / 2 - 2), (x0 - tw - 1.5, (y0 + y1) / 2 - 2)]
+    lx, ly = min(spots, key=lambda q: sheet.count((q[0], q[1], q[0] + tw, q[1] + 3.6), 0.3))
+    g.append(f'<rect x="{lx - 0.5:.1f}" y="{ly:.1f}" width="{tw + 1:.1f}" height="3.6" fill="#fff" fill-opacity="0.85"/>'
+             f'<text x="{lx:.1f}" y="{ly + 2.8:.1f}" font-size="2.8" font-weight="700" fill="{CLOUD}" font-family="Arial,sans-serif">'
+             f'{esc(uid)} {label}</text>')
+    boxes = [box, (lx, ly, lx + tw, ly + 3.6)]
+    sheet.mark_box(boxes[1])
+    text = f"{uid} {label.lower()}"
+    if how == "bypassed":
+        lin = next((ln for ln in sheet.lines if ln["to"] == uid and ln["points"]), None)
+        lout = next((ln for ln in sheet.lines if ln["from"] == uid and ln["points"]), None)
+        if lin and lout:
+            keep = _grow(sheet.boxes[uid], 3)
+            inside = lambda p: keep[0] <= p[0] <= keep[2] and keep[1] <= p[1] <= keep[3]  # noqa: E731
+            a = next((q for d in range(4, 40, 2) for q in [_along(lin["points"], d, True)] if q and not inside(q)), None)
+            b = next((q for d in range(4, 40, 2) for q in [_along(lout["points"], d, False)] if q and not inside(q)), None)
+            if a and b:
+                axis = _flow_axis(a, b)
+                perp = (-axis[1], axis[0])
+                cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+                options = []
+                for sgn, extra in ((sg, e) for sg in (1, -1) for e in (6, 10, 15, 21)):
+                    half = (abs(perp[0]) * (x1 - x0) + abs(perp[1]) * (y1 - y0)) / 2 + extra
+                    off = (cx + perp[0] * half * sgn, cy + perp[1] * half * sgn)
+                    if axis[0]:
+                        pts = [a, (a[0], off[1]), (b[0], off[1]), b]
+                    else:
+                        pts = [a, (off[0], a[1]), (off[0], b[1]), b]
+                    options.append((_route_cost(sheet, pts, [a, b]) + extra * 0.3, pts))
+                pts = min(options, key=lambda o: o[0])[1]
+                colour = lin.get("stroke") or INK
+                lx, ly, lbox = _line_label(sheet, pts, "bypass (new)", 2.2)
+                g.append(f'<g data-line="{esc(uid)}-bypass" data-from="{esc(lin["from"])}" data-to="{esc(lout["to"])}" data-new="true">'
+                         f'<polyline points="{" ".join(f"{p[0]:.1f},{p[1]:.1f}" for p in pts)}" fill="none" stroke="{colour}" '
+                         f'stroke-width="{lin.get("width") or 0.9}" stroke-linejoin="round" marker-end="{marker(colour)}"/>'
+                         f'<circle cx="{a[0]:.1f}" cy="{a[1]:.1f}" r="1.1" fill="{INK}"/><circle cx="{b[0]:.1f}" cy="{b[1]:.1f}" r="1.1" fill="{INK}"/>'
+                         f'<rect x="{lbox[0]:.1f}" y="{lbox[1]:.1f}" width="{lbox[2] - lbox[0]:.1f}" height="{lbox[3] - lbox[1]:.1f}" fill="#fff" '
+                         f'fill-opacity="0.85"/><text x="{lx:.1f}" y="{ly:.1f}" font-size="2.2" font-weight="700" fill="{colour}" '
+                         f'font-family="Arial,sans-serif">bypass (new)</text></g>')
+                sheet.mark_path(pts)
+                sheet.mark_box(lbox)
+                boxes.append((min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts)))
+                text += f", bypass line from line {lin['line']} to line {lout['line']}"
+    g.append("</g>")
+    return {"svg": "".join(g), "boxes": boxes, "text": text}
+
+
+def _draw_series(sheet, n, uid, kind, c, calculation, by_id, prod, cons, centers, taken, cloud_boxes, marker):
+    """A new unit in series: on the existing line between its drawn upstream and downstream items, symbol on the line
+    (the line runs into its nozzles), with a callout for its rating and source."""
+    unit = by_id.get(uid)
+    if not unit:
+        return None
+    ins, outs = ports(unit)
+    up = _neighbor(uid, False, by_id, prod, cons, centers)
+    down = _neighbor(uid, True, by_id, prod, cons, centers)
+    lines = [ln for ln in sheet.lines if ln["points"] and len(ln["points"]) > 1]
+    ln = next((ln for ln in lines if ln["from"] == up and ln["to"] == down), None) if up and down else None
+    ln = ln or _line_of(sheet, ins + outs)
+    if not ln and up and down:  # the line from the upstream item that ends nearest the downstream item
+        cand = [x for x in lines if x["from"] == up or x["to"] == down]
+        ln = cand[0] if cand else None
+    if not ln:
+        return None
+    hw = HALF.get(kind, 8)
+    best = None
+    for a, b in zip(ln["points"], ln["points"][1:]):
+        L = math.hypot(b[0] - a[0], b[1] - a[1])
+        if L < 2 * hw + 8:
+            continue
+        d = ((b[0] - a[0]) / L, (b[1] - a[1]) / L)
+        for i in range(1, 10):
+            t = i / 10
+            if t * L < hw + 4 or (1 - t) * L < hw + 4:
+                continue
+            p = (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
+            half = (hw + 1, 8) if abs(d[0]) > 0.5 else (8, hw + 1)
+            sym = (p[0] - half[0], p[1] - half[1], p[0] + half[0], p[1] + half[1])
+            score = sheet.count(sym, 1) + abs(t - 0.5) * 4
+            if best is None or score < best[0]:
+                best = (score, p, d, sym)
+    if not best:
+        return None
+    _, p, d, sym = best
+    angle = math.degrees(math.atan2(d[1], d[0]))
+    limits = c.get("limits") or {}
+    lines_ = [f"{uid} (NEW)", f"In series on line {ln['line']}" + (f" ({up} → {down})" if up and down else ""),
+              f"Rating {_rating(limits)}", f"Rating source: {_source(c.get('rating_source'))}"]
+    duty = _duty(calculation, uid)
+    if duty:
+        lines_.insert(3, f"Duty at target: {duty} (DWSIM)")
+    sheet.boxes[uid] = sym
+    sheet.mark_box(sym)
+    abox, box = _place_callout(sheet, [sym], lines_, taken, cloud_boxes)
+    g = [f'<g data-rev="{n}" class="revb-new">',
+         f'<g data-tag="{esc(uid)}" data-pid="{esc(uid)}" data-new="true" data-name="{esc(lines_[1])}" fill="#fff" stroke="{INK}" '
+         f'stroke-width="0.7"><g transform="translate({p[0]:.1f},{p[1]:.1f}) rotate({angle:.0f})">{_symbol(kind)}</g></g>']
+    boxes = [sym]
+    if box:
+        a_, b_ = _leader(box, abox)
+        g.append(f'<g pointer-events="none"><line x1="{a_[0]:.1f}" y1="{a_[1]:.1f}" x2="{b_[0]:.1f}" y2="{b_[1]:.1f}" stroke="{NOTE}" '
+                 f'stroke-width="0.35"/>{_callout_svg(box, lines_, n)}</g>')
+        sheet.mark_box(box)
+        taken.append(box)
+        boxes.append(_union([box, sym]))
+    g.append("</g>")
+    return {"svg": "".join(g), "boxes": boxes, "text": f"{uid} drawn in series on line {ln['line']}"}
+
+
 def _flow_axis(a, b):
     dx, dy = b[0] - a[0], b[1] - a[1]
     if abs(dx) >= abs(dy):
@@ -636,7 +805,7 @@ def generate(svg, spec, revisions, names=None, meta=None):
         changes = rev.get("changes") or []
         boxes, drawn = [], []
         try:
-            units, existing_ids, added_ids = topology_units(spec, changes)
+            units, existing_ids, added_ids = topology_units(spec, [c for c in changes if not _special(c)])
         except ValueError:
             units, existing_ids, added_ids = list(spec.get("units") or []), set(), set()
         by_id, prod, cons = _index(units)
@@ -654,7 +823,14 @@ def generate(svg, spec, revisions, names=None, meta=None):
                 info["upstream"] = _neighbor(info["splitter"], False, by_id, prod, cons, centers)
                 info["downstream"] = _neighbor(info["mixer"], True, by_id, prod, cons, centers)
                 plan = _parallel_plan(sheet, info, uid, kind)
-            if not plan:
+            if not plan:  # not parallel to an existing unit: in series on the line between two drawn items
+                done = _draw_series(sheet, n, uid, kind, c, rev.get("calculation"), by_id, prod, cons, centers, taken, cloud_boxes, marker)
+                if done:
+                    parts.append(done["svg"])
+                    boxes += done["boxes"]
+                    drawn.append(done["text"])
+                    handled_reroutes |= rerouted  # the reroutes of a series insertion are the broken line
+                    continue
                 unplaced.append(uid)
                 continue
             (tin, rin, lin), (tout, rout, lout) = plan["tee_in"], plan["tee_out"]
@@ -729,6 +905,16 @@ def generate(svg, spec, revisions, names=None, meta=None):
             taken.append(box)
             boxes.append(_union([box, abox]))  # callout, leader and anchor stay in one cloud
             drawn.append(f"{tag}: {value_text(c, names)}")
+        out_of_service = _out_of_service(spec, changes)
+        for uid, how in out_of_service.items():
+            done = _draw_out_of_service(sheet, n, uid, how, marker)
+            if done:
+                parts.append(done["svg"])
+                boxes += done["boxes"]
+                drawn.append(done["text"])
+                handled_reroutes |= rerouted if how == "bypassed" else set()
+            else:
+                unplaced.append(f"{how} {uid}")
         for c in changes:
             r = c.get("reroute")
             if isinstance(r, dict) and r["unit"] not in handled_reroutes:
@@ -918,11 +1104,13 @@ def _signature(changes):
             {c["add_unit"]["id"] for c in changes or [] if isinstance(c.get("add_unit"), dict) and c["add_unit"].get("type") not in ROUTING_UNITS})
 
 
-def select_proposals(w, changes=None, answer=None, proposals=None):
+def select_proposals(w, changes=None, answer=None, proposals=None, pool_answer=None):
     """(verified proposals to draw, leftover changes). Proposals are picked by answer index and/or titles (or indices);
     agent-typed changes that match verified proposals are replaced by the verified ones (their topology and calculation)."""
     answers = list(getattr(w, "answers", None) or [])
-    if isinstance(answer, int) and -len(answers) <= answer < len(answers):
+    if pool_answer is not None:  # the answer being written (its proposals were verified after the drawing was made)
+        pool = [pool_answer]
+    elif isinstance(answer, int) and -len(answers) <= answer < len(answers):
         pool = [answers[answer]]
     else:
         pool = [a for a in [design_answer(answers)] if a]
@@ -947,7 +1135,7 @@ def select_proposals(w, changes=None, answer=None, proposals=None):
     return chosen, changes
 
 
-def render_revision(w, changes=None, annotations=None, title=None, verified=False, answer=None, proposals=None):
+def render_revision(w, changes=None, annotations=None, title=None, verified=False, answer=None, proposals=None, pool_answer=None):
     """Rev B sheet on the current model: verified proposals (by answer index and/or titles; agent-typed changes that match
     them are replaced by the verified ones), any further changes (proposal format: path changes, add_unit, reroute), and
     free notes [{tag | line, text}] at a tag, a line number or an inline item such as '3003/C1' or 'PSV-202'.
@@ -955,11 +1143,17 @@ def render_revision(w, changes=None, annotations=None, title=None, verified=Fals
     from .plant import change_errors
     if not w.cfg.get("svg") or not w.built:
         raise ValueError("this project has no SVG P&ID (or no model yet) to draw a revision on")
-    chosen, changes = select_proposals(w, changes, answer, proposals)
+    chosen, changes = select_proposals(w, changes, answer, proposals, pool_answer)
     annotations = list(annotations or [])
     if not chosen and not changes and not annotations:
         raise ValueError("nothing to draw: give answer/proposals, changes and/or annotations")
-    errors = change_errors(w.spec, changes, require_evidence=False) if changes else []
+    plain = [c for c in changes if not _special(c)]
+    errors = change_errors(w.spec, plain, require_evidence=False) if plain else []
+    known = {u.get("id") for u in w.spec.get("units") or []}
+    if any(_special(c) for c in changes) and case_svg(w):  # equipment on the drawing but grouped in the model (E-201 in V-201)
+        known |= set(Sheet(case_svg(w).read_text()).boxes)
+    errors += [f"{'remove_unit' if 'remove_unit' in c else 'bypass'} names unknown unit {_special_unit(c)}"
+               for c in changes if _special(c) and _special_unit(c) not in known]
     if errors:
         raise ValueError("; ".join(errors))
     items = [{"rev": i + 1, "title": p.get("title"), "changes": p["changes"], "calculation": p.get("calculation"),
@@ -973,20 +1167,62 @@ def render_revision(w, changes=None, annotations=None, title=None, verified=Fals
     return {**r, "proposals": [p.get("title") for p in chosen], "verified": all_verified}
 
 
+def _summary(r):
+    return (("Draft Rev B P&ID of the verified proposals: " + "; ".join(r["proposals"])) if r["verified"] else
+            "Draft Rev B P&ID: changes clouded and annotated; the changes not taken from verified proposals are "
+            "not verified in DWSIM by this tool.") + (f" Not drawn: {', '.join(r['unplaced'])}." if r["unplaced"] else "")
+
+
+def _files(r, args):
+    files = {"rev_b.svg": r["svg"], "draw_args.json": json.dumps({**args, "verified": r["verified"], "proposals_drawn": r["proposals"]}, indent=1)}
+    png = svg_png(r["svg"])
+    if png:
+        files["rev_b.png"] = png
+    return files
+
+
 def draw_revision_tool(w, a, by=None, request=None):
-    """Agent tool draw_revision: render the sheet and save it as a drawing artifact; returns the artifact meta."""
+    """Agent tool draw_revision: render the sheet and save it as a drawing artifact; returns the artifact meta. The
+    arguments are kept with it (draw_args.json) so refresh_answer_drawings can re-issue it once the answer is verified."""
     from . import artifacts
     title = a.get("title") or "Rev B drawing"
     answer = a.get("answer")
     r = render_revision(w, a.get("changes"), a.get("annotations"), title, answer=int(answer) if str(answer).lstrip("-").isdigit() else None,
                         proposals=a.get("proposals"))
-    svg = r["svg"]
-    files = {"rev_b.svg": svg}
-    png = svg_png(svg)
-    if png:
-        files["rev_b.png"] = png
-    return artifacts.save(w.name, "drawing", title, files, by=by or getattr(w, "model", None), request=request,
-                          sources=[f"cases/{w.name}/{w.cfg.get('svg')}", "current model spec"],
-                          summary=("Draft Rev B P&ID of the verified proposals: " + "; ".join(r["proposals"]) if r["verified"] else
-                                   "Draft Rev B P&ID: changes clouded and annotated; the changes not taken from verified proposals are "
-                                   "not verified in DWSIM by this tool.") + (f" Not drawn: {', '.join(r['unplaced'])}." if r["unplaced"] else ""))
+    return artifacts.save(w.name, "drawing", title, _files(r, a), by=by or getattr(w, "model", None), request=request,
+                          sources=[f"cases/{w.name}/{w.cfg.get('svg')}", "current model spec"], summary=_summary(r))
+
+
+def refresh_answer_drawings(w, ans):
+    """Call at the end of an ask, after its proposals are verified: every drawing the answer made with draw_revision while
+    its proposals were still unverified is re-rendered against them, in place (same artifact id), so the sheet no longer
+    says 'NOT verified' for changes the answer verified. Returns the ids re-issued."""
+    from . import artifacts
+    done = []
+    for i, meta in enumerate(ans.get("artifacts") or []):
+        if not isinstance(meta, dict) or meta.get("kind") != "drawing":
+            continue
+        f = artifacts.file(w.name, meta.get("id"), "draw_args.json")
+        if not f:
+            continue
+        args = json.loads(f.read_text())
+        if args.get("verified") or str(args.get("answer")).lstrip("-").isdigit():
+            continue  # already drawn from verified proposals, or pointed at an earlier (already verified) answer
+        try:
+            r = render_revision(w, args.get("changes"), args.get("annotations"), args.get("title"), proposals=args.get("proposals"),
+                                pool_answer=ans)
+        except ValueError:
+            continue
+        if not r["proposals"]:
+            continue
+        args = {k: v for k, v in args.items() if k not in ("verified", "proposals_drawn")}
+        folder = f.parent
+        for name, data in _files(r, args).items():
+            (folder / name).write_bytes(data.encode() if isinstance(data, str) else data)
+        m = json.loads((folder / "meta.json").read_text())
+        m.update(summary=_summary(r), files=sorted(set(m.get("files") or []) | {"rev_b.svg", "rev_b.png", "draw_args.json"}),
+                 reissued="after the answer's proposals were verified in DWSIM")
+        (folder / "meta.json").write_text(json.dumps(m, indent=1))
+        ans["artifacts"][i] = {**meta, "summary": m["summary"], "files": m["files"]}
+        done.append(meta["id"])
+    return done

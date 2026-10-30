@@ -132,5 +132,74 @@ class DrawRevisionFromTheLogTests(unittest.TestCase):
         self.assertEqual(r["unplaced"], [])
 
 
+SERIES = [{"add_unit": {"id": "E-205", "type": "heater", "in": "S3002raw", "out": "S3002h", "duty_kW": 500},
+           "limits": {"max_kW": 800}, "rating_source": "vendor quote to confirm"},
+          {"reroute": {"unit": "D-201MIX", "field": "in", "value": ["S3002h", "TURBINE_EXH"]}}]
+
+
+class SeriesAndOutOfServiceTests(unittest.TestCase):
+    def test_series_insertion_sits_on_the_line(self):
+        r = revb.generate(SALT, DRAW["spec"], [{"rev": 1, "title": "Trim heater before the desuperheater", "changes": SERIES}])
+        self.assertEqual(r["unplaced"], [])
+        self.assertIn("E-205 drawn in series on line 3002", r["revisions"][0]["drawn"])
+        m = re.search(r'data-tag="E-205"[^>]*><g transform="translate\(([-\d.]+),([-\d.]+)\)', r["svg"])
+        x, y = float(m.group(1)), float(m.group(2))
+        line = next(ln for ln in revb.Sheet(SALT).lines if ln["line"] == "3002")
+        on = any(min(a[0], b[0]) - 0.2 <= x <= max(a[0], b[0]) + 0.2 and min(a[1], b[1]) - 0.2 <= y <= max(a[1], b[1]) + 0.2
+                 for a, b in zip(line["points"], line["points"][1:]))
+        self.assertTrue(on, (x, y))  # the symbol is on line 3002 (K-201 to D-201), not beside it
+        self.assertIn("Rating source: vendor quote to confirm", r["svg"])
+        self.assertEqual(clouds(r["svg"]), {"1"})
+
+    def test_removed_bypassed_and_reroute_skipped_units_are_marked(self):
+        revs = [{"rev": 1, "title": "Bypass E-201", "changes": [{"bypass": {"unit": "E-201"}}]},
+                {"rev": 2, "title": "Remove P-201", "changes": [{"remove_unit": "P-201"}]},
+                {"rev": 3, "title": "Run without K-201", "changes": [{"reroute": {"unit": "D-201MIX", "field": "in",
+                                                                                   "value": ["S3001", "TURBINE_EXH"]}}]}]
+        r = revb.generate(SALT, DRAW["spec"], revs)
+        svg = r["svg"]
+        self.assertEqual(r["unplaced"], [])
+        self.assertIn('data-out-of-service="E-201" data-status="bypassed"', svg)
+        self.assertIn('data-out-of-service="P-201" data-status="removed"', svg)
+        self.assertIn('data-out-of-service="K-201" data-status="bypassed"', svg)  # found from the reroute alone
+        self.assertIn("P-201 REMOVED", svg)
+        self.assertIn("E-201 BYPASSED (out of service)", svg)
+        self.assertEqual(svg.count('data-line="E-201-bypass"'), 1)
+        self.assertEqual(svg.count('data-line="K-201-bypass"'), 1)
+        self.assertEqual(clouds(svg), {"1", "2", "3"})
+
+    def test_render_revision_checks_the_new_change_forms(self):
+        w = salt_workspace([])
+        r = revb.render_revision(w, [{"remove_unit": "V-301"}, *SERIES])
+        self.assertIn('data-status="removed"', r["svg"])
+        self.assertIn('data-tag="E-205"', r["svg"])
+        r = revb.render_revision(w, [{"bypass": {"unit": "E-201"}}])  # drawn, though grouped into V-201 in the model
+        self.assertIn('data-status="bypassed"', r["svg"])
+        with self.assertRaises(ValueError):
+            revb.render_revision(w, [{"bypass": {"unit": "NOPE"}}])
+
+
+class RefreshAfterVerificationTests(unittest.TestCase):
+    def test_drawing_made_before_verification_is_reissued_verified(self):
+        import shutil
+        from plantagent import artifacts
+        w = salt_workspace([])
+        w.name, w.cfg = "_revb_refresh_test", {"svg": str(ROOT / "cases" / "salt_mvr" / "pid.svg")}
+        try:
+            change = next(p for p in DRAW["answer"]["proposals"] if p["verified"])["changes"]
+            meta = revb.draw_revision_tool(w, {"changes": change, "title": "Clean E-201"})  # during the ask: nothing verified yet
+            f = artifacts.file(w.name, meta["id"], "rev_b.svg")
+            self.assertIn("NOT verified in DWSIM", f.read_text())
+            ans = {**DRAW["answer"], "artifacts": [meta]}  # the same answer once its proposals are verified
+            self.assertEqual(revb.refresh_answer_drawings(w, ans), [meta["id"]])
+            svg = f.read_text()
+            self.assertNotIn("NOT verified in DWSIM", svg)
+            self.assertIn("verified in DWSIM at the target", svg)
+            self.assertIn("verified proposals", ans["artifacts"][0]["summary"])
+            self.assertEqual(revb.refresh_answer_drawings(w, ans), [])  # once only
+        finally:
+            shutil.rmtree(artifacts._dir(w.name).parent, ignore_errors=True)
+
+
 if __name__ == "__main__":
     unittest.main()
