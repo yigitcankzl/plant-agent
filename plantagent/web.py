@@ -184,6 +184,7 @@ import threading  # noqa: E402
 import uuid  # noqa: E402
 
 WORKSPACES, PLANTS, JOBS = {}, {}, {}
+REVB_CACHE = {}  # case -> (key, Rev B result): regenerated when the answers or revisions change
 _CASE_LOCKS, _JOB_LOCK = {}, threading.RLock()
 _ACTIVE_JOBS = threading.BoundedSemaphore(4)
 
@@ -626,6 +627,19 @@ class Handler(SimpleHTTPRequestHandler):
             w = plant(case)
             if what == "project":
                 return self._send(plant_project(case))
+            if what == "svg" and q.get("view") == "proposed":  # Rev B: the whole sheet re-issued with the verified changes
+                from . import revb
+                answer = int(q["answer"]) if q.get("answer", "").lstrip("-").isdigit() else None
+                key = (case, answer, len(w.answers), len(w.revisions), id(w.answers[-1]) if w.answers else None)
+                if REVB_CACHE.get(case, (None,))[0] != key:
+                    try:
+                        REVB_CACHE[case] = (key, revb.from_workspace(w, answer))
+                    except Exception as e:  # noqa: BLE001 - the viewer falls back to the labelled overlay
+                        return self._send({"error": f"Rev B sheet could not be generated: {type(e).__name__}: {e}"}, code=500)
+                r = REVB_CACHE[case][1]
+                if not r:
+                    return self._send({"error": "no verified change to draw"}, code=404)
+                return self._send(r["svg"].encode(), "image/svg+xml")
             if what == "svg":
                 f = _safe_file(ROOT / "cases" / case, w.cfg["svg"])
                 return self._send(f.read_bytes(), "image/svg+xml") if f else self._send({"error": "not found"}, code=404)
