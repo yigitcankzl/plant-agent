@@ -1206,7 +1206,8 @@ async function applyWhatIf() {
 let VIEW = 'proposed';
 function latestProposedChanges() {
   if (P?.has_changes || modelBlocked()) return [];
-  const answer = (P?.answers || []).at(-1);
+  // the latest answer that proposed verified changes: a later question or command without proposals must not hide it
+  const answer = [...(P?.answers || [])].reverse().find(a => (a.proposals || []).some(p => p.verified));
   return (answer?.proposals || []).filter(p => p.verified).flatMap(p => p.changes || []);
 }
 async function stateForView(scale) {
@@ -1361,9 +1362,15 @@ function ans(a, idx) {
   const lim = (a.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity)).slice(0, 3);
   const limits = lim.length ? `<section class="answer-section"><h4>What limits the target</h4><div class="limit-list">${lim.map(h => `<div class="limit-item"><b style="color:var(--${h.severity === 'fail' ? 'fail' : 'warn'})">${esc(h.tag)}</b><span>${esc(h.text)}</span></div>`).join('')}</div></section>` : '';
   const fixes = (a.proposals || []).length ? `<section class="answer-section"><h4>Recommended changes</h4>${props}</section>${compare(a)}${comb}` : '';
+  const fileUrl = (art, f) => `/api/plant/${CASE}/artifact/${encodeURIComponent(art.id)}/${encodeURIComponent(f)}`;
+  const files = (a.artifacts || []).length ? `<section class="answer-section"><h4>Files produced · drafts</h4>${a.artifacts.map(art => {
+    const pic = (art.files || []).find(f => /\.(svg|png)$/i.test(f));
+    return `<div class="card info"><div class="tt">${esc(art.kind)} · ${esc(art.title)}</div>${pic ? `<a href="${fileUrl(art, pic)}" target="_blank"><img src="${fileUrl(art, pic)}" alt="${esc(art.title)}" style="width:100%;background:#fff;border-radius:4px;margin:6px 0"></a>` : ''}
+      <div class="res">${(art.files || []).map(f => `<a href="${fileUrl(art, f)}" target="_blank" download>${esc(f)}</a>`).join(' · ')}</div></div>`;
+  }).join('')}</section>` : '';
   const blocked = modelBlocked() ? `<div class="card fail"><div class="tt">Model blocked</div><div class="res">Correct the model-review findings before applying changes or issuing a decision pack.</div></div>` : '';
   const pack = !modelBlocked() && (a.proposals || []).some(p => p.verified) ? `<div style="margin-top:14px"><button class="btn go" onclick="openDecisionPack()">Preview full proposed design and decision pack</button></div>` : '';
-  return `<div class="ans"><div class="answer-hero"><span class="answer-label">Decision</span><div class="hl">${esc(a.headline)}</div></div>${blocked}${limits}${fc}${fixes}${pack}${secondOpinion(a, idx)}
+  return `<div class="ans"><div class="answer-hero"><span class="answer-label">Decision</span><div class="hl">${esc(a.headline)}</div><div class="sm" style="margin-top:6px">${esc(a.summary)}</div></div>${blocked}${limits}${files}${fc}${fixes}${pack}${secondOpinion(a, idx)}
     <details class="evidence-block"><summary>Evidence · ${(a.cards || []).length} calculations, sources and assumptions</summary><div class="sm">${esc(a.summary)}</div>${cards}</details>
     <details class="request-block"><summary>Original request</summary><div class="rq">${esc(a.request)}</div></details>
     <div class="meta">${a.seconds}s · AI cost $${(a.cost_usd || 0).toFixed(4)} · ${(a.checks || []).filter(c => c.ok).length}/${(a.checks || []).length} cited runs re-solved to the same result${(a.checks || []).filter(c => !c.ok).map(c => ` · <span style="color:var(--fail)">✗ ${esc(c.item)}: ${esc(c.why || 'not reproduced')}</span>`).join('')}</div></div>`;

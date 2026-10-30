@@ -1515,6 +1515,11 @@ class PlantWorkspace(Study):
             f("read_data_sheet", "The operating data sheet: current operation, process requirements, equipment performance, utilities.", {}),
             f("get_spec", "Full spec of a logged run (the calibrated model is preloaded), to copy and modify. For a proposal, "
                           "return explicit changes rather than an opaque replacement spec. " + CHANGE_HELP, {"label": S}, ["label"]),
+            f("sweep", "Parameter study: re-solve a logged run with ONE input varied over the given values (e.g. feed temperature, "
+                       "salinity, a utility flow, fouled U) at a throughput multiple; returns the utilisation of the tightest "
+                       "checks per value and saves a chart for the engineer. Use it for 'what if X changes' and sensitivity requests.",
+              {"label": S, "path": {"type": "string", "description": "dotted path in the spec, e.g. feeds.FEED.T_C or units.E-201.U_W_m2K"},
+               "values": {"type": "array", "items": N}, "scale": N, "title": S}, ["label", "path", "values"]),
             f("check_coverage", "Compare a logged run's model with the P&ID / documented boundary: which equipment is modelled "
                                 "(or mapped to a grouped block / note), which is missing, and which physics is intentionally not "
                                 "simulated.",
@@ -1585,6 +1590,14 @@ class PlantWorkspace(Study):
         return process.capacity(spec)
 
     def call(self, name, a):
+        """Every tool result that is an artifact (a document, drawing or chart the engineer asked for) is collected, so the
+        answer lists the files it produced."""
+        r = self._call_tool(name, a)
+        if isinstance(r, dict) and r.get("id") and r.get("kind") and r.get("files"):
+            self.__dict__.setdefault("_artifacts", []).append({k: r.get(k) for k in ("id", "kind", "title", "files", "summary")})
+        return r
+
+    def _call_tool(self, name, a):
         if name == "read_pid":
             return self.pid or {"note": "this project has no drawing: take the equipment and connections from the data sheet"}
         if name == "search_documents":
@@ -1648,6 +1661,8 @@ class PlantWorkspace(Study):
             return brine.bpe(float(a["p_bar"]), a.get("x_NaCl"))
         if name == "blocked_in_pressure":
             return process.blocked_in(a["compounds"], a["x"], a["T1_C"], a["P1_bar"], a["T2_C"])
+        if name == "sweep":
+            return self.sweep(a["label"], a["path"], a["values"], float(a.get("scale") or 1.0), a.get("title"))
         if name == "get_spec":
             r = self.runs.get(a["label"])
             return {"label": a["label"], "spec": r["spec"]} if r else {"error": f"unknown label; logged: {list(self.runs)}"}
@@ -1738,6 +1753,39 @@ class PlantWorkspace(Study):
         if _is_watertap(self.cfg):
             return ro_coverage(self.pid, spec, mapping)
         return coverage(self.pid, spec) if self.pid else None
+
+    def sweep(self, label, path, values, scale=1.0, title=None):
+        """Re-solve one logged run over values of one input; log each solve as a run and save a chart artifact."""
+        from . import artifacts, charts
+        base = self.runs.get(label)
+        if not base:
+            return {"error": f"unknown label; logged: {list(self.runs)}"}
+        values = [float(v) for v in values][:12]  # ponytail: 12 solves cap one request's simulator time
+        rows, util = [], {}
+        for v in values:
+            run_label = f"{label}~{path}={v:g}"
+            try:
+                spec = patch(base["spec"], [{"path": path, "value": v}])
+                r = self._solve(spec, scale)
+            except Exception as e:  # noqa: BLE001 - a value that does not solve is reported, the sweep goes on
+                rows.append({"value": v, "error": f"{type(e).__name__}: {e}"[:200]})
+                continue
+            self.runs[run_label] = {"spec": spec, "purpose": f"sweep {path}", "scale": scale, "result": r}
+            checks = {f'{c["id"]} {c["check"]}': c["utilisation"] for c in r.get("checks", []) if isinstance(c.get("utilisation"), (int, float))}
+            for k, u in checks.items():
+                util.setdefault(k, {})[v] = u
+            top = sorted(checks.items(), key=lambda kv: -kv[1])[:4]
+            rows.append({"value": v, "run": run_label, "errors": r.get("errors", [])[:2],
+                         "tightest": [{"check": k, "utilisation": round(u, 3)} for k, u in top]})
+        keep = sorted(util, key=lambda k: -max(util[k].values()))[:5]
+        if not keep:
+            return {"rows": rows, "note": "no limit checks solved"}
+        title = title or f"{self.cfg['title'][:40]}: sweep of {path} at {scale:g}x"
+        svg = charts.sweep_svg(title, path, values, {k: [util[k].get(v) for v in values] for k in keep})
+        meta = artifacts.save(self.name, "chart", title, {"sweep.svg": svg, "sweep.json": json.dumps({"path": path, "scale": scale, "rows": rows}, indent=1)},
+                              by=self.model, request=f"sweep {path} over {values}", sources=[r.get("run") for r in rows if r.get("run")],
+                              summary=f"tightest at the extremes: {rows[0].get('tightest', [{}])[:1]} ... {rows[-1].get('tightest', [{}])[:1]}")
+        return {**meta, "rows": rows}
 
     def _solve(self, spec, scale=1.0):
         return ro.run(spec, scale) if _is_watertap(self.cfg) else process.run(spec, scale)
@@ -1966,13 +2014,19 @@ class PlantWorkspace(Study):
         if not self.built:
             self.build()
         self._phase = "ask"
+        self._artifacts = []
         t0, usd0 = time.time(), llm.spent()
         llm.set_tag("plant:" + self.name)
         brief = {"unit": self.cfg["title"], "target_throughput_multiple": self.cfg.get("target_scale"),
                  "model_label": self.built["label"], "model_mapping": self.built.get("mapping"),
                  "revisions": [r["title"] for r in self.revisions], "earlier_answers": [a["summary"] for a in self.answers[-4:]]}
         ans = self.loop("ask", "You are the process engineering copilot inside the engineer's P&ID workspace. The calibrated DWSIM "
-                        "model is preloaded (get_spec, then modify and re-run). Answer quickly and precisely and finish with "
+                        "model is preloaded (get_spec, then modify and re-run). The engineer may ask a question OR give an instruction: change "
+                        "or add equipment in the model, draw it, write a document, or analyse a scenario. Do what is asked with "
+                        "the tools: a model change the engineer asks for is returned as a proposal (a draft the workspace re-solves; "
+                        "propose it even if it does not reach the target, and report its effect); a what-if over a range of a value "
+                        "uses sweep; documents and drawings are made with their tools when available, and the summary names "
+                        "the files produced. Answer quickly and precisely and finish with "
                         "`answer`: a plain headline, calc cards, highlights on P&ID tags, and for a fix, proposals as model "
                         "changes (paths into the spec) that respect every utility and frame limit in the data sheet. Give one "
                         "proposal per limiting equipment item, each with its tag. " + CHANGE_HELP + " Prefer the cheapest fix that works: operating "
@@ -1988,6 +2042,7 @@ class PlantWorkspace(Study):
                         self.tools() + [ANSWER], "answer", 26 if llm._host(self.model) else 18)  # the open model takes more turns
         for k in ("cards", "highlights", "proposals"):
             ans[k] = ans.get(k) if isinstance(ans.get(k), list) else []
+        ans["artifacts"] = list(self._artifacts)  # files the tools produced for this request (documents, drawings, charts)
         for p in ans["proposals"]:
             if isinstance(p, dict):  # canonical changes before `from` is attached and before verify()
                 normalize_proposal(p, self.spec, getattr(self, "runs", None) or {}, cited_run_labels(p, ans))
