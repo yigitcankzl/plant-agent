@@ -1573,6 +1573,12 @@ class PlantWorkspace(Study):
             f("morning_check", "The morning check: exchanger fouling trends from the historian (U now vs at the start, days to the "
                                "outlet limit at today's and the target throughput), measured limits and data quality, and the top 3 "
                                "things to look at today.", {}),
+            # fouling forecast (plantagent/forecast.py): historian fit + simulator bisection, chart artifact
+            f("forecast_fouling", "Fouling forecast for an exchanger with a historian U signal: U trend since the last "
+                                  "cleaning (fit and 95 % band), the U at which the plant hits its first limit (re-solved in "
+                                  "the simulator), the date it is reached, production and money lost after it, the latest "
+                                  "cleaning date, and a back-test. Saves a chart artifact.",
+              {"equipment": S, "as_of_day": {"type": "integer", "description": "historian day to forecast from (default: the last)"}}),
             f("troubleshoot", "Rank the causes of an exchanger's process outlet running out of spec (fouling, utility short of flow, "
                               "utility too warm, process flow higher than metered, process arriving hotter): each cause is fitted in "
                               "DWSIM to the symptom and checked against the other historian readings; returns the ranked causes and "
@@ -1607,6 +1613,11 @@ class PlantWorkspace(Study):
         return r
 
     def _call_tool(self, name, a):
+        if name == "forecast_fouling":
+            try:
+                return self.forecast_fouling(a.get("equipment"), a.get("as_of_day"))
+            except (ValueError, KeyError, FileNotFoundError) as e:
+                return {"error": str(e)}
         if name == "make_document":
             from . import documents
             try:
@@ -2120,7 +2131,21 @@ class PlantWorkspace(Study):
             if not (ROOT / "cases" / self.name / "historian_map.json").exists():
                 return None
             f.write_text(json.dumps(health.check(self.name), indent=1, default=str))
+            if refresh and self.built and "forecast" in json.loads((ROOT / "cases" / self.name / "historian_map.json").read_text()):
+                self.forecast_fouling(refresh=True)
         return json.loads(f.read_text())
+
+    def forecast_fouling(self, equipment=None, as_of_day=None, refresh=False):
+        """Fouling forecast (plantagent.forecast) plus its chart as an artifact."""
+        from . import artifacts, charts, forecast
+        r = forecast.forecast(self, equipment, as_of_day, refresh=refresh)
+        title = f"{r['tag']} fouling forecast as of {r['as_of'][:10]}"
+        meta = artifacts.save(self.name, "chart", title, {"forecast.svg": charts.fouling_svg(title, r),
+                                                          "forecast.json": json.dumps(r, indent=1)},
+                              by="PlantAgent (deterministic)", sources=[r["source"], r["model"], r["simulator"]],
+                              summary=forecast.headline(r))
+        return {**{k: v for k, v in r.items() if k != "points"}, "headline": forecast.headline(r),
+                "id": meta["id"], "kind": meta["kind"], "title": meta["title"], "files": meta["files"], "summary": meta["summary"]}
 
     def troubleshoot(self, equipment, reading=None, scale=None):
         """Rank the causes of an exchanger's process outlet running out of spec (plantagent.diagnose). The symptom is the

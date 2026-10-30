@@ -192,6 +192,18 @@ class BusyError(RuntimeError):
     pass
 
 
+def _fouling_forecast(w):
+    """The stored fouling forecast for the morning-check card (no solve on page load) and its latest chart."""
+    from . import artifacts, forecast
+    f = w.model_file.with_name("forecast.json")
+    if not f.exists():
+        return None
+    r = json.loads(f.read_text())
+    chart = next((a for a in artifacts.list_(w.name) if a["kind"] == "chart" and f"fouling forecast as of {r['as_of'][:10]}" in a["title"]), None)
+    return {**{k: v for k, v in r.items() if k != "points"}, "headline": forecast.headline(r),
+            "chart": f"/api/plant/{w.name}/artifact/{chart['id']}/forecast.svg" if chart else None}
+
+
 def _case_lock(case):
     with _JOB_LOCK:
         return _CASE_LOCKS.setdefault(case, threading.Lock())
@@ -315,6 +327,7 @@ def plant_project(case):
             "has_changes": any(r.get("kind") != "correction" for r in w.revisions),
             "health": (lambda h: {k: h.get(k) for k in ("today", "exchangers", "source_note", "from", "to")} if h else None)(
                 json.loads(w.model_file.with_name("health.json").read_text()) if w.model_file.with_name("health.json").exists() else None),
+            "forecast": _fouling_forecast(w),
             "has_historian": bool(historian_cfg), "historian_note": historian_cfg.get("note"),
             "troubleshootable": [tag for tag, hx in (json.loads((ROOT / "cases" / case / "historian_map.json").read_text()).get("exchangers") or {}).items()
                                  # A direct-U signal lacks the hot/cold DWSIM streams required by the fitter.
