@@ -5,6 +5,7 @@ User identity is only a claim from the unauthenticated X-User header.
 """
 import hashlib
 import json
+import os
 import re
 import threading
 import time
@@ -22,34 +23,64 @@ def _file(case):
     return f
 
 
+def _head(case):
+    return _file(case).with_suffix(".head.json")
+
+
+def _atomic_json(path, value):
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.{threading.get_ident()}.tmp")
+    tmp.write_text(json.dumps(value))
+    os.replace(tmp, path)
+
+
 def _hash(entry):
     body = {k: v for k, v in entry.items() if k != "hash"}
     return hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()
 
 
 def entries(case):
+    import fcntl
     with _LOCK:
         f = _file(case)
-        return [json.loads(line) for line in f.read_text().splitlines() if line.strip()] if f.exists() else []
+        if not f.exists():
+            return []
+        with f.open() as handle:
+            fcntl.flock(handle, fcntl.LOCK_SH)
+            return [json.loads(line) for line in handle.read().splitlines() if line.strip()]
 
 
 def append(case, action, user=None, reason=None, details=None):
+    import fcntl
     with _LOCK:
-        prev = entries(case)
-        e = {"seq": len(prev) + 1, "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "case": case, "action": action,
-             "user": f"claimed: {user}" if user else "engineer (unauthenticated)", "reason": reason or "", "details": details or {},
-             "prev": prev[-1]["hash"] if prev else "0" * 64}
-        e["hash"] = _hash(e)
-        with _file(case).open("a") as f:
-            f.write(json.dumps(e) + "\n")
-        return e
+        path = _file(case)
+        with path.open("a+") as handle:
+            fcntl.flock(handle, fcntl.LOCK_EX)
+            handle.seek(0)
+            previous = [json.loads(line) for line in handle.read().splitlines() if line.strip()]
+            entry = {"seq": len(previous) + 1, "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "case": case,
+                     "action": action, "user": f"claimed: {user}" if user else "engineer (unauthenticated)",
+                     "reason": reason or "", "details": details or {},
+                     "prev": previous[-1]["hash"] if previous else "0" * 64}
+            entry["hash"] = _hash(entry)
+            handle.seek(0, os.SEEK_END)
+            handle.write(json.dumps(entry) + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+            _atomic_json(_head(case), {"entries": entry["seq"], "hash": entry["hash"]})
+            return entry
 
 
 def verify(case):
     """Check internal consistency only; a valid chain does not prove the file was not rewritten."""
+    import fcntl
     with _LOCK:
         f = _file(case)
-        lines = f.read_text().splitlines() if f.exists() else []
+        if f.exists():
+            with f.open() as handle:
+                fcntl.flock(handle, fcntl.LOCK_SH)
+                lines = handle.read().splitlines()
+        else:
+            lines = []
         prev = "0" * 64
         for i, line in enumerate(lines):
             try:
@@ -59,6 +90,9 @@ def verify(case):
                 prev = e["hash"]
             except (ValueError, TypeError, AttributeError):
                 return {"ok": False, "broken_at": i + 1, "entries": i}
+        checkpoint = json.loads(_head(case).read_text()) if _head(case).exists() else None
+        if checkpoint and (checkpoint.get("entries") != len(lines) or checkpoint.get("hash") != prev):
+            return {"ok": False, "broken_at": len(lines) + 1, "entries": len(lines)}
         return {"ok": True, "entries": len(lines)}
 
 

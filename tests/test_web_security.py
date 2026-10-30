@@ -2,6 +2,7 @@
 import base64
 import http.client
 import json
+import os
 import tempfile
 import threading
 import unittest
@@ -31,6 +32,9 @@ class WebSecurityTests(unittest.TestCase):
         patch = mock.patch.object(web, "all_cases", side_effect=lambda kind="study": ["sample"])
         patch.start()
         self.addCleanup(patch.stop)
+        env = mock.patch.dict(os.environ, {"WEB_AUTH_TOKEN": "", "WEB_ALLOW_WRITES": "0"})
+        env.start()
+        self.addCleanup(env.stop)
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), web.Handler)
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
@@ -84,7 +88,24 @@ class WebSecurityTests(unittest.TestCase):
                          "/api/ws/sample/photo", "/api/ws/sample/voice", "/api/ws/sample/readsheet"):
                 with self.subTest(path=path):
                     self.assertEqual(self.request("POST", path, b"{}")[0], 403)
-            self.assertEqual(self.request("POST", "/api/ws/sample/export", b'{"kind":"memo"}')[0], 403)
+            self.assertEqual(self.request("POST", "/api/ws/sample/export", b'{"kind":"memo"}',
+                                          {"Content-Type": "application/json"})[0], 403)
+
+    def test_configured_server_requires_bearer_and_remote_writes_are_opt_in(self):
+        with mock.patch.dict(os.environ, {"WEB_AUTH_TOKEN": "secret", "WEB_ALLOW_WRITES": "0"}):
+            self.assertEqual(self.request("GET", "/api/job/nope")[0], 403)
+            auth = {"Authorization": "Bearer secret"}
+            self.assertEqual(self.request("GET", "/api/job/nope", headers=auth)[0], 404)
+            self.assertEqual(self.request("POST", "/api/newproject", b"{}", {**auth, "Content-Type": "application/json"})[0], 403)
+
+    def test_one_mutating_job_per_case(self):
+        job = web._new_job("sample")
+        self.addCleanup(lambda: web._finish_job("sample", job) if not web.JOBS[job]["done"] else None)
+        with self.assertRaises(web.BusyError):
+            web._new_job("sample")
+        web._finish_job("sample", job)
+        second = web._new_job("sample")
+        web._finish_job("sample", second)
 
 
 class ProjectAndAuditTests(unittest.TestCase):
@@ -125,6 +146,14 @@ class ProjectAndAuditTests(unittest.TestCase):
         result = web.new_project({**self.project, "drawing_name": "plan.pdf", "drawing_b64": base64.b64encode(data).decode()})
         self.assertEqual(result["case"], "unit_test")
 
+    def test_uploaded_project_defaults_to_non_contributor_model(self):
+        result = web.new_project(self.project)
+        web.PLANTS.pop(result["case"], None)
+        self.addCleanup(lambda: web.PLANTS.pop(result["case"], None))
+        with mock.patch("plantagent.plant.PlantWorkspace") as workspace:
+            web.plant(result["case"])
+        workspace.assert_called_once_with(result["case"], "muse-spark-1.3")
+
     def test_audit_append_is_serial_and_claimed_identity_is_not_authenticated(self):
         with ThreadPoolExecutor(8) as pool:
             list(pool.map(lambda _: audit.append("unit_test", "edit", "alice"), range(40)))
@@ -138,6 +167,13 @@ class ProjectAndAuditTests(unittest.TestCase):
         tampered["reason"] = "changed"
         f.write_text(json.dumps(tampered) + "\n" + "\n".join(lines[1:]) + "\n")
         self.assertEqual(audit.verify("unit_test")["broken_at"], 1)
+
+    def test_audit_checkpoint_detects_tail_deletion(self):
+        audit.append("unit_test", "one")
+        audit.append("unit_test", "two")
+        path = audit._file("unit_test")
+        path.write_text(path.read_text().splitlines()[0] + "\n")
+        self.assertEqual(audit.verify("unit_test"), {"ok": False, "broken_at": 2, "entries": 1})
 
 
 if __name__ == "__main__":

@@ -1,13 +1,16 @@
 """Case documents as the agent sees them: allowed pages only, recommendation clauses withheld."""
 import base64
 import json
+import os
 import re
 import subprocess
 from functools import lru_cache
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA = Path("/home/kizil/Desktop/hackathon/case-data")
+_DATA_CANDIDATES = (ROOT.parent / "case-data", Path.home() / "Desktop" / "hackathon" / "case-data")
+DATA = Path(os.getenv("PLANTAGENT_DATA_ROOT") or next((path for path in _DATA_CANDIDATES if path.exists()),
+                                                      _DATA_CANDIDATES[0])).expanduser().resolve()
 
 # Clauses that state a recommendation or a conclusion about a required change.
 # Applied per clause (split on , ; :) so facts sharing a sentence with a conclusion survive.

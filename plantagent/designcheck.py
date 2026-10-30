@@ -121,7 +121,7 @@ def run_case(name, model):
     spend_before = _spend()[provider]
 
     study = Study(name, model)
-    llm.TAG = "designcheck:" + name
+    llm.set_tag("designcheck:" + name)
     original = llm.complete
     def bounded_complete(requested_model, messages, **params):
         if _spend()[provider] - baseline[provider] + RESERVE[provider] >= CAPS[provider]:

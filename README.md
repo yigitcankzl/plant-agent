@@ -291,8 +291,11 @@ Optional tools:
 - `.venv-surge` with `tsnet`, `numpy<2` and `wntr<1.2`, for transients
 
 Muse spend is capped by `MUSE_BUDGET_USD` and logged in `runs/usage.jsonl`. The web UI disables
-Muse-spending actions unless `WEB_ALLOW_RUNS=1`; do not expose it publicly with that flag without
-authentication at the proxy, since the local server has no login.
+Muse-spending actions unless `WEB_ALLOW_RUNS=1`. The default server binds only to localhost. A non-local `--host`
+requires `WEB_AUTH_TOKEN`; API/file requests then require `Authorization: Bearer <token>`, and POSTs remain disabled
+until `WEB_ALLOW_WRITES=1`. Paid calls are serialized across local processes and reserve their worst-case token cost
+before sending. Uploaded private projects default to non-contributor Muse Spark; contributor use requires the explicit
+`ALLOW_PRIVATE_CONTRIBUTOR=1` override.
 
 ## Timeline
 

@@ -5,8 +5,12 @@ development costs nothing. Every billed call is appended to runs/usage.jsonl and
 the client refuses new calls once the ledger reaches BUDGET_USD.
 """
 import hashlib
+import io
 import json
 import os
+import threading
+import wave
+from contextlib import contextmanager
 from pathlib import Path
 
 from openai import OpenAI
@@ -23,7 +27,16 @@ PRICES = {
     "muse-spark-1.3-contributor": (0.10, 0.20),
 }
 # ponytail: one global cap; keep ~$30 of the $150 for final demo runs and video takes.
-TAG = ""  # written to each ledger line (e.g. the case name) so cost can be split per study
+_TAG = threading.local()
+_LOCK = threading.RLock()
+
+
+def set_tag(value):
+    _TAG.value = str(value or "")
+
+
+def current_tag():
+    return getattr(_TAG, "value", "")
 
 
 def _load_env():
@@ -44,6 +57,21 @@ def spent(tag=None):
         return 0.0
     rows = [json.loads(l) for l in LEDGER.read_text().splitlines() if l]
     return sum(r["usd"] for r in rows if tag is None or r.get("tag") == tag)
+
+
+@contextmanager
+def _billing_lock():
+    """Serialize cache/budget/ledger across threads and local server processes."""
+    import fcntl
+    with _LOCK:
+        lock = ROOT / "runs" / ".llm.lock"
+        lock.parent.mkdir(parents=True, exist_ok=True)
+        with lock.open("a+") as handle:
+            fcntl.flock(handle, fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(handle, fcntl.LOCK_UN)
 
 
 # Open-weights hosts, addressed as "<host>:<model id>" (e.g. "baseten:meta-models/muse-spark-open-1026"); own key and budget each.
@@ -83,48 +111,81 @@ def _client_for(model):
     return _client, model
 
 
+def _provider_spend(model):
+    host = _host(model)
+    return spent(host) if host else spent() - sum(spent(name) for name in OPEN_HOSTS)
+
+
+def _budget(model):
+    host = _host(model)
+    return OPEN_HOSTS[host][2] if host else BUDGET_USD
+
+
+def _reserve(model, messages, params):
+    pin, pout = PRICES.get(model) or OPEN_DEFAULT_PRICE
+    input_tokens = max(1, len(json.dumps(messages, default=str)) // 4)
+    output_tokens = int(params.get("max_tokens") or 4096)
+    return (input_tokens * pin + output_tokens * pout) / 1e6
+
+
+def _append_usage(row):
+    LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    with LEDGER.open("a") as handle:
+        handle.write(json.dumps(row) + "\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+
+
 def complete(model, messages, **params):
     """Returns the assistant message as a dict {content, tool_calls}. Cached; raises once the budget is used up."""
     key = hashlib.sha256(json.dumps([model, messages, params], sort_keys=True).encode()).hexdigest()
     hit = CACHE / f"{key}.json"
-    if hit.exists():
-        return json.loads(hit.read_text())["message"]
-
-    client, model_id = _client_for(model)
-    r = client.chat.completions.create(model=model_id, messages=messages, **params)
-    m = r.choices[0].message
-    msg = {"content": m.content, "tool_calls": [
-        {"id": t.id, "name": t.function.name, "arguments": t.function.arguments} for t in (m.tool_calls or [])]}
-    usd = cost(model, r.usage)
-
-    CACHE.mkdir(parents=True, exist_ok=True)
-    hit.write_text(json.dumps({"message": msg}))
-    with LEDGER.open("a") as f:
-        f.write(json.dumps({"model": model, "tag": _host(model) or TAG, "in": r.usage.prompt_tokens, "out": r.usage.completion_tokens, "usd": round(usd, 5)}) + "\n")
-    return msg
+    with _billing_lock():
+        if hit.exists():
+            return json.loads(hit.read_text())["message"]
+        reserve = _reserve(model, messages, params)
+        if _provider_spend(model) + reserve > _budget(model):
+            raise RuntimeError(f"{_host(model) or 'Muse'} budget would be exceeded by this call; no model call made")
+        client, model_id = _client_for(model)
+        r = client.chat.completions.create(model=model_id, messages=messages, **params)
+        m = r.choices[0].message
+        msg = {"content": m.content, "tool_calls": [
+            {"id": t.id, "name": t.function.name, "arguments": t.function.arguments} for t in (m.tool_calls or [])]}
+        usd = cost(model, r.usage)
+        CACHE.mkdir(parents=True, exist_ok=True)
+        tmp = hit.with_name(f".{hit.name}.{os.getpid()}.{threading.get_ident()}.tmp")
+        tmp.write_text(json.dumps({"message": msg}))
+        os.replace(tmp, hit)
+        _append_usage({"model": model, "tag": _host(model) or current_tag(), "in": r.usage.prompt_tokens,
+                       "out": r.usage.completion_tokens, "usd": round(usd, 5)})
+        return msg
 
 
 def transcribe(wav: bytes):
     """Muse Voice Transcribe (push-to-talk). Billed per audio hour; logged in the same ledger and budget."""
     import urllib.request
-    if spent() >= BUDGET_USD:
-        raise RuntimeError(f"Muse budget reached (${spent():.2f} of ${BUDGET_USD}).")
-    _load_env()
-    b = "----plantagent" + hashlib.sha1(wav[:64]).hexdigest()
-    req = json.dumps({"model": "muse-voice-transcribe-1.0", "audioEncoding": "WAV", "mode": "PUSH_TO_TALK"}).encode()
-    body = (f"--{b}\r\nContent-Disposition: form-data; name=\"request\"\r\nContent-Type: application/json\r\n\r\n").encode() + req + \
-           (f"\r\n--{b}\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"speech.wav\"\r\nContent-Type: audio/wav\r\n\r\n").encode() + \
-           wav + f"\r\n--{b}--\r\n".encode()
-    r = urllib.request.Request(os.getenv("META_BASE_URL", "https://api.meta.ai/v1") + "/asr/transcribe", data=body, method="POST",
-                               headers={"Authorization": "Bearer " + os.environ["META_API_KEY"],
-                                        "Content-Type": f"multipart/form-data; boundary={b}", "Accept": "application/json"})
-    out = json.loads(urllib.request.urlopen(r, timeout=60).read())
-    usd = out.get("audioDurationMs", 0) / 3.6e6 * 0.18
-    LEDGER.parent.mkdir(parents=True, exist_ok=True)
-    with LEDGER.open("a") as f:
-        f.write(json.dumps({"model": "muse-voice-transcribe-1.0", "tag": TAG, "in": 0, "out": 0, "usd": round(usd, 6),
-                            "audio_ms": out.get("audioDurationMs")}) + "\n")
-    return out
+    try:
+        with wave.open(io.BytesIO(wav)) as audio:
+            estimated = audio.getnframes() / max(audio.getframerate(), 1) / 3600 * 0.18
+    except (wave.Error, EOFError) as exc:
+        raise ValueError("invalid WAV audio") from exc
+    with _billing_lock():
+        if _provider_spend("muse-spark-1.3") + estimated > BUDGET_USD:
+            raise RuntimeError("Muse budget would be exceeded by this transcription; no model call made")
+        _load_env()
+        b = "----plantagent" + hashlib.sha1(wav[:64]).hexdigest()
+        req = json.dumps({"model": "muse-voice-transcribe-1.0", "audioEncoding": "WAV", "mode": "PUSH_TO_TALK"}).encode()
+        body = (f"--{b}\r\nContent-Disposition: form-data; name=\"request\"\r\nContent-Type: application/json\r\n\r\n").encode() + req + \
+               (f"\r\n--{b}\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"speech.wav\"\r\nContent-Type: audio/wav\r\n\r\n").encode() + \
+               wav + f"\r\n--{b}--\r\n".encode()
+        request = urllib.request.Request(os.getenv("META_BASE_URL", "https://api.meta.ai/v1") + "/asr/transcribe", data=body, method="POST",
+                                         headers={"Authorization": "Bearer " + os.environ["META_API_KEY"],
+                                                  "Content-Type": f"multipart/form-data; boundary={b}", "Accept": "application/json"})
+        out = json.loads(urllib.request.urlopen(request, timeout=60).read())
+        usd = out.get("audioDurationMs", 0) / 3.6e6 * 0.18
+        _append_usage({"model": "muse-voice-transcribe-1.0", "tag": current_tag(), "in": 0, "out": 0,
+                       "usd": round(usd, 6), "audio_ms": out.get("audioDurationMs")})
+        return out
 
 
 def chat(model, messages, **params):

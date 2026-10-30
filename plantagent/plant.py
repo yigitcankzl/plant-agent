@@ -5,6 +5,7 @@ import copy
 import hashlib
 import json
 import math
+import os
 import re
 import time
 from pathlib import Path
@@ -15,6 +16,12 @@ from .study import ARR, Study, compact, submit, text_tool_calls, unstring
 
 ROOT = Path(__file__).resolve().parent.parent
 S, N, B = {"type": "string"}, {"type": "number"}, {"type": "boolean"}
+
+
+def _write_json(path, value):
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(value, indent=1))
+    os.replace(tmp, path)
 
 RULES = ("Rules: every number comes from the P&ID (cite the tag and attribute), the operating data sheet (cite the row), or a "
          "logged simulator run (cite its label). Never invent equipment ratings. State each assumption. Use the simulator, not "
@@ -1741,7 +1748,7 @@ class PlantWorkspace(Study):
         if self.cfg.get("pid_pdf") and not (self.pid or {}).get("confirmed"):
             raise ValueError("confirm the drawing read first: check Muse's reading of the schematic and correct it before a model is built")
         t0, usd0 = time.time(), llm.spent()
-        llm.TAG = "plant:" + self.name
+        llm.set_tag("plant:" + self.name)
         self._phase = "build"
         system, user, submit_tool = self._build_prompt()
         sub = self.loop("build", system, user, self.tools() + [submit_tool], "submit_model", 30)
@@ -1957,7 +1964,7 @@ class PlantWorkspace(Study):
             self.build()
         self._phase = "ask"
         t0, usd0 = time.time(), llm.spent()
-        llm.TAG = "plant:" + self.name
+        llm.set_tag("plant:" + self.name)
         brief = {"unit": self.cfg["title"], "target_throughput_multiple": self.cfg.get("target_scale"),
                  "model_label": self.built["label"], "model_mapping": self.built.get("mapping"),
                  "revisions": [r["title"] for r in self.revisions], "earlier_answers": [a["summary"] for a in self.answers[-4:]]}
@@ -2078,7 +2085,8 @@ class PlantWorkspace(Study):
         before, after = self.state(sc), self._solve(patch(self.spec, changes), sc)
         key = lambda r: {(c["id"], c["check"]): c for c in r["checks"] if "utilisation" in c}  # noqa: E731
         b, a = key(before), key(after)
-        return {"scale": sc, "errors": after["errors"], "changes": [{**c, "text": describe_change(self.spec, c)} for c in changes],
+        return {"scale": sc, "errors": after["errors"], "state_after": after,
+                "changes": [{**c, "text": describe_change(self.spec, c)} for c in changes],
                 "checks": [{"id": k[0], "check": k[1], "before": b[k]["utilisation"] if k in b else None, "after": a[k]["utilisation"],
                             "value_after": a[k]["value"], "limit": a[k]["limit"], "unit": a[k]["unit"]} for k in a],
                 "units_after": after["units"]}
@@ -2105,6 +2113,8 @@ class PlantWorkspace(Study):
 
     def accept(self, p, user=None, reason=None, answer=None):
         """Accept a verified proposal as a new revision. Revisions are kept on disk and never deleted."""
+        if (self.built.get("review") or {}).get("blocking"):
+            raise ValueError("the current model has blocking review findings; correct the model before applying plant changes")
         if not (reason or "").strip():
             raise ValueError("a reason for the change is required")
         v = self.verify(p)  # never trust the client's copy
@@ -2126,8 +2136,10 @@ class PlantWorkspace(Study):
                       if so.get("comparison") else {})}
         if v.get("calculation") is not None:
             details["calculation"] = v["calculation"]
-        r["audit"] = audit.append(self.name, "accept", user, reason, details)["hash"]
         self._commit(r)
+        r["audit"] = audit.append(self.name, "accept", user, reason, details)["hash"]
+        if getattr(self, "rev_file", None):
+            _write_json(self.rev_file, self.revisions)
         return {**v, "revisions": self.revisions}
 
     def correct(self, spec, title, user=None, reason=None):
@@ -2139,9 +2151,11 @@ class PlantWorkspace(Study):
         r = {"rev": len(self.revisions) + 1, "kind": "correction", "title": title, "changes": [], "spec_before": self.built["spec"],
              "spec_after": spec, "capacity_multiple": cap.get("capacity_multiple"), "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
              "user": user, "reason": reason}
+        self._commit(r)
         r["audit"] = audit.append(self.name, "correct_model", user, reason, {"rev": r["rev"], "title": title,
                                   "capacity_multiple": r["capacity_multiple"]})["hash"]
-        self._commit(r)
+        if getattr(self, "rev_file", None):
+            _write_json(self.rev_file, self.revisions)
         return {"capacity": cap, "revisions": self.revisions}
 
     def restore(self, rev, user=None, reason=None):
@@ -2153,8 +2167,10 @@ class PlantWorkspace(Study):
         r = {"rev": len(self.revisions) + 1, "kind": "revert", "title": f"Return to the model before Rev {rev}" if rev else
              "Return to the model as built", "changes": [], "spec_before": self.built["spec"], "spec_after": target,
              "capacity_multiple": None, "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "user": user, "reason": reason}
-        r["audit"] = audit.append(self.name, "revert", user, reason, {"rev": r["rev"], "to_before_rev": rev})["hash"]
         self._commit(r)
+        r["audit"] = audit.append(self.name, "revert", user, reason, {"rev": r["rev"], "to_before_rev": rev})["hash"]
+        if getattr(self, "rev_file", None):
+            _write_json(self.rev_file, self.revisions)
         return {"revisions": self.revisions}
 
     def _built_spec(self):
@@ -2170,7 +2186,7 @@ class PlantWorkspace(Study):
                       "engine": self.built.get("engine") or _simulator_name(self.cfg),
                       "review": reviewed, "review_status": reviewed["status"], "gaps": self.gaps}
         self.runs[self.built["label"]] = {"spec": r["spec_after"], "purpose": "calibrated model (current revision)", "result": r["result_after"]}
-        self.rev_file.write_text(json.dumps(self.revisions, indent=1))
+        _write_json(self.rev_file, self.revisions)
         self._audit_review(reviewed, r.get("user"), r.get("reason") or r.get("title") or "revision")
         self._state = {}
 

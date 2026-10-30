@@ -206,6 +206,8 @@ def _pdf(md, path):
 def make(w, answer=None):
     """Build the decision file and memo for the workspace's current revisions (or, with no revisions, a selected answer's
     verified proposals applied together as the proposed case)."""
+    if (w.built.get("review") or {}).get("blocking"):
+        raise ValueError("the current model has blocking review findings; correct it before creating a decision pack")
     target = float(w.cfg.get("target_scale", 1.0))
     built = w._built_spec()
     revs = [r for r in w.revisions if r.get("kind") == "change"]

@@ -127,6 +127,13 @@ class DecisionPackTests(unittest.TestCase):
             return out, folder, json.loads((folder / "decision.json").read_text()), (folder / "decision.md").read_text(), (
                 (folder / "redline.svg").read_text() if (folder / "redline.svg").exists() else "")
 
+    def test_blocked_model_cannot_issue_a_decision_pack(self):
+        with tempfile.TemporaryDirectory() as folder:
+            w = _workspace(Path(folder), {"headline": "Unsafe", "summary": "Blocked.", "proposals": [proposal()]})
+            w.built["review"] = {"blocking": 1}
+            with self.assertRaisesRegex(ValueError, "blocking review findings"):
+                decision.make(w, 0)
+
     def test_new_equipment_pack_carries_the_stored_record(self):
         out, folder, data, md, svg = self._make({"headline": "Add a compressor", "summary": "Screened.", "proposals": [proposal()],
                                                   "model": "fixture", "field_checks": []})

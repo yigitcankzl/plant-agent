@@ -55,6 +55,13 @@ def salt_proposal():
 
 
 class ProposalProofTests(unittest.TestCase):
+    def test_blocked_model_cannot_apply_a_proposal(self):
+        w = workspace()
+        w.built["review"] = {"blocking": 1}
+        w.revisions, w.answers = [], []
+        with self.assertRaisesRegex(ValueError, "blocking review findings"):
+            w.accept({"title": "unsafe", "changes": []}, reason="try anyway")
+
     def test_existing_structure_and_performance_need_real_physical_changes(self):
         structural = change_errors(BASE, [{"path": "units.K-1.kind", "value": "positive_displacement"}])
         self.assertTrue(any("cannot edit existing unit structure" in error for error in structural))

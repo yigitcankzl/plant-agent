@@ -158,7 +158,7 @@ def ask(model, prof, arcs, prior=None):
 def run(n, model, prior=False):
     plants, recs, arcs = load()
     ids = sample(plants, recs, n)
-    llm.TAG = "iac"
+    llm.set_tag("iac")
     usd0, t0 = llm.spent(), time.time()
 
     def one(i):

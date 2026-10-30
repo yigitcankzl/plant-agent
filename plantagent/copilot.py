@@ -203,7 +203,7 @@ class Workspace(Study):
         if self.drawing:
             brief["drawing_elevations"] = [{k: e[k] for k in ("value", "structure", "feature")} for e in self.drawing["elevations"]]
         user = json.dumps(brief) + "\n\nRequest: " + text + (f"\nContext: {json.dumps(context)}" if context else "")
-        llm.TAG = "ws:" + c.name
+        llm.set_tag("ws:" + c.name)
         usd0 = llm.spent()
         t0 = time.time()
         ans = self.loop("ask", system, user, self.tools(), "answer", 9)
@@ -856,7 +856,7 @@ def read_photo(ws, data, model=None):
     buf = io.BytesIO()
     im.save(buf, "JPEG", quality=88)
     url = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
-    llm.TAG = "photo:" + ws.case.name
+    llm.set_tag("photo:" + ws.case.name)
     msg = llm.complete(model or ws.model, [
         {"role": "system", "content": "You read equipment nameplates and gauges in field photos for an engineer. Report only what is "
                                       "legible; put anything you cannot read in `unreadable`; never guess. Copy the plate text verbatim."},

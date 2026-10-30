@@ -32,7 +32,7 @@ def grade(run_dir, judge=None, write=True):
     key = Case(study["case"]).answer_key
     findings = study["analysis"].get("findings", [])
     alternatives = study["analysis"].get("alternatives", [])
-    llm.TAG = "grade:" + study["case"]
+    llm.set_tag("grade:" + study["case"])
     out = _json(llm.chat(judge, [{"role": "system", "content": PROMPT}, {"role": "user", "content": json.dumps(
         {"answer_key": [{k: i[k] for k in ("id", "unit", "engineers")} for i in key["items"]],
          "agent_findings": findings, "agent_alternatives": alternatives})}], temperature=0))

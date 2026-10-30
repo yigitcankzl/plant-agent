@@ -6,7 +6,9 @@ Muse-spending UI actions are off unless WEB_ALLOW_RUNS=1 (cap: MUSE_BUDGET_USD).
 import argparse
 import base64
 import binascii
+import hmac
 import io
+import ipaddress
 import json
 import math
 import mimetypes
@@ -182,6 +184,40 @@ import threading  # noqa: E402
 import uuid  # noqa: E402
 
 WORKSPACES, PLANTS, JOBS = {}, {}, {}
+_CASE_LOCKS, _JOB_LOCK = {}, threading.RLock()
+_ACTIVE_JOBS = threading.BoundedSemaphore(4)
+
+
+class BusyError(RuntimeError):
+    pass
+
+
+def _case_lock(case):
+    with _JOB_LOCK:
+        return _CASE_LOCKS.setdefault(case, threading.Lock())
+
+
+def _new_job(case, **extra):
+    """Reserve one bounded worker and one mutable workspace; callers must release with _finish_job."""
+    now = time.time()
+    with _JOB_LOCK:
+        for old in [key for key, value in JOBS.items() if value.get("done") and now - value.get("finished_at", now) > 3600]:
+            JOBS.pop(old, None)
+    lock = _case_lock(case)
+    if not lock.acquire(blocking=False):
+        raise BusyError(f"{case} already has a running job")
+    if not _ACTIVE_JOBS.acquire(blocking=False):
+        lock.release()
+        raise BusyError("server already has four running jobs")
+    job = uuid.uuid4().hex[:10]
+    JOBS[job] = {"events": [], "done": False, "answer": None, "error": None, **extra}
+    return job
+
+
+def _finish_job(case, job):
+    JOBS[job]["done"], JOBS[job]["finished_at"] = True, time.time()
+    _ACTIVE_JOBS.release()
+    _case_lock(case).release()
 
 
 def workspace(case):
@@ -217,15 +253,19 @@ def ws_project(case):
 def plant(case):
     from .plant import PlantWorkspace
     if case not in PLANTS:
-        PLANTS[case] = PlantWorkspace(case, os.getenv("COPILOT_MODEL", "muse-spark-1.3-contributor"))
+        cfg = json.loads((ROOT / "cases" / case / "case.json").read_text())
+        default = os.getenv("PRIVATE_MODEL", "muse-spark-1.3") if cfg.get("uploaded") else "muse-spark-1.3-contributor"
+        selected = os.getenv("COPILOT_MODEL", default)
+        if cfg.get("uploaded") and selected.endswith("-contributor") and os.getenv("ALLOW_PRIVATE_CONTRIBUTOR") != "1":
+            selected = default
+        PLANTS[case] = PlantWorkspace(case, selected)
     return PLANTS[case]
 
 
 def plant_job(case, fn):
     """Run a plant-workspace agent call in the background and stream its tool calls (same job protocol as ws_ask)."""
     w = plant(case)
-    job = uuid.uuid4().hex[:10]
-    JOBS[job] = {"events": [], "done": False, "answer": None, "error": None}
+    job = _new_job(case)
 
     def work():
         w.listener = lambda e: JOBS[job]["events"].append({
@@ -237,14 +277,21 @@ def plant_job(case, fn):
         except Exception as ex:
             JOBS[job]["error"] = f"{type(ex).__name__}: {ex}"
         finally:
-            w.listener, JOBS[job]["done"] = None, True
-    threading.Thread(target=work, daemon=True).start()
+            w.listener = None
+            _finish_job(case, job)
+    try:
+        threading.Thread(target=work, daemon=True).start()
+    except Exception:
+        _finish_job(case, job)
+        raise
     return {"job": job}
 
 
 def plant_project(case):
     w = plant(case)
     st = w.state(float(w.cfg.get("target_scale", 1.0))) if w.built else None
+    historian_map = ROOT / "cases" / case / "historian_map.json"
+    historian_cfg = json.loads(historian_map.read_text()) if historian_map.exists() else {}
     return {"case": case, "kind": "process", "engine": w.cfg.get("engine", "dwsim"), "title": w.cfg["title"], "source": w.cfg["source"], "question": w.cfg["question"],
             "data_note": w.cfg.get("data_note"), "throughput": w.cfg.get("throughput"), "drawing": "svg" if w.cfg.get("svg") else "pdf" if w.cfg.get("pid_pdf") else "none", "dexpi": bool(w.cfg.get("pid")),
             "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid or {"equipment": [], "connections": [], "valves": [], "control": []}, "basis": w.basis, "model": w.model,
@@ -253,6 +300,7 @@ def plant_project(case):
             "has_revisions": bool(w.revisions),
             "health": (lambda h: {k: h.get(k) for k in ("today", "exchangers", "source_note", "from", "to")} if h else None)(
                 json.loads(w.model_file.with_name("health.json").read_text()) if w.model_file.with_name("health.json").exists() else None),
+            "has_historian": bool(historian_cfg), "historian_note": historian_cfg.get("note"),
             "troubleshootable": [tag for tag, hx in (json.loads((ROOT / "cases" / case / "historian_map.json").read_text()).get("exchangers") or {}).items()
                                  # A direct-U signal lacks the hot/cold DWSIM streams required by the fitter.
                                  if not hx.get("u_tag")]
@@ -343,8 +391,7 @@ def new_project(b):
 
 def ws_ask(case, text, context):
     w = workspace(case)
-    job = uuid.uuid4().hex[:10]
-    JOBS[job] = {"events": [], "done": False, "answer": None, "error": None}
+    job = _new_job(case)
 
     def listen(e):
         r = e.get("result")
@@ -359,8 +406,13 @@ def ws_ask(case, text, context):
         except Exception as ex:
             JOBS[job]["error"] = f"{type(ex).__name__}: {ex}"
         finally:
-            w.listener, JOBS[job]["done"] = None, True
-    threading.Thread(target=work, daemon=True).start()
+            w.listener = None
+            _finish_job(case, job)
+    try:
+        threading.Thread(target=work, daemon=True).start()
+    except Exception:
+        _finish_job(case, job)
+        raise
     return {"job": job}
 
 
@@ -370,8 +422,7 @@ def ws_task(case, task_id):
     from .study import Study
     w = workspace(case)
     t = next(x for x in tasks(w.case) if x["id"] == task_id)
-    job = uuid.uuid4().hex[:10]
-    JOBS[job] = {"events": [], "done": False, "answer": None, "error": None, "task": t["title"]}
+    job = _new_job(case, task=t["title"])
 
     def work():
         try:
@@ -388,8 +439,12 @@ def ws_task(case, task_id):
         except Exception as ex:
             JOBS[job]["error"] = f"{type(ex).__name__}: {ex}"
         finally:
-            JOBS[job]["done"] = True
-    threading.Thread(target=work, daemon=True).start()
+            _finish_job(case, job)
+    try:
+        threading.Thread(target=work, daemon=True).start()
+    except Exception:
+        _finish_job(case, job)
+        raise
     return {"job": job, "title": t["title"]}
 
 
@@ -397,8 +452,7 @@ def ws_fix_all(case):
     """'Get me to target': one verified proposal per failing unit, streamed as they come; the engineer accepts each."""
     from .copilot import failing_units, problems, target_flow
     w = workspace(case)
-    job = uuid.uuid4().hex[:10]
-    JOBS[job] = {"events": [], "done": False, "answer": None, "error": None}
+    job = _new_job(case)
 
     def work():
         try:
@@ -415,8 +469,13 @@ def ws_fix_all(case):
         except Exception as ex:
             JOBS[job]["error"] = f"{type(ex).__name__}: {ex}"
         finally:
-            w.listener, JOBS[job]["done"] = None, True
-    threading.Thread(target=work, daemon=True).start()
+            w.listener = None
+            _finish_job(case, job)
+    try:
+        threading.Thread(target=work, daemon=True).start()
+    except Exception:
+        _finish_job(case, job)
+        raise
     return {"job": job}
 
 
@@ -496,10 +555,30 @@ class Handler(SimpleHTTPRequestHandler):
         return data
 
     def _json_body(self):
-        body = json.loads(self._body() or b"{}")
+        raw = self._body()
+        if self.headers.get_content_type() != "application/json":
+            raise ValueError("Content-Type must be application/json")
+        body = json.loads(raw or b"{}")
         if not isinstance(body, dict):
             raise ValueError("JSON body must be an object")
         return body
+
+    def _check_access(self, method):
+        """Local demo stays frictionless; configured or externally bound servers require bearer auth and opt-in writes."""
+        host = self.server.server_address[0]
+        try:
+            local = ipaddress.ip_address(host).is_loopback
+        except ValueError:
+            local = host == "localhost"
+        token = os.getenv("WEB_AUTH_TOKEN", "").strip()
+        protected = bool(token) or not local
+        if not protected:
+            return
+        supplied = self.headers.get("Authorization", "")
+        if not token or not hmac.compare_digest(supplied, "Bearer " + token):
+            raise PermissionError("valid WEB_AUTH_TOKEN bearer authorization is required")
+        if method == "POST" and os.getenv("WEB_ALLOW_WRITES") != "1":
+            raise PermissionError("remote writes are disabled (set WEB_ALLOW_WRITES=1 deliberately)")
 
     def _route(self, method):
         u = urlparse(self.path)
@@ -508,6 +587,7 @@ class Handler(SimpleHTTPRequestHandler):
         known = set(all_cases())
         if parts[:1] not in (["api"], ["files"], ["wsfiles"]):
             return None
+        self._check_access(method)
         if parts[:1] == ["wsfiles"] and len(parts) == 4 and (parts[1] in known or parts[1] in set(all_cases("process"))):
             name = parts[3]
             allowed = name in {"calc_sheets.xlsx", "memo.md", "markup.dwg", "profile_sheet.dwg", "profile_sheet.dxf", "decision.md", "decision.pdf",
@@ -597,6 +677,8 @@ class Handler(SimpleHTTPRequestHandler):
                 from .llm import PRICES
                 if body["model"] not in PRICES and not __import__("plantagent.llm", fromlist=["x"])._host(str(body["model"])):
                     return self._send({"error": "unknown model"}, code=400)
+                if w.cfg.get("uploaded") and str(body["model"]).endswith("-contributor") and os.getenv("ALLOW_PRIVATE_CONTRIBUTOR") != "1":
+                    return self._send({"error": "contributor models are disabled for uploaded private project data"}, code=409)
                 w.model = body["model"]
                 return self._send({"model": w.model})
         if parts == ["api", "newproject"] and method == "POST":
@@ -675,18 +757,17 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(read_photo(workspace(case), data))
             if what == "import" and method == "POST":
                 from .copilot import import_cad
+                from . import audit
                 w = workspace(case)
                 name = Path(self.headers.get("X-Filename") or "upload.dxf").name
                 if Path(name).suffix.lower() not in (".dxf", ".dwg"):
                     return self._send({"error": "upload a .dxf or .dwg"}, code=400)
                 f = w.dir / ("in_" + name)
                 f.write_bytes(self._body(MAX_UPLOAD))
-                return self._send(import_cad(w, f))
-            if what in ("accept", "restore", "edit", "photoapply", "import") and method == "POST":
-                from . import audit
-                audit.append(case, what, self.headers.get("X-User"), (body or {}).get("reason", "") if isinstance(body, dict) else "",
-                             {k: v for k, v in (body or {}).items() if k in ("title", "unit", "element", "field", "value", "rev", "run", "pump")}
-                             if isinstance(body, dict) else {})
+                result = import_cad(w, f)
+                audit.append(case, "import", self.headers.get("X-User"), "CAD import applied",
+                             {"file": name, "changes": len(result.get("changes") or [])})
+                return self._send(result)
             if what == "project":
                 return self._send(ws_project(case))
             if what == "ask" and method == "POST":
@@ -700,7 +781,11 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(elements(workspace(case), q["label"]))
             if what == "edit" and method == "POST":
                 from .copilot import edit
-                return self._send(edit(workspace(case), body["label"], body["element"], body["field"], body["value"]))
+                from . import audit
+                result = edit(workspace(case), body["label"], body["element"], body["field"], body["value"])
+                audit.append(case, "edit", self.headers.get("X-User"), body.get("reason", ""),
+                             {k: body.get(k) for k in ("element", "field", "value")})
+                return self._send(result)
             if what == "editable" and method == "POST":
                 from .copilot import export_editable
                 w = workspace(case)
@@ -724,21 +809,30 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(base64.b64decode(url.split(",", 1)[1]), "image/png")
             if what == "photoapply" and method == "POST":
                 from .copilot import apply_photo
-                return self._send(apply_photo(workspace(case), body["run"], body["pump"], body["gpm"], body["head"], body.get("note", "")))
+                from . import audit
+                result = apply_photo(workspace(case), body["run"], body["pump"], body["gpm"], body["head"], body.get("note", ""))
+                audit.append(case, "photoapply", self.headers.get("X-User"), body.get("note", ""),
+                             {k: body.get(k) for k in ("run", "pump", "gpm", "head")})
+                return self._send(result)
             if what == "fixall" and method == "POST":
                 return self._send(ws_fix_all(case))
             if what == "restore" and method == "POST":
                 from .copilot import problems, restore
+                from . import audit
                 w = workspace(case)
                 r = restore(w, body.get("rev", 0))
+                audit.append(case, "restore", self.headers.get("X-User"), body.get("reason", ""), {"rev": body.get("rev", 0)})
                 return self._send({**r, "issues": problems(w)})
             if what == "accept" and method == "POST":
                 from .copilot import accept, problems
+                from . import audit
                 w = workspace(case)
                 try:
                     r = accept(w, body)
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
+                audit.append(case, "accept", self.headers.get("X-User"), body.get("reason", ""),
+                             {k: body.get(k) for k in ("title", "unit", "element", "field", "value", "run_label")})
                 return self._send({**r, "issues": problems(w)})
             if what == "units":
                 from .copilot import unit_capacities
@@ -796,6 +890,8 @@ class Handler(SimpleHTTPRequestHandler):
                     self._send({"error": "not found"}, code=404)
         except PermissionError as e:
             self._send({"error": str(e)}, code=403)
+        except BusyError as e:
+            self._send({"error": str(e)}, code=409)
         except OverflowError as e:
             self._send({"error": str(e)}, code=413)
         except TimeoutError as e:
@@ -814,6 +910,7 @@ class Handler(SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
+    ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8000)
     ap.add_argument("--check", action="store_true", help="exercise the API on the latest Roseburg run and exit")
     a = ap.parse_args()
@@ -827,5 +924,11 @@ if __name__ == "__main__":
         assert log_events("roseburg", run)["events"] and drawing_png("roseburg")[:4] == b"\x89PNG"
         print("ok", run)
         sys.exit()
-    print(f"http://127.0.0.1:{a.port}")
-    ThreadingHTTPServer(("127.0.0.1", a.port), Handler).serve_forever()
+    try:
+        local_host = ipaddress.ip_address(a.host).is_loopback
+    except ValueError:
+        local_host = a.host == "localhost"
+    if not local_host and not os.getenv("WEB_AUTH_TOKEN", "").strip():
+        ap.error("--host outside localhost requires WEB_AUTH_TOKEN")
+    print(f"http://{a.host}:{a.port}")
+    ThreadingHTTPServer((a.host, a.port), Handler).serve_forever()

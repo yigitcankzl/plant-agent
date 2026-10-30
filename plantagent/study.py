@@ -501,7 +501,7 @@ class Study:
         if c.cfg.get("simulators") == ["dwsim"]:  # a process plant: no water-network tools, water standards or water cost curves
             sim_tools = PROCESS_TOOLS
         doc_tools = DOC_TOOLS + (PROFILE_TOOLS[:1] if drawing else [])
-        llm.TAG = c.name
+        llm.set_tag(c.name)
         usd0 = llm.spent(c.name)
         head = (f"Facility: {c.cfg['title']}\nSource: {c.cfg['source']}\nTask type: {c.cfg['task_type']}\n"
                 f"Question: {c.question}\nAvailable pages: {c.pages}" +
