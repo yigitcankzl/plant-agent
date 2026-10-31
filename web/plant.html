@@ -157,8 +157,21 @@
   /* Capacity desk: one scenario, one drawing, one contextual inspector. */
   .process.focused .app {
     grid-template-columns: minmax(0, 1fr) 430px;
-    grid-template-rows: 62px 124px minmax(0, 1fr);
+    grid-template-rows: 62px auto 96px minmax(0, 1fr);
   }
+  /* question first: what was asked, what came back, and where to ask the next one */
+  #qa { grid-row: 2; grid-column: 1; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 6px 26px; padding: 14px 18px 12px; background: #102a30; border-bottom: 1px solid var(--line); }
+  .qa-k { display: block; font: 700 10.5px var(--sans); letter-spacing: .9px; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+  #qaQ { font-size: 15px; line-height: 1.4; color: #e8eef2; }
+  #qaA { font-size: 19px; font-weight: 700; line-height: 1.3; }
+  #qaBadges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .qa-badge { font: 600 11.5px var(--sans); padding: 2px 9px; border-radius: 10px; border: 1px solid var(--line); color: var(--muted); }
+  .qa-badge.ok { color: #7fe0a8; border-color: #2f6b4a; } .qa-badge.fail { color: #ff9a90; border-color: #7a3a35; } .qa-badge.open { color: #f0c46c; border-color: #6b5a2e; }
+  #qa .qa-ask { grid-column: 1 / 3; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; margin-top: 4px; }
+  #qa .qa-ask .cmd { max-width: none; } #qa .qa-ask .cmd input { min-height: 38px; font-size: 14px; }
+  #qaSugg { grid-column: 1 / 3; display: flex; flex-wrap: wrap; gap: 6px; }
+  #qaSugg .btn { font-size: 12px; padding: 4px 10px; border-radius: 14px; }
+  .process.focused .app.mode-other #qa { display: none; }
   .process.focused header { grid-column: 1 / 3; justify-content: flex-start; }
   .process.focused header #proj { max-width: min(38vw, 470px); }
   .mode-tabs { display: flex; align-self: stretch; margin-left: auto; }
@@ -167,21 +180,21 @@
   .mode-tabs .btn.active { color: var(--text); box-shadow: inset 0 -3px var(--accent); }
   .process.focused #infoBtn { margin-left: 4px; }
 
-  .process.focused main { grid-row: 3; grid-column: 1; display: flex; min-height: 0; flex-direction: column; overflow: hidden; }
+  .process.focused main { grid-row: 4; grid-column: 1; display: flex; min-height: 0; flex-direction: column; overflow: hidden; }
   .process.focused main .stage { flex: 1; min-height: 0; padding: 14px; }
   .process.focused .pid-viewport { height: 100%; min-height: 390px; }
   .process.focused footer {
-    grid-row: 2; grid-column: 1; grid-template-columns: minmax(280px, 340px) minmax(0, 1fr) auto;
+    grid-row: 3; grid-column: 1; grid-template-columns: minmax(280px, 340px) minmax(0, 1fr) auto;
     align-items: center; border-top: 0; border-bottom: 1px solid var(--line); background: #143139;
   }
-  .process.focused .flowctl { padding: 13px 18px; }
-  .process.focused .flow-label { display: block; margin-bottom: 2px; color: var(--muted); font-size: 11px; font-weight: 700; }
-  .process.focused .flowv { font-size: 23px; }
-  .process.focused .verdict { min-width: 0; padding: 13px 20px; }
-  .process.focused .verdict .big { font-size: 18px; }
+  .process.focused .flowctl { padding: 8px 18px; }
+  .process.focused .flow-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; margin-bottom: 2px; color: var(--muted); font-size: 11px; font-weight: 700; }
+  .process.focused .flowv { font-size: 19px; }
+  .process.focused .verdict { min-width: 0; padding: 8px 20px; }
+  .process.focused .verdict .big { font-size: 15px; }
   .process.focused #toTarget { min-height: 44px; margin: 0 18px 0 8px; padding-inline: 18px; }
 
-  .process.focused aside.right { grid-row: 2 / 4; grid-column: 2; display: flex; min-height: 0; flex-direction: column; }
+  .process.focused aside.right { grid-row: 2 / 5; grid-column: 2; display: flex; min-height: 0; flex-direction: column; }
   .process.focused .rhead { flex: 0 0 auto; align-items: center; gap: 8px; font-size: 13px; color: var(--text); }
   .workspace-tabs { display: flex; margin-left: auto; border: 1px solid #4b6066; border-radius: 5px; overflow: hidden; }
   .workspace-tabs button { min-height: 30px; padding: 4px 9px; border: 0; border-left: 1px solid #4b6066; background: transparent; color: var(--muted); font: 700 11px var(--sans); cursor: pointer; }
@@ -211,6 +224,7 @@
   .process.focused #answers { font-size: 14px; line-height: 1.5; }
   .process.focused #answers > .ans { padding: 22px 20px 28px; animation: none; }
   .decision-brief { border-top: 3px solid #90d2c8; }
+  .gates-open > summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-top: 8px; }
   .decision-brief h2 { margin: 14px 0 10px; font-size: 19px; line-height: 1.3; }
   .decision-facts { margin: 0; }
   .decision-fact { display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid #3e5359; }
@@ -382,6 +396,15 @@
   </aside>
   <div class="drawer-shade" id="drawerShade" onclick="toggleDrawer(false)"></div>
 
+  <section id="qa" aria-label="Question and answer">
+    <div><span class="qa-k">Question</span><div id="qaQ">–</div></div>
+    <div><span class="qa-k">Answer</span><div id="qaA">–</div><div id="qaBadges"></div></div>
+    <div class="qa-ask" id="askDock">
+      <div class="cmd"><span class="k">›</span><input id="q" aria-label="Ask any engineering question about this plant" placeholder="Ask any engineering question about this plant…" autocomplete="off" disabled></div>
+      <button class="btn go" id="askBtn" type="button" disabled>Ask</button>
+    </div>
+    <div id="qaSugg"></div>
+  </section>
   <main>
     <div id="note" style="display:none;margin:8px 18px 0;padding:6px 10px;border:1px solid #8a6a2e;border-radius:5px;background:#2b2414;color:#f6d28b;font-size:12px"></div>
     <div class="stage" style="position:relative"><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Proposed</button></div><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing controls"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" class="word" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button><button type="button" class="word" id="toggleLabels" aria-label="Show or hide PlantAgent labels" aria-pressed="true" title="Show or hide PlantAgent load and finding labels">Labels</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
@@ -389,7 +412,7 @@
 
   <footer id="scenario">
     <div class="flowctl">
-      <label class="flow-label" for="scale">Throughput target</label>
+      <label class="flow-label" for="scale">What-if · throughput</label>
       <div class="flowv" id="flowv">–</div>
       <input type="range" id="scale" min="80" max="150" step="1" value="100">
       <div style="display:flex;justify-content:space-between;color:var(--muted);font:11px var(--mono)"><span>80%</span><span id="tgtLbl"></span><span id="maxLbl">150%</span></div>
@@ -411,10 +434,7 @@
       <details class="side-details" id="historyDetails"><summary>Model revisions and audit</summary><div id="revs"></div></details>
       <div id="answers"></div>
     </div>
-    <div class="side-ask" id="askDock">
-      <div class="cmd"><span class="k">›</span><input id="q" aria-label="Ask about the current result" placeholder="Ask about this result…" autocomplete="off" disabled></div>
-      <button class="btn" id="askBtn" type="button" disabled>Ask</button>
-    </div>
+
   </aside>
 </div>
 <div id="tour" role="dialog" aria-live="polite"><div class="st" id="tourStep"></div><div class="tx" id="tourText"></div>
@@ -701,7 +721,7 @@ async function load() {
   base = P.throughput ? {name: P.throughput.name, m3_h: P.throughput.base, unit: P.throughput.unit} :
     feed ? {name: feed[0], m3_h: feed[1].m3_h ?? feed[1].kg_h, unit: feed[1].m3_h != null ? 'm³/h' : 'kg/h'} : null;
   $('tgtLbl').textContent = `target ${Math.round(P.target_scale * 100)}%`;
-  if (incident()) { document.querySelector('.flow-label[for="scale"]').textContent = P.throughput?.name || 'Scenario'; $('tgtLbl').textContent = 'as documented 100%'; }
+  if (incident()) { document.querySelector('.flow-label[for="scale"]').textContent = 'What-if · ' + (P.throughput?.name || 'scenario'); $('tgtLbl').textContent = 'as documented 100%'; }
   $('scale').value = Math.round(P.target_scale * 100);
   syncViewToggle();
   await loadGateAssessment();
@@ -901,8 +921,8 @@ function render(st) {
     // header and subline name which plant they describe, so 'runs at 120 %' (proposed) and 'maximum 100 %' (today) never read as a contradiction
     const which = VIEW === 'proposed' && !modelBlocked() && (P?.has_changes || latestProposedChanges().length) ? (incident() ? 'With the fix' : 'Proposed design') : (incident() ? 'As documented' : "Today's plant");
     $('verdict').innerHTML = `<span class="verdict-which">${which}</span> ` + (incident() ? (over.length ? `<span style="color:var(--fail)">✗ Limit crossed at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
-      : `<span style="color:var(--ok)">✓ Within limits at ${Math.round(s * 100)}%</span> — tightest: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`) : over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
-      : `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — tightest: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`);
+      : `<span style="color:var(--ok)">✓ Within limits at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`) : over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
+      : `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`);
     $('verdictSub').innerHTML = capLine;
   }
   $('verdictSub').title = $('verdictSub').textContent;
@@ -1556,13 +1576,32 @@ function suggestions() {  // from this case's own equipment, so a desalination p
   if (incident()) return P.engine === 'pandapower' ? ['Will the planned switching relieve the overloaded line?', 'Is the grid N-1 secure after it?', 'Which protection setting trips first?']
     : P.engine === 'trapped' ? ['When does the pressure pass the design pressure?', 'What would have prevented it?', 'How sensitive is the timing to the heat leak?']
     : ['What happened, and which limit was crossed first?'];
-  const out = [`What limits +${pct}% throughput?`];
+  const out = [`What limits +${pct}% throughput?`, 'What happens if the main pump or compressor trips?'];
   if (simulator() === 'WaterTAP') out.push('Which membrane stage is closest to its limit, and why?', 'How does colder or saltier feed change recovery?');
   else {
     if ([...types].some(t => /heat|cool|exchanger|evaporator/.test(t))) out.push('Which exchanger is closest to its limit, and why?');
     if ([...types].some(t => /pump|compressor/.test(t))) out.push('Which pump or compressor has the least margin at the target?');
   }
-  return out.slice(0, 3);
+  out.push('Where is energy being wasted, and what would fix it?');
+  return out.slice(0, 4);
+}
+// the top bar: the question this page answers, the answer in one line, and how far it is checked
+function qaBar(lead) {
+  const d = designAnswer(), q = lead && lead === d && P.question ? P.question : lead ? (lead.request || lead.question) : P.question;
+  $('qaQ').textContent = plain(q || '') || 'Ask a question below.';
+  $('qaA').textContent = lead ? plain(lead.headline) || 'Answered' : 'Not answered yet';
+  const b = [];
+  if (lead) {
+    const dd = (lead.proposals || []).length ? lead : (d || lead), v = (dd.proposals || []).filter(p => p.verified).length;
+    b.push(['ok', `numbers from ${simulator()}, not the language model`]);
+    if (v) b.push(['ok', `${plural(v, 'change')} re-solved ✓`]);
+    const g = gateRows(dd), f = g.filter(r => gateState(r)[0] === 'fail').length, o = g.filter(r => gateState(r)[0] === 'open').length;
+    if (f) b.push(['fail', `${f} discipline check${f === 1 ? '' : 's'} failed`]);
+    if (o) b.push(['open', `${o} not calculated yet`]);
+    if (P.outcome?.engineers) b.push(['ok', 'answered blind · compare with what happened →']);
+  }
+  $('qaBadges').innerHTML = b.map(([k, t]) => `<span class="qa-badge ${k}"${/compare/.test(t) ? ' role="button" tabindex="0" style="cursor:pointer" onclick="document.querySelector(\'.outcome-compare\')?.scrollIntoView({behavior:\'smooth\'})"' : ''}>${esc(t)}</span>`).join('');
+  $('qaSugg').innerHTML = suggestions().map(x => `<button class="btn" ${act('ask', x)}>${esc(x)}</button>`).join('');
 }
 function answers() {
   if (!P.built) return;
@@ -1577,6 +1616,7 @@ function answers() {
     (rest.length ? `<details class="ans"><summary>History · ${rest.length} earlier question${rest.length === 1 ? '' : 's'}</summary>${rest.map(([a, i]) => briefAns(a, i)).join('')}</details>` : '') :
     `<div class="empty"><b>What would you like to test?</b><br>${incident() ? 'Ask what happened, which limit was crossed first, and what would have prevented it.' : 'Ask about an equipment limit, or find a path to the target throughput.'}
      <div class="sugg">${suggestions().map(s => `<button class="btn" ${act('ask', s)}>${esc(s)}</button>`).join('')}</div></div>`);
+  qaBar(lead);
   const ac = P.ai_cost, qs = ac?.questions_usd ?? all.reduce((t, a) => t + (a.cost_usd || 0), 0);
   $('spend').textContent = list.length || ac?.model_build_usd ? `AI cost $${qs.toFixed(2)} questions${ac?.model_build_usd ? ` · $${ac.model_build_usd.toFixed(2)} model build` : ''}` : '';
   $('spend').title = `Estimated Muse API cost: ${ac?.questions ?? all.length} questions answered${ac?.model_build_usd ? ' plus building the simulation model once' : ''}; simulator runs are local and free.`;
@@ -1608,11 +1648,13 @@ function gateState(row) {
 function disciplineImpact(a) {
   const rows = gateRows(a);
   if (!rows.length) return `<section class="discipline-impact"><div class="discipline-impact-head"><h3>Engineering impact</h3></div><div class="discipline-empty">No discipline calculation has been supplied yet. Issue the engineering package to run the current gates.</div></section>`;
-  const gates = rows.map(row => {
+  const calc = rows.filter(r => gateState(r)[0] !== 'open'), rest = rows.filter(r => gateState(r)[0] === 'open');
+  const gate = row => {
     const n = GATE_VIEWS.push(row) - 1, [state, mark, status] = gateState(row), name = GATE_NAMES[row.id] || row.id.replaceAll('_', ' ');
     return `<button type="button" class="discipline-gate ${state}" onclick="showGate(${n})" aria-label="${esc(name)}: ${esc(status)}" title="${esc(row.summary || status)}"><span class="discipline-mark">${mark}</span><span class="discipline-name">${esc(name)}</span></button>`;
-  }).join('');
-  return `<section class="discipline-impact"><div class="discipline-impact-head"><h3>Engineering impact</h3><span>✓ pass · ✕ fail (calculated) · ○ open</span></div><div class="discipline-rail">${gates}</div></section>`;
+  };
+  const shown = calc.map(gate).join(''), folded = rest.map(gate).join('');
+  return `<section class="discipline-impact"><div class="discipline-impact-head"><h3>④ Other disciplines</h3><span>✓ passes · ✕ fails (calculated)</span></div><div class="discipline-rail">${shown}</div>${rest.length ? `<details class="gates-open"><summary>○ ${rest.length} not calculated yet: ${esc(rest.map(r => GATE_NAMES[r.id] || r.id).join(', '))}</summary><div class="discipline-rail">${folded}</div></details>` : ''}</section>`;
 }
 function showGate(index) {
   const row = GATE_VIEWS[index];
@@ -1643,7 +1685,8 @@ function decisionBrief(a, idx) {
   const limits = (d.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity));
   const first = limits[0], verified = (d.proposals || []).filter(p => p.verified), gates = gateRows(d);
   const failed = gates.filter(row => gateState(row)[0] === 'fail'), open = gates.filter(row => gateState(row)[0] === 'open');
-  const recommendation = (verified.length ? verified : d.proposals || []).map(p => p.title).filter(Boolean).join(' + ') || 'No verified change yet';
+  const recommendation = (verified.length ? verified : d.proposals || []).map(p => p.title).filter(Boolean).join(' + ') ||
+    (incident() ? 'No change proposed: the question was whether the planned action helps, and the answer is above' : 'No verified change yet');
   let status = 'Analysis needs engineering checks', statusClass = 'open';
   if (modelBlocked()) { status = 'Model review blocked — correct the model before issuing a design'; statusClass = 'fail'; }
   else if (failed.length) { status = `${failed.length} discipline gate${failed.length === 1 ? '' : 's'} failed`; statusClass = 'fail'; }
@@ -1651,12 +1694,16 @@ function decisionBrief(a, idx) {
   else if (d.combined?.reaches_target && !gates.length) status = `${simulator()} verified · discipline gates not run yet`;
   else if (d.combined?.reaches_target) { status = `${simulator()} and all supplied discipline gates pass`; statusClass = 'pass'; }
   else if (verified.length) status = `${verified.length} change${verified.length === 1 ? '' : 's'} simulated · combined target not yet cleared`;
+  if (incident() && !failed.length) {  // the replay of the runs the answer cites decides what may be claimed
+    const runs = (d.checks || []).filter(c => /^run /.test(c.item || '')), bad = runs.filter(c => !c.ok);
+    if (runs.length && !bad.length) { status = `All ${runs.length} ${simulator()} runs the answer cites re-solve to the same result${verified.length ? '; the proposed fix was re-solved too' : ''}`; statusClass = 'pass'; }
+    else if (bad.length) { status = `${bad.length} of ${runs.length} cited ${simulator()} runs re-solve to a different result: check before relying on the numbers`; statusClass = 'fail'; }
+  }
   const issue = (idx === P.answers.length - 1 || a === designAnswer()) && !modelBlocked() && verified.length ? `<div class="package-action"><button class="btn go" type="button" onclick="issueEngineeringPackage(this)">Issue engineering package</button><small>DRAFT — generates the decision pack and current pre-FEED gates; not approved for construction.</small></div>` : '';
   return `<section class="decision-brief"><h2>${esc(plain(a.headline) || 'Engineering decision')}</h2><dl class="decision-facts">
-    <div class="decision-fact"><dt>Target</dt><dd>${incident() ? esc(P.throughput?.name || 'Documented scenario') : `<b>${Math.round(P.target_scale * 100)}%</b> throughput`}</dd></div>
-    <div class="decision-fact"><dt>First bottleneck</dt><dd>${first ? `<b>${esc(first.tag)}</b> · ${esc(plain(first.text))}` : 'No limiting item reported'}</dd></div>
-    <div class="decision-fact"><dt>Recommendation</dt><dd>${esc(plain(recommendation))}</dd></div>
-    <div class="decision-fact status-${statusClass}"><dt>Status</dt><dd>${esc(status)}</dd></div>
+    <div class="decision-fact"><dt>① ${incident() ? 'What the engine shows' : 'What limits it'}</dt><dd>${first ? `<b>${esc(first.tag)}</b> · ${esc(plain(first.text))}` : 'No limiting item reported'}</dd></div>
+    <div class="decision-fact"><dt>② ${incident() ? 'What would have prevented it' : 'What Muse proposes'}</dt><dd>${esc(plain(recommendation))}</dd></div>
+    <div class="decision-fact status-${statusClass}"><dt>③ What the engines confirmed</dt><dd>${esc(status)}</dd></div>
     <div class="decision-fact"><dt>Who did what</dt><dd>${whoDidWhat(d, gates)}</dd></div>
     ${secondOpinionLink(d)}
   </dl></section>${disciplineImpact(d)}${issue}`;
@@ -1668,8 +1715,8 @@ function whoDidWhat(d, gates) {
   const builder = museName(P.built?.model), answerer = museName(d.model || P.built?.model);
   const byMuse = /muse/i.test(P.built?.model || '');
   return (!byMuse ? `Model: ${esc(P.built?.model || 'template')} (no language model) · <b>${esc(answerer)}</b> answered and proposed ${plural(n, 'change')} · `
-    : builder === answerer ? `<b>${esc(builder)}</b> read the drawing, built the model and proposed ${plural(n, 'change')} · `
-    : `<b>${esc(builder)}</b> read the drawing and built the model · <b>${esc(answerer)}</b> proposed ${plural(n, 'change')} · `) +
+    : builder === answerer ? `<b>${esc(builder)}</b> read the ${P.dexpi ? 'drawing' : 'case documents'}, built the model and proposed ${plural(n, 'change')} · `
+    : `<b>${esc(builder)}</b> read the ${P.dexpi ? 'drawing' : 'case documents'} and built the model · <b>${esc(answerer)}</b> proposed ${plural(n, 'change')} · `) +
     `<b>${esc(simulator())}</b> re-solved every number` + (eng.length ? ` · <b>${esc(eng.join(', '))}</b> checked the other disciplines` : '');
 }
 function secondOpinionLink(d) {

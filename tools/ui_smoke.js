@@ -162,8 +162,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   }
   // every discipline gate is visible without a hidden horizontal scroll
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForSelector('.discipline-rail', { timeout: 30000 }).catch(() => {});
-  const railFits = await p.evaluate(() => { const r = document.querySelector('.discipline-rail'); return !!r && r.scrollWidth <= r.clientWidth + 1 && r.children.length >= 5; });
-  console.log(railFits ? 'ok  ' : 'FAIL', 'all discipline gates visible on salt_mvr');
+  const railFits = await p.evaluate(() => { const r = document.querySelector('.discipline-rail'); return !!r && r.scrollWidth <= r.clientWidth + 1 && document.querySelectorAll('.discipline-gate').length >= 5; });
+  console.log(railFits ? 'ok  ' : 'FAIL', 'discipline gates on salt_mvr: calculated shown, the rest folded');
   bad += railFits ? 0 : 1;
   // a blind case with a recorded outcome shows the agent and the engineers side by side
   const bv = await (await fetch(`${BASE}/api/plant/swro_brownsville/project`)).json().catch(() => ({}));
