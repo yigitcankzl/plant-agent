@@ -442,7 +442,7 @@ const api = async (p, body) => { const r = await fetch(`/api/plant/${CASE}/${p}`
 let P = null, ST = null, busy = false, base = null, PENDING_CARD = null;
 const NAMES = {pump: 'Pump', hx: 'Heat exchanger', tank: 'Tank', valve: 'Valve', heater: 'Heater / heat load', cooler: 'Cooler', compressor: 'Compressor', mixer: 'Mixer', splitter: 'Splitter', recycle: 'Loop closure'};
 const sev = u => u > 1.0 ? 'fail' : u > 0.9 ? 'warn' : 'ok';
-const simulator = () => (P?.built?.engine || P?.engine) === 'watertap' ? 'WaterTAP' : 'DWSIM';
+const simulator = () => ({watertap: 'WaterTAP', pandapower: 'pandapower'})[P?.built?.engine || P?.engine] || 'DWSIM';
 const modelBlocked = () => Number(P?.built?.review?.blocking || 0) > 0;
 let ACTIVE_MODE = 'capacity';
 let WORKSPACE_VIEW = 'decision';
@@ -527,7 +527,7 @@ document.addEventListener('keydown', e => {
 
 async function projects() {
   const ps = await fetch('/api/projects').then(r => r.json());
-  $('proj').innerHTML = ps.filter(p => p.workspace && (p.kind !== 'process' || p.built || p.case === CASE)).map(p => `<option value="${p.kind}:${p.case}" ${p.case === CASE ? 'selected' : ''}>${p.engine === 'watertap' ? '🌊 ' : p.kind === 'process' ? '⚗ ' : '💧 '}${esc(p.title.replace(/\s*\([^)]*\)?/g, ''))}</option>`).join('');
+  $('proj').innerHTML = ps.filter(p => p.workspace && (p.kind !== 'process' || p.built || p.case === CASE)).map(p => `<option value="${p.kind}:${p.case}" ${p.case === CASE ? 'selected' : ''}>${p.engine === 'watertap' ? '🌊 ' : p.engine === 'pandapower' ? '⚡ ' : p.kind === 'process' ? '⚗ ' : '💧 '}${esc(p.title.replace(/\s*\([^)]*\)?/g, ''))}</option>`).join('');
   $('proj').title = $('proj').selectedOptions[0]?.textContent || 'Project';
   $('proj').onchange = e => { const [k, c] = e.target.value.split(':'); location.href = (k === 'process' ? 'plant.html' : 'workspace.html') + '?case=' + c; };
 }
@@ -701,6 +701,7 @@ async function load() {
   base = P.throughput ? {name: P.throughput.name, m3_h: P.throughput.base, unit: P.throughput.unit} :
     feed ? {name: feed[0], m3_h: feed[1].m3_h ?? feed[1].kg_h, unit: feed[1].m3_h != null ? 'm³/h' : 'kg/h'} : null;
   $('tgtLbl').textContent = `target ${Math.round(P.target_scale * 100)}%`;
+  if (incident()) { document.querySelector('.flow-label[for="scale"]').textContent = P.throughput?.name || 'Scenario'; $('tgtLbl').textContent = 'as documented 100%'; }
   $('scale').value = Math.round(P.target_scale * 100);
   syncViewToggle();
   await loadGateAssessment();
@@ -808,14 +809,15 @@ function model() {
   const b = P.built;
   fillReview();
   if (!b) { $('modelBox').innerHTML = ''; return; }
-  const isRO = b.engine === 'watertap', count = isRO ? (b.spec.stages || []).length : (b.spec.units || []).length;
+  const isRO = b.engine === 'watertap', isGrid = b.engine === 'pandapower';
+  const count = isRO ? (b.spec.stages || []).length : isGrid ? (b.spec.lines || []).length + (b.spec.trafos || []).length : (b.spec.units || []).length;
   const cov = b.coverage, conns = cov?.connections || [], mapped = cov?.mappings || [];
   const coverage = !cov ? '' : isRO
     ? `<div class="kv" style="margin-top:6px"><span>P&amp;ID coverage</span>${mapped.length} mapped tags · ${(cov.missing_equipment || []).length} unmodelled items</div>`
     : `<div class="kv" style="margin-top:6px"><span>P&amp;ID coverage</span>${conns.filter(c => c.modelled).length} of ${conns.filter(c => !c.relief_path).length} flow connections simulated ${(cov.missing_connections || []).length || (cov.missing_equipment || []).length ? '<span style="color:var(--muted)">· the rest are drawn for context</span>' : '<b style="color:var(--ok)">✓</b>'}</div>
       <div style="color:var(--muted);font-size:11px">${plural(conns.filter(c => c.relief_path).length, 'relief path')} excluded: no normal flow</div>`;
   $('builtBy').textContent = /muse/i.test(b.model || '') ? `built by ${museName(b.model)} in ${b.seconds} s` : `${b.model} (no language model)`;
-  $('modelBox').innerHTML = `<div class="why" style="color:var(--muted);font-size:11.5px;margin-bottom:6px">${simulator()} model built by the agent from the P&amp;ID, ${count} ${isRO ? 'RO stages' : 'units'}.</div>` +
+  $('modelBox').innerHTML = `<div class="why" style="color:var(--muted);font-size:11.5px;margin-bottom:6px">${simulator()} model built by the agent from the ${isGrid ? 'one-line diagram' : 'P&amp;ID'}, ${count} ${isRO ? 'RO stages' : isGrid ? 'lines and transformers' : 'units'}.</div>` +
     calibrationBlock(b) +
     (P.drawing === 'pdf' ? `<div class="kv" style="margin-top:6px"><span>Drawing read</span>${P.read_confirmed ? `confirmed · ${P.read_corrections} corrections by the engineer` : 'not confirmed'}</div>` : '') +
     coverage +
@@ -889,15 +891,17 @@ function render(st) {
   const top = rows[0], cap = P.capacity;
   const over = rows.filter(c => c.utilisation > 1);
   const blocks = (P.built?.review?.findings || []).filter(f => f.severity === 'block');
-  const capLine = cap?.capacity_multiple != null ? `Today's plant: maximum <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? `Recorded ${simulator()} solution.` : `Solved live in ${simulator()}.`}` : '';
+  const capLine = cap?.capacity_multiple != null && incident() ? `As documented: the first limit is reached at <b>${Math.round(cap.capacity_multiple * 100)}%</b> of the documented ${esc((P.throughput?.name || 'scenario').toLowerCase())}, at <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? `Recorded ${simulator()} solution.` : `Solved live in ${simulator()}.`}`
+    : cap?.capacity_multiple != null ? `Today's plant: maximum <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? `Recorded ${simulator()} solution.` : `Solved live in ${simulator()}.`}` : '';
   if (blocks.length) {
     const more = blocks.length > 1 ? ` · ${blocks.length - 1} more blocking finding${blocks.length > 2 ? 's' : ''}.` : '';
     $('verdict').innerHTML = `<span style="color:var(--fail)">Model needs review</span>`;
     $('verdictSub').innerHTML = `${esc(blocks[0].check)}: ${esc(String(blocks[0].evidence).slice(0, 220))}${more} ${capLine}`;
   } else {
     // header and subline name which plant they describe, so 'runs at 120 %' (proposed) and 'maximum 100 %' (today) never read as a contradiction
-    const which = VIEW === 'proposed' && !modelBlocked() && (P?.has_changes || latestProposedChanges().length) ? 'Proposed design' : "Today's plant";
-    $('verdict').innerHTML = `<span class="verdict-which">${which}</span> ` + (over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
+    const which = VIEW === 'proposed' && !modelBlocked() && (P?.has_changes || latestProposedChanges().length) ? (incident() ? 'With the fix' : 'Proposed design') : (incident() ? 'As documented' : "Today's plant");
+    $('verdict').innerHTML = `<span class="verdict-which">${which}</span> ` + (incident() ? (over.length ? `<span style="color:var(--fail)">✗ Limit crossed at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
+      : `<span style="color:var(--ok)">✓ Within limits at ${Math.round(s * 100)}%</span> — tightest: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`) : over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
       : `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — tightest: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`);
     $('verdictSub').innerHTML = capLine;
   }
@@ -1543,8 +1547,12 @@ function placeClear(n, sheet) {  // push a note down until it no longer overlaps
   }
 }
 
+const incident = () => /incident/i.test(P?.task_type || '');
 function suggestions() {  // from this case's own equipment, so a desalination plant is never asked about cooling water
   const types = new Set((P.built?.spec?.units || []).map(u => u.type)), pct = Math.round((P.target_scale - 1) * 100);
+  if (incident()) return P.engine === 'pandapower' ? ['Will the planned switching relieve the overloaded line?', 'Is the grid N-1 secure after it?', 'Which protection setting trips first?']
+    : P.engine === 'trapped' ? ['When does the pressure pass the design pressure?', 'What would have prevented it?', 'How sensitive is the timing to the heat leak?']
+    : ['What happened, and which limit was crossed first?'];
   const out = [`What limits +${pct}% throughput?`];
   if (simulator() === 'WaterTAP') out.push('Which membrane stage is closest to its limit, and why?', 'How does colder or saltier feed change recovery?');
   else {
@@ -1564,7 +1572,7 @@ function answers() {
   const list = all.length ? [lead] : [];
   $('answers').innerHTML = outcomeCard() + (list.length ? (lead !== last ? `<div class="lead-note">Current verified design · answer ${all.indexOf(lead) + 1} of ${all.length}</div>` : '') + ans(lead, all.indexOf(lead)) + follow +
     (rest.length ? `<details class="ans"><summary>History · ${rest.length} earlier question${rest.length === 1 ? '' : 's'}</summary>${rest.map(([a, i]) => briefAns(a, i)).join('')}</details>` : '') :
-    `<div class="empty"><b>What would you like to test?</b><br>Ask about an equipment limit, or find a path to the target throughput.
+    `<div class="empty"><b>What would you like to test?</b><br>${incident() ? 'Ask what happened, which limit was crossed first, and what would have prevented it.' : 'Ask about an equipment limit, or find a path to the target throughput.'}
      <div class="sugg">${suggestions().map(s => `<button class="btn" ${act('ask', s)}>${esc(s)}</button>`).join('')}</div></div>`);
   const ac = P.ai_cost, qs = ac?.questions_usd ?? all.reduce((t, a) => t + (a.cost_usd || 0), 0);
   $('spend').textContent = list.length || ac?.model_build_usd ? `AI cost $${qs.toFixed(2)} questions${ac?.model_build_usd ? ` · $${ac.model_build_usd.toFixed(2)} model build` : ''}` : '';
@@ -1642,7 +1650,7 @@ function decisionBrief(a, idx) {
   else if (verified.length) status = `${verified.length} change${verified.length === 1 ? '' : 's'} simulated · combined target not yet cleared`;
   const issue = (idx === P.answers.length - 1 || a === designAnswer()) && !modelBlocked() && verified.length ? `<div class="package-action"><button class="btn go" type="button" onclick="issueEngineeringPackage(this)">Issue engineering package</button><small>DRAFT — generates the decision pack and current pre-FEED gates; not approved for construction.</small></div>` : '';
   return `<section class="decision-brief"><h2>${esc(plain(a.headline) || 'Engineering decision')}</h2><dl class="decision-facts">
-    <div class="decision-fact"><dt>Target</dt><dd><b>${Math.round(P.target_scale * 100)}%</b> throughput</dd></div>
+    <div class="decision-fact"><dt>Target</dt><dd>${incident() ? esc(P.throughput?.name || 'Documented scenario') : `<b>${Math.round(P.target_scale * 100)}%</b> throughput`}</dd></div>
     <div class="decision-fact"><dt>First bottleneck</dt><dd>${first ? `<b>${esc(first.tag)}</b> · ${esc(plain(first.text))}` : 'No limiting item reported'}</dd></div>
     <div class="decision-fact"><dt>Recommendation</dt><dd>${esc(plain(recommendation))}</dd></div>
     <div class="decision-fact status-${statusClass}"><dt>Status</dt><dd>${esc(status)}</dd></div>
