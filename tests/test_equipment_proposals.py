@@ -58,7 +58,7 @@ class EquipmentProposalTests(unittest.TestCase):
         self.assertAlmostEqual(checks["K-2"], .96, places=2)
         self.assertEqual(proposed["limits"]["K-2"]["max_kg_h"], 25000)
         self.assertEqual(describe_change(BASE, changes[3]),
-                         "Adds K-2 compressor, 25 t/h suction (standard 25 t/h size; vendor quote to confirm)")
+                         "Adds K-2 compressor, 25 t/h suction (provisional rating: standard 25 t/h size; vendor quote to confirm)")
 
 
 if __name__ == "__main__":

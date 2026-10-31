@@ -66,7 +66,7 @@ def _balance(spec, result):
             "mass_in_kg_h": round(mass_in, 3), "mass_out_kg_h": round(mass_out, 3),
             "mass_error_pct": round(error, 3) if error is not None else None,
             "component_error_pct": component_errors,
-            "energy": ("available" if enthalpy else "not available: boundary streams do not carry enthalpy_kJ_kg")}
+            "energy": ("available" if enthalpy else "not checked: the solver does not report enthalpy on the boundary streams")}
 
 
 def run_envelope(spec, scenarios, solve, patch):
@@ -142,6 +142,18 @@ def dynamic_screen(items):
     return {"status": "pass" if all(r["pass"] for r in rows) else "fail", "loops": rows}
 
 
+def _enrich(spec, calc):
+    """Older calculation records lack the new unit's inlet flow, pressure ratio and efficiency: fill them from the
+    record's own solved streams (no new solve)."""
+    from .plant import _operating_point
+    calc = copy.deepcopy(calc)
+    streams = {r.get("id"): r for r in calc.get("streams") or [] if isinstance(r, dict)}
+    for row in calc.get("new_equipment") or []:
+        units = {row["id"]: row.get("operating_point") or {}}
+        row["operating_point"] = _operating_point(spec, units, streams, row["id"])
+    return calc
+
+
 def equipment_screen(changes, calculations):
     """Screen the provisional ratings already on verified proposals; never substitutes a made-up vendor curve."""
     presented = [present_calculation(c) or {} for c in calculations if isinstance(c, dict)]
@@ -169,9 +181,12 @@ def equipment_screen(changes, calculations):
     return rows
 
 
-def hazard_screen(spec, changes, relief):
-    """Small deterministic HAZOP register for changed equipment. It is a prompt for a team HAZOP, not one by itself."""
+def hazard_screen(spec, changes, relief, aliases=None):
+    """Small deterministic HAZOP register for changed equipment. It is a prompt for a team HAZOP, not one by itself.
+    Only real equipment: model routing nodes (splitters, mixers) are left out, and a heating-side change of a model unit
+    is named by its P&ID tag (case.json model_aliases, e.g. E-201 for the heater folded into V-201)."""
     units = {u["id"]: u for u in spec.get("units") or []}
+    heater_of = {uid: tag for tag, uid in (aliases or {}).items() if isinstance(uid, str)}
     changed = []
     for change in changes:
         if change.get("add_unit") and change["add_unit"].get("type") not in ROUTING:
@@ -179,7 +194,12 @@ def hazard_screen(spec, changes, relief):
         elif change.get("reroute"):
             uid = change["reroute"]["unit"]; changed.append((uid, (units.get(uid) or {}).get("type"), False))
         elif str(change.get("path") or "").startswith("units."):
-            uid = change["path"].split(".")[1]; changed.append((uid, (units.get(uid) or {}).get("type"), False))
+            _, uid, field = (change["path"].split(".") + [""])[:3]
+            if uid in heater_of and field in ("U_W_m2K", "area_m2"):
+                changed.append((heater_of[uid], "hx", False))
+            else:
+                changed.append((uid, (units.get(uid) or {}).get("type"), False))
+    changed = [c for c in changed if c[1] not in ROUTING]
     patterns = {
         "compressor": [("No flow / trip", "trip, isolation or surge", "loss of production; recycle heating", "confirm anti-surge, trip and restart logic"),
                        ("High pressure", "blocked discharge or control failure", "overpressure upstream/downstream", "size relief/depressuring case; check discharge system")],
@@ -196,7 +216,13 @@ def hazard_screen(spec, changes, relief):
     for uid, typ, new in dict.fromkeys(changed):
         for deviation, cause, consequence, action in patterns.get(typ, [("No flow", "isolation or failure", "loss of process function", "confirm alarms, trips and operating response")]):
             existing = [x for x in relief if x.get("tag") == uid]
-            safeguard = "new equipment: relief and isolation to confirm" if new else "; ".join(x["status"] for x in existing) or "not shown on relief scan"
+            overpressure = deviation in ("High pressure", "Tube rupture")  # relief only safeguards an overpressure case
+            if new:
+                safeguard = "new equipment: relief and isolation to confirm" if overpressure else "new equipment: alarms and trips to define"
+            elif overpressure:
+                safeguard = "; ".join(f"relief {x['status']}" for x in existing) or "no relief shown on the P&ID scan"
+            else:
+                safeguard = "alarms, trips and operating response to confirm on the P&ID"
             rows.append({"tag": uid, "type": typ, "deviation": deviation, "cause": cause, "consequence": consequence,
                          "existing_safeguard": safeguard, "action": action, "status": "open"})
     return {"method": "automated change-focused HAZOP/relief screening; team HAZOP and API/ISO sizing remain required",
@@ -277,6 +303,161 @@ def discipline_register(envelope, equipment, dynamics, hazards, construction, su
         rows[did] = {"status": status, "summary": str(row.get("summary") or ""),
                      "source": row["source"], "checks": list(row.get("checks") or [])}
     return [{"id": did, **row} for did, row in rows.items()]
+
+
+def _gate(did, checks, source, summary, open_reason=None):
+    """A sourced gate row. Only checks that name a non-illustrative source decide pass/fail; an illustrative rating
+    over its limit leaves the gate open (the rating has to be confirmed before it can fail or pass the design)."""
+    rated = [c for c in checks if isinstance(c.get("utilisation"), (int, float))]
+    # model-consistency flags (model U vs correlation) describe the model, not the design
+    firm = [c for c in rated if "ILLUSTRATIVE" not in str(c.get("source") or "").upper() and not str(c.get("check") or "").startswith("model U")]
+    soft_over = sorted((c for c in rated if c not in firm and c["utilisation"] > 1), key=lambda c: -c["utilisation"])
+    if open_reason:
+        status = "open"
+    elif any(c["utilisation"] > 1 for c in firm):
+        status = "fail"
+    elif soft_over or not firm:
+        status = "open"
+    else:
+        status = "pass"
+    if soft_over and status != "fail":
+        summary += "; over an ILLUSTRATIVE rating (confirm): " + ", ".join(
+            f"{c['id']} {c['check']} {c['utilisation'] * 100:.0f} %" for c in soft_over[:3])
+    rows = [{"id": c.get("id"), "check": c.get("check"), "value": _fmt(c.get("value")), "limit": _fmt(c.get("limit")),
+             "unit": c.get("unit") or "", "result": (f"{c['utilisation'] * 100:.0f} %" if isinstance(c.get("utilisation"), (int, float))
+                                                     else "information"), "source": c.get("source")} for c in checks]
+    return {"id": did, "status": status, "summary": summary + (f"; {open_reason}" if open_reason else ""),
+            "source": source, "checks": rows}
+
+
+def discipline_gates(w, answer=None, refresh=False):
+    """Discipline gates of the design answer from the deterministic engines already on this project: DWSIM (process),
+    pandapower (electrical), ht/fluids (heat transfer), Cantera (combustion). No model call. Cached in gates.json
+    keyed by the design answer, so the page can show the strip without re-solving."""
+    from . import revb
+    from .plant import patch
+    ans = (w.answers[int(answer)] if answer is not None and -len(w.answers) <= int(answer) < len(w.answers)
+           else revb.design_answer(w.answers))
+    proposals = [p for p in (ans or {}).get("proposals") or [] if p.get("verified")]
+    if not proposals:
+        return {"error": "no verified design answer to assess"}
+    key = {"headline": ans.get("headline"), "request": ans.get("request"), "titles": [p.get("title") for p in proposals],
+           "revisions": len(w.revisions)}
+    cache = w.model_file.with_name("gates.json")
+    if not refresh and cache.exists():
+        old = json.loads(cache.read_text())
+        if old.get("key") == key:
+            return old
+    changes = [c for p in proposals for c in p.get("changes") or []]
+    target = float(w.cfg.get("target_scale") or 1.0)
+    comb = ans.get("combined") if len(proposals) > 1 and not (ans.get("combined") or {}).get("error") else None
+    reach = (comb or {}).get("reaches_target") if comb else proposals[-1].get("reaches_target")
+    cap = (comb or {}).get("capacity_multiple") if comb else proposals[-1].get("capacity_multiple")
+    sim = "WaterTAP" if w.cfg.get("engine") == "watertap" else "DWSIM"
+    proc = [{"id": "plant", "check": "maximum throughput with all verified changes vs target", "value": (cap or 0) * 100,
+             "limit": target * 100, "unit": "%", "utilisation": target / cap if cap else 2.0,
+             "source": f"{sim} re-solve of the combined changes on the server"}]
+    proc += [{**c, "source": f"{sim} limit check"} for c in (comb or {}).get("over_limits_at_target") or []]
+    summary = f"design {'reaches' if reach else 'does not reach'} {target * 100:.0f} % (max {(cap or 0) * 100:.0f} %)"
+    cfg_path = ROOT / "cases" / w.name / "prefeed.json"
+    scen = (json.loads(cfg_path.read_text()) if cfg_path.exists() else {}).get("scenarios")
+    robust, rsum = [], ""
+    if scen:  # the engineer's operating envelope: the design must hold in every stated scenario, not just at the target
+        env = run_envelope(patch(copy.deepcopy(w.spec), changes), scen, w._solve, patch)
+        for r in env["scenarios"]:
+            wst = r.get("worst") or {}
+            robust.append({"id": wst.get("id") or "scenario", "check": f"scenario '{r['name']}': {wst.get('check') or 'solve'}",
+                         "value": wst.get("value"), "limit": wst.get("limit"), "unit": wst.get("unit"),
+                         "utilisation": wst.get("utilisation") if not r["errors"] else 2.0,
+                         "source": f"{sim} solve; scenario basis: {r['basis']}"})
+        failed = [r["name"] for r in env["scenarios"] if not r["pass"]]
+        rsum = f"operating envelope {len(env['scenarios']) - len(failed)}/{len(env['scenarios'])} scenarios pass" + \
+               (f" (fails: {', '.join(failed)})" if failed else "")
+    # the target itself and the envelope around it are separate gates: reaching 120 % and holding it when fouled are different questions
+    rows = [_gate("process", proc, f"{sim} re-solve of the design (server verify)", summary)]
+    if robust:
+        rows.append(_gate("robustness", robust, f"{sim} solves of the pre-FEED operating envelope", rsum))
+    # mechanical: provisional ratings of new machines vs the solved duty; a vendor curve is still needed
+    eq = equipment_screen(changes, [_enrich(patch(copy.deepcopy(w.spec), changes), p["calculation"]) for p in proposals if p.get("calculation")])
+    if eq:
+        mech = []
+        for e in eq:
+            if e.get("flow_margin"):
+                mech.append({"id": e["id"], "check": "solved flow vs provisional rating", "value": e["operating_flow"],
+                             "limit": e["rating_flow"], "unit": e.get("flow_unit") or "", "utilisation": 1 / e["flow_margin"],
+                             "source": e["rating_source"]})
+            if e.get("power_margin"):
+                mech.append({"id": e["id"], "check": "solved shaft power vs provisional driver rating", "value": e["calculated_shaft"],
+                             "limit": e["rating_shaft"], "unit": e.get("shaft_unit") or "", "utilisation": 1 / e["power_margin"],
+                             "source": e["rating_source"]})
+        rows.append(_gate("mechanical", mech, "proposal calculation vs provisional rating",
+                          f"{len(eq)} new machine(s) within provisional ratings" if mech else "no solved rating",
+                          open_reason="guaranteed vendor curve, materials and mechanical design still needed"))
+    try:
+        from . import electrical
+        cfg = electrical.config(w.name)
+        if cfg and electrical.available():
+            if electrical.motor_changes(cfg, changes):
+                e = electrical.for_workspace(w, changes, target, save=False)
+                src = "pandapower load flow of cases/%s/electrical.json%s" % (w.name, " (ILLUSTRATIVE network values)" if "ILLUSTRATIVE" in str(cfg.get("note")) else "")
+                g = _gate("electrical", e["checks"], src, e["summary"])
+                # the network is illustrative as a whole, but a transformer overload on it is the finding to act on
+                if any(c["utilisation"] > 1 for c in e["checks"]):
+                    g["status"] = "fail"
+                rows.append(g)
+            else:
+                rows.append({"id": "electrical", "status": "not affected", "summary": "no new or re-rated motor on the one-line diagram",
+                             "source": f"cases/{w.name}/electrical.json motor list", "checks": []})
+    except Exception as ex:  # noqa: BLE001 - a broken adapter leaves the gate open, never green
+        rows.append({"id": "electrical", "status": "open", "summary": f"electrical check could not run: {type(ex).__name__}: {ex}"[:200],
+                     "source": "pandapower adapter", "checks": []})
+    try:
+        from . import hxdetail
+        geo = ROOT / "cases" / w.name / "hx_geometry.json"
+        hx_checks, notes = [], []
+        for tag, entry in (json.loads(geo.read_text()).items() if geo.exists() else []):
+            if not isinstance(entry, dict) or tag.startswith("_"):
+                continue
+            uid = entry.get("model_unit", tag)
+            clean = any(str(c.get("path") or "") == f"units.{uid}.U_W_m2K" for c in changes)
+            r = hxdetail.hx_detail(w, tag, target, condition="clean" if clean else "fouled", save=False, changes=changes)
+            if r.get("illustrative_geometry"):  # the rating can only be as firm as the geometry it rates
+                r["checks"] = [{**c, "source": f"{c.get('source')} (ILLUSTRATIVE geometry)"} for c in r["checks"]]
+            hx_checks += r["checks"]
+            notes.append(f"{tag} ({r['condition']}): area needed {r['results']['A_req']:.0f} of {r['results']['A_inst']:.0f} m²")
+        if hx_checks:
+            rows.append(_gate("heat_transfer", hx_checks, "ht/fluids exchanger rating at the design point (cases/%s/hx_geometry.json)" % w.name,
+                              "; ".join(notes)))
+    except Exception as ex:  # noqa: BLE001
+        rows.append({"id": "heat_transfer", "status": "open", "summary": f"exchanger rating could not run: {type(ex).__name__}: {ex}"[:200],
+                     "source": "ht/fluids adapter", "checks": []})
+    try:
+        from . import combustion
+        if combustion.load_case(w.name):
+            r = combustion.combustion_check(w, steam_scale=target, scale=target, save=False)
+            d = r["scenario"].get("duct_burner") or {}
+            fired = (d.get("fuel_MMBtu_h_HHV") or 0) > 0
+            rows.append(_gate("combustion", r["checks"], "Cantera gas turbine + HRSG model (cases/%s/combustion.json)" % w.name,
+                              r["summary"], open_reason=("if HRSG steam rises with throughput (x%.2f), it needs supplementary (duct) firing "
+                                                         "the unfired HRSG does not have: a modification to decide" % target) if fired else None))
+    except Exception as ex:  # noqa: BLE001
+        rows.append({"id": "combustion", "status": "open", "summary": f"combustion check could not run: {type(ex).__name__}: {ex}"[:200],
+                     "source": "Cantera adapter", "checks": []})
+    physical = [c["add_unit"]["id"] for c in changes if c.get("add_unit") and c["add_unit"].get("type") not in ROUTING]
+    routed = physical or any(c.get("reroute") or c.get("bypass") or c.get("remove_unit") for c in changes)
+    supply = [str(c["path"]).split(".")[1] for c in changes if str(c.get("path") or "").startswith("feeds.")]
+    for did, what, needed in (("piping_utilities", "tie-ins, line sizing, supports and utility headers"
+                               + (f" (supply change on {', '.join(dict.fromkeys(supply))}: header capacity to confirm)" if supply else ""),
+                               routed or supply),
+                              ("controls", "control narrative, split/load-sharing control, cause & effect and permissives", routed),
+                              ("process_safety", "change-focused HAZOP, relief case and isolation for the changed equipment", routed),
+                              ("civil_structural", "plot, access, lifting and foundations", physical)):
+        rows.append({"id": did, "status": "open" if needed else "not affected",
+                     "summary": (f"no calculation adapter: {what} remain open" + (f" for {', '.join(physical)}" if physical else "")) if needed
+                     else "no physical or routing change", "source": "proposal topology (no engine for this discipline)", "checks": []})
+    out = {"key": key, "made": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "disciplines": rows}
+    cache.write_text(json.dumps(out, indent=1))
+    return out
 
 
 def decision_inputs(changes, field_checks=None):
@@ -426,6 +607,10 @@ def _fmt(value):
     return str(value)
 
 
+def _pct(fraction):
+    return f"{fraction * 100:.0f}%" if isinstance(fraction, (int, float)) else "—"
+
+
 def markdown(data, datasheets=""):
     env = data["envelope"]
     lines = ["# Pre-FEED design gate", "", "**DRAFT — simulator screening, not approved for construction.**", "",
@@ -435,7 +620,7 @@ def markdown(data, datasheets=""):
     for row in env["scenarios"]:
         worst, bal = row.get("worst") or {}, row["balance"]
         lines.append(f"| {row['name']} | {row['scale'] * 100:.0f}% | {'PASS' if row['pass'] else 'FAIL'} | "
-                     f"{worst.get('id', '—')} {worst.get('check', '')} | {_fmt(worst.get('utilisation'))} | "
+                     f"{worst.get('id', '—')} {worst.get('check', '')} | {_pct(worst.get('utilisation'))} | "
                      f"{_fmt(bal.get('mass_error_pct'))}% | {row['basis']} |")
     lines += ["", "Energy closure: " + "; ".join(sorted({r["balance"].get("energy", "not available") for r in env["scenarios"]})), "",
               "## Discipline impact register", "", "| Discipline | Status | Impact | Evidence |", "|---|---|---|---|"]
@@ -454,9 +639,9 @@ def markdown(data, datasheets=""):
                      f"{row['cost_class']} | {', '.join(row['physical_units']) or '—'} |")
     lines += ["", data["options"]["pareto"], "", "## Preliminary equipment selection", ""]
     if data["equipment"]:
-        lines += ["| Tag | Type | Status | Flow margin | Driver margin | Rating source |", "|---|---|---|---:|---:|---|"]
+        lines += ["| Tag | Type | Status | Rating / solved flow | Rating / solved power | Rating source |", "|---|---|---|---:|---:|---|"]
         for row in data["equipment"]:
-            lines.append(f"| {row['id']} | {row['type']} | {row['status']} | {_fmt(row['flow_margin'])} | {_fmt(row['power_margin'])} | {row['rating_source']} |")
+            lines.append(f"| {row['id']} | {row['type']} | {row['status']} | {_pct(row['flow_margin'])} | {_pct(row['power_margin'])} | {row['rating_source']} |")
         lines += ["", "Vendor gate still open: guaranteed curve; efficiency/driver; surge/choke or BEP/minimum flow; materials; vibration/noise; mechanical design.", ""]
     else:
         lines += ["No new physical equipment in the selected design.", ""]
@@ -523,7 +708,7 @@ def make(w, answer=None, scenarios=None, dynamics=None, economics=None, commissi
     dynamics = dynamics if dynamics is not None else cfg.get("dynamics")
     economics = economics or cfg.get("economics")
     envelope = run_envelope(spec, scenarios, w._solve, patch)
-    calculations = [p.get("calculation") for p in proposals if p.get("calculation")]
+    calculations = [_enrich(spec, p.get("calculation")) for p in proposals if p.get("calculation")]
     if changes and not calculations:
         target = float(w.cfg.get("target_scale") or 1.0)
         solved = w._solve(spec, target)
@@ -555,8 +740,13 @@ def make(w, answer=None, scenarios=None, dynamics=None, economics=None, commissi
     equipment = equipment_screen(changes, calculations)
     relief = pid.relief_scan(DATA / w.cfg["pid"]) if w.cfg.get("pid") else []
     dynamic = dynamic_screen(dynamics)
-    hazards = hazard_screen(spec, changes, relief)
+    hazards = hazard_screen(spec, changes, relief, w.cfg.get("model_aliases"))
     construction = constructability(changes, equipment, [p.get("cost_class") or "not stated" for p in proposals], economics)
+    if disciplines is None and cfg.get("disciplines") is None and selected in w.answers:
+        try:  # sourced engine results (DWSIM, pandapower, ht/fluids, Cantera) replace the open placeholder rows
+            disciplines = discipline_gates(w, w.answers.index(selected)).get("disciplines")
+        except Exception:  # noqa: BLE001 - the placeholder register stays, open
+            disciplines = None
     discipline_rows = discipline_register(envelope, equipment, dynamic, hazards, construction,
                                           disciplines if disciplines is not None else cfg.get("disciplines"))
     inputs = decision_inputs(changes, cfg.get("field_checks") or (selected or {}).get("field_checks"))
@@ -568,7 +758,8 @@ def make(w, answer=None, scenarios=None, dynamics=None, economics=None, commissi
             "envelope": envelope, "equipment": equipment, "dynamics": dynamic, "hazards": hazards,
             "constructability": construction, "disciplines": discipline_rows, "decision_inputs": inputs,
             "options": options, "commissioning": commission}
-    sheets = "\n\n".join(datasheet_markdown(p.get("changes"), p.get("calculation") or (calculations[0] if calculations else None))
+    sheets = "\n\n".join(datasheet_markdown(p.get("changes"), _enrich(spec, p["calculation"]) if p.get("calculation") else
+                                             (calculations[0] if calculations else None))
                             for p in proposals if p.get("changes"))
     text = markdown(data, sheets)
     files = {"prefeed.md": text, "prefeed.json": json.dumps(data, indent=2),

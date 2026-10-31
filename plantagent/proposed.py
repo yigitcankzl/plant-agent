@@ -29,8 +29,8 @@ def num(v):
         return "to confirm"
     if isinstance(v, bool):
         return "yes" if v else "no"
-    if isinstance(v, float):
-        return format(v, ".8g")
+    if isinstance(v, float):  # display only: 4 significant figures, thousands as whole numbers
+        return f"{v:,.0f}" if abs(v) >= 1000 else format(v, ".4g")
     return str(v)
 
 
@@ -757,9 +757,9 @@ def datasheet_markdown(changes, calculation=None):
                   f"- Inlet: {inlet.get('stream') or 'to confirm'}, {num(inlet.get('T_C'))} °C, {num(inlet.get('P_bar'))} bar, phase {inlet.get('phase') or 'to confirm'}",
                   f"- Outlet: {outlet.get('stream') or 'to confirm'}, {num(outlet.get('T_C'))} °C, {num(outlet.get('P_bar'))} bar, phase {outlet.get('phase') or 'to confirm'}",
                   f"- Operating flow: {num(row.get('flow'))} {row.get('flow_unit') or ''}".rstrip(),
-                  f"- Pressure ratio: {num(row.get('pressure_ratio'))}; head: {num(row.get('head'))} {row.get('head_unit') or ''}".rstrip(),
+                  f"- Pressure ratio: {num(row.get('pressure_ratio'))}" + (f"; head: {num(row.get('head'))} {row.get('head_unit') or ''}".rstrip() if row.get('head') is not None else ""),
                   f"- Calculated duty: {num(row.get('shaft'))} {row.get('shaft_unit') or ''}".rstrip(),
-                  f"- Assumed efficiency: {num(row.get('efficiency_pct'))} %",
+                  f"- Assumed efficiency: {num(row.get('efficiency_pct'))}" + (" % (solver value)" if row.get('efficiency_pct') is not None else ""),
                   f"- Provisional rating: {num(row.get('rating_flow'))} {row.get('rating_flow_unit') or ''} / {num(row.get('rating_shaft'))} {row.get('rating_shaft_unit') or ''}".rstrip(),
                   f"- Rating source: {row.get('rating_source') or equip.get('rating_source') or raw.get('rating_source') or 'to confirm'}",
                   f"- Missing vendor information: {', '.join(missing)} — to confirm",

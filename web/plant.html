@@ -34,7 +34,7 @@
   .bar { height: 6px; background: #2a323d; border-radius: 3px; margin: 4px 0 2px; position: relative; overflow: hidden; }
   .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; transition: width .25s, background .25s; }
   .bar::after { content: ""; position: absolute; left: calc(100% / 1.3); top: -2px; bottom: -2px; width: 1px; background: #8592a3; }
-  .kv { display: flex; justify-content: space-between; font: 11.5px var(--mono); padding: 2px 0; } .kv span { color: var(--muted); }
+  .kv { display: flex; justify-content: space-between; gap: 10px; font: 11.5px var(--mono); padding: 2px 0; } .kv span { color: var(--muted); }
   main { grid-row: 2; grid-column: 2; position: relative; overflow: auto; background: #10141a; }
   .progress { position: sticky; top: 0; z-index: 5; display: flex; gap: 6px; flex-wrap: wrap; padding: 6px 12px; background: rgba(16,20,26,.92); min-height: 30px; }
   .chip { font: 11px var(--mono); padding: 2px 7px; border-radius: 10px; background: var(--panel2); border: 1px solid var(--line); color: var(--muted); max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; animation: in .2s; }
@@ -46,7 +46,7 @@
   .pid-viewport.dragging { cursor: grabbing; }
   .pid-viewport:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   .sheet { position: absolute; left: 0; top: 0; width: 1200px; transform-origin: 0 0; background: var(--paper); border-radius: 3px; box-shadow: 0 6px 30px rgba(0,0,0,.32); }
-  .pid-tools { position: absolute; z-index: 7; top: 12px; left: 12px; display: flex; gap: 3px; padding: 4px; border: 1px solid #95a9a6; border-radius: 6px; background: rgba(18,46,52,.94); box-shadow: 0 2px 12px #12303533; }
+  .pid-tools { position: absolute; z-index: 7; bottom: 12px; left: 12px; display: flex; gap: 3px; padding: 4px; border: 1px solid #95a9a6; border-radius: 6px; background: rgba(18,46,52,.94); box-shadow: 0 2px 12px #12303533; }
   .pid-tools button { min-width: 32px; min-height: 30px; padding: 3px 7px; border: 0; border-radius: 3px; background: transparent; color: #f2f7f5; font: 700 15px var(--sans); cursor: pointer; }
   .pid-tools button:hover, .pid-tools button:focus-visible { background: #35616a; outline: 2px solid #9fd9d0; outline-offset: -2px; }
   .pid-tools button.word { font-size: 12px; }
@@ -88,10 +88,16 @@
   input[type=range] { width: 100%; accent-color: var(--accent); }
   .verdict { padding: 14px 18px; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
   .verdict .big { font: 700 20px var(--sans); }
-  .verdict .sub { color: var(--muted); }
+  .verdict .sub { color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   aside.right { grid-row: 2 / 4; grid-column: 3; background: var(--panel); border-left: 1px solid var(--line); overflow: auto; }
   .rhead { padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--muted); font: 600 10.5px var(--sans); letter-spacing: .8px; text-transform: uppercase; position: sticky; top: 0; background: var(--panel); z-index: 2; display: flex; justify-content: space-between; }
   .ans { border-bottom: 1px solid var(--line); padding: 12px 14px; animation: in .3s; }
+  .modal .box { position: relative; }
+  .modal-x { position: absolute; top: 8px; right: 8px; z-index: 2; min-width: 32px; min-height: 32px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: inherit; font-size: 16px; cursor: pointer; }
+  .audit-list { padding-left: 18px; font-size: 13px; line-height: 1.5; } .audit-list li { margin-bottom: 8px; } .audit-list pre { white-space: pre-wrap; font-size: 11px; max-height: 200px; overflow: auto; }
+  #sheet [data-tag] :is(rect, circle, ellipse, polygon, path) { pointer-events: visible; }  /* unfilled equipment bodies click inside too */
+  .lead-note { padding: 8px 14px 0; font-size: 12px; color: var(--muted); }
+  .follow-up > summary { color: var(--warn, #e3a33a); }
   .ans .rq { color: var(--muted); font-size: 12px; } .ans .hl { font: 700 16px var(--sans); margin: 4px 0; } .ans .sm { margin: 0 0 8px; }
   .ans .meta { color: var(--muted); font: 11px var(--mono); }
   .card { background: var(--panel2); border: 1px solid var(--line); border-left: 3px solid var(--info); border-radius: 6px; padding: 8px 10px; margin: 8px 0; }
@@ -367,7 +373,7 @@
   <div class="drawer-shade" id="drawerShade" onclick="toggleDrawer(false)"></div>
 
   <main>
-    <div id="note" style="display:none;margin:8px 18px 0;padding:6px 10px;border:1px solid #5a4a2a;border-radius:5px;color:var(--warn);font-size:12px"></div>
+    <div id="note" style="display:none;margin:8px 18px 0;padding:6px 10px;border:1px solid #8a6a2e;border-radius:5px;background:#2b2414;color:#f6d28b;font-size:12px"></div>
     <div class="stage" style="position:relative"><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Proposed</button></div><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing controls"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" class="word" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button><button type="button" class="word" id="toggleLabels" aria-label="Show or hide PlantAgent labels" aria-pressed="true" title="Show or hide PlantAgent load and finding labels">Labels</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
   </main>
 
@@ -375,8 +381,8 @@
     <div class="flowctl">
       <label class="flow-label" for="scale">Throughput target</label>
       <div class="flowv" id="flowv">–</div>
-      <input type="range" id="scale" min="80" max="250" step="1" value="100">
-      <div style="display:flex;justify-content:space-between;color:var(--muted);font:11px var(--mono)"><span>80%</span><span id="tgtLbl"></span><span id="maxLbl">250%</span></div>
+      <input type="range" id="scale" min="80" max="150" step="1" value="100">
+      <div style="display:flex;justify-content:space-between;color:var(--muted);font:11px var(--mono)"><span>80%</span><span id="tgtLbl"></span><span id="maxLbl">150%</span></div>
     </div>
     <div class="verdict"><div class="big" id="verdict">–</div><div class="sub" id="verdictSub"></div></div>
     <button class="btn go" id="toTarget" disabled>Analyze target</button>
@@ -392,7 +398,7 @@
         </section>
       </div>
       <details class="analysis-log" id="analysisLog" hidden><summary><span id="progressSummary">Analysis log</span></summary><div class="progress" id="progress"></div></details>
-      <details class="side-details" id="historyDetails"><summary>History and audit</summary><div id="revs"></div></details>
+      <details class="side-details" id="historyDetails"><summary>Model revisions and audit</summary><div id="revs"></div></details>
       <div id="answers"></div>
     </div>
     <div class="side-ask" id="askDock">
@@ -403,7 +409,7 @@
 </div>
 <div id="tour" role="dialog" aria-live="polite"><div class="st" id="tourStep"></div><div class="tx" id="tourText"></div>
   <div class="row"><button class="btn" onclick="tourEnd()">Close</button><button class="btn go" id="tourNext" onclick="tourGo(TOUR_I + 1)">Next</button></div></div>
-<div class="modal" id="modal" onclick="if(event.target===this)this.classList.remove('on')"><div class="box" id="modalBox"></div></div>
+<div class="modal" id="modal" onclick="if(event.target===this)this.classList.remove('on')"><div class="box"><button class="modal-x" type="button" aria-label="Close" onclick="$('modal').classList.remove('on')">✕</button><div id="modalBox"></div></div></div>
 
 <script>
 const CASE = new URLSearchParams(location.search).get('case') || 'chem_c01';
@@ -447,7 +453,7 @@ function toggleDrawer(open) {
 function renderTroubleshootMode() {
   if (!P) return;
   const today = P.health?.today || [], units = P.troubleshootable || [];
-  $('troublePanel').innerHTML = `<h3>Morning troubleshooting</h3><p>Start with the historian signal, then inspect the affected equipment and fit likely causes in DWSIM.</p>
+  $('troublePanel').innerHTML = `<h3>Morning troubleshooting</h3><p>Start with the historian signal, then inspect the affected equipment and fit likely causes in ${simulator()}.</p>
     ${forecastCard()}
     ${today.length ? `<div class="card warn"><div class="tt">What needs attention</div>${today.map((x, i) => `<div style="margin:7px 0"><b>${i + 1}.</b> ${esc(x.text)}</div>`).join('')}</div>` : '<div class="card"><div class="res">No historian alert is available for this case.</div></div>'}
     ${P.has_historian && !P.health ? `<div class="card warn"><div class="tt">Historian available</div><div style="margin:6px 0">${esc(P.historian_note || 'Run the deterministic morning check.')}</div><button class="btn go" onclick="refreshHealth()">Run morning check</button></div>` : ''}
@@ -502,7 +508,8 @@ document.addEventListener('keydown', e => {
 
 async function projects() {
   const ps = await fetch('/api/projects').then(r => r.json());
-  $('proj').innerHTML = ps.filter(p => p.workspace && (p.kind !== 'process' || p.built || p.case === CASE)).map(p => `<option value="${p.kind}:${p.case}" ${p.case === CASE ? 'selected' : ''}>${p.kind === 'process' ? '⚗ ' : '💧 '}${esc(p.title)}</option>`).join('');
+  $('proj').innerHTML = ps.filter(p => p.workspace && (p.kind !== 'process' || p.built || p.case === CASE)).map(p => `<option value="${p.kind}:${p.case}" ${p.case === CASE ? 'selected' : ''}>${p.kind === 'process' ? '⚗ ' : '💧 '}${esc(p.title.replace(/\s*\([^)]*\)?/g, ''))}</option>`).join('');
+  $('proj').title = $('proj').selectedOptions[0]?.textContent || 'Project';
   $('proj').onchange = e => { const [k, c] = e.target.value.split(':'); location.href = (k === 'process' ? 'plant.html' : 'workspace.html') + '?case=' + c; };
 }
 
@@ -512,8 +519,9 @@ function moveDrawing() { sheet.style.transform = `translate(${V.x}px, ${V.y}px) 
 function fitDrawing() {
   const w = sheet.offsetWidth, h = sheet.offsetHeight;
   if (!w || !h) return;
-  V.fit = Math.min((view.clientWidth - 28) / w, (view.clientHeight - 28) / h);
-  V.scale = V.fit; V.x = (view.clientWidth - w * V.scale) / 2; V.y = (view.clientHeight - h * V.scale) / 2;
+  const tools = 48;  // the zoom toolbar sits in a strip under the fitted sheet, never over the title block
+  V.fit = Math.min((view.clientWidth - 28) / w, (view.clientHeight - 28 - tools) / h);
+  V.scale = V.fit; V.x = (view.clientWidth - w * V.scale) / 2; V.y = 14 + (view.clientHeight - 28 - tools - h * V.scale) / 2;
   moveDrawing();
 }
 function zoomDrawing(factor, cx = view.clientWidth / 2, cy = view.clientHeight / 2) {
@@ -662,6 +670,7 @@ async function load() {
   }
   initViewer();
   $('safetyMode').hidden = !P.dexpi;  // the relief scan needs a smart (DEXPI) P&ID
+  document.querySelector('[data-mode="troubleshoot"]').hidden = !(P.troubleshootable || []).length && !P.health && !P.has_historian && !P.forecast;
   if (P.drawing === 'none' && !P.dexpi) $('pidStats').textContent = 'equipment and connections from the data sheet';
   if (P.drawing === 'none') $('pidName').innerHTML = P.dexpi ? 'Smart P&amp;ID <span>DEXPI XML · flowsheet drawn from the model</span>' : 'No drawing <span>flowsheet drawn from the model</span>';
   if (P.drawing === 'pdf') $('pidName').innerHTML = `Schematic (PDF) <span>read by ${esc((P.pid.model || 'Muse').replace('muse-', ''))}</span>`;
@@ -680,7 +689,7 @@ async function load() {
   if (P.built) render(await stateForView(P.target_scale)); else noModel();
   $('q').disabled = false;
   $('askBtn').disabled = false;
-  $('toTarget').disabled = false;
+  $('toTarget').disabled = !P.built;  // no reliable model yet: nothing to analyse
   $('toTarget').textContent = (P.answers || []).length ? 'Show saved analysis' : 'Analyze target';
   $('model').value = P.model;
   $('model').onchange = async e => { await api('model', {model: e.target.value}); P.model = e.target.value; };
@@ -746,14 +755,29 @@ function fillReview() {
     const fs = rev.findings || [];
     const head = rev.status === 'model needs review'
       ? `<div style="color:var(--fail);font-size:12px;margin-bottom:4px">Model needs review · ${rev.blocking ?? fs.filter(f => f.severity === 'block').length} blocking</div>`
-      : `<div style="color:var(--ok);font-size:12px;margin-bottom:4px">No blocking findings</div>`;
+      : `<div style="color:var(--ok);font-size:12px;margin-bottom:4px">${fs.length ? 'No blocking findings' : 'No findings'}</div>`;
     $('reviewBox').innerHTML = head + (fs.map(f => `<div style="font-size:11.5px;padding:3px 0"><b style="color:var(--${f.severity === 'block' ? 'fail' : 'warn'})">${esc(f.severity)}</b> ${esc(f.check)}<div style="color:var(--muted)">${esc(f.evidence)}</div></div>`).join('')
-      || '<div class="empty">No findings.</div>') + (rev.energy?.note ? `<div style="color:var(--muted);font-size:11px;margin-top:6px">${esc(rev.energy.note)}</div>` : '');
+      || '') + (rev.energy?.note ? `<div style="color:var(--muted);font-size:11px;margin-top:6px">${esc(rev.energy.note)}</div>` : '');
   }
   $('gapBox').innerHTML = gaps.length ? gaps.map(g => `<div style="font-size:11.5px;padding:3px 0"><b>${esc(g.what)}</b><div style="color:var(--muted)">${esc(g.why)}</div><div>Needed: ${esc(g.needed)}</div></div>`).join('')
     : '<div class="empty">None recorded.</div>';
 }
 
+// the calibration table as checked against the solve on the server (plant.calibration_check), not the agent's prose
+const CAL = {reproduced: ['reproduced', 'ok'], input: ['model input', 'muted'], differs: ['differs', 'fail'], not_in_solve: ['not in the solve', 'warn'], no_measurement: ['no measurement', 'muted']};
+function calSummary(b) {
+  const k = b?.calibration_check?.counts;
+  if (!k) return '';
+  const out = k.reproduced + k.differs;
+  return `${k.reproduced} of ${out} measured output${out === 1 ? '' : 's'} reproduced within 3 %` + (k.input ? `, ${k.input} input${k.input === 1 ? '' : 's'} given to the model` : '') +
+    (k.not_in_solve ? `, ${k.not_in_solve} not found in the solve` : '');
+}
+function calibrationBlock(b) {
+  const chk = b.calibration_check, rows = chk?.rows || (b.calibration || []).map(c => ({...c, check: null}));
+  if (!rows.length) return '';
+  return `<details><summary>Calibration · ${chk?.counts ? esc(calSummary(b)) : `${rows.length} points reported by the agent (not checked)`}</summary>` +
+    rows.map(c => `<div class="kv"><span>${esc(c.item || c.source || 'Calibration point')}</span>${esc(String(c.simulated).split(' (')[0])} <span>vs ${esc(String(c.measured).split(' (')[0])}</span>${c.check ? ` <b style="color:var(--${CAL[c.check]?.[1] || 'muted'});white-space:nowrap">${esc(CAL[c.check]?.[0] || c.check)}${c.deviation_pct != null ? ` ${c.deviation_pct > 0 ? '+' : ''}${c.deviation_pct}%` : ''}</b>` : ''}</div>`).join('') + `</details>`;
+}
 function model() {
   const b = P.built;
   fillReview();
@@ -762,12 +786,11 @@ function model() {
   const cov = b.coverage, conns = cov?.connections || [], mapped = cov?.mappings || [];
   const coverage = !cov ? '' : isRO
     ? `<div class="kv" style="margin-top:6px"><span>P&amp;ID coverage</span>${mapped.length} mapped tags · ${(cov.missing_equipment || []).length} unmodelled items</div>`
-    : `<div class="kv" style="margin-top:6px"><span>P&amp;ID coverage</span>${conns.filter(c => c.modelled).length} of ${conns.filter(c => !c.relief_path).length} flow connections ${(cov.missing_connections || []).length || (cov.missing_equipment || []).length ? '<b style="color:var(--fail)">✗</b>' : '<b style="color:var(--ok)">✓</b>'}</div>
+    : `<div class="kv" style="margin-top:6px"><span>P&amp;ID coverage</span>${conns.filter(c => c.modelled).length} of ${conns.filter(c => !c.relief_path).length} flow connections simulated ${(cov.missing_connections || []).length || (cov.missing_equipment || []).length ? '<span style="color:var(--muted)">· the rest are drawn for context</span>' : '<b style="color:var(--ok)">✓</b>'}</div>
       <div style="color:var(--muted);font-size:11px">${conns.filter(c => c.relief_path).length} relief path(s) excluded: no normal flow</div>`;
   $('builtBy').textContent = `${b.model.replace('muse-', '').replace('-contributor', '')} · ${b.seconds}s`;
-  $('modelBox').innerHTML = `<div class="why" style="color:var(--muted);font-size:11.5px;margin-bottom:6px">${simulator()} model built by the agent from the P&amp;ID, ${count} ${isRO ? 'RO stages' : 'units'}. Calibration:</div>` +
-    `<details><summary>${(b.calibration || []).length} measured values reproduced</summary>` +
-    (b.calibration || []).map(c => `<div class="kv"><span>${esc(c.item || c.source || 'Calibration point')}</span>${esc(String(c.simulated).split(' (')[0])} <span>vs ${esc(String(c.measured).split(' (')[0])}</span></div>`).join('') + `</details>` +
+  $('modelBox').innerHTML = `<div class="why" style="color:var(--muted);font-size:11.5px;margin-bottom:6px">${simulator()} model built by the agent from the P&amp;ID, ${count} ${isRO ? 'RO stages' : 'units'}.</div>` +
+    calibrationBlock(b) +
     (P.drawing === 'pdf' ? `<div class="kv" style="margin-top:6px"><span>Drawing read</span>${P.read_confirmed ? `confirmed · ${P.read_corrections} corrections by the engineer` : 'not confirmed'}</div>` : '') +
     coverage +
     ((P.pid.data_quality || []).length ? `<details style="margin-top:6px"><summary style="color:var(--warn)">⚠ ${P.pid.data_quality.length} P&amp;ID data problems</summary>${P.pid.data_quality.map(a => `<div style="font-size:11.5px;color:var(--muted);padding:2px 0">• ${esc(a)}</div>`).join('')}</details>` : '') +
@@ -788,7 +811,7 @@ function render(st) {
   const w = worstBy(st.checks), units = Object.fromEntries((P.built.spec.units || []).map(u => [u.id, u]));
   const s = st.scale;
   $('atScale').textContent = Math.round(s * 100) + '%';
-  $('flowv').innerHTML = base ? `${(base.m3_h * s).toFixed(1)} <small>${base.unit} · ${s >= 1 ? '+' : ''}${Math.round((s - 1) * 100)}%</small>` : `${Math.round(s * 100)}%`;
+  $('flowv').innerHTML = base ? `${thru(base.m3_h * s)} <small>${base.unit} · ${s >= 1 ? '+' : ''}${Math.round((s - 1) * 100)}%</small>` : `${Math.round(s * 100)}%`;
   const rows = Object.values(w).sort((a, b) => b.utilisation - a.utilisation);
   $('eqlist').innerHTML = rows.map(c => {
     const feeds = P.built.spec.feeds || {};
@@ -840,7 +863,7 @@ function render(st) {
   const top = rows[0], cap = P.capacity;
   const over = rows.filter(c => c.utilisation > 1);
   const blocks = (P.built?.review?.findings || []).filter(f => f.severity === 'block');
-  const capLine = cap?.capacity_multiple != null ? `Simulated maximum: <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? `Recorded ${simulator()} solution of this model (re-solved live when the model changes).` : `Solved live in ${simulator()}.`}` : '';
+  const capLine = cap?.capacity_multiple != null ? `Existing plant: maximum <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? `Recorded ${simulator()} solution.` : `Solved live in ${simulator()}.`}` : '';
   if (blocks.length) {
     const more = blocks.length > 1 ? ` · ${blocks.length - 1} more blocking finding${blocks.length > 2 ? 's' : ''}.` : '';
     $('verdict').innerHTML = `<span style="color:var(--fail)">Model needs review</span>`;
@@ -850,9 +873,13 @@ function render(st) {
       : `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — tightest: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`;
     $('verdictSub').innerHTML = capLine;
   }
+  $('verdictSub').title = $('verdictSub').textContent;
 }
-const fmt = v => typeof v === 'number' ? (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1)) : v;
-const nm = id => (P?.names || {})[id] || id;  // readable name for a unit or stream id; the raw id stays in tooltips
+// '2026-10-31T01:51:10+03:00' -> '31 Oct 2026, 01:51' for people; raw stamps stay in the audit details
+const when = t => { const d = new Date(t); return isNaN(d) ? String(t ?? '') : d.toLocaleString('en-GB', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'}); };
+const thru = v => v >= 1000 ? Math.round(v).toLocaleString('en-US') : v.toFixed(1);  // 3013.2 -> 3,013
+const fmt = v => typeof v === 'number' ? (Math.abs(v) >= 100 ? Math.round(v).toLocaleString('en-US') : v.toFixed(1)) : v;
+const nm = id => { const n = (P?.names || {})[id] || id; return /^[a-z]/.test(n) && !/[-_\d]/.test(n) ? n[0].toUpperCase() + n.slice(1) : n; };  // readable name; the raw id stays in tooltips
 const FIELDS = {m3_h: ['flow', 'm³/h'], kg_h: ['flow', 'kg/h'], T_C: ['temperature', '°C'], P_bar: ['pressure', 'bar(a)'], volume_m3: ['working volume', 'm³'],
   area_m2: ['installed area', 'm²'], U_W_m2K: ['heat-transfer coefficient', 'W/m²K'], P_out_bar: ['discharge pressure', 'bar(a)'], T_out_C: ['outlet temperature', '°C'],
   duty_kW: ['duty', 'kW'], dP_bar: ['pressure rise/drop', 'bar'], eff_pct: ['efficiency', '%'], kv: ['valve Kv', '']};
@@ -884,6 +911,7 @@ function describe(c) {
 }
 
 const ROUTING = new Set(['mixer', 'splitter', 'recycle']);
+const qtyText = (v, u) => (v == null || v === '') ? 'to confirm' : `${calcNum(v)} ${u || ''}`.trim();  // never 'to confirm kg/h'
 const calcNum = v => (v == null || v === '') ? 'to confirm' : typeof v === 'number' ? String(Number(v.toPrecision(4))) : String(v);
 function qty(value, unit) {
   if (value == null) return [null, unit];
@@ -1213,8 +1241,14 @@ function placeDraftNotes() {
 }
 function newEquipmentRecord(tag) {
   for (const p of verifiedDesigns()) {
-    const row = ((p.calculation || {}).new_equipment || []).find(e => e.id === tag);
     const change = (p.changes || []).find(c => c.add_unit && c.add_unit.id === tag);
+    let row = ((p.calculation || {}).new_equipment || []).find(e => e.id === tag);
+    if (row && change) {  // fill the operating point from the solved streams of the same calculation
+      const u = change.add_unit, streams = Object.fromEntries(((p.calculation || {}).streams || []).map(x => [x.id, x]));
+      const [ins, outs] = streamPorts(u), si = streams[ins[0]] || {}, so = streams[outs[0]] || {}, op = row.operating_point || {};
+      row = {...row, operating_point: {...op, kg_h: op.kg_h ?? si.kg_h, eff_pct: op.eff_pct ?? u.eff_pct,
+        pressure_ratio: op.pressure_ratio ?? (si.P_bar && so.P_bar ? so.P_bar / si.P_bar : undefined)}};
+    }
     if (row || change) return {proposal: p, row, change};
   }
   const g = $('sheet').querySelector(`[data-tag="${CSS.escape(tag)}"][data-new="true"]`);
@@ -1225,12 +1259,12 @@ function calcSheet(p) {
   if (!p.verified || !c) return '';
   const pct = v => v == null ? '—' : `${calcNum(v)} %`;
   const thru = c.throughput || {}, fb = c.first_limit_before || {}, fa = c.first_limit_after || {};
-  const limits = (c.limits || []).map(r => `<tr><td>${esc(r.id)}</td><td>${esc(r.check)}</td><td class="v">${pct(r.before_pct)}</td><td class="v">${pct(r.after_pct)}</td><td class="v">${esc(calcNum(r.value))} ${esc(r.unit || '')}</td><td class="v">${esc(calcNum(r.limit))} ${esc(r.unit || '')}</td></tr>`).join('');
-  const streams = (c.streams || []).map(r => `<tr><td>${esc(r.id)}</td><td class="v">${esc(calcNum(r.T_C))} °C</td><td class="v">${esc(calcNum(r.P_bar))} bar</td><td class="v">${esc(calcNum(r.flow))} ${esc(r.flow_unit || '')}</td><td>${esc(r.phase || 'to confirm')}</td></tr>`).join('');
-  const duty = (c.new_equipment || []).map(e => `<tr><td>${esc(e.id)}</td><td class="v">${esc(calcNum(e.flow))} ${esc(e.flow_unit || '')}</td><td class="v">${esc(calcNum(e.shaft))} ${esc(e.shaft_unit || '')}</td><td class="v">${esc(calcNum(e.rating_flow))} ${esc(e.rating_flow_unit || '')} / ${esc(calcNum(e.rating_shaft))} ${esc(e.rating_shaft_unit || '')}</td><td>${esc(e.rating_source || 'to confirm')}</td></tr>`).join('');
+  const limits = (c.limits || []).map(r => `<tr><td>${esc(r.id)}</td><td>${esc(r.check)}</td><td class="v">${pct(r.before_pct)}</td><td class="v">${pct(r.after_pct)}</td><td class="v">${esc(qtyText(r.value, r.unit))}</td><td class="v">${esc(qtyText(r.limit, r.unit))}</td></tr>`).join('');
+  const streams = (c.streams || []).map(r => `<tr><td>${esc(r.id)}</td><td class="v">${esc(qtyText(r.T_C, '°C'))}</td><td class="v">${esc(qtyText(r.P_bar, 'bar'))}</td><td class="v">${esc(qtyText(r.flow, r.flow_unit))}</td><td>${esc(r.phase || 'to confirm')}</td></tr>`).join('');
+  const duty = (c.new_equipment || []).map(e => `<tr><td>${esc(e.id)}</td><td class="v">${esc(qtyText(e.flow, e.flow_unit))}</td><td class="v">${esc(qtyText(e.shaft, e.shaft_unit))}</td><td class="v">${esc(qtyText(e.rating_flow, e.rating_flow_unit))} / ${esc(qtyText(e.rating_shaft, e.rating_shaft_unit))}</td><td>${esc(e.rating_source || 'to confirm')}</td></tr>`).join('');
   const prov = c.provenance || {};
   return `<details class="calc-sheet"><summary>Before / Proposed calculation</summary>
-    <div class="diff">${thru.label ? `<div><b>${esc(thru.label)}</b> at ${esc(calcNum(thru.scale_pct))}%: <b class="v">${esc(calcNum(thru.value))} ${esc(thru.unit || '')}</b></div>` : ''}
+    <div class="diff">${thru.label ? `<div><b>${esc(thru.label)}</b> at ${esc(calcNum(thru.scale_pct))}%: <b class="v">${esc(qtyText(thru.value, thru.unit))}</b></div>` : ''}
     <div>Capacity before <b class="v">${pct(c.capacity_before_pct)}</b> · after <b class="v">${pct(c.capacity_after_pct)}</b></div>
     <div>First limit before <b>${esc(fb.id || 'to confirm')}</b> ${esc(fb.check || '')} <b class="v">${pct(fb.pct)}</b></div>
     <div>First limit after <b>${esc(fa.id || 'to confirm')}</b> ${esc(fa.check || '')} <b class="v">${pct(fa.pct)}</b></div></div>
@@ -1252,6 +1286,12 @@ function select(tag, fromCanvas = false) {
   else if (P.built) PENDING_CARD = tag;  // the state is still solving (e.g. the Rev B what-if): show the card when it arrives
 }
 
+// DEXPI attribute names and unit words, for people: DesignShaftPower 14000 Kilowatt -> Design shaft power 14,000 kW
+const humanKey = k => String(k).replace(/([a-z])([A-Z])/g, '$1 $2').replace(/_/g, ' ').replace(/^(.)(.*)$/, (m, a, b) => a.toUpperCase() + b.toLowerCase());
+const UNIT_WORDS = {Kilowatt: 'kW', Megawatt: 'MW', Watt: 'W', MetreSquared: 'm²', SquareMetre: 'm²', CubicMetrePerHour: 'm³/h', CubicMetre: 'm³', KilogramPerHour: 'kg/h',
+  DegreeCelsius: '°C', Celsius: '°C', Kelvin: 'K', BarGauge: 'barg', Bar: 'bar', Metre: 'm', Millimetre: 'mm', Percent: '%', RevolutionPerMinute: 'rpm'};
+const humanVal = v => String(v).replace(/-?\d+(\.\d+)?/g, m => Number(m).toLocaleString('en-US', {maximumFractionDigits: 3}))
+  .replace(/\b([A-Z][A-Za-z]+)\b/g, w => UNIT_WORDS[w] || w);
 function equipmentCard(tag) {  // design data, operating values, every limit with its margin, and a what-if
   const added = newEquipmentRecord(tag);
   const onSheet = $('sheet').querySelector(`[data-tag="${CSS.escape(tag)}"]`)?.dataset.new === 'true';
@@ -1265,19 +1305,16 @@ function equipmentCard(tag) {  // design data, operating values, every limit wit
     $('modePanel').hidden = true; $('historyDetails').hidden = true; $('answers').hidden = false; $('askDock').hidden = false;
     $('inspectorTitle').textContent = 'Equipment';
     $('answers').innerHTML = `<button class="btn inspector-back" onclick="showMode(ACTIVE_MODE)">← Back to ${esc(ACTIVE_MODE === 'capacity' ? 'result' : ACTIVE_MODE)}</button><div class="ans"><h3>${esc(tag)} <span style="color:var(--muted);font-size:12px">${esc(duty.status)}</span></h3>
-      <div class="tt">Calculated operating point</div><table class="ecard">
-        <tr><td>Flow</td><td class="v">${esc(calcNum(duty.flow))} ${esc(duty.flow_unit || '')}</td></tr>
-        <tr><td>Shaft / duty</td><td class="v">${esc(calcNum(duty.shaft))} ${esc(duty.shaft_unit || '')}</td></tr>
-        <tr><td>Pressure ratio</td><td class="v">${esc(calcNum(duty.pressure_ratio))}</td></tr>
-        <tr><td>Head</td><td class="v">${esc(calcNum(duty.head))} ${esc(duty.head_unit || '')}</td></tr>
-        <tr><td>Assumed efficiency</td><td class="v">${esc(calcNum(duty.efficiency_pct))} %</td></tr></table>
+      <div class="tt">Calculated operating point (${esc(simulator())})</div><table class="ecard">${[['Flow', duty.flow, duty.flow_unit], ['Shaft power', duty.shaft, duty.shaft_unit],
+        ['Pressure ratio', duty.pressure_ratio, ''], ['Head', duty.head, duty.head_unit], ['Assumed efficiency', duty.efficiency_pct, '%']]
+        .filter(([, v]) => v != null && v !== '').map(([k, v, u]) => `<tr><td>${k}</td><td class="v">${esc(calcNum(typeof v === 'number' ? Number(v.toPrecision(3)) : v))} ${esc(u || '')}</td></tr>`).join('') || '<tr><td>Operating point not in the stored calculation</td></tr>'}</table>
       <div class="tt" style="margin-top:10px">Provisional rating</div><table class="ecard">
-        <tr><td>Rating</td><td class="v">${esc(calcNum(duty.rating_flow))} ${esc(duty.rating_flow_unit || '')} / ${esc(calcNum(duty.rating_shaft))} ${esc(duty.rating_shaft_unit || '')}</td></tr>
+        ${duty.rating_flow != null || duty.rating_shaft != null ? `<tr><td>Rating</td><td class="v">${[[duty.rating_flow, duty.rating_flow_unit], [duty.rating_shaft, duty.rating_shaft_unit]].filter(([v]) => v != null).map(([v, u]) => `${esc(qtyText(v, u))}`).join(' / ')}</td></tr>` : ''}
         <tr><td>Rating source</td><td class="v">${esc(duty.rating_source || change.rating_source || 'to confirm')}</td></tr>
         <tr><td>Status</td><td class="v">${esc(duty.status)}</td></tr></table>
       <div class="tt" style="margin-top:10px">Inlet / outlet</div><table class="ecard">
-        <tr><td>Inlet</td><td class="v">${esc(ins[0] || 'to confirm')} · ${esc(calcNum(inletS.T_C))} °C · ${esc(calcNum(inletS.P_bar))} bar · ${esc(phase(inletS))}</td></tr>
-        <tr><td>Outlet</td><td class="v">${esc(outs[0] || 'to confirm')} · ${esc(calcNum(outletS.T_C))} °C · ${esc(calcNum(outletS.P_bar))} bar · ${esc(phase(outletS))}</td></tr></table>
+        <tr><td>Inlet</td><td class="v">${esc(ins[0] || 'to confirm')} · ${esc(qtyText(inletS.T_C, '°C'))} · ${esc(qtyText(inletS.P_bar, 'bar'))} · ${esc(phase(inletS))}</td></tr>
+        <tr><td>Outlet</td><td class="v">${esc(outs[0] || 'to confirm')} · ${esc(qtyText(outletS.T_C, '°C'))} · ${esc(qtyText(outletS.P_bar, 'bar'))} · ${esc(phase(outletS))}</td></tr></table>
       <div class="tt" style="margin-top:10px">Assumptions</div><div class="diff">${(((added.proposal || {}).calculation || {}).assumptions || ['to confirm']).map(a => '• ' + esc(a)).join('<br>')}</div>
       <div style="margin-top:8px;color:var(--warn)">Vendor curve, materials and mechanical design are to confirm. This is simulator screening and a provisional selection, not vendor approval.</div></div>`;
     return;
@@ -1291,15 +1328,15 @@ function equipmentCard(tag) {  // design data, operating values, every limit wit
   $('modePanel').hidden = true; $('historyDetails').hidden = true; $('answers').hidden = false; $('askDock').hidden = false;
   $('inspectorTitle').textContent = 'Equipment';
   $('answers').innerHTML = `<button class="btn inspector-back" onclick="showMode(ACTIVE_MODE)">← Back to ${esc(ACTIVE_MODE === 'capacity' ? 'result' : ACTIVE_MODE)}</button><div class="ans"><h3>${esc(nm(tag))} <span style="color:var(--muted);font-size:12px">${esc(tag)}</span></h3>
-    ${e ? `<div class="tt">Design data (P&amp;ID)</div><table class="ecard">${Object.entries(e.design || {}).map(([k, v]) => `<tr><td>${esc(k)}</td><td class="v">${esc(v)}</td></tr>`).join('')}</table>` : ''}
-    <div class="tt" style="margin-top:10px">Operating at ${Math.round(ST.scale * 100)}% (DWSIM)</div><table class="ecard">${Object.entries(op).filter(([k, v]) => typeof v === 'number').map(([k, v]) => `<tr><td title="${esc(k)}">${esc((OPL[k] || [k])[0])}</td><td class="v">${esc(fmt(v))} ${esc((OPL[k] || ['', ''])[1])}</td></tr>`).join('')}</table>
-    <div class="tt" style="margin-top:10px">Limits</div><table class="ecard">${checks.map(c => `<tr><td>${esc(c.check)}</td><td class="v">${esc(fmt(c.value))} of ${esc(fmt(c.limit))} ${esc(c.unit)}</td><td class="v" style="color:var(--${sev(c.utilisation)})">${Math.round(c.utilisation * 100)}% · margin ${Math.round((1 - c.utilisation) * 100)}%</td></tr>`).join('') || '<tr><td>No stated limit</td></tr>'}</table>
-    ${editable.length ? `<div class="tt" style="margin-top:10px">What if… (a preview in DWSIM, not a revision)</div>
+    ${e ? `<div class="tt">Design data (P&amp;ID)</div><table class="ecard">${Object.entries(e.design || {}).map(([k, v]) => `<tr><td title="${esc(k)}">${esc(humanKey(k))}</td><td class="v">${esc(humanVal(v))}</td></tr>`).join('')}</table>` : ''}
+    <div class="tt" style="margin-top:10px">Operating at ${Math.round(ST.scale * 100)}% (${simulator()})</div><table class="ecard">${Object.entries(op).filter(([k, v]) => typeof v === 'number' && !(k === 'duty_kW' && op.kW === v)).map(([k, v]) => `<tr><td title="${esc(k)}">${esc((OPL[k] || [k])[0])}</td><td class="v">${esc(fmt(v))} ${esc((OPL[k] || ['', ''])[1])}</td></tr>`).join('')}</table>
+    <div class="tt" style="margin-top:10px">Limits</div><table class="ecard">${checks.map(c => `<tr><td>${esc(c.check)}</td><td class="v">${esc(fmt(c.value))} of ${esc(fmt(c.limit))} ${esc(c.unit)}</td><td class="v" style="white-space:nowrap;color:var(--${sev(c.utilisation)})">${Math.round(c.utilisation * 100)}% · margin ${Math.round((1 - c.utilisation) * 100)}%</td></tr>`).join('') || '<tr><td>No stated limit</td></tr>'}</table>
+    ${editable.length ? `<div class="tt" style="margin-top:10px">What if… (a preview in ${simulator()}, not a revision)</div>
       <select id="wiField">${editable.map(([k, v]) => `<option value="${k}" data-v="${v}">${esc(FIELDS[k][0])} (${esc(fmt(v))} ${esc(FIELDS[k][1])})</option>`).join('')}</select>
       <input id="wiValue" type="number" step="any" style="width:110px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:4px" value="${editable[0][1]}">
       <button class="btn" onclick="whatIf('${esc(tag)}')">Re-solve</button><div id="wiOut" style="margin-top:8px"></div>` : ''}
     ${healthOf(tag)}
-    ${(P.troubleshootable || []).includes(tag) ? `<div class="tt" style="margin-top:10px">Troubleshoot (deterministic: each cause fitted in DWSIM, checked against the other historian readings)</div>
+    ${(P.troubleshootable || []).includes(tag) ? `<div class="tt" style="margin-top:10px">Troubleshoot (deterministic: each cause fitted in ${simulator()}, checked against the other historian readings)</div>
       <span style="font-size:12px">Product out of ${esc(tag)} reads</span> <input id="tsVal" type="number" step="0.1" style="width:80px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:4px" placeholder="last day">
       <span style="font-size:12px">°C</span> <button class="btn" onclick="troubleshoot('${esc(tag)}')">Find the cause</button><div id="tsOut" style="margin-top:8px"></div>` : ''}
     <div style="margin-top:12px"><button class="btn" onclick="$('q').value='Why is ${esc(tag)} limiting, and what is the cheapest fix?';$('q').focus()">Ask about ${esc(tag)}</button></div></div>`;
@@ -1317,7 +1354,7 @@ function healthOf(tag) {
     <div style="color:var(--warn);font-size:11px">${esc(P.health.source_note || '')}</div>`;
 }
 async function troubleshoot(tag) {
-  $('tsOut').textContent = 'Fitting each cause in DWSIM (about 1–2 minutes the first time)…';
+  $('tsOut').textContent = `Fitting each cause in ${simulator()} (about 1–2 minutes the first time)…`;
   const v = $('tsVal').value;
   const r = await api('troubleshoot', {equipment: tag, reading: v === '' ? null : Number(v)}).catch(e => ({error: e.message}));
   if (r.error) { $('tsOut').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return; }
@@ -1329,7 +1366,7 @@ async function troubleshoot(tag) {
 }
 async function whatIf(tag) {
   const changes = [{path: WI.path($('wiField').value), from: Number($('wiField').selectedOptions[0].dataset.v), value: Number($('wiValue').value)}];
-  $('wiOut').textContent = 'Solving in DWSIM…';
+  $('wiOut').textContent = `Solving in ${simulator()}…`;
   const r = await api('whatif', {changes, scale: ST.scale}).catch(e => ({error: e.message}));
   if (r.error) { $('wiOut').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return; }
   const moved = r.checks.filter(c => c.before == null || Math.abs(c.after - c.before) > 0.005).sort((a, b) => b.after - a.after);
@@ -1358,8 +1395,8 @@ async function stateForView(scale) {
   if (VIEW === 'proposed') {
     const changes = latestProposedChanges();
     if (changes.length) {
-      const preview = await api('whatif', {changes, scale});
-      if (!preview.errors?.length) return {scale, ...preview.state_after};
+      const preview = await api('whatif', {changes, scale}).catch(() => null);  // a failed preview falls back to the recorded state
+      if (preview && !preview.errors?.length && preview.state_after) return {scale, ...preview.state_after};
     }
   }
   return api(`state?scale=${scale}${VIEW === 'existing' ? '&view=existing' : ''}`);
@@ -1373,7 +1410,7 @@ let tmr = null;
 $('scale').oninput = () => {
   if (!P?.built) return;
   const s = $('scale').value / 100;
-  $('flowv').innerHTML = base ? `${(base.m3_h * s).toFixed(1)} <small>${base.unit} · solving…</small>` : '…';
+  $('flowv').innerHTML = base ? `${thru(base.m3_h * s)} <small>${base.unit} · solving…</small>` : '…';
   clearTimeout(tmr);
   tmr = setTimeout(async () => render(await stateForView(s)), 120);
 };
@@ -1453,15 +1490,30 @@ function placeClear(n, sheet) {  // push a note down until it no longer overlaps
   }
 }
 
+function suggestions() {  // from this case's own equipment, so a desalination plant is never asked about cooling water
+  const types = new Set((P.built?.spec?.units || []).map(u => u.type)), pct = Math.round((P.target_scale - 1) * 100);
+  const out = [`What limits +${pct}% throughput?`];
+  if (simulator() === 'WaterTAP') out.push('Which membrane stage is closest to its limit, and why?', 'How does colder or saltier feed change recovery?');
+  else {
+    if ([...types].some(t => /heat|cool|exchanger|evaporator/.test(t))) out.push('Which exchanger is closest to its limit, and why?');
+    if ([...types].some(t => /pump|compressor/.test(t))) out.push('Which pump or compressor has the least margin at the target?');
+  }
+  return out.slice(0, 3);
+}
 function answers() {
   if (!P.built) return;
   GATE_VIEWS = [];
-  const list = [...(P.answers || [])].reverse();
-  $('answers').innerHTML = list.length ? ans(list[0], P.answers.length - 1) +
-    (list.length > 1 ? `<details class="ans"><summary>History · ${list.length - 1} earlier questions</summary>${list.slice(1).map((a, i) => ans(a, P.answers.length - 2 - i)).join('')}</details>` : '') :
+  const all = P.answers || [], last = all.at(-1), d = designAnswer();
+  // the verified design leads; a later follow-up that does not reach the target is shown under it, not instead of it
+  const lead = d && d !== last && !last?.combined?.reaches_target ? d : last;
+  const follow = lead !== last ? `<details class="ans follow-up"><summary>Latest follow-up · ${esc(last.headline || last.question || 'question')}</summary>${ans(last, all.length - 1)}</details>` : '';
+  const rest = all.map((a, i) => [a, i]).filter(([a]) => a !== lead && a !== last).reverse();
+  const list = all.length ? [lead] : [];
+  $('answers').innerHTML = list.length ? (lead !== last ? `<div class="lead-note">Current verified design · answer ${all.indexOf(lead) + 1} of ${all.length}</div>` : '') + ans(lead, all.indexOf(lead)) + follow +
+    (rest.length ? `<details class="ans"><summary>History · ${rest.length} earlier question${rest.length === 1 ? '' : 's'}</summary>${rest.map(([a, i]) => ans(a, i)).join('')}</details>` : '') :
     `<div class="empty"><b>What would you like to test?</b><br>Ask about an equipment limit, or find a path to the target throughput.
-     <div class="sugg">${['What limits +20% throughput?', 'Which exchanger is closest to its limit, and why?', 'How much headroom does the cooling water have?'].map(s => `<button class="btn" onclick="ask('${s}')">${s}</button>`).join('')}</div></div>`;
-  $('spend').textContent = list.length ? 'AI cost $' + list.reduce((t, a) => t + (a.cost_usd || 0), 0).toFixed(3) : '';
+     <div class="sugg">${suggestions().map(s => `<button class="btn" onclick="ask('${esc(s)}')">${esc(s)}</button>`).join('')}</div></div>`;
+  $('spend').textContent = list.length ? 'AI cost $' + all.reduce((t, a) => t + (a.cost_usd || 0), 0).toFixed(2) : '';
   $('spend').title = 'Estimated model API cost for the answers shown; simulator runs are local.';
 }
 
@@ -1469,7 +1521,7 @@ const BASIS = {documented: ['in document', '#4da3ff'], measured: ['measured', '#
 const basisOf = x => x.basis || (/run|dwsim|simulat|solve/i.test(x.source || '') ? 'computed' : /assum|judg|estimat/i.test(x.source || '') ? 'assumed'
   : /measur|dcs|scada|historian|test|current operation/i.test(x.source || '') ? 'measured' : 'documented');
 const basisChip = b => `<span class="vb" style="border:1px solid ${BASIS[b][1]};color:${BASIS[b][1]}">${BASIS[b][0]}</span>`;
-const GATE_NAMES = {process: 'Process', mechanical: 'Mechanical', heat_transfer: 'Heat transfer', electrical: 'Electrical', combustion: 'Combustion', piping_utilities: 'Piping', controls: 'Controls', process_safety: 'Safety', civil_structural: 'Civil'};
+const GATE_NAMES = {process: 'Process', robustness: 'Robustness', mechanical: 'Mechanical', heat_transfer: 'Heat transfer', electrical: 'Electrical', combustion: 'Combustion', piping_utilities: 'Piping', controls: 'Controls', process_safety: 'Safety', civil_structural: 'Civil'};
 const GATE_ORDER = Object.keys(GATE_NAMES);
 let GATE_VIEWS = [];
 function gateRows(a) {
@@ -1506,6 +1558,9 @@ function showGate(index) {
   $('modalBox').innerHTML = `<h3>${esc(name)} <span style="color:var(--muted)">${mark} ${esc(status)}</span></h3><p>${esc(row.summary || 'No summary supplied.')}</p><div class="card"><div class="tt">Calculation source</div><div class="res">${esc(row.source || 'not supplied')}</div></div>${checks ? `<h4>Checks</h4><ul>${checks}</ul>` : '<p style="color:var(--muted)">No deterministic check rows were supplied.</p>'}`;
   $('modal').classList.add('on');
 }
+// judge-facing text without internal run and model identifiers; the Engineering view keeps them
+const plain = t => String(t ?? '').replace(/\b(?:the )?(?:logged )?run [“"][^”"]+[”"]/gi, 'the logged simulator run').replace(/\s*\((?:logged )?runs? [^)]*\)/gi, '').replace(/\b(?:logged )?runs? [\w.-]*_[\w.-]+(?:,? (?:and )?[\w.-]*_[\w.-]+)*/gi, 'the simulator run')
+  .replace(/\s*\(?model [\w.-]+ rev \d+\)?/gi, '').replace(/muse-[\w.-]+/gi, 'Muse').replace(/\s{2,}/g, ' ').trim();
 function decisionBrief(a, idx) {
   const d = (a.proposals || []).length ? a : (designAnswer() || a);  // drawing/document commands report on the current design
   const limits = (d.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity));
@@ -1519,11 +1574,11 @@ function decisionBrief(a, idx) {
   else if (d.combined?.reaches_target && !gates.length) status = `${simulator()} verified · discipline gates not run yet`;
   else if (d.combined?.reaches_target) { status = `${simulator()} and all supplied discipline gates pass`; statusClass = 'pass'; }
   else if (verified.length) status = `${verified.length} change${verified.length === 1 ? '' : 's'} simulated · combined target not yet cleared`;
-  const issue = idx === P.answers.length - 1 && !modelBlocked() && verified.length ? `<div class="package-action"><button class="btn go" type="button" onclick="issueEngineeringPackage(this)">Issue engineering package</button><small>DRAFT — generates the decision pack and current pre-FEED gates; not approved for construction.</small></div>` : '';
-  return `<section class="decision-brief"><h2>${esc(a.headline || 'Engineering decision')}</h2><dl class="decision-facts">
+  const issue = (idx === P.answers.length - 1 || a === designAnswer()) && !modelBlocked() && verified.length ? `<div class="package-action"><button class="btn go" type="button" onclick="issueEngineeringPackage(this)">Issue engineering package</button><small>DRAFT — generates the decision pack and current pre-FEED gates; not approved for construction.</small></div>` : '';
+  return `<section class="decision-brief"><h2>${esc(plain(a.headline) || 'Engineering decision')}</h2><dl class="decision-facts">
     <div class="decision-fact"><dt>Target</dt><dd><b>${Math.round(P.target_scale * 100)}%</b> throughput</dd></div>
-    <div class="decision-fact"><dt>First bottleneck</dt><dd>${first ? `<b>${esc(first.tag)}</b> · ${esc(first.text)}` : 'No limiting item reported'}</dd></div>
-    <div class="decision-fact"><dt>Recommendation</dt><dd>${esc(recommendation)}</dd></div>
+    <div class="decision-fact"><dt>First bottleneck</dt><dd>${first ? `<b>${esc(first.tag)}</b> · ${esc(plain(first.text))}` : 'No limiting item reported'}</dd></div>
+    <div class="decision-fact"><dt>Recommendation</dt><dd>${esc(plain(recommendation))}</dd></div>
     <div class="decision-fact status-${statusClass}"><dt>Status</dt><dd>${esc(status)}</dd></div>
   </dl></section>${disciplineImpact(d)}${issue}`;
 }
@@ -1531,8 +1586,8 @@ function compare(a) {  // the alternatives side by side, from what the server re
   const ps = a.proposals || [];
   if (ps.length < 2) return '';
   return `<section class="answer-section"><h4>Alternative summary</h4><div class="comparison-list">${ps.map(p => `<div class="comparison-item">
-    <div class="comparison-item-head"><span>${esc(p.title)}</span><span style="color:var(--${p.verified ? 'ok' : 'fail'})">${p.verified ? 'Simulated ✓' : p.unverified_reason ? 'Not verifiable' : 'Fails'}</span></div>
-    <div class="comparison-item-meta"><span>Fixes <b>${esc(p.fixes || p.tag || '—')}</b></span><span>New maximum <b>${p.capacity_multiple ? Math.round(p.capacity_multiple * 100) + '%' : '—'}</b></span><span>Cost <b>${esc(p.cost_class || '—')}</b></span></div>
+    <div class="comparison-item-head"><span>${esc(p.title)}</span><span style="color:var(--${p.verified ? 'ok' : 'fail'})">${p.verified ? 'Simulated ✓' : p.unverified_reason ? 'Not verifiable' : 'Fails'}${Object.entries(p.discipline_status || {}).filter(([, st]) => st === 'fail').map(([k]) => ` <span style="color:var(--fail)">· ${esc((GATE_NAMES[k] || k).toLowerCase())} ✕</span>`).join('')}</span></div>
+    <div class="comparison-item-meta"><span>Fixes <b>${esc(p.fixes || p.tag || '—')}</b></span><span>New maximum <b>${p.capacity_multiple ? Math.round(p.capacity_multiple * 100) + '%' : '—'}</b></span><span title="Cost class written by the agent for screening; not a priced estimate">Cost <b>${esc(p.cost_class || '—')}</b> <small style="color:var(--muted)">agent estimate</small></span></div>
     </div>`).join('')}</div></section>`;
 }
 function secondOpinion(a, idx) {  // the open-weights model's independent answer, compared without picking a winner
@@ -1550,7 +1605,7 @@ function secondOpinion(a, idx) {  // the open-weights model's independent answer
 }
 
 function ans(a, idx) {
-  const cards = (a.cards || []).map(c => `<div class="card ${c.status || ''}"><div class="tt">${esc(c.title)}</div><div class="res">${esc(c.result)}</div>
+  const cards = (a.cards || []).map(c => `<div class="card ${c.status || ''}"><div class="tt">${esc(c.title)} <small style="color:var(--muted);font-weight:400" title="Text and colour written by the agent; the cited runs are re-solved, the numbers in the sentence are not parsed">agent summary</small></div><div class="res">${esc(c.result)}</div>
     ${(c.inputs || []).length ? `<details><summary>${c.inputs.length} inputs (${[...new Set(c.inputs.map(basisOf))].join(', ')}) · runs: ${esc((c.runs || []).join(', ') || 'none')}</summary><div class="evidence-list">${c.inputs.map(x => `<div class="evidence-row"><div class="evidence-row-head"><b>${esc(x.name)}</b>${basisChip(basisOf(x))}</div><div class="evidence-value">${esc(x.value)}</div><div class="evidence-source">${esc(x.source)}</div></div>`).join('')}</div></details>` : ''}</div>`).join('');
   const fc = (a.field_checks || []).length ? `<section class="field-checks"><h4>Verify in the field first</h4><p>These readings can change the recommendation.</p>${a.field_checks.map(f => `<div class="field-check"><div class="field-check-title">${esc(f.item)}</div><div class="field-check-where">${esc(f.where)}</div><div class="field-check-impact"><b>If the reading differs</b>${esc(f.changes)}</div></div>`).join('')}</section>` : '';
   const props = (a.proposals || []).map((p, j) => prop(p, idx, j)).join('');
@@ -1589,10 +1644,12 @@ function prop(p, i, j, src) {
   const added = (p.new_equipment || []).map(e => `<span class="vb" style="color:var(--warn)">${esc(e.id)}: new equipment, rating to confirm</span>`).join('');
   const v = p.verified ? `<span class="vb y" title="Re-solved in ${simulator()} with this change at ${Math.round(P.target_scale * 100)}% throughput; every limit of ${esc(p.fixes || '')} within 100 %, nothing else pushed over.">✓ Simulated: ${esc(p.fixes || '')} within limits at ${Math.round(P.target_scale * 100)}%</span>`
     : `<span class="vb n">✗ ${p.unverified_reason ? 'Not verifiable: ' + esc(p.unverified_reason) : p.error ? 'did not solve' : esc((p.still_over?.[0] || p.breaks?.[0] || {}).id || '') + ' still over its limit'}</span>`;
-  return `<div class="prop ${p.accepted ? 'done' : ''}"><div class="ph"><b>${esc(p.title)}</b><span class="vb" style="color:var(--muted)">${esc(p.cost_class || '')}</span></div>
+  const ds = Object.entries(p.discipline_status || {}), dfail = ds.filter(([, st]) => st === 'fail');  // verify is process-only; other disciplines are flagged, not hidden
+  const scope = p.verified && ds.length ? `<span class="vb ${dfail.length ? 'n' : ''}" title="The simulator verifies the process. Other disciplines are separate checks.">${p.verified_scope || 'process'} verified${ds.map(([k, st]) => ` · ${(GATE_NAMES[k] || k).toLowerCase()} ${st === 'fail' ? '✕' : st === 'pass' ? '✓' : '○'}`).join('')}</span>` : '';
+  return `<div class="prop ${p.accepted ? 'done' : ''}"><div class="ph"><b>${esc(p.title)}</b>${p.cost_class ? `<span class="vb" style="color:var(--muted)" title="Cost class written by the agent for screening; not a priced estimate">${esc(p.cost_class)} · agent estimate</span>` : ''}</div>
     <div class="diff">${diff}</div>${added ? `<div class="diff">${added}</div>` : ''}${p.why ? `<div class="diff" style="color:var(--muted);font-family:var(--sans)">${esc(p.why)}</div>` : ''}
     ${calcSheet(p)}${electricalLine(p)}
-    <div class="pf">${v}${p.verified && !modelBlocked() ? `<div class="prop-actions"><button class="btn go" onclick="accept(${i},${j},'${src || ''}')" title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature.">Apply as draft model revision</button><button class="btn" onclick="this.closest('.prop').remove()">Dismiss</button></div>` : ''}${p.accepted ? '<span class="vb y">applied as draft revision</span>' : ''}</div></div>`;
+    <div class="pf">${v}${scope}${p.verified && !modelBlocked() ? `<div class="prop-actions"><button class="btn go" onclick="accept(${i},${j},'${src || ''}')" title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature.">Apply as draft model revision</button><button class="btn" onclick="this.closest('.prop').remove()">Dismiss</button></div>` : ''}${p.accepted ? '<span class="vb y">applied as draft revision</span>' : ''}</div></div>`;
 }
 
 async function accept(i, j, src) {
@@ -1617,7 +1674,7 @@ async function reload() {
 }
 
 async function decisionFile() {
-  $('decOut').textContent = 'Re-solving every limit in DWSIM and writing the pack…';
+  $('decOut').textContent = `Re-solving every limit in ${simulator()} and writing the pack…`;
   const r = await api('decision', {answer: (P.answers || []).length - 1}).catch(e => ({error: e.message}));
   if (r.error) { $('decOut').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return false; }
   const label = {'decision.pdf': 'MOC file (PDF)', 'memo.pdf': 'Management memo (PDF)', 'rev_b.svg': 'P&ID Rev B (proposed)', 'rev_a.svg': 'P&ID Rev A (existing)', 'rev_b.png': 'Rev B (PNG)', 'redline.svg': 'Redline (same as Rev B)', 'decision.zip': 'Everything (zip)',
@@ -1672,9 +1729,9 @@ function forecastCard() {  // fouling forecast: historian trend + simulator limi
   const e = f.energy, b = f.backtest, price = f.product_price;
   return `<div class="card forecast-card" style="margin:6px 0;border-left:3px solid ${f.status === 'past the limit' ? 'var(--bad, #b91c1c)' : 'var(--warn)'}">
     <div class="tt">Fouling forecast · ${esc(f.tag)}</div>
-    <div style="font-size:13px;margin:4px 0"><b>${esc(f.headline)}</b></div>
+    <div style="font-size:13px;margin:4px 0"><b>${esc(f.headline)}</b>${/\$/.test(f.headline) && !/illustrative/i.test(f.headline) ? ' <span style="color:var(--warn);font-size:11px">($ at illustrative prices)</span>' : ''}</div>
     <div style="font:11px var(--mono);color:var(--muted)">${esc(f.fit_text || '')} · limit U ${Math.round(f.U_critical || 0)} W/m²K (${esc(f.first_limit?.id || '')} ${esc(f.first_limit?.check || '')}), model ${esc(f.model || '')}</div>
-    ${e ? `<div style="font-size:12px;margin-top:3px">Compressor power already +${e.extra_kW} kW since cleaning (${esc(e.tag.split(' ')[0])}) ≈ $${e.usd_per_day.toLocaleString()}/d.</div>` : ''}
+    ${e ? `<div style="font-size:12px;margin-top:3px">Compressor power already +${e.extra_kW} kW since cleaning (${esc(e.tag.split(' ')[0])}) ≈ $${e.usd_per_day.toLocaleString()}/d (illustrative price).</div>` : ''}
     ${b ? `<div style="font-size:12px;margin-top:3px">Back-test: on ${esc(b.as_of)} this check said the limit is reached on ${esc(b.said_limit_date)}.</div>` : ''}
     <div style="color:var(--warn);font-size:11px;margin-top:3px">Prices are ${esc(price?.source || 'assumed')} (${price?.value} ${esc(price?.unit || '')}${e ? `; ${e.price.value} ${esc(e.price.unit)}` : ''}).</div>
     ${f.chart ? `<a href="${esc(f.chart)}" target="_blank"><img src="${esc(f.chart)}" alt="U trend and forecast" style="width:100%;margin-top:6px;border:1px solid var(--line, #ddd)"></a>` : ''}</div>`;
@@ -1683,7 +1740,7 @@ function forecastCard() {  // fouling forecast: historian trend + simulator limi
 function revs() {
   const a = P.audit;
   $('revs').innerHTML = morning() + (P.revisions || []).map(r => `<div class="rev"><div><b>Rev ${r.rev}</b> ${esc(r.title)}<div style="color:var(--muted);font:11px var(--mono)">${r.changes.map(describe).join(', ')}${r.capacity_multiple ? ' · max ' + Math.round(r.capacity_multiple * 100) + '%' : ''}</div>
-      <div style="color:var(--muted);font-size:11px">${esc(r.at || '')} · ${esc(r.user || 'engineer')} · “${esc(r.reason || '')}”</div></div>${r.kind === 'change' ? `<button class="btn" onclick="undo(${r.rev})">Undo</button>` : ''}</div>`).join('') +
+      <div style="color:var(--muted);font-size:11px">${esc(when(r.at))} · ${esc(r.user || 'engineer')} · “${esc(r.reason || '')}”</div></div>${r.kind === 'change' ? `<button class="btn" onclick="undo(${r.rev})">Undo</button>` : ''}</div>`).join('') +
     (!modelBlocked() && ((P.revisions || []).some(r => r.kind === 'change') || (P.answers || []).some(x => (x.proposals || []).some(p => p.verified)))
       ? `<div class="rev" style="border-left-color:var(--accent);display:block"><button class="btn go" onclick="issueEngineeringPackage(this)" title="Generate the MOC decision file, proposed drawing, operating envelope, discipline gates, RFQ and commissioning plan">Issue engineering package</button><div id="decOut"></div><div id="prefeedOut"></div></div>` : '') +
     (a ? `<div class="rev" style="border-left-color:${a.verify.ok ? 'var(--ok)' : 'var(--fail)'}"><div>Audit trail: ${a.verify.entries} entries · hash chain ${a.verify.ok ? 'intact ✓' : 'BROKEN at ' + a.verify.broken_at}</div><button class="btn" onclick="showAudit()">View</button></div>` : '');
@@ -1696,7 +1753,8 @@ async function undo(rev) {
   await reload();
 }
 function showAudit() {
-  $('modalBox').innerHTML = `<h3>Audit trail (append-only, hash-chained)</h3><pre>${esc(P.audit.entries.map(e => `#${e.seq} ${e.at} ${e.user} ${e.action}${e.reason ? ' — ' + e.reason : ''}\n   ${JSON.stringify(e.details).slice(0, 220)}\n   hash ${e.hash.slice(0, 16)}… prev ${e.prev.slice(0, 16)}…`).join('\n'))}</pre>`;
+  $('modalBox').innerHTML = `<h3>Audit trail (append-only, hash-chained)</h3><ol class="audit-list">${P.audit.entries.map(e => `<li><b>#${e.seq}</b> ${esc(when(e.at))} · ${esc(e.user)} · <b>${esc(String(e.action).replaceAll('_', ' '))}</b>${e.reason ? ' — ' + esc(e.reason) : ''}
+    <details><summary>Details and hash</summary><pre>${esc(JSON.stringify(e.details, null, 1))}\nhash ${esc(e.hash)}\nprev ${esc(e.prev)}</pre></details></li>`).join('')}</ol>`;
   $('modal').classList.add('on');
 }
 
@@ -1737,17 +1795,29 @@ $('toTarget').onclick = () => {
   if ((P.answers || []).length && target === Math.round(P.target_scale * 100)) {
     showMode('capacity'); $('rightScroll').scrollTo({top: 0, behavior: 'smooth'}); return;
   }
-  ask(`Get the unit to ${target}% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in DWSIM, within every utility and frame limit on the data sheet.`);
+  ask(`Get the unit to ${target}% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in ${simulator()}, within every utility and frame limit on the data sheet.`);
 };
 // ---- guided demo: question -> source drawing -> limit -> proposal -> before/after -> evidence ----
 let TOUR_I = 0;
+// tour text is built from the loaded case, so it never describes an answer that is not on screen
+function tourLimits() {
+  const d = designAnswer() || (P.answers || []).at(-1);
+  const tags = [...new Set((d?.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity)).map(h => h.tag))];
+  return tags.length ? `At the target, ${tags.length === 1 ? 'one item limits' : tags.length + ' items limit'} the unit: ${tags.join(', ')}. ` : '';
+}
+function tourResult() {
+  const d = designAnswer(), c = d?.combined;
+  if (!d) return 'No verified design is on record yet for this case; ask for one to see the before/after.';
+  const n = (d.proposals || []).filter(p => p.verified).length;
+  return `${n} verified change${n === 1 ? '' : 's'} together, re-solved: ${c?.reaches_target ? `the unit reaches ${Math.round(P.target_scale * 100)} %` : 'the target is not yet reached'}${c?.capacity_multiple ? ` and the new maximum is about ${Math.round(c.capacity_multiple * 100)} %` : ''}. Cost classes are agent estimates for screening, not prices.`;
+}
 const TOUR = [
-  ['The source', 'A real P&ID in the DEXPI exchange standard (the DEXPI reference unit; the operating data sheet is illustrative). The agent read it and built this DWSIM simulation itself, reproducing the 14 measured values on the data sheet.', () => ['sheet', 'infoBtn'], () => setScale(100)],
-  ['The question', 'Sales wants +20 % throughput. Move to 120 %: every equipment item on the P&ID is re-solved in DWSIM and coloured by how close it runs to its limit.', () => ['scale', 'verdict'], () => setScale(Math.round(P.target_scale * 100))],
-  ['What limits it', 'Three limits bind: the H1007 cooler outlet, the tank temperature held by the H1008 loop, and the quality-control hold time in T4750. The drawing marks each item by how close it runs to its documented limit.', () => ['sheet', 'verdict'], null],
-  ['The fixes', 'The agent proposes the cheapest change for each limit, within the utility supply limits on the data sheet. The server re-solves each one in DWSIM before it can be applied; a change that only edits a limit is refused.', () => ['answers'], () => document.querySelector('.prop')?.scrollIntoView({block: 'center'})],
-  ['Before and after', 'All changes together, re-solved: the unit reaches 120 % and the new maximum is about 124 %. No capital spend: operating changes inside documented limits.', () => ['answers'], () => [...document.querySelectorAll('.card')].find(c => /All \d+ changes together|Alternatives compared/.test(c.textContent))?.scrollIntoView({block: 'center'})],
-  ['The evidence', 'Every input is labelled as in a document, measured, computed or assumed, and every cited run is re-solved to the same result. Model sources, revisions and the hash-chained audit trail stay one click away without competing with the decision.', () => ['historyDetails', 'infoBtn'], null],
+  ['The source', () => `The source drawing for this case (documents are listed under Model & sources). The agent read it and built this ${simulator()} simulation itself${calSummary(P.built) ? `; checked against the operating data: ${calSummary(P.built)}` : ''}.`, () => ['sheet', 'infoBtn'], () => setScale(100)],
+  ['The question', () => `The question is +${Math.round((P.target_scale - 1) * 100)} % throughput. Move to ${Math.round(P.target_scale * 100)} %: every equipment item on the P&ID is re-solved in ${simulator()} and coloured by how close it runs to its limit.`, () => ['scale', 'verdict'], () => setScale(Math.round(P.target_scale * 100))],
+  ['What limits it', () => `${tourLimits()}The drawing marks each item by how close it runs to its documented limit.`, () => ['sheet', 'verdict'], null],
+  ['The fixes', () => `The agent proposes the cheapest change for each limit, within the utility and equipment limits on the data sheet. The server re-solves each one in ${simulator()} before it can be applied; a change that only edits a limit is refused.`, () => ['answers'], () => document.querySelector('.prop')?.scrollIntoView({block: 'center'})],
+  ['Before and after', tourResult, () => ['answers'], () => [...document.querySelectorAll('.card')].find(c => /All \d+ changes together|Alternatives compared/.test(c.textContent))?.scrollIntoView({block: 'center'})],
+  ['The evidence', () => 'Every input is labelled as in a document, measured, computed or assumed, and every cited run is re-solved to the same result. Model sources, revisions and the hash-chained audit trail stay one click away without competing with the decision.', () => ['historyDetails', 'infoBtn'], null],
 ];
 function setScale(v) { $('scale').value = v; $('scale').oninput(); }
 function tourGo(i) {
@@ -1757,7 +1827,7 @@ function tourGo(i) {
   const [t, x, on, act] = TOUR[i];
   $('tour').style.display = 'block';
   $('tourStep').textContent = `Step ${i + 1} of ${TOUR.length} · ${t}`;
-  $('tourText').textContent = x;
+  $('tourText').textContent = x();
   $('tourNext').textContent = i === TOUR.length - 1 ? 'Finish' : 'Next';
   on().forEach(id => $(id)?.classList.add('tour-on'));
   if (act) act();
@@ -1768,7 +1838,7 @@ $('model').onchange = e => api('model', {model: e.target.value});
 window.onresize = () => { fitDrawing(); if (ST) render(ST); };
 projects().catch(() => { $('proj').innerHTML = '<option>Project list unavailable</option>'; });
 load().then(() => { if (new URLSearchParams(location.search).get('tour') && P?.built) tourGo(0); }).catch(e => {
-  $('eqlist').innerHTML = `<div class="empty" role="alert"><b>Could not load this case.</b><br>${esc(e.message)}<br><button class="btn" onclick="location.reload()">Reload the page</button></div>`;
+  $('eqlist').innerHTML = `<div class="empty" role="alert"><b>Could not load this case.</b><br>The case data or simulation server is not available.<details><summary>Details</summary>${esc((e.message || '').replace(/(\/[\w.-]+)+\/([\w.-]+)/g, '$2'))}</details><button class="btn" onclick="location.reload()">Reload the page</button></div>`;
   $('sheet').innerHTML = '<div class="sheet-error">The source drawing could not be displayed. Check the case server and reload.</div>';
   $('answers').innerHTML = '<div class="empty">Check that the project data and simulation server are available, then reload.</div>';
   $('verdict').textContent = 'Case unavailable';

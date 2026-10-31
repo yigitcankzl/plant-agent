@@ -140,7 +140,7 @@ class DecisionPackTests(unittest.TestCase):
         self.assertIn("decision.md", out["files"])
         self.assertIn("redline.svg", out["files"])
         calc_json = json.dumps(data["calculation"])
-        for value in ("45.4", "1.88", "226.8", "9.4", "7719", "95.5", "120.1"):
+        for value in ("45.4", "1.88", "226.8", "9.4", "7,719", "95.5", "120.1"):
             self.assertIn(value, md)
         self.assertTrue("272.2" in md or "272.1" in md)
         self.assertIn("45.4", svg)

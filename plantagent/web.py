@@ -87,6 +87,8 @@ def cases():
         c = Case(name)
         runs = _runs(name)
         done = [r for r in runs if (RUNS / name / r / "summary.json").exists()]
+        # the benchmark counts the Muse agent: open-weights second-opinion runs are compared elsewhere
+        done = [r for r in done if "open" not in str((_json(RUNS / name / r / "summary.json") or {}).get("model"))] or done
         grade = _json(RUNS / name / done[0] / "grade.json") if done else None
         out.append({"name": name, "title": c.cfg["title"], "task_type": c.cfg["task_type"], "question": c.question,
                     "benchmark": c.cfg.get("benchmark", True), "drawing_page": c.cfg.get("drawing_page"), "runs": runs,
@@ -313,6 +315,29 @@ def plant_job(case, fn):
     return {"job": job}
 
 
+def _calibration(w):
+    from .plant import calibration_check
+    try:
+        return calibration_check(w.built.get("spec") or {}, w.built.get("result") or {}, w.built.get("calibration") or [])
+    except Exception as e:  # noqa: BLE001 - the table is still shown, unchecked
+        return {"error": f"{type(e).__name__}: {e}"}
+
+
+def _with_gates(w):
+    """The answers, with the cached discipline gates (prefeed.discipline_gates) on the design answer they were computed for."""
+    from . import revb
+    f = w.model_file.with_name("gates.json")
+    d = revb.design_answer(w.answers)
+    if not (d and f.exists()):
+        return w.answers
+    g = json.loads(f.read_text())
+    key = g.get("key") or {}
+    titles = [p.get("title") for p in d.get("proposals") or [] if p.get("verified")]
+    if (key.get("headline"), key.get("request"), key.get("titles"), key.get("revisions")) != (d.get("headline"), d.get("request"), titles, len(w.revisions)):
+        return w.answers
+    return [{**a, "disciplines": g["disciplines"], "disciplines_made": g.get("made")} if a is d else a for a in w.answers]
+
+
 def plant_project(case):
     w = plant(case)
     st = w.state(float(w.cfg.get("target_scale", 1.0))) if w.built else None
@@ -321,7 +346,9 @@ def plant_project(case):
     return {"case": case, "kind": "process", "engine": w.cfg.get("engine", "dwsim"), "title": w.cfg["title"], "source": w.cfg["source"], "question": w.cfg["question"],
             "data_note": w.cfg.get("data_note"), "throughput": w.cfg.get("throughput"), "drawing": "svg" if w.cfg.get("svg") else "pdf" if w.cfg.get("pid_pdf") else "none", "dexpi": bool(w.cfg.get("pid")),
             "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid or {"equipment": [], "connections": [], "valves": [], "control": []}, "basis": w.basis, "model": w.model,
-            "built": {k: v for k, v in w.built.items() if k != "result"} if w.built else None,
+            "built": {**{k: v for k, v in w.built.items() if k != "result"},
+                      # the calibration table checked against the solve (inputs vs reproduced outputs), not the agent's prose
+                      "calibration_check": _calibration(w)} if w.built else None,
             "names": w.names() if w.built else {},
             "has_revisions": bool(w.revisions),
             # design changes only: model corrections fix the model itself and are part of the Existing plant
@@ -335,7 +362,7 @@ def plant_project(case):
                                  if not hx.get("u_tag")]
             if (ROOT / "cases" / case / "historian_map.json").exists() else [],
             "read_confirmed": bool((w.pid or {}).get("confirmed")), "read_corrections": len((w.pid or {}).get("corrections") or []),
-            "answers": w.answers, "revisions": [{k: r.get(k) for k in ("rev", "kind", "title", "changes", "capacity_multiple", "at", "user", "reason")}
+            "answers": _with_gates(w), "revisions": [{k: r.get(k) for k in ("rev", "kind", "title", "changes", "capacity_multiple", "at", "user", "reason")}
                                                 for r in w.revisions],
             "audit": {"verify": __import__("plantagent.audit", fromlist=["x"]).verify(case),
                       "entries": __import__("plantagent.audit", fromlist=["x"]).entries(case)[-50:]},
@@ -700,6 +727,12 @@ class Handler(SimpleHTTPRequestHandler):
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
                 return self._send({**r, "base": f"/wsfiles/{case}/{r['folder']}/"})
+            if what == "gates":  # discipline gates of the design answer: DWSIM/pandapower/ht/Cantera, no model call; cached
+                from . import prefeed
+                try:
+                    return self._send(_case_call(case, lambda: prefeed.discipline_gates(w, q.get("answer"), refresh=q.get("refresh") == "1")))
+                except ValueError as e:
+                    return self._send({"error": str(e)}, code=409)
             if what == "prefeed" and method == "POST":  # deterministic scenario gate; no paid model call
                 from . import prefeed
                 try:

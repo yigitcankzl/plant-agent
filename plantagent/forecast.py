@@ -15,6 +15,7 @@ Configuration: cases/<case>/historian_map.json "forecast" -> {exchanger tag: {..
 """
 import hashlib
 import json
+import re
 import math
 import statistics
 from datetime import datetime, timedelta
@@ -158,9 +159,10 @@ def headline(r):
     t, sim = r["tag"], r["simulator"]
     if r.get("status") in ("no limit", "not fouling"):
         return f"{t}: {r.get('why') or 'U is not falling'}; no fouling limit date to forecast ({sim})."
-    a, now, usd = r["after"], r.get("now"), lambda v: f"${v:,.0f}/d"  # noqa: E731
+    tag = " at an illustrative price" if re.search("ILLUSTRATIVE|ASSUMED", str((r.get("product_price") or {}).get("source", ""))) else ""
+    a, now, usd = r["after"], r.get("now"), lambda v: f"${v:,.0f}/d{tag}"  # noqa: E731
     if r["status"] == "past the limit":
-        return (f"{t} passed its limit on {r['limit_date']} ({-r['days_to_limit']:.0f} days ago) → about {now['lost_per_day']:.0f} {now['unit']} "
+        return (f"{t} passed its limit on {r['limit_date']} ({-r['days_to_limit']:g} days ago) → about {now['lost_per_day']:.0f} {now['unit']} "
                 f"({usd(now['usd_per_day'])}) lost now, {a['lost_per_day']:.0f} {a['unit']} by {a['date']} → clean now; verified in {sim}.")
     return (f"{t} reaches its limit in {r['days_to_limit']:.0f} days ({r['limit_date']}) → about {a['lost_per_day']:.0f} {a['unit']} "
             f"and {usd(a['usd_per_day'])} lost {r['after_days']} days after that → clean by {r['clean_by']}; verified in {sim}.")

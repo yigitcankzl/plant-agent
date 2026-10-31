@@ -140,7 +140,7 @@ def svg():
          '<rect x="-5" y="-301" width="429" height="306" fill="#fcfbf7"/>',
          '<rect x="1" y="-296" width="418" height="295" fill="none" stroke="#294248" stroke-width="0.7"/>',
          '<defs>' + ''.join(f'<marker id="arr-{k}" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L5,2.5 0,5 Z" fill="{v[1]}"/></marker>' for k, v in FLUID.items()) + '</defs>',
-         '<text x="8" y="-286" fill="#294248" font-size="4.4" font-weight="700">MVR salt crystallisation</text>',
+         '<text x="8" y="-286" fill="#294248" font-size="4.4" font-weight="700">MVR salt evaporation and crystallisation</text>',
          '<text x="8" y="-281" fill="#647a7b" font-size="2.7">Process and instrumentation drawing · illustrative equipment ratings</text>']
     for line, fluid, frm, to, inline in LINES:
         a = nozzle[frm] if frm else open_end[line]

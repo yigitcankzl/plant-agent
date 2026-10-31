@@ -272,7 +272,7 @@
     <a class="logo" href="home.html" style="color:var(--text);text-decoration:none" title="Back to case library">Plant<span>Agent</span></a>
     <div class="ptitle" id="ptitle"></div>
     <select class="projsel" id="projsel" title="Switch project"></select>
-    <div class="cmd"><span class="k">›_</span><input id="cmd" placeholder="Ask or command — e.g. “If raw pump 2 fails tonight, can we still make 12 mgd?”" autocomplete="off"><span class="hint">Ctrl K</span></div>
+    <div class="cmd"><span class="k">›_</span><input id="cmd" placeholder="Ask or command — e.g. “If the largest pump fails tonight, can we still make the target?”" autocomplete="off"><span class="hint">Ctrl K</span></div>
     <div class="menu" id="tasks"><button class="btn">▶ Tasks ▾</button><div class="items" id="taskitems"></div></div>
     <div class="menu" id="exports"><button class="btn">Deliverables ▾</button>
       <div class="items">
@@ -587,11 +587,11 @@ async function renderRevs() {
 // ---- simple mode ------------------------------------------------------------------------------
 let ISS = [], ACCEPTED = [];
 $("#expert").onclick = () => { document.body.classList.toggle("simple"); $("#expert").textContent = document.body.classList.contains("simple") ? "Expert view" : "Simple view"; };
-const SUGG = ["Can this plant make {T} mgd?", "If raw pump 2 fails tonight, can we still make 12 mgd?", "What would the fix cost?"];
+const SUGG = ["Can this plant make {T} mgd?", "If the largest pump fails tonight, can we still make {T} mgd?", "What would the fix cost?"];
 function setupSimple() {
   $("#ptitle").innerHTML = `${esc(P.title)}<small>${esc(P.task_type)}</small>`;
   $("#modelsel").value = P.model;
-  $("#sugg").innerHTML = SUGG.map(t => `<span>${esc(t.replace("{T}", P.target_mgd))}</span>`).join("");
+  $("#sugg").innerHTML = SUGG.map(t => `<span>${esc(t.replaceAll("{T}", P.target_mgd))}</span>`).join("");
   document.querySelectorAll("#sugg span").forEach(x => x.onclick = () => simpleAsk(x.textContent));
   $("#askgo").onclick = () => $("#ask2").value.trim() && simpleAsk($("#ask2").value.trim());
   $("#ask2").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.value.trim()) simpleAsk(e.target.value.trim()); });
@@ -726,7 +726,7 @@ function railEmpty() {
     <h2 class="rail-title">What would you like to test?</h2>
     <p class="rail-intro">Choose a question or write your own below. The answer will connect source pages, model runs and proposed changes.</p>
     <button class="qc" data-q="Can this plant make ${q} mgd?"><b>Can this plant make ${q} MGD?</b><small>Find the limiting units and test a change.</small></button>
-    <button class="qc" data-q="If raw pump 2 fails tonight, can we still make 12 mgd?"><b>If raw pump 2 fails tonight…</b><small>Check firm capacity with the pump out.</small></button>
+    <button class="qc" data-q="If the largest pump fails tonight, can we still make ${q} mgd?"><b>If the largest pump fails tonight…</b><small>Check firm capacity with the pump out.</small></button>
     <button class="qc" data-q="What would the fixes cost?"><b>What would the fixes cost?</b><small>See an order-of-magnitude estimate.</small></button>
     <button class="fixall" id="fixall">Find a path to ${q} MGD</button>
     <button class="fixall secondary" id="newsheetbtn" type="button">Read a new drawing</button><input type="file" id="newsheet" accept="application/pdf" hidden>
@@ -938,7 +938,7 @@ async function cockpit() {
   $("#kpis").innerHTML = `
     <div class="kpi"><div class="l">Plant rating</div><div class="v">${P.rated_mgd ?? "—"} <small title="million gallons per day">MGD</small></div><div class="s">design rating, as documented</div></div>
     <div class="kpi"><div class="l">Target</div><div class="v">${tgt} <small>MGD</small></div><div class="s">client question</div></div>
-    <div class="kpi ${lim && lim.capacity_mgd < tgt ? "bad" : "good"}"><div class="l">First limit found</div><div class="v">${lim ? lim.capacity_mgd : "—"} <small title="million gallons per day">MGD</small></div><div class="s" title="${esc(lim?.source || "")}">${esc(lim ? lim.unit.slice(0, 26) : "")}${lim && /N-1|firm/.test(lim.source || "") ? " · with its largest pump out of service" : ""}</div></div>
+    <div class="kpi ${!lim ? "" : lim.capacity_mgd < tgt ? "bad" : "good"}"><div class="l">First limit found</div><div class="v">${lim ? lim.capacity_mgd : "—"} ${lim ? '<small title="million gallons per day">MGD</small>' : ""}</div><div class="s" title="${esc(lim?.source || "")}">${esc(lim ? lim.unit.slice(0, 26) : "not assessed yet")}${lim && /N-1|firm/.test(lim.source || "") ? " · with its largest pump out of service" : ""}</div></div>
     <div class="kpi ${errs ? "bad" : "good"}"><div class="l">Blocking issues</div><div class="v">${errs}</div><div class="s">${ISS.length} findings total</div></div>`;
   const max = Math.max(30, ...capped.map(u => u.capacity_mgd));
   $("#ubars").innerHTML = UNITS.map((u, i) => { const c = u.capacity_mgd; const w = c == null ? 100 : Math.min(100, c / max * 100);
@@ -950,7 +950,9 @@ async function cockpit() {
   if (prevLim && lim && prevLim !== lim.unit) document.querySelectorAll(".kpi")[2].classList.add("flip");
   const core = UNITS.filter(u => !side.test(u.full_unit || u.unit));
   const unknown = core.filter(u => u.capacity_mgd == null).length, below = core.filter(u => u.capacity_mgd != null && u.capacity_mgd < tgt);
-  if (VIEW === "proposed" && !below.length && core.length) {
+  if (VIEW === "proposed" && !below.length && core.length && unknown === core.length) {  // nothing assessed: no green check
+    $("#issBtnLbl").textContent = `${tgt} MGD: not assessed yet (${unknown} units without a capacity)`;
+  } else if (VIEW === "proposed" && !below.length && core.length) {
     const simd = core.filter(u => /^simulated/.test(u.source || "") || u.changed).length;
     $("#issBtnLbl").textContent = `✓ ${tgt} MGD: every unit meets it (${simd} simulated, ${core.length - simd - unknown} documented${unknown ? `, ${unknown} unknown` : ""})`;
     $("#issBtnLbl").classList.add("clear"); }
@@ -1151,7 +1153,7 @@ document.querySelectorAll("#exports [data-k]").forEach(d => d.onclick = async e 
   catch (err) { t.textContent = err.message; }
   setTimeout(() => t.style.display = "none", 9000);
 });
-load().catch(e => document.body.insertAdjacentHTML("afterbegin", `<div class="load-error" role="alert"><b>Could not load this workspace.</b> ${esc(e.message)} <a href="" onclick="location.reload();return false">Reload the page</a></div>`));
+load().catch(e => document.body.insertAdjacentHTML("afterbegin", `<div class="load-error" role="alert"><b>Could not load this workspace.</b> <details style="display:inline"><summary>Details</summary>${esc((e.message || "").replace(/(\/[\w.-]+)+\/([\w.-]+)/g, "$2"))}</details> <a href="" onclick="location.reload();return false">Reload the page</a></div>`));
 // drawing zoom/pan: wheel zooms toward the cursor, drag pans, double-click zooms in; a drag never counts as a click
 (() => {
   const main = $("#main"), sheet = $("#sheet"), Z = {s: 1, x: 0, y: 0, down: null, moved: false};

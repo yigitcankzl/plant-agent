@@ -11,7 +11,7 @@ import re
 
 from . import artifacts, pid, process, ro
 from .docs import DATA
-from .plant import _is_watertap, _simulator_name, added_equipment, describe_change, patch
+from .plant import ROUTING_UNITS, _is_watertap, added_equipment, describe_change, model_only_change, patch
 from .proposed import ports
 
 KINDS = {"datasheet": "document", "calc_sheet": "calculation", "summary": "document", "work_order": "document"}
@@ -41,11 +41,88 @@ def _n(v):
     if isinstance(v, bool) or not isinstance(v, (int, float)):
         return "to confirm" if v in (None, "") else str(v)
     r = float(f"{v:.4g}")
-    return str(int(r)) if r == int(r) and abs(r) < 1e15 else str(r)
+    return f"{int(r):,}" if r == int(r) and abs(r) < 1e15 else f"{r:,}"
+
+
+def _sim(w):
+    return "WaterTAP" if _is_watertap(w.cfg) else "DWSIM"
 
 
 def _unit_of(key):
     return next((u for s, u in UNITS if key.endswith(s)), "")
+
+
+KEYS = {"kW": "shaft power", "duty_kW": "duty", "discharge_C": "discharge temperature", "U_W_m2K": "heat-transfer coefficient",
+        "area_m2": "installed area", "P_out_bar": "discharge pressure", "T_out_C": "outlet temperature", "eff_pct": "efficiency",
+        "max_kW": "rated power", "max_kg_h": "rated mass flow (suction)", "max_m3_h": "rated flow", "max_dP_bar": "maximum pressure drop"}
+STREAM = {"T_C": "temperature", "P_bar": "pressure", "kg_h": "mass flow", "m3_h": "volume flow", "vapour_frac": "vapour fraction"}
+
+
+def _label(key):
+    """'discharge_C' -> 'discharge temperature': model keys never reach a document as code."""
+    if key in KEYS:
+        return KEYS[key]
+    base = next((key[:-len(s)] for s, _ in UNITS if key.endswith(s) and key != s), key)
+    return re.sub(r"(?<=[a-z])(?=[A-Z])", " ", base.replace("_", " ")).strip().lower() or key
+
+
+def _klass(c):
+    """'TubularHeatExchanger' -> 'Tubular heat exchanger'."""
+    return re.sub(r"(?<=[a-z])(?=[A-Z])", " ", str(c)).capitalize() if c else c
+
+
+def _check_tag(w, check):
+    """A heater check on a model unit is named by the P&ID heater it stands for (case.json model_aliases): 'E-201 (V-201)'."""
+    tag = next((t for t, m in (w.cfg.get("model_aliases") or {}).items() if m == check.get("id")), None)
+    return f"{tag} ({check['id']})" if tag and "heater" in str(check.get("check")) else check.get("id")
+
+
+def _change_text(w, ch):
+    return re.sub("<[^>]+>", "", describe_change(w.spec, ch, w.names(), w.cfg.get("model_aliases")))
+
+
+def _approval_rows(w, props, src):
+    """(physical/operating change rows, model-only bookkeeping lines) of the verified proposals."""
+    rows, model_only = [], []
+    for p in props:
+        if not p.get("verified"):
+            continue
+        for ch in p.get("changes") or []:
+            (model_only if model_only_change(w.spec, ch, p.get("changes") or []) else rows).append((_change_text(w, ch), p.get("title"), src))
+    return rows, [r[0] for r in model_only]
+
+
+def _u_basis_note(w, changes):
+    """The fouling forecast's 'today' U next to the model's design-basis U, when a change sets that same U."""
+    f = w.model_file.with_name("forecast.json") if getattr(w, "model_file", None) else None
+    if not (f and f.exists()):
+        return []
+    import json
+    fc = json.loads(f.read_text())
+    hit = next((c for c in changes if c.get("path") == fc.get("model_path")), None)
+    if not hit or fc.get("U_now") is None:
+        return []
+    return [(f"{fc.get('tag')} heat-transfer coefficient basis",
+             f"{_n(hit.get('from'))} W/m²K is the model's design-basis value; the historian forecast puts today's at {_n(fc['U_now'])} W/m²K "
+             f"(as of {str(fc.get('as_of', ''))[:10]}), so the change starts from a dirtier exchanger than the model's 'from' value",
+             f"runs/ws/{w.name}/forecast.json ({fc.get('source')}; {fc.get('source_note', '')[:60]}...)")]
+
+
+def _operating_point(p):
+    """New (non-routing) equipment of a proposal at its calculation record: operating flow and shaft power."""
+    calc = p.get("calculation") or {}
+    streams = {x["id"]: x for x in calc.get("streams") or []} if isinstance(calc.get("streams"), list) else calc.get("streams") or {}
+    out = []
+    for ch in p.get("changes") or []:
+        u = ch.get("add_unit") if isinstance(ch.get("add_unit"), dict) else None
+        if not u or u.get("type") in ROUTING_UNITS:
+            continue
+        inlet = u.get("in") if isinstance(u.get("in"), str) else None
+        kg_h = (streams.get(inlet) or {}).get("kg_h")
+        kw = ((calc.get("units") or {}).get(u["id"]) or {}).get("kW")
+        out.append({"id": u["id"], "kg_h": kg_h, "kW": kw, "limits": ch.get("limits") or {}, "rating_source": ch.get("rating_source"),
+                    "scale": calc.get("target_scale")})
+    return out
 
 
 def _table(head, rows):
@@ -119,7 +196,7 @@ def _rev_label(w):
 
 def _current(w, scale):
     r = w.state(scale)
-    src = f"{_simulator_name(w.cfg)} solve of the current model ({_rev_label(w)}) at {_n(scale * 100)} %" + \
+    src = f"{_sim(w)} solve of the current model ({_rev_label(w)}) at {_n(scale * 100)} %" + \
           (" (stored solution)" if r.get("replayed") else "")
     return r, src
 
@@ -131,11 +208,11 @@ def _proposed(w, i, p, scale):
         res = {"units": c["units"], "checks": [{**x, "utilisation": x.get("after")} for x in c.get("checks") or []],
                "streams": {s["id"]: s for s in c.get("streams") or []}}
         return res, float(c["target_scale"]), (f"answer {i + 1} proposal '{p.get('title')}': calculation record "
-                                               f"({c.get('simulator')}, {_n(float(c['target_scale']) * 100)} %, model {c.get('model_label')})")
+                                               f"({str(c.get('simulator') or '').upper()}, {_n(float(c['target_scale']) * 100)} %, model {c.get('model_label')})")
     scale = float(scale or w.cfg.get("target_scale", 1.0))
     spec = patch(copy.deepcopy(w.spec), p["changes"])
     res = ro.run(spec, scale) if _is_watertap(w.cfg) else process.run(spec, scale)
-    return res, scale, f"{_simulator_name(w.cfg)} solve of answer {i + 1} proposal '{p.get('title')}' on {_rev_label(w)} at {_n(scale * 100)} %"
+    return res, scale, f"{_sim(w)} solve of answer {i + 1} proposal '{p.get('title')}' on {_rev_label(w)} at {_n(scale * 100)} %"
 
 
 def _pid_equipment(w, tag):
@@ -148,10 +225,12 @@ def _sheet_lines(w, *tags):
 
 
 def _conditions(res, uid, unit_spec, src):
-    rows = []
-    for k, v in sorted(((res.get("units") or {}).get(uid) or {}).items()):
+    rows, vals = [], ((res.get("units") or {}).get(uid) or {})
+    for k, v in sorted(vals.items()):
+        if k == "duty_kW" and vals.get("kW") == v:  # a machine's duty is its shaft power: one row
+            continue
         if isinstance(v, (int, float)) and not isinstance(v, bool):
-            rows.append((k, _n(v), _unit_of(k), src))
+            rows.append((_label(k), _n(v), _unit_of(k), src))
     if unit_spec:
         ins, outs = ports(unit_spec)
         for side, sids in (("inlet", ins), ("outlet", outs)):
@@ -159,7 +238,11 @@ def _conditions(res, uid, unit_spec, src):
                 s = (res.get("streams") or {}).get(sid) or {}
                 for k in ("T_C", "P_bar", "kg_h", "m3_h", "vapour_frac"):
                     if s.get(k) is not None:
-                        rows.append((f"{side} {sid} {k}", _n(s[k]), _unit_of(k), src))
+                        rows.append((f"{side} {STREAM[k]}" + (f" ({len(sids)} {side}s)" if len(sids) > 1 else ""), _n(s[k]), _unit_of(k),
+                                     f"{src}; model stream {sid}"))
+        p_in, p_out = [((res.get("streams") or {}).get(x[0]) or {}).get("P_bar") if len(x) == 1 else None for x in (ins, outs)]
+        if unit_spec.get("type") in ("compressor", "pump") and p_in and p_out:
+            rows.append(("pressure ratio (outlet / inlet)", _n(p_out / p_in), "", src))
     return rows
 
 
@@ -184,28 +267,72 @@ def _connections(w, tag):
     return out
 
 
-def _electrical_rows(w, p, tag, scale):
-    """Motor feeder rows for a new or re-rated motor (plantagent.electrical load flow), with their sources."""
+def _electrical(w, changes, solved, scale):
+    """Electrical screen of the motors a change set adds or re-rates, on the solved case: (DOL result, VFD-start result).
+    None when the plant has no one-line diagram or the changes add no motor. Load flow only; no DWSIM solve here."""
     from . import electrical
     cfg = electrical.config(w.name)
-    if not (p and cfg and electrical.available() and tag in electrical.motor_changes(cfg, p.get("changes") or [])):
+    if not (cfg and electrical.available()):
+        return None
+    movers = electrical.motor_changes(cfg, changes)
+    if not movers:
+        return None
+    dol = electrical.check(cfg, solved, changes, scale=scale)
+    vfd = electrical.check(cfg, solved, changes, [{"unit": u, "start": "VFD"} for u in movers], scale)
+    return dol, vfd
+
+
+def _electrical_risks(e, src):
+    """Risk rows: every electrical check over its limit, and what a VFD start does and does not fix."""
+    if not e:
+        return []
+    dol, vfd = e
+    over = [c for c in dol["checks"] if c["utilisation"] > 1]
+    rows = [(f"Electrical OVER: {c['id']} {c['check']}", f"{_n(c['value'])} % vs {_n(c['limit'])} % limit ({c['basis']})", src) for c in over]
+    if over:
+        still = {(c["id"], c["check"].split(" (")[0]) for c in vfd["checks"] if c["utilisation"] > 1}
+        fixed = [c for c in over if (c["id"], c["check"].split(" (")[0]) not in still and "start" in c["check"]]
+        left = [c for c in vfd["checks"] if c["utilisation"] > 1]
+        rows.append(("Option: VFD start instead of direct-on-line",
+                     (f"start dip at the terminal {_n(dol['start']['terminal_dip_percent'])} % → {_n(vfd['start']['terminal_dip_percent'])} %"
+                      if dol.get("start") and vfd.get("start") else "start screen re-run with a VFD")
+                     + (f"; clears {len(fixed)} start check(s)" if fixed else "")
+                     + ("; still over with a VFD: " + ", ".join(f"{c['id']} {c['check']} {_n(c['value'])} %" for c in left)
+                        + " (needs a supply upgrade, e.g. a larger tie transformer; to confirm)" if left else "; all electrical checks within limits"),
+                     src + " (VFD start re-run)"))
+    return rows
+
+
+def _electrical_rows(w, p, tag, scale, res):
+    """Motor feeder rows for a new or re-rated motor (plantagent.electrical load flow on the solved case), with their sources."""
+    from . import electrical
+    if not p:
         return []
     try:
-        e = electrical.for_workspace(w, p["changes"], scale, save=False)
+        e = _electrical(w, p.get("changes") or [], res, scale)
     except Exception as ex:  # noqa: BLE001 - the data sheet stands without it
         return ["", "## Electrical (motor feeder)", "", f"Electrical check not available: {type(ex).__name__}: {ex}"]
-    m = next(x for x in e["motors"] if x["unit"] == tag)
-    src, f = f"pandapower load flow on cases/{w.name}/electrical.json at {_n(scale * 100)} %", f"cases/{w.name}/electrical.json"
-    rows = [("Motor rating", _n(m["kw"]), "kW", "proposal rating (rating_source above)"),
+    if not e:
+        return []
+    dol, vfd = e
+    m = next((x for x in dol["net"]["motors"] if x["unit"] == tag), None)
+    if not m:
+        return []
+    src = f"pandapower load flow, ILLUSTRATIVE network cases/{w.name}/electrical.json, at {_n(scale * 100)} %"
+    rows = [("Motor rating", _n(m["kw"]), "kW", "proposal provisional rating (rating source above)"),
             ("Shaft power at this throughput", _n(m["shaft_kW"]), "kW", m["shaft_source"]),
-            ("Supply bus", m["bus"], "", f + " (bus chosen for spare transformer capacity unless the change names one)"),
-            ("Starting method", m["start"], "", f + " new-motor default, ILLUSTRATIVE")]
-    rows += [(f"{t['id']} loading", _n(t["loading_percent"]), "%", src) for t in e["transformers"]]
-    if e.get("start"):
-        rows.append((f"Start dip at the motor terminal ({e['start']['method']})", _n(e["start"]["terminal_dip_percent"]), "%",
+            ("Supply bus", m["bus"], "", src + " (bus with the most spare transformer capacity unless the change names one)"),
+            ("Starting method", m["start"], "", src + " (new-motor default)")]
+    rows += [(f"{t['id']} loading", _n(t["loading_percent"]), "%", src) for t in dol["transformers"]]
+    if dol.get("start"):
+        rows.append((f"Start dip at the motor terminal ({dol['start']['method']})", _n(dol["start"]["terminal_dip_percent"]), "%",
                      src + "; locked-rotor impedance, generators not credited"))
-    rows += [(f"OVER: {c['id']} {c['check']}", _n(c["value"]), "%", c["basis"]) for c in e["checks"] if c["utilisation"] > 1]
-    return ["", "## Electrical (motor feeder)", ""] + _table(("Field", "Value", "Unit", "Source"), rows)
+    if vfd.get("start"):
+        rows.append(("Start dip at the motor terminal (VFD alternative)", _n(vfd["start"]["terminal_dip_percent"]), "%", src + "; VFD start re-run"))
+    rows += [(f"OVER: {c['id']} {c['check']}", _n(c["value"]), "%", f"{c['basis']}; {src}") for c in dol["checks"] if c["utilisation"] > 1]
+    out = ["", "## Electrical (motor feeder)", ""] + _table(("Field", "Value", "Unit", "Source"), rows)
+    opt = _electrical_risks(e, src)[-1:]
+    return out + (["", f"**{opt[0][0]}:** {opt[0][1]}."] if opt and opt[0][0].startswith("Option") else [])
 
 
 def datasheet(w, tag, scale=None, answer=None):
@@ -229,22 +356,26 @@ def datasheet(w, tag, scale=None, answer=None):
           *_table(("Field", "Value", "Unit", "Source"), [
               ("Plant", w.cfg["title"], "", f"cases/{w.name}/case.json"),
               ("Tag", tag, "", "P&ID" if eq else ("proposal" if p else "request")),
-              ("Equipment class", (eq or {}).get("class") or (unit_spec or {}).get("type") or "to confirm", "",
+              ("Equipment class", _klass((eq or {}).get("class")) or (unit_spec or {}).get("type") or "to confirm", "",
                f"P&ID {tag}" if eq else "model unit type"),
               ("Status", status, "", f"answer {i + 1}" if p else "P&ID"),
               ("Model unit", uid or "not modelled as its own unit: to confirm", "", why or "model mapping"),
-              ("Throughput (basis solve)", _n(scale * 100), "% of today", basis)]), "",
+              ("Throughput (basis solve)", _n(scale * 100), "% of today", basis),
+              *[(f"Operating point at {_n(scale * 100)} %", f"{_n(o['kg_h'])} kg/h suction, {_n(o['kW'])} kW shaft", "", basis)
+                for o in _operating_point(p or {}) if o["id"] == tag and o["kg_h"] is not None],
+              *[("Provisional rating", " / ".join(f"{_n(v)} {_unit_of(k)}" for k, v in sorted(new.get("limits", {}).items())), "",
+                 new.get("rating_source") or "to confirm") for _ in [0] if new and new.get("limits")]]), "",
           "## Process conditions (simulator)", ""]
     cond = _conditions(res, uid, unit_spec, src) if uid else []
     md += _table(("Field", "Value", "Unit", "Source"), cond) if cond else ["No solved conditions for this tag: to confirm."]
     design = [(k, v, "", f"P&ID {tag} {k}") for k, v in sorted(((eq or {}).get("design") or {}).items())]
-    design += [(k, _n(v), _unit_of(k), f"model spec units.{uid}.{k}" + (" (proposal add_unit)" if new else ""))
+    design += [(_label(k), _n(v), _unit_of(k), f"model spec units.{uid}.{k}" + (" (proposal add_unit)" if new else ""))
                for k, v in sorted((unit_spec or {}).items()) if isinstance(v, (int, float)) and not isinstance(v, bool)]
     md += ["", "## Design data", ""] + (_table(("Field", "Value", "Unit", "Source"), design) if design else ["No design data on record: to confirm."])
     limits = (new or {}).get("limits") or (spec.get("limits") or {}).get(uid) or {}
     rating_src = (new or {}).get("rating_source") or f"model limits.{uid} ({_rev_label(w)})"
     md += ["", "## Ratings (limits the checks use)", ""]
-    md += _table(("Rating", "Value", "Unit", "Source"), [(k, _n(v), _unit_of(k), rating_src) for k, v in sorted(limits.items())]) \
+    md += _table(("Rating", "Value", "Unit", "Source"), [(_label(k), _n(v), _unit_of(k), rating_src) for k, v in sorted(limits.items())]) \
         if limits else ["No rating on record: to confirm."]
     checks = _checks(res, uid)
     if checks:
@@ -252,7 +383,7 @@ def datasheet(w, tag, scale=None, answer=None):
         md += _table(("Check", "Value", "Limit", "Utilisation", "Source"),
                      [(c["check"], f"{_n(c['value'])} {c.get('unit') or ''}", f"{_n(c['limit'])} {c.get('unit') or ''}",
                        f"{_n(c['utilisation'] * 100)} %", src) for c in checks])
-    md += _electrical_rows(w, p, tag, scale)
+    md += _electrical_rows(w, p, tag, scale, res)
     lines = _sheet_lines(w, tag, uid)
     if lines:
         md += ["", "## Operating data sheet rows on this tag", ""]
@@ -320,12 +451,41 @@ def summary(w, subject=None, scale=None, answer=None):
     if calc:
         before, b_src = calc.get("capacity_multiple_before"), f"{a_src} calculation record"
     else:
-        before, b_src = w.capacity().get("capacity_multiple"), f"{_simulator_name(w.cfg)} capacity of {_rev_label(w)}"
+        before, b_src = w.capacity().get("capacity_multiple"), f"{_sim(w)} capacity of {_rev_label(w)}"
     comb = ans.get("combined") or {}
     lim = comb.get("limited_by") or {}
+    verified = [p for p in props if p.get("verified")]
+    elec = []
+    for p in verified:  # electrical screen of each verified proposal that adds or re-rates a motor, on its own calculation record
+        calc_p = p.get("calculation") or {}
+        try:
+            e = _electrical(w, p.get("changes") or [], {"units": calc_p.get("units") or {}}, float(calc_p.get("target_scale") or target))
+        except Exception as ex:  # noqa: BLE001 - the summary stands without it, and says so
+            elec.append([(f"Electrical check of '{p.get('title')}' not available", f"{type(ex).__name__}: {ex}", "plantagent.electrical")])
+            continue
+        elec.append(_electrical_risks(e, f"pandapower load flow, ILLUSTRATIVE network cases/{w.name}/electrical.json, on the calculation record of '{p.get('title')}'"))
+    elec_over = [r for rows in elec for r in rows if r[0].startswith("Electrical OVER")]
+    # the decision text is built from the calculation records; the agent's own prose is not repeated (its numbers are not re-checked)
+    facts = []
+    if comb.get("capacity_multiple"):
+        facts.append(f"With the {len(verified)} verified change(s) applied together, {_sim(w)} gives a simulated maximum of "
+                     f"{_n(comb['capacity_multiple'] * 100)} % of today against a target of {_n(target * 100)} %"
+                     + (f"; first limit {lim.get('id')} {lim.get('check')} at {_n(lim.get('utilisation', 0) * 100)} %"
+                        + (" (no margin left)" if lim.get("utilisation", 0) >= 0.98 else "") if lim else "") + ".")
+    for p in verified:
+        for o in _operating_point(p):
+            rating = " / ".join(f"{_n(v)} {_unit_of(k)}" for k, v in sorted(o["limits"].items()))
+            facts.append(f"New {o['id']} operates at {_n(o['kg_h'])} kg/h and {_n(o['kW'])} kW shaft at {_n((o['scale'] or target) * 100)} % "
+                         f"(calculation record); provisional rating {rating or 'to confirm'} (vendor to confirm).")
+    if elec_over:
+        facts.append(f"The electrical screen fails {len(elec_over)} check(s) (see Risks): the process change is not ready for approval "
+                     "until the supply is resolved.")
+    decision = ans.get("headline") or ""
+    if elec_over:
+        decision += f" — process verified in {_sim(w)}; electrical screen fails (see Risks)"
     md = [f"# Management summary: {w.cfg['title']}", "", DRAFT, "", f"**Question:** {ans.get('request')}", "",
-          f"**Decision proposed:** {ans.get('headline')}", "", ans.get("summary") or "", "", f"(Source: {a_src}.)", "",
-          "## Capacity", ""]
+          f"**Decision proposed:** {decision}", "", *(" ".join(facts) and [" ".join(facts)]), "",
+          f"(Source: {a_src} and its calculation records.)", "", "## Capacity", ""]
     md += _table(("Item", "Value", "Source"), [
         ("Target", f"{_n(target * 100)} % of today", f"cases/{w.name}/case.json target_scale / {a_src}"),
         ("Capacity today", f"{_n((before or 0) * 100)} %" if before else "to confirm", b_src),
@@ -335,13 +495,18 @@ def summary(w, subject=None, scale=None, answer=None):
          f"{a_src} combined verification"),
         ("Reaches target", "yes" if comb.get("reaches_target") else "no", f"{a_src} combined verification")])
     md += ["", "## Changes and cost class", ""]
-    md += _table(("Change", "Verified", "Cost class", "Capacity alone", "Source"),
+    md += _table(("Change", "Verified", "Cost class (agent estimate, unpriced)", "Capacity alone", "Source"),
                  [(p.get("title"), "yes" if p.get("verified") else f"no ({p.get('unverified_reason') or 'not verified'})",
                    p.get("cost_class") or "not stated",
                    f"{_n(p['capacity_multiple'] * 100)} %" if p.get("capacity_multiple") else "—", a_src) for p in props]) \
         if props else ["No change to the plant proposed."]
     risks = [(f"Still over at target: {o['id']} {o['check']}", f"{_n(o['utilisation'] * 100)} %", f"{a_src} combined verification")
              for o in comb.get("over_limits_at_target") or []]
+    risks += [r for rows in elec for r in rows]
+    if lim and 0.98 <= lim.get("utilisation", 0) <= 1:
+        risks.append((f"No margin: {lim.get('id')} {lim.get('check')}", f"{_n(lim['utilisation'] * 100)} % at the target; any shortfall "
+                      "against the model stops the plant short of the target", f"{a_src} combined verification"))
+    risks += _u_basis_note(w, [c for p in verified for c in p.get("changes") or []])
     risks += [(f"New equipment {e['id']}: rating to confirm", e.get("rating_source") or "to confirm", a_src)
               for p in props if p.get("verified") for e in p.get("new_equipment") or []]
     review = (w.built or {}).get("review") or {}
@@ -351,10 +516,11 @@ def summary(w, subject=None, scale=None, answer=None):
     risks += [(f"Relief on {x['tag']} {', '.join(x['side_fluids'])} side", f"{x['status']}: {x['detail']}", "P&ID relief scan")
               for t in sorted(tags) for x in _relief(w, t) if x["status"] != "protected"]
     md += ["", "## Risks", ""] + (_table(("Risk", "Detail", "Source"), risks) if risks else ["No open risk on record."])
-    approve = [(describe_change(w.spec, ch, w.names()), p.get("title"), a_src)
-               for p in props if p.get("verified") for ch in p.get("changes") or []]
+    approve, model_only = _approval_rows(w, props, a_src)
     md += ["", "## What needs approval (management of change)", ""]
-    md += _table(("Change", "Part of", "Source"), [(re.sub("<[^>]+>", "", c), t, s) for c, t, s in approve]) if approve else ["Nothing to approve."]
+    md += _table(("Change", "Part of", "Source"), approve) if approve else ["Nothing to approve."]
+    if model_only:
+        md += ["", "Model-only bookkeeping (no field work of its own): " + "; ".join(model_only) + "."]
     if ans.get("field_checks"):
         md += ["", "## Field checks before approval", ""]
         md += _table(("Check", "Where / how", "Source"), [(f.get("item"), f.get("where"), a_src) for f in ans["field_checks"]])
@@ -372,12 +538,16 @@ def work_order(w, tag, scale=None, answer=None):
     md = [f"# Maintenance work order: {p.get('title')}", "", DRAFT, "", "## Equipment and task", ""]
     md += _table(("Field", "Value", "Source"), [
         ("Plant", w.cfg["title"], f"cases/{w.name}/case.json"), ("Equipment", tag, "P&ID" if eq else a_src),
-        ("Class", (eq or {}).get("class") or "to confirm", f"P&ID {tag}" if eq else "not on the P&ID"),
+        ("Class", _klass((eq or {}).get("class")) or "to confirm", f"P&ID {tag}" if eq else "not on the P&ID"),
         ("Task", p.get("title"), a_src), ("Why", p.get("why") or "to confirm", a_src),
-        ("Cost class", p.get("cost_class") or "not stated", a_src),
+        ("Cost class (agent estimate, unpriced)", p.get("cost_class") or "not stated", a_src),
         ("Verified in the simulator", "yes" if p.get("verified") else f"no ({p.get('unverified_reason')})", a_src)])
     md += ["", "## Changes this work makes to the model", ""]
-    md += _table(("Change", "Source"), [(re.sub("<[^>]+>", "", describe_change(w.spec, ch, w.names())), a_src) for ch in p.get("changes") or []])
+    md += _table(("Change", "Source"), [(_change_text(w, ch), a_src) for ch in p.get("changes") or []
+                                         if not model_only_change(w.spec, ch, p.get("changes") or [])])
+    basis = _u_basis_note(w, p.get("changes") or [])
+    if basis:
+        md += ["", "## Basis note", ""] + _table(("Item", "Note", "Source"), basis)
     iso = []
     for c in _connections(w, tag):
         valves = [v for v in c["inline"] if "Safety" not in v]
@@ -394,14 +564,22 @@ def work_order(w, tag, scale=None, answer=None):
     md += _table(("Check", "Where / how", "What it changes", "Source"), [(f.get("item"), f.get("where"), f.get("changes"), a_src) for f in checks]) \
         if checks else ["No field check on record: acceptance check to confirm."]
     calc = p.get("calculation") or {}
-    eff = [(f"{x['id']} {x['check']}", f"{_n((x.get('before') or 0) * 100)} %", f"{_n((x.get('after') or 0) * 100)} %",
+    eff = [(f"{_check_tag(w, x)} {x['check']}", f"{_n((x.get('before') or 0) * 100)} %", f"{_n((x.get('after') or 0) * 100)} %",
             f"{a_src} calculation record at {_n(float(calc['target_scale']) * 100)} %")
-           for x in calc.get("checks") or [] if x.get("id") in units and x.get("before") is not None]
-    if calc.get("capacity_multiple_after"):
-        eff.append(("plant capacity", f"{_n(calc['capacity_multiple_before'] * 100)} %", f"{_n(calc['capacity_multiple_after'] * 100)} %",
-                    f"{a_src} calculation record"))
+           for x in calc.get("checks") or [] if x.get("id") in units and x.get("before") is not None
+           and _n((x.get("before") or 0) * 100) != _n((x.get("after") or 0) * 100)]  # unchanged rows say nothing
+    cap_b, cap_a, lim_a = calc.get("capacity_multiple_before"), calc.get("capacity_multiple_after"), calc.get("limited_by_after") or {}
+    note = None
+    if cap_a and cap_b and _n(cap_b * 100) != _n(cap_a * 100):
+        eff.append(("plant capacity", f"{_n(cap_b * 100)} %", f"{_n(cap_a * 100)} %", f"{a_src} calculation record"))
+    elif cap_a:
+        note = (f"Plant capacity alone stays at {_n(cap_a * 100)} %: {lim_a.get('id') or 'another item'} "
+                f"({lim_a.get('check') or 'its limit'}) limits first, so this task's gain counts only together with the other changes in "
+                f"answer {i + 1}.")
     md += ["", "## Expected effect (verified proposal)", ""]
-    md += _table(("Quantity", "Before", "After", "Source"), eff) if eff else ["No verified calculation record: expected effect to confirm."]
+    md += _table(("Quantity", "Before", "After", "Source"), eff) if eff else ["No verified calculation record: expected effect to confirm." if not calc else
+                                                                               "No limit check on this equipment changes at the target on its own."]
+    md += ["", note] if note else []
     md += ["", "## Sign-off", ""] + _table(("Role", "Name", "Signature", "Date"),
                                            [("Maintenance planner", "", "", ""), ("Operations (isolation)", "", "", ""),
                                             ("Process engineer (acceptance)", "", "", "")])
@@ -427,7 +605,15 @@ def make(w, kind, subject=None, scale=None, answer=None, by=None, request=None):
             files[f"{stem}.pdf"] = (Path(d) / "x.pdf").read_bytes()
     except Exception as e:  # noqa: BLE001 - the markdown stands without the PDF
         summary_ += f" (PDF failed: {type(e).__name__}: {e})"
-    sources = sorted({r.split("|")[-2].strip() for r in md if r.startswith("|") and not r.startswith("|---") and r.count("|") > 2} - {"Source"})
+    sources, head = set(), None
+    for r in md:
+        if not r.startswith("|"):
+            head = None
+        elif head is None:
+            head = r.split("|")[-2].strip()  # the table's header row
+        elif not r.startswith("|---") and head == "Source" and r.split("|")[-2].strip():
+            sources.add(r.split("|")[-2].strip())
+    sources = sorted(sources)
     return artifacts.save(w.name, KINDS[kind], title, files, by=by or "PlantAgent (deterministic)", request=request,
                           sources=sources[:40], summary=summary_)
 

@@ -203,10 +203,8 @@ class Sheet:
 def _num(v):
     if isinstance(v, (int, float)) and not isinstance(v, bool):
         a = abs(v)
-        if a >= 10000:
-            return f"{v:,.0f}"
         if a >= 1000:
-            return f"{v:.0f}"
+            return f"{v:,.0f}"
         if a >= 100:
             return f"{v:.1f}".rstrip("0").rstrip(".")  # 4 significant digits
         if a >= 10:
@@ -298,6 +296,32 @@ def _along(points, dist, from_end):
             return (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
         left -= L
     return None
+
+
+def _new_line_number(sheet, line, used):
+    """A drawing line number for a new branch, in the series of the line it tees off ('3001-ST' -> '3004-ST'); never a model id."""
+    base = str((line or {}).get("line") or "")
+    if not base.isdigit():
+        return "new line"
+    taken = {int(ln["line"]) for ln in sheet.lines if str(ln.get("line") or "").isdigit()} | set(used)
+    taken |= {int(m.group(1)) for t, _, _ in sheet.texts for m in [re.match(r"(\d{3,5})-[A-Z]+", t)] if m}
+    suffix = next((m.group(1) for t, _, _ in sheet.texts for m in [re.match(rf"{base}-([A-Z]+)", t)] if m), "")
+    n = int(base) + 1
+    while n in taken:
+        n += 1
+    used.add(n)
+    return f"{n}-{suffix}" if suffix else str(n)
+
+
+def _valve_at(points, dist, from_end, check=False):
+    """A gate valve (bow tie) or a check valve (triangle and seat bar) on a polyline, aligned with the line there."""
+    p, q = _along(points, dist, from_end), _along(points, dist + 1, from_end)
+    if not p or not q:
+        return ""
+    ang = math.degrees(math.atan2(q[1] - p[1], q[0] - p[0])) + (180 if from_end else 0)
+    body = ('<path d="M-1.8,-1.3 L1.8,0 L-1.8,1.3 Z" fill="#fff"/><path d="M1.8,-1.3 V1.3" fill="none"/>' if check else
+            '<path d="M-1.8,-1.3 L1.8,1.3 L1.8,-1.3 L-1.8,1.3 Z" fill="#fff"/>')
+    return f'<g transform="translate({p[0]:.1f},{p[1]:.1f}) rotate({ang:.0f})" stroke="{INK}" stroke-width="0.35">{body}</g>'
 
 
 def _length(points):
@@ -793,7 +817,7 @@ def generate(svg, spec, revisions, names=None, meta=None):
     sheet = Sheet(svg)
     parts, clouds, unplaced, report = [], [], [], []
     markers = {}
-    taken, cloud_boxes = [], []
+    taken, cloud_boxes, used_numbers = [], [], set()
 
     def marker(colour):
         key = re.sub(r"[^0-9a-zA-Z]", "", colour or "k")
@@ -851,6 +875,12 @@ def generate(svg, spec, revisions, names=None, meta=None):
             sheet.mark_box(sym_box)
             sheet.mark_box(label_box)
             taken.append(label_box)
+            # block valves both sides and a discharge check valve, so the parallel machine can be isolated and not driven backwards
+            for pts, d, end, chk in ((rin, 5, True, False), (rout, 5, False, False), (rout, 10, False, True)):
+                v = _along(pts, d, end)
+                if v:
+                    g.append(_valve_at(pts, d, end, chk))
+                    sheet.mark_box((v[0] - 2.5, v[1] - 2.5, v[0] + 2.5, v[1] + 2.5))
             for pts, line, stream in ((rin, lin, info["in_stream"]), (rout, lout, info["out_stream"])):
                 colour = (line or {}).get("stroke") or INK
                 width = (line or {}).get("width") or "0.9"
@@ -858,7 +888,7 @@ def generate(svg, spec, revisions, names=None, meta=None):
                          f'data-to="{esc(uid if pts is rin else info["mixer"])}" data-new="true">'
                          f'<polyline points="{" ".join(f"{p[0]:.1f},{p[1]:.1f}" for p in pts)}" fill="none" stroke="{colour}" '
                          f'stroke-width="{width}" stroke-linejoin="round" marker-end="{marker(colour)}"/>')
-                label = f"{stream} (new)"
+                label = f"{_new_line_number(sheet, line, used_numbers)} (new)"
                 lx, ly, lbox = _line_label(sheet, pts, label, 2.2)
                 g.append(f'<rect x="{lbox[0]:.1f}" y="{lbox[1]:.1f}" width="{lbox[2] - lbox[0]:.1f}" height="{lbox[3] - lbox[1]:.1f}" fill="#fff" '
                          f'fill-opacity="0.85" stroke="none"/><text x="{lx:.1f}" y="{ly:.1f}" font-size="2.2" font-weight="700" fill="{colour}" '
@@ -880,7 +910,7 @@ def generate(svg, spec, revisions, names=None, meta=None):
             boxes += [(min(p[0] for p in r), min(p[1] for p in r), max(p[0] for p in r), max(p[1] for p in r)) for r in (rin, rout)]
             parts.append("".join(g))
             handled_reroutes |= rerouted  # the tie-in tees are the reroutes of a parallel addition
-            drawn.append(f"{uid} drawn parallel to {info['partner']} with tie-ins on the existing lines")
+            drawn.append(f"{uid} drawn parallel to {info['partner']} with tie-ins on the existing lines, block valves and a discharge check valve (sizes to confirm)")
         for c in changes:
             if not c.get("path"):
                 continue
@@ -977,7 +1007,6 @@ def _issue(svg, sheet, parts, markers, revisions, report, unplaced, meta):
                               f'markerUnits="userSpaceOnUse"><path d="M0,0 L5,2.5 0,5 Z" fill="{v}"/></marker>' for k, v in markers.items()) + "</defs>"
     L, R = x + 6, x + w - 6
     blk = [f'<g id="revision-block" data-revision="B" font-family="Arial,sans-serif" pointer-events="none">',
-           f'<rect x="{x}" y="{top}" width="{w}" height="{strip}" fill="#fff"/>',
            f'<rect x="{L}" y="{top + 2}" width="{R - L}" height="{strip - 5}" fill="none" stroke="{INK}" stroke-width="0.6"/>',
            f'<text x="{L + 3}" y="{top + 7}" font-size="3.4" font-weight="700" fill="{INK}">REVISIONS</text>',
            f'<text x="{L + 40}" y="{top + 7}" font-size="3.4" font-weight="700" fill="{CLOUD}">REV B - DRAFT - NOT APPROVED</text>',
@@ -1016,7 +1045,16 @@ def _issue(svg, sheet, parts, markers, revisions, report, unplaced, meta):
     blk.append("</g>")
     body = defs + '<g id="rev-b" data-revision="B">' + "".join(parts) + "</g>" + "".join(blk)
     out = re.sub(r"\bRev A\b", "Rev B", svg)
-    nh = h + strip
+    extra = strip + 6  # the sheet's background and border grow with it, so the revision block sits inside the frame
+
+    def grow(m):
+        el = m.group(0)
+        wr, hr = re.search(r'\swidth="([\d.]+)"', el), re.search(r'\sheight="([\d.]+)"', el)
+        if not (wr and hr) or float(wr.group(1)) * float(hr.group(1)) < 0.5 * w * h:
+            return el
+        return el.replace(hr.group(0), f' height="{float(hr.group(1)) + extra:g}"')
+    out = re.sub(r"<rect\b[^>]*>", grow, out)
+    nh = h + extra
     out = re.sub(r'viewBox="[^"]*"', f'viewBox="{x:g} {y:g} {w:g} {nh:g}"', out, count=1)
     m = re.search(r"<svg\b[^>]*>", out)
     tag = m.group(0)

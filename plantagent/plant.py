@@ -582,11 +582,93 @@ def _calculation(proposal, target, before_cap, after_cap, before_map, solved, sp
             "units": {uid: copy.deepcopy(units_res[uid]) for uid in sorted(interest) if uid in units_res},
             "streams": [_compact_stream(sid, streams_res.get(sid)) for sid in stream_ids if sid in streams_res],
             "new_equipment": [{"id": item.get("id"), "type": item.get("type"),
-                               "operating_point": copy.deepcopy(units_res.get(item.get("id"))),
+                               "operating_point": _operating_point(spec, units_res, streams_res, item.get("id")),
                                "limits": item.get("limits") or {}, "rating_source": item.get("rating_source"),
                                "status": item.get("status")} for item in new],
             "assumptions": _assumptions(proposal), "simulator": simulator,
             "errors": list(solved.get("errors") or []), "warnings": _fraction_warnings(proposal)}
+
+
+class _LazyLog:
+    """A log file opened on first write, so a workspace that only reads (web views, tests) leaves no empty session dir."""
+    def __init__(self, path):
+        self.path, self.f = path, None
+
+    def write(self, text):
+        if self.f is None:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            self.f = self.path.open("w")
+        self.f.write(text)
+
+    def flush(self):
+        if self.f:
+            self.f.flush()
+
+
+def _operating_point(spec, units_res, streams_res, uid):
+    """Solved result of a new unit plus what the solve knows but the unit row lacks: inlet mass flow, pressure ratio and
+    the efficiency the solve used, so data sheets and the pre-FEED gate never print 'to confirm' for a solved value."""
+    op = copy.deepcopy(units_res.get(uid)) or {}
+    unit = next((u for u in spec.get("units") or [] if isinstance(u, dict) and u.get("id") == uid), {})
+    ins, outs = _inlets_outlets(unit) if unit else ([], [])
+    s_in = streams_res.get(ins[0]) if len(ins) == 1 else None
+    s_out = streams_res.get(outs[0]) if len(outs) == 1 else None
+    if s_in and s_in.get("kg_h") is not None:
+        op.setdefault("kg_h", s_in["kg_h"])
+    if s_in and s_out and s_in.get("P_bar") and s_out.get("P_bar") and unit.get("type") in ("compressor", "pump"):
+        op.setdefault("pressure_ratio", s_out["P_bar"] / s_in["P_bar"])
+    if unit.get("eff_pct") is not None or unit.get("type") in ("compressor", "pump"):
+        op.setdefault("eff_pct", unit.get("eff_pct", 75 if unit.get("type") == "compressor" else 70))  # process.py defaults
+    return op
+
+
+_NUM = re.compile(r"(?<![\w.-])(-?\d[\d,]*\.?\d*)\s*(t/h|MW)?")
+
+
+def _numbers(obj, out=None):
+    """Every number in a solved result or spec, flattened."""
+    out = [] if out is None else out
+    if isinstance(obj, bool):
+        return out
+    if isinstance(obj, (int, float)):
+        out.append(float(obj))
+    elif isinstance(obj, dict):
+        for v in obj.values():
+            _numbers(v, out)
+    elif isinstance(obj, list):
+        for v in obj:
+            _numbers(v, out)
+    return out
+
+
+def calibration_check(spec, result, rows):
+    """Check the agent's calibration table against the solve instead of trusting its prose: the simulated number must
+    be in the solved result, a number the model was given (feed or fixed setting) is an input, not a reproduced
+    measurement, and a reproduced output must be within 3 % of the measured value."""
+    def first(text):  # the leading number, in the solver's units (t/h and MW are kg/h and kW there)
+        m = _NUM.search(str(text or ""))
+        if not m:
+            return None
+        v = float(m.group(1).replace(",", ""))
+        return v * 1000 if m.group(2) or ("t/h" in str(text)[m.end():m.end() + 40] and "kg/h" not in str(text)[m.end():m.end() + 12]) else v
+    solved, given = _numbers(result), _numbers({k: v for k, v in spec.items() if k != "limits"})
+    near = lambda v, pool: any(abs(x - v) <= max(abs(v) * 0.002, 0.051) for x in pool)  # noqa: E731
+    out, counts = [], {"reproduced": 0, "input": 0, "differs": 0, "not_in_solve": 0, "no_measurement": 0}
+    for row in rows or []:
+        m, sv = first(row.get("measured")), first(row.get("simulated"))
+        if sv is None or not near(sv, solved):
+            check = "not_in_solve"
+        elif near(sv, given):
+            check = "input"
+        elif m is None or not re.match(r"\s*-?\d", str(row.get("measured") or "")):
+            check = "no_measurement"
+        elif abs(sv - m) <= abs(m) * 0.03:
+            check = "reproduced"
+        else:
+            check = "differs"
+        counts[check] += 1
+        out.append({**row, "check": check, "deviation_pct": round((sv - m) / m * 100, 1) if check in ("reproduced", "differs") and m else None})
+    return {"rows": out, "counts": counts}
 
 
 OPEN_MODEL = "baseten:meta-models/muse-spark-open-1026"
@@ -668,23 +750,39 @@ def display_names(spec):
     return names
 
 
-def describe_change(spec, c, names=None):
-    """'H1007 cooling water flow: 20 → 27 m³/h' for a change path; the raw path stays available for traceability."""
+def model_only_change(spec, c, changes=()):
+    """True for model bookkeeping with no field work of its own: an added junction/branch, or a reroute of one."""
+    if isinstance(c.get("add_unit"), dict):
+        return c["add_unit"].get("type") in ROUTING_UNITS
+    if c.get("reroute"):
+        uid = c["reroute"].get("unit")
+        types = {u.get("id"): u.get("type") for u in spec.get("units") or []}
+        types.update({x["add_unit"].get("id"): x["add_unit"].get("type") for x in changes if isinstance(x.get("add_unit"), dict)})
+        return types.get(uid) in ROUTING_UNITS
+    return False
+
+
+def describe_change(spec, c, names=None, aliases=None):
+    """'H1007 cooling water flow: 20 → 27 m³/h' for a change path; the raw path stays available for traceability.
+    `aliases` (case.json model_aliases, P&ID tag → model unit): a heating-side field of a model unit is named by its P&ID tag."""
     names = names or display_names(spec)
     if c.get("add_unit"):
         u, limits = c["add_unit"], c.get("limits") or {}
-        rating = c.get("rating_source") or "model routing"
+        if u.get("type") in ROUTING_UNITS:
+            return f"Model-only {KIND.get(u.get('type'), u.get('type'))} {u.get('id')} (connects the new tie-in in the model; no item of its own)"
+        rating = c.get("rating_source") or "rating not stated"
         if limits.get("max_kg_h") is not None:
             size = f", {limits['max_kg_h'] / 1000:g} t/h suction"
         elif limits.get("max_kW") is not None:
-            size = f", {limits['max_kW']:g} kW"
+            size = f", {limits['max_kW']:,.0f} kW"
         else:
             size = ""
-        return f"Adds {u.get('id')} {KIND.get(u.get('type'), u.get('type'))}{size} ({rating})"
+        return f"Adds {u.get('id')} {KIND.get(u.get('type'), u.get('type'))}{size} (provisional rating: {rating})"
     if c.get("reroute"):
-        r = c["reroute"]
-        old = f"{c.get('from')} → " if c.get("from") is not None else ""
-        return f"Reroutes {names.get(r.get('unit'), r.get('unit'))} {r.get('field')}: {old}{r.get('value')}"
+        r, j = c["reroute"], lambda v: " + ".join(map(str, v)) if isinstance(v, list) else str(v)  # noqa: E731
+        old = f"{j(c['from'])} → " if c.get("from") is not None else ""
+        return f"Re-pipes {names.get(r.get('unit'), r.get('unit'))} {'inlet' if r.get('field') == 'in' else 'outlet' if r.get('field') == 'out' else r.get('field')}" \
+               f" to the new tie-in (model streams {old}{j(r.get('value'))})"
     if c.get("remove_unit") is not None or c.get("bypass") is not None:
         uid = c.get("remove_unit") or (c["bypass"].get("unit") if isinstance(c["bypass"], dict) else c["bypass"])
         return f"{'Removes' if c.get('remove_unit') is not None else 'Bypasses'} {names.get(uid, uid)} ({c.get('physical_change') or 'reason not stated'})"
@@ -694,8 +792,15 @@ def describe_change(spec, c, names=None):
         return c.get("path", "")
     label, unit = FIELD.get(field, (field.replace("_", " "), ""))
     who = names.get(oid, oid)
+    tag = next((t for t, m in (aliases or {}).items() if m == oid), None) if field in ("U_W_m2K", "area_m2") else None
+    if tag:
+        who = f"{tag} (heating side of {oid} in the model)"
     frm = c.get("from")
-    fmt = lambda v: f"{v:g}" if isinstance(v, (int, float)) else str(v)  # noqa: E731
+    if field == "fractions":
+        label, unit = "split (share of flow per outlet)", ""
+        fmt = lambda v: " / ".join(f"{float(x) * 100:.1f} %" for x in v) if isinstance(v, list) else str(v)  # noqa: E731
+    else:
+        fmt = lambda v: f"{v:,.4g}" if isinstance(v, (int, float)) else str(v)  # noqa: E731
     return f"{who} {label}: {fmt(frm) + ' → ' if frm is not None else ''}{fmt(c.get('value'))} {unit}".strip()
 
 
@@ -1504,8 +1609,7 @@ class PlantWorkspace(Study):
             self.pid = None
         self.basis = (ROOT / "cases" / case_name / self.cfg["basis"]).read_text()
         self.dir = ROOT / "runs" / "ws" / case_name / time.strftime("%Y%m%d-%H%M%S")
-        self.dir.mkdir(parents=True, exist_ok=True)
-        self.log = (self.dir / "log.jsonl").open("w")
+        self.log = _LazyLog(self.dir / "log.jsonl")  # the session folder appears only when something is logged
         self.steps, self.listener, self.answers, self.revisions = 0, None, [], []
         self.rev_file = None
         self.runs = {}
@@ -2192,6 +2296,7 @@ class PlantWorkspace(Study):
             finally:
                 self.model = main
         self.answers.append(ans)
+        self.dir.mkdir(parents=True, exist_ok=True)
         (self.dir / "answers.json").write_text(json.dumps(self.answers, indent=1))
         return ans
 
@@ -2287,8 +2392,12 @@ class PlantWorkspace(Study):
                     e = electrical.for_workspace(self, p["changes"], p.get("target_scale"), title=f"Electrical check: {p.get('title')}")
                     p["electrical"] = {k: e.get(k) for k in ("summary", "svg", "start", "transformers", "transformers_before")}
                     p["electrical"]["over"] = [c for c in e["checks"] if c["utilisation"] > 1]
+                    # 'verified' is the process re-solve; the electrical result sits next to it, never hidden by it
+                    p["discipline_status"] = {**(p.get("discipline_status") or {}), "electrical": "fail" if p["electrical"]["over"] else "pass"}
                 except Exception as ex:  # noqa: BLE001 - the process answer stands; the electrical check says why it failed
                     p["electrical"] = {"error": f"{type(ex).__name__}: {ex}"[:300]}
+                    p["discipline_status"] = {**(p.get("discipline_status") or {}), "electrical": "open"}
+                p["verified_scope"] = "process"
 
     def names(self):
         """display_names, with each utility named from the P&ID fluid code and the data sheet (e.g. 'Cooling water to H1007')."""

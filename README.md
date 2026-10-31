@@ -11,6 +11,8 @@ models read the documents and the drawing, then run real simulators:
 - extended-period SCADA calibration
 - **DWSIM** for process plants
 - **WaterTAP** for seawater reverse osmosis screening
+- **pandapower** (electrical load flow), Caleb Bell's **ht/fluids** (exchanger detail) and **Cantera** (combustion) as
+  discipline checks on a proposed change
 
 The answer comes back as a **proposed change verified in the simulator**. The engineer accepts or rejects it, like a
 code diff, and accepted changes are drawn on the real sheet and exported as **DWG**. Every number cites a page or a
@@ -33,21 +35,24 @@ The P&ID is the DEXPI e.V. reference example C01. Its operating data sheet (`cas
   - It follows the P&ID topology: the tank recirculation loop through H1008 is closed with a recycle, and the
     reciprocating pump is modelled as positive displacement.
   - Where the site datasheets contradict the P&ID, it uses the site data and records the conflict as an assumption.
-  - It reproduces all 14 measured values on the data sheet: temperatures, flows and pressure drops, e.g. 34.0 vs
-    33.98 C and 23.6 vs 23.63 C.
+  - Its calibration table compares the data sheet's measured temperatures, flows and pressure drops with the solved
+    model, e.g. 34.0 vs 33.98 C and 23.6 vs 23.63 C. Several of those values (feed flow, temperature, pressure, pump
+    head) are model inputs rather than outputs.
   - A **coverage check** compares the model with the P&ID line by line. All 5 flow connections are modelled; the
     relief path through PSV 47125 is excluded because it carries no normal flow.
   - The build took 221 s and cost $0.0095.
 - **Live load on the P&ID.** Each equipment item shows its load, and the throughput slider re-solves DWSIM in about
   0.3–0.5 s.
-- **"Get me to target" (+20 %).** Three limits bind, and Muse proposes the cheapest fix for each:
+- **"Get me to target" (+20 %).** Two changes are enough:
 
   | Limit | Fix |
   |---|---|
   | H1007 cooler outlet | Cooling water 20 → 27 m3/h, which is 90 % of the branch supply. The exchanger pressure drop rises to 0.86 of the 1.0 bar available. |
-  | Tank temperature, held by the H1008 recirculation | Chilled water 15 → 18 m3/h |
   | Quality-control hold time in the tank | Working level 80 → 85 %, the documented maximum |
 
+  Muse's first answers also raised the H1008 chilled water 15 → 18 m3/h. The three-change and two-change sets re-solve to the same new
+  maximum (124 %, limited by the tank hold time), so that third change is not needed; later answers and the open model
+  drop it (`runs/ws/chem_c01/*/answers.json`).
 - **Verified before acceptance.** DWSIM re-solves each proposal, and then all of them together: the unit reaches 120 %
   and the new maximum is 124 %. Accepting re-verifies on the server, and accepted changes become revisions that can be
   undone.
@@ -71,7 +76,7 @@ Results on the two process cases (`runs/ws/*/second_opinion_answer.json`):
 
 | Case | Agree | Disagree |
 |---|---|---|
-| Chemical unit, +20 % | Cooling water to 27 m3/h and tank level to 22.1 m3; both reach 120 % | The open model missed the third limit, the tank temperature held by the H1008 chilled-water loop |
+| Chemical unit, +20 % | Cooling water to 27 m3/h and tank level to 22.1 m3; both reach 120 % (124 % maximum) | Muse also raised the H1008 chilled water to 18 m3/h. The open model left it out, and the combined re-solve shows the same 124 % without it: the open model's fix was the cheaper one |
 | Dairy refrigeration, N+1 and floating head | The new load fits with N+1; the condensers are the closest limit | Annual saving: 1,716 MWh from Muse Spark, 1,330 MWh from Muse Spark Open. A direct bin calculation on the same model gives 1,329 MWh, so the open model was right here. The open model also proposed a fixed 8.6 bar(a) head pressure. DWSIM first accepted it, because the condenser outlet was not tied to wet bulb. The condensers now carry a heat-sink limit (`min_T_out_C`: design wet bulb 21 C + 8 K approach, 1 K subcooled = 28 C), so that proposal no longer verifies. Floating head is evaluated with `annual_energy` over the wet-bulb bins. |
 
 Neither model is always right. The value is in the disagreements the engineer is shown.
@@ -108,7 +113,8 @@ agent loop recovers these calls (`study.text_tool_calls`). Before this fix the o
     an internal consistency check, not an external signature: deleting the tail cannot be detected unless the last hash
     and entry count are published outside the writable run directory.
   - Each entry records user, time with time zone, action and reason.
-  - Accepting a change requires a reason. Undo never deletes history: it adds a revert revision.
+  - On process plants, accepting a change requires a reason, and undo never deletes history: it adds a revert revision.
+    The water workspace records the reason when one is given; its undo restores an earlier revision.
   - Revisions are kept on disk.
 - **PDF schematics** (`plantagent/pidvision.py`). Most plants have only PDF or scanned P&IDs. Muse vision reads the
   sheet into the same structure as the DEXPI reader: loops with temperatures, equipment, connections and inline valves.
@@ -162,8 +168,35 @@ DWSIM (`plantagent/process.py`) runs headless through pythonnet as one long-live
   fittings and elevation into account.
 - **Limits of the layer:** steady state only. Valve sizing is an incompressible-liquid screen without choking,
   cavitation, flashing, installed-characteristic or actuator-force calculations. Pipe calculations omit two-phase and
-  compressible flow, heat transfer, water hammer, erosion and fouling. Exchanger U is scaled from one test point, not
-  computed from exchanger geometry.
+  compressible flow, heat transfer, water hammer, erosion and fouling. Exchanger U in the solve is scaled from one test
+  point; the separate exchanger detail check (below) computes U from geometry and flags a disagreement with the model.
+
+### Salt crystalliser: one change checked across disciplines
+
+`web/plant.html?case=salt_mvr` is a vacuum-salt plant with a mechanical vapour recompression (MVR) evaporator, built from
+**US Patent 5,366,514** (Texas Brine, 1994), FIG. I and Table I. The P&ID tags, line numbers and relief settings are
+drawn by PlantAgent on the patent's flowsheet; equipment ratings the patent does not give are marked ILLUSTRATIVE.
+
+- **Model.** Muse built the DWSIM model; the brine boiling-point elevation (Sparrow 2003) and brine heat capacity
+  (Laliberte, via WaterTAP) are applied explicitly (`plantagent/brine.py`), because DWSIM's NRTL has no electrolyte
+  parameters. The automatic model review caught modelling errors (a free steam feed, a vapour feed to the purge evaporator, a
+  free circulation feed); each was fixed as one of three recorded correction revisions
+  (`runs/ws/salt_mvr/revisions.json`). It is calibrated to Table I: 226.8 t/h to the compressor K-201.
+- **+20 % salt.** The first limit is K-201 suction. The verified design is: clean E-201 back to its clean U, add a
+  parallel vapour compressor K-202 (operating about 48.8 t/h and 2.0 MW in the solve; provisional rating 55 t/h /
+  2.4 MW, vendor to confirm), and trim the purge-heater steam. DWSIM re-solves the combination at 120.1 %. Rev B of the
+  P&ID is drawn with the changes clouded, and data sheet, work order, summary and MOC pack are generated from the solve.
+- **Fouling forecast** (`plantagent/forecast.py`, no LLM). It fits E-201 U from the historian and bisects the model
+  for the U at which the first limit reaches 100 % at today's throughput. The historian is **SYNTHETIC** and the prices behind the
+  daily loss are **illustrative**.
+- **Discipline checks on the same change.** Each reads a solved state, not LLM text, and every input names its source:
+  - Electrical (`plantagent/electrical.py`, pandapower load flow on an illustrative one-line diagram): K-202 loads
+    TX-1 to 131 % and dips the motor terminal 29 % on a direct-on-line start, so the change also needs electrical work.
+  - Exchanger detail (`plantagent/hxdetail.py`, ht/fluids: Gnielinski tube side, Bell-Delaware shell side): film
+    coefficients, U from geometry, velocities and pressure drops, compared with the U in the model.
+  - Combustion (`plantagent/combustion.py`, Cantera GRI-Mech 3.0): the gas turbine and heat-recovery steam generator
+    that supply steam, flame temperature, flue gas, stack-loss efficiency and a NOx screen; supplementary firing is
+    solved for a steam target.
 
 ### Pre-FEED design gate
 
@@ -239,13 +272,14 @@ clauses are redacted, and a leak check runs against the answer key. The agent th
 - 13 cases and 6 task types: capacity, troubleshooting, energy audit, surge, failure investigation and force-main
   design. The cases span water and wastewater, canal pumping stations, campus cooling, a data center, a gas plant and an
   olefins plant.
-- **Mean of the latest run per case: 65 %** of the engineers' conclusions.
+- **Mean of the latest Muse Spark run per case: 64 %** of the engineers' conclusions.
 - **Judge check:** every graded run was re-graded by a second model (muse-spark-1.3). It gave the same verdict on 88 %
   of 134 items, and the mean score moved from 66 % to 64 % (`evidence/judge_agreement.json`). That shows consistency
   between models; it is not a human check.
 - **Gas and olefins plant incidents (CSB).** Pascagoula was first run with the water-network tools, which do not fit a
-  cryogenic gas plant, and scored 67 %. Re-run with the DWSIM process tools (bubble point, fluid properties,
-  blocked-in expansion) it scored 92 %. Williams Geismar scored 67 % in both runs. In the second run the agent
+  cryogenic gas plant, and scored 67 %. Re-run twice with the DWSIM process tools (bubble point, fluid properties,
+  blocked-in expansion) it scored 92 % and then 83 % (the latest, counted in the mean). Williams Geismar scored 67 % in
+  all three Muse Spark runs. In the second run the agent
   computed the blocked-in expansion pressure: 6,260 psig, against the CSB's estimate of about 5,000 psig. All runs
   are kept.
 - **Run-to-run variance (Roseburg, strict redaction, 4 independent runs):** 93%, 64%, 57% and 50% of the engineers'

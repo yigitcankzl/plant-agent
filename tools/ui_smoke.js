@@ -16,6 +16,18 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     console.log(stuck || errs.length ? 'FAIL' : 'ok  ', u, stuck ? 'stuck loading or case unavailable' : '', errs.splice(0).join(' | '));
     bad += stuck ? 1 : 0;
   }
+  await p.goto(`${BASE}/home.html`); await p.waitForTimeout(2000);
+  const homeOk = await p.evaluate(() => !document.body.innerHTML.includes('bt_column_debottleneck') &&
+    /case=salt_mvr&tour=1/.test(document.querySelector('.hero-actions a').getAttribute('href')));
+  console.log(homeOk ? 'ok  ' : 'FAIL', 'home: broken bt_column case gone, demo opens salt_mvr');
+  bad += homeOk ? 0 : 1;
+  for (const c of ['chem_c01', 'salt_mvr']) {  // the verified design leads the result even after a later follow-up
+    await p.goto(`${BASE}/plant.html?case=${c}`); await p.waitForSelector('#answers .decision-brief h2', { timeout: 30000 }).catch(() => {});
+    const leads = await p.evaluate(() => { const d = designAnswer(), last = P.answers.at(-1);
+      return !d || last.combined?.reaches_target || document.querySelector('#answers .decision-brief h2')?.textContent === (plain(d.headline) || 'Engineering decision'); });
+    console.log(leads ? 'ok  ' : 'FAIL', `${c}: the verified design leads the result`);
+    bad += leads ? 0 : 1;
+  }
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
   const startsFocused = await p.evaluate(() => !document.querySelector('#infoDrawer').classList.contains('open') &&
     document.querySelector('#inspectorTitle').textContent === 'Result' && document.querySelector('#scenario').hidden === false);
@@ -117,8 +129,13 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     document.querySelector('#toggleLabels').getAttribute('aria-pressed') === 'true');
   console.log(badgeCount && labelsHidden && labelsRestored ? 'ok  ' : 'FAIL', 'P&ID labels hide and restore');
   bad += badgeCount && labelsHidden && labelsRestored ? 0 : 1;
-  await p.goto(`${BASE}/plant.html?case=chem_c01&tour=1`); await p.waitForSelector('#tour', { state: 'visible', timeout: 20000 });
-  for (let i = 0; i < 6; i++) { await p.waitForTimeout(1200); await p.click('#tourNext'); }
-  console.log(errs.length ? 'FAIL' : 'ok  ', 'guided demo, 6 steps', errs.join(' | '));
+  for (const c of ['salt_mvr', 'chem_c01']) {
+    await p.goto(`${BASE}/plant.html?case=${c}&tour=1`); await p.waitForSelector('#tour', { state: 'visible', timeout: 20000 });
+    const texts = [];
+    for (let i = 0; i < 6; i++) { await p.waitForTimeout(1200); texts.push(await p.locator('#tourText').innerText()); await p.click('#tourNext'); }
+    const stale = texts.some(t => /14 measured values|Three limits bind|No capital spend/.test(t));
+    console.log(errs.length || stale ? 'FAIL' : 'ok  ', `guided demo on ${c}, 6 steps from the case data`, errs.join(' | '));
+    bad += stale ? 1 : 0;
+  }
   await b.close(); process.exit(bad || errs.length ? 1 : 0);
 })();

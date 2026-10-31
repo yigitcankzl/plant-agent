@@ -478,7 +478,10 @@ def restore(ws, upto_rev):
 
 
 def target_flow(ws):
-    return float(ws.case.cfg.get("workspace", {}).get("target_mgd") or 18)
+    t = ws.case.cfg.get("workspace", {}).get("target_mgd")
+    if not t:
+        raise ValueError(f"{ws.case.name}: case.json workspace.target_mgd is not set")
+    return float(t)
 
 
 def current_label(ws):
@@ -621,12 +624,15 @@ def check_answer(ws, ans):
             if not (m and num):
                 continue
             cites += 1
-            doc = next((d for d in docs if d in str(i.get("source", "")).lower()), docs[0])
+            # the cited document must be named (or be the only one), and the number must appear as a whole number
+            doc = next((d for d in docs if d in str(i.get("source", "")).lower()), docs[0] if len(docs) == 1 else None)
+            if doc is None:
+                continue
             try:
                 text = ws.project.page(doc, int(m.group(1)))
             except Exception:
                 continue
-            ok += num.group(0) in text.replace(",", "")
+            ok += bool(re.search(rf"(?<![\d.]){re.escape(num.group(0))}(?![\d]|\.\d)", text.replace(",", "")))
     props = [p for p in ans.get("proposals") or [] if isinstance(p, dict)]
     return {"runs_cited": len(runs), "runs_found": runs_found, "cites": cites, "cites_ok": ok,
             "proposals": len(props), "proposals_verified": sum(1 for p in props if p.get("passes_after")),

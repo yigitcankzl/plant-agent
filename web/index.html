@@ -379,7 +379,7 @@ $("#start").onclick = async () => {
         await loadCases(); $("#case").value = cur.case; await selectCase(); $("#run").value = r.run; await selectRun(); }
   catch (e) { alert(e.message); }
 };
-loadCases().then(() => { const t = URLP.get("tab"); if (t) document.querySelector(`.tab[data-p="${t}"]`)?.click(); }).catch(e => { document.body.insertAdjacentHTML("afterbegin", `<div class="empty">${esc(e.message)}</div>`); });
+loadCases().then(() => { const t = URLP.get("tab"); if (t) document.querySelector(`.tab[data-p="${t}"]`)?.click(); }).catch(e => { document.body.insertAdjacentHTML("afterbegin", `<div class="empty">Could not load the case list. <details><summary>Details</summary>${esc((e.message || "").replace(/(\/[\w.-]+)+\/([\w.-]+)/g, "$2"))}</details></div>`); });
 </script>
 </body>
 </html>

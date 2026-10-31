@@ -1,0 +1,210 @@
+{
+ "key": {
+  "headline": "120 percent needs more cooling and higher level",
+  "request": "Get the unit to 120% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in DWSIM, within every utility and frame limit on the data sheet.",
+  "titles": [
+   "Raise H1007 cooling water to 27 m3/h",
+   "Raise H1008 chilled water to 18 m3/h",
+   "Raise T4750 working level to 22.1 m3"
+  ],
+  "revisions": 0
+ },
+ "made": "2026-10-31T18:03:18+0300",
+ "disciplines": [
+  {
+   "id": "process",
+   "status": "pass",
+   "summary": "design reaches 120 % (max 124 %)",
+   "source": "DWSIM re-solve of the design (server verify)",
+   "checks": [
+    {
+     "id": "plant",
+     "check": "maximum throughput with all verified changes vs target",
+     "value": "124",
+     "limit": "120",
+     "unit": "%",
+     "result": "97 %",
+     "source": "DWSIM re-solve of the combined changes on the server"
+    }
+   ]
+  },
+  {
+   "id": "electrical",
+   "status": "not affected",
+   "summary": "no new or re-rated motor on the one-line diagram",
+   "source": "cases/chem_c01/electrical.json motor list",
+   "checks": []
+  },
+  {
+   "id": "heat_transfer",
+   "status": "open",
+   "summary": "H1007 (fouled): area needed 27 of 47 m\u00b2; H1008 (fouled): area needed 212 of 47 m\u00b2; over an ILLUSTRATIVE rating (confirm): H1008 tube velocity vs minimum 470 %, H1008 model U 600 vs correlation U 312 W/m2K (fouled) 463 %, H1008 area required (fouled correlation U) vs installed 452 %",
+   "source": "ht/fluids exchanger rating at the design point (cases/chem_c01/hx_geometry.json)",
+   "checks": [
+    {
+     "id": "H1007",
+     "check": "hot channel velocity vs minimum",
+     "value": "0.0842",
+     "limit": "0.1",
+     "unit": "m/s",
+     "result": "119 %",
+     "source": "typical practice for plate exchangers: below about 0.1 m/s channel velocity, maldistribution and fouling rise (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "H1007",
+     "check": "hot channel velocity vs maximum",
+     "value": "0.0842",
+     "limit": "1",
+     "unit": "m/s",
+     "result": "8 %",
+     "source": "typical practice (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "H1007",
+     "check": "cold channel velocity vs minimum",
+     "value": "0.106",
+     "limit": "0.1",
+     "unit": "m/s",
+     "result": "94 %",
+     "source": "typical practice for plate exchangers: below about 0.1 m/s channel velocity, maldistribution and fouling rise (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "H1007",
+     "check": "cold channel velocity vs maximum",
+     "value": "0.106",
+     "limit": "1",
+     "unit": "m/s",
+     "result": "11 %",
+     "source": "typical practice (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "H1007",
+     "check": "area required (fouled correlation U) vs installed",
+     "value": "26.8",
+     "limit": "46.9",
+     "unit": "m2",
+     "result": "57 %",
+     "source": "Q / (U F LMTD), U from the correlations (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "H1007",
+     "check": "hot-side pressure drop vs allowable",
+     "value": "0.0098",
+     "limit": "0.7",
+     "unit": "bar",
+     "result": "1 %",
+     "source": "typical practice for liquids (35-70 kPa); product-side allowable not on the data sheet (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "H1007",
+     "check": "cold-side pressure drop vs allowable",
+     "value": "0.0157",
+     "limit": "1",
+     "unit": "bar",
+     "result": "2 %",
+     "source": "data sheet: 1.0 bar available pressure drop across H1007 on the cooling-water branch (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "H1007",
+     "check": "model U 600 vs correlation U 1269 W/m2K (fouled)",
+     "value": "52.7",
+     "limit": "20",
+     "unit": "% difference",
+     "result": "264 %",
+     "source": "flag when the model's U differs by more than 20 % from the correlation (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "H1008",
+     "check": "tube velocity vs minimum",
+     "value": "0.213",
+     "limit": "1",
+     "unit": "m/s",
+     "result": "470 %",
+     "source": "typical practice for water in tubes, 1-3 m/s (Sinnott, Coulson & Richardson's Chemical Engineering Vol. 6, sec. 12.7) (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "H1008",
+     "check": "tube velocity vs maximum",
+     "value": "0.213",
+     "limit": "3",
+     "unit": "m/s",
+     "result": "7 %",
+     "source": "typical practice (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "H1008",
+     "check": "LMTD correction factor F vs minimum",
+     "value": "0.457",
+     "limit": "0.75",
+     "unit": "-",
+     "result": "164 %",
+     "source": "typical practice: F not below 0.75 for a multi-pass shell (Sinnott, C&R Vol. 6 sec. 12.6); lower means a temperature cross that needs counter-current flow or shells in series (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "H1008",
+     "check": "area required (fouled correlation U) vs installed",
+     "value": "212",
+     "limit": "46.9",
+     "unit": "m2",
+     "result": "452 %",
+     "source": "Q / (U F LMTD), U from the correlations (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "H1008",
+     "check": "tube-side pressure drop vs allowable",
+     "value": "0.0061",
+     "limit": "0.7",
+     "unit": "bar",
+     "result": "1 %",
+     "source": "typical practice for liquids (35-70 kPa); chilled-water allowable not on the data sheet (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "H1008",
+     "check": "shell-side pressure drop vs allowable",
+     "value": "0.0068",
+     "limit": "0.7",
+     "unit": "bar",
+     "result": "1 %",
+     "source": "typical practice for liquids (35-70 kPa) (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "H1008",
+     "check": "model U 600 vs correlation U 312 W/m2K (fouled)",
+     "value": "92.6",
+     "limit": "20",
+     "unit": "% difference",
+     "result": "463 %",
+     "source": "flag when the model's U differs by more than 20 % from the correlation (ILLUSTRATIVE geometry)"
+    }
+   ]
+  },
+  {
+   "id": "piping_utilities",
+   "status": "open",
+   "summary": "no calculation adapter: tie-ins, line sizing, supports and utility headers (supply change on s47130, s47140: header capacity to confirm) remain open",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "controls",
+   "status": "not affected",
+   "summary": "no physical or routing change",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "process_safety",
+   "status": "not affected",
+   "summary": "no physical or routing change",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "civil_structural",
+   "status": "not affected",
+   "summary": "no physical or routing change",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  }
+ ]
+}

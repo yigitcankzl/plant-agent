@@ -49,7 +49,7 @@ class Documents(unittest.TestCase):
         w.answers = json.loads((ROOT / "runs/ws/salt_mvr/20261030-224752/answers.json").read_text())
         ds = self.check(w, "datasheet", "K-202", 3)
         self.assertIn("proposed new equipment", ds)
-        self.assertIn("55000", ds)  # K-202 suction rating from the proposal, with its rating source
+        self.assertIn("55,000", ds)  # K-202 suction rating from the proposal, with its rating source
         self.assertIn("vendor quote to confirm", ds)
         calc = self.check(w, "calc_sheet", "V-201: heater area", 3)
         self.assertIn("A_needed", calc)

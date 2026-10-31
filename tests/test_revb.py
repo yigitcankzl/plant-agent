@@ -32,7 +32,7 @@ class RevBTests(unittest.TestCase):
         self.assertIn("K-202 (NEW)", svg)
         self.assertIn("Rating source: preliminary size; vendor quote to confirm", svg)
         self.assertIn('data-line="K202-SUC"', svg)  # routed new line
-        self.assertIn("U 2000 → 2500 W/m²K", svg)  # annotation of the changed value next to E-201
+        self.assertIn("U 2,000 → 2,500 W/m²K", svg)  # annotation of the changed value next to E-201
         self.assertEqual(clouds(svg), {"1", "2"})  # one revision cloud (and triangle) per change
         self.assertEqual(len(re.findall(r'data-rev-triangle="1"', svg)), 2)  # on the sheet and in the revision block
         self.assertIn("REV B - DRAFT - NOT APPROVED", svg)
@@ -108,7 +108,7 @@ class DrawRevisionFromTheLogTests(unittest.TestCase):
         self.assertIn("NOTE (3003/C1)", svg)
         self.assertIn("car-seal", svg.lower())
         self.assertEqual(clouds(svg), {"1", "2", "3", "4"})  # two verified proposals, the K-202 request and the notes
-        self.assertEqual(svg.count("U 2000 → 2500 W/m²K"), 2)  # one callout + its revision-block line: the re-typed change is not drawn again
+        self.assertEqual(svg.count("U 2,000 → 2,500 W/m²K"), 2)  # one callout + its revision-block line: the re-typed change is not drawn again
 
     def test_retyped_changes_alone_still_draw_k202_and_the_notes(self):
         a = DRAW["args"]
@@ -123,7 +123,7 @@ class DrawRevisionFromTheLogTests(unittest.TestCase):
         r = revb.render_revision(w, proposals=["E-201"])
         self.assertEqual(r["proposals"], ["Clean main heater E-201"])
         self.assertTrue(r["verified"])
-        self.assertIn("U 2000 → 2500 W/m²K", r["svg"])
+        self.assertIn("U 2,000 → 2,500 W/m²K", r["svg"])
         r = revb.render_revision(w, answer=0, annotations=[{"tag": "PSV-202", "text": "check set pressure"},
                                                             {"tag": "XYZ-9", "text": "somewhere"}])
         self.assertEqual(len(r["proposals"]), 2)

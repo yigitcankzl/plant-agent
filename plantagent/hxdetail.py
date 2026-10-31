@@ -433,8 +433,12 @@ def _get(spec, path):
     return cur
 
 
-def _solve(w, tag, entry, scale, answer):
+def _solve(w, tag, entry, scale, answer, changes=None):
     from . import documents
+    if changes is not None:  # a whole design (all verified changes of an answer), solved together
+        spec = patch(copy.deepcopy(w.spec), changes)
+        scale = float(scale or 1.0)
+        return w._solve(spec, scale), scale, f"DWSIM solve of the design at {scale * 100:.0f} %", spec, None
     if answer is not None:
         i, ans = documents._answer(w, answer)
         p = documents._proposal(ans, tag) or documents._proposal(ans, entry.get("model_unit"))
@@ -447,11 +451,11 @@ def _solve(w, tag, entry, scale, answer):
     return res, scale, src, w.spec, None
 
 
-def hx_detail(w, tag, scale=None, answer=None, condition=None, save=True, by=None, request=None):
+def hx_detail(w, tag, scale=None, answer=None, condition=None, save=True, by=None, request=None, changes=None):
     tag, entry = geometry(w.name, tag)
     if not w.built:
         raise ValueError("no model built yet")
-    res, scale, src, spec, prop = _solve(w, tag, entry, scale, answer)
+    res, scale, src, spec, prop = _solve(w, tag, entry, scale, answer, changes)
     uid = entry.get("model_unit", tag)
     u = next((x for x in spec["units"] if x["id"] == uid), None)
     st, ures = res.get("streams") or {}, ((res.get("units") or {}).get(uid) or {})

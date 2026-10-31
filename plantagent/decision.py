@@ -19,7 +19,7 @@ from pathlib import Path
 
 from . import audit, pid, process
 from .docs import DATA
-from .plant import FIELD, KIND, PlantWorkspace, added_equipment, describe_change, display_names
+from .plant import FIELD, KIND, PlantWorkspace, added_equipment, describe_change, display_names, model_only_change
 from .proposed import ports, topology
 from .revb import _num, qty, value_text
 
@@ -59,8 +59,8 @@ def pssr(spec, changes, names, at):
         if c.get("add_unit"):
             u, source = c["add_unit"], c.get("rating_source") or "to confirm"
             if u["type"] in ("mixer", "splitter", "recycle"):
-                items.append(f"Confirm the new {u['id']} routing/manifold in the field, including branch isolation, drains, vents and flow direction.")
-                items.append(f"Isolation: confirm valves so the new {u['id']} manifold can be separated from the existing line.")
+                tee = "branch tee" if u["type"] == "splitter" else "join tee"
+                items.append(f"Confirm the new {tee} in the field (model node {u['id']}), including branch isolation valves, drains, vents and flow direction.")
             else:
                 items.append(f"Isolation: confirm block valves on each nozzle of new {u['id']} before the line is opened to process fluid.")
                 items.append(f"Check valves and backflow: confirm a non-return device so parallel {u['id']} cannot be driven backwards. To confirm.")
@@ -75,8 +75,9 @@ def pssr(spec, changes, names, at):
             continue
         if c.get("reroute"):
             r = c["reroute"]
-            to = ", ".join(r["value"]) if isinstance(r["value"], list) else r["value"]
-            items.append(f"Walk down the reroute of {r['unit']} {r['field']} to {to}; confirm valves, drains, vents and flow direction match the Rev B drawing.")
+            if not model_only_change(spec, c, changes):  # a reroute of a model junction is bookkeeping, not field work
+                items.append(f"Walk down the new tie-in at the {'inlet' if r['field'] == 'in' else 'outlet'} of {r['unit']}; confirm valves, drains, "
+                             "vents and flow direction match the Rev B drawing.")
             continue
         if c.get("remove_unit") is not None or c.get("bypass") is not None:
             uid = c.get("remove_unit") or (c["bypass"].get("unit") if isinstance(c["bypass"], dict) else c["bypass"])
@@ -118,22 +119,33 @@ def pssr(spec, changes, names, at):
     return list(dict.fromkeys(items))
 
 
-def electrical_section(w, changes, built, target):
-    """'Electrical' lines for the risk section when the changes add or re-rate a motor (plantagent.electrical)."""
+def electrical_section(w, changes, built, target, solved=None):
+    """'Electrical' lines for the risk section when the changes add or re-rate a motor (plantagent.electrical), and the
+    checks over their limit (they hold the decision back). Returns (markdown lines, over-limit checks)."""
     from . import electrical
     cfg = electrical.config(w.name)
     if not (cfg and electrical.available() and electrical.motor_changes(cfg, changes)):
-        return []
+        return [], []
     try:
         e = electrical.for_workspace(w, changes, target, spec=built, title="Electrical check for the decision pack")
+        vfd = electrical.check(cfg, solved or {}, changes,
+                               [{"unit": u, "start": "VFD"} for u in electrical.motor_changes(cfg, changes)], target)
     except Exception as ex:  # noqa: BLE001 - the pack stands without it, and says so
-        return ["", "### 6.1b Electrical (one-line load flow)", "", f"- Not available: {type(ex).__name__}: {ex}"]
-    md = ["", "### 6.1b Electrical (one-line load flow, pandapower)", "", f"- {e['summary']}.",
+        return ["", "### 6.1b Electrical (one-line load flow)", "", f"- Not available: {type(ex).__name__}: {ex}"], []
+    over = [c for c in e["checks"] if c["utilisation"] > 1]
+    md = ["", "### 6.1b Electrical (one-line load flow, pandapower; ILLUSTRATIVE network)", "", f"- {e['summary']}.",
           f"- One-line diagram: `{e.get('svg')}` (artifact). Network: cases/{w.name}/electrical.json; {cfg.get('note', '')}", "",
           "| Item | Check | Value | Limit | Basis |", "|---|---|---|---|---|"]
-    md += [f"| {c['id']} | {c['check']} | {c['value']} % | {c['limit']} % | {c['basis']} |"
+    md += [f"| {c['id']} | {c['check']} | {c['value']:.1f} % | {c['limit']:g} % | {c['basis']} |"
            for c in e["checks"] if c["utilisation"] > 0.8 or "start" in c["check"] or "transformer" in c["check"]]
-    return md
+    if over:
+        left = [c for c in vfd["checks"] if c["utilisation"] > 1]
+        dip = lambda r: (r.get("start") or {}).get("terminal_dip_percent")  # noqa: E731
+        md += ["", f"- **Option: VFD start instead of direct-on-line.** Terminal start dip {_num(dip(e))} % → {_num(dip(vfd))} %. "
+               + ("Still over with a VFD: " + "; ".join(f"{c['id']} {c['check']} {c['value']:.1f} %" for c in left)
+                  + ". These are steady-state supply limits: a larger tie transformer or another supply is needed (to confirm)."
+                  if left else "All electrical checks are within limits with a VFD start.")]
+    return md, over
 
 
 def _stored_calculations(revs, ans):
@@ -244,14 +256,9 @@ def _illustrative(w):
     return lines
 
 
-def _describe(spec, c, names):
-    """One readable line per change: fractions as percentages, reroutes with stream names joined."""
-    if c.get("reroute"):
-        r, j = c["reroute"], lambda v: ", ".join(v) if isinstance(v, list) else str(v)  # noqa: E731
-        return f"Reroutes {names.get(r['unit'], r['unit'])} {r['field']}: " + (f"{j(c['from'])} → " if c.get("from") is not None else "") + j(r["value"])
-    if c.get("path") and isinstance(c.get("value"), list):
-        return f"{names.get(c['path'].split('.')[1], c['path'].split('.')[1])}: {value_text(c, names)}"
-    return re.sub("<[^>]+>", "", describe_change(spec, c, names))
+def _describe(spec, c, names, aliases=None):
+    """One readable line per change: fractions as percentages, list values joined, model units named by their P&ID tag."""
+    return re.sub("<[^>]+>", "", describe_change(spec, c, names, aliases))
 
 
 def _datasheet(changes, calc):
@@ -395,12 +402,15 @@ def make(w, answer=None):
               + (f" (highest {nm(wa['id'])} {wa['check']} {_pct(wa['after'])})" if wa else "") + ".")
     if cap_after is not None:
         result += f" Simulated maximum throughput: {_cap(cap_before)} → {_cap(cap_after)} of today."
+    elec_md, elec_over = electrical_section(w, changes, built, target, after) if revs else ([], [])
     if not revs:
         decision_line = f"No change to the plant is needed: {(ans or {}).get('headline', '')}."
     else:
-        verb = "Approve for detailed engineering" if not over_after else "Do not approve yet"
+        verb = "Approve for detailed engineering" if not (over_after or elec_over) else "Do not approve yet"
         decision_line = (f"{verb}: {len(revs)} change(s) to reach {target * 100:.0f} % of today's throughput - "
-                         + "; ".join(f"({r['rev']}) {r['title']}" for r in revs) + ".")
+                         + "; ".join(f"({r['rev']}) {r['title']}" for r in revs) + "."
+                         + (f" The process changes pass in DWSIM; the electrical screen fails {len(elec_over)} check(s) "
+                            "(section 6.1b): resolve the supply first." if elec_over and not over_after else ""))
     approvals = []
     for r in revs:
         bits = [f"cost class {costs.get(r['rev']) or 'not stated'}"]
@@ -422,7 +432,8 @@ def make(w, answer=None):
           f"| **Needs approval** | " + "<br/>".join(approvals).replace("<br/>", "; ") + " |",
           f"| **Status** | DRAFT for engineering review; to be checked by a licensed engineer. Sign-off in section 7. |", ""]
     if ans and ans.get("summary"):
-        md += [f"**Answer on record:** {ans.get('headline', '')}. {ans['summary']}", ""]
+        md += [f"**Agent's explanation on record** (model text, quoted; its figures are not re-checked here: sections 3 and 4 are the "
+               f"calculation record): {ans.get('headline', '')}. {ans['summary']}", ""]
 
     cover = "\n".join(md) + "\n"
     md = ["## 2. Basis", "", f"**Question.** {w.cfg.get('question')}", "",
@@ -461,8 +472,11 @@ def make(w, answer=None):
         phys = [c.get("physical_change") for c in r["changes"] if c.get("physical_change")]
         md += ["**What physically changes.**", ""]
         md += [f"- {x}" for x in phys] or []
-        md += [f"- {_describe(built, c, names)}" for c in r["changes"]
-               if not (c.get("add_unit") and c["add_unit"].get("type") in ("mixer", "splitter"))]
+        md += [f"- {_describe(built, c, names, w.cfg.get('model_aliases'))}" for c in r["changes"]
+               if not model_only_change(built, c, r["changes"])]
+        mo = [_describe(built, c, names) for c in r["changes"] if model_only_change(built, c, r["changes"])]
+        if mo:
+            md += [f"- Model-only bookkeeping (no field work of its own): {'; '.join(mo)}."]
         if drawn.get(r["rev"]):
             md += [f"- On the drawing: {'; '.join(drawn[r['rev']])}."]
         md += ["", f"**Why.** {r.get('reason') or 'not stated'}", ""]
@@ -512,7 +526,7 @@ def make(w, answer=None):
             for x in relief_hit] or ["- No changed existing equipment side lacks relief on this drawing." if relief else "- No smart P&ID: relief scan not available; review relief manually."])
     if new_equipment:
         md += ["- New equipment is not on the as-built P&ID: its relief, isolation and control design need engineering review before approval."]
-    md += electrical_section(w, changes, built, target)
+    md += elec_md
     md += ["", "### 6.2 Pre-startup safety review (PSSR), generated from the changes", ""]
     md += [f"- [ ] {i}" for i in checklist]
     md += ["", "### 6.3 Second opinion", ""]
