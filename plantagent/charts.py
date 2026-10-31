@@ -86,3 +86,36 @@ if __name__ == "__main__":
     s = sweep_svg("Test", "seawater temperature (C)", [10, 20, 30], {"K-201 suction": [0.9, 1.0, 1.1], "E-201 area": [0.8, None, 1.2]})
     assert s.startswith("<svg") and s.count("<polyline") == 2 and "limit 100 %" in s
     print("ok")
+
+
+def pressure_time_svg(title, series, design_psig=None, burst_psig=None, now_h=None, w=720, h=380):
+    """Pressure (psig) of a blocked-in segment against hours (plantagent/trapped.py), with design and burst lines and the
+    'now' marker of the solved time. series: [[hours, psig], ...]."""
+    pad_l, pad_r, pad_t, pad_b = 72, 24, 44, 52
+    pts = [(x, y) for x, y in series if x is not None and y is not None]
+    end = max([x for x, _ in pts] + [now_h or 0]) or 1
+    top = max([y for _, y in pts] + [burst_psig or 0, design_psig or 0]) * 1.08 or 1
+    step = 10 ** math.floor(math.log10(top / 5)) if top > 5 else 1
+    step *= 5 if top / step > 25 else 2 if top / step > 10 else 1
+    sx = lambda x: pad_l + x / end * (w - pad_l - pad_r)  # noqa: E731
+    sy = lambda y: h - pad_b - y / top * (h - pad_t - pad_b)  # noqa: E731
+    out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" font-family="sans-serif" font-size="12">',
+           f'<rect width="{w}" height="{h}" fill="#fff"/>',
+           f'<text x="{pad_l}" y="24" font-size="15" font-weight="600" fill="#111">{escape(title)}</text>']
+    for k in range(0, int(top) + 1, int(step)):
+        out.append(f'<line x1="{pad_l}" y1="{sy(k):.1f}" x2="{w - pad_r}" y2="{sy(k):.1f}" stroke="#eee"/>'
+                   f'<text x="{pad_l - 8}" y="{sy(k) + 4:.1f}" text-anchor="end" fill="#555">{k:,}</text>')
+    for d in range(0, int(end) + 1, 24):
+        out.append(f'<text x="{sx(d):.1f}" y="{h - pad_b + 18}" text-anchor="middle" fill="#555">day {d // 24}</text>')
+    out.append(f'<text x="{(pad_l + w - pad_r) / 2:.1f}" y="{h - 12}" text-anchor="middle" fill="#333">time blocked in '
+               f'(DWSIM Peng-Robinson along the trapped-liquid isochore)</text>')
+    for v, label, colour in ((design_psig, "design pressure", "#d97706"), (burst_psig, "estimated burst", "#b91c1c")):
+        if v:
+            out.append(f'<line x1="{pad_l}" y1="{sy(v):.1f}" x2="{w - pad_r}" y2="{sy(v):.1f}" stroke="{colour}" stroke-dasharray="6,4"/>'
+                       f'<text x="{pad_l + 6}" y="{sy(v) - 6:.1f}" fill="{colour}">{label} {v:,.0f} psig</text>')
+    out.append(f'<polyline points="{" ".join(f"{sx(x):.1f},{sy(y):.1f}" for x, y in pts)}" fill="none" stroke="#2563eb" stroke-width="2"/>')
+    if now_h:
+        out.append(f'<line x1="{sx(now_h):.1f}" y1="{pad_t}" x2="{sx(now_h):.1f}" y2="{h - pad_b}" stroke="#111"/>'
+                   f'<text x="{sx(now_h) - 4:.1f}" y="{pad_t + 12}" text-anchor="end" fill="#111">{now_h:.0f} h</text>')
+    out.append("</svg>")
+    return "\n".join(out)

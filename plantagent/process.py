@@ -1375,6 +1375,7 @@ def _worker(a):
             errs = mgr.CalculateFlowsheet4(sim)
             liq = s.Phases[3].Properties  # liquid-phase transport properties (heat-exchanger rating, plantagent/hxdetail.py)
             out.append({**pt, "density_kg_m3": round(s.GetMassFlow() / s.GetVolumetricFlow(), 2),
+                        "enthalpy_kJ_kg": float(s.GetMassEnthalpy()),  # isochoric heating (internal energy u = h - P/rho)
                         "vapour_frac": round(float(s.Phases[2].Properties.molarfraction or 0.0), 4),
                         "liquid": {"density_kg_m3": float(liq.density or 0), "viscosity_Pa_s": float(liq.viscosity or 0),
                                    "k_W_mK": float(liq.thermalConductivity or 0), "cp_kJ_kgK": float(liq.heatCapacityCp or 0)},
