@@ -10,7 +10,7 @@ import re
 import time
 from pathlib import Path
 
-from . import audit, brine, llm, pid, process, ro, ro_changes
+from . import audit, brine, grid, llm, pid, process, ro, ro_changes
 from .docs import DATA
 from .study import ARR, Study, compact, submit, text_tool_calls, unstring
 
@@ -109,6 +109,27 @@ BUILD_WATERTAP = (
     "If there are project documents, search them and read only the pages with the equipment data you need, at most 6."
 )
 
+SUBMIT_MODEL_GRID = submit("submit_model", "The transmission-grid model you built and calibrated.", {
+    "label": {"type": "string", "description": "label of the calibrated run_grid run (the model)"},
+    "mapping": ARR({"tag": S, "modelled_as": S, "source": S}),
+    "calibration": ARR({"item": S, "measured": S, "simulated": S, "source": S}),
+    "assumptions": {"type": "array", "items": S},
+}, ["label", "mapping", "calibration"])
+
+BUILD_GRID = (
+    "You are building an AC load-flow model of a transmission grid area with pandapower. Do not use run_process. Read the "
+    "one-line diagram and the data sheet. Build the network with run_grid: every substation busbar named on the drawing as "
+    "a bus (a substation operated with split busbars is two buses joined by a bus coupler switch in its documented state), "
+    "every line and transformer with the drawing's name as id, line lengths and per-km parameters from the data sheet, "
+    "documented injections as gens, and the wider grid as the documented grid equivalents. Put every protection setting "
+    "the data sheet cites (trip, alarm or maximum accepted current) in `limits` with where it acts and its source. "
+    "Calibrate against EVERY flow the data sheet gives for the documented moment and report measured vs simulated; the "
+    "only quantity you may tune is the one the data sheet names as unknown. Then call submit_model. A deterministic review "
+    "checks that submit: if it returns blocking findings, fix the model and call submit_model once more. If the spec "
+    "cannot express something, call report_gap instead of approximating. The model you submit is the system as operated "
+    "at the documented moment; later switching actions must be expressed as path changes, not by editing the model."
+)
+
 RO_MASS_TOL = 0.02  # feed vs product + concentrate + pretreatment losses
 RO_PRESSURE_TOL_BAR = 0.05
 
@@ -162,6 +183,8 @@ def change_errors(spec, changes, require_evidence=True):
     """Validate the structural proposal boundary before it reaches the simulator."""
     if ro_changes.is_ro(spec):
         return ro_changes.change_errors(spec, changes, require_evidence)
+    if grid.is_grid(spec):
+        return grid.change_errors(spec, changes, require_evidence)
     existing = {u.get("id") for u in spec.get("units") or []}
     additions = [c.get("add_unit") for c in changes or [] if isinstance(c, dict) and c.get("add_unit") is not None]
     new_ids = [u.get("id") for u in additions if isinstance(u, dict) and isinstance(u.get("id"), str)]
@@ -418,7 +441,12 @@ def _assumptions(proposal):
 
 
 def _simulator_name(cfg):
-    return "watertap" if (cfg or {}).get("engine") == "watertap" else "dwsim"
+    engine = (cfg or {}).get("engine")
+    return engine if engine in ("watertap", "pandapower") else "dwsim"
+
+
+def _is_grid(cfg):
+    return _simulator_name(cfg) == "pandapower"
 
 
 def _is_watertap(cfg):
@@ -921,6 +949,8 @@ def patch(spec, changes):
     # Proposal evidence is checked by verify(); internal sensitivity and rendering patches use the same mechanics.
     if ro_changes.is_ro(spec):  # WaterTAP RO spec: paths into its blocks, added trains
         return ro_changes.patch(spec, changes)
+    if grid.is_grid(spec):  # transmission grid: switching and dispatch paths into its elements
+        return grid.patch(spec, changes)
     errors = change_errors(spec, changes, require_evidence=False)
     if errors:
         raise ValueError("; ".join(errors))
@@ -1759,7 +1789,7 @@ class PlantWorkspace(Study):
                                   "title": S})]
         # ---- end drawing tool
         # ---- heat-exchanger detail + combustion tools (plantagent/hxdetail.py, plantagent/combustion.py)
-        if not _is_watertap(getattr(self, "cfg", None)):
+        if not _is_watertap(getattr(self, "cfg", None)) and not _is_grid(getattr(self, "cfg", None)):
             shared = shared + [
                 f("hx_detail", "Detailed thermal-hydraulic rating of ONE heat exchanger (shell-and-tube or plate) with the ht/fluids "
                                "correlations: tube/channel velocity, tube- and shell-side h (Gnielinski, Bell-Delaware, condensing "
@@ -1793,6 +1823,23 @@ class PlantWorkspace(Study):
                    "residence_s": {"type": "number", "description": "residence time at flame temperature for the thermal-NO screening"}}),
             ]
         # ---- end heat-exchanger detail + combustion tools
+        if _is_grid(getattr(self, "cfg", None)):
+            return shared + [
+                f("run_grid", "Solve an AC load flow of a transmission-grid spec and log it under `label`. Returns every line and "
+                              "transformer flow (MW, Mvar, A), bus voltages and angles, and every limit check (current vs the "
+                              "protection setting in limits, or vs thermal rating; utilisation = value/limit). Spec: " + grid.SPEC_HELP,
+                  {"label": S, "purpose": S, "spec": {"type": "object"},
+                   "scale": {"type": "number", "description": "multiplies injections and grid-equivalent angles (transit)"}},
+                  ["label", "spec"]),
+                f("n_minus_1", "N-1 contingency screen of a logged run: switch off each line/transformer (or the listed `elements`) "
+                               "in turn, optionally after `changes` (e.g. a switching action), and report every limit exceeded. "
+                               "secure = no single outage exceeds a limit.",
+                  {"label": S, "changes": {"type": "array", "items": {"type": "object"}}, "elements": {"type": "array", "items": S},
+                   "scale": N}, ["label"]),
+                f("grid_capacity", "Largest transit multiple of a logged run (optionally after `changes`) at which every check is "
+                                   "still within 100 %, and which limit binds first.",
+                  {"label": S, "changes": {"type": "array", "items": {"type": "object"}}}, ["label"]),
+            ]
         if _is_watertap(getattr(self, "cfg", None)):
             return shared + [
                 f("run_ro", "Solve a WaterTAP reverse-osmosis plant and log it under `label`. Returns stream flow, pressure and TDS, "
@@ -1853,6 +1900,8 @@ class PlantWorkspace(Study):
     def _capacity_of(self, spec):
         if self.cfg.get("engine") == "watertap":
             return ro.capacity(spec)
+        if _is_grid(self.cfg):
+            return grid.capacity(spec)
         return process.capacity(spec)
 
     def call(self, name, a):
@@ -1928,9 +1977,37 @@ class PlantWorkspace(Study):
             return {"doc": a["doc"], "page": a["page"], "text": " ".join(_pages(DATA / d["pdf"])[int(a["page"]) - 1].split())[:3500]}
         if name == "read_data_sheet":
             return {"text": self.basis}
+        if name in ("run_grid", "grid_capacity", "n_minus_1"):
+            if not _is_grid(self.cfg):
+                return {"error": f"{name} is for transmission-grid cases (engine pandapower)"}
+            if name == "run_grid":
+                if isinstance(a.get("spec"), str):
+                    try:
+                        a["spec"] = json.loads(a["spec"])
+                    except json.JSONDecodeError as e:
+                        return {"error": f"spec is not valid JSON ({e}); send it as an object"}
+                spec = {**a["spec"], "grid": True}
+                label = a.get("label") or f"run{len(self.runs) + 1}"
+                label = f"{label}-{len(self.runs) + 1}" if label in self.runs else label
+                r = grid.run(spec, float(a.get("scale") or 1.0))
+                self.runs[label] = {"spec": spec, "purpose": a.get("purpose", ""), "scale": a.get("scale") or 1.0, "result": r}
+                return {"label": label, **r}
+            run = self.runs.get(a.get("label"))
+            if not run:
+                return {"error": f"unknown label; logged: {list(self.runs)}"}
+            try:
+                spec = patch(run["spec"], a.get("changes") or []) if a.get("changes") else run["spec"]
+            except ValueError as e:
+                return {"error": str(e)}
+            if name == "grid_capacity":
+                run["capacity"] = grid.capacity(spec)
+                return {"label": a["label"], **run["capacity"]}
+            return {"label": a["label"], **grid.n_minus_1(spec, float(a.get("scale") or 1.0), a.get("elements"))}
         if name == "run_process":
             if _is_watertap(self.cfg):
                 return {"error": "run_process is for DWSIM cases; this case uses run_ro (WaterTAP)"}
+            if _is_grid(self.cfg):
+                return {"error": "run_process is for DWSIM cases; this case uses run_grid (pandapower)"}
             if isinstance(a.get("spec"), str):  # the model sometimes sends the spec as JSON text
                 try:
                     a["spec"] = json.loads(a["spec"])
@@ -2053,6 +2130,9 @@ class PlantWorkspace(Study):
 
     def _build_prompt(self):
         """System and user messages for build(). DWSIM text stays byte-stable; WaterTAP gets an SWRO prompt."""
+        if _is_grid(self.cfg):
+            return ("You are a power-system engineer building a load-flow model of a transmission grid area. " + RULES,
+                    f"Area: {self.cfg['title']}\n\n" + BUILD_GRID, SUBMIT_MODEL_GRID)
         if _is_watertap(self.cfg):
             return ("You are a process engineer building a seawater reverse-osmosis model with WaterTAP. " + RULES,
                     f"Unit: {self.cfg['title']}\n\n" + BUILD_WATERTAP, SUBMIT_MODEL_RO)
@@ -2060,11 +2140,15 @@ class PlantWorkspace(Study):
                 f"Unit: {self.cfg['title']}\n\n" + BUILD_DWSIM, SUBMIT_MODEL)
 
     def _review(self, spec, result, mapping=None, assumptions=None):
+        if _is_grid(self.cfg):
+            return grid.review(spec, result, self.basis)
         if _is_watertap(self.cfg):
             return review_ro(spec, result, self.pid, self.basis, mapping, assumptions)
         return review_model(spec, result, self.pid, self.basis)
 
     def _coverage(self, spec, mapping=None):
+        if _is_grid(self.cfg):
+            return None
         if _is_watertap(self.cfg):
             return ro_coverage(self.pid, spec, mapping)
         return coverage(self.pid, spec) if self.pid else None
@@ -2103,6 +2187,8 @@ class PlantWorkspace(Study):
         return {**meta, "rows": rows}
 
     def _solve(self, spec, scale=1.0):
+        if _is_grid(self.cfg):
+            return grid.run(spec, scale)
         return ro.run(spec, scale) if _is_watertap(self.cfg) else process.run(spec, scale)
 
     def build(self):
@@ -2634,13 +2720,16 @@ class PlantWorkspace(Study):
         if key not in self._state:
             demo = self._demo()
             hit = demo and demo["spec"] == self.spec and min(abs(st["scale"] - scale) for st in demo["states"]) < 0.006
-            simulator_available = ro.available() if _is_watertap(self.cfg) else process.available()
+            simulator_available = (grid.available() if _is_grid(self.cfg) else ro.available() if _is_watertap(self.cfg)
+                                   else process.available())
             if hit or (demo and demo["spec"] == self.spec and not simulator_available):
                 # stored simulator solutions of this exact model: instant first load and clean-clone replay
                 near = min(demo["states"], key=lambda st: abs(st["scale"] - scale))
                 self._state[key] = {**near, "replayed": True}
             elif _is_watertap(self.cfg):
                 self._state[key] = {"scale": scale, **ro.run(self.spec, scale)}
+            elif _is_grid(self.cfg):
+                self._state[key] = {"scale": scale, **grid.run(self.spec, scale)}
             elif process.available():
                 self._state[key] = {"scale": scale, **process.run(self.spec, scale)}
             else:

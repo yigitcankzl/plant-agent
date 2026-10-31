@@ -1,0 +1,187 @@
+[
+ {
+  "cards": [
+   {
+    "assumptions": [
+     "Reduced network is reconstructed: data sheet states the report gives no impedances and per-kilometre line values are typical reconstructed values.",
+     "South-west grid angle is the calibrated value in the submitted spec, chosen to reproduce the 1,225 MW line flow."
+    ],
+    "inputs": [
+     {
+      "basis": "documented",
+      "name": "Landesbergen\u2013Wehrendorf flow at 22:00",
+      "source": "Operating data sheet, busbar flow table, LAN-WEH row (UCTE report p.50 Fig.30)",
+      "value": "1,225 MW leaving busbar A"
+     },
+     {
+      "basis": "documented",
+      "name": "Bus coupler position at 22:00",
+      "source": "Operating data sheet, 'Situation at 22:00': LAN coupler open, busbars separated",
+      "value": "Open"
+     },
+     {
+      "basis": "computed",
+      "name": "Solved line flow, coupler open",
+      "source": "Logged run 'LAN 22:00 base coupler open', line LAN-WEH",
+      "value": "1,225.0 MW, 1,779 A"
+     }
+    ],
+    "result": "1,779 amps \u2014 85% of the 2,100 amp trip",
+    "runs": [
+     "LAN 22:00 base coupler open"
+    ],
+    "status": "warn",
+    "title": "Before coupling \u2014 Wehrendorf line already close to its settings"
+   },
+   {
+    "assumptions": [
+     "Same reconstructed reduced network and same injections are used before and after; only the LAN coupler switch position changes."
+    ],
+    "inputs": [
+     {
+      "basis": "documented",
+      "name": "Planned action and expected effect",
+      "source": "Operating data sheet, 'Operating request at 22:08' (report p.19): close LAN coupler, expected fall about 80 A, no load-flow calculation made",
+      "value": "Close LAN coupler; expected \u221280 A"
+     },
+     {
+      "basis": "documented",
+      "name": "Wehrendorf warning and governing trip",
+      "source": "Operating data sheet, 'Protection settings on Landesbergen - Wehrendorf (report p.19, Table 1)'",
+      "value": "Warning 1,795 A; trip 2,100 A (lower of 3,000 A and 2,100 A)"
+     },
+     {
+      "basis": "computed",
+      "name": "Solved line flow, coupler closed",
+      "source": "Logged run 'LAN coupled coupler closed', line LAN-WEH",
+      "value": "1,262.7 MW, 1,831 A, 87.2% of 2,100 A"
+     }
+    ],
+    "result": "Rises 52 amps to 1,831 amps \u2014 no relief",
+    "runs": [
+     "LAN 22:00 base coupler open",
+     "LAN coupled coupler closed"
+    ],
+    "status": "fail",
+    "title": "After coupling \u2014 line current goes up, not down"
+   },
+   {
+    "assumptions": [
+     "Single-outage screen trips each line or transformer in turn in the same reduced load-flow model; short-circuit duty of the coupled busbar is not checked by this model."
+    ],
+    "inputs": [
+     {
+      "basis": "computed",
+      "name": "Single-outage screen result, coupler closed",
+      "source": "n_minus_1 screen on logged run 'LAN coupled coupler closed'",
+      "value": "secure = false; 8 outage cases exceed a limit"
+     },
+     {
+      "basis": "computed",
+      "name": "Worst case: Ovenst\u00e4dt\u2013Bechterdissen out",
+      "source": "n_minus_1 on 'LAN coupled coupler closed', case out = OVE-BEC, line LAN-WEH",
+      "value": "LAN-WEH 3,626 A against 2,100 A trip (173%)"
+     },
+     {
+      "basis": "computed",
+      "name": "Case: Wehrendorf line itself out",
+      "source": "n_minus_1 on 'LAN coupled coupler closed', case out = LAN-WEH, line BIO-SPX 220",
+      "value": "BIO-SPX 220 1,646 A against 1,000 A thermal (165%); BEC T 104.6% and GUT T 104.5% loaded"
+     },
+     {
+      "basis": "computed",
+      "name": "Other breaching outages after coupling",
+      "source": "n_minus_1 on 'LAN coupled coupler closed'",
+      "value": "WEH-GUT, BEC-ELS, ELS-TWI and TWI-SOUTH_E out overload BIO-SPX 220 and/or LAN-WEH; LAN-DOL 1 or 2 out loads the other Dollern circuit to 2,265 A against 2,000 A"
+     }
+    ],
+    "result": "Not secure \u2014 8 single outages exceed limits",
+    "runs": [
+     "LAN coupled coupler closed"
+    ],
+    "status": "fail",
+    "title": "After coupling \u2014 one more failure is not survivable"
+   },
+   {
+    "assumptions": [
+     "Comparison uses the identical reconstructed model, so the before/after difference isolates the coupler action."
+    ],
+    "inputs": [
+     {
+      "basis": "computed",
+      "name": "Single-outage screen result, coupler open",
+      "source": "n_minus_1 screen on logged run 'LAN 22:00 base coupler open'",
+      "value": "secure = false; 8 outage cases exceed a limit"
+     },
+     {
+      "basis": "computed",
+      "name": "Worst case before coupling",
+      "source": "n_minus_1 on 'LAN 22:00 base coupler open', case out = OVE-BEC, line LAN-WEH",
+      "value": "LAN-WEH 3,638 A against 2,100 A trip (173%)"
+     }
+    ],
+    "result": "Already insecure before; coupling does not fix it",
+    "runs": [
+     "LAN 22:00 base coupler open",
+     "LAN coupled coupler closed"
+    ],
+    "status": "info",
+    "title": "For context \u2014 the grid was already not single-outage secure"
+   }
+  ],
+  "field_checks": [
+   {
+    "changes": "If a validated operator model using as-built impedances and live 22:08 flows shows a current fall on LAN-WEH instead of the modelled 52 A rise, the 'no relief' conclusion would change; the size of the rise and the outage margins would also change.",
+    "item": "Actual line impedances and live flows around Landesbergen at the switching time (LAN-WEH, LAN-OVE 1/2, LAN-DOL 1/2, LAN-GRO 1/2) \u2014 the reduced model uses reconstructed typical impedances",
+    "where": "Control-room state estimator and network records at Landesbergen, Wehrendorf and Ovenst\u00e4dt for 22:00\u201322:10"
+   },
+   {
+    "changes": "If coupled short-circuit duty exceeds the switchgear rating, coupling is not permissible regardless of the flow result; the load-flow answer alone must not be used to authorise the switch.",
+    "item": "Short-circuit duty at Landesbergen with busbars coupled, against the switchgear rating \u2014 data sheet notes separated operation is the normal configuration to keep short-circuit current within rating (report p.15), and this is not checked by the load-flow model",
+    "where": "Landesbergen substation rating documentation and a short-circuit study for the coupled configuration"
+   }
+  ],
+  "headline": "No relief \u2014 coupling raises line current",
+  "highlights": [
+   {
+    "severity": "fail",
+    "tag": "LAN-WEH",
+    "text": "Coupling raises current from 1,779 A (run 'LAN 22:00 base coupler open') to 1,831 A (run 'LAN coupled coupler closed'), past the 1,795 A Wehrendorf warning in the data sheet protection table."
+   },
+   {
+    "severity": "fail",
+    "tag": "LAN coupler",
+    "text": "Closing gives the opposite of the expected 80 A fall noted in the data sheet 'Operating request at 22:08'; do not use it as a relief measure on this evidence."
+   },
+   {
+    "severity": "fail",
+    "tag": "BIO-SPX 220",
+    "text": "If LAN-WEH trips after coupling, this 220 kV line reaches 1,646 A against its 1,000 A thermal rating in the single-outage screen on 'LAN coupled coupler closed'."
+   },
+   {
+    "severity": "warn",
+    "tag": "LAN_A",
+    "text": "Single-outage screen after coupling is not secure: 8 cases exceed limits, worst 3,626 A on LAN-WEH with Ovenst\u00e4dt\u2013Bechterdissen out (limit 2,100 A)."
+   }
+  ],
+  "summary": "On the rebuilt reduced model, closing the Landesbergen coupler raises the Wehrendorf line from 1,779 amps (run 'LAN 22:00 base coupler open') to 1,831 amps (run 'LAN coupled coupler closed') \u2014 the opposite of relief, and past the 1,795 amp warning in the data sheet protection table. The single-outage screen on the coupled run is not secure, with 8 outage cases over limits; because the network impedances are reconstructed rather than reported, treat the exact numbers as provisional pending the checks below.",
+  "proposals": [],
+  "artifacts": [],
+  "checks": [
+   {
+    "item": "run LAN 22:00 base coupler open",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run LAN coupled coupler closed",
+    "ok": true,
+    "why": ""
+   }
+  ],
+  "seconds": 84,
+  "cost_usd": 0.7701,
+  "request": "Dispatchers plan to couple the busbars at Landesbergen to relieve the Landesbergen-Wehrendorf line. Will it relieve the line, and is the grid N-1 secure afterwards?",
+  "model": "muse-wonder-1.0"
+ }
+]

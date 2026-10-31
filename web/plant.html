@@ -442,7 +442,7 @@ const api = async (p, body) => { const r = await fetch(`/api/plant/${CASE}/${p}`
 let P = null, ST = null, busy = false, base = null, PENDING_CARD = null;
 const NAMES = {pump: 'Pump', hx: 'Heat exchanger', tank: 'Tank', valve: 'Valve', heater: 'Heater / heat load', cooler: 'Cooler', compressor: 'Compressor', mixer: 'Mixer', splitter: 'Splitter', recycle: 'Loop closure'};
 const sev = u => u > 1.0 ? 'fail' : u > 0.9 ? 'warn' : 'ok';
-const simulator = () => (P?.built?.engine || P?.engine) === 'watertap' ? 'WaterTAP' : 'DWSIM';
+const simulator = () => ({watertap: 'WaterTAP', pandapower: 'pandapower'})[P?.built?.engine || P?.engine] || 'DWSIM';
 const modelBlocked = () => Number(P?.built?.review?.blocking || 0) > 0;
 let ACTIVE_MODE = 'capacity';
 let WORKSPACE_VIEW = 'decision';
@@ -527,7 +527,7 @@ document.addEventListener('keydown', e => {
 
 async function projects() {
   const ps = await fetch('/api/projects').then(r => r.json());
-  $('proj').innerHTML = ps.filter(p => p.workspace && (p.kind !== 'process' || p.built || p.case === CASE)).map(p => `<option value="${p.kind}:${p.case}" ${p.case === CASE ? 'selected' : ''}>${p.engine === 'watertap' ? '🌊 ' : p.kind === 'process' ? '⚗ ' : '💧 '}${esc(p.title.replace(/\s*\([^)]*\)?/g, ''))}</option>`).join('');
+  $('proj').innerHTML = ps.filter(p => p.workspace && (p.kind !== 'process' || p.built || p.case === CASE)).map(p => `<option value="${p.kind}:${p.case}" ${p.case === CASE ? 'selected' : ''}>${p.engine === 'watertap' ? '🌊 ' : p.engine === 'pandapower' ? '⚡ ' : p.kind === 'process' ? '⚗ ' : '💧 '}${esc(p.title.replace(/\s*\([^)]*\)?/g, ''))}</option>`).join('');
   $('proj').title = $('proj').selectedOptions[0]?.textContent || 'Project';
   $('proj').onchange = e => { const [k, c] = e.target.value.split(':'); location.href = (k === 'process' ? 'plant.html' : 'workspace.html') + '?case=' + c; };
 }
@@ -808,14 +808,15 @@ function model() {
   const b = P.built;
   fillReview();
   if (!b) { $('modelBox').innerHTML = ''; return; }
-  const isRO = b.engine === 'watertap', count = isRO ? (b.spec.stages || []).length : (b.spec.units || []).length;
+  const isRO = b.engine === 'watertap', isGrid = b.engine === 'pandapower';
+  const count = isRO ? (b.spec.stages || []).length : isGrid ? (b.spec.lines || []).length + (b.spec.trafos || []).length : (b.spec.units || []).length;
   const cov = b.coverage, conns = cov?.connections || [], mapped = cov?.mappings || [];
   const coverage = !cov ? '' : isRO
     ? `<div class="kv" style="margin-top:6px"><span>P&amp;ID coverage</span>${mapped.length} mapped tags · ${(cov.missing_equipment || []).length} unmodelled items</div>`
     : `<div class="kv" style="margin-top:6px"><span>P&amp;ID coverage</span>${conns.filter(c => c.modelled).length} of ${conns.filter(c => !c.relief_path).length} flow connections simulated ${(cov.missing_connections || []).length || (cov.missing_equipment || []).length ? '<span style="color:var(--muted)">· the rest are drawn for context</span>' : '<b style="color:var(--ok)">✓</b>'}</div>
       <div style="color:var(--muted);font-size:11px">${plural(conns.filter(c => c.relief_path).length, 'relief path')} excluded: no normal flow</div>`;
   $('builtBy').textContent = /muse/i.test(b.model || '') ? `built by ${museName(b.model)} in ${b.seconds} s` : `${b.model} (no language model)`;
-  $('modelBox').innerHTML = `<div class="why" style="color:var(--muted);font-size:11.5px;margin-bottom:6px">${simulator()} model built by the agent from the P&amp;ID, ${count} ${isRO ? 'RO stages' : 'units'}.</div>` +
+  $('modelBox').innerHTML = `<div class="why" style="color:var(--muted);font-size:11.5px;margin-bottom:6px">${simulator()} model built by the agent from the ${isGrid ? 'one-line diagram' : 'P&amp;ID'}, ${count} ${isRO ? 'RO stages' : isGrid ? 'lines and transformers' : 'units'}.</div>` +
     calibrationBlock(b) +
     (P.drawing === 'pdf' ? `<div class="kv" style="margin-top:6px"><span>Drawing read</span>${P.read_confirmed ? `confirmed · ${P.read_corrections} corrections by the engineer` : 'not confirmed'}</div>` : '') +
     coverage +
