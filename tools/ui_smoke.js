@@ -82,6 +82,17 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const draggedSelection = await p.locator('#sheet [data-tag="H1007"]').evaluate(e => e.classList.contains('u-sel'));
   console.log(after > before && !draggedSelection ? 'ok  ' : 'FAIL', 'P&ID wheel zoom and drag without selection');
   bad += after > before && !draggedSelection ? 0 : 1;
+  const badges = p.locator('#sheet .badge');
+  const badgeCount = await badges.count();
+  await p.click('#toggleLabels');
+  const labelsHidden = await p.evaluate(() => document.querySelector('#pidViewport').classList.contains('labels-off') &&
+    document.querySelector('#toggleLabels').getAttribute('aria-pressed') === 'false' &&
+    (!document.querySelector('#sheet .badge') || getComputedStyle(document.querySelector('#sheet .badge')).display === 'none'));
+  await p.click('#toggleLabels');
+  const labelsRestored = await p.evaluate(() => !document.querySelector('#pidViewport').classList.contains('labels-off') &&
+    document.querySelector('#toggleLabels').getAttribute('aria-pressed') === 'true');
+  console.log(badgeCount && labelsHidden && labelsRestored ? 'ok  ' : 'FAIL', 'P&ID labels hide and restore');
+  bad += badgeCount && labelsHidden && labelsRestored ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=chem_c01&tour=1`); await p.waitForSelector('#tour', { state: 'visible', timeout: 20000 });
   for (let i = 0; i < 6; i++) { await p.waitForTimeout(1200); await p.click('#tourNext'); }
   console.log(errs.length ? 'FAIL' : 'ok  ', 'guided demo, 6 steps', errs.join(' | '));
