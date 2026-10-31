@@ -106,7 +106,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const draggedSelection = await p.locator('#sheet [data-tag="H1007"]').evaluate(e => e.classList.contains('u-sel'));
   console.log(after > before && !draggedSelection ? 'ok  ' : 'FAIL', 'P&ID wheel zoom and drag without selection');
   bad += after > before && !draggedSelection ? 0 : 1;
-  const badges = p.locator('#sheet .badge');
+  await p.waitForSelector('#sheet .badge', { timeout: 20000 }).catch(() => {}); const badges = p.locator('#sheet .badge');
   const badgeCount = await badges.count();
   await p.click('#toggleLabels');
   const labelsHidden = await p.evaluate(() => document.querySelector('#pidViewport').classList.contains('labels-off') &&

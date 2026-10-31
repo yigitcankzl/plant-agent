@@ -95,7 +95,9 @@ class SaltHeater(unittest.TestCase):
         for row in [x for x in md.splitlines() if x.startswith("| ") and not x.startswith("| Quantity") and not x.startswith("| Check")]:
             self.assertTrue(row.rstrip(" |").rsplit("|", 1)[-1].strip(), row)   # every row names its source
         # the stored 'clean E-201' proposal rates the clean condition
-        i = next(i for i, a in enumerate(w.answers) if any("lean" in p.get("title", "") for p in a.get("proposals") or []))
+        i = next((i for i, a in enumerate(w.answers) if any("lean" in p.get("title", "") for p in a.get("proposals") or [])), None)
+        if i is None:  # depends on the local session history in runs/ws/salt_mvr
+            self.skipTest("no stored 'clean E-201' answer in the latest salt session")
         c = hxdetail.hx_detail(w, "V-201", answer=i, save=False)   # stored calculation record of the proposal
         self.assertEqual(c["condition"], "clean")
         self.assertEqual(c["model_U"], 2500)
