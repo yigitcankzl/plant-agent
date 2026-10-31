@@ -119,3 +119,42 @@ def pressure_time_svg(title, series, design_psig=None, burst_psig=None, now_h=No
                    f'<text x="{sx(now_h) - 4:.1f}" y="{pad_t + 12}" text-anchor="end" fill="#111">{now_h:.0f} h</text>')
     out.append("</svg>")
     return "\n".join(out)
+
+
+def panels_svg(title, t, panels, x_label="time (s)", w=760, panel_h=170):
+    """Stacked time-series panels sharing one time axis. panels: [{"title", "unit", "series": {name: [y per t]},
+    "lines": {label: y} (dashed limits)}]. Numbers come from the caller's model; this only draws them."""
+    pad_l, pad_r, pad_t, gap, pad_b = 70, 170, 40, 26, 44
+    h = pad_t + len(panels) * (panel_h + gap) + pad_b
+    x0, x1 = t[0], t[-1]
+    sx = lambda x: pad_l + (x - x0) / ((x1 - x0) or 1) * (w - pad_l - pad_r)  # noqa: E731
+    out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" font-family="sans-serif" font-size="11">',
+           f'<rect width="{w}" height="{h}" fill="#fff"/>',
+           f'<text x="{pad_l}" y="24" font-size="14" font-weight="600" fill="#111">{escape(title)}</text>']
+    for k, p in enumerate(panels):
+        top = pad_t + k * (panel_h + gap)
+        vals = [v for s in p["series"].values() for v in s if v is not None] + list((p.get("lines") or {}).values())
+        lo, hi = min(vals), max(vals)
+        span = (hi - lo) or abs(hi) or 1
+        lo, hi = lo - 0.08 * span, hi + 0.08 * span
+        sy = lambda y: top + panel_h - (y - lo) / (hi - lo) * panel_h  # noqa: E731
+        out.append(f'<rect x="{pad_l}" y="{top}" width="{w - pad_l - pad_r}" height="{panel_h}" fill="none" stroke="#ddd"/>'
+                   f'<text x="{pad_l + 4}" y="{top + 13}" font-weight="600" fill="#333">{escape(p["title"])} ({escape(p.get("unit", ""))})</text>')
+        for j in range(5):
+            y = lo + (hi - lo) * j / 4
+            out.append(f'<text x="{pad_l - 6}" y="{sy(y) + 4:.1f}" text-anchor="end" fill="#555">{y:.3g}</text>')
+        for label, y in (p.get("lines") or {}).items():
+            out.append(f'<line x1="{pad_l}" y1="{sy(y):.1f}" x2="{w - pad_r}" y2="{sy(y):.1f}" stroke="#b91c1c" stroke-dasharray="6,4"/>'
+                       f'<text x="{w - pad_r - 4}" y="{sy(y) - 4:.1f}" text-anchor="end" fill="#b91c1c">{escape(label)}</text>')
+        for i, (name, ys) in enumerate(p["series"].items()):
+            c = PALETTE[i % len(PALETTE)]
+            pts = " ".join(f"{sx(x):.1f},{sy(y):.1f}" for x, y in zip(t, ys) if y is not None)
+            out.append(f'<polyline points="{pts}" fill="none" stroke="{c}" stroke-width="1.8"/>')
+            ly = top + 14 + i * 16
+            out.append(f'<line x1="{w - pad_r + 10}" y1="{ly}" x2="{w - pad_r + 26}" y2="{ly}" stroke="{c}" stroke-width="2"/>'
+                       f'<text x="{w - pad_r + 30}" y="{ly + 4}" fill="#333">{escape(name[:24])}</text>')
+    for j in range(7):
+        x = x0 + (x1 - x0) * j / 6
+        out.append(f'<text x="{sx(x):.1f}" y="{h - pad_b + 16}" text-anchor="middle" fill="#555">{x:.0f}</text>')
+    out.append(f'<text x="{(pad_l + w - pad_r) / 2:.1f}" y="{h - 10}" text-anchor="middle" fill="#333">{escape(x_label)}</text></svg>')
+    return "\n".join(out)

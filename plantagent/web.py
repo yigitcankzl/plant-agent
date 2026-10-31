@@ -798,6 +798,12 @@ class Handler(SimpleHTTPRequestHandler):
                     return self._send(_case_call(case, lambda: prefeed.discipline_gates(w, q.get("answer"), refresh=q.get("refresh") == "1")))
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
+            if what == "curves":  # performance curves on the design (curves.py): DWSIM re-solve, no model call; cached
+                from . import curves
+                return self._send(_case_call(case, lambda: curves.evaluate(w, refresh=q.get("refresh") == "1")))
+            if what == "transient" and method == "POST":  # K-202 start-up screen (transient.py), saved as an artifact
+                from . import transient
+                return self._send(_case_call(case, lambda: transient.k202_startup(w)))
             if what == "prefeed" and method == "POST":  # deterministic scenario gate; no paid model call
                 from . import prefeed
                 try:
