@@ -208,18 +208,18 @@ def spend_status():
     main = _main_checkout()
     ledgers = [main / "runs/usage.jsonl", *sorted((main / ".claude/worktrees").glob("*/runs/usage.jsonl"))]
     total = task = 0.0
-    for ledger in dict.fromkeys(ledgers):
-        if not ledger.exists():
+    # the ledger is tracked in git, so every worktree holds a copy of the shared history: count each line once
+    # ponytail: two genuinely identical calls collapse into one; add a call id to the ledger if that ever matters
+    lines = dict.fromkeys(l for ledger in dict.fromkeys(ledgers) if ledger.exists() for l in ledger.read_text().splitlines())
+    for line in lines:
+        try:
+            row = json.loads(line)
+            usd = float(row.get("usd") or 0)
+            total += usd
+            if str(row.get("tag") or "").startswith("hazop:"):
+                task += usd
+        except (ValueError, TypeError, json.JSONDecodeError):
             continue
-        for line in ledger.read_text().splitlines():
-            try:
-                row = json.loads(line)
-                usd = float(row.get("usd") or 0)
-                total += usd
-                if str(row.get("tag") or "").startswith("hazop:"):
-                    task += usd
-            except (ValueError, TypeError, json.JSONDecodeError):
-                continue
     cap = llm.BUDGET_USD
     env = main / ".env"
     if env.exists():
@@ -281,7 +281,10 @@ def generate(w, answer=None, model=None, proposer=None):
         result = json.loads(cache.read_text())
         latest.write_text(json.dumps(result, indent=1))
         return result
-    judgements = (proposer or (lambda p: _muse(p, model or w.model)))(payload)
+    ask = proposer or (lambda p: _muse(p, model or w.model))
+    judgements = []  # one call per node: 110 rows in one answer overrun the output limit
+    for node in dict.fromkeys(d["node_id"] for d in payload["deviations"]):
+        judgements += ask({**payload, "deviations": [d for d in payload["deviations"] if d["node_id"] == node]})
     by_key = {r.get("key"): r for r in judgements if isinstance(r, dict)}
     missing = [d["key"] for d in payload["deviations"] if d["key"] not in by_key]
     if missing:
