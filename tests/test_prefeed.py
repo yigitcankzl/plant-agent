@@ -36,7 +36,8 @@ class PrefeedTests(unittest.TestCase):
         tools = {t["function"]["name"]: t["function"] for t in workspace.tools()}
         self.assertIn("prefeed_assessment", tools)
         text = tools["prefeed_assessment"]["description"]
-        for word in ("operating-envelope", "equipment", "dynamics", "HAZOP", "constructability"):
+        for word in ("operating-envelope", "equipment", "dynamics", "HAZOP", "constructability", "impact register",
+                     "RFQ", "commissioning"):
             self.assertIn(word, text)
 
     def test_envelope_requires_every_scenario_and_closes_mass(self):
@@ -47,6 +48,7 @@ class PrefeedTests(unittest.TestCase):
         self.assertFalse(result["scenarios"][1]["pass"])
         self.assertEqual(result["governing"]["scenario"], "target")
         self.assertEqual(result["scenarios"][0]["balance"]["mass_error_pct"], 0)
+        self.assertEqual(result["scenarios"][0]["all_checks"][0]["id"], "K-1")
         self.assertIn("enthalpy", result["scenarios"][0]["balance"]["energy"])
         with self.assertRaisesRegex(ValueError, "documented limits"):
             prefeed.run_envelope(SPEC, [{"name": "cheat", "changes": [{"path": "limits.K-1.max_kg_h", "value": 999}]}],
@@ -88,6 +90,50 @@ class PrefeedTests(unittest.TestCase):
             "capex_low": 100, "capex_high": 200, "outage_days": 2, "production_value_per_day": 10,
             "source": "estimate E-1"})
         self.assertEqual(priced["quantified"]["first_year_high"], 220)
+
+    def test_change_lifecycle_stays_open_until_sourced_results_and_field_acceptance(self):
+        changes = [{"path": "units.K-1.eff_pct", "from": 70, "value": 75},
+                   {"add_unit": {"id": "K-2", "type": "compressor", "in": "S", "out": "D"},
+                    "limits": {"max_kg_h": 120}, "rating_source": "budget quote Q-1"},
+                   {"reroute": {"unit": "K-1", "field": "out", "value": "J"}}]
+        env = prefeed.run_envelope(SPEC, [{"name": "target", "scale": 1}], solve, patch)
+        equipment = [{"id": "K-2", "type": "compressor", "status": "provisional pass",
+                      "operating_flow": 100, "flow_unit": "kg/h", "rating_flow": 120,
+                      "calculated_shaft": 10, "shaft_unit": "kW", "rating_shaft": 15,
+                      "rating_source": "budget quote Q-1", "vendor_gate": ["guaranteed curve"]}]
+        hazards = {"rows": [{"tag": "K-2"}]}
+        dynamics = {"status": "not run"}
+        construction = {"physical_units": ["K-2"], "reroutes": 1}
+        disciplines = prefeed.discipline_register(env, equipment, dynamics, hazards, construction,
+                                                   [{"id": "electrical", "status": "pass", "summary": "MCC holds",
+                                                     "source": "pandapower run E-1", "checks": [{"loading_pct": 82}]}])
+        self.assertEqual(next(r for r in disciplines if r["id"] == "electrical")["status"], "pass")
+        self.assertEqual(next(r for r in disciplines if r["id"] == "mechanical")["status"], "open")
+        with self.assertRaisesRegex(ValueError, "needs id"):
+            prefeed.discipline_register(env, equipment, dynamics, hazards, construction,
+                                        [{"id": "electrical", "status": "pass"}])
+
+        inputs = prefeed.decision_inputs(changes)
+        self.assertTrue(any("K-2" in r["item"] for r in inputs))
+        self.assertTrue(any("Tie-in" in r["item"] for r in inputs))
+        self.assertIn("K-2", prefeed.rfq_markdown(equipment))
+
+        plan = prefeed.commissioning_plan(changes, env, equipment)
+        self.assertEqual(plan["status"], "open")
+        test_id = plan["tests"][0]["id"]
+        closed = prefeed.commissioning_plan(changes, env, equipment,
+                                            [{"test_id": test_id, "value": 100, "source": "SAT sheet 1"}])
+        self.assertEqual(closed["tests"][0]["status"], "pass")
+        self.assertIn("SAT sheet 1", prefeed.commissioning_markdown(closed))
+        with self.assertRaisesRegex(ValueError, "needs a source"):
+            prefeed.commissioning_plan(changes, env, equipment, [{"test_id": test_id, "value": 100}])
+        self.assertEqual(prefeed._direction({"check": "residence time", "value": 10, "limit": 10,
+                                             "utilisation": 1}), "min")
+
+        options = prefeed.option_comparison([{"title": "K-2", "verified": True, "reaches_target": False,
+                                               "cost_class": ">$1M", "changes": changes}], env)
+        self.assertEqual(options["options"][0]["role"], "partial change")
+        self.assertIn("not ranked", options["pareto"])
 
 
 if __name__ == "__main__":

@@ -171,6 +171,9 @@ DWSIM (`plantagent/process.py`) runs headless through pythonnet as one long-live
 minimum/normal/maximum and off-design scenarios; reports boundary mass closure and the missing enthalpy needed for an
 energy closure; screens new-equipment flow and driver margins; writes a preliminary equipment data sheet; opens a
 change-focused HAZOP/relief register; and lists tie-ins, outage, electrical, civil, controls and unpriced cost items.
+The same solve also writes a discipline impact register, decision-changing evidence requests, an honest change portfolio
+(no Pareto rank without sourced numeric cost/outage/energy), a vendor RFQ duty sheet and a commissioning acceptance plan.
+Versioned, traceable field observations can close each commissioning test against the same stored engineering limit.
 It saves Markdown, JSON and PDF artifacts and makes no paid model call. A critical-loop dynamic screen runs only when
 an engineer supplies sourced first-order/dead-time constants and limits. It is explicitly not a vendor curve, rigorous
 plant dynamic model, multidisciplinary HAZOP, relief sizing or construction approval.
