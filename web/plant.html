@@ -224,6 +224,8 @@
   .process.focused #answers { font-size: 14px; line-height: 1.5; }
   .process.focused #answers > .ans { padding: 22px 20px 28px; animation: none; }
   .decision-brief { border-top: 3px solid #90d2c8; }
+  .review-note { margin: 0 0 12px; padding: 9px 11px; border-left: 3px solid var(--warn); background: #2b2414; border-radius: 4px; font-size: 12.5px; color: #f3dca8; }
+  .review-note summary { cursor: pointer; color: var(--muted); margin-top: 5px; } .review-note li { margin: 4px 0; } .review-note code { color: var(--warn); }
   .gates-open > summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-top: 8px; }
   .decision-brief h2 { margin: 14px 0 10px; font-size: 19px; line-height: 1.3; }
   .decision-facts { margin: 0; }
@@ -1703,13 +1705,22 @@ function decisionBrief(a, idx) {
     else if (bad.length) { status = `${bad.length} of ${runs.length} cited ${simulator()} runs re-solve to a different result: check before relying on the numbers`; statusClass = 'fail'; }
   }
   const issue = (idx === P.answers.length - 1 || a === designAnswer()) && !modelBlocked() && verified.length ? `<div class="package-action"><button class="btn go" type="button" onclick="issueEngineeringPackage(this)">Issue engineering package</button><small>DRAFT — generates the decision pack and current pre-FEED gates; not approved for construction.</small></div>` : '';
-  return `<section class="decision-brief"><h2>${esc(plain(a.headline) || 'Engineering decision')}</h2><dl class="decision-facts">
+  return `<section class="decision-brief"><h2>${esc(plain(a.headline) || 'Engineering decision')}</h2>${reviewNote(a)}<dl class="decision-facts">
     <div class="decision-fact"><dt>① ${incident() ? 'What the engine shows' : 'What limits it'}</dt><dd>${first ? `<b>${esc(first.tag)}</b> · ${esc(plain(first.text))}` : 'No limiting item reported'}</dd></div>
     <div class="decision-fact"><dt>② ${incident() ? 'What would have prevented it' : 'What Muse proposes'}</dt><dd>${esc(plain(recommendation))}</dd></div>
     <div class="decision-fact status-${statusClass}"><dt>③ What the engines confirmed</dt><dd>${esc(status)}</dd></div>
     <div class="decision-fact"><dt>Who did what</dt><dd>${whoDidWhat(d, gates)}</dd></div>
     ${secondOpinionLink(d)}
   </dl></section>${disciplineImpact(d)}${issue}`;
+}
+// corrections made after Muse answered (e.g. after an engine fix): shown beside Muse's words, never in place of them
+function reviewNote(a) {
+  const r = a.review_notes, ch = r?.changes || [];
+  if (!ch.length) return '';
+  const said = f => ch.find(c => c.field === f)?.review_says;
+  const lead = said('headline') || said('summary');
+  const text = v => typeof v === 'string' ? v : Array.isArray(v) ? v.map(x => x?.text || x?.result || '').filter(Boolean).join(' ') : '';
+  return `<div class="review-note"><b>Review note · not written by Muse</b>${lead ? `<div>${esc(plain(lead))}</div>` : ''}<details><summary>${ch.length} field${ch.length === 1 ? '' : 's'} corrected after the answer</summary><ul>${ch.map(c => `<li><code>${esc(c.field)}</code> ${esc(plain(text(c.review_says)).slice(0, 300))}</li>`).join('')}</ul><small>${esc(r.by || '')}</small></details></div>`;
 }
 // the split the whole product rests on: the language model reads and proposes, the solvers produce every number
 function whoDidWhat(d, gates) {

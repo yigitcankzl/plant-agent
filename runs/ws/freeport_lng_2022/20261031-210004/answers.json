@@ -1,7 +1,7 @@
 [
  {
-  "headline": "Blocked line can rupture in days; ideal relief capacity remains unchecked",
-  "summary": "In the baseline run 'VIP-18 baseline fill0.85 heat2 120h' (sound insulation, 85% liquid) pressure is only 47.8 psig after 5 days and does not pass the illustrative 230 psig design pressure until 944.5 hours (about 39 days), but in run 'VIP-18 fill0.85 heat30 120h' (degraded insulation) it passes design at 63.0 hours and the illustrative 1456 psig burst pressure at 79.6 hours. With PSV-101 available, the screening model clamps pressure at an ideal 230 psig relief boundary; relieving capacity, backpressure and discharge capacity are not checked.",
+  "headline": "Blocked line bursts in days unless relief restored",
+  "summary": "In the baseline run 'VIP-18 baseline fill0.85 heat2 120h' (sound insulation, 85% liquid) pressure is only 47.8 psig after 5 days and does not pass the illustrative 230 psig design pressure until 944.5 hours (about 39 days), but in run 'VIP-18 fill0.85 heat30 120h' (degraded insulation) it passes design at 63.0 hours and the illustrative 1456 psig burst pressure at 79.6 hours. Restoring the relief valve prevents the burst: in run 'VIP-18 fill0.85 heat30 PSV-live 120h' the valve lifts and holds the line at its 230 psig set point even at the highest heat leak tested.",
   "cards": [
    {
     "title": "As found, with insulation in good condition: slow rise for weeks",
@@ -97,8 +97,8 @@
      }
     ],
     "assumptions": [
-     "The two pressure-history charts produced ('VIP-18 blocked-in pressure history \u2014 baseline' and 'VIP-18 pressure history \u2014 degraded vacuum (30 W/m)') show these two bounding cases; pressures plotted beyond burst are the calculation continuing after the point where the real pipe would have ruptured.",
-     "Whether the real line behaved like the slow or the fast case depends on its actual insulation condition, which is not in the public record \u2014 see field checks."
+     "The two pressure-history charts produced ('VIP-18 blocked-in pressure history — baseline' and 'VIP-18 pressure history — degraded vacuum (30 W/m)') show these two bounding cases; pressures plotted beyond burst are the calculation continuing after the point where the real pipe would have ruptured.",
+     "Whether the real line behaved like the slow or the fast case depends on its actual insulation condition, which is not in the public record — see field checks."
     ],
     "runs": [
      "VIP-18 fill0.85 heat10 120h",
@@ -143,7 +143,7 @@
    {
     "title": "What should have prevented it: relief valve back in service before blocking in",
     "status": "warn",
-    "result": "The ideal relief boundary clamps pressure at 230 psig; relieving capacity is not checked",
+    "result": "A live relief valve holds the line at 230 psig even at the worst heat leak tested",
     "inputs": [
      {
       "name": "Relief valve set point",
@@ -153,13 +153,13 @@
      },
      {
       "name": "Pressure with relief valve available at 30 W/m heat leak",
-      "value": "230.0 psig over 120 hours at the ideal relief boundary; valve lifted, relieving capacity unchecked",
+      "value": "Held at 230.0 psig (100% of design, 15.8% of burst) over 120 hours, valve lifted",
       "basis": "computed",
-      "source": "Run 'VIP-18 fill0.85 heat30 PSV-live 120h': PSV-101 lifted=true, VIP-18 checks 230.0/230 psig and 230.0/1456 psig; ideal relief boundary \u2014 relieving capacity not checked"
+      "source": "Run 'VIP-18 fill0.85 heat30 PSV-live 120h': PSV-101 lifted=true, VIP-18 checks 230.0/230 psig and 230.0/1456 psig"
      },
      {
       "name": "Pressure with relief valve available at 2 W/m heat leak",
-      "value": "47.8 psig after 120 hours; valve does not lift, but its relieving capacity remains unchecked",
+      "value": "47.8 psig after 120 hours, valve does not need to lift",
       "basis": "computed",
       "source": "Run 'VIP-18 fill0.85 heat2 PSV-live 120h' (PSV-101 lifted=false)"
      },
@@ -171,7 +171,7 @@
      }
     ],
     "assumptions": [
-     "ideal relief boundary \u2014 relieving capacity not checked. The screen does not size the PSV or check backpressure, two-phase flow, the discharge system or whether available capacity prevents rupture.",
+     "Putting PSV-101 back in service means reopening its isolation valve HV-101 and confirming the valve is proven before XV-102 (or XV-101) is closed on a liquid-filled segment; the relief valve lifting would vent liquefied gas to its designed discharge, so this prevents rupture but is not a substitute for draining or de-pressuring a segment that must stay blocked in.",
      "Administrative prevention (never block in a liquid segment with its relief valve isolated; lock or seal HV-101 open; time-limit and independently verify any relief-valve isolation) follows from the documented sequence but is not itself a model change."
     ],
     "runs": [
@@ -189,12 +189,12 @@
    {
     "tag": "PSV-101",
     "severity": "fail",
-    "text": "Isolated and unable to lift in every as-found run. When made available in the 30 W/m screening run it lifts at 230 psig against an ideal relief boundary; relieving capacity is not checked."
+    "text": "Isolated and unable to lift in every as-found run (isolated=true); when made available in run 'VIP-18 fill0.85 heat30 PSV-live 120h' it lifts and holds VIP-18 at its 230 psig set point."
    },
    {
     "tag": "HV-101",
     "severity": "fail",
-    "text": "Relief-valve isolation valve closed on 26 April 2022 for the PSV-101 annual test and left closed (Data sheet, NOPV p.2) \u2014 this removed the segment's only overpressure protection. Reopening it is the proposed fix."
+    "text": "Relief-valve isolation valve closed on 26 April 2022 for the PSV-101 annual test and left closed (Data sheet, NOPV p.2) — this removed the segment's only overpressure protection. Reopening it is the proposed fix."
    },
    {
     "tag": "XV-102",
@@ -216,7 +216,7 @@
    {
     "title": "Put PSV-101 back in service (reopen HV-101) before any block-in of VIP-18",
     "tag": "PSV-101",
-    "why": "With PSV-101 isolated the segment reaches the illustrative burst pressure in 79.6 hours at 30 W/m. Reopening HV-101 makes the screening model clamp pressure at 230 psig, but this is an ideal relief boundary: PSV relieving capacity, backpressure and discharge capacity remain to be checked.",
+    "why": "VIP-18 is the limiting item (pressure vs design and vs burst). With PSV-101 isolated the segment has no relief path and reaches burst in 79.6 hours at degraded-insulation heat leak (run 'VIP-18 fill0.85 heat30 120h'); with PSV-101 available the same run holds at the 230 psig set point with the valve lifted (run 'VIP-18 fill0.85 heat30 PSV-live 120h'). Field work: reopen HV-101, prove PSV-101 in service, and only then close block valves on a liquid segment.",
     "cost_class": "no capex",
     "changes": [
      {
@@ -271,7 +271,7 @@
        "isolated": false,
        "lifted": false,
        "set_psig": 230,
-       "relief_basis": "ideal relief boundary \u2014 relieving capacity not checked",
+       "relief_basis": "ideal relief boundary — relieving capacity not checked",
        "capacity_checked": false
       }
      },
@@ -281,12 +281,12 @@
      "simulator": "dwsim",
      "errors": [],
      "warnings": [
-      "ideal relief boundary \u2014 relieving capacity not checked"
+      "ideal relief boundary — relieving capacity not checked"
      ],
      "model_label": "VIP-18 baseline fill0.85 heat2 120h"
     },
-    "relief_basis": "ideal relief boundary \u2014 relieving capacity not checked",
-    "verified_scope": "ideal relief boundary \u2014 relieving capacity not checked",
+    "relief_basis": "ideal relief boundary — relieving capacity not checked",
+    "verified_scope": "ideal relief boundary — relieving capacity not checked",
     "discipline_status": {
      "process_safety": "open"
     }
@@ -311,14 +311,14 @@
    {
     "item": "PSV-101 set point and the as-left position of HV-101 after the 26 April test",
     "where": "PSV-101 bench-test record from the annual test and a field position check / operations log for HV-101 covering 26 April to 8 June",
-    "changes": "The set point changes the ideal pressure boundary. PSV orifice, certified capacity, inlet/outlet losses, backpressure and discharge-system capacity are still required before concluding that relief prevents rupture."
+    "changes": "If the set point were above design pressure, a live valve would cap pressure higher than 230 psig; if HV-101 was in fact reopened, the prevention conclusion changes and another relief path failure would have to be found."
    }
   ],
   "artifacts": [
    {
     "id": "20261031-210013-vip-18-blocked-in-pressure-history-basel",
     "kind": "chart",
-    "title": "VIP-18 blocked-in pressure history \u2014 baseline (85% liquid, 2 W/m heat leak, PSV-101 isolated)",
+    "title": "VIP-18 blocked-in pressure history — baseline (85% liquid, 2 W/m heat leak, PSV-101 isolated)",
     "files": [
      "pressure.json",
      "pressure.svg"
@@ -328,7 +328,7 @@
    {
     "id": "20261031-210059-vip-18-pressure-history-degraded-vacuum-",
     "kind": "chart",
-    "title": "VIP-18 pressure history \u2014 degraded vacuum (30 W/m), 85% liquid, PSV-101 isolated",
+    "title": "VIP-18 pressure history — degraded vacuum (30 W/m), 85% liquid, PSV-101 isolated",
     "files": [
      "pressure.json",
      "pressure.svg"
@@ -390,6 +390,499 @@
     "source": "blocked-in segment simulator",
     "checks": []
    }
-  ]
+  ],
+  "review_notes": {
+   "by": "engineer review after the engine fixes of 2026-11-01 (not written by Muse)",
+   "changes": [
+    {
+     "field": "headline",
+     "muse_wrote": "Blocked line bursts in days unless relief restored",
+     "review_says": "Blocked line can rupture in days; ideal relief capacity remains unchecked"
+    },
+    {
+     "field": "summary",
+     "muse_wrote": "In the baseline run 'VIP-18 baseline fill0.85 heat2 120h' (sound insulation, 85% liquid) pressure is only 47.8 psig after 5 days and does not pass the illustrative 230 psig design pressure until 944.5 hours (about 39 days), but in run 'VIP-18 fill0.85 heat30 120h' (degraded insulation) it passes design at 63.0 hours and the illustrative 1456 psig burst pressure at 79.6 hours. Restoring the relief valve prevents the burst: in run 'VIP-18 fill0.85 heat30 PSV-live 120h' the valve lifts and holds the line at its 230 psig set point even at the highest heat leak tested.",
+     "review_says": "In the baseline run 'VIP-18 baseline fill0.85 heat2 120h' (sound insulation, 85% liquid) pressure is only 47.8 psig after 5 days and does not pass the illustrative 230 psig design pressure until 944.5 hours (about 39 days), but in run 'VIP-18 fill0.85 heat30 120h' (degraded insulation) it passes design at 63.0 hours and the illustrative 1456 psig burst pressure at 79.6 hours. With PSV-101 available, the screening model clamps pressure at an ideal 230 psig relief boundary; relieving capacity, backpressure and discharge capacity are not checked."
+    },
+    {
+     "field": "cards",
+     "muse_wrote": [
+      {
+       "title": "As found, with insulation in good condition: slow rise for weeks",
+       "status": "warn",
+       "result": "47.8 psig after 5 days; design pressure passed at about day 39",
+       "inputs": [
+        {
+         "name": "Starting pressure in the blocked segment",
+         "value": "37 psig",
+         "basis": "documented",
+         "source": "Data sheet: Operating record and Fluid rows (partially filled at 37 psig when XV-102 closed, NOPV p.3); feeds.SEG P_psig in run 'VIP-18 baseline fill0.85 heat2 120h'"
+        },
+        {
+         "name": "Liquid fill at block-in",
+         "value": "85% of pipe volume (tested range 70-95%)",
+         "basis": "assumed",
+         "source": "Data sheet: Assumptions row (fill 0.70-0.95 ILLUSTRATIVE); feeds.SEG fill_fraction 0.85 in baseline run"
+        },
+        {
+         "name": "Heat leak through insulation",
+         "value": "2 W per metre of pipe",
+         "basis": "assumed",
+         "source": "Data sheet: Assumptions row (heat leak ILLUSTRATIVE); units.VIP-18 heat_leak_W_m in baseline run"
+        },
+        {
+         "name": "Design and burst pressure of VIP-18",
+         "value": "230 psig design, 1456 psig estimated burst",
+         "basis": "assumed",
+         "source": "Data sheet: Assumptions row (both ILLUSTRATIVE, real values not public); limits.VIP-18 in baseline run"
+        },
+        {
+         "name": "Relief valve availability",
+         "value": "PSV-101 isolated (cannot lift)",
+         "basis": "documented",
+         "source": "Data sheet: Operating record (HV-101 closed 26 April 2022 to isolate PSV-101 for annual test, NOPV p.2); units.PSV-101 isolated=true in baseline run"
+        },
+        {
+         "name": "Block valves XV-101 and XV-102",
+         "value": "Both closed (XV-101 on 3 June 08:22, XV-102 on 3 June 16:44)",
+         "basis": "documented",
+         "source": "Data sheet: Operating record (NOPV p.3); units.XV-101 and XV-102 closed=true in baseline run"
+        }
+       ],
+       "assumptions": [
+        "Pipe size (18-inch, 457.2 mm outside diameter, 4.78 mm wall), 100 m segment length, pressures, fill and heat leak are ILLUSTRATIVE per the data sheet because the operator's root-cause report is redacted; the timeline below is therefore provisional.",
+        "Heat leak is held constant, the segment volume is rigid, and no liquid is drained or vented while both block valves stay closed.",
+        "Liquefied gas composition is the ILLUSTRATIVE mixture in the data sheet Fluid row (95% methane, 3.5% ethane, 1% propane, 0.5% nitrogen by mole)."
+       ],
+       "runs": [
+        "VIP-18 baseline fill0.85 heat2 120h"
+       ]
+      },
+      {
+       "title": "If the insulation vacuum is degraded: design and burst passed within days",
+       "status": "fail",
+       "result": "Design passed in 2.6 to 7.9 days; burst in 3.3 to 10 days",
+       "inputs": [
+        {
+         "name": "Heat leak, degraded insulation cases",
+         "value": "10 and 30 W per metre of pipe",
+         "basis": "assumed",
+         "source": "Data sheet: Assumptions row (degraded-vacuum heat leak ILLUSTRATIVE); units.VIP-18 heat_leak_W_m in runs 'VIP-18 fill0.85 heat10 120h' and 'VIP-18 fill0.85 heat30 120h'"
+        },
+        {
+         "name": "Pressure after 5 days at 30 W/m heat leak (model continues past failure)",
+         "value": "4063.8 psig in the calculation; the real pipe would already have failed at the 1456 psig burst estimate",
+         "basis": "computed",
+         "source": "Run 'VIP-18 fill0.85 heat30 120h': VIP-18 pressure vs design utilisation 17.67, vs burst 2.79 at 120 h"
+        },
+        {
+         "name": "Time to design pressure at 30 W/m",
+         "value": "63.0 hours (about 2.6 days) at 85% fill; 26.2 hours at 95% fill",
+         "basis": "computed",
+         "source": "Runs 'VIP-18 fill0.85 heat30 120h' (design_reached_h 63.0) and 'VIP-18 fill0.95 heat30 120h' (design_reached_h 26.2)"
+        },
+        {
+         "name": "Time to burst pressure at 30 W/m",
+         "value": "79.6 hours (about 3.3 days) at 85% fill; 44.2 hours at 95% fill",
+         "basis": "computed",
+         "source": "Runs 'VIP-18 fill0.85 heat30 120h' (burst_reached_h 79.6) and 'VIP-18 fill0.95 heat30 120h' (burst_reached_h 44.2)"
+        },
+        {
+         "name": "Time to design pressure at 10 W/m",
+         "value": "188.9 hours (about 7.9 days); burst at 238.9 hours (about 10 days)",
+         "basis": "computed",
+         "source": "Run 'VIP-18 fill0.85 heat10 120h' (design_reached_h 188.9, burst_reached_h 238.9, 126.9 psig at 120 h)"
+        },
+        {
+         "name": "Effect of fill alone at sound insulation (2 W/m)",
+         "value": "Design reached at 392.7 hours (95% fill) to 989.9 hours (70% fill)",
+         "basis": "computed",
+         "source": "Runs 'VIP-18 fill0.95 heat2 120h' and 'VIP-18 fill0.70 heat2 120h'"
+        }
+       ],
+       "assumptions": [
+        "The two pressure-history charts produced ('VIP-18 blocked-in pressure history — baseline' and 'VIP-18 pressure history — degraded vacuum (30 W/m)') show these two bounding cases; pressures plotted beyond burst are the calculation continuing after the point where the real pipe would have ruptured.",
+        "Whether the real line behaved like the slow or the fast case depends on its actual insulation condition, which is not in the public record — see field checks."
+       ],
+       "runs": [
+        "VIP-18 fill0.85 heat10 120h",
+        "VIP-18 fill0.85 heat30 120h",
+        "VIP-18 fill0.95 heat30 120h",
+        "VIP-18 fill0.95 heat2 120h",
+        "VIP-18 fill0.70 heat2 120h"
+       ]
+      },
+      {
+       "title": "Why the rise is slow at first, then sudden",
+       "status": "info",
+       "result": "Once liquid expands to fill the whole pipe, pressure jumps within hours",
+       "inputs": [
+        {
+         "name": "Time until pipe becomes completely liquid-full, baseline",
+         "value": "912.4 hours; design pressure follows at 944.5 hours",
+         "basis": "computed",
+         "source": "Run 'VIP-18 baseline fill0.85 heat2 120h' (liquid_full_h 912.4, design_reached_h 944.5)"
+        },
+        {
+         "name": "Time until pipe becomes completely liquid-full, degraded insulation",
+         "value": "60.8 hours; design pressure follows at 63.0 hours, burst at 79.6 hours",
+         "basis": "computed",
+         "source": "Run 'VIP-18 fill0.85 heat30 120h' (liquid_full_h 60.8, design_reached_h 63.0, burst_reached_h 79.6)"
+        },
+        {
+         "name": "Pressure points on the fast rise, degraded case",
+         "value": "174.0 psig at 53.1 hours, then 354.5 psig at 63.0 hours",
+         "basis": "computed",
+         "source": "Run 'VIP-18 fill0.85 heat30 120h' pressure series"
+        }
+       ],
+       "assumptions": [
+        "While a vapour space remains, warming mainly boils a little liquid and pressure follows the boiling pressure, so the rise is gentle; once the expanding liquid fills the pipe, further warming squeezes liquid in a rigid volume and pressure climbs steeply."
+       ],
+       "runs": [
+        "VIP-18 baseline fill0.85 heat2 120h",
+        "VIP-18 fill0.85 heat30 120h"
+       ]
+      },
+      {
+       "title": "What should have prevented it: relief valve back in service before blocking in",
+       "status": "warn",
+       "result": "A live relief valve holds the line at 230 psig even at the worst heat leak tested",
+       "inputs": [
+        {
+         "name": "Relief valve set point",
+         "value": "230 psig (set equal to design pressure)",
+         "basis": "assumed",
+         "source": "Data sheet: Assumptions row (PSV set ILLUSTRATIVE equal to design); units.PSV-101 set_psig in all runs"
+        },
+        {
+         "name": "Pressure with relief valve available at 30 W/m heat leak",
+         "value": "Held at 230.0 psig (100% of design, 15.8% of burst) over 120 hours, valve lifted",
+         "basis": "computed",
+         "source": "Run 'VIP-18 fill0.85 heat30 PSV-live 120h': PSV-101 lifted=true, VIP-18 checks 230.0/230 psig and 230.0/1456 psig"
+        },
+        {
+         "name": "Pressure with relief valve available at 2 W/m heat leak",
+         "value": "47.8 psig after 120 hours, valve does not need to lift",
+         "basis": "computed",
+         "source": "Run 'VIP-18 fill0.85 heat2 PSV-live 120h' (PSV-101 lifted=false)"
+        },
+        {
+         "name": "Sequence that created the hazard",
+         "value": "Relief valve isolated for its annual test on 26 April; line then closed at both ends on 3 June with liquefied gas inside and no relief path",
+         "basis": "documented",
+         "source": "Data sheet: Operating record rows (NOPV p.2 and p.3)"
+        }
+       ],
+       "assumptions": [
+        "Putting PSV-101 back in service means reopening its isolation valve HV-101 and confirming the valve is proven before XV-102 (or XV-101) is closed on a liquid-filled segment; the relief valve lifting would vent liquefied gas to its designed discharge, so this prevents rupture but is not a substitute for draining or de-pressuring a segment that must stay blocked in.",
+        "Administrative prevention (never block in a liquid segment with its relief valve isolated; lock or seal HV-101 open; time-limit and independently verify any relief-valve isolation) follows from the documented sequence but is not itself a model change."
+       ],
+       "runs": [
+        "VIP-18 fill0.85 heat30 PSV-live 120h",
+        "VIP-18 fill0.85 heat2 PSV-live 120h"
+       ]
+      }
+     ],
+     "review_says": [
+      {
+       "title": "As found, with insulation in good condition: slow rise for weeks",
+       "status": "warn",
+       "result": "47.8 psig after 5 days; design pressure passed at about day 39",
+       "inputs": [
+        {
+         "name": "Starting pressure in the blocked segment",
+         "value": "37 psig",
+         "basis": "documented",
+         "source": "Data sheet: Operating record and Fluid rows (partially filled at 37 psig when XV-102 closed, NOPV p.3); feeds.SEG P_psig in run 'VIP-18 baseline fill0.85 heat2 120h'"
+        },
+        {
+         "name": "Liquid fill at block-in",
+         "value": "85% of pipe volume (tested range 70-95%)",
+         "basis": "assumed",
+         "source": "Data sheet: Assumptions row (fill 0.70-0.95 ILLUSTRATIVE); feeds.SEG fill_fraction 0.85 in baseline run"
+        },
+        {
+         "name": "Heat leak through insulation",
+         "value": "2 W per metre of pipe",
+         "basis": "assumed",
+         "source": "Data sheet: Assumptions row (heat leak ILLUSTRATIVE); units.VIP-18 heat_leak_W_m in baseline run"
+        },
+        {
+         "name": "Design and burst pressure of VIP-18",
+         "value": "230 psig design, 1456 psig estimated burst",
+         "basis": "assumed",
+         "source": "Data sheet: Assumptions row (both ILLUSTRATIVE, real values not public); limits.VIP-18 in baseline run"
+        },
+        {
+         "name": "Relief valve availability",
+         "value": "PSV-101 isolated (cannot lift)",
+         "basis": "documented",
+         "source": "Data sheet: Operating record (HV-101 closed 26 April 2022 to isolate PSV-101 for annual test, NOPV p.2); units.PSV-101 isolated=true in baseline run"
+        },
+        {
+         "name": "Block valves XV-101 and XV-102",
+         "value": "Both closed (XV-101 on 3 June 08:22, XV-102 on 3 June 16:44)",
+         "basis": "documented",
+         "source": "Data sheet: Operating record (NOPV p.3); units.XV-101 and XV-102 closed=true in baseline run"
+        }
+       ],
+       "assumptions": [
+        "Pipe size (18-inch, 457.2 mm outside diameter, 4.78 mm wall), 100 m segment length, pressures, fill and heat leak are ILLUSTRATIVE per the data sheet because the operator's root-cause report is redacted; the timeline below is therefore provisional.",
+        "Heat leak is held constant, the segment volume is rigid, and no liquid is drained or vented while both block valves stay closed.",
+        "Liquefied gas composition is the ILLUSTRATIVE mixture in the data sheet Fluid row (95% methane, 3.5% ethane, 1% propane, 0.5% nitrogen by mole)."
+       ],
+       "runs": [
+        "VIP-18 baseline fill0.85 heat2 120h"
+       ]
+      },
+      {
+       "title": "If the insulation vacuum is degraded: design and burst passed within days",
+       "status": "fail",
+       "result": "Design passed in 2.6 to 7.9 days; burst in 3.3 to 10 days",
+       "inputs": [
+        {
+         "name": "Heat leak, degraded insulation cases",
+         "value": "10 and 30 W per metre of pipe",
+         "basis": "assumed",
+         "source": "Data sheet: Assumptions row (degraded-vacuum heat leak ILLUSTRATIVE); units.VIP-18 heat_leak_W_m in runs 'VIP-18 fill0.85 heat10 120h' and 'VIP-18 fill0.85 heat30 120h'"
+        },
+        {
+         "name": "Pressure after 5 days at 30 W/m heat leak (model continues past failure)",
+         "value": "4063.8 psig in the calculation; the real pipe would already have failed at the 1456 psig burst estimate",
+         "basis": "computed",
+         "source": "Run 'VIP-18 fill0.85 heat30 120h': VIP-18 pressure vs design utilisation 17.67, vs burst 2.79 at 120 h"
+        },
+        {
+         "name": "Time to design pressure at 30 W/m",
+         "value": "63.0 hours (about 2.6 days) at 85% fill; 26.2 hours at 95% fill",
+         "basis": "computed",
+         "source": "Runs 'VIP-18 fill0.85 heat30 120h' (design_reached_h 63.0) and 'VIP-18 fill0.95 heat30 120h' (design_reached_h 26.2)"
+        },
+        {
+         "name": "Time to burst pressure at 30 W/m",
+         "value": "79.6 hours (about 3.3 days) at 85% fill; 44.2 hours at 95% fill",
+         "basis": "computed",
+         "source": "Runs 'VIP-18 fill0.85 heat30 120h' (burst_reached_h 79.6) and 'VIP-18 fill0.95 heat30 120h' (burst_reached_h 44.2)"
+        },
+        {
+         "name": "Time to design pressure at 10 W/m",
+         "value": "188.9 hours (about 7.9 days); burst at 238.9 hours (about 10 days)",
+         "basis": "computed",
+         "source": "Run 'VIP-18 fill0.85 heat10 120h' (design_reached_h 188.9, burst_reached_h 238.9, 126.9 psig at 120 h)"
+        },
+        {
+         "name": "Effect of fill alone at sound insulation (2 W/m)",
+         "value": "Design reached at 392.7 hours (95% fill) to 989.9 hours (70% fill)",
+         "basis": "computed",
+         "source": "Runs 'VIP-18 fill0.95 heat2 120h' and 'VIP-18 fill0.70 heat2 120h'"
+        }
+       ],
+       "assumptions": [
+        "The two pressure-history charts produced ('VIP-18 blocked-in pressure history — baseline' and 'VIP-18 pressure history — degraded vacuum (30 W/m)') show these two bounding cases; pressures plotted beyond burst are the calculation continuing after the point where the real pipe would have ruptured.",
+        "Whether the real line behaved like the slow or the fast case depends on its actual insulation condition, which is not in the public record — see field checks."
+       ],
+       "runs": [
+        "VIP-18 fill0.85 heat10 120h",
+        "VIP-18 fill0.85 heat30 120h",
+        "VIP-18 fill0.95 heat30 120h",
+        "VIP-18 fill0.95 heat2 120h",
+        "VIP-18 fill0.70 heat2 120h"
+       ]
+      },
+      {
+       "title": "Why the rise is slow at first, then sudden",
+       "status": "info",
+       "result": "Once liquid expands to fill the whole pipe, pressure jumps within hours",
+       "inputs": [
+        {
+         "name": "Time until pipe becomes completely liquid-full, baseline",
+         "value": "912.4 hours; design pressure follows at 944.5 hours",
+         "basis": "computed",
+         "source": "Run 'VIP-18 baseline fill0.85 heat2 120h' (liquid_full_h 912.4, design_reached_h 944.5)"
+        },
+        {
+         "name": "Time until pipe becomes completely liquid-full, degraded insulation",
+         "value": "60.8 hours; design pressure follows at 63.0 hours, burst at 79.6 hours",
+         "basis": "computed",
+         "source": "Run 'VIP-18 fill0.85 heat30 120h' (liquid_full_h 60.8, design_reached_h 63.0, burst_reached_h 79.6)"
+        },
+        {
+         "name": "Pressure points on the fast rise, degraded case",
+         "value": "174.0 psig at 53.1 hours, then 354.5 psig at 63.0 hours",
+         "basis": "computed",
+         "source": "Run 'VIP-18 fill0.85 heat30 120h' pressure series"
+        }
+       ],
+       "assumptions": [
+        "While a vapour space remains, warming mainly boils a little liquid and pressure follows the boiling pressure, so the rise is gentle; once the expanding liquid fills the pipe, further warming squeezes liquid in a rigid volume and pressure climbs steeply."
+       ],
+       "runs": [
+        "VIP-18 baseline fill0.85 heat2 120h",
+        "VIP-18 fill0.85 heat30 120h"
+       ]
+      },
+      {
+       "title": "What should have prevented it: relief valve back in service before blocking in",
+       "status": "warn",
+       "result": "The ideal relief boundary clamps pressure at 230 psig; relieving capacity is not checked",
+       "inputs": [
+        {
+         "name": "Relief valve set point",
+         "value": "230 psig (set equal to design pressure)",
+         "basis": "assumed",
+         "source": "Data sheet: Assumptions row (PSV set ILLUSTRATIVE equal to design); units.PSV-101 set_psig in all runs"
+        },
+        {
+         "name": "Pressure with relief valve available at 30 W/m heat leak",
+         "value": "230.0 psig over 120 hours at the ideal relief boundary; valve lifted, relieving capacity unchecked",
+         "basis": "computed",
+         "source": "Run 'VIP-18 fill0.85 heat30 PSV-live 120h': PSV-101 lifted=true, VIP-18 checks 230.0/230 psig and 230.0/1456 psig; ideal relief boundary — relieving capacity not checked"
+        },
+        {
+         "name": "Pressure with relief valve available at 2 W/m heat leak",
+         "value": "47.8 psig after 120 hours; valve does not lift, but its relieving capacity remains unchecked",
+         "basis": "computed",
+         "source": "Run 'VIP-18 fill0.85 heat2 PSV-live 120h' (PSV-101 lifted=false)"
+        },
+        {
+         "name": "Sequence that created the hazard",
+         "value": "Relief valve isolated for its annual test on 26 April; line then closed at both ends on 3 June with liquefied gas inside and no relief path",
+         "basis": "documented",
+         "source": "Data sheet: Operating record rows (NOPV p.2 and p.3)"
+        }
+       ],
+       "assumptions": [
+        "ideal relief boundary — relieving capacity not checked. The screen does not size the PSV or check backpressure, two-phase flow, the discharge system or whether available capacity prevents rupture.",
+        "Administrative prevention (never block in a liquid segment with its relief valve isolated; lock or seal HV-101 open; time-limit and independently verify any relief-valve isolation) follows from the documented sequence but is not itself a model change."
+       ],
+       "runs": [
+        "VIP-18 fill0.85 heat30 PSV-live 120h",
+        "VIP-18 fill0.85 heat2 PSV-live 120h"
+       ]
+      }
+     ]
+    },
+    {
+     "field": "highlights",
+     "muse_wrote": [
+      {
+       "tag": "VIP-18",
+       "severity": "fail",
+       "text": "Blocked-in liquefied gas warms and pressurises this segment: passes 230 psig design at 63.0 h and 1456 psig burst at 79.6 h in run 'VIP-18 fill0.85 heat30 120h' (degraded insulation), or at 944.5 h / 1194.7 h in the baseline run with sound insulation."
+      },
+      {
+       "tag": "PSV-101",
+       "severity": "fail",
+       "text": "Isolated and unable to lift in every as-found run (isolated=true); when made available in run 'VIP-18 fill0.85 heat30 PSV-live 120h' it lifts and holds VIP-18 at its 230 psig set point."
+      },
+      {
+       "tag": "HV-101",
+       "severity": "fail",
+       "text": "Relief-valve isolation valve closed on 26 April 2022 for the PSV-101 annual test and left closed (Data sheet, NOPV p.2) — this removed the segment's only overpressure protection. Reopening it is the proposed fix."
+      },
+      {
+       "tag": "XV-102",
+       "severity": "warn",
+       "text": "Closed 3 June 2022 at 16:44 (Data sheet, NOPV p.3), completing the blocked-in condition with liquefied gas trapped and no relief path."
+      },
+      {
+       "tag": "XV-101",
+       "severity": "warn",
+       "text": "Closed 3 June 2022 at 08:22 (Data sheet, NOPV p.3); from XV-102 closing that day the segment was sealed at both ends."
+      },
+      {
+       "tag": "TI-101",
+       "severity": "info",
+       "text": "Skin temperature points TI-101 to TI-104 (Data sheet, NOPV p.4) are the installed means of seeing the segment warm up; no temperature values are in the data sheet and there is no historian export in this project, so their 3-8 June trend is a field check below."
+      }
+     ],
+     "review_says": [
+      {
+       "tag": "VIP-18",
+       "severity": "fail",
+       "text": "Blocked-in liquefied gas warms and pressurises this segment: passes 230 psig design at 63.0 h and 1456 psig burst at 79.6 h in run 'VIP-18 fill0.85 heat30 120h' (degraded insulation), or at 944.5 h / 1194.7 h in the baseline run with sound insulation."
+      },
+      {
+       "tag": "PSV-101",
+       "severity": "fail",
+       "text": "Isolated and unable to lift in every as-found run. When made available in the 30 W/m screening run it lifts at 230 psig against an ideal relief boundary; relieving capacity is not checked."
+      },
+      {
+       "tag": "HV-101",
+       "severity": "fail",
+       "text": "Relief-valve isolation valve closed on 26 April 2022 for the PSV-101 annual test and left closed (Data sheet, NOPV p.2) — this removed the segment's only overpressure protection. Reopening it is the proposed fix."
+      },
+      {
+       "tag": "XV-102",
+       "severity": "warn",
+       "text": "Closed 3 June 2022 at 16:44 (Data sheet, NOPV p.3), completing the blocked-in condition with liquefied gas trapped and no relief path."
+      },
+      {
+       "tag": "XV-101",
+       "severity": "warn",
+       "text": "Closed 3 June 2022 at 08:22 (Data sheet, NOPV p.3); from XV-102 closing that day the segment was sealed at both ends."
+      },
+      {
+       "tag": "TI-101",
+       "severity": "info",
+       "text": "Skin temperature points TI-101 to TI-104 (Data sheet, NOPV p.4) are the installed means of seeing the segment warm up; no temperature values are in the data sheet and there is no historian export in this project, so their 3-8 June trend is a field check below."
+      }
+     ]
+    },
+    {
+     "field": "proposals[0].why",
+     "muse_wrote": "VIP-18 is the limiting item (pressure vs design and vs burst). With PSV-101 isolated the segment has no relief path and reaches burst in 79.6 hours at degraded-insulation heat leak (run 'VIP-18 fill0.85 heat30 120h'); with PSV-101 available the same run holds at the 230 psig set point with the valve lifted (run 'VIP-18 fill0.85 heat30 PSV-live 120h'). Field work: reopen HV-101, prove PSV-101 in service, and only then close block valves on a liquid segment.",
+     "review_says": "With PSV-101 isolated the segment reaches the illustrative burst pressure in 79.6 hours at 30 W/m. Reopening HV-101 makes the screening model clamp pressure at 230 psig, but this is an ideal relief boundary: PSV relieving capacity, backpressure and discharge capacity remain to be checked."
+    },
+    {
+     "field": "field_checks",
+     "muse_wrote": [
+      {
+       "item": "Actual heat leak / insulation vacuum condition of VIP-18 during 3-8 June 2022",
+       "where": "Trend the DCS skin temperatures TI-101 to TI-104 and inspect/test the vacuum jacket (outer-jacket temperature survey and vacuum measurement) on VIP-18 between XV-101 and XV-102",
+       "changes": "This decides between the two charted outcomes: near 2 W/m the design pressure is not passed for about 39 days (baseline run), near 30 W/m it is passed in about 2.6 days and burst in about 3.3 days (degraded run). The days-scale failure is only explained by a high heat leak."
+      },
+      {
+       "item": "How full of liquid the segment was when XV-102 closed on 3 June",
+       "where": "Reconstruct from transfer records, line-pack and cooldown logs for the 3 June operation, checked against the TI-101 to TI-104 response after closure",
+       "changes": "At 30 W/m heat leak, 95% fill passes design at 26.2 hours versus 66.0 hours at 70% fill (runs 'VIP-18 fill0.95 heat30 120h' and 'VIP-18 fill0.70 heat30 120h'), so the fill assumption moves the exceedance time by days."
+      },
+      {
+       "item": "Real design pressure, pipe schedule and burst strength of the 18-inch line",
+       "where": "Line class specification, pipe material certificates and the segment's pressure-test records for VIP-18 (all redacted in the public record, hence ILLUSTRATIVE in the data sheet)",
+       "changes": "The 230 psig design and 1456 psig burst values set both thresholds; different real values change when design is exceeded and when rupture occurs, though not the conclusion that an isolated relief valve leaves the segment unprotected."
+      },
+      {
+       "item": "PSV-101 set point and the as-left position of HV-101 after the 26 April test",
+       "where": "PSV-101 bench-test record from the annual test and a field position check / operations log for HV-101 covering 26 April to 8 June",
+       "changes": "If the set point were above design pressure, a live valve would cap pressure higher than 230 psig; if HV-101 was in fact reopened, the prevention conclusion changes and another relief path failure would have to be found."
+      }
+     ],
+     "review_says": [
+      {
+       "item": "Actual heat leak / insulation vacuum condition of VIP-18 during 3-8 June 2022",
+       "where": "Trend the DCS skin temperatures TI-101 to TI-104 and inspect/test the vacuum jacket (outer-jacket temperature survey and vacuum measurement) on VIP-18 between XV-101 and XV-102",
+       "changes": "This decides between the two charted outcomes: near 2 W/m the design pressure is not passed for about 39 days (baseline run), near 30 W/m it is passed in about 2.6 days and burst in about 3.3 days (degraded run). The days-scale failure is only explained by a high heat leak."
+      },
+      {
+       "item": "How full of liquid the segment was when XV-102 closed on 3 June",
+       "where": "Reconstruct from transfer records, line-pack and cooldown logs for the 3 June operation, checked against the TI-101 to TI-104 response after closure",
+       "changes": "At 30 W/m heat leak, 95% fill passes design at 26.2 hours versus 66.0 hours at 70% fill (runs 'VIP-18 fill0.95 heat30 120h' and 'VIP-18 fill0.70 heat30 120h'), so the fill assumption moves the exceedance time by days."
+      },
+      {
+       "item": "Real design pressure, pipe schedule and burst strength of the 18-inch line",
+       "where": "Line class specification, pipe material certificates and the segment's pressure-test records for VIP-18 (all redacted in the public record, hence ILLUSTRATIVE in the data sheet)",
+       "changes": "The 230 psig design and 1456 psig burst values set both thresholds; different real values change when design is exceeded and when rupture occurs, though not the conclusion that an isolated relief valve leaves the segment unprotected."
+      },
+      {
+       "item": "PSV-101 set point and the as-left position of HV-101 after the 26 April test",
+       "where": "PSV-101 bench-test record from the annual test and a field position check / operations log for HV-101 covering 26 April to 8 June",
+       "changes": "The set point changes the ideal pressure boundary. PSV orifice, certified capacity, inlet/outlet losses, backpressure and discharge-system capacity are still required before concluding that relief prevents rupture."
+      }
+     ]
+    }
+   ]
+  }
  }
 ]
