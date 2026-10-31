@@ -166,7 +166,13 @@
   .process.focused #toTarget { min-height: 44px; margin: 0 18px 0 8px; padding-inline: 18px; }
 
   .process.focused aside.right { grid-row: 2 / 4; grid-column: 2; display: flex; min-height: 0; flex-direction: column; }
-  .process.focused .rhead { flex: 0 0 auto; font-size: 13px; color: var(--text); }
+  .process.focused .rhead { flex: 0 0 auto; align-items: center; gap: 8px; font-size: 13px; color: var(--text); }
+  .workspace-tabs { display: flex; margin-left: auto; border: 1px solid #4b6066; border-radius: 5px; overflow: hidden; }
+  .workspace-tabs button { min-height: 30px; padding: 4px 9px; border: 0; border-left: 1px solid #4b6066; background: transparent; color: var(--muted); font: 700 11px var(--sans); cursor: pointer; }
+  .workspace-tabs button:first-child { border-left: 0; }
+  .workspace-tabs button[aria-pressed="true"] { background: #315861; color: #fff; }
+  .workspace-tabs button:focus-visible { position: relative; outline: 2px solid #9fd9d0; outline-offset: -2px; }
+  #spend { flex: 0 0 auto; font-size: 11px; }
   .process.focused #rightScroll { overflow: auto; flex: 1; min-height: 0; }
   .side-details, .analysis-log { margin: 0; border-bottom: 1px solid var(--line); }
   .side-details > summary, .analysis-log > summary { padding: 11px 18px; list-style-position: inside; font-weight: 700; color: var(--muted); }
@@ -187,7 +193,43 @@
 
   /* The result reads as an engineering decision note, not a squeezed data table. */
   .process.focused #answers { font-size: 14px; line-height: 1.5; }
-  .process.focused #answers > .ans { padding: 22px 20px 28px; }
+  .process.focused #answers > .ans { padding: 22px 20px 28px; animation: none; }
+  .decision-brief { border-top: 3px solid #90d2c8; }
+  .decision-brief h2 { margin: 14px 0 10px; font-size: 19px; line-height: 1.3; }
+  .decision-facts { margin: 0; }
+  .decision-fact { display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid #3e5359; }
+  .decision-fact dt { color: var(--muted); font-size: 11px; font-weight: 700; }
+  .decision-fact dd { margin: 0; color: #f1f6f5; line-height: 1.35; }
+  .decision-fact dd b { font-family: var(--mono); }
+  .decision-fact.status-pass dd { color: #9fdfb8; }
+  .decision-fact.status-fail dd { color: #ff9a91; }
+  .decision-fact.status-open dd { color: #f0c978; }
+
+  .discipline-impact { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .discipline-impact-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
+  .discipline-impact-head h3 { margin: 0; font-size: 13px; }
+  .discipline-impact-head span { color: var(--muted); font-size: 10px; }
+  .discipline-rail { display: grid; grid-auto-columns: 76px; grid-auto-flow: column; gap: 0; padding: 3px 0 8px; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; }
+  .discipline-gate { position: relative; min-height: 65px; padding: 0 3px; border: 0; background: transparent; color: var(--muted); text-align: center; cursor: pointer; }
+  .discipline-gate::before { content: ""; position: absolute; z-index: 0; top: 15px; left: 0; width: 100%; height: 2px; background: #50656a; }
+  .discipline-gate:first-child::before { left: 50%; width: 50%; }
+  .discipline-gate:last-child::before { width: 50%; }
+  .discipline-mark { position: relative; z-index: 1; display: grid; place-items: center; width: 31px; height: 31px; margin: 0 auto 6px; border: 2px solid #667a7f; border-radius: 50%; background: #19373d; color: #cbd7d5; font: 800 15px var(--mono); }
+  .discipline-name { display: block; font-size: 10px; line-height: 1.15; overflow-wrap: anywhere; }
+  .discipline-gate.pass .discipline-mark { border-color: var(--ok); color: #9fdfb8; }
+  .discipline-gate.fail .discipline-mark { border-color: var(--fail); color: #ff9a91; }
+  .discipline-gate.open .discipline-mark { border-color: var(--warn); color: #f0c978; }
+  .discipline-gate.na .discipline-mark { border-color: #667a7f; color: #93a3a6; }
+  .discipline-gate:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .discipline-empty { padding: 10px 0; color: var(--muted); font-size: 12px; }
+
+  .package-action { margin-top: 16px; padding-top: 15px; border-top: 1px solid var(--line); }
+  .package-action .go { width: 100%; min-height: 43px; white-space: normal; }
+  .package-action small { display: block; margin-top: 6px; color: var(--muted); }
+  .engineering-detail { margin-top: 20px; }
+  aside.right.workspace-decision .engineering-detail { display: none; }
+  aside.right.workspace-decision #historyDetails { display: none; }
+  aside.right.workspace-engineering .engineering-detail { display: block; }
   .answer-hero { padding-bottom: 18px; border-bottom: 1px solid var(--line); }
   .answer-label { color: var(--accent); font-size: 12px; font-weight: 700; }
   .process.focused .ans .hl { margin: 5px 0 0; font-size: 20px; line-height: 1.3; letter-spacing: -.015em; }
@@ -248,6 +290,13 @@
   .drawer-shade { position: fixed; inset: 62px 0 0; z-index: 41; display: none; background: rgba(4,16,19,.55); }
   .drawer-shade.on { display: block; }
   .process.focused .app.mode-other main { grid-row: 2 / 4; }
+  .process.canvas-focus .app { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: 52px minmax(0, 1fr) !important; }
+  .process.canvas-focus header { grid-row: 1; grid-column: 1 !important; min-height: 52px; }
+  .process.canvas-focus header .mode-tabs, .process.canvas-focus header #infoBtn { display: none; }
+  .process.canvas-focus main { grid-row: 2 !important; grid-column: 1 !important; min-height: 0; }
+  .process.canvas-focus main .stage { min-height: 0; }
+  .process.canvas-focus footer, .process.canvas-focus aside.right { display: none !important; }
+  .process.canvas-focus .pid-viewport { min-height: 0; height: 100%; }
   [hidden] { display: none !important; }
 
   @media (max-width: 1080px) {
@@ -255,6 +304,7 @@
     .mode-tabs .btn { padding-inline: 9px; }
     .process.focused #infoBtn { font-size: 0; }
     .process.focused #infoBtn::after { content: "Model"; font-size: 12.5px; }
+    .workspace-tabs button { padding-inline: 7px; }
   }
   @media (max-width: 820px) {
     .process.focused .app { display: flex; height: auto; min-height: 100vh; }
@@ -267,6 +317,9 @@
     .process.focused main { order: 2; min-height: 540px; }
     .process.focused aside.right { order: 3; min-height: 0; border-top: 1px solid var(--line); }
     .process.focused .side-ask { position: static; }
+    .workspace-tabs { order: 3; width: 100%; margin: 6px 0 0; }
+    .workspace-tabs button { flex: 1; }
+    .process.focused .rhead { flex-wrap: wrap; }
   }
   @media (max-width: 560px) {
     .process.focused footer { display: block; }
@@ -287,6 +340,7 @@
       <button class="btn" type="button" data-mode="troubleshoot">Troubleshoot</button>
       <button class="btn" type="button" data-mode="safety" id="safetyMode">Safety</button>
     </nav>
+    <button class="btn" id="focusBtn" type="button" aria-pressed="false" title="Focus on the drawing; Esc exits">Focus drawing</button>
     <button class="btn" id="infoBtn" type="button" aria-expanded="false" onclick="toggleDrawer(true)">Model &amp; sources</button>
   </header>
 
@@ -328,8 +382,8 @@
     <button class="btn go" id="toTarget" disabled>Analyze target</button>
   </footer>
 
-  <aside class="right">
-    <div class="rhead"><span id="inspectorTitle">Result</span><span id="spend"></span></div>
+  <aside class="right workspace-decision" id="resultPane">
+    <div class="rhead"><span id="inspectorTitle">Result</span><div class="workspace-tabs" role="group" aria-label="Result detail"><button type="button" id="decisionView" aria-pressed="true">Decision</button><button type="button" id="engineeringView" aria-pressed="false">Engineering</button></div><span id="spend"></span></div>
     <div id="rightScroll">
       <div id="modePanel" hidden>
         <section id="troublePanel" hidden></section>
@@ -366,6 +420,23 @@ const sev = u => u > 1.0 ? 'fail' : u > 0.9 ? 'warn' : 'ok';
 const simulator = () => (P?.built?.engine || P?.engine) === 'watertap' ? 'WaterTAP' : 'DWSIM';
 const modelBlocked = () => Number(P?.built?.review?.blocking || 0) > 0;
 let ACTIVE_MODE = 'capacity';
+let WORKSPACE_VIEW = 'decision';
+
+function setWorkspaceView(viewName) {
+  WORKSPACE_VIEW = viewName === 'engineering' ? 'engineering' : 'decision';
+  $('resultPane').classList.toggle('workspace-decision', WORKSPACE_VIEW === 'decision');
+  $('resultPane').classList.toggle('workspace-engineering', WORKSPACE_VIEW === 'engineering');
+  $('decisionView').setAttribute('aria-pressed', String(WORKSPACE_VIEW === 'decision'));
+  $('engineeringView').setAttribute('aria-pressed', String(WORKSPACE_VIEW === 'engineering'));
+}
+
+function toggleFocus(force) {
+  const on = force ?? !document.body.classList.contains('canvas-focus');
+  document.body.classList.toggle('canvas-focus', on);
+  $('focusBtn').setAttribute('aria-pressed', String(on));
+  $('focusBtn').textContent = on ? 'Exit focus' : 'Focus drawing';
+  requestAnimationFrame(() => { fitDrawing(); if (ST) render(ST); });
+}
 
 function toggleDrawer(open) {
   $('infoDrawer').classList.toggle('open', open);
@@ -405,6 +476,7 @@ function showMode(mode) {
   $('answers').hidden = mode !== 'capacity';
   $('historyDetails').hidden = mode !== 'capacity';
   $('askDock').hidden = mode !== 'capacity';
+  document.querySelector('.workspace-tabs').hidden = mode !== 'capacity';
   if (mode === 'troubleshoot') { renderTroubleshootMode(); $('inspectorTitle').textContent = 'Troubleshoot'; }
   else if (mode === 'safety') $('inspectorTitle').textContent = 'Safety';
   else { $('inspectorTitle').textContent = 'Result'; if (P?.built) answers(); }
@@ -412,7 +484,21 @@ function showMode(mode) {
 }
 
 document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => showMode(b.dataset.mode));
-document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleDrawer(false); });
+$('decisionView').onclick = () => setWorkspaceView('decision');
+$('engineeringView').onclick = () => setWorkspaceView('engineering');
+$('focusBtn').onclick = () => toggleFocus();
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.body.classList.contains('canvas-focus')) toggleFocus(false);
+    else if ($('infoDrawer').classList.contains('open')) toggleDrawer(false);
+    else { selectOnDrawing(''); showMode(ACTIVE_MODE); }
+    return;
+  }
+  if (e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  if (e.key.toLowerCase() === 'f') fitDrawing();
+  if (e.key.toLowerCase() === 'l') $('toggleLabels').click();
+  if (e.key.toLowerCase() === 'd' && ACTIVE_MODE === 'capacity') setWorkspaceView(WORKSPACE_VIEW === 'decision' ? 'engineering' : 'decision');
+});
 
 async function projects() {
   const ps = await fetch('/api/projects').then(r => r.json());
@@ -529,6 +615,18 @@ $('toggleLabels').onclick = () => {
   $('toggleLabels').textContent = visible ? 'Labels' : 'Labels off';
 };
 
+async function loadGateAssessment() {
+  if (P.gateAssessment || P.prefeed?.disciplines || P.disciplines || P.engineering_gates) return;
+  const artifacts = await api('artifacts').catch(() => []);
+  const latest = artifacts.find(a => (a.files || []).includes('prefeed.json'));
+  if (!latest) return;
+  const response = await fetch(`/api/plant/${CASE}/artifact/${encodeURIComponent(latest.id)}/prefeed.json`).catch(() => null);
+  if (!response?.ok) return;
+  const assessment = await response.json().catch(() => null);
+  const design = [...(P.answers || [])].reverse().find(a => (a.proposals || []).some(p => p.verified));
+  if (assessment?.case === CASE && (!assessment.design_answer || !design?.headline || assessment.design_answer === design.headline)) P.gateAssessment = assessment;
+}
+
 async function load() {
   P = await api('project');
   if (P.error) throw new Error(P.error);
@@ -577,6 +675,7 @@ async function load() {
   $('tgtLbl').textContent = `target ${Math.round(P.target_scale * 100)}%`;
   $('scale').value = Math.round(P.target_scale * 100);
   syncViewToggle();
+  await loadGateAssessment();
   model(); answers(); revs();
   if (P.built) render(await stateForView(P.target_scale)); else noModel();
   $('q').disabled = false;
@@ -1356,6 +1455,7 @@ function placeClear(n, sheet) {  // push a note down until it no longer overlaps
 
 function answers() {
   if (!P.built) return;
+  GATE_VIEWS = [];
   const list = [...(P.answers || [])].reverse();
   $('answers').innerHTML = list.length ? ans(list[0], P.answers.length - 1) +
     (list.length > 1 ? `<details class="ans"><summary>History · ${list.length - 1} earlier questions</summary>${list.slice(1).map((a, i) => ans(a, P.answers.length - 2 - i)).join('')}</details>` : '') :
@@ -1369,6 +1469,62 @@ const BASIS = {documented: ['in document', '#4da3ff'], measured: ['measured', '#
 const basisOf = x => x.basis || (/run|dwsim|simulat|solve/i.test(x.source || '') ? 'computed' : /assum|judg|estimat/i.test(x.source || '') ? 'assumed'
   : /measur|dcs|scada|historian|test|current operation/i.test(x.source || '') ? 'measured' : 'documented');
 const basisChip = b => `<span class="vb" style="border:1px solid ${BASIS[b][1]};color:${BASIS[b][1]}">${BASIS[b][0]}</span>`;
+const GATE_NAMES = {process: 'Process', mechanical: 'Mechanical', heat_transfer: 'Heat transfer', electrical: 'Electrical', combustion: 'Combustion', piping_utilities: 'Piping', controls: 'Controls', process_safety: 'Safety', civil_structural: 'Civil'};
+const GATE_ORDER = Object.keys(GATE_NAMES);
+let GATE_VIEWS = [];
+function gateRows(a) {
+  let rows = a.disciplines || a.engineering_gates || a.gates || a.assessment?.disciplines || a.prefeed?.disciplines ||
+    P.engineering_gates || P.gates || P.disciplines || P.prefeed?.disciplines || P.gateAssessment?.disciplines || [];
+  if (!Array.isArray(rows)) rows = Object.entries(rows).map(([id, row]) => typeof row === 'object' ? {id, ...row} : {id, status: row});
+  return rows.filter(row => row?.id).sort((x, y) => {
+    const xi = GATE_ORDER.indexOf(x.id), yi = GATE_ORDER.indexOf(y.id);
+    return (xi < 0 ? GATE_ORDER.length : xi) - (yi < 0 ? GATE_ORDER.length : yi);
+  });
+}
+function gateState(row) {
+  const status = String(row.status || row.verdict || '').toLowerCase().replaceAll('_', ' ');
+  if (status === 'pass' || status === 'ok') return ['pass', '✓', 'pass'];
+  if (status === 'fail' || status === 'failed') return ['fail', '×', 'fail'];
+  if (status === 'not affected' || status === 'n/a' || status === 'na') return ['na', '—', 'not affected'];
+  return ['open', '○', status || 'open'];
+}
+function disciplineImpact(a) {
+  const rows = gateRows(a);
+  if (!rows.length) return `<section class="discipline-impact"><div class="discipline-impact-head"><h3>Engineering impact</h3></div><div class="discipline-empty">No discipline calculation has been supplied yet. Issue the engineering package to run the current gates.</div></section>`;
+  const gates = rows.map(row => {
+    const n = GATE_VIEWS.push(row) - 1, [state, mark, status] = gateState(row), name = GATE_NAMES[row.id] || row.id.replaceAll('_', ' ');
+    return `<button type="button" class="discipline-gate ${state}" onclick="showGate(${n})" aria-label="${esc(name)}: ${esc(status)}" title="${esc(row.summary || status)}"><span class="discipline-mark">${mark}</span><span class="discipline-name">${esc(name)}</span></button>`;
+  }).join('');
+  return `<section class="discipline-impact"><div class="discipline-impact-head"><h3>Engineering impact</h3><span>✓ calculated · ○ open</span></div><div class="discipline-rail">${gates}</div></section>`;
+}
+function showGate(index) {
+  const row = GATE_VIEWS[index];
+  if (!row) return;
+  const [, mark, status] = gateState(row), name = GATE_NAMES[row.id] || row.id.replaceAll('_', ' ');
+  const checks = (row.checks || []).map(check => typeof check === 'string' ? `<li>${esc(check)}</li>` :
+    `<li><b>${esc(check.check || check.name || check.id || 'Check')}</b>${check.result != null ? `: ${esc(check.result)}` : ''}${check.value != null ? ` · ${esc(check.value)}${check.unit ? ' ' + esc(check.unit) : ''}` : ''}${check.limit != null ? ` / limit ${esc(check.limit)}` : ''}</li>`).join('');
+  $('modalBox').innerHTML = `<h3>${esc(name)} <span style="color:var(--muted)">${mark} ${esc(status)}</span></h3><p>${esc(row.summary || 'No summary supplied.')}</p><div class="card"><div class="tt">Calculation source</div><div class="res">${esc(row.source || 'not supplied')}</div></div>${checks ? `<h4>Checks</h4><ul>${checks}</ul>` : '<p style="color:var(--muted)">No deterministic check rows were supplied.</p>'}`;
+  $('modal').classList.add('on');
+}
+function decisionBrief(a, idx) {
+  const limits = (a.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity));
+  const first = limits[0], verified = (a.proposals || []).filter(p => p.verified), gates = gateRows(a);
+  const failed = gates.filter(row => gateState(row)[0] === 'fail'), open = gates.filter(row => gateState(row)[0] === 'open');
+  const recommendation = (verified.length ? verified : a.proposals || []).map(p => p.title).filter(Boolean).join(' + ') || 'No verified change yet';
+  let status = 'Analysis needs engineering checks', statusClass = 'open';
+  if (modelBlocked()) { status = 'Model review blocked — correct the model before issuing a design'; statusClass = 'fail'; }
+  else if (failed.length) { status = `${failed.length} discipline gate${failed.length === 1 ? '' : 's'} failed`; statusClass = 'fail'; }
+  else if (open.length) { status = `${simulator()} screening complete · ${open.length} discipline gate${open.length === 1 ? '' : 's'} open`; }
+  else if (a.combined?.reaches_target) { status = `${simulator()} and all supplied discipline gates pass`; statusClass = 'pass'; }
+  else if (verified.length) status = `${verified.length} change${verified.length === 1 ? '' : 's'} simulated · combined target not yet cleared`;
+  const issue = idx === P.answers.length - 1 && !modelBlocked() && verified.length ? `<div class="package-action"><button class="btn go" type="button" onclick="issueEngineeringPackage(this)">Issue engineering package</button><small>DRAFT — generates the decision pack and current pre-FEED gates; not approved for construction.</small></div>` : '';
+  return `<section class="decision-brief"><h2>${esc(a.headline || 'Engineering decision')}</h2><dl class="decision-facts">
+    <div class="decision-fact"><dt>Target</dt><dd><b>${Math.round(P.target_scale * 100)}%</b> throughput</dd></div>
+    <div class="decision-fact"><dt>First bottleneck</dt><dd>${first ? `<b>${esc(first.tag)}</b> · ${esc(first.text)}` : 'No limiting item reported'}</dd></div>
+    <div class="decision-fact"><dt>Recommendation</dt><dd>${esc(recommendation)}</dd></div>
+    <div class="decision-fact status-${statusClass}"><dt>Status</dt><dd>${esc(status)}</dd></div>
+  </dl></section>${disciplineImpact(a)}${issue}`;
+}
 function compare(a) {  // the alternatives side by side, from what the server re-solved
   const ps = a.proposals || [];
   if (ps.length < 2) return '';
@@ -1410,11 +1566,10 @@ function ans(a, idx) {
       <div class="res">${(art.files || []).map(f => `<a href="${fileUrl(art, f)}" target="_blank" download>${esc(f)}</a>`).join(' · ')}</div></div>`;
   }).join('')}</section>` : '';
   const blocked = modelBlocked() ? `<div class="card fail"><div class="tt">Model blocked</div><div class="res">Correct the model-review findings before applying changes or issuing a decision pack.</div></div>` : '';
-  const pack = !modelBlocked() && (a.proposals || []).some(p => p.verified) ? `<div style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn go" onclick="openDecisionPack()">Preview full proposed design and decision pack</button><button class="btn" onclick="prefeedFile()">Run pre-FEED gate</button></div>` : '';
-  return `<div class="ans"><div class="answer-hero"><span class="answer-label">Decision</span><div class="hl">${esc(a.headline)}</div><div class="sm" style="margin-top:6px">${esc(a.summary)}</div></div>${blocked}${limits}${files}${fc}${fixes}${pack}${secondOpinion(a, idx)}
+  return `<div class="ans">${decisionBrief(a, idx)}<div class="engineering-detail"><div class="answer-hero"><span class="answer-label">Engineering detail</span><div class="hl">${esc(a.headline)}</div><div class="sm" style="margin-top:6px">${esc(a.summary)}</div></div>${blocked}${limits}${files}${fc}${fixes}${secondOpinion(a, idx)}
     <details class="evidence-block"><summary>Evidence · ${(a.cards || []).length} calculations, sources and assumptions</summary><div class="sm">${esc(a.summary)}</div>${cards}</details>
     <details class="request-block"><summary>Original request</summary><div class="rq">${esc(a.request)}</div></details>
-    <div class="meta">${a.seconds}s · AI cost $${(a.cost_usd || 0).toFixed(4)} · ${(a.checks || []).filter(c => c.ok).length}/${(a.checks || []).length} cited runs re-solved to the same result${(a.checks || []).filter(c => !c.ok).map(c => ` · <span style="color:var(--fail)">✗ ${esc(c.item)}: ${esc(c.why || 'not reproduced')}</span>`).join('')}</div></div>`;
+    <div class="meta">${a.seconds}s · AI cost $${(a.cost_usd || 0).toFixed(4)} · ${(a.checks || []).filter(c => c.ok).length}/${(a.checks || []).length} cited runs re-solved to the same result${(a.checks || []).filter(c => !c.ok).map(c => ` · <span style="color:var(--fail)">✗ ${esc(c.item)}: ${esc(c.why || 'not reproduced')}</span>`).join('')}</div></div></div>`;
 }
 
 function electricalLine(p) {  // one-line load flow of a proposal's new/bigger motor (plantagent/electrical.py)
@@ -1462,18 +1617,20 @@ async function reload() {
 async function decisionFile() {
   $('decOut').textContent = 'Re-solving every limit in DWSIM and writing the pack…';
   const r = await api('decision', {answer: (P.answers || []).length - 1}).catch(e => ({error: e.message}));
-  if (r.error) { $('decOut').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return; }
+  if (r.error) { $('decOut').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return false; }
   const label = {'decision.pdf': 'MOC file (PDF)', 'memo.pdf': 'Management memo (PDF)', 'rev_b.svg': 'P&ID Rev B (proposed)', 'rev_a.svg': 'P&ID Rev A (existing)', 'rev_b.png': 'Rev B (PNG)', 'redline.svg': 'Redline (same as Rev B)', 'decision.zip': 'Everything (zip)',
                  'decision.md': 'Decision file (md)', 'memo.md': 'Memo (md)', 'decision.json': 'Data (JSON)'};
   $('decOut').innerHTML = `<div style="font-size:12px;margin:4px 0">${r.over_after ? `⚠ ${r.over_after} limits still over at the target` : '✓ All limits within 100 % at the target'} · ${r.pssr_items} PSSR items · draft, not approved</div>`
     + r.files.map(f => `<a class="btn" style="margin:2px;display:inline-block;text-decoration:none" target="_blank" href="${r.base}${f}">${esc(label[f] || f)}</a>`).join('');
+  return true;
 }
 async function prefeedFile() {
   const out = $('prefeedOut') || $('decOut');
   out.textContent = 'Re-solving the operating envelope and writing the pre-FEED gate…';
   const r = await api('prefeed', {}).catch(e => ({error: e.message}));
-  if (r.error) { out.innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return; }
+  if (r.error) { out.innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return false; }
   const assessment = r.assessment || {}, env = assessment.envelope || {};
+  P.gateAssessment = assessment;
   const fileUrl = f => `/api/plant/${CASE}/artifact/${encodeURIComponent(r.id)}/${encodeURIComponent(f)}`;
   const open = (assessment.disciplines || []).filter(d => d.status === 'open' || d.status === 'fail').length;
   const gates = (assessment.disciplines || []).map(d => `<span class="chip ${d.status === 'pass' ? 'done' : d.status === 'fail' ? 'err' : d.status === 'open' ? 'sim' : 'doc'}" title="${esc(d.summary || '')}">${esc(d.id.replaceAll('_',' '))}: ${esc(d.status)}</span>`).join(' ');
@@ -1482,12 +1639,20 @@ async function prefeedFile() {
   out.innerHTML = `<div style="font-size:12px;margin:4px 0">${env.robust_pass ? '✓ Robust pass' : '⚠ Not robust'} across ${(env.scenarios || []).length} scenarios · ${open} discipline gates open/failed · commissioning ${esc((assessment.commissioning || {}).status || 'open')} · draft, not approved</div>`
     + `<div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">${gates}</div>`
     + (r.files || []).map(f => `<a class="btn" style="margin:2px;display:inline-block;text-decoration:none" target="_blank" href="${fileUrl(f)}">${esc(labels[f] || f)}</a>`).join('');
+  answers();
+  return true;
 }
-function openDecisionPack() {
+async function issueEngineeringPackage(button) {
+  if (button) { button.disabled = true; button.textContent = 'Building engineering package…'; }
+  setWorkspaceView('engineering');
   $('historyDetails').open = true;
-  decisionFile();
-  setTimeout(() => $('decOut')?.scrollIntoView({behavior: 'smooth', block: 'center'}), 50);
+  await decisionFile();
+  await prefeedFile();
+  $('historyDetails').open = true;
+  $('historyDetails').scrollIntoView({behavior: 'smooth', block: 'start'});
+  if (button) { button.disabled = false; button.textContent = 'Issue engineering package'; }
 }
+function openDecisionPack() { return issueEngineeringPackage(); }
 
 function morning() {  // the morning check: three things to look at today, from the historian against the model
   const h = P.health || (P.forecast ? {from: P.forecast.points_start, to: P.forecast.as_of, source_note: P.forecast.source_note} : null);
@@ -1518,7 +1683,7 @@ function revs() {
   $('revs').innerHTML = morning() + (P.revisions || []).map(r => `<div class="rev"><div><b>Rev ${r.rev}</b> ${esc(r.title)}<div style="color:var(--muted);font:11px var(--mono)">${r.changes.map(describe).join(', ')}${r.capacity_multiple ? ' · max ' + Math.round(r.capacity_multiple * 100) + '%' : ''}</div>
       <div style="color:var(--muted);font-size:11px">${esc(r.at || '')} · ${esc(r.user || 'engineer')} · “${esc(r.reason || '')}”</div></div>${r.kind === 'change' ? `<button class="btn" onclick="undo(${r.rev})">Undo</button>` : ''}</div>`).join('') +
     (!modelBlocked() && ((P.revisions || []).some(r => r.kind === 'change') || (P.answers || []).some(x => (x.proposals || []).some(p => p.verified)))
-      ? `<div class="rev" style="border-left-color:var(--accent);display:block"><button class="btn go" onclick="decisionFile()" title="Decision file and management memo: changes and reasons, limits before/after re-solved in DWSIM, redlined P&ID, relief impact, PSSR checklist, draft sign-off, audit hash">Make decision file (MOC pack)</button><button class="btn" onclick="prefeedFile()" title="Operating envelope, provisional equipment, dynamics, HAZOP/relief and constructability gate">Run pre-FEED gate</button><div id="decOut"></div><div id="prefeedOut"></div></div>` : '') +
+      ? `<div class="rev" style="border-left-color:var(--accent);display:block"><button class="btn go" onclick="issueEngineeringPackage(this)" title="Generate the MOC decision file, proposed drawing, operating envelope, discipline gates, RFQ and commissioning plan">Issue engineering package</button><div id="decOut"></div><div id="prefeedOut"></div></div>` : '') +
     (a ? `<div class="rev" style="border-left-color:${a.verify.ok ? 'var(--ok)' : 'var(--fail)'}"><div>Audit trail: ${a.verify.entries} entries · hash chain ${a.verify.ok ? 'intact ✓' : 'BROKEN at ' + a.verify.broken_at}</div><button class="btn" onclick="showAudit()">View</button></div>` : '');
 }
 async function undo(rev) {
