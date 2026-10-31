@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from plantagent import decision
+from plantagent import decision, hazop
 from plantagent.proposed import centers_from_svg, overlay
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -163,6 +163,22 @@ class DecisionPackTests(unittest.TestCase):
         self.assertTrue({"K-SPLIT", "K-202", "K-JOIN", "K-201"} <= ids)
         self.assertIn("pressure ratio", md.lower())
         self.assertIn("head", md.lower())
+
+    def test_matching_hazop_is_attached_to_the_pack(self):
+        with tempfile.TemporaryDirectory() as folder:
+            answer = {"headline": "Add a compressor", "summary": "Screened.", "proposals": [proposal()],
+                      "model": "fixture", "field_checks": []}
+            w = _workspace(Path(folder), answer)
+            study = {"case": w.name, "content_hash": hazop.content_hash(w, 0), "label": hazop.LABEL, "model": "fixture",
+                     "nodes": [], "rows": [], "summary": {"rows": 0, "computed": 0, "judgement": 0}}
+            w.model_file.with_name("hazop.json").write_text(json.dumps(study))
+            out = decision.make(w, 0)
+            pack = w.model_file.with_name(out["folder"])
+            data = json.loads((pack / "decision.json").read_text())
+            self.assertTrue({"hazop.json", "hazop.md"} <= set(out["files"]))
+            self.assertEqual(data["attachments"][0]["kind"], "hazop")
+            self.assertIn("DRAFT — not a substitute", (pack / "decision.md").read_text())
+            self.assertNotEqual(decision.make(w, 0)["folder"], out["folder"])
 
     def test_unverified_answer_does_not_draw_new_equipment(self):
         _, _, data, md, svg = self._make({"headline": "Not verified", "summary": "No.", "proposals": [proposal(verified=False)],

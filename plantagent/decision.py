@@ -752,11 +752,26 @@ def make(w, answer=None):
              f"Full MOC file with Rev A/Rev B drawings and PSSR checklist ({len(checklist)} items) attached. Audit head `{(head or '')[:12]}`."]
     memo_md = tidy("\n".join(memo) + "\n")
 
-    out = w.model_file.with_name("decision-" + time.strftime("%Y%m%d-%H%M%S"))
+    from . import hazop
+    hazop_study = hazop.load(w, answer)
+    if hazop_study:
+        decision_md += ("\n## Appendix D. HAZOP attachment\n\n"
+                        f"**{hazop_study['label']}**  \n"
+                        f"Attached as `hazop.md` and `hazop.json`: {hazop_study['summary']['rows']} rows, "
+                        f"{hazop_study['summary']['computed']} deterministic re-solves and "
+                        f"{hazop_study['summary']['judgement']} judgement rows.\n")
+    base = w.model_file.with_name("decision-" + time.strftime("%Y%m%d-%H%M%S"))
+    out, suffix = base, 2
+    while out.exists():
+        out, suffix = base.with_name(f"{base.name}-{suffix}"), suffix + 1
     out.mkdir(parents=True, exist_ok=True)
     (out / "decision.md").write_text(decision_md)
     (out / "memo.md").write_text(memo_md)
     files = ["decision.md", "memo.md", "decision.json"]
+    if hazop_study:
+        (out / "hazop.json").write_text(json.dumps(hazop_study, indent=1))
+        (out / "hazop.md").write_text(hazop.markdown(hazop_study))
+        files += ["hazop.json", "hazop.md"]
     drawings = []
     if rev_a:
         (out / "rev_a.svg").write_text(rev_a)
@@ -776,6 +791,8 @@ def make(w, answer=None):
             "limits": rows, "pssr": checklist, "drawing": {k: v for k, v in (rev_b or {}).items() if k != "svg"},
             "relief": relief_hit, "second_opinion": so.get("comparison"), "audit_head": head, "code": _git_head(),
             "model_review": reviewed, "gaps": gaps,
+            "attachments": ([{"kind": "hazop", "json": "hazop.json", "markdown": "hazop.md",
+                              "label": hazop_study["label"], "summary": hazop_study["summary"]}] if hazop_study else []),
             "model": {k: w.built.get(k) for k in ("label", "model", "at", "review_status")}}
     footer = f"MOC {w.name} · {time.strftime('%Y-%m-%d')}"
     for name, parts, dr in (("decision.pdf", [cover, part1, part2], drawings), ("memo.pdf", [memo_md], ())):
