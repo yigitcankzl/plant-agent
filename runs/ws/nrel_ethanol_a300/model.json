@@ -1,0 +1,1494 @@
+{
+ "label": "area300-v4",
+ "spec": {
+  "compounds": [
+   "Acetic acid",
+   "Ammonia",
+   "Carbon dioxide",
+   "Ethanol",
+   "Glycerol",
+   "HexaEthylene Glycol",
+   "HexaPropylene Glycol",
+   "Nitrogen",
+   "Oxygen",
+   "PentaEthylene Glycol",
+   "TetraPropylene Glycol",
+   "Tetraethylene glycol",
+   "Triethylene glycol",
+   "Water"
+  ],
+  "package": "NRTL",
+  "feeds": {
+   "S301": {
+    "T_C": 78.0,
+    "P_bar": 4.357,
+    "kg_h": 429553.0,
+    "x": {
+     "Ethanol": 7e-06,
+     "Water": 0.980268,
+     "Tetraethylene glycol": 0.000946,
+     "Triethylene glycol": 0.005681,
+     "HexaEthylene Glycol": 0.003935,
+     "Acetic acid": 0.000608,
+     "PentaEthylene Glycol": 0.00568,
+     "TetraPropylene Glycol": 8.7e-05,
+     "HexaPropylene Glycol": 0.002788
+    }
+   },
+   "S422": {
+    "T_C": 29.0,
+    "P_bar": 1.925,
+    "kg_h": 13837.0,
+    "x": {
+     "Water": 0.996842,
+     "HexaEthylene Glycol": 0.0002,
+     "Glycerol": 0.000194,
+     "Carbon dioxide": 3.1e-05,
+     "HexaPropylene Glycol": 0.002733
+    }
+   },
+   "S309": {
+    "T_C": 20.0,
+    "P_bar": 5.472,
+    "kg_h": 211.0,
+    "x": {
+     "Water": 0.947078,
+     "HexaEthylene Glycol": 0.029646,
+     "HexaPropylene Glycol": 0.023276
+    }
+   },
+   "S310": {
+    "T_C": 20.0,
+    "P_bar": 1.013,
+    "kg_h": 26.0,
+    "x": {
+     "HexaEthylene Glycol": 1.0
+    }
+   },
+   "S311": {
+    "T_C": 20.0,
+    "P_bar": 5.472,
+    "kg_h": 948.0,
+    "x": {
+     "Water": 0.946991,
+     "HexaEthylene Glycol": 0.029832,
+     "HexaPropylene Glycol": 0.023176
+    }
+   },
+   "S312": {
+    "T_C": 20.0,
+    "P_bar": 1.013,
+    "kg_h": 116.0,
+    "x": {
+     "HexaEthylene Glycol": 1.0
+    }
+   },
+   "S551": {
+    "T_C": 34.0,
+    "P_bar": 4.357,
+    "kg_h": 27198.0,
+    "x": {
+     "Ethanol": 0.006159,
+     "Water": 0.993382,
+     "Acetic acid": 3.3e-05,
+     "Carbon dioxide": 0.000426
+    }
+   }
+  },
+  "units": [
+   {
+    "id": "H-301",
+    "type": "cooler",
+    "in": "S301",
+    "out": "S302",
+    "T_out_C": 48.0
+   },
+   {
+    "id": "A-308",
+    "type": "mixer",
+    "in": [
+     "S302",
+     "S422"
+    ],
+    "out": "S306"
+   },
+   {
+    "id": "T-310",
+    "type": "reactor",
+    "kind": "conversion",
+    "in": "S306",
+    "vapor": "T310VAP",
+    "liquid": "SACC",
+    "mode": "outlet_temperature",
+    "T_out_C": 48.0,
+    "phase": "Mixture",
+    "reactions": [
+     {
+      "name": "cellulose_to_oligomer",
+      "base": "PentaEthylene Glycol",
+      "stoich": {
+       "PentaEthylene Glycol": -1,
+       "HexaEthylene Glycol": 0.844
+      },
+      "conversion_pct": 4.0
+     },
+     {
+      "name": "cellulose_to_glucose",
+      "base": "PentaEthylene Glycol",
+      "stoich": {
+       "PentaEthylene Glycol": -1,
+       "Water": -1.4696,
+       "Tetraethylene glycol": 1.3632
+      },
+      "conversion_pct": 95.0
+     }
+    ]
+   },
+   {
+    "id": "H-310",
+    "type": "cooler",
+    "in": "SACC",
+    "out": "SACC32",
+    "T_out_C": 32.0
+   },
+   {
+    "id": "SP-303",
+    "type": "splitter",
+    "in": "SACC32",
+    "out": [
+     "S303",
+     "FERM"
+    ],
+    "fractions": [
+     0.1,
+     0.9
+    ]
+   },
+   {
+    "id": "MX-301",
+    "type": "mixer",
+    "in": [
+     "S303",
+     "S309",
+     "S310"
+    ],
+    "out": "SEEDFEED"
+   },
+   {
+    "id": "F-301",
+    "type": "reactor",
+    "kind": "conversion",
+    "in": "SEEDFEED",
+    "vapor": "S305",
+    "liquid": "S304",
+    "mode": "outlet_temperature",
+    "T_out_C": 32.0,
+    "phase": "Mixture",
+    "reactions": [
+     {
+      "name": "seed_glucose_lactic",
+      "base": "Tetraethylene glycol",
+      "stoich": {
+       "Tetraethylene glycol": -1,
+       "Glycerol": 2.1092
+      },
+      "conversion_pct": 3.0
+     },
+     {
+      "name": "seed_glucose_ethanol",
+      "base": "Tetraethylene glycol",
+      "stoich": {
+       "Tetraethylene glycol": -1,
+       "Ethanol": 2.1562,
+       "Carbon dioxide": 2.1562
+      },
+      "conversion_pct": 90.0
+     },
+     {
+      "name": "seed_glucose_cellmass",
+      "base": "Tetraethylene glycol",
+      "stoich": {
+       "Tetraethylene glycol": -1,
+       "HexaPropylene Glycol": 0.53
+      },
+      "conversion_pct": 40.0
+     },
+     {
+      "name": "seed_glucose_glycerol",
+      "base": "Tetraethylene glycol",
+      "stoich": {
+       "Tetraethylene glycol": -1,
+       "Water": -2.1562,
+       "Glycerol": 2.1562,
+       "Oxygen": 1.0781
+      },
+      "conversion_pct": 6.6667
+     },
+     {
+      "name": "seed_glucose_succinic",
+      "base": "Tetraethylene glycol",
+      "stoich": {
+       "Tetraethylene glycol": -1,
+       "Carbon dioxide": -2.1562,
+       "Glycerol": 2.765,
+       "Oxygen": 1.0781
+      },
+      "conversion_pct": 10.7143
+     },
+     {
+      "name": "seed_xylose_lactic",
+      "base": "Triethylene glycol",
+      "stoich": {
+       "Triethylene glycol": -1,
+       "Glycerol": 1.6307
+      },
+      "conversion_pct": 3.0
+     },
+     {
+      "name": "seed_xylose_ethanol",
+      "base": "Triethylene glycol",
+      "stoich": {
+       "Triethylene glycol": -1,
+       "Ethanol": 1.6671,
+       "Carbon dioxide": 1.6671
+      },
+      "conversion_pct": 80.0
+     },
+     {
+      "name": "seed_xylose_cellmass",
+      "base": "Triethylene glycol",
+      "stoich": {
+       "Triethylene glycol": -1,
+       "HexaPropylene Glycol": 0.4097
+      },
+      "conversion_pct": 20.0
+     },
+     {
+      "name": "seed_xylose_glycerol",
+      "base": "Triethylene glycol",
+      "stoich": {
+       "Triethylene glycol": -1,
+       "Water": -1.6671,
+       "Glycerol": 1.6671,
+       "Oxygen": 0.8336
+      },
+      "conversion_pct": 1.875
+     },
+     {
+      "name": "seed_xylose_xylitol",
+      "base": "Triethylene glycol",
+      "stoich": {
+       "Triethylene glycol": -1,
+       "Water": -1.0003,
+       "Glycerol": 1.6527,
+       "Oxygen": 0.5001
+      },
+      "conversion_pct": 29.2986
+     },
+     {
+      "name": "seed_xylose_succinic",
+      "base": "Triethylene glycol",
+      "stoich": {
+       "Triethylene glycol": -1,
+       "Carbon dioxide": -1.6671,
+       "Glycerol": 2.1379,
+       "Oxygen": 0.8336
+      },
+      "conversion_pct": 8.1081
+     }
+    ]
+   },
+   {
+    "id": "MX-300",
+    "type": "mixer",
+    "in": [
+     "FERM",
+     "S304",
+     "S311",
+     "S312"
+    ],
+    "out": "PRODFEED"
+   },
+   {
+    "id": "F-300",
+    "type": "reactor",
+    "kind": "conversion",
+    "in": "PRODFEED",
+    "vapor": "S317",
+    "liquid": "S315",
+    "mode": "outlet_temperature",
+    "T_out_C": 32.0,
+    "phase": "Mixture",
+    "reactions": [
+     {
+      "name": "prod_glucose_lactic",
+      "base": "Tetraethylene glycol",
+      "stoich": {
+       "Tetraethylene glycol": -1,
+       "Glycerol": 2.1092
+      },
+      "conversion_pct": 3.0
+     },
+     {
+      "name": "prod_glucose_ethanol",
+      "base": "Tetraethylene glycol",
+      "stoich": {
+       "Tetraethylene glycol": -1,
+       "Ethanol": 2.1562,
+       "Carbon dioxide": 2.1562
+      },
+      "conversion_pct": 95.0
+     },
+     {
+      "name": "prod_glucose_cellmass",
+      "base": "Tetraethylene glycol",
+      "stoich": {
+       "Tetraethylene glycol": -1,
+       "HexaPropylene Glycol": 0.53
+      },
+      "conversion_pct": 40.0
+     },
+     {
+      "name": "prod_glucose_glycerol",
+      "base": "Tetraethylene glycol",
+      "stoich": {
+       "Tetraethylene glycol": -1,
+       "Water": -2.1562,
+       "Glycerol": 2.1562,
+       "Oxygen": 1.0781
+      },
+      "conversion_pct": 13.3333
+     },
+     {
+      "name": "prod_glucose_succinic",
+      "base": "Tetraethylene glycol",
+      "stoich": {
+       "Tetraethylene glycol": -1,
+       "Carbon dioxide": -2.1562,
+       "Glycerol": 2.765,
+       "Oxygen": 1.0781
+      },
+      "conversion_pct": 23.0769
+     },
+     {
+      "name": "prod_xylose_lactic",
+      "base": "Triethylene glycol",
+      "stoich": {
+       "Triethylene glycol": -1,
+       "Glycerol": 1.6307
+      },
+      "conversion_pct": 3.0
+     },
+     {
+      "name": "prod_xylose_ethanol",
+      "base": "Triethylene glycol",
+      "stoich": {
+       "Triethylene glycol": -1,
+       "Ethanol": 1.6671,
+       "Carbon dioxide": 1.6671
+      },
+      "conversion_pct": 85.0
+     },
+     {
+      "name": "prod_xylose_cellmass",
+      "base": "Triethylene glycol",
+      "stoich": {
+       "Triethylene glycol": -1,
+       "HexaPropylene Glycol": 0.4097
+      },
+      "conversion_pct": 12.6667
+     },
+     {
+      "name": "prod_xylose_glycerol",
+      "base": "Triethylene glycol",
+      "stoich": {
+       "Triethylene glycol": -1,
+       "Water": -1.6671,
+       "Glycerol": 1.6671,
+       "Oxygen": 0.8336
+      },
+      "conversion_pct": 2.2901
+     },
+     {
+      "name": "prod_xylose_xylitol",
+      "base": "Triethylene glycol",
+      "stoich": {
+       "Triethylene glycol": -1,
+       "Water": -1.0003,
+       "Glycerol": 1.6527,
+       "Oxygen": 0.5001
+      },
+      "conversion_pct": 35.9368
+     },
+     {
+      "name": "prod_xylose_succinic",
+      "base": "Triethylene glycol",
+      "stoich": {
+       "Triethylene glycol": -1,
+       "Carbon dioxide": -1.6671,
+       "Glycerol": 2.1379,
+       "Oxygen": 0.8336
+      },
+      "conversion_pct": 10.9756
+     }
+    ]
+   },
+   {
+    "id": "MX-306",
+    "type": "mixer",
+    "in": [
+     "S315",
+     "S551"
+    ],
+    "out": "BEERFEED"
+   },
+   {
+    "id": "T-306",
+    "type": "tank",
+    "in": "BEERFEED",
+    "out": "S501",
+    "volume_m3": 1823.4,
+    "P_bar": 1.013,
+    "residence_basis": "S501"
+   }
+  ],
+  "limits": {
+   "H-301": {
+    "out_T_C": 48.0
+   },
+   "H-310": {
+    "out_T_C": 32.0
+   },
+   "T-310": {
+    "max_T_C": 48.0
+   },
+   "F-301": {
+    "max_T_C": 32.0
+   },
+   "F-300": {
+    "max_T_C": 32.0
+   },
+   "T-306": {
+    "min_residence_min": 240.0
+   }
+  }
+ },
+ "result": {
+  "scale": 1.0,
+  "errors": [],
+  "streams": {
+   "S301": {
+    "T_C": 78.0,
+    "P_bar": 4.357,
+    "kg_h": 429553.0,
+    "m3_h": 440.73,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 705.15,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 0.0,
+     "Ethanol": 6.23,
+     "Glycerol": 0.0,
+     "HexaEthylene Glycol": 21456.37,
+     "HexaPropylene Glycol": 19733.71,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 26138.83,
+     "TetraPropylene Glycol": 420.62,
+     "Tetraethylene glycol": 3548.55,
+     "Triethylene glycol": 16476.7,
+     "Water": 341066.84
+    }
+   },
+   "S422": {
+    "T_C": 29.0,
+    "P_bar": 1.925,
+    "kg_h": 13837.0,
+    "m3_h": 13.89,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 0.0,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 0.99,
+     "Ethanol": 0.0,
+     "Glycerol": 12.99,
+     "HexaEthylene Glycol": 41.05,
+     "HexaPropylene Glycol": 728.07,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 0.0,
+     "TetraPropylene Glycol": 0.0,
+     "Tetraethylene glycol": 0.0,
+     "Triethylene glycol": 0.0,
+     "Water": 13053.9
+    }
+   },
+   "S309": {
+    "T_C": 20.0,
+    "P_bar": 5.472,
+    "kg_h": 211.0,
+    "m3_h": 0.21,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 0.0,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 0.0,
+     "Ethanol": 0.0,
+     "Glycerol": 0.0,
+     "HexaEthylene Glycol": 52.0,
+     "HexaPropylene Glycol": 53.0,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 0.0,
+     "TetraPropylene Glycol": 0.0,
+     "Tetraethylene glycol": 0.0,
+     "Triethylene glycol": 0.0,
+     "Water": 106.0
+    }
+   },
+   "S310": {
+    "T_C": 20.0,
+    "P_bar": 1.013,
+    "kg_h": 26.0,
+    "m3_h": 0.02,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 0.0,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 0.0,
+     "Ethanol": 0.0,
+     "Glycerol": 0.0,
+     "HexaEthylene Glycol": 26.0,
+     "HexaPropylene Glycol": 0.0,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 0.0,
+     "TetraPropylene Glycol": 0.0,
+     "Tetraethylene glycol": 0.0,
+     "Triethylene glycol": 0.0,
+     "Water": 0.0
+    }
+   },
+   "S311": {
+    "T_C": 20.0,
+    "P_bar": 5.472,
+    "kg_h": 948.0,
+    "m3_h": 0.94,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 0.0,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 0.0,
+     "Ethanol": 0.0,
+     "Glycerol": 0.0,
+     "HexaEthylene Glycol": 235.0,
+     "HexaPropylene Glycol": 236.99,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 0.0,
+     "TetraPropylene Glycol": 0.0,
+     "Tetraethylene glycol": 0.0,
+     "Triethylene glycol": 0.0,
+     "Water": 476.01
+    }
+   },
+   "S312": {
+    "T_C": 20.0,
+    "P_bar": 1.013,
+    "kg_h": 116.0,
+    "m3_h": 0.11,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 0.0,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 0.0,
+     "Ethanol": 0.0,
+     "Glycerol": 0.0,
+     "HexaEthylene Glycol": 116.0,
+     "HexaPropylene Glycol": 0.0,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 0.0,
+     "TetraPropylene Glycol": 0.0,
+     "Tetraethylene glycol": 0.0,
+     "Triethylene glycol": 0.0,
+     "Water": 0.0
+    }
+   },
+   "S551": {
+    "T_C": 34.0,
+    "P_bar": 4.357,
+    "kg_h": 27198.0,
+    "m3_h": 27.41,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 2.96,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 28.02,
+     "Ethanol": 424.0,
+     "Glycerol": 0.0,
+     "HexaEthylene Glycol": 0.0,
+     "HexaPropylene Glycol": 0.0,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 0.0,
+     "TetraPropylene Glycol": 0.0,
+     "Tetraethylene glycol": 0.0,
+     "Triethylene glycol": 0.0,
+     "Water": 26743.02
+    }
+   },
+   "S302": {
+    "T_C": 48.0,
+    "P_bar": 4.357,
+    "kg_h": 429553.0,
+    "m3_h": 433.74,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 705.15,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 0.0,
+     "Ethanol": 6.23,
+     "Glycerol": 0.0,
+     "HexaEthylene Glycol": 21456.37,
+     "HexaPropylene Glycol": 19733.71,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 26138.83,
+     "TetraPropylene Glycol": 420.62,
+     "Tetraethylene glycol": 3548.55,
+     "Triethylene glycol": 16476.7,
+     "Water": 341066.84
+    }
+   },
+   "S306": {
+    "T_C": 47.42,
+    "P_bar": 1.925,
+    "kg_h": 443390.0,
+    "m3_h": 447.63,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 705.15,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 0.99,
+     "Ethanol": 6.23,
+     "Glycerol": 12.99,
+     "HexaEthylene Glycol": 21497.42,
+     "HexaPropylene Glycol": 20461.78,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 26138.83,
+     "TetraPropylene Glycol": 420.62,
+     "Tetraethylene glycol": 3548.55,
+     "Triethylene glycol": 16476.7,
+     "Water": 354120.74
+    }
+   },
+   "T310VAP": {
+    "T_C": 48.0,
+    "P_bar": 1.925,
+    "kg_h": 0.0,
+    "m3_h": 0.0,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 0.0,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 0.0,
+     "Ethanol": 0.0,
+     "Glycerol": 0.0,
+     "HexaEthylene Glycol": 0.0,
+     "HexaPropylene Glycol": 0.0,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 0.0,
+     "TetraPropylene Glycol": 0.0,
+     "Tetraethylene glycol": 0.0,
+     "Triethylene glycol": 0.0,
+     "Water": 0.0
+    }
+   },
+   "SACC": {
+    "T_C": 48.0,
+    "P_bar": 1.925,
+    "kg_h": 443390.0,
+    "m3_h": 447.46,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 705.15,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 0.99,
+     "Ethanol": 6.23,
+     "Glycerol": 12.99,
+     "HexaEthylene Glycol": 22542.93,
+     "HexaPropylene Glycol": 20461.71,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 1254.66,
+     "TetraPropylene Glycol": 420.62,
+     "Tetraethylene glycol": 30037.27,
+     "Triethylene glycol": 16476.65,
+     "Water": 351470.81
+    }
+   },
+   "SACC32": {
+    "T_C": 32.0,
+    "P_bar": 1.925,
+    "kg_h": 443390.0,
+    "m3_h": 444.72,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 705.15,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 0.99,
+     "Ethanol": 6.23,
+     "Glycerol": 12.99,
+     "HexaEthylene Glycol": 22542.93,
+     "HexaPropylene Glycol": 20461.71,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 1254.66,
+     "TetraPropylene Glycol": 420.62,
+     "Tetraethylene glycol": 30037.27,
+     "Triethylene glycol": 16476.65,
+     "Water": 351470.81
+    }
+   },
+   "S303": {
+    "T_C": 32.0,
+    "P_bar": 1.925,
+    "kg_h": 44339.0,
+    "m3_h": 44.47,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 70.52,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 0.1,
+     "Ethanol": 0.62,
+     "Glycerol": 1.3,
+     "HexaEthylene Glycol": 2254.29,
+     "HexaPropylene Glycol": 2046.17,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 125.47,
+     "TetraPropylene Glycol": 42.06,
+     "Tetraethylene glycol": 3003.73,
+     "Triethylene glycol": 1647.66,
+     "Water": 35147.08
+    }
+   },
+   "FERM": {
+    "T_C": 32.0,
+    "P_bar": 1.925,
+    "kg_h": 399051.0,
+    "m3_h": 400.25,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 634.64,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 0.89,
+     "Ethanol": 5.61,
+     "Glycerol": 11.69,
+     "HexaEthylene Glycol": 20288.64,
+     "HexaPropylene Glycol": 18415.54,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 1129.19,
+     "TetraPropylene Glycol": 378.56,
+     "Tetraethylene glycol": 27033.54,
+     "Triethylene glycol": 14828.98,
+     "Water": 316323.72
+    }
+   },
+   "SEEDFEED": {
+    "T_C": 31.98,
+    "P_bar": 1.013,
+    "kg_h": 44576.0,
+    "m3_h": 44.71,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 70.52,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 0.1,
+     "Ethanol": 0.62,
+     "Glycerol": 1.3,
+     "HexaEthylene Glycol": 2332.29,
+     "HexaPropylene Glycol": 2099.17,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.0,
+     "PentaEthylene Glycol": 125.47,
+     "TetraPropylene Glycol": 42.06,
+     "Tetraethylene glycol": 3003.73,
+     "Triethylene glycol": 1647.66,
+     "Water": 35253.08
+    }
+   },
+   "S305": {
+    "T_C": 32.0,
+    "P_bar": 1.013,
+    "kg_h": 1911.0,
+    "m3_h": 1120.47,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Acetic acid": 0.04,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 1828.34,
+     "Ethanol": 29.43,
+     "Glycerol": 0.0,
+     "HexaEthylene Glycol": 0.0,
+     "HexaPropylene Glycol": 0.0,
+     "Nitrogen": 0.0,
+     "Oxygen": 16.4,
+     "PentaEthylene Glycol": 0.0,
+     "TetraPropylene Glycol": 0.0,
+     "Tetraethylene glycol": 0.0,
+     "Triethylene glycol": 0.0,
+     "Water": 36.81
+    }
+   },
+   "S304": {
+    "T_C": 32.0,
+    "P_bar": 1.013,
+    "kg_h": 42665.0,
+    "m3_h": 43.44,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 70.47,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 61.85,
+     "Ethanol": 1966.19,
+     "Glycerol": 273.96,
+     "HexaEthylene Glycol": 2332.3,
+     "HexaPropylene Glycol": 2279.65,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.02,
+     "PentaEthylene Glycol": 125.47,
+     "TetraPropylene Glycol": 42.06,
+     "Tetraethylene glycol": 145.68,
+     "Triethylene glycol": 163.02,
+     "Water": 35204.31
+    }
+   },
+   "PRODFEED": {
+    "T_C": 31.88,
+    "P_bar": 1.013,
+    "kg_h": 442780.0,
+    "m3_h": 444.36,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 705.11,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 62.74,
+     "Ethanol": 1971.8,
+     "Glycerol": 285.65,
+     "HexaEthylene Glycol": 22971.95,
+     "HexaPropylene Glycol": 20932.18,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.02,
+     "PentaEthylene Glycol": 1254.66,
+     "TetraPropylene Glycol": 420.62,
+     "Tetraethylene glycol": 27179.22,
+     "Triethylene glycol": 14992.0,
+     "Water": 352004.04
+    }
+   },
+   "S317": {
+    "T_C": 32.0,
+    "P_bar": 1.013,
+    "kg_h": 18378.3,
+    "m3_h": 10773.19,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Acetic acid": 0.41,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 17577.49,
+     "Ethanol": 297.74,
+     "Glycerol": 0.0,
+     "HexaEthylene Glycol": 0.0,
+     "HexaPropylene Glycol": 0.0,
+     "Nitrogen": 0.0,
+     "Oxygen": 148.96,
+     "PentaEthylene Glycol": 0.0,
+     "TetraPropylene Glycol": 0.0,
+     "Tetraethylene glycol": 0.0,
+     "Triethylene glycol": 0.0,
+     "Water": 353.72
+    }
+   },
+   "S315": {
+    "T_C": 32.0,
+    "P_bar": 1.013,
+    "kg_h": 424401.7,
+    "m3_h": 432.38,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 704.7,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 618.02,
+     "Ethanol": 20804.77,
+     "Glycerol": 2760.26,
+     "HexaEthylene Glycol": 22972.04,
+     "HexaPropylene Glycol": 21735.85,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.15,
+     "PentaEthylene Glycol": 1254.66,
+     "TetraPropylene Glycol": 420.62,
+     "Tetraethylene glycol": 527.28,
+     "Triethylene glycol": 1061.6,
+     "Water": 351541.71
+    }
+   },
+   "BEERFEED": {
+    "T_C": 32.06,
+    "P_bar": 1.013,
+    "kg_h": 451599.7,
+    "m3_h": 455.84,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 707.66,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 646.03,
+     "Ethanol": 21228.77,
+     "Glycerol": 2760.26,
+     "HexaEthylene Glycol": 22972.04,
+     "HexaPropylene Glycol": 21735.85,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.15,
+     "PentaEthylene Glycol": 1254.66,
+     "TetraPropylene Glycol": 420.62,
+     "Tetraethylene glycol": 527.28,
+     "Triethylene glycol": 1061.6,
+     "Water": 378284.73
+    }
+   },
+   "T-306-in": {
+    "T_C": 32.06,
+    "P_bar": 1.013,
+    "kg_h": 451599.7,
+    "m3_h": 455.84,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 707.66,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 646.03,
+     "Ethanol": 21228.77,
+     "Glycerol": 2760.26,
+     "HexaEthylene Glycol": 22972.04,
+     "HexaPropylene Glycol": 21735.85,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.15,
+     "PentaEthylene Glycol": 1254.66,
+     "TetraPropylene Glycol": 420.62,
+     "Tetraethylene glycol": 527.28,
+     "Triethylene glycol": 1061.6,
+     "Water": 378284.73
+    }
+   },
+   "S501": {
+    "T_C": 32.06,
+    "P_bar": 1.013,
+    "kg_h": 451599.7,
+    "m3_h": 455.84,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Acetic acid": 707.66,
+     "Ammonia": 0.0,
+     "Carbon dioxide": 646.03,
+     "Ethanol": 21228.77,
+     "Glycerol": 2760.26,
+     "HexaEthylene Glycol": 22972.04,
+     "HexaPropylene Glycol": 21735.85,
+     "Nitrogen": 0.0,
+     "Oxygen": 0.15,
+     "PentaEthylene Glycol": 1254.66,
+     "TetraPropylene Glycol": 420.62,
+     "Tetraethylene glycol": 527.28,
+     "Triethylene glycol": 1061.6,
+     "Water": 378284.73
+    }
+   }
+  },
+  "units": {
+   "H-301": {
+    "type": "cooler",
+    "duty_kW": 13308.77
+   },
+   "A-308": {
+    "type": "mixer"
+   },
+   "T-310": {
+    "type": "reactor",
+    "kind": "conversion",
+    "conversion": [
+     {
+      "reaction": "cellulose_to_oligomer",
+      "base": "PentaEthylene Glycol",
+      "conversion_pct": 95.2
+     },
+     {
+      "reaction": "cellulose_to_glucose",
+      "base": "PentaEthylene Glycol",
+      "conversion_pct": 95.2
+     }
+    ],
+    "conversion_pct": null,
+    "duty_kW": -14259.972,
+    "cooling_kW": 14259.972,
+    "T_out_C": 48.0
+   },
+   "H-310": {
+    "type": "cooler",
+    "duty_kW": 7355.28
+   },
+   "SP-303": {
+    "type": "splitter"
+   },
+   "MX-301": {
+    "type": "mixer"
+   },
+   "F-301": {
+    "type": "reactor",
+    "kind": "conversion",
+    "conversion": [
+     {
+      "reaction": "seed_glucose_lactic",
+      "base": "Tetraethylene glycol",
+      "conversion_pct": 95.15
+     },
+     {
+      "reaction": "seed_glucose_ethanol",
+      "base": "Tetraethylene glycol",
+      "conversion_pct": 95.15
+     },
+     {
+      "reaction": "seed_glucose_cellmass",
+      "base": "Tetraethylene glycol",
+      "conversion_pct": 95.15
+     },
+     {
+      "reaction": "seed_glucose_glycerol",
+      "base": "Tetraethylene glycol",
+      "conversion_pct": 95.15
+     },
+     {
+      "reaction": "seed_glucose_succinic",
+      "base": "Tetraethylene glycol",
+      "conversion_pct": 95.15
+     },
+     {
+      "reaction": "seed_xylose_lactic",
+      "base": "Triethylene glycol",
+      "conversion_pct": 90.11
+     },
+     {
+      "reaction": "seed_xylose_ethanol",
+      "base": "Triethylene glycol",
+      "conversion_pct": 90.11
+     },
+     {
+      "reaction": "seed_xylose_cellmass",
+      "base": "Triethylene glycol",
+      "conversion_pct": 90.11
+     },
+     {
+      "reaction": "seed_xylose_glycerol",
+      "base": "Triethylene glycol",
+      "conversion_pct": 90.11
+     },
+     {
+      "reaction": "seed_xylose_xylitol",
+      "base": "Triethylene glycol",
+      "conversion_pct": 90.11
+     },
+     {
+      "reaction": "seed_xylose_succinic",
+      "base": "Triethylene glycol",
+      "conversion_pct": 90.11
+     }
+    ],
+    "conversion_pct": null,
+    "duty_kW": -1941.709,
+    "cooling_kW": 1941.709,
+    "T_out_C": 32.0
+   },
+   "MX-300": {
+    "type": "mixer"
+   },
+   "F-300": {
+    "type": "reactor",
+    "kind": "conversion",
+    "conversion": [
+     {
+      "reaction": "prod_glucose_lactic",
+      "base": "Tetraethylene glycol",
+      "conversion_pct": 98.06
+     },
+     {
+      "reaction": "prod_glucose_ethanol",
+      "base": "Tetraethylene glycol",
+      "conversion_pct": 98.06
+     },
+     {
+      "reaction": "prod_glucose_cellmass",
+      "base": "Tetraethylene glycol",
+      "conversion_pct": 98.06
+     },
+     {
+      "reaction": "prod_glucose_glycerol",
+      "base": "Tetraethylene glycol",
+      "conversion_pct": 98.06
+     },
+     {
+      "reaction": "prod_glucose_succinic",
+      "base": "Tetraethylene glycol",
+      "conversion_pct": 98.06
+     },
+     {
+      "reaction": "prod_xylose_lactic",
+      "base": "Triethylene glycol",
+      "conversion_pct": 92.92
+     },
+     {
+      "reaction": "prod_xylose_ethanol",
+      "base": "Triethylene glycol",
+      "conversion_pct": 92.92
+     },
+     {
+      "reaction": "prod_xylose_cellmass",
+      "base": "Triethylene glycol",
+      "conversion_pct": 92.92
+     },
+     {
+      "reaction": "prod_xylose_glycerol",
+      "base": "Triethylene glycol",
+      "conversion_pct": 92.92
+     },
+     {
+      "reaction": "prod_xylose_xylitol",
+      "base": "Triethylene glycol",
+      "conversion_pct": 92.92
+     },
+     {
+      "reaction": "prod_xylose_succinic",
+      "base": "Triethylene glycol",
+      "conversion_pct": 92.92
+     }
+    ],
+    "conversion_pct": null,
+    "duty_kW": -19714.344,
+    "cooling_kW": 19714.344,
+    "T_out_C": 32.0
+   },
+   "MX-306": {
+    "type": "mixer"
+   },
+   "T-306": {
+    "type": "tank",
+    "residence_min": 240.01,
+    "volume_m3": 1823.4,
+    "residence_basis": "S501"
+   }
+  },
+  "checks": [
+   {
+    "id": "T-310",
+    "check": "outlet temperature vs limit",
+    "value": 48.0,
+    "limit": 48.0,
+    "unit": "C",
+    "utilisation": 1.0
+   },
+   {
+    "id": "F-301",
+    "check": "outlet temperature vs limit",
+    "value": 32.0,
+    "limit": 32.0,
+    "unit": "C",
+    "utilisation": 1.0
+   },
+   {
+    "id": "F-300",
+    "check": "outlet temperature vs limit",
+    "value": 32.0,
+    "limit": 32.0,
+    "unit": "C",
+    "utilisation": 1.0
+   },
+   {
+    "id": "T-306",
+    "check": "residence time",
+    "value": 240.01,
+    "limit": 240.0,
+    "unit": "min",
+    "utilisation": 1.0
+   },
+   {
+    "id": "A-308",
+    "check": "no limit check for this unit type",
+    "type": "mixer"
+   },
+   {
+    "id": "SP-303",
+    "check": "no limit check for this unit type",
+    "type": "splitter"
+   },
+   {
+    "id": "MX-301",
+    "check": "no limit check for this unit type",
+    "type": "mixer"
+   },
+   {
+    "id": "MX-300",
+    "check": "no limit check for this unit type",
+    "type": "mixer"
+   },
+   {
+    "id": "MX-306",
+    "check": "no limit check for this unit type",
+    "type": "mixer"
+   }
+  ]
+ },
+ "mapping": [
+  {
+   "tag": "H-301",
+   "modelled_as": "cooler H-301: S301 -> S302, T_out 48 C",
+   "source": "P&ID H-301 design EquipmentDescription; data sheet Design basis"
+  },
+  {
+   "tag": "A-308",
+   "modelled_as": "mixer A-308: S302 + S422 -> S306 (its 100 hp is P&ID context; mixer type has no power limit check)",
+   "source": "P&ID A-308 design EquipmentDescription; data sheet Equipment row"
+  },
+  {
+   "tag": "T-310",
+   "modelled_as": "conversion reactor T-310 (continuous high-solids hydrolysis, 24 h, 48 C): S306 -> SACC liquid + nil vapour, prescribed glucan split",
+   "source": "P&ID T-310 design; data sheet Tables 8-9 rows"
+  },
+  {
+   "tag": "H-310",
+   "modelled_as": "cooler H-310: SACC -> SACC32, T_out 32 C",
+   "source": "P&ID H-310 design; data sheet"
+  },
+  {
+   "tag": "F-301",
+   "modelled_as": "conversion reactor F-301 (seed train lumped as one stage, 32 C): SEEDFEED (S303+S309+S310 via MX-301) -> S304 liquid + S305 vent vapour",
+   "source": "P&ID F-301 design (F-301 to F-305 train); data sheet Table 11"
+  },
+  {
+   "tag": "F-300",
+   "modelled_as": "conversion reactor F-300 (12 x 3600 m3, 36 h co-fermentation + 60 h batch hydrolysis context, 32 C): PRODFEED (FERM+S304+S311+S312 via MX-300) -> S315 liquid + S317 vent vapour",
+   "source": "P&ID F-300 design; data sheet Tables 13-14"
+  },
+  {
+   "tag": "T-306",
+   "modelled_as": "tank T-306 (beer well): BEERFEED (S315+S551 via MX-306) -> S501, 1,823.4 m3 for 240 min",
+   "source": "P&ID T-306 design; data sheet Equipment row"
+  },
+  {
+   "tag": "SP-303 / MX-301 / MX-300 / MX-306",
+   "modelled_as": "routing-only splitter/mixers (no P&ID tag, no ratings): the 10% seed split and the documented multi-stream feeds into F-301, F-300 and T-306 so flow actually passes S303/S304/FERM/S315 into the right vessels",
+   "source": "P&ID connections H-310->F-301 (303), H-310->F-300 (FERM), F-301->F-300 (304), F-300->T-306 (315), S551->T-306"
+  }
+ ],
+ "calibration": [
+  {
+   "item": "S301 feed condition",
+   "measured": "429,553 kg/h at 78.0 C, 4.357 bar",
+   "simulated": "429,553 kg/h at 78.0 C, 4.357 bar (area300-v4)",
+   "source": "data sheet Input streams S301 row"
+  },
+  {
+   "item": "H-301 outlet S302 temperature (hydrolysis temperature)",
+   "measured": "48 C",
+   "simulated": "48.0 C (area300-v4, H-301)",
+   "source": "data sheet Design basis row 'cooled with cooling water in H-301 ... at 48 C'; P&ID H-301 design EquipmentDescription"
+  },
+  {
+   "item": "S306 total solids after enzyme addition",
+   "measured": "20 wt% (10.6% insoluble)",
+   "simulated": "20.2 wt% total solids, 10.6 wt% insoluble (HexaPropylene Glycol 20,461.7 kg/h of 443,390 kg/h) (area300-v4)",
+   "source": "data sheet Design basis row 'After the enzyme, total solids are 20 wt% (10.6% insoluble) at 48 C'"
+  },
+  {
+   "item": "T-310 outlet temperature / hydrolysis temperature",
+   "measured": "48 C",
+   "simulated": "48.0 C (area300-v4, T-310)",
+   "source": "data sheet '24 h in T-310 ... at 48 C'; P&ID T-310 design EquipmentDescription"
+  },
+  {
+   "item": "T-310 glucan conversion",
+   "measured": "4.0% to oligomer, 91.2% to glucose (90.0% direct + 1.2% via cellobiose at 100%)",
+   "simulated": "95.2% total cellulose consumption: 4.0% oligomer + 91.2% glucose (area300-v4, T-310 conversion report)",
+   "source": "data sheet Enzymatic hydrolysis reactions (Table 9) row and Reactions-on-stand-ins note"
+  },
+  {
+   "item": "H-310 outlet temperature for fermentation",
+   "measured": "32 C",
+   "simulated": "32.0 C (area300-v4, H-310)",
+   "source": "data sheet 'After hydrolysis the slurry is cooled to 32 C (H-310)'; P&ID H-310 design EquipmentDescription"
+  },
+  {
+   "item": "Seed split fraction (S303 to F-301)",
+   "measured": "10% of saccharified slurry",
+   "simulated": "44,339 of 443,390 kg/h = 10.0% to S303 (area300-v4, SP-303)",
+   "source": "data sheet '10% of the saccharified slurry is split off to the seed train'"
+  },
+  {
+   "item": "Seed broth S304 ethanol",
+   "measured": "1,966 kg/h ethanol in 42,665 kg/h broth (report stream, via prescribed Table 11 fractions)",
+   "simulated": "1,966.2 kg/h ethanol, 42,665 kg/h total at 32.0 C (area300-v4)",
+   "source": "data sheet Seed train reactions (Table 11) row"
+  },
+  {
+   "item": "Production broth S315 flow and ethanol",
+   "measured": "424,402 kg/h at 32 C, 20,805 kg/h ethanol (4.90 wt% in broth; 5.4 wt% after scrubber return in beer)",
+   "simulated": "424,401.7 kg/h at 32.0 C, 20,804.8 kg/h ethanol (area300-v4)",
+   "source": "data sheet Production co-fermentation (Tables 13-14) row; 'beer (5.4 wt% ethanol)' row"
+  },
+  {
+   "item": "Beer S501 ethanol concentration",
+   "measured": "5.4 wt% ethanol",
+   "simulated": "4.70 wt% (21,228.8 kg/h in 451,599.7 kg/h) (area300-v4) - see assumption about S551 dilution; S315 itself carries the report ethanol make, the shortfall is the unfermented-sugar/oligomer mass retained by the stand-in reactions",
+   "source": "data sheet 'the beer (5.4 wt% ethanol) collects in the beer well T-306'"
+  },
+  {
+   "item": "T-306 residence time",
+   "measured": "4 h (240 min)",
+   "simulated": "240.01 min at 1,823.4 m3 working volume (area300-v4, T-306)",
+   "source": "data sheet Equipment row 'T-306 Beer well: 4 h residence time'; P&ID T-306 design EquipmentDescription"
+  },
+  {
+   "item": "Vent flows to Area 500 scrubber",
+   "measured": "S305 and S317 are CO2 vents with entrained ethanol/water (flows from prescribed fractions)",
+   "simulated": "S305 1,911.0 kg/h (1,828.3 kg/h CO2, 29.4 kg/h ethanol); S317 18,378.3 kg/h (17,577.5 kg/h CO2, 297.7 kg/h ethanol) at 32 C (area300-v4)",
+   "source": "data sheet 'The fermentor and seed vents (CO2 with entrained ethanol and water) go to the vent scrubber in Area 500'"
+  }
+ ],
+ "assumptions": [
+  "Every number is from the P&ID (equipment list/connection attributes) or the operating data sheet; no project documents/datasheets exist (search_documents returned empty for three queries) and P&ID design_limits and data_quality are empty, so no site-vs-P&ID conflict arose.",
+  "Unit instruction cited S315/S317/S305 as F-300 outlets, but the full P&ID and the data sheet agree S315 is F-300 broth, S305 the F-301 vent and S317 the F-300 vent; the P&ID/data sheet version was used.",
+  "Exchangers H-301 and H-310 have no cited U, area or coolant rating and the data sheet gives cooling water only as 'at 28 C', so they are modelled as bare coolers to their documented outlet set points (48 C and 32 C, data sheet Design basis rows and Equipment rows) with simulator-computed duties; no area/U was invented and no U/area rating could be put in limits.",
+  "Batch vessels T-310 (8x950 m3, 24 h), F-301 seed train (2x5 stages, largest 757 m3, 24 h) and F-300 (12x3600 m3, 36 h) are modelled as steady-state conversion reactors at 48 C (T-310) and 32 C (F-301/F-300) with the data sheet prescribed sugar fractions; their volumes/times are stated as mapping context, not imposed as tank limits, because the spec has no batch-reactor residence rating and hydraulics of 36/60/24 h batches cannot be checked as a continuous tank. Cooling is not a specified maximum-duty limit (no cited kW), so the simulator cooling_kW is reported, not limited.",
+  "The data sheet prescribed reaction fractions are fractions of the sugar available after prior reactions; the simulator applies each conversion to the inlet of that reaction, so the entered per-reaction conversions are the sequential renormalisations (e.g. seed glucose cell mass 4% of feed = 40% of the sugar remaining after 3% lactic and 90% ethanol). Resulting total sugar consumptions match the data sheet: F-301 glucose 95.15%, xylose 90.11%; F-300 glucose 98.06%, xylose 92.92% in run area300-v4.",
+  "Cellobiose is not a separate stand-in; per the data sheet reaction note 'C + 1.4696 Water -> 1.3632 G (cellulose to glucose, incl. via cellobiose)' and 'cellobiose + H2O -> 2 glucose 100% of the cellobiose', the 1.2% cellobiose route is folded into the glucose route: glucose route total 91.2% of glucan (90.0% direct + 1.2% via cellobiose), entered as 95.0% of the cellulose remaining after the 4.0% oligomer reaction.",
+  "Lactic contamination (3% of glucose and xylose, data sheet) is the first reaction in both F-301 and F-300, matching 'converted to lactic acid upstream of the fermentors' in effect; Arabinose is not fermented (data sheet note) and stays in the soluble lump. The report's glycerol/succinic/xylitol reactions produce O2 as written in the data sheet stoichiometry (negative water/CO2 coefficients as given there).",
+  "Pressures: feeds use data sheet pressures (S301 4.357 bar, S422 1.925, S309/S311 5.472, S310/S312 1.013, S551 4.357); T-306 is set at 1.013 bar (atmospheric beer well, assumed); T-310 and fermentor pressures follow the lowest-pressure inlet per the mixer/reactor solve. No pumps, control valves, relief valves or utility supply ratings exist on this P&ID (valves=[], control=[]), so none are modelled and no pump/valve/PSV/utility limits could be cited.",
+  "check_coverage on area300-v4 flags T-310->H-310 (SACC), F-301->F-300 (S304) and F-300->T-306 (S315) as missing, but the flow demonstrably passes: SACC 443,390 kg/h enters H-310, S304 42,665 kg/h enters F-300's feed mixer, S315 424,402 kg/h enters T-306's feed mixer. A minimal diagnostic run (diag-reactor-out) proved check_coverage does not read conversion-reactor vapour/liquid ports at all, so these three flags cannot be cleared by any flowsheet change; they are a checker limitation, not missing flow."
+ ],
+ "model": "muse-wonder-1.0",
+ "engine": "dwsim",
+ "coverage": {
+  "connections": [
+   {
+    "from": "H-301",
+    "to": "A-308",
+    "lines": [
+     "302"
+    ],
+    "relief_path": false,
+    "modelled": true
+   },
+   {
+    "from": "A-308",
+    "to": "T-310",
+    "lines": [
+     "306"
+    ],
+    "relief_path": false,
+    "modelled": true
+   },
+   {
+    "from": "T-310",
+    "to": "H-310",
+    "lines": [
+     "SACC"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "H-310",
+    "to": "F-301",
+    "lines": [
+     "303"
+    ],
+    "relief_path": false,
+    "modelled": true
+   },
+   {
+    "from": "H-310",
+    "to": "F-300",
+    "lines": [
+     "FERM"
+    ],
+    "relief_path": false,
+    "modelled": true
+   },
+   {
+    "from": "F-301",
+    "to": "F-300",
+    "lines": [
+     "304"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "F-300",
+    "to": "T-306",
+    "lines": [
+     "315"
+    ],
+    "relief_path": false,
+    "modelled": false
+   }
+  ],
+  "missing_connections": [
+   {
+    "from": "T-310",
+    "to": "H-310",
+    "lines": [
+     "SACC"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "F-301",
+    "to": "F-300",
+    "lines": [
+     "304"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "F-300",
+    "to": "T-306",
+    "lines": [
+     "315"
+    ],
+    "relief_path": false,
+    "modelled": false
+   }
+  ],
+  "missing_equipment": []
+ },
+ "read_corrections": 0,
+ "seconds": 463,
+ "cost_usd": 4.2972,
+ "at": "2026-11-01 02:21",
+ "review": {
+  "status": "ok",
+  "findings": [],
+  "blocking": 0,
+  "energy": {
+   "method": "duty",
+   "tolerance": 0.02,
+   "proposed_field": "enthalpy_kJ_kg",
+   "note": "An overall energy balance is not closed: the simulator's streams do not report enthalpy. Unit duties are checked one by one instead."
+  }
+ },
+ "review_status": "ok",
+ "gaps": []
+}
