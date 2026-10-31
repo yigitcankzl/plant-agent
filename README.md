@@ -50,6 +50,7 @@ On the salt plant, look at:
   - add a parallel vapour compressor K-202, operating at 48.8 t/h and 2.0 MW in the solve, with a provisional rating of 55 t/h / 2.4 MW for the vendor to confirm;
   - trim the purge-heater steam.
 - DWSIM re-solves the combination at 120.1 %.
+- **Where K-202 came from.** Muse's first answer proposed raising K-201's rating, and the server refused it because a change that only edits a limit is not accepted. The engineer then asked for a physical change and named a parallel compressor (answer 2 in `runs/ws/salt_mvr/`); the verified design builds on that. In a clean session with no earlier answers (`salt_mvr_vision`, model built from the scanned patent figure), Muse did not propose a second compressor and did not reach 120 %. So the K-202 idea is the engineer's; the sizing, the re-solve and the consequences are the agent's and the engines'.
 - From the solve PlantAgent draws Rev B of the P&ID (new lines 3004-ST and 3005-ST, block and check valves on K-202) and writes the data sheet, work order, summary and MOC pack.
 
 **Discipline gates on the same change** (`prefeed.discipline_gates`). Each gate reads a solved state, not LLM text, and each check names its source. A gate that rests on an illustrative rating says so: the electrical ✕ below is a pandapower result against an ILLUSTRATIVE 2.5 MVA TX-1, so it means "check the real transformer", not a measured overload.
@@ -70,6 +71,13 @@ The MOC pack carries the failed gates as risks and its decision reads "Do not ap
 - It fits E-201's U from the historian.
 - It then bisects the model for the U at which the first limit reaches 100 % at today's throughput.
 - The historian is **SYNTHETIC** and the prices behind the daily loss are **illustrative**.
+
+## Muse reads the scanned 1994 patent figure
+
+`plant.html?case=salt_mvr_vision` gives Muse vision the patent's scanned FIG. 1 (a sideways sheet with no text layer) instead of our drawn P&ID.
+- It found all 13 labelled equipment items with their reference numbers. One was misclassified: the brine preheater was read as a pump.
+- About 13 of its 20 connections were right. The engineer review made 9 corrections, including a shaft read as a stream and three missing streams. Muse's original read and the corrections are stored separately (`runs/ws/salt_mvr_vision/pid_read.json`, `pid_confirmed.json`).
+- The DWSIM model Muse built from it is heat-limited at 92 % after one recorded correction, so it is not calibrated to the patent's 100 %. The flagship keeps the drawn P&ID.
 
 ## Incident 1: the 2006 European blackout (power grid)
 
