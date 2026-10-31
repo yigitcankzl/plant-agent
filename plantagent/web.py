@@ -324,6 +324,25 @@ def _calibration(w):
 
 
 def _with_gates(w):
+    """The answers, with the cached discipline gates (prefeed.discipline_gates), economics and uncertainty (plantagent.economics,
+    plantagent.uncertainty) on the design answer they were computed for. Caches only: nothing is solved here."""
+    from . import economics, revb, uncertainty
+    answers = _gates_on(w)
+    d = revb.design_answer(answers)
+    if not d:
+        return answers
+    i = answers.index(d)
+    try:
+        econ, unc = economics.cached(w, w.answers[i]), uncertainty.cached(w, w.answers[i])
+    except Exception:  # noqa: BLE001 - a broken cache never hides the answers
+        econ = unc = None
+    if not (econ or unc):
+        return answers
+    return [{**a, **({"economics": econ} if econ else {}),
+             **({"uncertainty": {k: v for k, v in unc.items() if k != "samples"}} if unc else {})} if a is d else a for a in answers]
+
+
+def _gates_on(w):
     """The answers, with the cached discipline gates (prefeed.discipline_gates) on the design answer they were computed for."""
     from . import revb
     from .plant import ROUTING_UNITS
@@ -798,6 +817,31 @@ class Handler(SimpleHTTPRequestHandler):
                     return self._send(_case_call(case, lambda: prefeed.discipline_gates(w, q.get("answer"), refresh=q.get("refresh") == "1")))
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
+            if what == "economics":  # factored capex, margin, payback, NPV of the design answer; DWSIM solves, no model call
+                from . import economics
+                try:
+                    return self._send(_case_call(case, lambda: economics.assess(w, q.get("answer"), refresh=q.get("refresh") == "1")))
+                except (ValueError, KeyError) as e:
+                    return self._send({"error": str(e)}, code=409)
+            if what == "uncertainty":  # GET: the cached Monte Carlo; POST: re-run it (minutes of DWSIM solves, no model call)
+                from . import revb, uncertainty
+                if method != "POST":
+                    d = revb.design_answer(w.answers)
+                    u = uncertainty.cached(w, d) if d else None
+                    return self._send({k: v for k, v in u.items() if k != "samples"} if u else {"status": "not computed"})
+                try:
+                    r = _case_call(case, lambda: uncertainty.assess(w, body.get("answer"), body.get("n"), refresh=True))
+                except (ValueError, KeyError) as e:
+                    return self._send({"error": str(e)}, code=409)
+                return self._send({k: v for k, v in r.items() if k != "samples"})
+            if what == "historian":  # tag series from PI Web API (when configured) or the CSV export, and mapped model inputs
+                from . import historian
+                if not (ROOT / "cases" / case / "historian_map.json").exists():
+                    return self._send({"error": "no historian mapping for this project"}, code=404)
+                try:
+                    return self._send(historian.summary(case))
+                except (OSError, ValueError) as e:
+                    return self._send({"error": f"historian read failed: {e}"}, code=502)
             if what == "prefeed" and method == "POST":  # deterministic scenario gate; no paid model call
                 from . import prefeed
                 try:

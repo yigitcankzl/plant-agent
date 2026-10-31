@@ -1,0 +1,17 @@
+{
+  "note": "ILLUSTRATIVE prices for the salt_mvr demonstration: none are from the patent or a real plant. Replace with the plant's netback, power and fuel prices.",
+  "currency": "USD",
+  "product": {
+    "price": {"value": 200, "unit": "USD per short t", "source": "ASSUMED, ILLUSTRATIVE: evaporated-salt netback (same value as the fouling forecast in historian_map.json)"},
+    "variable_cost": {"value": 60, "unit": "USD per short t", "source": "ASSUMED, ILLUSTRATIVE: brine, chemicals, packaging and freight per extra ton; energy counted separately"}
+  },
+  "drivers": [
+    {"name": "K-201 gas-turbine fuel", "units": ["K-201"], "price": {"value": 0.039, "unit": "USD per kWh shaft", "source": "ASSUMED, ILLUSTRATIVE: gas at $4/MMBtu, 35 % turbine efficiency"}},
+    {"name": "Electric motors (K-202, P-201)", "units": ["K-202", "P-201"], "price": {"value": 0.07, "unit": "USD per kWh", "source": "ASSUMED, ILLUSTRATIVE: industrial power price (same value as historian_map.json)"}}
+  ],
+  "utilities": [],
+  "operating_days": {"value": 340, "source": "ASSUMED, ILLUSTRATIVE: annual availability"},
+  "outage": {"days": 5, "source": "ASSUMED, ILLUSTRATIVE: one shutdown for the K-202 tie-ins, with the E-201 clean done in the same window"},
+  "discount_rate": {"value": 0.10, "source": "ASSUMED, ILLUSTRATIVE"},
+  "years": {"value": 10, "source": "ASSUMED, ILLUSTRATIVE: economic life of the modification"}
+}
