@@ -1175,7 +1175,7 @@ def _checks(sheet, res):
                 tolerance = float(sheet.units[key][0].get("heat_balance_tolerance_pct", 2))
                 add(f"boil-up duty vs heat from the heating steam ({tolerance:g} % closure tolerance)",
                     u["boil_kW"], u["heating_kW"] * (1 + tolerance / 100), "kW")
-        if u and u["type"] == "compressor":
+        if u and u["type"] == "compressor" and not sheet.units[key][0].get("curve"):  # a curve replaces the fixed rating
             add("suction flow vs capacity", (res["streams"].get(sheet.units[key][0]["in"]) or {}).get("kg_h"), lim.get("max_kg_h"), "kg/h")
             add("shaft power vs motor", u["kW"], lim.get("max_kW"), "kW")
             add("discharge temperature vs limit", u["discharge_C"], lim.get("max_discharge_C"), "C")
@@ -1218,6 +1218,9 @@ def _checks(sheet, res):
                 out.append({"id": key, "check": "must leave as liquid", "value": s["vapour_frac"], "limit": 0, "unit": "vapour fraction",
                             "utilisation": round(1 + s["vapour_frac"], 3)})
             add("flow vs 90 % of available supply", s["m3_h"], UTILITY_MARGIN * lim["max_m3_h"] if lim.get("max_m3_h") else None, "m3/h")
+    if any(spec_u.get("curve") for spec_u, _ in sheet.units.values()):  # performance curves (plantagent/curves.py)
+        from .curves import checks as curve_checks
+        out += curve_checks(sheet.spec, res)
     for uid, (spec_u, _) in sheet.units.items():
         if spec_u["type"] not in _CHECKED_TYPES:
             out.append({"id": uid, "check": "no limit check for this unit type", "type": spec_u["type"]})
