@@ -87,7 +87,8 @@ def forecast(w, tag=None, as_of_day=None, refresh=False):
     if tag not in fc_all:
         raise ValueError(f"no fouling forecast configured for {tag!r}; configured: {list(fc_all)}")
     fc, ex = fc_all[tag], cfg["exchangers"][tag]
-    rows = health.load(health.ROOT / "cases" / w.name / cfg["file"])
+    from . import historian
+    rows = historian.rows(w.name, cfg)  # PI Web API when configured, else the CSV export
     last_day = int(rows[-1]["day"]) if as_of_day is None else int(as_of_day)
     key = hashlib.sha1(json.dumps([w.spec, tag, last_day, fc], sort_keys=True).encode()).hexdigest()[:16]
     cache = w.model_file.with_name("forecast.json")
@@ -103,7 +104,7 @@ def forecast(w, tag=None, as_of_day=None, refresh=False):
     u_crit, first = critical_u(w._solve, w.spec, path, fc.get("U_low", 800.0), fc.get("U_high", ex.get("U_clean") or 3000), scale)
     out = {"key": key, "case": w.name, "tag": tag, "model_path": path, "as_of": rows[min(last_day * 24 + 23, len(rows) - 1)]["time"],
            "as_of_day": last_day, "simulator": "DWSIM" if not w.cfg.get("engine") else w.cfg["engine"],
-           "model": f"{(w.built or {}).get('label')} rev {len(w.revisions)}", "source": cfg["file"], "source_note": cfg.get("note"),
+           "model": f"{(w.built or {}).get('label')} rev {len(w.revisions)}", "source": historian.label(cfg), "source_note": cfg.get("note"),
            "fit": {k: (round(v, 3) if isinstance(v, float) else v) for k, v in f.items() if k != "points"},
            "fit_text": f"U = {f['intercept']:.0f} {f['slope_per_day']:+.1f}·day (days {f['from_day']}–{f['to_day']} since cleaning, "
                        f"R² {f['r2']:.3f}, slope ± {Z95 * f['slope_se']:.1f}/day at 95 %)",

@@ -1,0 +1,197 @@
+{
+ "key": "fd72af8336a5a3ea739f9a4e82012f4d13aec42d",
+ "made": "2026-11-01T01:28:54+0300",
+ "case": "chem_c01",
+ "answer_headline": "120 percent needs more cooling and higher level",
+ "currency": "USD",
+ "illustrative": true,
+ "summary": "Capex \u2248 $45k (class 5: $22k\u2013$90k); +86 m3/d \u2192 $1.5M/yr margin after energy and utilities; payback 2 weeks; NPV 10 y @ 10% $8.9M. All prices ILLUSTRATIVE.",
+ "capex": {
+  "total_usd": 45000.0,
+  "range_usd": [
+   22000.0,
+   90000.0
+  ],
+  "range_basis": "AACE 18R-97 class 5, -50 % / +100 %",
+  "proposals": [
+   {
+    "title": "Raise H1007 cooling water to 27 m3/h",
+    "cost_class": "no capex",
+    "capex_usd": 15000,
+    "lines": [
+     {
+      "item": "set-point feeds.s47130.m3_h",
+      "basis": "20.0 \u2192 27.0",
+      "usd": 15000,
+      "source": "ILLUSTRATIVE instrument, DCS and procedure change for a flow, level or set-point change"
+     }
+    ],
+    "unpriced": [],
+    "cost_class_check": "consistent"
+   },
+   {
+    "title": "Raise H1008 chilled water to 18 m3/h",
+    "cost_class": "no capex",
+    "capex_usd": 15000,
+    "lines": [
+     {
+      "item": "set-point feeds.s47140.m3_h",
+      "basis": "15.0 \u2192 18.0",
+      "usd": 15000,
+      "source": "ILLUSTRATIVE instrument, DCS and procedure change for a flow, level or set-point change"
+     }
+    ],
+    "unpriced": [],
+    "cost_class_check": "consistent"
+   },
+   {
+    "title": "Raise T4750 working level to 22.1 m3",
+    "cost_class": "no capex",
+    "capex_usd": 15000,
+    "lines": [
+     {
+      "item": "set-point units.T4750.volume_m3",
+      "basis": "20.8 \u2192 22.1",
+      "usd": 15000,
+      "source": "ILLUSTRATIVE instrument, DCS and procedure change for a flow, level or set-point change"
+     }
+    ],
+    "unpriced": [],
+    "cost_class_check": "consistent"
+   }
+  ]
+ },
+ "annual": {
+  "throughput_name": "Product to dispatch",
+  "unit": "m3/d",
+  "base": 432,
+  "sold_multiple": 1.2,
+  "gain_per_day": 86.4,
+  "operating_days": 340.0,
+  "revenue_usd": 4406400.0,
+  "product_margin_usd": 1468800.0,
+  "energy": [
+   {
+    "name": "Pump motors (P4711, P4712)",
+    "units": [
+     "P4711",
+     "P4712"
+    ],
+    "delta_kW": 0.6,
+    "price": {
+     "value": 0.1,
+     "unit": "USD per kWh",
+     "source": "ASSUMED, ILLUSTRATIVE: industrial power price"
+    },
+    "usd_per_year": 500.0
+   }
+  ],
+  "utilities": [
+   {
+    "name": "Cooling water to H1007",
+    "stream": "s47130",
+    "delta": 7.0,
+    "unit": "m3/h",
+    "price": {
+     "value": 0.05,
+     "unit": "USD per m3",
+     "source": "ASSUMED, ILLUSTRATIVE: once-through cooling-water cost"
+    },
+    "usd_per_year": 2900.0
+   },
+   {
+    "name": "Chilled water to H1008",
+    "stream": "s47140",
+    "delta": 3.0,
+    "unit": "m3/h",
+    "price": {
+     "value": 0.4,
+     "unit": "USD per m3",
+     "source": "ASSUMED, ILLUSTRATIVE: chilled-water cost (7 C supply)"
+    },
+    "usd_per_year": 9800.0
+   }
+  ],
+  "margin_usd": 1455600.0,
+  "basis": "solved 1.242 \u00d7 base, capped at the 120% target; energy from DWSIM solves (design at 120% vs today at 100 %)"
+ },
+ "outage": {
+  "days": 0.0,
+  "usd": 0.0,
+  "source": "basis.md: an H1007 clean takes one 12-hour shutdown (applies only if a clean or a physical change is proposed)"
+ },
+ "payback_years": 0.03,
+ "npv_usd": 8899000.0,
+ "npv_range_usd": [
+  8854000.0,
+  8922000.0
+ ],
+ "discount_rate": 0.1,
+ "years": 10,
+ "prices": {
+  "product": {
+   "value": 150,
+   "unit": "USD per m3",
+   "source": "ASSUMED, ILLUSTRATIVE: dispatched aqueous-ethanol product"
+  },
+  "variable_cost": {
+   "value": 100,
+   "unit": "USD per m3",
+   "source": "ASSUMED, ILLUSTRATIVE: upstream reactor product cost per extra m3"
+  },
+  "operating_days": {
+   "value": 340,
+   "source": "ASSUMED, ILLUSTRATIVE"
+  },
+  "discount_rate": {
+   "value": 0.1,
+   "source": "ASSUMED, ILLUSTRATIVE"
+  },
+  "years": {
+   "value": 10,
+   "source": "ASSUMED, ILLUSTRATIVE"
+  },
+  "factors": {
+   "compressor": {
+    "usd_per": 900,
+    "per": "kW",
+    "size": "driver rating (limits.max_kW), else solved shaft power",
+    "source": "ILLUSTRATIVE order-of-magnitude factor of the kind tabulated in Towler & Sinnott, Chemical Engineering Design (2nd ed., 2012), ch. 7; not a vendor quote"
+   },
+   "pump": {
+    "usd_per": 600,
+    "per": "kW",
+    "size": "motor rating (limits.max_kW), else solved shaft power",
+    "source": "ILLUSTRATIVE order-of-magnitude factor of the kind tabulated in Towler & Sinnott, Chemical Engineering Design (2nd ed., 2012), ch. 7; not a vendor quote"
+   },
+   "hx": {
+    "usd_per": 450,
+    "per": "m2",
+    "size": "installed area",
+    "source": "ILLUSTRATIVE order-of-magnitude factor of the kind tabulated in Towler & Sinnott, Chemical Engineering Design (2nd ed., 2012), ch. 7; not a vendor quote"
+   },
+   "tank": {
+    "usd_per": 1500,
+    "per": "m3",
+    "size": "volume",
+    "source": "ILLUSTRATIVE order-of-magnitude factor of the kind tabulated in Towler & Sinnott, Chemical Engineering Design (2nd ed., 2012), ch. 7; not a vendor quote"
+   },
+   "install_factor": {
+    "value": 2.5,
+    "source": "ILLUSTRATIVE Lang-type installed/bare factor for added fluid-processing equipment (piping, instruments, electrical, civil, erection)"
+   },
+   "tie_in": {
+    "usd": 120000,
+    "source": "ILLUSTRATIVE allowance per new tee/join tied into a live line (hot tap or shutdown tie-in)"
+   },
+   "cleaning": {
+    "usd": 80000,
+    "source": "ILLUSTRATIVE chemical/mechanical clean of one large exchanger incl. waste handling"
+   },
+   "setpoint": {
+    "usd": 15000,
+    "source": "ILLUSTRATIVE instrument, DCS and procedure change for a flow, level or set-point change"
+   }
+  }
+ }
+}

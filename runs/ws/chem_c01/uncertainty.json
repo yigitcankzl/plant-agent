@@ -1,0 +1,1615 @@
+{
+ "key": "98f9bf7ebbee486715dc59f75cdf951eddca1047",
+ "made": "2026-11-01T01:37:55+0300",
+ "case": "chem_c01",
+ "answer_headline": "120 percent needs more cooling and higher level",
+ "method": "Latin hypercube, 48 samples (seed 20261101), uniform \u00b1 band per input kind; each sample re-solved (DWSIM): capacity bisection plus the solve at the target",
+ "n": 48,
+ "solved": 48,
+ "failed": 0,
+ "workers": 4,
+ "seconds": 133.9,
+ "target": 1.2,
+ "bands_pct": {
+  "documented": 3,
+  "measured": 5,
+  "provisional rating": 10,
+  "assumed": 10,
+  "illustrative": 15
+ },
+ "inputs": [
+  {
+   "path": "units.H1007.U_W_m2K",
+   "kind": "measured",
+   "band_pct": 5,
+   "base": 600,
+   "source": "basis.md: 600 W/m2K, 2024 performance test (fouled)"
+  },
+  {
+   "path": "units.H1008.U_W_m2K",
+   "kind": "measured",
+   "band_pct": 5,
+   "base": 600,
+   "source": "basis.md: 600 W/m2K, 2024 performance test (fouled)"
+  },
+  {
+   "path": "feeds.s47130.T_C",
+   "kind": "measured",
+   "band_pct": 5,
+   "base": 25,
+   "source": "basis.md: cooling-water supply 25 C (DCS 30-day average)"
+  },
+  {
+   "path": "feeds.s47121.T_C",
+   "kind": "measured",
+   "band_pct": 5,
+   "base": 50,
+   "source": "basis.md: product feed 50 C (DCS 30-day average)"
+  },
+  {
+   "path": "limits.s47130.max_m3_h",
+   "kind": "documented",
+   "band_pct": 3,
+   "base": 30,
+   "source": "basis.md site datasheet: cooling-water branch at most 30 m3/h"
+  },
+  {
+   "path": "units.T4750.volume_m3",
+   "kind": "documented",
+   "band_pct": 3,
+   "base": 22.1,
+   "source": "basis.md: 85 % maximum operating level, 22.1 m3"
+  }
+ ],
+ "capacity": {
+  "p10": 1.2132,
+  "p50": 1.234,
+  "p90": 1.2662
+ },
+ "capacity_basis": "24 feasible samples",
+ "p_target": 0.5,
+ "infeasible_share": 0.5,
+ "limiting": [
+  {
+   "item": "s47130: flow vs 90 % of available supply",
+   "share": 0.5
+  },
+  {
+   "item": "T4750: residence time",
+   "share": 0.479
+  },
+  {
+   "item": "sDispatch: temperature vs design",
+   "share": 0.021
+  }
+ ],
+ "limiting_load_at_target": {
+  "item": "s47130: flow vs 90 % of available supply",
+  "p10": 0.977,
+  "p50": 1.0,
+  "p90": 1.024
+ },
+ "drivers": [
+  {
+   "path": "limits.s47130.max_m3_h",
+   "kind": "documented",
+   "effect": 1.2372
+  },
+  {
+   "path": "feeds.s47130.T_C",
+   "kind": "measured",
+   "effect": -0.2028
+  },
+  {
+   "path": "units.T4750.volume_m3",
+   "kind": "documented",
+   "effect": -0.0863
+  },
+  {
+   "path": "units.H1008.U_W_m2K",
+   "kind": "measured",
+   "effect": -0.0031
+  },
+  {
+   "path": "feeds.s47121.T_C",
+   "kind": "measured",
+   "effect": -0.002
+  },
+  {
+   "path": "units.H1007.U_W_m2K",
+   "kind": "measured",
+   "effect": -0.001
+  }
+ ],
+ "summary": "Target 120% met in 50% of 48 samples; 50% are over a limit at any throughput (s47130: flow vs 90 % of available supply); max throughput P10/P50/P90 121% / 123% / 127% of the feasible samples; most often limited by s47130: flow vs 90 % of available supply (50%); biggest driver limits.s47130.max_m3_h (documented).",
+ "samples": [
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0179,
+    "units.H1008.U_W_m2K": 0.9583,
+    "feeds.s47130.T_C": 0.9573,
+    "feeds.s47121.T_C": 1.041,
+    "limits.s47130.max_m3_h": 1.029,
+    "units.T4750.volume_m3": 0.9736
+   },
+   "capacity": 1.211,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.992,
+    "s47130: flow vs 90 % of available supply": 0.972,
+    "sDispatch: temperature vs design": 0.956,
+    "s47123: temperature vs design": 0.953,
+    "P4711: head vs rated": 0.879,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: area needed for hot outlet 35 C": 0.81,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.241
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0157,
+    "units.H1008.U_W_m2K": 0.9701,
+    "feeds.s47130.T_C": 0.9863,
+    "feeds.s47121.T_C": 1.007,
+    "limits.s47130.max_m3_h": 0.9886,
+    "units.T4750.volume_m3": 1.0039
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.012,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.962,
+    "sDispatch: temperature vs design": 0.954,
+    "s47123: temperature vs design": 0.951,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: area needed for hot outlet 35 C": 0.787,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.238
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.032,
+    "units.H1008.U_W_m2K": 1.0135,
+    "feeds.s47130.T_C": 1.014,
+    "feeds.s47121.T_C": 0.9964,
+    "limits.s47130.max_m3_h": 0.9775,
+    "units.T4750.volume_m3": 0.9791
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.023,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.987,
+    "s47123: temperature vs design": 0.956,
+    "sDispatch: temperature vs design": 0.954,
+    "P4711: head vs rated": 0.877,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: area needed for hot outlet 35 C": 0.797,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.237
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0071,
+    "units.H1008.U_W_m2K": 1.0074,
+    "feeds.s47130.T_C": 0.9622,
+    "feeds.s47121.T_C": 0.9745,
+    "limits.s47130.max_m3_h": 1.0135,
+    "units.T4750.volume_m3": 1.0002
+   },
+   "capacity": 1.242,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.987,
+    "T4750: residence time": 0.967,
+    "sDispatch: temperature vs design": 0.927,
+    "s47123: temperature vs design": 0.926,
+    "P4711: head vs rated": 0.877,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.689,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.236
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9792,
+    "units.H1008.U_W_m2K": 1.0317,
+    "feeds.s47130.T_C": 0.9848,
+    "feeds.s47121.T_C": 0.9657,
+    "limits.s47130.max_m3_h": 1.0184,
+    "units.T4750.volume_m3": 1.0166
+   },
+   "capacity": 1.262,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.982,
+    "T4750: residence time": 0.951,
+    "s47123: temperature vs design": 0.937,
+    "sDispatch: temperature vs design": 0.936,
+    "P4711: head vs rated": 0.877,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.721,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.235
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9584,
+    "units.H1008.U_W_m2K": 0.9718,
+    "feeds.s47130.T_C": 1.0164,
+    "feeds.s47121.T_C": 1.0245,
+    "limits.s47130.max_m3_h": 1.0043,
+    "units.T4750.volume_m3": 0.981
+   },
+   "capacity": 1.219,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.996,
+    "s47123: temperature vs design": 0.986,
+    "T4750: residence time": 0.985,
+    "sDispatch: temperature vs design": 0.984,
+    "H1007: area needed for hot outlet 35 C": 0.93,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.24
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9983,
+    "units.H1008.U_W_m2K": 0.9938,
+    "feeds.s47130.T_C": 1.01,
+    "feeds.s47121.T_C": 0.9613,
+    "limits.s47130.max_m3_h": 1.0167,
+    "units.T4750.volume_m3": 0.9875
+   },
+   "capacity": 1.226,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.984,
+    "T4750: residence time": 0.979,
+    "sDispatch: temperature vs design": 0.945,
+    "s47123: temperature vs design": 0.944,
+    "P4712: flow vs rated": 0.878,
+    "P4711: head vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.735,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.235
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.009,
+    "units.H1008.U_W_m2K": 0.9552,
+    "feeds.s47130.T_C": 1.0173,
+    "feeds.s47121.T_C": 0.9753,
+    "limits.s47130.max_m3_h": 0.99,
+    "units.T4750.volume_m3": 1.0108
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.01,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.957,
+    "sDispatch: temperature vs design": 0.956,
+    "s47123: temperature vs design": 0.952,
+    "P4712: flow vs rated": 0.878,
+    "P4711: head vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.773,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.236
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9821,
+    "units.H1008.U_W_m2K": 1.0232,
+    "feeds.s47130.T_C": 1.0486,
+    "feeds.s47121.T_C": 0.9948,
+    "limits.s47130.max_m3_h": 0.9873,
+    "units.T4750.volume_m3": 1.0208
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.013,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47123: temperature vs design": 0.981,
+    "sDispatch: temperature vs design": 0.975,
+    "T4750: residence time": 0.947,
+    "H1007: area needed for hot outlet 35 C": 0.902,
+    "P4711: head vs rated": 0.877,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.237
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9873,
+    "units.H1008.U_W_m2K": 1.01,
+    "feeds.s47130.T_C": 0.9511,
+    "feeds.s47121.T_C": 0.972,
+    "limits.s47130.max_m3_h": 0.9742,
+    "units.T4750.volume_m3": 0.9706
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.027,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.996,
+    "sDispatch: temperature vs design": 0.925,
+    "s47123: temperature vs design": 0.923,
+    "P4711: head vs rated": 0.877,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.682,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.236
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.043,
+    "units.H1008.U_W_m2K": 1.049,
+    "feeds.s47130.T_C": 1.0248,
+    "feeds.s47121.T_C": 0.9686,
+    "limits.s47130.max_m3_h": 0.9768,
+    "units.T4750.volume_m3": 0.9922
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.024,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.975,
+    "s47123: temperature vs design": 0.946,
+    "sDispatch: temperature vs design": 0.942,
+    "P4711: head vs rated": 0.877,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.745,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.235
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9632,
+    "units.H1008.U_W_m2K": 1.0386,
+    "feeds.s47130.T_C": 0.9676,
+    "feeds.s47121.T_C": 0.9785,
+    "limits.s47130.max_m3_h": 0.9833,
+    "units.T4750.volume_m3": 1.0186
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.017,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.949,
+    "s47123: temperature vs design": 0.939,
+    "sDispatch: temperature vs design": 0.936,
+    "P4711: head vs rated": 0.877,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.737,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.236
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0479,
+    "units.H1008.U_W_m2K": 0.9836,
+    "feeds.s47130.T_C": 0.9967,
+    "feeds.s47121.T_C": 1.0116,
+    "limits.s47130.max_m3_h": 0.9719,
+    "units.T4750.volume_m3": 1.0154
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.029,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "sDispatch: temperature vs design": 0.953,
+    "s47123: temperature vs design": 0.952,
+    "T4750: residence time": 0.951,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: area needed for hot outlet 35 C": 0.789,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.239
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9944,
+    "units.H1008.U_W_m2K": 0.9929,
+    "feeds.s47130.T_C": 0.9666,
+    "feeds.s47121.T_C": 0.991,
+    "limits.s47130.max_m3_h": 1.0278,
+    "units.T4750.volume_m3": 1.0083
+   },
+   "capacity": 1.252,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.973,
+    "T4750: residence time": 0.959,
+    "sDispatch: temperature vs design": 0.94,
+    "s47123: temperature vs design": 0.938,
+    "P4711: head vs rated": 0.877,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.739,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.237
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9769,
+    "units.H1008.U_W_m2K": 0.989,
+    "feeds.s47130.T_C": 1.0111,
+    "feeds.s47121.T_C": 0.9507,
+    "limits.s47130.max_m3_h": 0.9934,
+    "units.T4750.volume_m3": 0.9878
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.007,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.979,
+    "sDispatch: temperature vs design": 0.945,
+    "s47123: temperature vs design": 0.943,
+    "P4712: flow vs rated": 0.878,
+    "P4711: head vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.813,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.728,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.234
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0392,
+    "units.H1008.U_W_m2K": 1.0475,
+    "feeds.s47130.T_C": 0.9631,
+    "feeds.s47121.T_C": 1.0332,
+    "limits.s47130.max_m3_h": 1.0255,
+    "units.T4750.volume_m3": 0.9779
+   },
+   "capacity": 1.216,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.987,
+    "s47130: flow vs 90 % of available supply": 0.975,
+    "s47123: temperature vs design": 0.947,
+    "sDispatch: temperature vs design": 0.942,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: area needed for hot outlet 35 C": 0.787,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.241
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9914,
+    "units.H1008.U_W_m2K": 1.0185,
+    "feeds.s47130.T_C": 0.9933,
+    "feeds.s47121.T_C": 0.957,
+    "limits.s47130.max_m3_h": 1.0214,
+    "units.T4750.volume_m3": 1.0098
+   },
+   "capacity": 1.253,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.979,
+    "T4750: residence time": 0.958,
+    "s47123: temperature vs design": 0.935,
+    "sDispatch: temperature vs design": 0.934,
+    "P4712: flow vs rated": 0.878,
+    "P4711: head vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.704,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.234
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9515,
+    "units.H1008.U_W_m2K": 0.9792,
+    "feeds.s47130.T_C": 1.031,
+    "feeds.s47121.T_C": 0.9804,
+    "limits.s47130.max_m3_h": 1.0069,
+    "units.T4750.volume_m3": 1.0286
+   },
+   "capacity": 1.277,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.993,
+    "s47123: temperature vs design": 0.972,
+    "sDispatch: temperature vs design": 0.971,
+    "T4750: residence time": 0.94,
+    "P4712: flow vs rated": 0.878,
+    "P4711: head vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: area needed for hot outlet 35 C": 0.858,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.236
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0058,
+    "units.H1008.U_W_m2K": 1.031,
+    "feeds.s47130.T_C": 1.0478,
+    "feeds.s47121.T_C": 1.0495,
+    "limits.s47130.max_m3_h": 0.9702,
+    "units.T4750.volume_m3": 0.995
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.031,
+    "H1007: area needed for hot outlet 35 C": 1.008,
+    "s47123: temperature vs design": 1.003,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "sDispatch: temperature vs design": 0.993,
+    "T4750: residence time": 0.97,
+    "P4711: head vs rated": 0.879,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.242
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0473,
+    "units.H1008.U_W_m2K": 0.9668,
+    "feeds.s47130.T_C": 1.0219,
+    "feeds.s47121.T_C": 0.954,
+    "limits.s47130.max_m3_h": 1.0112,
+    "units.T4750.volume_m3": 1.0221
+   },
+   "capacity": 1.268,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.989,
+    "T4750: residence time": 0.947,
+    "sDispatch: temperature vs design": 0.942,
+    "s47123: temperature vs design": 0.937,
+    "P4712: flow vs rated": 0.878,
+    "P4711: head vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.703,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.234
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9687,
+    "units.H1008.U_W_m2K": 1.0032,
+    "feeds.s47130.T_C": 0.98,
+    "feeds.s47121.T_C": 1.034,
+    "limits.s47130.max_m3_h": 1.0272,
+    "units.T4750.volume_m3": 0.9964
+   },
+   "capacity": 1.239,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.974,
+    "s47123: temperature vs design": 0.971,
+    "T4750: residence time": 0.969,
+    "sDispatch: temperature vs design": 0.968,
+    "P4711: head vs rated": 0.879,
+    "P4712: flow vs rated": 0.877,
+    "H1007: area needed for hot outlet 35 C": 0.874,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.241
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9609,
+    "units.H1008.U_W_m2K": 1.0059,
+    "feeds.s47130.T_C": 0.9585,
+    "feeds.s47121.T_C": 0.9999,
+    "limits.s47130.max_m3_h": 1.0096,
+    "units.T4750.volume_m3": 0.976
+   },
+   "capacity": 1.212,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.99,
+    "s47130: flow vs 90 % of available supply": 0.99,
+    "s47123: temperature vs design": 0.946,
+    "sDispatch: temperature vs design": 0.945,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.772,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.238
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9577,
+    "units.H1008.U_W_m2K": 0.9605,
+    "feeds.s47130.T_C": 1.0316,
+    "feeds.s47121.T_C": 1.0364,
+    "limits.s47130.max_m3_h": 0.9848,
+    "units.T4750.volume_m3": 1.0121
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.015,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47123: temperature vs design": 0.999,
+    "sDispatch: temperature vs design": 0.997,
+    "H1007: area needed for hot outlet 35 C": 0.99,
+    "T4750: residence time": 0.954,
+    "P4711: head vs rated": 0.879,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.241
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9523,
+    "units.H1008.U_W_m2K": 1.0197,
+    "feeds.s47130.T_C": 0.9762,
+    "feeds.s47121.T_C": 1.0222,
+    "limits.s47130.max_m3_h": 0.9988,
+    "units.T4750.volume_m3": 1.0063
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.001,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47123: temperature vs design": 0.967,
+    "sDispatch: temperature vs design": 0.963,
+    "T4750: residence time": 0.96,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "H1007: area needed for hot outlet 35 C": 0.857,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.239
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0243,
+    "units.H1008.U_W_m2K": 0.9763,
+    "feeds.s47130.T_C": 1.0017,
+    "feeds.s47121.T_C": 1.0378,
+    "limits.s47130.max_m3_h": 0.9944,
+    "units.T4750.volume_m3": 1.0253
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.006,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47123: temperature vs design": 0.971,
+    "sDispatch: temperature vs design": 0.971,
+    "T4750: residence time": 0.942,
+    "P4711: head vs rated": 0.879,
+    "P4712: flow vs rated": 0.877,
+    "H1007: area needed for hot outlet 35 C": 0.872,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.241
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9919,
+    "units.H1008.U_W_m2K": 0.9818,
+    "feeds.s47130.T_C": 0.9741,
+    "feeds.s47121.T_C": 0.956,
+    "limits.s47130.max_m3_h": 0.9728,
+    "units.T4750.volume_m3": 0.9764
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.028,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.991,
+    "sDispatch: temperature vs design": 0.93,
+    "s47123: temperature vs design": 0.925,
+    "P4712: flow vs rated": 0.878,
+    "P4711: head vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.675,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.234
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0007,
+    "units.H1008.U_W_m2K": 1.0114,
+    "feeds.s47130.T_C": 1.0042,
+    "feeds.s47121.T_C": 1.014,
+    "limits.s47130.max_m3_h": 1.0199,
+    "units.T4750.volume_m3": 1.0129
+   },
+   "capacity": 1.258,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.981,
+    "s47123: temperature vs design": 0.966,
+    "sDispatch: temperature vs design": 0.962,
+    "T4750: residence time": 0.954,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "H1007: area needed for hot outlet 35 C": 0.845,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.239
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0301,
+    "units.H1008.U_W_m2K": 0.9986,
+    "feeds.s47130.T_C": 0.9533,
+    "feeds.s47121.T_C": 1.0197,
+    "limits.s47130.max_m3_h": 1.0036,
+    "units.T4750.volume_m3": 1.0236
+   },
+   "capacity": 1.272,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.996,
+    "T4750: residence time": 0.944,
+    "sDispatch: temperature vs design": 0.939,
+    "s47123: temperature vs design": 0.938,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.753,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.239
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0267,
+    "units.H1008.U_W_m2K": 1.0251,
+    "feeds.s47130.T_C": 0.9982,
+    "feeds.s47121.T_C": 0.9859,
+    "limits.s47130.max_m3_h": 0.998,
+    "units.T4750.volume_m3": 0.999
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.002,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.968,
+    "s47123: temperature vs design": 0.945,
+    "sDispatch: temperature vs design": 0.942,
+    "P4711: head vs rated": 0.877,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.752,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.237
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9976,
+    "units.H1008.U_W_m2K": 0.9523,
+    "feeds.s47130.T_C": 1.0362,
+    "feeds.s47121.T_C": 1.0441,
+    "limits.s47130.max_m3_h": 0.9757,
+    "units.T4750.volume_m3": 0.974
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.025,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47123: temperature vs design": 0.996,
+    "sDispatch: temperature vs design": 0.996,
+    "T4750: residence time": 0.991,
+    "H1007: area needed for hot outlet 35 C": 0.978,
+    "P4711: head vs rated": 0.879,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.242
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9844,
+    "units.H1008.U_W_m2K": 0.9636,
+    "feeds.s47130.T_C": 1.0444,
+    "feeds.s47121.T_C": 0.9889,
+    "limits.s47130.max_m3_h": 0.9973,
+    "units.T4750.volume_m3": 0.9975
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.003,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "sDispatch: temperature vs design": 0.977,
+    "s47123: temperature vs design": 0.976,
+    "T4750: residence time": 0.969,
+    "P4712: flow vs rated": 0.878,
+    "P4711: head vs rated": 0.877,
+    "H1007: area needed for hot outlet 35 C": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.237
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0021,
+    "units.H1008.U_W_m2K": 0.974,
+    "feeds.s47130.T_C": 1.0082,
+    "feeds.s47121.T_C": 1.0042,
+    "limits.s47130.max_m3_h": 1.0015,
+    "units.T4750.volume_m3": 1.0054
+   },
+   "capacity": 1.249,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.998,
+    "sDispatch: temperature vs design": 0.964,
+    "s47123: temperature vs design": 0.963,
+    "T4750: residence time": 0.961,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "H1007: area needed for hot outlet 35 C": 0.829,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.238
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9889,
+    "units.H1008.U_W_m2K": 0.952,
+    "feeds.s47130.T_C": 0.9912,
+    "feeds.s47121.T_C": 0.9589,
+    "limits.s47130.max_m3_h": 1.0157,
+    "units.T4750.volume_m3": 0.9843
+   },
+   "capacity": 1.221,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.985,
+    "T4750: residence time": 0.983,
+    "sDispatch: temperature vs design": 0.942,
+    "s47123: temperature vs design": 0.935,
+    "P4712: flow vs rated": 0.878,
+    "P4711: head vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.708,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.234
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9726,
+    "units.H1008.U_W_m2K": 1.0151,
+    "feeds.s47130.T_C": 1.0036,
+    "feeds.s47121.T_C": 0.963,
+    "limits.s47130.max_m3_h": 1.0144,
+    "units.T4750.volume_m3": 0.9906
+   },
+   "capacity": 1.229,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.986,
+    "T4750: residence time": 0.976,
+    "s47123: temperature vs design": 0.946,
+    "sDispatch: temperature vs design": 0.945,
+    "P4712: flow vs rated": 0.878,
+    "P4711: head vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.749,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.235
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.955,
+    "units.H1008.U_W_m2K": 0.9908,
+    "feeds.s47130.T_C": 1.0288,
+    "feeds.s47121.T_C": 1.0259,
+    "limits.s47130.max_m3_h": 1.0,
+    "units.T4750.volume_m3": 1.0188
+   },
+   "capacity": 1.233,
+   "infeasible": false,
+   "limited_by": "sDispatch: temperature vs design",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.0,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47123: temperature vs design": 0.993,
+    "sDispatch: temperature vs design": 0.988,
+    "H1007: area needed for hot outlet 35 C": 0.962,
+    "T4750: residence time": 0.948,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.24
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0197,
+    "units.H1008.U_W_m2K": 1.0272,
+    "feeds.s47130.T_C": 0.9716,
+    "feeds.s47121.T_C": 0.9931,
+    "limits.s47130.max_m3_h": 1.0229,
+    "units.T4750.volume_m3": 0.9826
+   },
+   "capacity": 1.22,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.984,
+    "s47130: flow vs 90 % of available supply": 0.978,
+    "s47123: temperature vs design": 0.937,
+    "sDispatch: temperature vs design": 0.935,
+    "P4711: head vs rated": 0.877,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.732,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.237
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0336,
+    "units.H1008.U_W_m2K": 0.9599,
+    "feeds.s47130.T_C": 0.9956,
+    "feeds.s47121.T_C": 0.9694,
+    "limits.s47130.max_m3_h": 0.9923,
+    "units.T4750.volume_m3": 0.9928
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.008,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.974,
+    "sDispatch: temperature vs design": 0.94,
+    "s47123: temperature vs design": 0.934,
+    "P4711: head vs rated": 0.877,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.707,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.235
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9731,
+    "units.H1008.U_W_m2K": 0.9798,
+    "feeds.s47130.T_C": 1.0395,
+    "feeds.s47121.T_C": 1.0464,
+    "limits.s47130.max_m3_h": 0.9824,
+    "units.T4750.volume_m3": 1.014
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.018,
+    "H1007: area needed for hot outlet 35 C": 1.016,
+    "s47123: temperature vs design": 1.004,
+    "sDispatch: temperature vs design": 1.0,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.952,
+    "P4711: head vs rated": 0.879,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.242
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0114,
+    "units.H1008.U_W_m2K": 1.0001,
+    "feeds.s47130.T_C": 1.0191,
+    "feeds.s47121.T_C": 0.9841,
+    "limits.s47130.max_m3_h": 1.025,
+    "units.T4750.volume_m3": 0.9725
+   },
+   "capacity": 1.208,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.994,
+    "s47130: flow vs 90 % of available supply": 0.976,
+    "s47123: temperature vs design": 0.957,
+    "sDispatch: temperature vs design": 0.956,
+    "P4711: head vs rated": 0.877,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: area needed for hot outlet 35 C": 0.794,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.237
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0366,
+    "units.H1008.U_W_m2K": 1.0413,
+    "feeds.s47130.T_C": 0.9561,
+    "feeds.s47121.T_C": 1.0085,
+    "limits.s47130.max_m3_h": 1.0055,
+    "units.T4750.volume_m3": 0.986
+   },
+   "capacity": 1.225,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.995,
+    "T4750: residence time": 0.98,
+    "s47123: temperature vs design": 0.933,
+    "sDispatch: temperature vs design": 0.93,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.73,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.238
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9771,
+    "units.H1008.U_W_m2K": 1.0426,
+    "feeds.s47130.T_C": 0.9784,
+    "feeds.s47121.T_C": 1.0304,
+    "limits.s47130.max_m3_h": 0.9858,
+    "units.T4750.volume_m3": 0.9897
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.014,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.976,
+    "s47123: temperature vs design": 0.967,
+    "sDispatch: temperature vs design": 0.96,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "H1007: area needed for hot outlet 35 C": 0.856,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.24
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0143,
+    "units.H1008.U_W_m2K": 0.9665,
+    "feeds.s47130.T_C": 0.9894,
+    "feeds.s47121.T_C": 1.0182,
+    "limits.s47130.max_m3_h": 1.0086,
+    "units.T4750.volume_m3": 0.9814
+   },
+   "capacity": 1.22,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.991,
+    "T4750: residence time": 0.984,
+    "sDispatch: temperature vs design": 0.96,
+    "s47123: temperature vs design": 0.958,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "H1007: area needed for hot outlet 35 C": 0.817,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.239
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0281,
+    "units.H1008.U_W_m2K": 0.9874,
+    "feeds.s47130.T_C": 1.0433,
+    "feeds.s47121.T_C": 1.0435,
+    "limits.s47130.max_m3_h": 0.9801,
+    "units.T4750.volume_m3": 1.0267
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.02,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47123: temperature vs design": 0.993,
+    "sDispatch: temperature vs design": 0.989,
+    "H1007: area needed for hot outlet 35 C": 0.963,
+    "T4750: residence time": 0.94,
+    "P4711: head vs rated": 0.879,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.241
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0456,
+    "units.H1008.U_W_m2K": 1.0441,
+    "feeds.s47130.T_C": 1.0337,
+    "feeds.s47121.T_C": 1.0281,
+    "limits.s47130.max_m3_h": 0.9959,
+    "units.T4750.volume_m3": 1.0289
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.004,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47123: temperature vs design": 0.978,
+    "sDispatch: temperature vs design": 0.97,
+    "T4750: residence time": 0.939,
+    "H1007: area needed for hot outlet 35 C": 0.893,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.24
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0212,
+    "units.H1008.U_W_m2K": 1.0219,
+    "feeds.s47130.T_C": 1.0263,
+    "feeds.s47121.T_C": 1.0,
+    "limits.s47130.max_m3_h": 1.0118,
+    "units.T4750.volume_m3": 1.0026
+   },
+   "capacity": 1.245,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.988,
+    "s47123: temperature vs design": 0.966,
+    "T4750: residence time": 0.964,
+    "sDispatch: temperature vs design": 0.961,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "H1007: area needed for hot outlet 35 C": 0.836,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.238
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9705,
+    "units.H1008.U_W_m2K": 1.0355,
+    "feeds.s47130.T_C": 1.0403,
+    "feeds.s47121.T_C": 1.0036,
+    "limits.s47130.max_m3_h": 0.9797,
+    "units.T4750.volume_m3": 1.0241
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.021,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47123: temperature vs design": 0.984,
+    "sDispatch: temperature vs design": 0.976,
+    "T4750: residence time": 0.944,
+    "H1007: area needed for hot outlet 35 C": 0.917,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.238
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 1.0406,
+    "units.H1008.U_W_m2K": 1.0334,
+    "feeds.s47130.T_C": 0.9697,
+    "feeds.s47121.T_C": 0.9814,
+    "limits.s47130.max_m3_h": 0.9911,
+    "units.T4750.volume_m3": 1.0019
+   },
+   "capacity": null,
+   "infeasible": true,
+   "limited_by": "s47130: flow vs 90 % of available supply",
+   "at_target": {
+    "s47130: flow vs 90 % of available supply": 1.009,
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "T4750: residence time": 0.965,
+    "s47123: temperature vs design": 0.926,
+    "sDispatch: temperature vs design": 0.925,
+    "P4711: head vs rated": 0.877,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "H1007: area needed for hot outlet 35 C": 0.691,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.236
+   }
+  },
+  {
+   "factors": {
+    "units.H1007.U_W_m2K": 0.9649,
+    "units.H1008.U_W_m2K": 0.9974,
+    "feeds.s47130.T_C": 0.9829,
+    "feeds.s47121.T_C": 1.0151,
+    "limits.s47130.max_m3_h": 1.02,
+    "units.T4750.volume_m3": 0.9941
+   },
+   "capacity": 1.235,
+   "infeasible": false,
+   "limited_by": "T4750: residence time",
+   "at_target": {
+    "s47140: flow vs 90 % of available supply": 1.0,
+    "s47130: flow vs 90 % of available supply": 0.98,
+    "T4750: residence time": 0.972,
+    "s47123: temperature vs design": 0.964,
+    "sDispatch: temperature vs design": 0.962,
+    "P4711: head vs rated": 0.878,
+    "P4712: flow vs rated": 0.877,
+    "P4711: flow vs rated": 0.864,
+    "H1007: cold-side pressure drop vs available": 0.858,
+    "H1007: area needed for hot outlet 35 C": 0.841,
+    "P4712: shaft power vs motor": 0.812,
+    "H1007: installed area vs frame": 0.78,
+    "P4712: discharge vs 90 % of relief set": 0.648,
+    "P4711: shaft power vs motor": 0.391,
+    "P4711: flow vs minimum continuous": 0.37,
+    "P4711: NPSH available vs 1.3 x required": 0.239
+   }
+  }
+ ]
+}

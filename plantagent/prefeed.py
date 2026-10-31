@@ -803,7 +803,19 @@ def make(w, answer=None, scenarios=None, dynamics=None, economics=None, commissi
         {"name": "today", "scale": 1.0, "basis": "current throughput"},
         {"name": "target", "scale": float(w.cfg.get("target_scale") or 1.0), "basis": "case target"}]
     dynamics = dynamics if dynamics is not None else cfg.get("dynamics")
-    economics = economics or cfg.get("economics")
+    econ = unc = None
+    if selected in w.answers:  # factored economics (computed here, a few solves) and the cached Monte Carlo, if any
+        from . import economics as econ_mod, uncertainty
+        try:
+            econ = econ_mod.assess(w, w.answers.index(selected))
+            econ = None if econ.get("error") else econ
+        except Exception:  # noqa: BLE001 - the pre-FEED gate stands without its economics section
+            econ = None
+        try:
+            unc = uncertainty.cached(w, selected)
+        except Exception:  # noqa: BLE001
+            unc = None
+    economics = economics or cfg.get("economics") or (econ_mod.for_prefeed(econ) if econ else None)
     envelope = run_envelope(spec, scenarios, w._solve, patch)
     calculations = [_enrich(spec, p.get("calculation")) for p in proposals if p.get("calculation")]
     if changes and not calculations:
@@ -854,11 +866,16 @@ def make(w, answer=None, scenarios=None, dynamics=None, economics=None, commissi
             "design_answer": (selected or {}).get("headline"), "proposal_titles": [p.get("title") for p in proposals],
             "envelope": envelope, "equipment": equipment, "dynamics": dynamic, "hazards": hazards,
             "constructability": construction, "disciplines": discipline_rows, "decision_inputs": inputs,
-            "options": options, "commissioning": commission}
+            "options": options, "commissioning": commission,
+            "economics": {k: econ[k] for k in ("summary", "capex", "annual", "outage", "payback_years", "npv_usd", "npv_range_usd")} if econ else None,
+            "uncertainty": {k: unc[k] for k in ("summary", "method", "capacity", "p_target", "limiting", "drivers", "inputs")} if unc else None}
     sheets = "\n\n".join(datasheet_markdown(p.get("changes"), _enrich(spec, p["calculation"]) if p.get("calculation") else
                                              (calculations[0] if calculations else None))
                             for p in proposals if p.get("changes"))
     text = markdown(data, sheets)
+    if econ or unc:
+        from . import economics as econ_mod, uncertainty
+        text += "\n" + "\n".join(["", "## Economics and uncertainty"] + econ_mod.markdown(econ) + uncertainty.markdown(unc)) + "\n"
     files = {"prefeed.md": text, "prefeed.json": json.dumps(data, indent=2),
              "impact-register.json": json.dumps(discipline_rows, indent=2),
              "vendor-rfq.md": rfq_markdown(equipment), "commissioning.md": commissioning_markdown(commission)}

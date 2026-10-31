@@ -85,8 +85,9 @@ def critical_u(spec, unit, out_stream, limit_C, scale, lo=100.0, hi=3000.0):
 
 
 def check(case):
+    from . import historian
     cfg = json.loads((ROOT / "cases" / case / "historian_map.json").read_text())
-    rows = load(ROOT / "cases" / case / cfg["file"])
+    rows = historian.rows(case, cfg)  # PI Web API when configured, else the CSV export
     model = ROOT / "runs" / "ws" / case / "model.json"
     spec = json.loads(model.read_text())["spec"] if model.exists() else None
     items, exch, meas, quality = [], [], [], []
@@ -166,7 +167,7 @@ def check(case):
         items.append({"urgency": 60, "unit": q.split(":")[0], "kind": "data quality", "text": q})
 
     items.sort(key=lambda x: -x["urgency"])
-    return {"case": case, "source": cfg["file"], "source_note": cfg.get("note", ""), "from": rows[0]["time"], "to": rows[-1]["time"],
+    return {"case": case, "source": historian.label(cfg), "source_note": cfg.get("note", ""), "from": rows[0]["time"], "to": rows[-1]["time"],
             "samples": len(rows), "today": items[:3], "all": items, "exchangers": exch, "measured_limits": meas, "data_quality": quality}
 
 

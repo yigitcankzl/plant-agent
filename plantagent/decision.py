@@ -670,6 +670,17 @@ def make(w, answer=None):
         md += [f"### 4.{len(revs) + 1} Other field checks", ""] + [cv_unit(f"- {f.get('item')}. Where: {f.get('where')}. If it differs: {f.get('changes')}", after)
                                                                    for f in rest] + [""]
 
+    if ans in w.answers:  # factored economics (a few solves) and the cached Monte Carlo of the design answer
+        from . import economics, uncertainty
+        try:
+            econ = economics.assess(w, w.answers.index(ans))
+            unc = uncertainty.cached(w, ans)
+        except Exception:  # noqa: BLE001 - the pack stands without this section
+            econ = unc = None
+        extra = economics.markdown(econ if econ and not econ.get("error") else None) + uncertainty.markdown(unc)
+        if extra:
+            md += [f"### 4.{len(revs) + 2} Economics and uncertainty of the design", ""] + [x.replace("### ", "#### ") for x in extra] + [""]
+
     md += ["## 5. Drawings", ""]
     if rev_a:
         md += ["The next pages show the P&ID **Rev A** (existing, as received) and **Rev B** (proposed): each change is drawn in, "

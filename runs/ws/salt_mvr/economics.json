@@ -1,0 +1,199 @@
+{
+ "key": "5fc508e1e29569650bcc5fb182d821d3b7fb7151",
+ "made": "2026-11-01T01:43:32+0300",
+ "case": "salt_mvr",
+ "answer_headline": "Yes, with cleaning and extra compression",
+ "currency": "USD",
+ "illustrative": true,
+ "summary": "Capex \u2248 $5.7M (class 5: $2.9M\u2013$11.5M); +502 short t/d \u2192 $22.7M/yr margin after energy and utilities; payback 4 months; NPV 10 y @ 10% $132.2M. All prices ILLUSTRATIVE.",
+ "capex": {
+  "total_usd": 5735000.0,
+  "range_usd": [
+   2868000.0,
+   11470000.0
+  ],
+  "range_basis": "AACE 18R-97 class 5, -50 % / +100 %",
+  "proposals": [
+   {
+    "title": "Clean the main circulating heater back to its clean performance",
+    "cost_class": "<$100k",
+    "capex_usd": 80000,
+    "lines": [
+     {
+      "item": "clean E-201",
+      "basis": "restore clean U",
+      "usd": 80000,
+      "source": "ILLUSTRATIVE chemical/mechanical clean of one large exchanger incl. waste handling"
+     }
+    ],
+    "unpriced": [],
+    "cost_class_check": "consistent"
+   },
+   {
+    "title": "Add a small parallel vapour compressor K-202",
+    "cost_class": ">$1M",
+    "capex_usd": 5640000.0,
+    "lines": [
+     {
+      "item": "tie-in K-201_SPLIT",
+      "basis": "new tee/join",
+      "usd": 120000,
+      "source": "ILLUSTRATIVE allowance per new tee/join tied into a live line (hot tap or shutdown tie-in)"
+     },
+     {
+      "item": "K-202 compressor",
+      "basis": "2,400 kW \u00d7 $900/kW \u00d7 install 2.5",
+      "size": 2400,
+      "size_unit": "kW",
+      "usd": 5400000.0,
+      "source": "ILLUSTRATIVE order-of-magnitude factor of the kind tabulated in Towler & Sinnott, Chemical Engineering Design (2nd ed., 2012), ch. 7; not a vendor quote"
+     },
+     {
+      "item": "tie-in K201_JOIN",
+      "basis": "new tee/join",
+      "usd": 120000,
+      "source": "ILLUSTRATIVE allowance per new tee/join tied into a live line (hot tap or shutdown tie-in)"
+     }
+    ],
+    "unpriced": [],
+    "cost_class_check": "consistent"
+   },
+   {
+    "title": "Hold purge-heater steam at today's rate by trimming the overhead split",
+    "cost_class": "no capex",
+    "capex_usd": 15000,
+    "lines": [
+     {
+      "item": "set-point units.OVERHEAD_SPLIT.fractions",
+      "basis": "[0.084, 0.916] \u2192 [0.07, 0.93]",
+      "usd": 15000,
+      "source": "ILLUSTRATIVE instrument, DCS and procedure change for a flow, level or set-point change"
+     }
+    ],
+    "unpriced": [],
+    "cost_class_check": "consistent"
+   }
+  ]
+ },
+ "annual": {
+  "throughput_name": "Salt production",
+  "unit": "short t/d",
+  "base": 2511,
+  "sold_multiple": 1.2,
+  "gain_per_day": 502.2,
+  "operating_days": 340.0,
+  "revenue_usd": 34149600.0,
+  "product_margin_usd": 23904700.0,
+  "energy": [
+   {
+    "name": "K-201 gas-turbine fuel",
+    "units": [
+     "K-201"
+    ],
+    "delta_kW": 1.4,
+    "price": {
+     "value": 0.039,
+     "unit": "USD per kWh shaft",
+     "source": "ASSUMED, ILLUSTRATIVE: gas at $4/MMBtu, 35 % turbine efficiency"
+    },
+    "usd_per_year": 400.0
+   },
+   {
+    "name": "Electric motors (K-202, P-201)",
+    "units": [
+     "K-202",
+     "P-201"
+    ],
+    "delta_kW": 2051.7,
+    "price": {
+     "value": 0.07,
+     "unit": "USD per kWh",
+     "source": "ASSUMED, ILLUSTRATIVE: industrial power price (same value as historian_map.json)"
+    },
+    "usd_per_year": 1171900.0
+   }
+  ],
+  "utilities": [],
+  "margin_usd": 22732400.0,
+  "basis": "solved 1.201 \u00d7 base, capped at the 120% target; energy from DWSIM solves (design at 120% vs today at 100 %)"
+ },
+ "outage": {
+  "days": 5.0,
+  "usd": 1758000.0,
+  "source": "ASSUMED, ILLUSTRATIVE: one shutdown for the K-202 tie-ins, with the E-201 clean done in the same window"
+ },
+ "payback_years": 0.33,
+ "npv_usd": 132188000.0,
+ "npv_range_usd": [
+  126453000.0,
+  135055000.0
+ ],
+ "discount_rate": 0.1,
+ "years": 10,
+ "prices": {
+  "product": {
+   "value": 200,
+   "unit": "USD per short t",
+   "source": "ASSUMED, ILLUSTRATIVE: evaporated-salt netback (same value as the fouling forecast in historian_map.json)"
+  },
+  "variable_cost": {
+   "value": 60,
+   "unit": "USD per short t",
+   "source": "ASSUMED, ILLUSTRATIVE: brine, chemicals, packaging and freight per extra ton; energy counted separately"
+  },
+  "operating_days": {
+   "value": 340,
+   "source": "ASSUMED, ILLUSTRATIVE: annual availability"
+  },
+  "discount_rate": {
+   "value": 0.1,
+   "source": "ASSUMED, ILLUSTRATIVE"
+  },
+  "years": {
+   "value": 10,
+   "source": "ASSUMED, ILLUSTRATIVE: economic life of the modification"
+  },
+  "factors": {
+   "compressor": {
+    "usd_per": 900,
+    "per": "kW",
+    "size": "driver rating (limits.max_kW), else solved shaft power",
+    "source": "ILLUSTRATIVE order-of-magnitude factor of the kind tabulated in Towler & Sinnott, Chemical Engineering Design (2nd ed., 2012), ch. 7; not a vendor quote"
+   },
+   "pump": {
+    "usd_per": 600,
+    "per": "kW",
+    "size": "motor rating (limits.max_kW), else solved shaft power",
+    "source": "ILLUSTRATIVE order-of-magnitude factor of the kind tabulated in Towler & Sinnott, Chemical Engineering Design (2nd ed., 2012), ch. 7; not a vendor quote"
+   },
+   "hx": {
+    "usd_per": 450,
+    "per": "m2",
+    "size": "installed area",
+    "source": "ILLUSTRATIVE order-of-magnitude factor of the kind tabulated in Towler & Sinnott, Chemical Engineering Design (2nd ed., 2012), ch. 7; not a vendor quote"
+   },
+   "tank": {
+    "usd_per": 1500,
+    "per": "m3",
+    "size": "volume",
+    "source": "ILLUSTRATIVE order-of-magnitude factor of the kind tabulated in Towler & Sinnott, Chemical Engineering Design (2nd ed., 2012), ch. 7; not a vendor quote"
+   },
+   "install_factor": {
+    "value": 2.5,
+    "source": "ILLUSTRATIVE Lang-type installed/bare factor for added fluid-processing equipment (piping, instruments, electrical, civil, erection)"
+   },
+   "tie_in": {
+    "usd": 120000,
+    "source": "ILLUSTRATIVE allowance per new tee/join tied into a live line (hot tap or shutdown tie-in)"
+   },
+   "cleaning": {
+    "usd": 80000,
+    "source": "ILLUSTRATIVE chemical/mechanical clean of one large exchanger incl. waste handling"
+   },
+   "setpoint": {
+    "usd": 15000,
+    "source": "ILLUSTRATIVE instrument, DCS and procedure change for a flow, level or set-point change"
+   }
+  }
+ }
+}

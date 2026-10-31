@@ -1,0 +1,20 @@
+{
+  "note": "ILLUSTRATIVE prices for the chem_c01 demonstration unit (its operating data are illustrative too). Replace with the site's prices.",
+  "currency": "USD",
+  "throughput": {"name": "Product to dispatch", "base": 432, "unit": "m3/d", "source": "basis.md: 18.0 m3/h x 24 h"},
+  "product": {
+    "price": {"value": 150, "unit": "USD per m3", "source": "ASSUMED, ILLUSTRATIVE: dispatched aqueous-ethanol product"},
+    "variable_cost": {"value": 100, "unit": "USD per m3", "source": "ASSUMED, ILLUSTRATIVE: upstream reactor product cost per extra m3"}
+  },
+  "drivers": [
+    {"name": "Pump motors (P4711, P4712)", "units": ["P4711", "P4712"], "price": {"value": 0.10, "unit": "USD per kWh", "source": "ASSUMED, ILLUSTRATIVE: industrial power price"}}
+  ],
+  "utilities": [
+    {"name": "Cooling water to H1007", "stream": "s47130", "field": "m3_h", "price": {"value": 0.05, "unit": "USD per m3", "source": "ASSUMED, ILLUSTRATIVE: once-through cooling-water cost"}},
+    {"name": "Chilled water to H1008", "stream": "s47140", "field": "m3_h", "price": {"value": 0.40, "unit": "USD per m3", "source": "ASSUMED, ILLUSTRATIVE: chilled-water cost (7 C supply)"}}
+  ],
+  "operating_days": {"value": 340, "source": "ASSUMED, ILLUSTRATIVE"},
+  "outage": {"days": 0.5, "source": "basis.md: an H1007 clean takes one 12-hour shutdown (applies only if a clean or a physical change is proposed)"},
+  "discount_rate": {"value": 0.10, "source": "ASSUMED, ILLUSTRATIVE"},
+  "years": {"value": 10, "source": "ASSUMED, ILLUSTRATIVE"}
+}
