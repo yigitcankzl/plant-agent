@@ -1,0 +1,1099 @@
+[
+ {
+  "headline": "No \u2014 plant cannot reach higher salt rate",
+  "summary": "As built, the simulator at +20% throughput (run target-1.2 / sweep of as-built-base) puts the vapour recompressor VRC-1 at 102.5% of its 226.8 t/h suction rating and the main evaporator VRE-1 heat supply at 101.7%, so 3,000 short tons/day is not reachable without changes; cleaning the main heater alone leaves both at 102.5%/101.7%. Files produced: sweep chart 20261101-012154-original-model-ch1-u-at-1-2x-throughput- (sweep.svg, sweep.json).",
+  "cards": [
+   {
+    "title": "Can it make 3,000 short tons per day?",
+    "result": "No as built \u2014 compressor and main heater over limits",
+    "status": "fail",
+    "inputs": [
+     {
+      "name": "Present salt rate",
+      "value": "94.9 t/h (2,511 short t/d)",
+      "basis": "documented",
+      "source": "Data sheet Table I, salt produced row"
+     },
+     {
+      "name": "Target salt rate",
+      "value": "3,000 short t/d, +20% on 2,500",
+      "basis": "documented",
+      "source": "Request / data sheet Request section"
+     },
+     {
+      "name": "VRC-1 suction capacity",
+      "value": "226.8 t/h",
+      "basis": "documented",
+      "source": "P&ID tag VRC-1; data sheet Equipment ratings, VRC compressor suction capacity"
+     },
+     {
+      "name": "VRC-1 suction at +20%",
+      "value": "102.5% of rating",
+      "basis": "computed",
+      "source": "Logged sweep as-built-base~units.VRE-1.U_W_m2K=2000 at scale 1.2"
+     },
+     {
+      "name": "VRE-1 heat supply at +20%",
+      "value": "101.7% (boil-up vs heating steam)",
+      "basis": "computed",
+      "source": "Logged sweep as-built-base~units.VRE-1.U_W_m2K=2000 at scale 1.2"
+     },
+     {
+      "name": "PE-1 heat supply at +20%",
+      "value": "98.0% \u2014 close behind",
+      "basis": "computed",
+      "source": "Logged sweep as-built-base~units.VRE-1.U_W_m2K=2000 at scale 1.2"
+     }
+    ],
+    "assumptions": [
+     "Feeds S11 264.9 t/h at 125.6 C and S7 98.0 t/h at 60 C scale with throughput, per data sheet Modelling scope (documented).",
+     "Turbine exhaust feed S33 stays fixed at 15.9 t/h, per data sheet Modelling scope (documented).",
+     "Feed brine is 26 wt% NaCl saturated, per data sheet Table I (documented for this operating point, not universal)."
+    ]
+   },
+   {
+    "title": "What limits it first?",
+    "result": "Main heater heat supply first, compressor tightest at +20%",
+    "status": "fail",
+    "inputs": [
+     {
+      "name": "First limit on a throughput ramp",
+      "value": "VRE-1 boil-up duty vs heat from heating steam, 100% at 0.921x",
+      "basis": "computed",
+      "source": "process_capacity on logged run as-built-base"
+     },
+     {
+      "name": "VRE-1 at base rate",
+      "value": "100.6% heat-supply utilisation; area 84.0% of 8,800 m2",
+      "basis": "computed",
+      "source": "process_capacity on as-built-base, checks at base"
+     },
+     {
+      "name": "VRC-1 at base rate",
+      "value": "89.2% of 226.8 t/h",
+      "basis": "computed",
+      "source": "process_capacity on as-built-base, checks at base"
+     },
+     {
+      "name": "PE-1 at base rate",
+      "value": "98.0% heat-supply; area 79.9% of 1,500 m2",
+      "basis": "computed",
+      "source": "process_capacity on as-built-base, checks at base"
+     },
+     {
+      "name": "CH1 installed area / in-service U",
+      "value": "8,800 m2, 2,000 W/m2K (clean 2,500)",
+      "basis": "documented",
+      "source": "P&ID tag VRE-1 (includes CH1); data sheet Equipment ratings CH1 \u2014 marked ILLUSTRATIVE"
+     },
+     {
+      "name": "Brine boiling point elevation, VRE-1",
+      "value": "9.69 K at 1.70 bar(a), saturated brine",
+      "basis": "computed",
+      "source": "brine_bpe tool at 1.7 bar"
+     }
+    ],
+    "assumptions": [
+     "Conclusion is provisional: the plant is modelled essentially at its heat-balance limit at base rate (100.6%), within the model's 2% closure tolerance, so the exact ramp point is uncertain \u2014 the +20% verdict is not, both key checks exceed 100% there."
+    ]
+   },
+   {
+    "title": "Cheapest fix tested: clean the main heater",
+    "result": "Helps area only \u2014 still 102.5% compressor, 101.7% heat",
+    "status": "warn",
+    "inputs": [
+     {
+      "name": "CH1 clean U",
+      "value": "2,500 W/m2K vs 2,000 in service",
+      "basis": "documented",
+      "source": "Data sheet Equipment ratings CH1 (ILLUSTRATIVE, not in patent)"
+     },
+     {
+      "name": "VRE-1 area utilisation at +20%, U 2,000",
+      "value": "96.7%",
+      "basis": "computed",
+      "source": "Logged sweep as-built-base~units.VRE-1.U_W_m2K=2000 at scale 1.2"
+     },
+     {
+      "name": "Tightest checks at +20%, U 2,500",
+      "value": "VRC-1 102.5%, VRE-1 heat supply 101.7% \u2014 unchanged",
+      "basis": "computed",
+      "source": "Logged sweep as-built-base~units.VRE-1.U_W_m2K=2500 at scale 1.2"
+     }
+    ],
+    "assumptions": [
+     "Cleaning is the cheapest physical step and is worth doing for area margin, but the simulator shows it does not create steam: the limits are steam flow (compressor) and steam heat supply, not area."
+    ]
+   },
+   {
+    "title": "Most economical route to +20%",
+    "result": "Divert excess vapour to purge unit plus added steam \u2014 provisional",
+    "status": "warn",
+    "inputs": [
+     {
+      "name": "Design intent for excess vapour",
+      "value": "Vapour above compressor capacity goes to purge heater CH2 / PE-1",
+      "basis": "documented",
+      "source": "Data sheet, patent description of VRC compressor (col. 7-8) and stream 31 row (20.9 t/h)"
+     },
+     {
+      "name": "Split needed at +20% to hold compressor at rating",
+      "value": "About 89.3% to compressor / 10.7% excess, vs 91.57% / 8.43% now",
+      "basis": "computed",
+      "source": "Derived from logged sweep utilisation 102.5% at scale 1.2 on as-built-base"
+     },
+     {
+      "name": "Extra steam source",
+      "value": "Not documented \u2014 no HRSG/duct-firing capacity on P&ID or data sheet",
+      "basis": "documented",
+      "source": "P&ID tags CGT-1/HRSG-1/ST-1 (no capacity data); data sheet fixes stream 33 at 15.9 t/h"
+     }
+    ],
+    "assumptions": [
+     "Provisional: diverting vapour alone starves CH1 of returning steam, so it only works paired with supplementary steam into the discharge header; that steam source is not in the model or documents and must be confirmed before this route can be claimed to reach 3,000 short t/d.",
+     "If no supplementary steam is available, the fallback is new compression capacity in parallel with VRC-1 \u2014 highest cost, not proposed in detail because no vendor rating exists in the documents."
+    ]
+   }
+  ],
+  "highlights": [
+   {
+    "tag": "VRC-1",
+    "severity": "fail",
+    "text": "Suction 102.5% of 226.8 t/h rating at +20% (sweep of as-built-base, scale 1.2) \u2014 tightest check at target."
+   },
+   {
+    "tag": "VRE-1",
+    "severity": "fail",
+    "text": "Heat supply 101.7% at +20% and first limit on a ramp (100% at 0.921x, process_capacity); area 96.7% at in-service U 2,000. Includes CH1."
+   },
+   {
+    "tag": "PE-1",
+    "severity": "warn",
+    "text": "Heat supply 98.0% at +20% \u2014 little margin if more excess vapour is diverted to CH2. Includes CH2."
+   },
+   {
+    "tag": "HRSG-1",
+    "severity": "info",
+    "text": "No steam-generation or duct-firing capacity documented; supplementary steam route cannot be verified from P&ID/data sheet."
+   },
+   {
+    "tag": "CGT-1",
+    "severity": "info",
+    "text": "Drives VRC-1; shaft power not stated in patent/data sheet, so extra compression power cannot be checked."
+   }
+  ],
+  "proposals": [
+   {
+    "tag": "VRC-1",
+    "title": "Send more vapour around the compressor to the purge evaporator",
+    "why": "Operating-only change: lifting the excess-vapour share from 8.43% to about 10.7% brings VRC-1 suction back to its documented 226.8 t/h rating at +20%. It must be paired with supplementary steam (see field checks) or CH1 loses returning heat; the workspace re-solve will show this.",
+    "cost_class": "no capex",
+    "changes": [
+     {
+      "path": "units.SPL-VAP-VRE.fractions",
+      "value": [
+       0.893,
+       0.107
+      ],
+      "from": [
+       0.9157,
+       0.0843
+      ]
+     }
+    ],
+    "normalized_changes": [],
+    "verified": false,
+    "fixes": "VRC-1",
+    "still_over": [],
+    "breaks": [
+     {
+      "id": "PE-1",
+      "check": "heater area needed (BPE included) vs installed",
+      "value": 1587.0,
+      "limit": 1500,
+      "unit": "m2",
+      "utilisation": 1.058
+     }
+    ],
+    "disappeared_checks": [],
+    "capacity_multiple": 0.703,
+    "limited_by": {
+     "id": "VRE-1",
+     "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+     "value": 101026.3,
+     "limit": 100976.328,
+     "unit": "kW",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "PE-1",
+      "check": "heater area needed (BPE included) vs installed",
+      "value": 1587.0,
+      "limit": 1500,
+      "unit": "m2",
+      "utilisation": 1.058
+     },
+     {
+      "id": "VRE-1",
+      "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+      "value": 148456.8,
+      "limit": 142895.88,
+      "unit": "kW",
+      "utilisation": 1.039
+     }
+    ],
+    "target_scale": 1.2,
+    "new_equipment": [],
+    "calculation": {
+     "target_scale": 1.2,
+     "capacity_multiple_before": 0.921,
+     "capacity_multiple_after": 0.703,
+     "limited_by_before": {
+      "id": "VRE-1",
+      "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+      "value": 133003.0,
+      "limit": 132936.6,
+      "unit": "kW",
+      "utilisation": 1.0
+     },
+     "limited_by_after": {
+      "id": "VRE-1",
+      "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+      "value": 101026.3,
+      "limit": 100976.328,
+      "unit": "kW",
+      "utilisation": 1.0
+     },
+     "checks": [
+      {
+       "id": "PE-1",
+       "check": "heater area needed (BPE included) vs installed",
+       "before": 0.917,
+       "after": 1.058,
+       "value": 1587.0,
+       "limit": 1500,
+       "unit": "m2"
+      },
+      {
+       "id": "VRE-1",
+       "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+       "before": 1.017,
+       "after": 1.039,
+       "value": 148456.8,
+       "limit": 142895.88,
+       "unit": "kW"
+      },
+      {
+       "id": "PE-1",
+       "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+       "before": 0.98,
+       "after": 0.98,
+       "value": 15182.4,
+       "limit": 15485.946,
+       "unit": "kW"
+      },
+      {
+       "id": "VRC-1",
+       "check": "suction flow vs capacity",
+       "before": 1.025,
+       "after": 0.908,
+       "value": 205879.4,
+       "limit": 226800,
+       "unit": "kg/h"
+      },
+      {
+       "id": "VRE-1",
+       "check": "heater area needed (BPE included) vs installed",
+       "before": 0.967,
+       "after": 0.882,
+       "value": 7760.0,
+       "limit": 8800,
+       "unit": "m2"
+      },
+      {
+       "id": "SPL-LIQ-VRE",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "SPL-VAP-VRE",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "SPL-LIQ-PE",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "MX-DESH",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      }
+     ],
+     "units": {
+      "MX-DESH": {
+       "type": "mixer"
+      },
+      "PE-1": {
+       "type": "evaporator",
+       "boil_kW": 15182.4,
+       "sensible_correction_kW": 859.1,
+       "brine_sensible_kW": -448.2,
+       "water_sensible_kW": -1373.1,
+       "vapor_superheat_kW": 126.2,
+       "crystallisation_kW": 192.0,
+       "crystal_cooling_kW": 0.0,
+       "vapour_kg_h": 25055.0,
+       "brine_T_C": 108.77,
+       "bpe_K": 8.72,
+       "body_x_NaCl": 0.2824,
+       "salt_in_kg_h": 22271.0,
+       "salt_kg_h": 10411.0,
+       "crystallising": true,
+       "liquid_out_brine_kg_h": 41998.0,
+       "water_evaporated_per_t_salt": 2.41,
+       "heating_kW": 15182.3,
+       "condensing_C": 115.15,
+       "driving_dT_K": 6.38,
+       "heat_balance_kW": -0.1,
+       "area_needed_m2": 1587.0,
+       "area_m2": 1500,
+       "U_W_m2K": 1500
+      },
+      "SPL-LIQ-PE": {
+       "type": "splitter"
+      },
+      "SPL-LIQ-VRE": {
+       "type": "splitter"
+      },
+      "SPL-VAP-VRE": {
+       "type": "splitter"
+      },
+      "VRC-1": {
+       "type": "compressor",
+       "duty_kW": 8533.06,
+       "kW": 8533.06,
+       "discharge_C": 191.5
+      },
+      "VRE-1": {
+       "type": "evaporator",
+       "boil_kW": 148456.8,
+       "sensible_correction_kW": 2916.9,
+       "brine_sensible_kW": 6698.2,
+       "water_sensible_kW": 3666.2,
+       "vapor_superheat_kW": 1290.8,
+       "crystallisation_kW": 1405.8,
+       "crystal_cooling_kW": 0.0,
+       "vapour_kg_h": 230548.0,
+       "brine_T_C": 124.86,
+       "bpe_K": 9.69,
+       "body_x_NaCl": 0.2875,
+       "salt_in_kg_h": 113225.0,
+       "salt_kg_h": 76220.0,
+       "crystallising": true,
+       "liquid_out_brine_kg_h": 128712.0,
+       "water_evaporated_per_t_salt": 3.02,
+       "heating_kW": 140094.0,
+       "condensing_C": 134.43,
+       "driving_dT_K": 9.57,
+       "heat_balance_kW": -8362.8,
+       "area_needed_m2": 7760.0,
+       "area_m2": 8800,
+       "U_W_m2K": 2000
+      }
+     },
+     "streams": [
+      {
+       "id": "S_FEED",
+       "T_C": 108.01,
+       "P_bar": 2.5,
+       "kg_h": 435480.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 435480.0
+       }
+      },
+      {
+       "id": "S36_RETURN",
+       "T_C": 134.43,
+       "P_bar": 3.08,
+       "kg_h": 238579.4,
+       "vapour_frac": 0.9783,
+       "components_kg_h": {
+        "Water": 238579.36
+       }
+      },
+      {
+       "id": "S_VAP_VRE",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 230548.0,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 230548.0
+       }
+      },
+      {
+       "id": "S_LIQ_VRE",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 204932.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 204932.0
+       }
+      },
+      {
+       "id": "S21_COND",
+       "T_C": 134.43,
+       "P_bar": 3.08,
+       "kg_h": 238579.4,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 238579.36
+       }
+      },
+      {
+       "id": "S14_PURGE",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 77464.3,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 77464.3
+       }
+      },
+      {
+       "id": "S13_SALT",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 127467.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 127467.71
+       }
+      },
+      {
+       "id": "S25_TO_COMP",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 205879.4,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 205879.36
+       }
+      },
+      {
+       "id": "S31_EXCESS",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 24668.6,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 24668.64
+       }
+      },
+      {
+       "id": "S4_PE_VAP",
+       "T_C": 99.97,
+       "P_bar": 1.013,
+       "kg_h": 25055.4,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 25055.37
+       }
+      },
+      {
+       "id": "S_LIQ_PE",
+       "T_C": 99.97,
+       "P_bar": 1.013,
+       "kg_h": 52408.9,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 52408.93
+       }
+      },
+      {
+       "id": "S_CH2_COND",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 24668.6,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 24668.64
+       }
+      },
+      {
+       "id": "S15_DISP",
+       "T_C": 99.97,
+       "P_bar": 1.013,
+       "kg_h": 12945.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 12945.01
+       }
+      },
+      {
+       "id": "S20_SALT",
+       "T_C": 99.97,
+       "P_bar": 1.013,
+       "kg_h": 39463.9,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 39463.93
+       }
+      },
+      {
+       "id": "S30_DIS",
+       "T_C": 191.49,
+       "P_bar": 3.08,
+       "kg_h": 205879.4,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 205879.36
+       }
+      },
+      {
+       "id": "S33",
+       "T_C": 135.0,
+       "P_bar": 3.08,
+       "kg_h": 15900.0,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 15900.0
+       }
+      },
+      {
+       "id": "SPRAY",
+       "T_C": 134.4,
+       "P_bar": 3.08,
+       "kg_h": 16800.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 16800.0
+       }
+      }
+     ],
+     "new_equipment": [],
+     "assumptions": [],
+     "simulator": "dwsim",
+     "errors": [],
+     "warnings": [],
+     "model_label": "as-built-base"
+    }
+   },
+   {
+    "tag": "VRE-1",
+    "title": "Clean the main circulating heater CH1 back to clean performance",
+    "why": "Cheapest physical step: restores area margin at +20% (96.7% utilised at fouled U). The sweep shows it does not by itself fix the 101.7% heat-supply or 102.5% compressor limits, so it is an enabling step, not the whole fix.",
+    "cost_class": "<$100k",
+    "changes": [
+     {
+      "path": "units.VRE-1.U_W_m2K",
+      "value": 2500,
+      "physical_change": "Clean CH1 (in VRE-1) tubes to restore documented clean heat-transfer performance",
+      "rating_source": "Data sheet Equipment ratings: CH1 clean U 2,500 W/m2K \u2014 marked ILLUSTRATIVE, vendor/cleaning record to confirm",
+      "from": 2000
+     }
+    ],
+    "normalized_changes": [],
+    "verified": false,
+    "fixes": "VRE-1",
+    "still_over": [
+     {
+      "id": "VRE-1",
+      "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+      "value": 162719.9,
+      "limit": 160047.282,
+      "unit": "kW",
+      "utilisation": 1.017
+     }
+    ],
+    "breaks": [],
+    "disappeared_checks": [],
+    "capacity_multiple": 0.921,
+    "limited_by": {
+     "id": "VRE-1",
+     "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+     "value": 133003.0,
+     "limit": 132936.6,
+     "unit": "kW",
+     "utilisation": 1.0
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "VRC-1",
+      "check": "suction flow vs capacity",
+      "value": 232398.0,
+      "limit": 226800,
+      "unit": "kg/h",
+      "utilisation": 1.025
+     },
+     {
+      "id": "VRE-1",
+      "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+      "value": 162719.9,
+      "limit": 160047.282,
+      "unit": "kW",
+      "utilisation": 1.017
+     }
+    ],
+    "target_scale": 1.2,
+    "new_equipment": [],
+    "calculation": {
+     "target_scale": 1.2,
+     "capacity_multiple_before": 0.921,
+     "capacity_multiple_after": 0.921,
+     "limited_by_before": {
+      "id": "VRE-1",
+      "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+      "value": 133003.0,
+      "limit": 132936.6,
+      "unit": "kW",
+      "utilisation": 1.0
+     },
+     "limited_by_after": {
+      "id": "VRE-1",
+      "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+      "value": 133003.0,
+      "limit": 132936.6,
+      "unit": "kW",
+      "utilisation": 1.0
+     },
+     "checks": [
+      {
+       "id": "VRC-1",
+       "check": "suction flow vs capacity",
+       "before": 1.025,
+       "after": 1.025,
+       "value": 232398.0,
+       "limit": 226800,
+       "unit": "kg/h"
+      },
+      {
+       "id": "VRE-1",
+       "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+       "before": 1.017,
+       "after": 1.017,
+       "value": 162719.9,
+       "limit": 160047.282,
+       "unit": "kW"
+      },
+      {
+       "id": "PE-1",
+       "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+       "before": 0.98,
+       "after": 0.98,
+       "value": 13167.5,
+       "limit": 13430.748,
+       "unit": "kW"
+      },
+      {
+       "id": "PE-1",
+       "check": "heater area needed (BPE included) vs installed",
+       "before": 0.917,
+       "after": 0.917,
+       "value": 1376.0,
+       "limit": 1500,
+       "unit": "m2"
+      },
+      {
+       "id": "VRE-1",
+       "check": "heater area needed (BPE included) vs installed",
+       "before": 0.967,
+       "after": 0.773,
+       "value": 6805.0,
+       "limit": 8800,
+       "unit": "m2"
+      },
+      {
+       "id": "SPL-LIQ-VRE",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "SPL-VAP-VRE",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "SPL-LIQ-PE",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "MX-DESH",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      }
+     ],
+     "units": {
+      "MX-DESH": {
+       "type": "mixer"
+      },
+      "PE-1": {
+       "type": "evaporator",
+       "boil_kW": 13167.5,
+       "sensible_correction_kW": 762.7,
+       "brine_sensible_kW": -397.4,
+       "water_sensible_kW": -1217.4,
+       "vapor_superheat_kW": 109.6,
+       "crystallisation_kW": 166.8,
+       "crystal_cooling_kW": 0.0,
+       "vapour_kg_h": 21745.0,
+       "brine_T_C": 108.77,
+       "bpe_K": 8.72,
+       "body_x_NaCl": 0.2824,
+       "salt_in_kg_h": 19745.0,
+       "salt_kg_h": 9045.0,
+       "crystallising": true,
+       "liquid_out_brine_kg_h": 37888.0,
+       "water_evaporated_per_t_salt": 2.4,
+       "heating_kW": 13167.4,
+       "condensing_C": 115.15,
+       "driving_dT_K": 6.38,
+       "heat_balance_kW": -0.1,
+       "area_needed_m2": 1376.0,
+       "area_m2": 1500,
+       "U_W_m2K": 1500
+      },
+      "SPL-LIQ-PE": {
+       "type": "splitter"
+      },
+      "SPL-LIQ-VRE": {
+       "type": "splitter"
+      },
+      "SPL-VAP-VRE": {
+       "type": "splitter"
+      },
+      "VRC-1": {
+       "type": "compressor",
+       "duty_kW": 9632.18,
+       "kW": 9632.18,
+       "discharge_C": 191.5
+      },
+      "VRE-1": {
+       "type": "evaporator",
+       "boil_kW": 162719.9,
+       "sensible_correction_kW": 2874.0,
+       "brine_sensible_kW": 6698.2,
+       "water_sensible_kW": 3666.2,
+       "vapor_superheat_kW": 1420.9,
+       "crystallisation_kW": 1578.8,
+       "crystal_cooling_kW": 0.0,
+       "vapour_kg_h": 253793.0,
+       "brine_T_C": 124.86,
+       "bpe_K": 9.69,
+       "body_x_NaCl": 0.2875,
+       "salt_in_kg_h": 113225.0,
+       "salt_kg_h": 85600.0,
+       "crystallising": true,
+       "liquid_out_brine_kg_h": 96088.0,
+       "water_evaporated_per_t_salt": 2.96,
+       "heating_kW": 156909.1,
+       "condensing_C": 134.43,
+       "driving_dT_K": 9.57,
+       "heat_balance_kW": -5810.8,
+       "area_needed_m2": 6805.0,
+       "area_m2": 8800,
+       "U_W_m2K": 2500
+      }
+     },
+     "streams": [
+      {
+       "id": "S_FEED",
+       "T_C": 108.01,
+       "P_bar": 2.5,
+       "kg_h": 435480.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 435480.0
+       }
+      },
+      {
+       "id": "S36_RETURN",
+       "T_C": 134.43,
+       "P_bar": 3.08,
+       "kg_h": 265098.0,
+       "vapour_frac": 0.9861,
+       "components_kg_h": {
+        "Water": 265098.03
+       }
+      },
+      {
+       "id": "S_VAP_VRE",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 253792.8,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 253792.76
+       }
+      },
+      {
+       "id": "S_LIQ_VRE",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 181687.2,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 181687.24
+       }
+      },
+      {
+       "id": "S21_COND",
+       "T_C": 134.43,
+       "P_bar": 3.08,
+       "kg_h": 265098.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 265098.03
+       }
+      },
+      {
+       "id": "S14_PURGE",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 68677.8,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 68677.78
+       }
+      },
+      {
+       "id": "S13_SALT",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 113009.5,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 113009.46
+       }
+      },
+      {
+       "id": "S25_TO_COMP",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 232398.0,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 232398.03
+       }
+      },
+      {
+       "id": "S31_EXCESS",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 21394.7,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 21394.73
+       }
+      },
+      {
+       "id": "S4_PE_VAP",
+       "T_C": 99.97,
+       "P_bar": 1.013,
+       "kg_h": 21744.6,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 21744.62
+       }
+      },
+      {
+       "id": "S_LIQ_PE",
+       "T_C": 99.97,
+       "P_bar": 1.013,
+       "kg_h": 46933.2,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 46933.15
+       }
+      },
+      {
+       "id": "S_CH2_COND",
+       "T_C": 115.15,
+       "P_bar": 1.7,
+       "kg_h": 21394.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 21394.73
+       }
+      },
+      {
+       "id": "S15_DISP",
+       "T_C": 99.97,
+       "P_bar": 1.013,
+       "kg_h": 11592.5,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 11592.49
+       }
+      },
+      {
+       "id": "S20_SALT",
+       "T_C": 99.97,
+       "P_bar": 1.013,
+       "kg_h": 35340.7,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 35340.67
+       }
+      },
+      {
+       "id": "S30_DIS",
+       "T_C": 191.49,
+       "P_bar": 3.08,
+       "kg_h": 232398.0,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 232398.03
+       }
+      },
+      {
+       "id": "S33",
+       "T_C": 135.0,
+       "P_bar": 3.08,
+       "kg_h": 15900.0,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Water": 15900.0
+       }
+      },
+      {
+       "id": "SPRAY",
+       "T_C": 134.4,
+       "P_bar": 3.08,
+       "kg_h": 16800.0,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Water": 16800.0
+       }
+      }
+     ],
+     "new_equipment": [],
+     "assumptions": [],
+     "simulator": "dwsim",
+     "errors": [],
+     "warnings": [],
+     "model_label": "as-built-base"
+    }
+   }
+  ],
+  "field_checks": [
+   {
+    "item": "Supplementary steam availability for the discharge header (HRSG-1 duct firing or boiler capacity, fuel and steam-turbine/generator knock-on)",
+    "where": "HRSG-1 / ST-1 / CGT-1 vendor data and plant steam balance; confirm how many t/h above the fixed 15.9 t/h stream 33 can be supplied at 3.08 bar(a)",
+    "changes": "Decides the recommended route: if roughly the CH1 heat shortfall at +20% cannot be supplied as extra steam, the reroute proposal fails and parallel compression capacity (>$1M) is the only route to 3,000 short t/d."
+   },
+   {
+    "item": "CH1 clean heat-transfer coefficient and whether current U is really 2,000 W/m2K",
+    "where": "CH1 vendor datasheet and recent operating temperatures/flows around VRE-1 heating (streams S36/S21_COND); both values are marked ILLUSTRATIVE in the data sheet",
+    "changes": "If clean U is below 2,500, VRE-1 area (96.7% at +20% fouled) becomes the binding limit and added area, not just cleaning, is needed."
+   },
+   {
+    "item": "Feed brine salt concentration (model assumes saturated 26 wt%)",
+    "where": "Sample/lab analysis of feed brine at BPF-1 inlet (stream 2) over a week",
+    "changes": "The patent allows below-saturation feed; lower concentration means more water to evaporate per ton of salt, making every limit above worse and moving the required steam/compression up."
+   },
+   {
+    "item": "Forced-circulation rate and brine temperature rise through CH1 (design rule: at most 3 K)",
+    "where": "Circulation pump flow (rated 15,000 m3/h, ILLUSTRATIVE) and CH1 brine in/out temperatures at VRE-1",
+    "changes": "Not a modelled check; if the 3 K rule is already approached, raising circulation or heat flux for +20% risks salt scaling in the tubes regardless of the steam-side fix."
+   }
+  ],
+  "artifacts": [
+   {
+    "id": "20261101-011835-effect-of-cleaning-main-heater-ch1-vre-1",
+    "kind": "chart",
+    "title": "Effect of cleaning main heater CH1 (VRE-1 U) on tightest utilisation at 1.2x throughput",
+    "files": [
+     "sweep.json",
+     "sweep.svg"
+    ],
+    "summary": "tightest at the extremes: [{'check': 'VRC-1 suction flow vs capacity', 'utilisation': 1.025}] ... [{'check': 'VRC-1 suction flow vs capacity', 'utilisation': 1.025}]"
+   },
+   {
+    "id": "20261101-012154-original-model-ch1-u-at-1-2x-throughput-",
+    "kind": "chart",
+    "title": "Original model: CH1 U at 1.2x throughput - tightest utilisation",
+    "files": [
+     "sweep.json",
+     "sweep.svg"
+    ],
+    "summary": "tightest at the extremes: [{'check': 'VRC-1 suction flow vs capacity', 'utilisation': 1.025}] ... [{'check': 'VRC-1 suction flow vs capacity', 'utilisation': 1.025}]"
+   }
+  ],
+  "combined": {
+   "reaches_target": false,
+   "capacity_multiple": 0.703,
+   "limited_by": {
+    "id": "VRE-1",
+    "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+    "value": 101026.3,
+    "limit": 100976.328,
+    "unit": "kW",
+    "utilisation": 1.0
+   },
+   "over_limits_at_target": [
+    {
+     "id": "PE-1",
+     "check": "heater area needed (BPE included) vs installed",
+     "value": 1587.0,
+     "limit": 1500,
+     "unit": "m2",
+     "utilisation": 1.058
+    },
+    {
+     "id": "VRE-1",
+     "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+     "value": 148456.8,
+     "limit": 142895.88,
+     "unit": "kW",
+     "utilisation": 1.039
+    }
+   ]
+  },
+  "checks": [],
+  "seconds": 383,
+  "cost_usd": 2.2866,
+  "request": "Can the plant make 3,000 short tons of salt per day instead of 2,500 (+20%)? What limits it first, and what is the most economical way to get there?",
+  "model": "muse-wonder-1.0"
+ }
+]

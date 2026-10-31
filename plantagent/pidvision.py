@@ -54,9 +54,11 @@ def render(pdf, page=0, dpi=170):
     return doc[page].get_pixmap(dpi=dpi).tobytes("png")
 
 
-def read(pdf, page=0, model="muse-spark-1.3-contributor"):
+def read(pdf, page=0, model="muse-spark-1.3-contributor", rotate=0):
     doc = pymupdf.open(str(pdf))
     pg = doc[page]
+    if rotate:  # a sheet drawn sideways (patent figures) is read upright
+        pg.set_rotation(rotate)
     W, H = pg.rect.width, pg.rect.height
     labels = _labels(pg)
     png = pg.get_pixmap(dpi=170).tobytes("png")

@@ -1,0 +1,1172 @@
+{
+ "label": "as-built-base",
+ "spec": {
+  "compounds": [
+   "Water"
+  ],
+  "package": "Steam Tables (IAPWS-IF97)",
+  "feeds": {
+   "S11": {
+    "T_C": 125.6,
+    "P_bar": 2.5,
+    "kg_h": 264900,
+    "x": {
+     "Water": 1.0
+    }
+   },
+   "S7": {
+    "T_C": 60,
+    "P_bar": 2.5,
+    "kg_h": 98000,
+    "x": {
+     "Water": 1.0
+    }
+   },
+   "S36": {
+    "T_C": 135,
+    "P_bar": 3.08,
+    "kg_h": 251700,
+    "x": {
+     "Water": 1.0
+    },
+    "utility": true
+   },
+   "S33": {
+    "T_C": 135,
+    "P_bar": 3.08,
+    "kg_h": 15900,
+    "x": {
+     "Water": 1.0
+    },
+    "utility": true
+   },
+   "SPRAY": {
+    "T_C": 134.4,
+    "P_bar": 3.08,
+    "kg_h": 14000,
+    "x": {
+     "Water": 1.0
+    }
+   }
+  },
+  "units": [
+   {
+    "id": "MX-FEED",
+    "type": "mixer",
+    "in": [
+     "S11",
+     "S7"
+    ],
+    "out": "S_FEED"
+   },
+   {
+    "id": "VRE-1",
+    "type": "evaporator",
+    "in": "S_FEED",
+    "vapor": "S_VAP_VRE",
+    "liquid": "S_LIQ_VRE",
+    "P_bar": 1.7,
+    "evap_frac": 0.6825,
+    "heating": [
+     "S36",
+     "S21_COND"
+    ],
+    "U_W_m2K": 2000,
+    "area_m2": 8800,
+    "feed_x_NaCl": 0.26
+   },
+   {
+    "id": "SPL-LIQ-VRE",
+    "type": "splitter",
+    "in": "S_LIQ_VRE",
+    "out": [
+     "S14_PURGE",
+     "S13_SALT"
+    ],
+    "fractions": [
+     0.378,
+     0.622
+    ]
+   },
+   {
+    "id": "SPL-VAP-VRE",
+    "type": "splitter",
+    "in": "S_VAP_VRE",
+    "out": [
+     "S25_TO_COMP",
+     "S31_EXCESS"
+    ],
+    "fractions": [
+     0.9157,
+     0.0843
+    ]
+   },
+   {
+    "id": "PE-1",
+    "type": "evaporator",
+    "in": "S14_PURGE",
+    "vapor": "S4_PE_VAP",
+    "liquid": "S_LIQ_PE",
+    "P_bar": 1.013,
+    "evap_frac": 0.5336,
+    "heating": [
+     "S31_EXCESS",
+     "S_CH2_COND"
+    ],
+    "U_W_m2K": 1500,
+    "area_m2": 1500,
+    "feed_x_NaCl": 0.2875
+   },
+   {
+    "id": "SPL-LIQ-PE",
+    "type": "splitter",
+    "in": "S_LIQ_PE",
+    "out": [
+     "S15_DISP",
+     "S20_SALT"
+    ],
+    "fractions": [
+     0.247,
+     0.753
+    ]
+   },
+   {
+    "id": "VRC-1",
+    "type": "compressor",
+    "in": "S25_TO_COMP",
+    "out": "S30_DIS",
+    "P_out_bar": 3.08,
+    "eff_pct": 75
+   },
+   {
+    "id": "MX-DESH",
+    "type": "mixer",
+    "in": [
+     "S30_DIS",
+     "S33",
+     "SPRAY"
+    ],
+    "out": "S36_RETURN"
+   }
+  ],
+  "limits": {
+   "VRC-1": {
+    "max_kg_h": 226800
+   },
+   "VRE-1": {
+    "area_m2": 8800
+   },
+   "PE-1": {
+    "area_m2": 1500
+   }
+  }
+ },
+ "result": {
+  "scale": 1.0,
+  "errors": [],
+  "streams": {
+   "S11": {
+    "T_C": 125.6,
+    "P_bar": 2.5,
+    "kg_h": 264900.0,
+    "m3_h": 282.25,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 264900.0
+    }
+   },
+   "S7": {
+    "T_C": 60.0,
+    "P_bar": 2.5,
+    "kg_h": 98000.0,
+    "m3_h": 99.67,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 98000.0
+    }
+   },
+   "S36": {
+    "T_C": 135.0,
+    "P_bar": 3.08,
+    "kg_h": 251700.0,
+    "m3_h": 149004.52,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 251700.0
+    }
+   },
+   "S33": {
+    "T_C": 135.0,
+    "P_bar": 3.08,
+    "kg_h": 15900.0,
+    "m3_h": 9412.68,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 15900.0
+    }
+   },
+   "SPRAY": {
+    "T_C": 134.4,
+    "P_bar": 3.08,
+    "kg_h": 14000.0,
+    "m3_h": 15.04,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 14000.0
+    }
+   },
+   "S_FEED": {
+    "T_C": 108.01,
+    "P_bar": 2.5,
+    "kg_h": 362900.0,
+    "m3_h": 380.99,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 362900.0
+    }
+   },
+   "VRE-1-in": {
+    "T_C": 108.02,
+    "P_bar": 1.7,
+    "kg_h": 362900.0,
+    "m3_h": 381.01,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 362900.0
+    }
+   },
+   "VRE-1-part0": {
+    "T_C": 108.02,
+    "P_bar": 1.7,
+    "kg_h": 236863.3,
+    "m3_h": 248.68,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 236863.27
+    }
+   },
+   "S_VAP_VRE": {
+    "T_C": 115.15,
+    "P_bar": 1.7,
+    "kg_h": 236863.3,
+    "m3_h": 244262.13,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 236863.27
+    }
+   },
+   "VRE-1-part1": {
+    "T_C": 108.02,
+    "P_bar": 1.7,
+    "kg_h": 126036.7,
+    "m3_h": 132.33,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 126036.73
+    }
+   },
+   "S_LIQ_VRE": {
+    "T_C": 115.15,
+    "P_bar": 1.7,
+    "kg_h": 126036.7,
+    "m3_h": 133.1,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 126036.73
+    }
+   },
+   "S21_COND": {
+    "T_C": 134.43,
+    "P_bar": 3.08,
+    "kg_h": 251700.0,
+    "m3_h": 270.34,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 251700.0
+    }
+   },
+   "S14_PURGE": {
+    "T_C": 115.15,
+    "P_bar": 1.7,
+    "kg_h": 47641.9,
+    "m3_h": 50.31,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 47641.88
+    }
+   },
+   "S13_SALT": {
+    "T_C": 115.15,
+    "P_bar": 1.7,
+    "kg_h": 78394.8,
+    "m3_h": 82.79,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 78394.85
+    }
+   },
+   "S25_TO_COMP": {
+    "T_C": 115.15,
+    "P_bar": 1.7,
+    "kg_h": 216895.7,
+    "m3_h": 223671.22,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 216895.7
+    }
+   },
+   "S31_EXCESS": {
+    "T_C": 115.15,
+    "P_bar": 1.7,
+    "kg_h": 19967.6,
+    "m3_h": 20591.33,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 19967.57
+    }
+   },
+   "PE-1-in": {
+    "T_C": 99.97,
+    "P_bar": 1.013,
+    "kg_h": 47641.9,
+    "m3_h": 2317.66,
+    "vapour_frac": 0.0285,
+    "components_kg_h": {
+     "Water": 47641.88
+    }
+   },
+   "PE-1-part0": {
+    "T_C": 99.97,
+    "P_bar": 1.013,
+    "kg_h": 20135.2,
+    "m3_h": 979.53,
+    "vapour_frac": 0.0285,
+    "components_kg_h": {
+     "Water": 20135.2
+    }
+   },
+   "S4_PE_VAP": {
+    "T_C": 99.97,
+    "P_bar": 1.013,
+    "kg_h": 20135.2,
+    "m3_h": 33699.69,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 20135.2
+    }
+   },
+   "PE-1-part1": {
+    "T_C": 99.97,
+    "P_bar": 1.013,
+    "kg_h": 27506.7,
+    "m3_h": 1338.13,
+    "vapour_frac": 0.0285,
+    "components_kg_h": {
+     "Water": 27506.68
+    }
+   },
+   "S_LIQ_PE": {
+    "T_C": 99.97,
+    "P_bar": 1.013,
+    "kg_h": 27506.7,
+    "m3_h": 28.7,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 27506.68
+    }
+   },
+   "S_CH2_COND": {
+    "T_C": 115.15,
+    "P_bar": 1.7,
+    "kg_h": 19967.6,
+    "m3_h": 21.09,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 19967.57
+    }
+   },
+   "S15_DISP": {
+    "T_C": 99.97,
+    "P_bar": 1.013,
+    "kg_h": 6794.2,
+    "m3_h": 7.09,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 6794.15
+    }
+   },
+   "S20_SALT": {
+    "T_C": 99.97,
+    "P_bar": 1.013,
+    "kg_h": 20712.5,
+    "m3_h": 21.61,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 20712.53
+    }
+   },
+   "S30_DIS": {
+    "T_C": 191.49,
+    "P_bar": 3.08,
+    "kg_h": 216895.7,
+    "m3_h": 148372.74,
+    "vapour_frac": 1.0,
+    "components_kg_h": {
+     "Water": 216895.7
+    }
+   },
+   "S36_RETURN": {
+    "T_C": 134.43,
+    "P_bar": 3.08,
+    "kg_h": 246795.7,
+    "m3_h": 144825.16,
+    "vapour_frac": 0.9929,
+    "components_kg_h": {
+     "Water": 246795.7
+    }
+   }
+  },
+  "units": {
+   "MX-FEED": {
+    "type": "mixer"
+   },
+   "VRE-1": {
+    "type": "evaporator",
+    "boil_kW": 151166.7,
+    "sensible_correction_kW": 2348.3,
+    "brine_sensible_kW": 5581.8,
+    "water_sensible_kW": 3055.2,
+    "vapor_superheat_kW": 1326.1,
+    "crystallisation_kW": 1504.5,
+    "crystal_cooling_kW": 0.0,
+    "vapour_kg_h": 236863.0,
+    "brine_T_C": 124.86,
+    "bpe_K": 9.69,
+    "body_x_NaCl": 0.2875,
+    "salt_in_kg_h": 94354.0,
+    "salt_kg_h": 81570.0,
+    "crystallising": true,
+    "liquid_out_brine_kg_h": 44467.0,
+    "water_evaporated_per_t_salt": 2.9,
+    "heating_kW": 151166.7,
+    "condensing_C": 134.43,
+    "driving_dT_K": 9.57,
+    "heat_balance_kW": 0.0,
+    "area_needed_m2": 7902.0,
+    "area_m2": 8800,
+    "U_W_m2K": 2000
+   },
+   "SPL-LIQ-VRE": {
+    "type": "splitter"
+   },
+   "SPL-VAP-VRE": {
+    "type": "splitter"
+   },
+   "PE-1": {
+    "type": "evaporator",
+    "boil_kW": 12289.2,
+    "sensible_correction_kW": 517.9,
+    "brine_sensible_kW": -275.7,
+    "water_sensible_kW": -844.5,
+    "vapor_superheat_kW": 101.4,
+    "crystallisation_kW": 152.4,
+    "crystal_cooling_kW": 0.0,
+    "vapour_kg_h": 20135.0,
+    "brine_T_C": 108.77,
+    "bpe_K": 8.72,
+    "body_x_NaCl": 0.2824,
+    "salt_in_kg_h": 13697.0,
+    "salt_kg_h": 8262.0,
+    "crystallising": true,
+    "liquid_out_brine_kg_h": 19244.0,
+    "water_evaporated_per_t_salt": 2.44,
+    "heating_kW": 12289.1,
+    "condensing_C": 115.15,
+    "driving_dT_K": 6.38,
+    "heat_balance_kW": -0.1,
+    "area_needed_m2": 1284.0,
+    "area_m2": 1500,
+    "U_W_m2K": 1500
+   },
+   "SPL-LIQ-PE": {
+    "type": "splitter"
+   },
+   "VRC-1": {
+    "type": "compressor",
+    "duty_kW": 8989.65,
+    "kW": 8989.65,
+    "discharge_C": 191.5
+   },
+   "MX-DESH": {
+    "type": "mixer"
+   }
+  },
+  "checks": [
+   {
+    "id": "VRE-1",
+    "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+    "value": 151166.7,
+    "limit": 154190.034,
+    "unit": "kW",
+    "utilisation": 0.98
+   },
+   {
+    "id": "PE-1",
+    "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+    "value": 12289.2,
+    "limit": 12534.882000000001,
+    "unit": "kW",
+    "utilisation": 0.98
+   },
+   {
+    "id": "VRC-1",
+    "check": "suction flow vs capacity",
+    "value": 216895.7,
+    "limit": 226800,
+    "unit": "kg/h",
+    "utilisation": 0.956
+   },
+   {
+    "id": "VRE-1",
+    "check": "heater area needed (BPE included) vs installed",
+    "value": 7902.0,
+    "limit": 8800,
+    "unit": "m2",
+    "utilisation": 0.898
+   },
+   {
+    "id": "PE-1",
+    "check": "heater area needed (BPE included) vs installed",
+    "value": 1284.0,
+    "limit": 1500,
+    "unit": "m2",
+    "utilisation": 0.856
+   },
+   {
+    "id": "MX-FEED",
+    "check": "no limit check for this unit type",
+    "type": "mixer"
+   },
+   {
+    "id": "SPL-LIQ-VRE",
+    "check": "no limit check for this unit type",
+    "type": "splitter"
+   },
+   {
+    "id": "SPL-VAP-VRE",
+    "check": "no limit check for this unit type",
+    "type": "splitter"
+   },
+   {
+    "id": "SPL-LIQ-PE",
+    "check": "no limit check for this unit type",
+    "type": "splitter"
+   },
+   {
+    "id": "MX-DESH",
+    "check": "no limit check for this unit type",
+    "type": "mixer"
+   }
+  ]
+ },
+ "mapping": [
+  {
+   "tag": "VRE-1",
+   "modelled_as": "evaporator unit VRE-1 including CH1 heating (heating S36 -> S21_COND), P_bar 1.70, feed_x_NaCl 0.26, U 2000 W/m2K, area 8800 m2, limits area_m2 8800",
+   "source": "P&ID tag VRE-1 notes '10 PSIG 258F, includes CH1, ref 12'; data sheet Table I VRE row and Equipment ratings CH1"
+  },
+  {
+   "tag": "PE-1",
+   "modelled_as": "evaporator unit PE-1 including CH2 heating (heating S31_EXCESS -> S_CH2_COND), P_bar 1.013, U 1500 W/m2K, area 1500 m2, limits area_m2 1500; fed by S14_PURGE (P&ID connection 14), overhead S4_PE_VAP (connection 4, boundary), liquid split to S15_DISP/S20_SALT (connections 15/20)",
+   "source": "P&ID tag PE-1 notes '0 PSIG 228F, includes CH2, ref 5' and connections 14, 4, 15, 20; data sheet Table I PE rows and Equipment ratings CH2"
+  },
+  {
+   "tag": "VRC-1",
+   "modelled_as": "compressor unit VRC-1, in S25_TO_COMP (P&ID connection 25), out S30_DIS (connection 30 via MX-DESH), P_out_bar 3.08, limits max_kg_h 226800 suction capacity",
+   "source": "P&ID tag VRC-1 notes 'vapor recompressor, ref 26' and connections 25, 30; data sheet Equipment ratings suction capacity 226.8 t/h and Table I discharge row"
+  },
+  {
+   "tag": "BCC-1",
+   "modelled_as": "boundary only per data-sheet Modelling scope: represented by feed S7 at its outlet condition (98.0 t/h at 60 C) and by terminal overhead stream S4_PE_VAP; not a solved unit - feed preheat train not in question",
+   "source": "P&ID tag BCC-1 notes 'ref 2-3' and connections 2, 4, 19, 9; data sheet Modelling scope 'take the brine entering the VRC evaporator from Table I instead of closing the heat-recovery loops'"
+  },
+  {
+   "tag": "BP-1",
+   "modelled_as": "boundary only per data-sheet Modelling scope: represented by feed S11 at its outlet condition (264.9 t/h at 125.6 C); condensate cooling S21_COND -> 82 C not solved",
+   "source": "P&ID tag BP-1 notes 'brine preheater (BP), ref 10' and connections 11, 9, 21, 22; data sheet Modelling scope and Table I streams 9/11 row"
+  },
+  {
+   "tag": "BPF-1",
+   "modelled_as": "boundary facility only: represented by total boundary feeds S11 + S7 = 362.9 t/h (its product via BCC/BP per scope); connections 1, 2, 19, 24 are boundary flows, no rated unit",
+   "source": "P&ID tag BPF-1 notes 'ref 1' and connections 2, 19, 24; data sheet Table I feed row 362.9 t/h and Modelling scope"
+  },
+  {
+   "tag": "CST-1",
+   "modelled_as": "boundary only: condensate side represented by heating feed S36, condensate outlet S21_COND and spray SPRAY at 134.4 C; tank not solved (no volume/hold-time data on P&ID or data sheet), connections 22, 24, 28 boundary",
+   "source": "P&ID tag CST-1 notes 'ref 23' and connections 22, 24, 28; data sheet Table I stream 21 row; no tank sizing in either document"
+  },
+  {
+   "tag": "SRP-1",
+   "modelled_as": "boundary sink: salt slurry streams S13_SALT (P&ID connection 13) and S20_SALT (connection 20) leave the evaporators to it; dry salt rate from units VRE-1+PE-1 salt_kg_h; no rated unit (no data)",
+   "source": "P&ID tag SRP-1 notes 'ref 17' and connections 13, 20; data sheet Table I salt row 94.9 t/h"
+  },
+  {
+   "tag": "DWF-1",
+   "modelled_as": "boundary sink: disposal stream S15_DISP (P&ID connection 15) leaves PE-1 to it; no rated unit (no data)",
+   "source": "P&ID tag DWF-1 notes 'ref 18' and connection 15; data sheet Table I disposal row 6.8 t/h"
+  },
+  {
+   "tag": "CGT-1",
+   "modelled_as": "not process-modelled: gas turbine drives VRC-1 and fires HRSG-1 (P&ID connections 34 and shaft coupling); no fuel, capacity or exhaust data on P&ID (capacity_kW null) or data sheet - intentionally not simulated",
+   "source": "P&ID tag CGT-1 notes 'ref 37', capacity_kW null; data sheet states VRC driven by combustion gas turbine, shaft power not stated"
+  },
+  {
+   "tag": "HRSG-1",
+   "modelled_as": "not process-modelled: steam side represented only by fixed utility feed S33 turbine exhaust joining the discharge (connections 29, 32 boundary); no steam generation data on P&ID or data sheet - intentionally not simulated",
+   "source": "P&ID tag HRSG-1 notes 'ref 27' and connections 34, 29, 32; data sheet Table I stream 33 row 15.9 t/h fixed"
+  },
+  {
+   "tag": "ST-1",
+   "modelled_as": "boundary only: represented by fixed utility feed S33 = 15.9 t/h turbine exhaust at 3.08 bar(a) into MX-DESH (P&ID connection 33-36); turbine itself not solved, no expansion data",
+   "source": "P&ID tag ST-1 notes 'ref 35, coupled to GEN' and connection 33-36; data sheet Modelling scope 'Turbine exhaust steam (stream 33): 15.9 t/h at 3.08 bar(a), fixed'"
+  },
+  {
+   "tag": "GEN-1",
+   "modelled_as": "not process-modelled: electrical generator coupled to ST-1, no process stream; intentionally not simulated (electrical only)",
+   "source": "P&ID tag GEN-1 notes 'ELETRICAL POWER'; no process connection on P&ID"
+  }
+ ],
+ "calibration": [
+  {
+   "item": "Total feed brine to plant (stream 2)",
+   "measured": "362.9 t/h at 24 C (data sheet Table I row, feed brine to BCC)",
+   "simulated": "362.9 t/h total boundary feed (S11 264,900 + S7 98,000 kg/h, run as-built-base); BCC inlet temperature not solved per Modelling scope",
+   "source": "data sheet Table I row 'Feed brine to the brine cooled condenser (3) (stream 2)'; run as-built-base streams S11, S7"
+  },
+  {
+   "item": "Brine leaving brine cooled condenser",
+   "measured": "60 C (data sheet Table I row)",
+   "simulated": "60 C imposed on boundary feed S7 (run as-built-base); BCC-1 not solved per Modelling scope",
+   "source": "data sheet Table I row 'Brine leaving the brine cooled condenser'; run as-built-base feed S7"
+  },
+  {
+   "item": "Elutriating brine to evaporator legs (streams 7, 8)",
+   "measured": "98.0 t/h at 60 C (data sheet Table I row)",
+   "simulated": "98,000 kg/h at 60 C (feed S7, run as-built-base) - exact",
+   "source": "data sheet Table I row 'Elutriating brine to the evaporator legs (streams 7, 8)'; run as-built-base stream S7"
+  },
+  {
+   "item": "Brine through BP to VRE (streams 9/11)",
+   "measured": "264.9 t/h, 60 -> 125.6 C (data sheet Table I row)",
+   "simulated": "264,900 kg/h at 125.6 C (feed S11, run as-built-base) - outlet exact; BP-1 heating leg not solved per Modelling scope",
+   "source": "data sheet Table I row 'Brine through the brine preheater BP (10) to the VRC evaporator (12) (streams 9/11)'; run as-built-base stream S11"
+  },
+  {
+   "item": "VRE body pressure and brine boiling temperature",
+   "measured": "1.70 bar(a), brine boiling 125.6 C (data sheet Table I row; P&ID tag VRE-1 note 10 PSIG 258F)",
+   "simulated": "P_bar 1.70 exact; brine_T_C 124.86 C, BPE 9.69 K (run as-built-base unit VRE-1) - 0.74 K low, consistent with brine_bpe at 1.7 bar saturated (124.86 C)",
+   "source": "data sheet Table I row 'VRC evaporator (12)'; P&ID tag VRE-1 attribute notes; run as-built-base unit VRE-1; brine_bpe tool at 1.7 bar"
+  },
+  {
+   "item": "VRE total boil-up vapour (stream 25 to compressor + stream 31 excess)",
+   "measured": "226.8 + 20.9 = 247.7 t/h (data sheet Table I rows, streams 25 and 31)",
+   "simulated": "236,863 kg/h total vapour S_VAP_VRE (run as-built-base unit VRE-1 vapour_kg_h) - 4.4% low; heat-limited by Table I heating steam, reported not forced",
+   "source": "data sheet Table I rows 'VRC evaporator overhead to the VRC compressor (26) (stream 25)' and 'Excess VRC evaporator vapour to the purge heater CH2 (stream 31)'; run as-built-base"
+  },
+  {
+   "item": "Vapour saturation temperature at VRE pressure",
+   "measured": "115.2 C at 1.70 bar(a) (data sheet Table I row, stream 25)",
+   "simulated": "115.15 C (run as-built-base stream S_VAP_VRE) - exact within 0.05 K",
+   "source": "data sheet Table I row 'VRC evaporator overhead to the VRC compressor (26) (stream 25)'; run as-built-base stream S_VAP_VRE"
+  },
+  {
+   "item": "VRC compressor suction flow vs fixed capacity",
+   "measured": "226.8 t/h suction capacity (data sheet Equipment ratings; Table I stream 25)",
+   "simulated": "216,896 kg/h suction S25_TO_COMP (run as-built-base) - 4.4% low; limit check utilisation 0.956 against max_kg_h 226,800",
+   "source": "data sheet Equipment ratings 'VRC compressor (26) suction capacity: 226.8 t/h'; run as-built-base stream S25_TO_COMP and check VRC-1"
+  },
+  {
+   "item": "VRC compressor discharge pressure / ratio",
+   "measured": "3.08 bar(a), pressure ratio 1.8 (data sheet Table I row)",
+   "simulated": "3.08 bar(a) P_out_bar exact, ratio 3.08/1.70 = 1.81 (run as-built-base unit VRC-1)",
+   "source": "data sheet Table I row 'VRC compressor (26) discharge'; run as-built-base unit VRC-1"
+  },
+  {
+   "item": "Desuperheated steam to CH1 (stream 36)",
+   "measured": "251.7 t/h at 135 C, 3.08 bar(a), incl. 15.9 t/h turbine exhaust stream 33 (data sheet Table I row)",
+   "simulated": "Heating feed S36 251,700 kg/h at 135 C exact (run as-built-base); return check stream S36_RETURN 246,796 kg/h at 134.43 C saturated after desuperheating - flow 2.0% low in the unfolded once-through check only",
+   "source": "data sheet Table I row 'Desuperheated steam to the circulating heater CH1 (stream 36)'; run as-built-base streams S36, S36_RETURN"
+  },
+  {
+   "item": "CH1 condensate (stream 21) temperature",
+   "measured": "251.7 t/h at 134.4 C, cooled in BP to about 82 C (data sheet Table I row)",
+   "simulated": "251,700 kg/h at 134.43 C (run as-built-base stream S21_COND) - exact; BP cooling to 82 C not solved per Modelling scope",
+   "source": "data sheet Table I row 'CH1 condensate (stream 21)'; run as-built-base stream S21_COND"
+  },
+  {
+   "item": "Excess vapour to purge heater CH2 (stream 31)",
+   "measured": "20.9 t/h (data sheet Table I row)",
+   "simulated": "19,968 kg/h (run as-built-base stream S31_EXCESS) - 4.5% low, same heat-limited boil-up deviation",
+   "source": "data sheet Table I row 'Excess VRC evaporator vapour to the purge heater CH2 (stream 31)'; run as-built-base stream S31_EXCESS"
+  },
+  {
+   "item": "Purge liquor VRE to PE (stream 14)",
+   "measured": "47.6 t/h at 125.6 C (data sheet Table I row)",
+   "simulated": "47,642 kg/h (run as-built-base stream S14_PURGE) - +0.09%; brine temperature 124.86 C (unit VRE-1 brine_T_C, stand-in stream T 115.15 C is water saturation)",
+   "source": "data sheet Table I row 'Purge liquor, VRC evaporator -> purge evaporator (5) (stream 14)'; run as-built-base stream S14_PURGE and unit VRE-1"
+  },
+  {
+   "item": "PE body pressure and brine temperature",
+   "measured": "about 1.01 bar(a), 108.9 C (data sheet Table I row; P&ID tag PE-1 note 0 PSIG 228F)",
+   "simulated": "P_bar 1.013; brine_T_C 108.77 C, BPE 8.72 K (run as-built-base unit PE-1) - 0.13 K low",
+   "source": "data sheet Table I row 'Purge evaporator (5)'; P&ID tag PE-1 attribute notes; run as-built-base unit PE-1; brine_bpe tool at 1.013 bar"
+  },
+  {
+   "item": "Purge to disposal well facility (stream 16 / P&ID connection 15)",
+   "measured": "6.8 t/h at 108.9 C (data sheet Table I row)",
+   "simulated": "6,794 kg/h (run as-built-base stream S15_DISP) - -0.09%; temperature via unit PE-1 brine_T_C 108.77 C",
+   "source": "data sheet Table I row 'Purge to the disposal well facility (18) (stream 16)'; P&ID connection PE-1->DWF-1 loop 15; run as-built-base stream S15_DISP"
+  },
+  {
+   "item": "PE overheads to brine cooled condenser (stream 4)",
+   "measured": "25.4 t/h at 100.6 C after desuperheating (data sheet Table I row)",
+   "simulated": "20,135 kg/h at 99.97 C (run as-built-base stream S4_PE_VAP) - 20.7% low flow, 0.6 K low; Table I PE overhead exceeds what the Table I excess-vapour heating (19,968 kg/h sim) can boil, reported as a patent Table I inconsistency, not forced",
+   "source": "data sheet Table I row 'Purge-evaporator overheads to the brine cooled condenser (stream 4)'; run as-built-base stream S4_PE_VAP and unit PE-1"
+  },
+  {
+   "item": "Dry salt produced",
+   "measured": "94.9 t/h (2,511 short t/d) (data sheet Table I row, item 17)",
+   "simulated": "89,832 kg/h = 81,570 (VRE-1) + 8,262 (PE-1) salt_kg_h (run as-built-base) - 5.3% low, follows the heat-limited boil-up; stream S13+S20 kg/h are stand-in slurry, not dry salt",
+   "source": "data sheet Table I row 'Salt produced (dry) (17)'; run as-built-base units VRE-1 and PE-1 salt_kg_h"
+  },
+  {
+   "item": "CH1 heater area and U (in service)",
+   "measured": "8,800 m2 installed, U 2,000 W/m2K in service (data sheet Equipment ratings, ILLUSTRATIVE)",
+   "simulated": "Area needed 7,902 m2 at U 2,000 (run as-built-base unit VRE-1); limit check utilisation 0.898 against area_m2 8,800 - rating used exactly, not raised",
+   "source": "data sheet Equipment ratings 'Circulating heater CH1: 8,800 m2, U 2,000 W/m2K in service (ILLUSTRATIVE)'; run as-built-base unit VRE-1 and check"
+  },
+  {
+   "item": "CH2 heater area and U",
+   "measured": "1,500 m2, U 1,500 W/m2K (data sheet Equipment ratings, ILLUSTRATIVE)",
+   "simulated": "Area needed 1,284 m2 at U 1,500 (run as-built-base unit PE-1); limit check utilisation 0.856 against area_m2 1,500 - rating used exactly, not raised",
+   "source": "data sheet Equipment ratings 'Purge heater CH2: 1,500 m2, U 1,500 W/m2K (ILLUSTRATIVE)'; run as-built-base unit PE-1 and check"
+  },
+  {
+   "item": "Evaporator heat-balance closure at base point",
+   "measured": "Table I heating steam 251.7 t/h to CH1 and 20.9 t/h excess vapour to CH2 (data sheet Table I rows)",
+   "simulated": "VRE-1 heat_balance_kW 0.0 and PE-1 -0.1 kW with boil-up heat-limited to the Table I heating streams (run as-built-base units); boil-up duty vs heating-steam check utilisation 0.98 within the 2% closure tolerance for both evaporators",
+   "source": "data sheet Table I rows streams 36 and 31; run as-built-base units VRE-1, PE-1 and checks"
+  }
+ ],
+ "assumptions": [
+  "Water stand-in (Steam Tables IAPWS-IF97) with evaporator feed_x_NaCl salt balance and Sparrow BPE per run_process evaporator description; electrolyte phase equilibria omitted, so stream T is water saturation and brine boiling temperature is the unit brine_T_C.",
+  "Data-sheet Modelling scope governs over full P&ID topology for the as-built question: feed preheat train (BCC-1, BP-1, CST-1, BPF-1) is not solved; VRE feed is taken as boundary feeds S11 = 264.9 t/h at 125.6 C plus S7 = 98.0 t/h elutriating brine at 60 C, both from data sheet Table I rows. Condensate-to-brine recovery connections 9, 21, 22, 24 and brine connections 2, 19 are therefore boundary flows, not closed loops.",
+  "Closed CH1 steam loop is unfolded once-through per instructions: utility feed S36 = 251.7 t/h at 135 C, 3.08 bar(a) (data sheet row, stream 36) drives VRE-1 heating and leaves as S21_COND condensate; it is not recycled. The compressor discharge return is solved separately through mixer MX-DESH to terminal stream S36_RETURN as a desuperheating check.",
+  "Turbine exhaust S33 is a fixed utility feed (utility:true, does not scale): 15.9 t/h at 3.08 bar(a) from data sheet row; its temperature is not stated in the data sheet and is assumed 135 C (equal to the desuperheated steam temperature) - stated assumption, not a measured value.",
+  "Desuperheater is not drawn on FIG. 1 (data sheet note) and is modelled as mixer MX-DESH; spray SPRAY = 14.0 t/h condensate at 134.4 C (CH1 condensate temperature, data sheet row stream 21) calibrated in run as-built-base so the mixer outlet S36_RETURN is saturated at 134.43 C. Spray rate itself is not a Table I measured value.",
+  "CH1 is included in VRE-1 and CH2 in PE-1 (P&ID equipment notes: VRE-1 'includes CH1', PE-1 'includes CH2'); there are no separate CH1/CH2 P&ID tags, so heater area/U limits are placed on VRE-1/PE-1. Ratings are the data-sheet ILLUSTRATIVE ratings used exactly as given, never raised: CH1 8,800 m2 U 2,000 W/m2K in service, CH2 1,500 m2 U 1,500 W/m2K.",
+  "VRC-1 efficiency 75% is an assumed value only to estimate shaft duty (patent states shaft power not stated, data sheet Equipment ratings); discharge pressure 3.08 bar(a) and suction capacity 226.8 t/h are data-sheet values. Compressor discharge temperature is therefore not a calibrated measurement.",
+  "Splitter fractions are calibration parameters, not equipment ratings: VRE liquid purge fraction 0.378 calibrated to Table I purge 47.6 t/h; VRE vapour excess fraction 0.0843 = Table I ratio 20.9/(226.8+20.9); PE liquid disposal fraction 0.247 calibrated to Table I disposal 6.8 t/h.",
+  "Salt product streams S13_SALT and S20_SALT are water-stand-in liquid (crystals plus mother liquor); the dry salt rate is the sum of the evaporator salt_kg_h outputs, not the stream kg/h.",
+  "Cogeneration and downstream items CGT-1, HRSG-1, ST-1, GEN-1, SRP-1, DWF-1, CST-1 carry no process ratings in the P&ID (all capacity_kW/flow_gpm null) or data sheet and are represented only by their boundary streams (S33 turbine exhaust in; S13/S20 salt out; S15 disposal out); GEN-1 is electrical only.",
+  "Forced-circulation pump is not drawn in FIG. 1 and its 15,000 m3/h rating is ILLUSTRATIVE with no Table I circulation flow, head or temperature-rise measurement; the CH1 brine rise <=3 K rule therefore cannot be checked in this spec and is not represented as a limit - no rating was invented for it.",
+  "P&ID data_quality/read_notes state no capacities, flows or valve types are printed and connections use reference numerals 1-37; all values therefore come from the data sheet Table I/ratings, and P&ID printed evaporator conditions (10 PSIG 258F = 1.70 bar(a)/125.6 C; 0 PSIG 228F = 1.01 bar(a)/108.9 C) agree with the data sheet - no P&ID-vs-datasheet conflict was found. Patent Table I is not exactly heat-closed: with Table I heating steam the simulator boil-up is heat-limited below Table I vapour/salt rates; deviations are reported in calibration, not hidden by raising any rating."
+ ],
+ "model": "muse-wonder-1.0",
+ "engine": "dwsim",
+ "coverage": {
+  "connections": [
+   {
+    "from": "VRE-1",
+    "to": "PE-1",
+    "lines": [
+     "14"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "PE-1",
+    "to": "BCC-1",
+    "lines": [
+     "4"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "BPF-1",
+    "to": "BCC-1",
+    "lines": [
+     "2"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "BCC-1",
+    "to": "BPF-1",
+    "lines": [
+     "19"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "CST-1",
+    "to": "BPF-1",
+    "lines": [
+     "24"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "CST-1",
+    "to": "BP-1",
+    "lines": [
+     "22"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "BP-1",
+    "to": "VRE-1",
+    "lines": [
+     "11"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "VRE-1",
+    "to": "SRP-1",
+    "lines": [
+     "13"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "PE-1",
+    "to": "SRP-1",
+    "lines": [
+     "20"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "PE-1",
+    "to": "DWF-1",
+    "lines": [
+     "15"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "CST-1",
+    "to": "HRSG-1",
+    "lines": [
+     "28"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "HRSG-1",
+    "to": "BCC-1",
+    "lines": [
+     "29"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "CGT-1",
+    "to": "HRSG-1",
+    "lines": [
+     "34"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "VRC-1",
+    "to": "VRE-1",
+    "lines": [
+     "30"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "HRSG-1",
+    "to": "ST-1",
+    "lines": [
+     "32"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "ST-1",
+    "to": "VRE-1",
+    "lines": [
+     "33-36"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "VRE-1",
+    "to": "VRC-1",
+    "lines": [
+     "25"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "VRE-1",
+    "to": "PE-1",
+    "lines": [
+     "31"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "BCC-1",
+    "to": "BP-1",
+    "lines": [
+     "9"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "VRE-1",
+    "to": "BP-1",
+    "lines": [
+     "21"
+    ],
+    "relief_path": false,
+    "modelled": false
+   }
+  ],
+  "missing_connections": [
+   {
+    "from": "VRE-1",
+    "to": "PE-1",
+    "lines": [
+     "14"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "PE-1",
+    "to": "BCC-1",
+    "lines": [
+     "4"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "BPF-1",
+    "to": "BCC-1",
+    "lines": [
+     "2"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "BCC-1",
+    "to": "BPF-1",
+    "lines": [
+     "19"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "CST-1",
+    "to": "BPF-1",
+    "lines": [
+     "24"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "CST-1",
+    "to": "BP-1",
+    "lines": [
+     "22"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "BP-1",
+    "to": "VRE-1",
+    "lines": [
+     "11"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "VRE-1",
+    "to": "SRP-1",
+    "lines": [
+     "13"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "PE-1",
+    "to": "SRP-1",
+    "lines": [
+     "20"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "PE-1",
+    "to": "DWF-1",
+    "lines": [
+     "15"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "CST-1",
+    "to": "HRSG-1",
+    "lines": [
+     "28"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "HRSG-1",
+    "to": "BCC-1",
+    "lines": [
+     "29"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "CGT-1",
+    "to": "HRSG-1",
+    "lines": [
+     "34"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "VRC-1",
+    "to": "VRE-1",
+    "lines": [
+     "30"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "HRSG-1",
+    "to": "ST-1",
+    "lines": [
+     "32"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "ST-1",
+    "to": "VRE-1",
+    "lines": [
+     "33-36"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "VRE-1",
+    "to": "VRC-1",
+    "lines": [
+     "25"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "VRE-1",
+    "to": "PE-1",
+    "lines": [
+     "31"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "BCC-1",
+    "to": "BP-1",
+    "lines": [
+     "9"
+    ],
+    "relief_path": false,
+    "modelled": false
+   },
+   {
+    "from": "VRE-1",
+    "to": "BP-1",
+    "lines": [
+     "21"
+    ],
+    "relief_path": false,
+    "modelled": false
+   }
+  ],
+  "missing_equipment": [
+   "BCC-1",
+   "BP-1",
+   "BPF-1",
+   "CGT-1",
+   "CST-1",
+   "DWF-1",
+   "GEN-1",
+   "HRSG-1",
+   "SRP-1",
+   "ST-1"
+  ]
+ },
+ "read_corrections": 9,
+ "seconds": 602,
+ "cost_usd": 2.9081,
+ "at": "2026-11-01 01:15",
+ "review": {
+  "status": "ok",
+  "findings": [],
+  "blocking": 0,
+  "energy": {
+   "method": "duty",
+   "tolerance": 0.02,
+   "proposed_field": "enthalpy_kJ_kg",
+   "note": "An overall energy balance is not closed: the simulator's streams do not report enthalpy. Each evaporator's heat balance is checked instead (within 2 %; a model is blocked above 10 %)."
+  }
+ },
+ "review_status": "ok",
+ "gaps": []
+}

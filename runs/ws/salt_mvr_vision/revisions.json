@@ -1,0 +1,738 @@
+[
+ {
+  "rev": 1,
+  "kind": "correction",
+  "title": "Heating steam taken from the compressor discharge (model review)",
+  "changes": [],
+  "spec_before": {
+   "compounds": [
+    "Water"
+   ],
+   "package": "Steam Tables (IAPWS-IF97)",
+   "feeds": {
+    "S11": {
+     "T_C": 125.6,
+     "P_bar": 2.5,
+     "kg_h": 264900,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "S7": {
+     "T_C": 60,
+     "P_bar": 2.5,
+     "kg_h": 98000,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "S36": {
+     "T_C": 135,
+     "P_bar": 3.08,
+     "kg_h": 251700,
+     "x": {
+      "Water": 1.0
+     },
+     "utility": true
+    },
+    "S33": {
+     "T_C": 135,
+     "P_bar": 3.08,
+     "kg_h": 15900,
+     "x": {
+      "Water": 1.0
+     },
+     "utility": true
+    },
+    "SPRAY": {
+     "T_C": 134.4,
+     "P_bar": 3.08,
+     "kg_h": 14000,
+     "x": {
+      "Water": 1.0
+     }
+    }
+   },
+   "units": [
+    {
+     "id": "MX-FEED",
+     "type": "mixer",
+     "in": [
+      "S11",
+      "S7"
+     ],
+     "out": "S_FEED"
+    },
+    {
+     "id": "VRE-1",
+     "type": "evaporator",
+     "in": "S_FEED",
+     "vapor": "S_VAP_VRE",
+     "liquid": "S_LIQ_VRE",
+     "P_bar": 1.7,
+     "evap_frac": 0.6825,
+     "heating": [
+      "S36",
+      "S21_COND"
+     ],
+     "U_W_m2K": 2000,
+     "area_m2": 8800,
+     "feed_x_NaCl": 0.26
+    },
+    {
+     "id": "SPL-LIQ-VRE",
+     "type": "splitter",
+     "in": "S_LIQ_VRE",
+     "out": [
+      "S14_PURGE",
+      "S13_SALT"
+     ],
+     "fractions": [
+      0.378,
+      0.622
+     ]
+    },
+    {
+     "id": "SPL-VAP-VRE",
+     "type": "splitter",
+     "in": "S_VAP_VRE",
+     "out": [
+      "S25_TO_COMP",
+      "S31_EXCESS"
+     ],
+     "fractions": [
+      0.9157,
+      0.0843
+     ]
+    },
+    {
+     "id": "PE-1",
+     "type": "evaporator",
+     "in": "S14_PURGE",
+     "vapor": "S4_PE_VAP",
+     "liquid": "S_LIQ_PE",
+     "P_bar": 1.013,
+     "evap_frac": 0.5336,
+     "heating": [
+      "S31_EXCESS",
+      "S_CH2_COND"
+     ],
+     "U_W_m2K": 1500,
+     "area_m2": 1500,
+     "feed_x_NaCl": 0.2875
+    },
+    {
+     "id": "SPL-LIQ-PE",
+     "type": "splitter",
+     "in": "S_LIQ_PE",
+     "out": [
+      "S15_DISP",
+      "S20_SALT"
+     ],
+     "fractions": [
+      0.247,
+      0.753
+     ]
+    },
+    {
+     "id": "VRC-1",
+     "type": "compressor",
+     "in": "S25_TO_COMP",
+     "out": "S30_DIS",
+     "P_out_bar": 3.08,
+     "eff_pct": 75
+    },
+    {
+     "id": "MX-DESH",
+     "type": "mixer",
+     "in": [
+      "S30_DIS",
+      "S33",
+      "SPRAY"
+     ],
+     "out": "S36_RETURN"
+    }
+   ],
+   "limits": {
+    "VRC-1": {
+     "max_kg_h": 226800
+    },
+    "VRE-1": {
+     "area_m2": 8800
+    },
+    "PE-1": {
+     "area_m2": 1500
+    }
+   }
+  },
+  "spec_after": {
+   "compounds": [
+    "Water"
+   ],
+   "package": "Steam Tables (IAPWS-IF97)",
+   "feeds": {
+    "S11": {
+     "T_C": 125.6,
+     "P_bar": 2.5,
+     "kg_h": 264900,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "S7": {
+     "T_C": 60,
+     "P_bar": 2.5,
+     "kg_h": 98000,
+     "x": {
+      "Water": 1.0
+     }
+    },
+    "S33": {
+     "T_C": 135,
+     "P_bar": 3.08,
+     "kg_h": 15900,
+     "x": {
+      "Water": 1.0
+     },
+     "utility": true
+    },
+    "SPRAY": {
+     "T_C": 134.4,
+     "P_bar": 3.08,
+     "kg_h": 14000,
+     "x": {
+      "Water": 1.0
+     }
+    }
+   },
+   "units": [
+    {
+     "id": "MX-FEED",
+     "type": "mixer",
+     "in": [
+      "S11",
+      "S7"
+     ],
+     "out": "S_FEED"
+    },
+    {
+     "id": "VRE-1",
+     "type": "evaporator",
+     "in": "S_FEED",
+     "vapor": "S_VAP_VRE",
+     "liquid": "S_LIQ_VRE",
+     "P_bar": 1.7,
+     "evap_frac": 0.6825,
+     "heating": [
+      "S36_RETURN",
+      "S21_COND"
+     ],
+     "U_W_m2K": 2000,
+     "area_m2": 8800,
+     "feed_x_NaCl": 0.26
+    },
+    {
+     "id": "SPL-LIQ-VRE",
+     "type": "splitter",
+     "in": "S_LIQ_VRE",
+     "out": [
+      "S14_PURGE",
+      "S13_SALT"
+     ],
+     "fractions": [
+      0.378,
+      0.622
+     ]
+    },
+    {
+     "id": "SPL-VAP-VRE",
+     "type": "splitter",
+     "in": "S_VAP_VRE",
+     "out": [
+      "S25_TO_COMP",
+      "S31_EXCESS"
+     ],
+     "fractions": [
+      0.9157,
+      0.0843
+     ]
+    },
+    {
+     "id": "PE-1",
+     "type": "evaporator",
+     "in": "S14_PURGE",
+     "vapor": "S4_PE_VAP",
+     "liquid": "S_LIQ_PE",
+     "P_bar": 1.013,
+     "evap_frac": 0.5336,
+     "heating": [
+      "S31_EXCESS",
+      "S_CH2_COND"
+     ],
+     "U_W_m2K": 1500,
+     "area_m2": 1500,
+     "feed_x_NaCl": 0.2875
+    },
+    {
+     "id": "SPL-LIQ-PE",
+     "type": "splitter",
+     "in": "S_LIQ_PE",
+     "out": [
+      "S15_DISP",
+      "S20_SALT"
+     ],
+     "fractions": [
+      0.247,
+      0.753
+     ]
+    },
+    {
+     "id": "VRC-1",
+     "type": "compressor",
+     "in": "S25_TO_COMP",
+     "out": "S30_DIS",
+     "P_out_bar": 3.08,
+     "eff_pct": 75
+    },
+    {
+     "id": "MX-DESH",
+     "type": "mixer",
+     "in": [
+      "S30_DIS",
+      "S33",
+      "SPRAY"
+     ],
+     "out": "S36_RETURN"
+    }
+   ],
+   "limits": {
+    "VRC-1": {
+     "max_kg_h": 226800
+    },
+    "VRE-1": {
+     "area_m2": 8800
+    },
+    "PE-1": {
+     "area_m2": 1500
+    }
+   }
+  },
+  "capacity_multiple": 0.921,
+  "at": "2026-11-01T01:17:22+0300",
+  "user": "model review",
+  "reason": "As built, VRE-1 (VRC evaporator with CH1) was heated by a separate fixed 251.7 t/h steam feed S36 while the VRC-1 discharge (S36_RETURN, after desuperheating spray and turbine exhaust) left the model, so the compressor did not limit the boil-up. Corrected: VRE-1 heating = VRC-1 discharge + turbine exhaust + spray (S36_RETURN). Same correction as rev 1 of salt_mvr.",
+  "result_after": {
+   "scale": 1.0,
+   "errors": [],
+   "streams": {
+    "S11": {
+     "T_C": 125.6,
+     "P_bar": 2.5,
+     "kg_h": 264900.0,
+     "m3_h": 282.25,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 264900.0
+     }
+    },
+    "S7": {
+     "T_C": 60.0,
+     "P_bar": 2.5,
+     "kg_h": 98000.0,
+     "m3_h": 99.67,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 98000.0
+     }
+    },
+    "S33": {
+     "T_C": 135.0,
+     "P_bar": 3.08,
+     "kg_h": 15900.0,
+     "m3_h": 9412.68,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Water": 15900.0
+     }
+    },
+    "SPRAY": {
+     "T_C": 134.4,
+     "P_bar": 3.08,
+     "kg_h": 14000.0,
+     "m3_h": 15.04,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 14000.0
+     }
+    },
+    "S_FEED": {
+     "T_C": 108.01,
+     "P_bar": 2.5,
+     "kg_h": 362900.0,
+     "m3_h": 380.99,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 362900.0
+     }
+    },
+    "VRE-1-in": {
+     "T_C": 108.02,
+     "P_bar": 1.7,
+     "kg_h": 362900.0,
+     "m3_h": 381.01,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 362900.0
+     }
+    },
+    "VRE-1-part0": {
+     "T_C": 108.02,
+     "P_bar": 1.7,
+     "kg_h": 221035.7,
+     "m3_h": 232.07,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 221035.68
+     }
+    },
+    "S_VAP_VRE": {
+     "T_C": 115.15,
+     "P_bar": 1.7,
+     "kg_h": 221035.7,
+     "m3_h": 227940.13,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Water": 221035.68
+     }
+    },
+    "VRE-1-part1": {
+     "T_C": 108.02,
+     "P_bar": 1.7,
+     "kg_h": 141864.3,
+     "m3_h": 148.94,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 141864.32
+     }
+    },
+    "S_LIQ_VRE": {
+     "T_C": 115.15,
+     "P_bar": 1.7,
+     "kg_h": 141864.3,
+     "m3_h": 149.81,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 141864.32
+     }
+    },
+    "S36_RETURN": {
+     "T_C": 134.43,
+     "P_bar": 3.08,
+     "kg_h": 232302.4,
+     "m3_h": 135776.99,
+     "vapour_frac": 0.9889,
+     "components_kg_h": {
+      "Water": 232302.37
+     }
+    },
+    "S21_COND": {
+     "T_C": 134.43,
+     "P_bar": 3.08,
+     "kg_h": 232302.4,
+     "m3_h": 249.51,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 232302.37
+     }
+    },
+    "S14_PURGE": {
+     "T_C": 115.15,
+     "P_bar": 1.7,
+     "kg_h": 53624.7,
+     "m3_h": 56.63,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 53624.71
+     }
+    },
+    "S13_SALT": {
+     "T_C": 115.15,
+     "P_bar": 1.7,
+     "kg_h": 88239.6,
+     "m3_h": 93.18,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 88239.61
+     }
+    },
+    "S25_TO_COMP": {
+     "T_C": 115.15,
+     "P_bar": 1.7,
+     "kg_h": 202402.4,
+     "m3_h": 208725.14,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Water": 202402.37
+     }
+    },
+    "S31_EXCESS": {
+     "T_C": 115.15,
+     "P_bar": 1.7,
+     "kg_h": 18633.3,
+     "m3_h": 19215.39,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Water": 18633.31
+     }
+    },
+    "PE-1-in": {
+     "T_C": 99.97,
+     "P_bar": 1.013,
+     "kg_h": 53624.7,
+     "m3_h": 2608.71,
+     "vapour_frac": 0.0285,
+     "components_kg_h": {
+      "Water": 53624.71
+     }
+    },
+    "PE-1-part0": {
+     "T_C": 99.97,
+     "P_bar": 1.013,
+     "kg_h": 18878.2,
+     "m3_h": 918.38,
+     "vapour_frac": 0.0285,
+     "components_kg_h": {
+      "Water": 18878.21
+     }
+    },
+    "S4_PE_VAP": {
+     "T_C": 99.97,
+     "P_bar": 1.013,
+     "kg_h": 18878.2,
+     "m3_h": 31595.9,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Water": 18878.21
+     }
+    },
+    "PE-1-part1": {
+     "T_C": 99.97,
+     "P_bar": 1.013,
+     "kg_h": 34746.5,
+     "m3_h": 1690.33,
+     "vapour_frac": 0.0285,
+     "components_kg_h": {
+      "Water": 34746.51
+     }
+    },
+    "S_LIQ_PE": {
+     "T_C": 99.97,
+     "P_bar": 1.013,
+     "kg_h": 34746.5,
+     "m3_h": 36.26,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 34746.51
+     }
+    },
+    "S_CH2_COND": {
+     "T_C": 115.15,
+     "P_bar": 1.7,
+     "kg_h": 18633.3,
+     "m3_h": 19.68,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 18633.31
+     }
+    },
+    "S15_DISP": {
+     "T_C": 99.97,
+     "P_bar": 1.013,
+     "kg_h": 8582.4,
+     "m3_h": 8.96,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 8582.39
+     }
+    },
+    "S20_SALT": {
+     "T_C": 99.97,
+     "P_bar": 1.013,
+     "kg_h": 26164.1,
+     "m3_h": 27.3,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Water": 26164.12
+     }
+    },
+    "S30_DIS": {
+     "T_C": 191.49,
+     "P_bar": 3.08,
+     "kg_h": 202402.4,
+     "m3_h": 138458.23,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Water": 202402.37
+     }
+    }
+   },
+   "units": {
+    "MX-FEED": {
+     "type": "mixer"
+    },
+    "VRE-1": {
+     "type": "evaporator",
+     "boil_kW": 141454.8,
+     "sensible_correction_kW": 2377.4,
+     "brine_sensible_kW": 5581.8,
+     "water_sensible_kW": 3055.2,
+     "vapor_superheat_kW": 1237.5,
+     "crystallisation_kW": 1386.7,
+     "crystal_cooling_kW": 0.0,
+     "vapour_kg_h": 221036.0,
+     "brine_T_C": 124.86,
+     "bpe_K": 9.69,
+     "body_x_NaCl": 0.2875,
+     "salt_in_kg_h": 94354.0,
+     "salt_kg_h": 75183.0,
+     "crystallising": true,
+     "liquid_out_brine_kg_h": 66681.0,
+     "water_evaporated_per_t_salt": 2.94,
+     "heating_kW": 137889.4,
+     "condensing_C": 134.43,
+     "driving_dT_K": 9.57,
+     "heat_balance_kW": -3565.4,
+     "area_needed_m2": 7394.0,
+     "area_m2": 8800,
+     "U_W_m2K": 2000
+    },
+    "SPL-LIQ-VRE": {
+     "type": "splitter"
+    },
+    "SPL-VAP-VRE": {
+     "type": "splitter"
+    },
+    "PE-1": {
+     "type": "evaporator",
+     "boil_kW": 11468.0,
+     "sensible_correction_kW": 591.3,
+     "brine_sensible_kW": -310.3,
+     "water_sensible_kW": -950.5,
+     "vapor_superheat_kW": 95.1,
+     "crystallisation_kW": 144.1,
+     "crystal_cooling_kW": 0.0,
+     "vapour_kg_h": 18878.0,
+     "brine_T_C": 108.77,
+     "bpe_K": 8.72,
+     "body_x_NaCl": 0.2824,
+     "salt_in_kg_h": 15417.0,
+     "salt_kg_h": 7810.0,
+     "crystallising": true,
+     "liquid_out_brine_kg_h": 26936.0,
+     "water_evaporated_per_t_salt": 2.42,
+     "heating_kW": 11467.9,
+     "condensing_C": 115.15,
+     "driving_dT_K": 6.38,
+     "heat_balance_kW": -0.1,
+     "area_needed_m2": 1199.0,
+     "area_m2": 1500,
+     "U_W_m2K": 1500
+    },
+    "SPL-LIQ-PE": {
+     "type": "splitter"
+    },
+    "VRC-1": {
+     "type": "compressor",
+     "duty_kW": 8388.95,
+     "kW": 8388.95,
+     "discharge_C": 191.5
+    },
+    "MX-DESH": {
+     "type": "mixer"
+    }
+   },
+   "checks": [
+    {
+     "id": "VRE-1",
+     "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+     "value": 141454.8,
+     "limit": 140647.188,
+     "unit": "kW",
+     "utilisation": 1.006
+    },
+    {
+     "id": "PE-1",
+     "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+     "value": 11468.0,
+     "limit": 11697.258,
+     "unit": "kW",
+     "utilisation": 0.98
+    },
+    {
+     "id": "VRC-1",
+     "check": "suction flow vs capacity",
+     "value": 202402.4,
+     "limit": 226800,
+     "unit": "kg/h",
+     "utilisation": 0.892
+    },
+    {
+     "id": "VRE-1",
+     "check": "heater area needed (BPE included) vs installed",
+     "value": 7394.0,
+     "limit": 8800,
+     "unit": "m2",
+     "utilisation": 0.84
+    },
+    {
+     "id": "PE-1",
+     "check": "heater area needed (BPE included) vs installed",
+     "value": 1199.0,
+     "limit": 1500,
+     "unit": "m2",
+     "utilisation": 0.799
+    },
+    {
+     "id": "MX-FEED",
+     "check": "no limit check for this unit type",
+     "type": "mixer"
+    },
+    {
+     "id": "SPL-LIQ-VRE",
+     "check": "no limit check for this unit type",
+     "type": "splitter"
+    },
+    {
+     "id": "SPL-VAP-VRE",
+     "check": "no limit check for this unit type",
+     "type": "splitter"
+    },
+    {
+     "id": "SPL-LIQ-PE",
+     "check": "no limit check for this unit type",
+     "type": "splitter"
+    },
+    {
+     "id": "MX-DESH",
+     "check": "no limit check for this unit type",
+     "type": "mixer"
+    }
+   ]
+  },
+  "review": {
+   "status": "ok",
+   "blocking": 0,
+   "findings": [
+    {
+     "severity": "warn",
+     "check": "energy not closed",
+     "evidence": "VRE-1 heat balance is -3565.4 kW against heating 137889.4 kW and boil-up 141454.8 kW (2.5%; tolerance 2%).",
+     "items": [
+      "VRE-1"
+     ]
+    }
+   ]
+  },
+  "audit": "9670e2429411fcddaf3442211579763c36a97ec89b430db3770411c8f4d43871"
+ }
+]
