@@ -526,7 +526,7 @@ DRAFT = ("**Status: DRAFT for engineering review, not approved.** Combustion scr
 
 def combustion_check(w, steam_scale=None, firing_scale=None, exhaust_T_C=None, residence_s=None, scale=None, fuel=None,
                      firing_kW=None, excess_air_pct=None, o2_dry_pct=None, air_T_C=None, stack_T_C=None, basis="HHV",
-                     save=True, by=None, request=None):
+                     save=True, by=None, request=None, changes=None):
     """The agent tool. With a case file (gas turbine + HRSG) and no firing_kW: base point and the asked scenario.
     Otherwise one burner from the given fuel, firing rate, air ratio / O2, air preheat and stack temperature."""
     cfg = load_case(w.name)
@@ -544,7 +544,12 @@ def combustion_check(w, steam_scale=None, firing_scale=None, exhaust_T_C=None, r
         title, stem, out = "Combustion check: burner", "combustion-burner", {"mode": "burner", "result": r}
     else:
         path = cfg["gas_turbine"]["shaft_kW"]["from_model"]
-        st = w.state(float(scale or 1.0))
+        if changes:  # the proposed design: its own solve sets the turbine load (mirrors the electrical adapter)
+            import copy
+            from .plant import patch
+            st = w._solve(patch(copy.deepcopy(w.spec), changes), float(scale or 1.0))
+        else:
+            st = w.state(float(scale or 1.0))
         shaft = _get(st, path)
         if not shaft:
             raise ValueError(f"the solve has no {path} for the turbine shaft power")

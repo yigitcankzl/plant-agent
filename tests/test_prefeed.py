@@ -54,6 +54,17 @@ class PrefeedTests(unittest.TestCase):
             prefeed.run_envelope(SPEC, [{"name": "cheat", "changes": [{"path": "limits.K-1.max_kg_h", "value": 999}]}],
                                     solve, patch)
 
+    def test_scenario_that_loses_mass_is_not_robust(self):
+        def leaky(spec, scale):
+            r = solve(spec, scale)
+            r["streams"]["P"] = {"kg_h": 50, "components_kg_h": {"Water": 50}}  # 100 in, 50 out
+            return r
+        result = prefeed.run_envelope(SPEC, [{"name": "normal", "scale": 1}], leaky, patch)
+        self.assertEqual(result["scenarios"][0]["balance"]["mass_error_pct"], 50)
+        self.assertFalse(result["scenarios"][0]["pass"])
+        self.assertFalse(result["robust_pass"])
+        self.assertIn("balance", result["scenarios"][0]["errors"][0])
+
     def test_dynamic_screen_needs_sourced_constants_and_catches_limit(self):
         self.assertEqual(prefeed.dynamic_screen([])["status"], "not run")
         result = prefeed.dynamic_screen([{"name": "pressure step", "variable": "P", "initial": 1, "final": 4,

@@ -56,7 +56,7 @@ Then look at:
 | Mechanical | ○ K-202 within its provisional rating; vendor curve needed | solve vs rating |
 | Electrical | ✕ TX-1 45 → ~131–133 %, 29 % start dip direct-on-line; a VFD fixes the dip, not the transformer | pandapower on an illustrative one-line diagram |
 | Heat transfer | ○ E-201 needs 7,130 of 8,800 m² clean; pump and shell-side ratings illustrative | ht/fluids (Gnielinski, Bell-Delaware) |
-| Combustion | ○ +20 % steam needs about 9.3 MMBtu/h of duct firing | Cantera GRI-Mech 3.0 |
+| Combustion | ○ +20 % steam needs about 10.1 MMBtu/h (3.0 MW) of duct firing on the proposed design | Cantera GRI-Mech 3.0 |
 | Piping, controls, safety, civil | ○ no calculation adapter; listed as open work | change register |
 
 The MOC pack carries the failed gates as risks and its decision reads "Do not approve yet".
@@ -223,6 +223,8 @@ cp .env.example .env && chmod 600 .env          # then add keys
 - The page header's **AI cost** is the Muse spend of the questions on record for that case. Model builds are listed separately on the case.
 - Muse-spending actions are disabled unless `WEB_ALLOW_RUNS=1`.
 - The server binds to localhost by default. A non-local `--host` requires `WEB_AUTH_TOKEN`, and writes need `WEB_ALLOW_WRITES=1`.
+  The stock browser UI does not send the bearer header, so a remote deployment needs a reverse proxy that adds it.
+  POSTs must be same-origin `application/json` (form and cross-site posts are refused), and a local server only answers its own host name.
 
 ## Timeline
 

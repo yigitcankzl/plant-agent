@@ -424,7 +424,16 @@
 <script>
 const CASE = new URLSearchParams(location.search).get('case') || 'chem_c01';
 const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// data-driven buttons: values travel as JSON in data-args and reach the handler as arguments, never as inline JavaScript
+// (an HTML-escaped apostrophe in an onclick attribute is decoded before the script runs, so escaping cannot make it safe)
+const act = (name, ...args) => `data-act="${name}" data-args="${esc(JSON.stringify(args))}"`;
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  const fn = el && {select, whatIf, troubleshoot, ask, undo, accept,
+    askAbout: tag => { $('q').value = `Why is ${tag} limiting, and what is the cheapest fix?`; $('q').focus(); }}[el.dataset.act];
+  if (fn) fn(...JSON.parse(el.dataset.args || '[]'));
+});
 const api = async (p, body) => { const r = await fetch(`/api/plant/${CASE}/${p}`, body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)} : {});
   const data = await r.json().catch(() => null);
   if (!r.ok) throw new Error(data?.error || `Case data unavailable (${r.status})`);
@@ -467,7 +476,7 @@ function renderTroubleshootMode() {
     ${forecastCard()}
     ${today.length ? `<div class="card warn"><div class="tt">What needs attention</div>${today.map((x, i) => `<div style="margin:7px 0"><b>${i + 1}.</b> ${esc(x.text)}</div>`).join('')}</div>` : '<div class="card"><div class="res">No historian alert is available for this case.</div></div>'}
     ${P.has_historian && !P.health ? `<div class="card warn"><div class="tt">Historian available</div><div style="margin:6px 0">${esc(P.historian_note || 'Run the deterministic morning check.')}</div><button class="btn go" onclick="refreshHealth()">Run morning check</button></div>` : ''}
-    <div class="mode-list">${units.map(tag => `<button class="btn" onclick="select('${esc(tag)}')"><b>${esc(nm(tag))}</b><br><span style="color:var(--muted)">Inspect readings and test likely causes</span></button>`).join('') || '<span style="color:var(--muted)">No equipment has a configured troubleshooting model.</span>'}</div>`;
+    <div class="mode-list">${units.map(tag => `<button class="btn" ${act('select', tag)}><b>${esc(nm(tag))}</b><br><span style="color:var(--muted)">Inspect readings and test likely causes</span></button>`).join('') || '<span style="color:var(--muted)">No equipment has a configured troubleshooting model.</span>'}</div>`;
 }
 
 async function refreshHealth() {
@@ -775,7 +784,7 @@ function fillReview() {
 }
 
 // the calibration table as checked against the solve on the server (plant.calibration_check), not the agent's prose
-const CAL = {reproduced: ['reproduced', 'ok'], input: ['model input', 'muted'], differs: ['differs', 'fail'], not_in_solve: ['not in the solve', 'warn'], no_measurement: ['no measurement', 'muted']};
+const CAL = {reproduced: ['reproduced', 'ok'], input: ['model input', 'muted'], differs: ['differs', 'fail'], not_in_solve: ['not in the solve', 'warn'], no_measurement: ['no measurement', 'muted'], no_reference: ['no exact field reference', 'muted']};
 // 'muse-spark-1.3-contributor' -> 'Muse Spark', 'muse-wonder-1.0' -> 'Muse Wonder'
 function museName(id) {
   const m = /(muse)-([a-z]+)/i.exec(id || '');
@@ -784,9 +793,10 @@ function museName(id) {
 function calSummary(b) {
   const k = b?.calibration_check?.counts;
   if (!k) return '';
-  const out = k.reproduced + k.differs;
+  const out = (k.reproduced || 0) + (k.differs || 0);
   return `${k.reproduced} of ${out} measured output${out === 1 ? '' : 's'} reproduced within 3 %` + (k.input ? `, ${k.input} input${k.input === 1 ? '' : 's'} given to the model` : '') +
-    (k.not_in_solve ? `, ${k.not_in_solve} not found in the solve` : '');
+    (k.not_in_solve ? `, ${k.not_in_solve} not found in the solve` : '') +
+    (k.no_reference ? `, ${k.no_reference} without an exact stream/field reference` : '');
 }
 function calibrationBlock(b) {
   const chk = b.calibration_check, rows = chk?.rows || (b.calibration || []).map(c => ({...c, check: null}));
@@ -832,7 +842,7 @@ function render(st) {
   $('eqlist').innerHTML = rows.map(c => {
     const feeds = P.built.spec.feeds || {};
     const u = units[c.id], name = u ? NAMES[u.type] || u.type : feeds[c.id]?.utility ? 'Utility supply' : 'Process stream';
-    return `<div class="eq" data-id="${esc(c.id)}" onclick="select('${esc(c.id)}')" title="${esc(c.id)}"><div class="t">${esc(u ? c.id : nm(c.id))} <span>${Math.round(c.utilisation * 100)}%</span></div>
+    return `<div class="eq" data-id="${esc(c.id)}" ${act('select', c.id)} title="${esc(c.id)}"><div class="t">${esc(u ? c.id : nm(c.id))} <span>${Math.round(c.utilisation * 100)}%</span></div>
       <div class="bar"><i style="width:${Math.min(100, c.utilisation / 1.3 * 100)}%;background:var(--${sev(c.utilisation)})"></i></div>
       <div class="why">${esc(name)} · ${esc(c.check)}: ${fmt(c.value)} of ${fmt(c.limit)} ${esc(c.unit)}</div></div>`;
   }).join('') || '<div class="empty">No limits in the model.</div>';
@@ -1377,12 +1387,12 @@ function equipmentCard(tag) {  // design data, operating values, every limit wit
     ${editable.length ? `<div class="tt" style="margin-top:10px">What if… (a preview in ${simulator()}, not a revision)</div>
       <select id="wiField">${editable.map(([k, v]) => `<option value="${k}" data-v="${v}">${esc(FIELDS[k][0])} (${esc(fmt(v))} ${esc(FIELDS[k][1])})</option>`).join('')}</select>
       <input id="wiValue" type="number" step="any" style="width:110px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:4px" value="${editable[0][1]}">
-      <button class="btn" onclick="whatIf('${esc(tag)}')">Re-solve</button><div id="wiOut" style="margin-top:8px"></div>` : ''}
+      <button class="btn" ${act('whatIf', tag)}>Re-solve</button><div id="wiOut" style="margin-top:8px"></div>` : ''}
     ${healthOf(tag)}
     ${(P.troubleshootable || []).includes(tag) ? `<div class="tt" style="margin-top:10px">Troubleshoot (deterministic: each cause fitted in ${simulator()}, checked against the other historian readings)</div>
       <span style="font-size:12px">Product out of ${esc(tag)} reads</span> <input id="tsVal" type="number" step="0.1" style="width:80px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:4px" placeholder="last day">
-      <span style="font-size:12px">°C</span> <button class="btn" onclick="troubleshoot('${esc(tag)}')">Find the cause</button><div id="tsOut" style="margin-top:8px"></div>` : ''}
-    <div style="margin-top:12px"><button class="btn" onclick="$('q').value='Why is ${esc(tag)} limiting, and what is the cheapest fix?';$('q').focus()">Ask about ${esc(tag)}</button></div></div>`;
+      <span style="font-size:12px">°C</span> <button class="btn" ${act('troubleshoot', tag)}>Find the cause</button><div id="tsOut" style="margin-top:8px"></div>` : ''}
+    <div style="margin-top:12px"><button class="btn" ${act('askAbout', tag)}>Ask about ${esc(tag)}</button></div></div>`;
   $('wiField') && ($('wiField').onchange = () => { $('wiValue').value = $('wiField').selectedOptions[0].dataset.v; });
   WI = {tag, path};
 }
@@ -1555,7 +1565,7 @@ function answers() {
   $('answers').innerHTML = outcomeCard() + (list.length ? (lead !== last ? `<div class="lead-note">Current verified design · answer ${all.indexOf(lead) + 1} of ${all.length}</div>` : '') + ans(lead, all.indexOf(lead)) + follow +
     (rest.length ? `<details class="ans"><summary>History · ${rest.length} earlier question${rest.length === 1 ? '' : 's'}</summary>${rest.map(([a, i]) => briefAns(a, i)).join('')}</details>` : '') :
     `<div class="empty"><b>What would you like to test?</b><br>Ask about an equipment limit, or find a path to the target throughput.
-     <div class="sugg">${suggestions().map(s => `<button class="btn" onclick="ask('${esc(s)}')">${esc(s)}</button>`).join('')}</div></div>`);
+     <div class="sugg">${suggestions().map(s => `<button class="btn" ${act('ask', s)}>${esc(s)}</button>`).join('')}</div></div>`);
   const ac = P.ai_cost, qs = ac?.questions_usd ?? all.reduce((t, a) => t + (a.cost_usd || 0), 0);
   $('spend').textContent = list.length || ac?.model_build_usd ? `AI cost $${qs.toFixed(2)} questions${ac?.model_build_usd ? ` · $${ac.model_build_usd.toFixed(2)} model build` : ''}` : '';
   $('spend').title = `Estimated Muse API cost: ${ac?.questions ?? all.length} questions answered${ac?.model_build_usd ? ' plus building the simulation model once' : ''}; simulator runs are local and free.`;
@@ -1752,7 +1762,7 @@ function prop(p, i, j, src) {
   return `<div class="prop ${p.accepted ? 'done' : ''}"><div class="ph"><b>${esc(p.title)}</b>${p.cost_class ? `<span class="vb" style="color:var(--muted)" title="Cost class written by the agent for screening; not a priced estimate">${esc(p.cost_class)} · agent estimate</span>` : ''}</div>
     <div class="diff">${diff}</div>${added ? `<div class="diff">${added}</div>` : ''}${p.why ? `<div class="diff" style="color:var(--muted);font-family:var(--sans)">${esc(p.why)}</div>` : ''}
     ${calcSheet(p)}${electricalLine(p)}
-    <div class="pf">${v}${scope}${p.verified && !modelBlocked() ? `<div class="prop-actions"><button class="btn go" onclick="accept(${i},${j},'${src || ''}')" title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature.">Apply as draft model revision</button><button class="btn" onclick="this.closest('.prop').remove()">Dismiss</button></div>` : ''}${p.accepted ? '<span class="vb y">applied as draft revision</span>' : ''}</div></div>`;
+    <div class="pf">${v}${scope}${p.verified && !modelBlocked() ? `<div class="prop-actions"><button class="btn go" ${act('accept', i, j, src || '')} title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature.">Apply as draft model revision</button><button class="btn" onclick="this.closest('.prop').remove()">Dismiss</button></div>` : ''}${p.accepted ? '<span class="vb y">applied as draft revision</span>' : ''}</div></div>`;
 }
 
 async function accept(i, j, src) {
@@ -1843,7 +1853,7 @@ function forecastCard() {  // fouling forecast: historian trend + simulator limi
 function revs() {
   const a = P.audit;
   $('revs').innerHTML = morning() + (P.revisions || []).map(r => `<div class="rev"><div><b>Rev ${r.rev}</b> ${esc(r.title)}<div style="color:var(--muted);font:11px var(--mono)">${r.changes.map(describe).join(', ')}${r.capacity_multiple ? ' · max ' + Math.round(r.capacity_multiple * 100) + '%' : ''}</div>
-      <div style="color:var(--muted);font-size:11px">${esc(when(r.at))} · ${esc(r.user || 'engineer')} · “${esc(r.reason || '')}”</div></div>${r.kind === 'change' ? `<button class="btn" onclick="undo(${r.rev})">Undo</button>` : ''}</div>`).join('') +
+      <div style="color:var(--muted);font-size:11px">${esc(when(r.at))} · ${esc(r.user || 'engineer')} · “${esc(r.reason || '')}”</div></div>${r.kind === 'change' ? `<button class="btn" ${act('undo', r.rev)}>Undo</button>` : ''}</div>`).join('') +
     (!modelBlocked() && ((P.revisions || []).some(r => r.kind === 'change') || (P.answers || []).some(x => (x.proposals || []).some(p => p.verified)))
       ? `<div class="rev" style="border-left-color:var(--accent);display:block"><button class="btn go" onclick="issueEngineeringPackage(this)" title="Generate the MOC decision file, proposed drawing, operating envelope, discipline gates, RFQ and commissioning plan">Issue engineering package</button><div id="decOut"></div><div id="prefeedOut"></div></div>` : '') +
     (a ? `<div class="rev" style="border-left-color:${a.verify.ok ? 'var(--ok)' : 'var(--fail)'}"><div>Audit trail: ${a.verify.entries} entries · hash chain ${a.verify.ok ? 'intact ✓' : 'BROKEN at ' + a.verify.broken_at}</div><button class="btn" onclick="showAudit()">View</button></div>` : '');
@@ -1871,7 +1881,7 @@ async function reliefScan() {
   const rs = await api('relief');
   const col = r => r.status === 'protected' ? 'ok' : r.thermal_expansion_risk ? 'fail' : 'warn';
   if (!rs.length) { $('relief').innerHTML = '<div class="why">No equipment with nozzles found on this P&ID: nothing to check.</div>'; return; }
-  $('relief').innerHTML = rs.map(r => `<div class="eq" onclick="select('${esc(r.tag)}')"><div class="t">${esc(r.tag)} <span>${esc(r.side_fluids.join(','))} side</span></div>
+  $('relief').innerHTML = rs.map(r => `<div class="eq" ${act('select', r.tag)}><div class="t">${esc(r.tag)} <span>${esc(r.side_fluids.join(','))} side</span></div>
     <div class="why" style="color:var(--${col(r)})">${r.status === 'protected' ? '✓' : '⚠'} ${esc(r.status)}${r.thermal_expansion_risk ? ' · can be blocked in while heated' : ''}</div>
     <div class="why">${esc(r.detail)}</div></div>`).join('');
   const sheet = $('sheet'), box = sheet.getBoundingClientRect();

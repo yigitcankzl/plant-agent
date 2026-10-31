@@ -128,6 +128,20 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const labelsRestored = await p.evaluate(() => !document.querySelector('#pidViewport').classList.contains('labels-off') &&
     document.querySelector('#toggleLabels').getAttribute('aria-pressed') === 'true');
   console.log(badgeCount && labelsHidden && labelsRestored ? 'ok  ' : 'FAIL', 'P&ID labels hide and restore');
+  // a hostile DEXPI tag must reach the handler as data, never run as script
+  let dialogs = 0; const onDialog = d => { dialogs += 1; d.dismiss(); }; p.on('dialog', onDialog);
+  const evil = ["x');alert(1);//", '"><img src=x onerror=alert(2)>'];
+  const got = await p.evaluate(tags => {
+    const seen = [], keep = window.select; window.select = t => seen.push(t);
+    const box = document.createElement('div');
+    box.innerHTML = tags.map(t => `<div class="eq" ${act('select', t)}>${esc(t)}</div>`).join('');
+    document.body.append(box); box.querySelectorAll('.eq').forEach(e => e.click()); box.remove();
+    window.select = keep; return seen;
+  }, evil);
+  await p.waitForTimeout(300); p.off('dialog', onDialog);
+  const xssSafe = !dialogs && JSON.stringify(got) === JSON.stringify(evil);
+  console.log(xssSafe ? 'ok  ' : 'FAIL', 'hostile P&ID tags stay data (no script runs)', xssSafe ? '' : JSON.stringify({dialogs, got}));
+  bad += xssSafe ? 0 : 1;
   bad += badgeCount && labelsHidden && labelsRestored ? 0 : 1;
   for (const c of ['salt_mvr', 'chem_c01']) {
     await p.goto(`${BASE}/plant.html?case=${c}&tour=1`); await p.waitForSelector('#tour', { state: 'visible', timeout: 20000 });

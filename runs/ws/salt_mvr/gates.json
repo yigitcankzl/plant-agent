@@ -7,15 +7,16 @@
    "Add a small parallel vapour compressor K-202",
    "Hold purge-heater steam at today's rate by trimming the overhead split"
   ],
-  "revisions": 3
+  "revisions": 3,
+  "content": "f820991ad06ec06fbe840fe54e90952c071af6ad"
  },
- "made": "2026-10-31T19:36:32+0300",
+ "made": "2026-10-31T19:58:10+0300",
  "disciplines": [
   {
    "id": "process",
    "status": "pass",
-   "summary": "design reaches 120 % (max 120 %)",
-   "source": "DWSIM re-solve of the design (server verify)",
+   "summary": "design reaches 120 % (max 120 %, re-solved now)",
+   "source": "DWSIM re-solve of the combined design on the current model",
    "checks": [
     {
      "id": "plant",
@@ -26,7 +27,7 @@
      "kind": "max",
      "status": "ok",
      "result": "100 %",
-     "source": "DWSIM re-solve of the combined changes on the server"
+     "source": "DWSIM re-solve of all 3 verified change(s) together on the current model"
     }
    ]
   },
@@ -353,40 +354,40 @@
   {
    "id": "combustion",
    "status": "open",
-   "summary": "GT-201 + HRSG-201: steam 19.1 t/h (42,000 lb/h, \u00d71.20), stack 205 \u2192 200 \u00b0C, duct firing 2.73 MW HHV (9.3 MMBtu/h), NOx added 0.4 ppmvd at 15 % O2 (screening); if HRSG steam rises with throughput (\u00d71.20), it needs supplementary (duct) firing the unfired HRSG does not have: a modification to decide",
+   "summary": "GT-201 + HRSG-201: steam 19.1 t/h (42,000 lb/h, \u00d71.20), stack 228 \u2192 229 \u00b0C, duct firing 2.97 MW HHV (10.1 MMBtu/h), NOx added 0.7 ppmvd at 15 % O2 (screening); if HRSG steam rises with throughput (\u00d71.20), it needs supplementary (duct) firing the unfired HRSG does not have: a modification to decide",
    "source": "Cantera gas-turbine and HRSG model",
    "checks": [
     {
      "id": "HRSG-201",
      "check": "evaporator pinch vs minimum",
-     "value": "24.43",
+     "value": "46.01",
      "limit": "8",
      "unit": "K",
      "kind": "min",
      "status": "ok",
-     "result": "16.43 K above the minimum",
+     "result": "38.01 K above the minimum",
      "source": "typical practice: evaporator pinch not below about 8 K"
     },
     {
      "id": "HRSG-201",
      "check": "economiser approach to saturation vs minimum (steaming)",
-     "value": "18.2",
+     "value": "17.8",
      "limit": "5",
      "unit": "K",
      "kind": "min",
      "status": "ok",
-     "result": "13.2 K above the minimum",
+     "result": "12.8 K above the minimum",
      "source": "typical practice: economiser approach at least about 5 K to avoid steaming"
     },
     {
      "id": "HRSG-201",
-     "check": "stack temperature vs water dew point 41 C + 20 K",
-     "value": "200.5",
-     "limit": "61.27",
+     "check": "stack temperature vs water dew point 40 C + 20 K",
+     "value": "228.6",
+     "limit": "60.16",
      "unit": "C",
      "kind": "min",
      "status": "ok",
-     "result": "139.2 K above the minimum",
+     "result": "168.4 K above the minimum",
      "source": "typical practice: keep a non-condensing stack above the water dew point with a margin"
     },
     {
@@ -397,13 +398,13 @@
      "unit": "C",
      "kind": "max",
      "status": "over",
-     "result": "48.82 K over the limit",
+     "result": "48.83 K over the limit",
      "source": "the documented HRSG is unfired: above that inlet the superheater sees hotter gas than its design point (tube metal and attemperation to confirm with the HRSG vendor)"
     },
     {
      "id": "duct burner",
-     "check": "supplementary firing needed (9.3 MMBtu/h), no duct burner on record",
-     "value": "2.732",
+     "check": "supplementary firing needed (10.1 MMBtu/h), no duct burner on record",
+     "value": "2.974",
      "limit": "0",
      "unit": "MW HHV",
      "kind": "max",
@@ -414,23 +415,23 @@
     {
      "id": "duct burner",
      "check": "O2 after duct firing vs minimum for stable firing",
-     "value": "14.03",
+     "value": "14.53",
      "limit": "11",
      "unit": "% wet",
      "kind": "min",
      "status": "ok",
-     "result": "3.027 % wet above the minimum",
+     "result": "3.53 % wet above the minimum",
      "source": "typical practice: duct burners need roughly 11 % O2 or more in the turbine exhaust for stable firing"
     },
     {
      "id": "duct burner",
      "check": "local flame temperature vs thermal-NOx onset (screening)",
-     "value": "2,064",
+     "value": "2,096",
      "limit": "1,800",
      "unit": "K",
      "kind": "max",
      "status": "over",
-     "result": "263.5 K over the limit",
+     "result": "295.8 K over the limit",
      "source": "thermal (Zeldovich) NO formation becomes significant above about 1,800 K (e.g. Turns, An Introduction to Combustion, ch. 5)"
     }
    ],

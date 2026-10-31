@@ -336,6 +336,9 @@ def _with_gates(w):
     titles = [p.get("title") for p in d.get("proposals") or [] if p.get("verified")]
     if (key.get("headline"), key.get("request"), key.get("titles"), key.get("revisions")) != (d.get("headline"), d.get("request"), titles, len(w.revisions)):
         return w.answers
+    from .prefeed import gates_key
+    if key.get("content") != gates_key(w, d)["content"]:  # model, changes or discipline inputs moved on: the cache is stale
+        return w.answers
     fails = [r for r in g["disciplines"] if r.get("status") == "fail"]
 
     def tag(p):  # stored proposals predate discipline_status: flag the new equipment a failing gate is about
@@ -614,6 +617,9 @@ def start_run(case):
     raise RuntimeError("study did not start; see " + log.name)
 
 
+FORM_TYPES = {"application/x-www-form-urlencoded", "multipart/form-data", "text/plain"}
+
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *a, **kw):
         a[0].settimeout(15)
@@ -625,11 +631,14 @@ class Handler(SimpleHTTPRequestHandler):
     def _send(self, body, ctype="application/json", code=200):
         if not isinstance(body, bytes):
             body = json.dumps(body).encode()
-        self.send_response(code)
-        self.send_header("Content-Type", ctype)
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.send_response(code)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError):  # the browser navigated away; nothing left to answer
+            self.close_connection = True
         return True
 
     def _body(self, limit=MAX_POST):
@@ -652,8 +661,27 @@ class Handler(SimpleHTTPRequestHandler):
             raise ValueError("JSON body must be an object")
         return body
 
+    def _same_origin(self):
+        """A browser names the page that sent a POST in Origin (or Referer); a cross-site page must not reach this API.
+        No Origin and no Referer means a non-browser client (curl, tests), which cannot be driven by a web page."""
+        src = self.headers.get("Origin") or self.headers.get("Referer")
+        if not src:
+            return True
+        return src != "null" and urlparse(src).netloc == (self.headers.get("Host") or "")
+
+    def _check_csrf(self, method):
+        """Unsafe requests: same origin only, never a content type an HTML form can send without a CORS preflight."""
+        if method == "GET":
+            return
+        ctype = (self.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+        if ctype in FORM_TYPES:
+            raise PermissionError(f"Content-Type {ctype} is not accepted; send application/json")
+        if not self._same_origin():
+            raise PermissionError("cross-origin request refused")
+
     def _check_access(self, method):
         """Local demo stays frictionless; configured or externally bound servers require bearer auth and opt-in writes."""
+        self._check_csrf(method)
         host = self.server.server_address[0]
         try:
             local = ipaddress.ip_address(host).is_loopback
@@ -663,6 +691,10 @@ class Handler(SimpleHTTPRequestHandler):
         forwarded = self.headers.get("Forwarded") or self.headers.get("X-Forwarded-For")
         protected = bool(token) or not local or bool(forwarded)
         if not protected:
+            # DNS rebinding: a hostile name resolved to 127.0.0.1 would pass the Origin check with its own Host
+            name = urlparse("//" + (self.headers.get("Host") or "")).hostname
+            if name not in {"localhost", "127.0.0.1", "::1", host}:
+                raise PermissionError("unexpected Host header for a local server")
             return
         supplied = self.headers.get("Authorization", "")
         if not token or not hmac.compare_digest(supplied, "Bearer " + token):
@@ -999,6 +1031,9 @@ class Handler(SimpleHTTPRequestHandler):
         if len(api) == 3 and api[0] == "drawing":
             return self._send(drawing_png(api[1]), "image/png")
         if method == "POST" and api[:1] == ["start"] and len(api) == 2:
+            _require_runs()  # disabled spend routes answer 403 before anything else
+            if self.headers.get_content_type() != "application/json" or not self.headers.get("Content-Type"):
+                raise ValueError("Content-Type must be application/json")
             return self._send(start_run(api[1]))
         if len(api) == 4 and api[0] == "run":
             case, run, what = api[1], api[2], api[3]
@@ -1021,6 +1056,8 @@ class Handler(SimpleHTTPRequestHandler):
                     super().do_GET()
                 else:
                     self._send({"error": "not found"}, code=404)
+        except (BrokenPipeError, ConnectionResetError):  # client went away mid-response: never send a second answer
+            self.close_connection = True
         except PermissionError as e:
             self._send({"error": str(e)}, code=403)
         except BusyError as e:

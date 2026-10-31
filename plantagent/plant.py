@@ -641,33 +641,64 @@ def _numbers(obj, out=None):
     return out
 
 
+# measurement unit in the text -> the solver fields it can refer to (values in the solver's units: kg/h, kW, °C, bar)
+_CAL_FIELDS = [(r"t/h|kg/h", ("kg_h", "vapour_kg_h", "salt_kg_h", "liquid_kg_h")), (r"m3/h|m³/h", ("m3_h",)),
+               (r"W/m", ("U_W_m2K",)), (r"\bk?W\b|\bMW\b", ("kW", "duty_kW", "boil_kW", "heating_kW")),
+               (r"°C|\bC\b|degC", ("T_C", "brine_T_C", "T_out_C", "condensing_C", "discharge_C")),
+               (r"\bbar", ("P_bar", "P_out_bar", "dP_bar")), (r"%", ("eff_pct",)), (r"m2|m²", ("area_m2",))]
+
+
+def _cal_refs(text, result):
+    """(id, field, value) the text points at: a stream or unit id named in it as a whole token, and the field it names
+    explicitly (e.g. 'brine_T_C') or, failing that, the fields its measurement unit can mean."""
+    text = str(text or "")
+    objs = {**(result.get("streams") or {}), **(result.get("units") or {})}
+    ids = [i for i in objs if re.search(rf"(?<![\w-]){re.escape(i)}(?![\w-])", text)]
+    refs = []
+    for i in ids:
+        o = objs[i] if isinstance(objs[i], dict) else {}
+        named = [k for k in o if isinstance(o[k], (int, float)) and not isinstance(o[k], bool) and re.search(rf"\b{re.escape(k)}\b", text)]
+        fields = named or [f for pat, fs in _CAL_FIELDS if re.search(pat, text) for f in fs if isinstance(o.get(f), (int, float))]
+        refs += [(i, f, float(o[f])) for f in dict.fromkeys(fields)]
+    return refs
+
+
 def calibration_check(spec, result, rows):
-    """Check the agent's calibration table against the solve instead of trusting its prose: the simulated number must
-    be in the solved result, a number the model was given (feed or fixed setting) is an input, not a reproduced
-    measurement, and a reproduced output must be within 3 % of the measured value."""
+    """Check the agent's calibration table against the solve instead of trusting its prose. Each row is compared only
+    with the exact stream/unit field its simulated text names (no pool of every number in the result): the claimed
+    number must be that field's solved value, a value the model was given (feed or unit setting) is an input, not a
+    reproduced measurement, and a reproduced output must be within 3 % of the measured value."""
     def first(text):  # the leading number, in the solver's units (t/h and MW are kg/h and kW there)
         m = _NUM.search(str(text or ""))
         if not m:
             return None
         v = float(m.group(1).replace(",", ""))
-        return v * 1000 if m.group(2) or ("t/h" in str(text)[m.end():m.end() + 40] and "kg/h" not in str(text)[m.end():m.end() + 12]) else v
-    solved, given = _numbers(result), _numbers({k: v for k, v in spec.items() if k != "limits"})
-    near = lambda v, pool: any(abs(x - v) <= max(abs(v) * 0.002, 0.051) for x in pool)  # noqa: E731
-    out, counts = [], {"reproduced": 0, "input": 0, "differs": 0, "not_in_solve": 0, "no_measurement": 0}
+        return v * 1000 if m.group(2) else v  # only a unit written right after the number converts it
+    feeds = spec.get("feeds") or {}
+    units = {u.get("id"): u for u in spec.get("units") or []}
+    close = lambda a, b, rel: abs(a - b) <= max(abs(b) * rel, 0.051)  # noqa: E731
+    out, counts = [], {"reproduced": 0, "input": 0, "differs": 0, "not_in_solve": 0, "no_reference": 0, "no_measurement": 0}
     for row in rows or []:
         m, sv = first(row.get("measured")), first(row.get("simulated"))
-        if sv is None or not near(sv, solved):
+        refs = _cal_refs(row.get("simulated"), result)
+        hit = min((r for r in refs if sv is not None and close(sv, r[2], 0.005)), key=lambda r: abs(r[2] - sv), default=None)
+        ref, value = (f"{hit[0]}.{hit[1]}", hit[2]) if hit else (None, None)
+        if not refs:
+            check = "no_reference"
+        elif hit is None:
             check = "not_in_solve"
-        elif near(sv, given):
+        elif any(isinstance(src.get(hit[1]), (int, float)) and close(float(src[hit[1]]), value, 0.002)
+                 for src in ((feeds.get(hit[0]) or {}), (units.get(hit[0]) or {}))):
             check = "input"
         elif m is None or not re.match(r"\s*-?\d", str(row.get("measured") or "")):
             check = "no_measurement"
-        elif abs(sv - m) <= abs(m) * 0.03:
+        elif abs(value - m) <= abs(m) * 0.03:
             check = "reproduced"
         else:
             check = "differs"
         counts[check] += 1
-        out.append({**row, "check": check, "deviation_pct": round((sv - m) / m * 100, 1) if check in ("reproduced", "differs") and m else None})
+        out.append({**row, "check": check, "reference": ref,
+                    "deviation_pct": round((value - m) / m * 100, 1) if check in ("reproduced", "differs") and m else None})
     return {"rows": out, "counts": counts}
 
 

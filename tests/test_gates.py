@@ -45,6 +45,30 @@ class Gates(unittest.TestCase):
         r = calibration_check(spec, result, rows)
         self.assertEqual([x["check"] for x in r["rows"]], ["input", "reproduced", "not_in_solve"])
 
+    def test_calibration_compares_only_the_named_stream_field(self):
+        # measured 60 C; the named stream is at 70 C; an unrelated unit has 60 (% efficiency) - must not count
+        result = {"streams": {"S2": {"T_C": 70.0}}, "units": {"P1": {"eff_pct": 60.0}}}
+        rows = [{"item": "outlet T", "measured": "60 C", "simulated": "60 C - stream S2"},
+                {"item": "outlet T", "measured": "60 C", "simulated": "70 C - stream S2"},
+                {"item": "no ref", "measured": "60 C", "simulated": "60 C"}]
+        r = calibration_check({"feeds": {}, "units": []}, result, rows)
+        self.assertEqual([x["check"] for x in r["rows"]], ["not_in_solve", "differs", "no_reference"])
+        self.assertEqual(r["rows"][1]["reference"], "S2.T_C")
+        self.assertEqual(r["counts"]["reproduced"], 0)
+
+    def test_gates_key_changes_with_model_and_changes(self):
+        from types import SimpleNamespace
+        from plantagent.prefeed import gates_key
+        w = SimpleNamespace(name="no_such_case", spec={"units": [{"id": "P1", "kW": 5}]}, revisions=[])
+        ans = {"headline": "h", "proposals": [{"verified": True, "title": "t", "changes": [{"path": "units.P1.kW", "value": 7}]}]}
+        k1 = gates_key(w, ans)
+        w.spec["units"][0]["kW"] = 6  # model changed, same answer
+        k2 = gates_key(w, ans)
+        ans["proposals"][0]["changes"][0]["value"] = 8  # proposal content changed, same title
+        k3 = gates_key(w, ans)
+        self.assertEqual(k1["titles"], k2["titles"])
+        self.assertEqual(len({k1["content"], k2["content"], k3["content"]}), 3)
+
     def test_hazop_skips_routing_nodes_and_names_folded_heater(self):
         spec = {"units": [{"id": "V-201", "type": "evaporator"}, {"id": "SPLIT", "type": "splitter"}]}
         changes = [{"path": "units.V-201.U_W_m2K", "value": 2500}, {"reroute": {"unit": "SPLIT", "field": "out", "value": "x"}}]

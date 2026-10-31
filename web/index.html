@@ -379,7 +379,7 @@ $("#run").onchange = selectRun;
 $("#replay").onclick = async () => showEvents((await api(`/api/run/${cur.case}/${cur.run}/log`)).events, true);
 $("#start").onclick = async () => {
   if (!confirm("Run a new study for this plant? It spends Muse credit and takes 10-25 minutes.")) return;
-  try { const r = await api(`/api/start/${cur.case}`, {method: "POST"});
+  try { const r = await api(`/api/start/${cur.case}`, {method: "POST", headers: {"Content-Type": "application/json"}, body: "{}"});
         await loadCases(); $("#case").value = cur.case; await selectCase(); $("#run").value = r.run; await selectRun(); }
   catch (e) { alert(e.message); }
 };

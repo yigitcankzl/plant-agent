@@ -113,6 +113,42 @@ class WebSecurityTests(unittest.TestCase):
         second = web._new_job("sample")
         web._finish_job("sample", second)
 
+    def test_cross_site_and_form_posts_cannot_start_paid_work(self):
+        own = f"http://127.0.0.1:{self.server.server_port}"
+        with mock.patch.object(web, "start_run", return_value={"run": "x"}) as start, \
+                mock.patch.dict(os.environ, {"WEB_ALLOW_RUNS": "1"}):
+            status, data = self.request("POST", "/api/start/sample", b"{}",
+                                        {"Content-Type": "application/json", "Origin": "https://evil.example"})
+            self.assertEqual(status, 403, data)
+            status, data = self.request("POST", "/api/start/sample", b"a=1",
+                                        {"Content-Type": "application/x-www-form-urlencoded", "Origin": own})
+            self.assertEqual(status, 403, data)
+            status, data = self.request("POST", "/api/start/sample", b"x", {"Content-Type": "text/plain"})
+            self.assertEqual(status, 403, data)
+            status, data = self.request("POST", "/api/start/sample", b"{}", {"Origin": own})  # no content type
+            self.assertEqual(status, 400, data)
+            start.assert_not_called()
+            status, data = self.request("POST", "/api/start/sample", b"{}", {"Content-Type": "application/json", "Origin": own})
+            self.assertEqual(status, 200, data)
+            start.assert_called_once()
+
+    def test_dns_rebinding_host_is_refused(self):
+        status, _ = self.request("GET", "/api/cases", headers={"Host": f"evil.example:{self.server.server_port}"})
+        self.assertEqual(status, 403)
+
+    def test_client_disconnect_is_quiet(self):
+        h = web.Handler.__new__(web.Handler)
+        h.request_version, h.requestline, h.command, h.client_address = "HTTP/1.0", "GET / HTTP/1.0", "GET", ("127.0.0.1", 0)
+        h._headers_buffer = []
+
+        class Gone:
+            def write(self, _):
+                raise BrokenPipeError
+
+        h.wfile = Gone()
+        self.assertTrue(h._send({"ok": 1}))
+        self.assertTrue(h.close_connection)
+
 
 class ProjectAndAuditTests(unittest.TestCase):
     def setUp(self):

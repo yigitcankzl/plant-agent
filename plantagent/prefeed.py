@@ -62,7 +62,8 @@ def _balance(spec, result):
         co = sum((streams[s].get("components_kg_h") or {}).get(component, 0) for s in products)
         component_errors[component] = round(abs(ci - co) / ci * 100, 3) if ci else None
     enthalpy = all((streams.get(s) or {}).get("enthalpy_kJ_kg") is not None for s in feeds + products)
-    return {"status": "ok" if error is not None and error <= 1 else "warn", "feeds": feeds, "products": products,
+    closes = error is not None and error <= 1 and all(e is None or e <= 1 for e in component_errors.values())
+    return {"status": "ok" if closes else "warn", "feeds": feeds, "products": products,
             "mass_in_kg_h": round(mass_in, 3), "mass_out_kg_h": round(mass_out, 3),
             "mass_error_pct": round(error, 3) if error is not None else None,
             "component_error_pct": component_errors,
@@ -98,6 +99,10 @@ def run_envelope(spec, scenarios, solve, patch):
             errors.append("no stated engineering limit checks in this scenario")
         balance = _balance(scenario_spec, result) if result.get("streams") else {
             "status": "not available", "reason": "scenario did not solve", "energy": "not available"}
+        if result.get("streams") and balance.get("status") != "ok":  # a solve that loses mass is not a passing scenario
+            errors.append(f"mass/component balance does not close ({balance.get('status')}: "
+                          + (f"mass error {balance['mass_error_pct']} %" if balance.get("mass_error_pct") is not None
+                             else balance.get("reason") or "not available") + ")")
         rows.append({"name": name, "scale": scale, "basis": raw.get("basis") or "engineer-defined scenario",
                      "pass": not errors and not over, "worst": worst, "over": over, "errors": errors,
                      "checks": [c for c in checks if c["utilisation"] >= .8], "all_checks": checks,
@@ -384,6 +389,23 @@ def design_calculation(w, ans, calc):
                               for r in calc.get("new_equipment") or []]}
 
 
+GATES_SCHEMA = 2  # bump when the gate rows change shape or meaning, so cached gates.json files are recomputed
+GATE_INPUTS = ("electrical.json", "hx_geometry.json", "combustion.json", "prefeed.json")
+
+
+def gates_key(w, ans):
+    """Cache key of the discipline gates: which answer (for the page to match) plus a content hash of everything the gates
+    are computed from - the combined changes, the current model, the discipline input files and the gate schema."""
+    import hashlib
+    proposals = [p for p in (ans or {}).get("proposals") or [] if p.get("verified")]
+    changes = [c for p in proposals for c in p.get("changes") or []]
+    files = {f: (ROOT / "cases" / w.name / f).read_text() for f in GATE_INPUTS if (ROOT / "cases" / w.name / f).exists()}
+    blob = json.dumps({"schema": GATES_SCHEMA, "changes": changes, "spec": w.spec, "files": files}, sort_keys=True, default=str)
+    return {"headline": (ans or {}).get("headline"), "request": (ans or {}).get("request"),
+            "titles": [p.get("title") for p in proposals], "revisions": len(w.revisions),
+            "content": hashlib.sha1(blob.encode()).hexdigest()}
+
+
 def discipline_gates(w, answer=None, refresh=False):
     """Discipline gates of the design answer from the deterministic engines already on this project: DWSIM (process),
     pandapower (electrical), ht/fluids (heat transfer), Cantera (combustion). No model call. Cached in gates.json
@@ -395,8 +417,7 @@ def discipline_gates(w, answer=None, refresh=False):
     proposals = [p for p in (ans or {}).get("proposals") or [] if p.get("verified")]
     if not proposals:
         return {"error": "no verified design answer to assess"}
-    key = {"headline": ans.get("headline"), "request": ans.get("request"), "titles": [p.get("title") for p in proposals],
-           "revisions": len(w.revisions)}
+    key = gates_key(w, ans)
     cache = w.model_file.with_name("gates.json")
     if not refresh and cache.exists():
         old = json.loads(cache.read_text())
@@ -404,15 +425,20 @@ def discipline_gates(w, answer=None, refresh=False):
             return old
     changes = [c for p in proposals for c in p.get("changes") or []]
     target = float(w.cfg.get("target_scale") or 1.0)
-    comb = ans.get("combined") if len(proposals) > 1 and not (ans.get("combined") or {}).get("error") else None
-    reach = (comb or {}).get("reaches_target") if comb else proposals[-1].get("reaches_target")
-    cap = (comb or {}).get("capacity_multiple") if comb else proposals[-1].get("capacity_multiple")
     sim = "WaterTAP" if w.cfg.get("engine") == "watertap" else "DWSIM"
+    # re-solve now, on the current model: a stored capacity from when the answer was written can be stale
+    try:
+        comb = w.verify({"changes": changes})
+    except Exception as ex:  # noqa: BLE001 - a design that does not solve fails the process gate
+        comb = {"reaches_target": False, "capacity_multiple": None, "over_limits_at_target": [],
+                "unverified_reason": f"{type(ex).__name__}: {ex}"[:200]}
+    reach, cap = bool(comb.get("reaches_target")), comb.get("capacity_multiple")
     proc = [{"id": "plant", "check": "maximum throughput with all verified changes vs target", "value": (cap or 0) * 100,
              "limit": target * 100, "unit": "%", "utilisation": target / cap if cap else 2.0,
-             "source": f"{sim} re-solve of the combined changes on the server"}]
-    proc += [{**c, "source": f"{sim} limit check"} for c in (comb or {}).get("over_limits_at_target") or []]
-    summary = f"design {'reaches' if reach else 'does not reach'} {target * 100:.0f} % (max {(cap or 0) * 100:.0f} %)"
+             "source": f"{sim} re-solve of all {len(proposals)} verified change(s) together on the current model"}]
+    proc += [{**c, "source": f"{sim} limit check"} for c in comb.get("over_limits_at_target") or []]
+    summary = f"design {'reaches' if reach else 'does not reach'} {target * 100:.0f} % (max {(cap or 0) * 100:.0f} %, re-solved now)" + \
+              (f"; {comb['unverified_reason']}" if comb.get("unverified_reason") else "")
     cfg_path = ROOT / "cases" / w.name / "prefeed.json"
     scen = (json.loads(cfg_path.read_text()) if cfg_path.exists() else {}).get("scenarios")
     robust, rsum = [], ""
@@ -428,7 +454,9 @@ def discipline_gates(w, answer=None, refresh=False):
         rsum = f"operating envelope {len(env['scenarios']) - len(failed)}/{len(env['scenarios'])} scenarios pass" + \
                (f" (fails: {', '.join(failed)})" if failed else "")
     # the target itself and the envelope around it are separate gates: reaching 120 % and holding it when fouled are different questions
-    rows = [_gate("process", proc, f"{sim} re-solve of the design (server verify)", summary)]
+    rows = [_gate("process", proc, f"{sim} re-solve of the combined design on the current model", summary)]
+    if not reach:  # an unsolved or short design is a process failure even if no single check row says so
+        rows[0]["status"] = "fail"
     if robust:
         rows.append(_gate("robustness", robust, f"{sim} solves of the pre-FEED operating envelope", rsum))
     # mechanical: provisional ratings of new machines vs the solved duty; a vendor curve is still needed
@@ -494,7 +522,7 @@ def discipline_gates(w, answer=None, refresh=False):
     try:
         from . import combustion
         if combustion.load_case(w.name):
-            r = combustion.combustion_check(w, steam_scale=target, scale=target, save=False)
+            r = combustion.combustion_check(w, steam_scale=target, scale=target, save=False, changes=changes)
             d = r["scenario"].get("duct_burner") or {}
             fired = (d.get("fuel_MMBtu_h_HHV") or 0) > 0
             rows.append(_gate("combustion", r["checks"], "Cantera gas-turbine and HRSG model", r["summary"],
