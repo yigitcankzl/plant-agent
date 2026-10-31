@@ -5,11 +5,14 @@
 - Meta's **Muse** reads the P&ID and data sheets, builds the simulator model itself, and proposes physical changes.
 - Deterministic engines (DWSIM, WaterTAP, EPANET, pandapower, ht/fluids, Cantera) re-solve every proposal before it can be applied; a change that only edits a limit is refused.
 - Flagship: a vacuum-salt MVR crystalliser reaches **+20 %** with three verified changes (clean E-201, a parallel compressor K-202, a purge-steam trim). The discipline gates then flag what the process answer alone hides: **TX-1 overloaded (~131–133 %)** and **not robust when E-201 re-fouls**.
+- The same loop works outside process plants. Two real incidents, rebuilt by Muse from the investigation reports with the conclusions withheld:
+  - **UCTE 2006 European blackout** (pandapower): coupling the Landesbergen busbars raises the tripping line 1,779 → 1,831 A, and the grid is not N-1 secure, as the investigators found.
+  - **Freeport LNG 2022** (DWSIM, trapped liquid): a blocked-in LNG line with its relief isolated bursts in days; restoring PSV-101 is verified as the fix.
 - Blind benchmark: on 13 real projects with the engineers' conclusions withheld, Muse reaches **64 %** of them on average (range 33–100 %).
 
 | Muse does | The deterministic engines do |
 |---|---|
-| Reads P&IDs (DEXPI or PDF), data sheets, reports and photos | Solve the model: DWSIM (process), WaterTAP (RO), EPANET/WNTR and TSNet (water), a gravity profile solver |
+| Reads P&IDs (DEXPI or PDF), data sheets, reports and photos | Solve the model: DWSIM (process, and trapped liquid along an isochore), WaterTAP (RO), EPANET/WNTR and TSNet (water), pandapower (grids), a gravity profile solver |
 | Builds the simulator model and its calibration table | Re-solve every proposal and the combined design on the server before it can be applied |
 | Plans the study, chooses which runs to make, proposes the changes | Check limits, relief paths (`pid.relief_scan`), the electrical load flow (pandapower), exchanger detail (ht/fluids) and combustion (Cantera) |
 | Writes the answer and drafts the deliverables | Decide pass/fail on the discipline gates; citations and cited runs are checked without an LLM |
@@ -20,7 +23,9 @@
 
 Open `web/home.html` and press **Start the 3-minute demo**. It opens the salt crystalliser (`plant.html?case=salt_mvr&tour=1`) and walks through it in six steps: the source P&ID and the model Muse built from it; the +20 % question; what limits it; the fixes, each re-solved in DWSIM; before and after; the evidence.
 
-Then look at:
+Then open the two incident rows on the home page, `plant.html?case=ucte_2006` and `plant.html?case=freeport_lng_2022`. Drag the slider: grid transit for UCTE, hours blocked in for Freeport. Then open **Compare with the recorded decision**.
+
+On the salt plant, look at:
 - **Existing / Proposed** above the drawing: Rev B of the P&ID with the changes clouded.
 - **Engineering impact**: one gate per discipline. Click a gate to see its checks and their sources.
 - **Decision / Engineering**: the short decision, or the full calculations, alternatives, sources and audit.
@@ -47,7 +52,7 @@ Then look at:
 - DWSIM re-solves the combination at 120.1 %.
 - From the solve PlantAgent draws Rev B of the P&ID (new lines 3004-ST and 3005-ST, block and check valves on K-202) and writes the data sheet, work order, summary and MOC pack.
 
-**Discipline gates on the same change** (`prefeed.discipline_gates`). Each gate reads a solved state, not LLM text. Pass/fail comes only from a check with a named source; anything over an illustrative rating stays *open*.
+**Discipline gates on the same change** (`prefeed.discipline_gates`). Each gate reads a solved state, not LLM text, and each check names its source. A gate that rests on an illustrative rating says so: the electrical ✕ below is a pandapower result against an ILLUSTRATIVE 2.5 MVA TX-1, so it means "check the real transformer", not a measured overload.
 
 | Gate | Result | From |
 |---|---|---|
@@ -65,6 +70,24 @@ The MOC pack carries the failed gates as risks and its decision reads "Do not ap
 - It fits E-201's U from the historian.
 - It then bisects the model for the U at which the first limit reaches 100 % at today's throughput.
 - The historian is **SYNTHETIC** and the prices behind the daily loss are **illustrative**.
+
+## Incident 1: the 2006 European blackout (power grid)
+
+`plant.html?case=ucte_2006` rebuilds the German 380 kV grid around Landesbergen on the evening of 4 November 2006 from the UCTE Final Report (January 2007). At 22:08 the dispatchers asked to couple two busbars at Landesbergen, expecting the Landesbergen-Wehrendorf current to fall.
+- Muse (muse-wonder-1.0) built the reduced pandapower network and calibrated it to the report's Fig. 30. Reactances the report does not give are marked ILLUSTRATIVE.
+- `basis.md` stops at the 22:08 request. The investigators' simulation and conclusion are in `cases/ucte_2006/outcome.json`, which the agent never sees.
+- **Muse's blind answer:** "No relief — coupling raises line current". The line goes from 1,779 to 1,831 A, past the 1,795 A warning, and the N-1 screen on the coupled grid is not secure.
+- **What the report found:** current rose by about 67 A instead of falling, distance protection tripped the line, and the grid split into three areas. It had not been N-1 secure since Conneforde-Diele was switched off.
+- **Limit:** the model gives +52 A against the report's +67 A. It puts the line at 98–99 % of the 2,100 A trip setting, not over it. The direction and the N-1 verdict match; the exact trip is not reproduced.
+
+## Incident 2: Freeport LNG, June 2022 (trapped liquid)
+
+`plant.html?case=freeport_lng_2022` is an 18-inch vacuum-insulated LNG line that was blocked in with its relief valve isolated after an annual test. The basis is the PHMSA Notice of Probable Violation (December 2024), up to the second valve closure.
+- `plantagent/trapped.py` steps the blocked-in segment in time at constant volume. DWSIM Peng-Robinson flashes find the pressure at which the trapped mass fills the pipe, as heat leaks in per metre.
+- Engine check (`tools/freeport_spike.py`): the documented 37 → 1,313 psig in 4.78 days is reproduced with an 80–95 % liquid fill and a 10–24 W/m heat leak. Both values are ILLUSTRATIVE because the notice redacts them.
+- **Muse's blind answer:** "Blocked line bursts in days unless relief restored". With sound insulation the line passes design pressure only after about 39 days. With degraded insulation it reaches the illustrative burst pressure at 80 h (actual rupture at about 115 h). Its proposal, putting PSV-101 back in service, is verified: the valve lifts and holds 230 psig.
+- **How blind it is:** the basis was written by us after the notice was public. It gives Muse the redacted inputs as ranges (fill, heat leak) and says the relief valve was isolated; it contains no pressure after the closure.
+- **What it missed:** two of PHMSA's three causes. The transfer procedure did not specify the valve positions, and the inner-pipe temperature points were logged but not alarmed. The page shows this next to the recorded outcome.
 
 ## Second opinion: two models, one simulator
 

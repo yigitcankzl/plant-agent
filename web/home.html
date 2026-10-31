@@ -24,6 +24,12 @@
   .card:hover { border-color: #3d4a59; }
   .card .pitch { font-size: 13px; line-height: 1.45; }
   .featured .card { border-color: #2f5f55; }
+  .landing .grid.featured { grid-template-columns: 1fr; }
+  .landing .featured .card { display: grid; grid-template-columns: 250px 1fr auto; column-gap: 28px; row-gap: 6px; align-content: center; min-height: 0; padding: 18px 22px; }
+  .featured .card > * { grid-column: 2; } .featured .card .fig { grid-column: 1; grid-row: 1 / 7; }
+  .featured .card .acts { grid-column: 3; grid-row: 1 / 7; margin: 0; padding: 0; align-self: center; }
+  .fig b { display: block; font: 700 24px var(--mono); color: #126e68; } .fig span { color: var(--muted); font-size: 12px; }
+  @media (max-width: 760px) { .landing .featured .card { display: flex; } }
   details.library { margin-top: 26px; } details.library > summary { cursor: pointer; font-weight: 600; font-size: 15px; padding: 10px 16px; color: var(--accent);
     border: 1px solid var(--accent); border-radius: 7px; display: inline-block; list-style: none; } details.library[open] > summary { margin-bottom: 8px; }
   @media (max-width: 760px) { .stats { display: grid; grid-template-columns: 1fr 1fr; } .stat { min-width: 0; } }
@@ -61,7 +67,7 @@
         <p class="lead">PlantAgent is an AI agent built on Muse. <b>Muse</b> reads the plant's drawings and data sheets, builds the simulation model and proposes the changes; <b>engineering solvers</b> (DWSIM, WaterTAP, EPANET, pandapower, Cantera) produce every number and re-check every proposal. Nothing is accepted until it re-solves.</p>
         <div class="hero-actions">
           <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Start the 3-minute demo</a>
-          <a class="btn" href="plant.html?case=chem_c01">See two models answer the same question</a>
+          <a class="btn" href="#cases">See the grid and LNG incidents</a>
         </div>
         <p class="hero-note">Existing case workspaces. Engineering output is a draft for professional review.</p>
       </div>
@@ -102,13 +108,13 @@
 <script>
 // the three interactive workspaces to open first; everything else is the evidence library below
 // [case, pitch, task label]: salt_mvr is the flagship demo
-const FEATURED = [["salt_mvr", "+20 % on a patent salt evaporator: Muse finds the compressor limit, proposes cleaning and a parallel compressor; DWSIM verifies 120 %, then load flow, exchanger and boiler checks show what else the change needs.", "Flagship · multi-discipline design change"],
-  ["chem_c01", "Second opinion: Muse Spark and the open-weights Muse Spark Open answer the same capacity question independently; both answers are re-solved in DWSIM and compared.", "Second opinion · two models, one simulator"],
-  ["swro_brownsville", "A 2004 desalination feasibility study: the agent answers blind, next to what the utility decided after its 2008 pilot.", "Blind test vs the 2008 pilot decision"]];
+const FEATURED = [["salt_mvr", "+20 % on a patent salt evaporator: Muse finds the compressor limit, proposes cleaning and a parallel compressor; DWSIM verifies 120 %, then load flow, exchanger and boiler checks show what else the change needs.", "Design change · chemical process", "100 % → 120 %", "DWSIM re-solves three changes; the transformer gate still fails"],
+  ["ucte_2006", "4 November 2006: dispatchers coupled two busbars at Landesbergen to relieve a line. Muse rebuilt the grid from the UCTE report and, blind to the outcome, predicted the coupling would load the line more, not less.", "Incident reconstruction · power grid", "1,779 → 1,831 A", "pandapower: coupling adds current; the grid is not N-1 secure"],
+  ["freeport_lng_2022", "June 2022: an LNG-full 18-inch line was blocked in with its relief valve isolated. Muse modelled the trapped liquid warming and, blind to the outcome, predicted a rupture within days unless relief was restored.", "Incident reconstruction · LNG terminal", "burst at 80 h", "Muse, blind, degraded insulation (actual rupture ≈ 115 h); relief restored holds 230 psig"]];
 const SECTORS = [
   ["Water and wastewater", "💧", ["roseburg", "stpete_swwrf", "west_norriton", "pinole_tm15", "goochland_egps", "edgebrook", "stanislaus_surge", "glwa_120in_break", "ltown"]],
-  ["Chemical process plants", "⚗", ["netl_co2_compression", "netl_syngas_cooler"]],
-  ["Desalination", "🌊", ["swro_monterey"]],
+  ["Chemical process plants", "⚗", ["chem_c01", "netl_co2_compression", "netl_syngas_cooler"]],
+  ["Desalination", "🌊", ["swro_brownsville", "swro_monterey"]],
   ["Food and beverage", "🥛", ["dairy_refrig"]],
   ["Oil, gas and petrochemical", "🔥", ["williams_geismar", "csb_pascagoula"]],
   ["Data centers and campus cooling", "❄", ["dc_iitk", "kstate_chw", "lbnl_gsa_dc"]],
@@ -126,9 +132,9 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
     [projects.filter(p => p.kind !== "process").length, "documented facilities"], [types.size, "engineering task types"],
     [graded.length, "blind studies"], [Math.round(mean * 100) + "%", "engineer conclusions matched (model-graded mean)"]]
     .map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join("");
-  const card = (id, pitch, label) => {
+  const card = (id, pitch, label, figure, figNote) => {
       const c = by[id], p = ws[id];
-      const title = (c?.title || p.title).replace(/\s*\([^)]*\)?/g, "").split(", ")[0];  // drop parentheticals, keep the plant name
+      const title = (c?.title || p.title).replace(/\s*\([^)]*\)?/g, "").split(figure ? /(?!)/ : ", ")[0];  // drop parentheticals, keep the plant name (featured rows keep the full title)
       const task = label || c?.task_type || p.task_type;
       const score = c?.benchmark && c.score != null ? `<div class="score">Matched ${Math.round(c.score * 100)}% of the engineers' conclusions</div><div class="bar"><i style="width:${c.score * 100}%"></i></div>` :
         p?.kind === "process" ? `<div class="score" style="color:var(--muted)">${p.engine === "watertap" ? "WaterTAP template model · Muse answers the questions" : p.built ? "Model built by Muse from the drawing and data sheet" : "Drawing read by Muse; simulation model not reliable yet"}</div>` : `<div class="score" style="color:var(--muted)">Not benchmarked</div>`;
@@ -136,18 +142,18 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
         p?.workspace ? `<a class="btn go" href="workspace.html?case=${id}">Explore case</a>` : "";
       const replay = c?.runs?.length ? `<a class="btn" href="index.html?case=${id}">View study replay</a>` : "";
       if (!open && !replay) return "";  // nothing to open: not a card
-      return `<div class="card"><div class="t">${esc(title)}</div><div class="k">${esc(task)}</div>
+      return `<div class="card">${figure ? `<div class="fig"><b>${esc(figure)}</b><span>${esc(figNote)}</span></div>` : ""}<div class="t">${esc(title)}</div><div class="k">${esc(task)}</div>
         ${pitch ? `<div class="pitch">${esc(pitch)}</div>` : ""}
-        <div class="sims">${(p?.kind === "process" ? [p.engine === "watertap" ? "WaterTAP" : "DWSIM"] : c?.simulators_used?.length ? c.simulators_used : ["documents only"]).map(s => `<span class="sim">${s}</span>`).join("")}</div>${score}<div class="acts">${open}${replay}</div></div>`;
+        <div class="sims">${(p?.kind === "process" ? [{watertap: "WaterTAP", pandapower: "pandapower", trapped: "DWSIM (isochoric)"}[p.engine] || "DWSIM"] : c?.simulators_used?.length ? c.simulators_used : ["documents only"]).map(s => `<span class="sim">${s}</span>`).join("")}</div>${score}<div class="acts">${open}${replay}</div></div>`;
   };
-  const featured = FEATURED.filter(([id]) => by[id] || ws[id]).map(([id, pitch, label]) => card(id, pitch, label)).join("");
+  const featured = FEATURED.filter(([id]) => by[id] || ws[id]).map(f => card(...f)).join("");
   let more = 0;
   const library = SECTORS.map(([name, icon, ids]) => {
     const list = ids.filter(id => by[id] || ws[id]).map(id => card(id)).filter(Boolean);
     more += list.length;
     return list.length ? `<h2><i>${icon}</i>${name}</h2><div class="grid">${list.join("")}</div>` : "";
   }).join("");
-  document.getElementById("groups").innerHTML = `<h2><i>★</i>Start here</h2><div class="grid featured">${featured}</div>
+  document.getElementById("groups").innerHTML = `<h2><i>★</i>Three ways to use it: change a plant, explain a grid failure, reconstruct an accident</h2><div class="grid featured">${featured}</div>
     <details class="library"><summary>▸ Show ${more} more plants · evidence library with ${graded.length} blind studies on real engineering reports</summary>${library}</details>`;
 })().catch(() => { document.getElementById("groups").innerHTML = '<p class="foot">Cases could not be loaded. Start the PlantAgent server and reload this page.</p>'; });
 document.getElementById("newForm").onsubmit = async e => {

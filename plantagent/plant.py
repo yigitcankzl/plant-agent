@@ -774,7 +774,7 @@ FIELD = {"m3_h": ("flow", "m³/h"), "kg_h": ("flow", "kg/h"), "T_C": ("temperatu
          "volume_m3": ("working volume", "m³"), "area_m2": ("installed area", "m²"), "U_W_m2K": ("heat-transfer coefficient", "W/m²K"),
          "P_out_bar": ("discharge pressure", "bar(a)"), "T_out_C": ("outlet temperature", "°C"), "duty_kW": ("duty", "kW"),
          "dP_bar": ("pressure rise/drop", "bar"), "eff_pct": ("efficiency", "%"), "kv": ("valve Kv", "")}
-KIND = {"pump": "pump", "hx": "heat exchanger", "tank": "tank", "valve": "valve", "heater": "heat load", "cooler": "cooler",
+KIND = {"pipe_segment": "blocked-in line", "pump": "pump", "hx": "heat exchanger", "tank": "tank", "valve": "valve", "heater": "heat load", "cooler": "cooler",
         "compressor": "compressor", "mixer": "junction", "splitter": "branch", "recycle": "loop closure", "column": "column"}
 
 

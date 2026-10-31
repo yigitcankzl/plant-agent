@@ -1093,6 +1093,9 @@ function verifiedDesigns() {
 function syncViewToggle() {
   const verified = !modelBlocked() && (P?.answers || []).some(a => (a.proposals || []).some(p => p.verified));
   $('viewTog').style.display = (P?.has_changes || verified) ? 'flex' : 'none';
+  if (incident() && !syncViewToggle.once) {  // an incident opens on what happened, not on the fix
+    syncViewToggle.once = true; VIEW = 'existing'; $('vExisting').classList.add('on'); $('vProposed').classList.remove('on');
+  }
 }
 function tagCenter(g) {
   const shapes = [...g.querySelectorAll('path,circle,rect,ellipse,polygon,polyline,line')];
@@ -1943,7 +1946,7 @@ function tourGates() {
 function tourSteps() {
   const b = P.built || {}, so = designAnswer()?.second_opinion;
   return [
-    ['The source', () => `This is the plant's own drawing. ${/muse/i.test(b.model || '') ? `${museName(b.model)} read it with the data sheets and built this ${simulator()} model itself` : `The ${simulator()} model here is a ${b.model || 'template'} built without a language model`} (${(b.spec?.units || b.spec?.stages || []).length} units, ${b.seconds || '?'} s).${(k => k ? ` Checked against the plant's measurements: ${k.reproduced} of ${k.reproduced + k.differs} match within 3 %.` : '')(b.calibration_check?.counts)}`,
+    ['The source', () => `This is the case P&ID (the banner above says where it comes from). ${/muse/i.test(b.model || '') ? `${museName(b.model)} read it with the data sheets and built this ${simulator()} model itself` : `The ${simulator()} model here is a ${b.model || 'template'} built without a language model`} (${(b.spec?.units || b.spec?.stages || []).length} units, ${b.seconds || '?'} s).${(k => k ? ` Checked against the plant's measurements: ${k.reproduced} of ${k.reproduced + k.differs} match within 3 %.` : '')(b.calibration_check?.counts)}`,
       () => ['sheet'], async () => { await setView('existing'); setScale(100); }],
     ['The question', () => `The engineer asks for +${Math.round((P.target_scale - 1) * 100)} % throughput. At ${Math.round(P.target_scale * 100)} % every item on the P&ID is re-solved in ${simulator()} and coloured by how close it runs to its limit.`,
       () => ['scale', 'verdict'], async () => { await setView('existing'); setScale(Math.round(P.target_scale * 100)); }],
