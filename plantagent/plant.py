@@ -778,6 +778,49 @@ KIND = {"pipe_segment": "blocked-in line", "pump": "pump", "hx": "heat exchanger
         "compressor": "compressor", "mixer": "junction", "splitter": "branch", "recycle": "loop closure", "column": "column"}
 
 
+def stitch_areas(specs):
+    """Join area models (in process order) into one plant flowsheet. A feed of a later area that an earlier area's unit
+    produces is joined to that unit's outlet; a feed produced by a later area (a recycle back upstream) stays a feed at its
+    documented value, i.e. the loop is torn there. specs: [(area, spec)]. Returns (spec, interfaces)."""
+    out = {"compounds": [], "package": None, "feeds": {}, "units": [], "limits": {}}
+    produced, made_by, interfaces = set(), {}, []
+    for area, s in specs:
+        for _, outs in (_ports(u) for u in s.get("units") or []):
+            made_by.update({n: area for n in outs})
+    seen_ids = set()
+    for area, s in specs:
+        torn = [n for n in s.get("feeds") or {} if n not in produced and n in made_by and made_by[n] != area]
+        if torn:  # the torn feed and the producing unit's outlet must be two streams
+            text = json.dumps(s)
+            for n in torn:
+                text = text.replace(json.dumps(n), json.dumps(n + "-torn"))
+            s = json.loads(text)
+        pkg = s.get("package") or "NRTL"
+        if out["package"] and pkg != out["package"]:
+            raise ValueError(f"{area}: property package {pkg} differs from {out['package']}; areas must share one package")
+        out["package"] = pkg
+        out["compounds"] += [c for c in s.get("compounds") or [] if c not in out["compounds"]]
+        for name, f in (s.get("feeds") or {}).items():
+            if name in produced:
+                interfaces.append({"stream": name, "from": made_by[name], "to": area, "kind": "joined"})
+            elif name.endswith("-torn"):
+                interfaces.append({"stream": name[:-5], "from": made_by[name[:-5]], "to": area,
+                                   "kind": "torn (recycle held at its documented value)"})
+                out["feeds"][name] = f
+            elif name in out["feeds"]:
+                raise ValueError(f"{area}: feed {name} is already a feed of another area")
+            else:
+                out["feeds"][name] = f
+        for u in s.get("units") or []:
+            if u["id"] in seen_ids:
+                raise ValueError(f"{area}: unit id {u['id']} is used by another area")
+            seen_ids.add(u["id"])
+            out["units"].append(u)
+            produced.update(_ports(u)[1])
+        out["limits"].update(s.get("limits") or {})
+    return out, interfaces
+
+
 def display_names(spec):
     """Readable names for every unit and stream id, from the flowsheet topology (no model call): a unit keeps its P&ID tag
     with its kind; a stream is named by what produces and consumes it, e.g. 'Utility supply to H1007', 'H1007 to T4750'."""
@@ -2325,8 +2368,35 @@ class PlantWorkspace(Study):
             return grid.run(spec, scale)
         return ro.run(spec, scale) if _is_watertap(self.cfg) else process.run(spec, scale)
 
+    def join_areas(self):
+        """A plant case listing `areas` (cases built one by one by the agent) is the deterministic join of their current
+        models: no LLM. Forward interfaces are connected; recycles back upstream are torn at their documented values."""
+        parts = []
+        for area in self.cfg["areas"]:
+            w = PlantWorkspace(area)
+            if not w.built:
+                raise ValueError(f"area {area} has no model yet; build it first")
+            parts.append((w.cfg.get("area") or area, json.loads(json.dumps(w.built["spec"]))))
+        spec, interfaces = stitch_areas(parts)
+        t0 = time.time()
+        result = process.run(spec)
+        self.built = {"label": "areas joined", "spec": spec, "result": result, "model": "areas joined (no LLM)",
+                      "engine": _simulator_name(self.cfg), "areas": [p[0] for p in parts], "interfaces": interfaces,
+                      "seconds": round(time.time() - t0), "cost_usd": 0.0, "at": time.strftime("%Y-%m-%d %H:%M"),
+                      "review": review_model(spec, result, None, self.basis), "gaps": []}
+        self.built["review_status"] = self.built["review"]["status"]
+        self.model_file.write_text(json.dumps(self.built, indent=1))
+        self.revisions = []
+        self.rev_file.write_text("[]")
+        audit.append(self.name, "build", None, "plant model joined from its area models",
+                     {"areas": self.built["areas"], "interfaces": interfaces, "errors": result.get("errors", [])[:5]})
+        self._state = {}
+        return self.built
+
     def build(self):
         """The agent reads the P&ID and data sheet and builds + calibrates the process model itself."""
+        if self.cfg.get("areas"):
+            return self.join_areas()
         if getattr(self, "revisions", []):
             raise ValueError("cannot rebuild while revisions exist; archive or explicitly reset the revision history first")
         if self.pid is None and self.cfg.get("pid_pdf"):

@@ -115,10 +115,56 @@ AREAS = {
 - Pressure filter S-505: operated without a wash; the cake is dried with air to 35 % moisture; the drying air goes to the combustor and the pressed stillage water to wastewater treatment.
 """,
     },
+    "a300": {
+        "area": "A300", "title": "NREL 2011 cellulosic ethanol plant, Area 300: enzymatic hydrolysis and co-fermentation",
+        "pfd": "PFD-P120-A301 and A302", "pages": "report pp. 27-31 (section 3.3, Tables 8-14) and Appendix A/E",
+        "inputs": {"301": "Conditioned hydrolysate slurry from pretreatment (Area 200)", "422": "Cellulase enzyme broth (Area 400)",
+                   "309": "Corn steep liquor to the seed train", "310": "Diammonium phosphate to the seed train",
+                   "311": "Corn steep liquor to the production fermentors", "312": "Diammonium phosphate to the production fermentors",
+                   "551": "Vent-scrubber effluent returned to the beer well (Area 500)"},
+        "outputs": {"302": "Hydrolysate after cooler H-301", "306": "Hydrolysate with enzyme to hydrolysis (T-310)",
+                    "303": "Saccharified slurry split to the seed train", "304": "Seed broth to the production fermentors",
+                    "305": "Seed-fermentor vent", "315": "Fermented broth from the production fermentors", "317": "Production-fermentor vent",
+                    "501": "Beer from the beer well to distillation (Area 500)"},
+        "energy": {},
+        "equipment": {
+            "H-301": ("TubularHeatExchanger", "Hydrolysate cooler", "hx", "cools the conditioned hydrolysate with cooling water to the hydrolysis temperature"),
+            "A-308": ("Mixer", "Enzyme in-line mixer", "mixer", "100 hp in-line mixer; mixes the cellulase broth into the slurry"),
+            "T-310": ("Vessel", "Continuous high-solids hydrolysis reactors", "vessel", "8 x 950 m3 empty towers, 24 h; then batch hydrolysis in F-300 for 60 h more (84 h total) at 48 C"),
+            "H-310": ("TubularHeatExchanger", "Saccharified slurry cooler", "hx", "cools the saccharified slurry to 32 C for fermentation"),
+            "F-301": ("Vessel", "Seed fermentation train (F-301 to F-305)", "vessel", "2 trains x 5 stages, largest 757 m3; 24 h batches at 32 C; chilled water"),
+            "F-300": ("Vessel", "Production fermentors", "vessel", "12 x 3,600 m3 (950,000 gal), 36 h at 32 C; 6 W/m3 agitation"),
+            "T-306": ("Tank", "Beer well", "tank", "4 h residence time; receives the fermented broth and the vent-scrubber effluent"),
+        },
+        "lines": [("301", "HY", None, "H-301"), ("302", "HY", "H-301", "A-308"), ("422", "EN", None, "A-308"), ("306", "HY", "A-308", "T-310"),
+                  ("SACC", "HY", "T-310", "H-310"), ("303", "HY", "H-310", "F-301"), ("FERM", "HY", "H-310", "F-300"),
+                  ("309", "NU", None, "F-301"), ("310", "NU", None, "F-301"), ("305", "VT", "F-301", None), ("304", "BE", "F-301", "F-300"),
+                  ("311", "NU", None, "F-300"), ("312", "NU", None, "F-300"), ("317", "VT", "F-300", None), ("315", "BE", "F-300", "T-306"),
+                  ("551", "BE", None, "T-306"), ("501", "BE", "T-306", None)],
+        "design": """### Design basis (report section 3.3.2, Tables 8-14)
+
+- Neutralised, diluted hydrolysate is cooled with cooling water in H-301 and fed to the continuous high-solids hydrolysis reactor T-310 at slightly more than 20 wt % total solids; the cellulase broth is mixed in by A-308. After the enzyme, total solids are 20 wt % (10.6 % insoluble) at 48 C. 24 h in T-310, then 60 h more in the batch vessels (84 h total).
+- Cellulase loading 20 mg protein / g cellulose for 90 % conversion to glucose. Enzymatic hydrolysis reactions (Table 9), fraction of glucan converted: (glucan)n -> n glucose oligomer 4.0 %; (glucan)n + 1/2 n H2O -> 1/2 n cellobiose 1.2 %; (glucan)n + n H2O -> n glucose 90.0 %; cellobiose + H2O -> 2 glucose 100 % of the cellobiose. Xylan conversion happens in pretreatment, not here.
+- After hydrolysis the slurry is cooled to 32 C (H-310). 10 % of the saccharified slurry is split off to the seed train (Z. mobilis, 32 C, 24 h batches); the seed broth returns to the production fermentors.
+- Contamination: 3 % of the glucose and of the xylose available for fermentation is converted to lactic acid upstream of the fermentors (Table 12): glucose -> 2 lactic acid; 3 xylose -> 5 lactic acid.
+- Seed train reactions (Table 11), fraction of the sugar converted: glucose -> 2 ethanol + 2 CO2 90.0 %; glucose -> Z. mobilis cell mass 4.0 %; glucose + 2 H2O -> 2 glycerol + O2 0.4 %; glucose + 2 CO2 -> 2 succinic acid + O2 0.6 %; 3 xylose -> 5 ethanol + 5 CO2 80.0 %; xylose -> cell mass 4.0 %; 3 xylose + 5 H2O -> 5 glycerol + 2.5 O2 0.3 %; xylose + H2O -> xylitol + 0.5 O2 4.6 %; 3 xylose + 5 CO2 -> 5 succinic acid + 2.5 O2 0.9 %.
+- Production co-fermentation (Tables 13-14), 32 C, 36 h, 10 vol % inoculum: glucose -> 2 ethanol + 2 CO2 95.0 %; glucose -> cell mass 2.0 %; glucose + 2 H2O -> 2 glycerol + O2 0.4 %; glucose + 2 CO2 -> 2 succinic acid + O2 0.6 %; 3 xylose -> 5 ethanol + 5 CO2 85.0 %; xylose -> cell mass 1.9 %; 3 xylose + 5 H2O -> 5 glycerol + 2.5 O2 0.3 %; xylose + H2O -> xylitol + 0.5 O2 4.6 %; 3 xylose + 5 CO2 -> 5 succinic acid + 2.5 O2 0.9 %. Arabinose follows xylose (it is inside the soluble-solids lump here and is not fermented in this model).
+- The fermentor and seed vents (CO2 with entrained ethanol and water) go to the vent scrubber in Area 500; the beer (5.4 wt % ethanol) collects in the beer well T-306 together with the scrubber effluent.
+
+### Reactions on the stand-in compounds (mass-balanced; use these coefficients)
+
+Glucose = Tetraethylene glycol (G), xylose = Triethylene glycol (X), cellulose = PentaEthylene Glycol (C), soluble-solids lump (oligomers, other sugars) = HexaEthylene Glycol (S), insoluble lump incl. cell mass = HexaPropylene Glycol (I), lactic acid, succinic acid, xylitol and glycerol = Glycerol (they are all "other organics").
+
+- C + 1.4696 Water -> 1.3632 G (cellulose to glucose, incl. via cellobiose); C -> 0.8440 S (to glucose oligomer)
+- G -> 2.1562 Ethanol + 2.1562 Carbon dioxide; G -> 0.5300 I (cell mass); G + 2.1562 Water -> 2.1562 Glycerol + 1.0781 Oxygen; G + 2.1562 Carbon dioxide -> 2.7650 Glycerol + 1.0781 Oxygen (succinic acid); G -> 2.1092 Glycerol (lactic acid)
+- X -> 1.6671 Ethanol + 1.6671 Carbon dioxide; X -> 0.4097 I (cell mass); X + 1.6671 Water -> 1.6671 Glycerol + 0.8336 Oxygen; X + 1.0003 Water -> 1.6527 Glycerol + 0.5001 Oxygen (xylitol); X + 1.6671 Carbon dioxide -> 2.1379 Glycerol + 0.8336 Oxygen (succinic acid); X -> 1.6307 Glycerol (lactic acid)
+""",
+    },
 }
 
 FLUIDS = {"BE": ("beer", "#7a4fb3"), "SG": ("stillage", "#8a6d3b"), "VT": ("vent gas", "#6b7a8f"), "WA": ("water", "#2b6cb3"),
-          "EV": ("ethanol vapour", "#c0392b"), "ET": ("ethanol", "#b03a2e"), "AI": ("air", "#4a8f8f"), "LG": ("lignin cake", "#5d4037")}
+          "EV": ("ethanol vapour", "#c0392b"), "ET": ("ethanol", "#b03a2e"), "AI": ("air", "#4a8f8f"), "LG": ("lignin cake", "#5d4037"),
+          "HY": ("hydrolysate", "#8a6d3b"), "EN": ("enzyme", "#3f7d4e"), "NU": ("nutrients", "#6b7a8f")}
 
 
 def ga(name, value):
@@ -156,7 +202,8 @@ def dexpi(a):
     return "\n".join(out)
 
 
-LAYOUT = {"a500": {"H-512": (60, 150), "D-501": (120, 120), "T-512": (120, 40), "D-502": (200, 120), "H-503": (250, 60),
+LAYOUT = {"a300": {"H-301": (60, 110), "A-308": (110, 110), "T-310": (165, 110), "H-310": (220, 110), "F-301": (280, 60), "F-300": (300, 160), "T-306": (380, 160)},
+          "a500": {"H-512": (60, 150), "D-501": (120, 120), "T-512": (120, 40), "D-502": (200, 120), "H-503": (250, 60),
                    "M-503": (300, 60), "H-506": (350, 90), "H-509": (395, 60), "H-507": (300, 150), "S-505": (60, 225)}}
 
 
@@ -252,7 +299,7 @@ def main(tables):
                "url": "https://docs.nlr.gov/docs/fy11osti/47764.pdf", "pid": f"drawn/{name}_pid.xml", "svg": "pid.svg", "basis": "basis.md",
                "task_type": "model reconstruction", "area": a["area"], "plant": "nrel_ethanol",
                "question": f"Rebuild {a['area']} from the design basis and check it against the report's stream tables: does the model reproduce the flows, temperatures and duties?",
-               "target_scale": 1.0, "throughput": {"name": "Beer feed (S501)" if key == "a500" else "Area feed", "base": round(t["501"]["Total Flow"] / 1000, 1), "unit": "t/h"},
+               "target_scale": 1.0, "throughput": {"name": f"Feed S{next(iter(a['inputs']))} ({next(iter(a['inputs'].values())).split(' (')[0].lower()})", "base": round(t[next(iter(a["inputs"]))]["Total Flow"] / 1000, 1), "unit": "t/h"},
                "data_note": "Design basis and input streams from the NREL 2011 design report; outputs are withheld from the agent and compared afterwards. "
                             "Biomass components are represented by DWSIM stand-in compounds (see the basis). The P&ID is drawn by PlantAgent from the report's PFDs.",
                "benchmark": False}
@@ -270,6 +317,27 @@ def main(tables):
           "source": f"{REPORT}, Appendix E (PFD-P120 stream tables, pp. 114-146)", "file": "outcome.json",
           "note": "Withheld from the agent: the area bases give inputs and design specifications only.", **plant}
     (out / "outcome.json").write_text(json.dumps(oc, indent=1) + "\n")
+    order = sorted(AREAS, key=lambda k: AREAS[k]["area"])  # process order: A300 before A500
+    bodies = []
+    for i, key in enumerate(order):
+        inner = svg(key, AREAS[key], AREAS[key]["title"].split(", ", 1)[1]).split("\n")[1:-1]  # drop the outer <svg> tags
+        bodies.append(f'<g transform="translate({440 * i},0)">' + "\n".join(inner) + "</g>")
+    w = 440 * len(order)
+    (out / "pid.svg").write_text(f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="280" viewBox="0 0 {w} 280" '
+                                 'font-family="Arial,sans-serif">\n' + "\n".join(bodies) + "\n</svg>\n")
+    (out / "basis.md").write_text(
+        f"# NREL 2011 cellulosic ethanol plant (corn stover, 2,000 dry tonnes/day)\n\nSource: {REPORT}.\n\n"
+        "The plant model is the join of its area models, each rebuilt separately from that area's design basis "
+        f"({', '.join(AREAS[k]['area'] for k in order)}). Streams carry the report's numbers; a stream leaving one area and "
+        "entering a later one is connected, and a recycle back to an earlier area is held at its documented value.\n")
+    cfg = {"kind": "process", "title": "NREL 2011 cellulosic ethanol plant: hydrolysis, fermentation and product recovery (areas joined)",
+           "source": f"{REPORT}; area models rebuilt by Muse and joined by PlantAgent", "url": "https://docs.nlr.gov/docs/fy11osti/47764.pdf",
+           "svg": "pid.svg", "basis": "basis.md", "task_type": "model reconstruction", "areas": [f"nrel_ethanol_{k}" for k in order],
+           "question": "Does the plant model rebuilt from the design basis reproduce the report's stream tables?", "target_scale": 1.0,
+           "throughput": {"name": "Hydrolysate feed (S301)", "base": round(t["301"]["Total Flow"] / 1000, 1), "unit": "t/h"},
+           "data_note": "Area models rebuilt by Muse from the NREL 2011 design basis and joined without an LLM; outputs compared with the "
+                        "report's withheld stream tables. Biomass components are DWSIM stand-in compounds.", "benchmark": False}
+    (out / "case.json").write_text(json.dumps(cfg, indent=2) + "\n")
     print("areas:", plant["areas"], "streams kept:", len(plant["stream_tables"]))
 
 
