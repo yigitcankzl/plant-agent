@@ -34,14 +34,38 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const readableAnswer = await p.evaluate(() => {
     P.answers = [{ request: 'Reach 120%', headline: 'One verified change is required', summary: 'Test summary', seconds: 1, cost_usd: 0,
       highlights: [{ tag: 'H1007', severity: 'fail', text: 'Cooling duty reaches its limit.' }],
+      disciplines: [{ id: 'process', status: 'pass', summary: 'Target solve passes', source: 'DWSIM target solve', checks: [{ check: 'capacity', result: 'pass' }] },
+        { id: 'electrical', status: 'fail', summary: 'Transformer overloads on start', source: 'pandapower load flow', checks: [{ check: 'starting voltage', value: 0.82, limit: 0.9 }] }],
       field_checks: [{ item: 'Cooling-water flow', where: 'Check the supply header', changes: 'A low reading changes the recommendation.' }],
       proposals: [{ title: 'Restore cooling-water flow', tag: 'H1007', fixes: 'H1007', cost_class: 'no capex', verified: true,
         changes: [{ path: 'units.H1007.duty_kW', value: 1 }], electrical: { summary: 'TX-47 68 → 70 % loaded; all electrical checks within limits', svg: '/x.svg', over: [] } }], cards: [{ title: 'Duty check', result: 'Within limit', inputs: [] }], checks: [] }];
     answers();
-    return !!document.querySelector('.field-check') && !document.querySelector('.field-checks table') && !!document.querySelector('.prop-actions') && /TX-47/.test(document.querySelector('.electrical-line')?.textContent || '');
+    return !!document.querySelector('.decision-brief') && getComputedStyle(document.querySelector('.engineering-detail')).display === 'none' &&
+      document.querySelectorAll('.discipline-gate').length === 2 && !!document.querySelector('.package-action') &&
+      !!document.querySelector('.field-check') && !document.querySelector('.field-checks table') && !!document.querySelector('.prop-actions') && /TX-47/.test(document.querySelector('.electrical-line')?.textContent || '');
   });
-  console.log(readableAnswer ? 'ok  ' : 'FAIL', 'result inspector uses stacked field checks and proposal actions');
-  bad += readableAnswer ? 0 : 1;
+  await p.screenshot({ path: `${OUT}/decision_workspace.png` });
+  await p.click('#engineeringView');
+  const engineeringView = await p.evaluate(() => getComputedStyle(document.querySelector('.engineering-detail')).display !== 'none');
+  await p.screenshot({ path: `${OUT}/engineering_workspace.png` });
+  await p.click('.discipline-gate.fail');
+  const gateEvidence = await p.evaluate(() => document.querySelector('#modal').classList.contains('on') && /pandapower load flow/.test(document.querySelector('#modalBox').textContent));
+  await p.evaluate(() => document.querySelector('#modal').classList.remove('on'));
+  await p.click('#decisionView');
+  await p.click('#focusBtn');
+  const focusOn = await p.evaluate(() => document.body.classList.contains('canvas-focus') && getComputedStyle(document.querySelector('aside.right')).display === 'none');
+  await p.screenshot({ path: `${OUT}/drawing_focus.png` });
+  await p.keyboard.press('Escape');
+  const focusOff = await p.evaluate(() => !document.body.classList.contains('canvas-focus'));
+  await p.keyboard.press('d');
+  const detailShortcut = await p.evaluate(() => document.querySelector('#engineeringView').getAttribute('aria-pressed') === 'true');
+  await p.keyboard.press('d');
+  await p.keyboard.press('l');
+  const labelsShortcut = await p.evaluate(() => document.querySelector('#pidViewport').classList.contains('labels-off'));
+  await p.keyboard.press('l');
+  const workspaceUi = readableAnswer && engineeringView && gateEvidence && focusOn && focusOff && detailShortcut && labelsShortcut;
+  console.log(workspaceUi ? 'ok  ' : 'FAIL', 'decision/engineering views, calculated discipline rail, package action and focus mode');
+  bad += workspaceUi ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
   const saltReady = await p.evaluate(() => Number(P?.built?.review?.blocking || 0) === 0 &&
     Number(P?.capacity?.capacity_multiple || 0) >= 1);
@@ -59,7 +83,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
   await p.unroute('**/api/plant/salt_mvr/project');
   const blockedIsReadOnly = await p.evaluate(() => Number(P?.built?.review?.blocking || 0) > 0 &&
-    !document.querySelector('#answers .prop-actions') && ![...document.querySelectorAll('button')].some(b => /decision file/i.test(b.textContent)));
+    !document.querySelector('#answers .prop-actions') && ![...document.querySelectorAll('button')].some(b => /decision file|engineering package/i.test(b.textContent)));
   console.log(blockedIsReadOnly ? 'ok  ' : 'FAIL', 'blocked model cannot apply proposals or issue a pack');
   bad += blockedIsReadOnly ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
