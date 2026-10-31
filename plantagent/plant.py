@@ -10,7 +10,7 @@ import re
 import time
 from pathlib import Path
 
-from . import audit, brine, llm, pid, process, ro, ro_changes
+from . import audit, brine, llm, pid, process, ro, ro_changes, trapped
 from .docs import DATA
 from .study import ARR, Study, compact, submit, text_tool_calls, unstring
 
@@ -107,6 +107,24 @@ BUILD_WATERTAP = (
     "explicitly. Then call submit_model. A deterministic WaterTAP review checks that submit: if it returns blocking "
     "findings, fix the RO spec and call submit_model once more. If the spec cannot express the fix, call report_gap. "
     "If there are project documents, search them and read only the pages with the equipment data you need, at most 6."
+)
+
+SUBMIT_MODEL_TRAPPED = submit("submit_model", "The blocked-in segment model you built.", {
+    "label": {"type": "string", "description": "label of the run_trapped run (the model)"},
+    "mapping": ARR({"tag": S, "modelled_as": S, "source": S}),
+    "calibration": ARR({"item": S, "measured": S, "simulated": S, "source": S}),
+    "assumptions": {"type": "array", "items": S},
+}, ["label", "mapping", "calibration"])
+
+BUILD_TRAPPED = (
+    "Build a model of the blocked-in pipe segment with run_trapped (DWSIM Peng-Robinson thermodynamics along a constant-"
+    "volume path; the slider and `scale` multiply the documented time blocked in). Do not use run_process. From the data "
+    "sheet and drawing: the fluid composition, the start pressure and liquid fill, the pipe size and wall, the heat leak per "
+    "metre, every valve that isolates the segment (closed or open as documented) and every relief valve that protects it "
+    "(isolated or in service as documented), and `limits` with the design pressure and an estimated burst pressure with their "
+    "sources. Where the data sheet gives a range or marks a value ILLUSTRATIVE, pick a stated value, say why in assumptions, "
+    "and use trapped_capacity and run_trapped at other values to show how the answer depends on it. Report measured vs "
+    "simulated for every measured value you have (at least the start pressure). Then call submit_model. Spec: " + trapped.SPEC_HELP
 )
 
 RO_MASS_TOL = 0.02  # feed vs product + concentrate + pretreatment losses
@@ -423,6 +441,17 @@ def _simulator_name(cfg):
 
 def _is_watertap(cfg):
     return _simulator_name(cfg) == "watertap"
+
+
+def _is_trapped(cfg):
+    """A blocked-in liquefied-gas segment (plantagent/trapped.py): DWSIM thermo along an isochore, time on the slider."""
+    return (cfg or {}).get("engine") == "trapped"
+
+
+def _trapped_spec(cfg, spec):
+    """The case's time base (throughput.base hours) is the one the slider shows: scale x that, whatever hours the model set."""
+    base = ((cfg or {}).get("throughput") or {}).get("base")
+    return {**spec, "hours": float(base)} if base else spec
 
 
 def _ro_stages(spec):
@@ -1470,6 +1499,35 @@ def _energy(spec, result):
     return info, findings
 
 
+def review_trapped(spec, result):
+    """Deterministic review of a blocked-in segment model: one segment, its isolating valves and relief, rated limits,
+    a solved isochore. No LLM."""
+    spec, findings = spec or {}, []
+    units = spec.get("units") or []
+    segs = [u for u in units if u.get("type") == "pipe_segment"]
+    if len(segs) != 1:
+        findings.append(_finding("block", "one pipe segment", f"the model has {len(segs)} pipe_segment units; it needs exactly one"))
+    for s in segs:
+        for k in ("od_m", "wall_m", "heat_leak_W_m"):
+            if not isinstance(s.get(k), (int, float)) or s[k] <= 0:
+                findings.append(_finding("block", "segment data", f"{s.get('id')} needs a positive {k}", [s.get("id")]))
+        feed = (spec.get("feeds") or {}).get(s.get("in")) or {}
+        if not 0 < float(feed.get("fill_fraction") or 0) <= 1:
+            findings.append(_finding("block", "start state", f"feed {s.get('in')} needs fill_fraction between 0 and 1", [s.get("id")]))
+        lim = (spec.get("limits") or {}).get(s.get("id")) or {}
+        if not lim.get("design_psig"):
+            findings.append(_finding("block", "design pressure", f"{s.get('id')} has no design_psig limit", [s.get("id")]))
+        if not [u for u in units if u.get("type") == "valve" and u.get("isolates") == s.get("id")]:
+            findings.append(_finding("warn", "isolation valves", f"no valve isolates {s.get('id')}: it can never be blocked in"))
+        if not [u for u in units if u.get("type") == "relief_valve" and u.get("protects") == s.get("id")]:
+            findings.append(_finding("warn", "relief", f"no relief valve protects {s.get('id')}"))
+    if result is not None and (result.get("errors") or not result.get("checks")):
+        findings.append(_finding("block", "solve", "the segment did not solve: " + "; ".join(result.get("errors") or ["no checks"])))
+    findings.sort(key=lambda f: (0 if f["severity"] == "block" else 1, f["check"], f["evidence"]))
+    status = "model needs review" if any(f["severity"] == "block" for f in findings) else "ok"
+    return {"status": status, "findings": findings, "blocking": sum(f["severity"] == "block" for f in findings), "energy": {}}
+
+
 def review_model(spec, result, pid_ov=None, basis=""):
     """Deterministic model review. No LLM. Findings are block (the model needs review) or warn (a conflict to read)."""
     spec = spec or {}
@@ -1759,7 +1817,7 @@ class PlantWorkspace(Study):
                                   "title": S})]
         # ---- end drawing tool
         # ---- heat-exchanger detail + combustion tools (plantagent/hxdetail.py, plantagent/combustion.py)
-        if not _is_watertap(getattr(self, "cfg", None)):
+        if not _is_watertap(getattr(self, "cfg", None)) and not _is_trapped(getattr(self, "cfg", None)):
             shared = shared + [
                 f("hx_detail", "Detailed thermal-hydraulic rating of ONE heat exchanger (shell-and-tube or plate) with the ht/fluids "
                                "correlations: tube/channel velocity, tube- and shell-side h (Gnielinski, Bell-Delaware, condensing "
@@ -1793,6 +1851,24 @@ class PlantWorkspace(Study):
                    "residence_s": {"type": "number", "description": "residence time at flame temperature for the thermal-NO screening"}}),
             ]
         # ---- end heat-exchanger detail + combustion tools
+        if _is_trapped(getattr(self, "cfg", None)):
+            return shared + [
+                f("run_trapped", "Solve the blocked-in segment (DWSIM thermodynamics along a constant-volume path) after `scale` x "
+                                 "the documented time blocked in, and log it under `label`. Returns the pressure and temperature, "
+                                 "when the liquid fills the pipe, when design and burst pressure are reached, the relief valve "
+                                 "state, limit checks (utilisation = value/limit) and the pressure history. Spec: " + trapped.SPEC_HELP,
+                  {"label": S, "purpose": S, "spec": {"type": "object"},
+                   "scale": {"type": "number", "description": "multiplies the documented time blocked in (spec.hours)"}},
+                  ["label", "spec"]),
+                f("trapped_capacity", "Time multiple of a logged run at which the first stated limit reaches 100 %, and which.",
+                  {"label": S}, ["label"]),
+                f("pressure_history", "Chart the pressure against time of a logged run (with design and burst pressure lines) and "
+                                      "save it as a chart artifact for the engineer.",
+                  {"label": S, "title": S}, ["label"]),
+                f("bubble_pressure", "DWSIM: saturation (bubble-point) pressure of a liquid at each temperature.",
+                  {"compounds": {"type": "array", "items": S}, "x": {"type": "object"}, "T_C": {"type": "array", "items": N}},
+                  ["compounds", "x", "T_C"]),
+            ]
         if _is_watertap(getattr(self, "cfg", None)):
             return shared + [
                 f("run_ro", "Solve a WaterTAP reverse-osmosis plant and log it under `label`. Returns stream flow, pressure and TDS, "
@@ -1853,6 +1929,8 @@ class PlantWorkspace(Study):
     def _capacity_of(self, spec):
         if self.cfg.get("engine") == "watertap":
             return ro.capacity(spec)
+        if _is_trapped(self.cfg):
+            return trapped.capacity(_trapped_spec(self.cfg, spec))
         return process.capacity(spec)
 
     def call(self, name, a):
@@ -1928,9 +2006,13 @@ class PlantWorkspace(Study):
             return {"doc": a["doc"], "page": a["page"], "text": " ".join(_pages(DATA / d["pdf"])[int(a["page"]) - 1].split())[:3500]}
         if name == "read_data_sheet":
             return {"text": self.basis}
+        if name in ("run_trapped", "trapped_capacity", "pressure_history"):
+            return self._trapped_tool(name, a)
         if name == "run_process":
             if _is_watertap(self.cfg):
                 return {"error": "run_process is for DWSIM cases; this case uses run_ro (WaterTAP)"}
+            if _is_trapped(self.cfg):
+                return {"error": "run_process is for flowsheet cases; this case uses run_trapped"}
             if isinstance(a.get("spec"), str):  # the model sometimes sends the spec as JSON text
                 try:
                     a["spec"] = json.loads(a["spec"])
@@ -2051,8 +2133,46 @@ class PlantWorkspace(Study):
         audit.append(self.name, "confirm_read", user, reason, {"corrections": len(corr), "items": corr[:20]})
         return {"corrections": corr, "equipment": len(clean["equipment"]), "connections": len(clean["connections"])}
 
+    def _trapped_tool(self, name, a):
+        if not _is_trapped(self.cfg):
+            return {"error": f"{name} is for blocked-in segment cases (engine trapped)"}
+        if name == "run_trapped":
+            if isinstance(a.get("spec"), str):
+                try:
+                    a["spec"] = json.loads(a["spec"])
+                except json.JSONDecodeError as e:
+                    return {"error": f"spec is not valid JSON ({e}); send it as an object"}
+            label = a.get("label") or f"run{len(self.runs) + 1}"
+            label = f"{label}-{len(self.runs) + 1}" if label in self.runs else label
+            try:
+                r = trapped.run(a["spec"], float(a.get("scale") or 1.0))
+            except (KeyError, ValueError, TypeError) as e:
+                return {"error": f"{type(e).__name__}: {e}"}
+            self.runs[label] = {"spec": a["spec"], "purpose": a.get("purpose", ""), "scale": a.get("scale") or 1.0, "result": r}
+            return {"label": label, **{k: v for k, v in r.items() if k != "series_h_psig"},
+                    "series_h_psig": r["series_h_psig"][::3]}
+        r = self.runs.get(a.get("label"))
+        if not r:
+            return {"error": f"unknown label; logged: {list(self.runs)}"}
+        if name == "trapped_capacity":
+            r["capacity"] = trapped.capacity(r["spec"])
+            return {"label": a["label"], **r["capacity"]}
+        from . import artifacts, charts
+        lim = next(iter((r["spec"].get("limits") or {}).values()), {})
+        title = a.get("title") or f"{self.cfg['title'][:50]}: pressure while blocked in"
+        svg = charts.pressure_time_svg(title, r["result"]["series_h_psig"], lim.get("design_psig"), lim.get("burst_psig"),
+                                       float(r["spec"].get("hours") or 0) * float(r.get("scale") or 1.0))
+        seg = next(iter(r["result"]["units"].values()))
+        return artifacts.save(self.name, "chart", title, {"pressure.svg": svg, "pressure.json": json.dumps(r["result"]["series_h_psig"])},
+                              by=self.model, request=f"pressure history of {a['label']}", sources=[a["label"]],
+                              summary="; ".join(f"{k} {v}" for k, v in seg.items()
+                                                if k in ("P_psig", "hours", "liquid_full_h", "design_reached_h", "burst_reached_h")))
+
     def _build_prompt(self):
         """System and user messages for build(). DWSIM text stays byte-stable; WaterTAP gets an SWRO prompt."""
+        if _is_trapped(self.cfg):
+            return ("You are a process safety engineer modelling a blocked-in liquefied-gas pipe segment. " + RULES,
+                    f"Unit: {self.cfg['title']}\n\n" + BUILD_TRAPPED, SUBMIT_MODEL_TRAPPED)
         if _is_watertap(self.cfg):
             return ("You are a process engineer building a seawater reverse-osmosis model with WaterTAP. " + RULES,
                     f"Unit: {self.cfg['title']}\n\n" + BUILD_WATERTAP, SUBMIT_MODEL_RO)
@@ -2060,11 +2180,15 @@ class PlantWorkspace(Study):
                 f"Unit: {self.cfg['title']}\n\n" + BUILD_DWSIM, SUBMIT_MODEL)
 
     def _review(self, spec, result, mapping=None, assumptions=None):
+        if _is_trapped(self.cfg):
+            return review_trapped(spec, result)
         if _is_watertap(self.cfg):
             return review_ro(spec, result, self.pid, self.basis, mapping, assumptions)
         return review_model(spec, result, self.pid, self.basis)
 
     def _coverage(self, spec, mapping=None):
+        if _is_trapped(self.cfg):
+            return None
         if _is_watertap(self.cfg):
             return ro_coverage(self.pid, spec, mapping)
         return coverage(self.pid, spec) if self.pid else None
@@ -2103,6 +2227,8 @@ class PlantWorkspace(Study):
         return {**meta, "rows": rows}
 
     def _solve(self, spec, scale=1.0):
+        if _is_trapped(self.cfg):
+            return trapped.run(_trapped_spec(self.cfg, spec), scale)
         return ro.run(spec, scale) if _is_watertap(self.cfg) else process.run(spec, scale)
 
     def build(self):
@@ -2641,6 +2767,8 @@ class PlantWorkspace(Study):
                 self._state[key] = {**near, "replayed": True}
             elif _is_watertap(self.cfg):
                 self._state[key] = {"scale": scale, **ro.run(self.spec, scale)}
+            elif _is_trapped(self.cfg):
+                self._state[key] = {"scale": scale, **trapped.run(_trapped_spec(self.cfg, self.spec), scale)}
             elif process.available():
                 self._state[key] = {"scale": scale, **process.run(self.spec, scale)}
             else:

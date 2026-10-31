@@ -1,0 +1,412 @@
+{
+ "label": "VIP-18 baseline fill0.85 heat2 120h",
+ "spec": {
+  "fluid": {
+   "compounds": [
+    "Methane",
+    "Ethane",
+    "Propane",
+    "Nitrogen"
+   ],
+   "x": {
+    "Methane": 0.95,
+    "Ethane": 0.035,
+    "Propane": 0.01,
+    "Nitrogen": 0.005
+   }
+  },
+  "feeds": {
+   "SEG": {
+    "P_psig": 37,
+    "fill_fraction": 0.85
+   }
+  },
+  "units": [
+   {
+    "id": "VIP-18",
+    "type": "pipe_segment",
+    "in": "SEG",
+    "od_m": 0.4572,
+    "wall_m": 0.00478,
+    "length_m": 100,
+    "heat_leak_W_m": 2
+   },
+   {
+    "id": "PSV-101",
+    "type": "relief_valve",
+    "protects": "VIP-18",
+    "set_psig": 230,
+    "isolated": true
+   },
+   {
+    "id": "XV-101",
+    "type": "valve",
+    "isolates": "VIP-18",
+    "closed": true
+   },
+   {
+    "id": "XV-102",
+    "type": "valve",
+    "isolates": "VIP-18",
+    "closed": true
+   }
+  ],
+  "hours": 120,
+  "limits": {
+   "VIP-18": {
+    "design_psig": 230,
+    "burst_psig": 1456
+   }
+  }
+ },
+ "result": {
+  "scale": 1.0,
+  "errors": [],
+  "notes": [],
+  "units": {
+   "VIP-18": {
+    "type": "pipe_segment",
+    "hours": 120.0,
+    "P_bar": 4.31,
+    "P_psig": 47.8,
+    "T_C": -140.9,
+    "liquid_full_h": 912.4,
+    "blocked_in": true,
+    "mass_kg_per_m": 54.5,
+    "start_T_C": -144.06,
+    "design_reached_h": 944.5,
+    "burst_reached_h": 1194.7
+   },
+   "PSV-101": {
+    "type": "relief_valve",
+    "isolated": true,
+    "lifted": false,
+    "set_psig": 230
+   },
+   "XV-101": {
+    "type": "valve",
+    "closed": true
+   },
+   "XV-102": {
+    "type": "valve",
+    "closed": true
+   }
+  },
+  "streams": {
+   "SEG": {
+    "T_C": -140.9,
+    "P_bar": 4.31,
+    "kg_h": 0.0
+   }
+  },
+  "checks": [
+   {
+    "id": "VIP-18",
+    "check": "pressure vs design pressure",
+    "value": 47.8,
+    "limit": 230.0,
+    "unit": "psig",
+    "utilisation": 0.2079
+   },
+   {
+    "id": "VIP-18",
+    "check": "pressure vs estimated burst pressure",
+    "value": 47.8,
+    "limit": 1456.0,
+    "unit": "psig",
+    "utilisation": 0.0328
+   }
+  ],
+  "series_h_psig": [
+   [
+    0.0,
+    38.3
+   ],
+   [
+    73.94,
+    44.2
+   ],
+   [
+    154.12,
+    50.5
+   ],
+   [
+    234.7,
+    57.4
+   ],
+   [
+    289.09,
+    77.0
+   ],
+   [
+    348.69,
+    86.7
+   ],
+   [
+    420.14,
+    93.9
+   ],
+   [
+    526.99,
+    104.9
+   ],
+   [
+    571.11,
+    117.6
+   ],
+   [
+    614.8,
+    131.7
+   ],
+   [
+    661.56,
+    147.1
+   ],
+   [
+    753.39,
+    155.8
+   ],
+   [
+    795.93,
+    174.0
+   ],
+   [
+    845.01,
+    194.0
+   ],
+   [
+    912.44,
+    205.1
+   ],
+   [
+    944.53,
+    354.5
+   ],
+   [
+    998.57,
+    1168.1
+   ],
+   [
+    1060.61,
+    1184.6
+   ],
+   [
+    1123.53,
+    1199.5
+   ],
+   [
+    1163.66,
+    1340.4
+   ],
+   [
+    1194.72,
+    1530.1
+   ],
+   [
+    1225.73,
+    1719.2
+   ],
+   [
+    1256.78,
+    1908.0
+   ],
+   [
+    1287.84,
+    2096.4
+   ],
+   [
+    1318.82,
+    2285.2
+   ],
+   [
+    1349.84,
+    2472.8
+   ],
+   [
+    1380.82,
+    2660.9
+   ],
+   [
+    1411.88,
+    2847.1
+   ],
+   [
+    1442.86,
+    3034.7
+   ],
+   [
+    1473.85,
+    3221.7
+   ],
+   [
+    1504.88,
+    3408.0
+   ],
+   [
+    1535.91,
+    3593.9
+   ],
+   [
+    1566.93,
+    3779.6
+   ],
+   [
+    1597.97,
+    3964.9
+   ],
+   [
+    1638.75,
+    4063.6
+   ],
+   [
+    1691.02,
+    4063.7
+   ],
+   [
+    1743.32,
+    4063.7
+   ],
+   [
+    1795.66,
+    4063.8
+   ],
+   [
+    1848.05,
+    4063.8
+   ],
+   [
+    1900.45,
+    4063.9
+   ],
+   [
+    1952.86,
+    4063.9
+   ],
+   [
+    2005.31,
+    4064.0
+   ],
+   [
+    2057.73,
+    4064.0
+   ],
+   [
+    2110.18,
+    4064.1
+   ],
+   [
+    2162.61,
+    4064.2
+   ],
+   [
+    2215.02,
+    4064.2
+   ],
+   [
+    2267.43,
+    4064.3
+   ],
+   [
+    2319.8,
+    4064.3
+   ],
+   [
+    2372.13,
+    4064.4
+   ]
+  ],
+  "basis": {
+   "P0_bar": 3.5643,
+   "fill": 0.85,
+   "area_m2": 0.1574,
+   "mass_kg_m": 54.5256,
+   "T0_C": -144.06,
+   "rho_kg_m3": 346.46,
+   "heat_leak_W_m": 2.0
+  }
+ },
+ "mapping": [
+  {
+   "tag": "VIP-18",
+   "modelled_as": "units.VIP-18 type pipe_segment, in=SEG, od_m 0.4572, wall_m 0.00478, length_m 100, heat_leak_W_m 2 in baseline; limits.VIP-18 design_psig 230, burst_psig 1456",
+   "source": "Data sheet: 'The line' (18-inch VIP between XV-101 and XV-102, NOPV p.2) and 'Assumptions to state and vary' (NPS 18 Sch 10S 457.2 mm OD / 4.78 mm wall ILLUSTRATIVE; length 100 m ILLUSTRATIVE; design 230 psig ILLUSTRATIVE; burst 1456 psig ILLUSTRATIVE)"
+  },
+  {
+   "tag": "SEG (blocked-in inventory feed)",
+   "modelled_as": "feeds.SEG P_psig 37, fill_fraction 0.85 baseline",
+   "source": "Data sheet: Operating record (partially filled at 37 psig when XV-102 closed, NOPV p.3), Fluid (37 psig at bubble point), Assumptions (fill range 0.70-0.95 ILLUSTRATIVE)"
+  },
+  {
+   "tag": "LNG fluid",
+   "modelled_as": "fluid compounds [Methane, Ethane, Propane, Nitrogen], x Methane 0.95 / Ethane 0.035 / Propane 0.01 / Nitrogen 0.005",
+   "source": "Data sheet: Fluid row (composition ILLUSTRATIVE, mole fractions as listed)"
+  },
+  {
+   "tag": "XV-101",
+   "modelled_as": "units.XV-101 type valve, isolates VIP-18, closed=true",
+   "source": "Data sheet: The line (tank-side block valve) and Operating record (closed 3 June 2022 08:22, NOPV p.3)"
+  },
+  {
+   "tag": "XV-102",
+   "modelled_as": "units.XV-102 type valve, isolates VIP-18, closed=true",
+   "source": "Data sheet: The line (dock-side block valve) and Operating record (closed 3 June 2022 16:44; from then on closed at both ends, NOPV p.3)"
+  },
+  {
+   "tag": "PSV-101",
+   "modelled_as": "units.PSV-101 type relief_valve, protects VIP-18, set_psig 230, isolated=true",
+   "source": "Data sheet: The line (PSV-101 protects segment through HV-101), Operating record (HV-101 closed 26 April 2022 to isolate PSV-101 for annual test, NOPV p.2), Assumptions (PSV set ILLUSTRATIVE equal to design 230 psig)"
+  },
+  {
+   "tag": "HV-101",
+   "modelled_as": "Represented by PSV-101 isolated=true (spec has no separate PSV isolation-valve unit)",
+   "source": "Data sheet: The line and Operating record rows (HV-101 is the PSV-101 isolation valve, closed for the 26 April test, NOPV p.2)"
+  },
+  {
+   "tag": "TI-101 to TI-104",
+   "modelled_as": "Not modelled as units; no temperature values are given in the data sheet, only that DCS logs them",
+   "source": "Data sheet: The line (four inner-pipe skin temperature points installed for cooldown, NOPV p.4)"
+  }
+ ],
+ "calibration": [
+  {
+   "item": "Start pressure at block-in",
+   "measured": "37 psig, partially filled with LNG at 3 June 2022 16:44 (data sheet Operating record row, NOPV p.3; Fluid row: start state 37 psig at bubble point)",
+   "simulated": "Run 'VIP-18 baseline fill0.85 heat2 120h': feed reproduced with basis P0_bar 3.5643 and simulator start_T_C -144.06 C at that bubble-point start",
+   "source": "Data sheet (NOPV p.3) vs logged run 'VIP-18 baseline fill0.85 heat2 120h'"
+  },
+  {
+   "item": "Bubble-point consistency of start state",
+   "measured": "Liquid at its bubble point at the documented start pressure (data sheet Fluid row, NOPV p.3); no numeric start temperature is public",
+   "simulated": "bubble_pressure for the data-sheet composition at -144.06 C returns 3.57 bar; baseline 120 h point -140.9 C / 4.31 bar in run 'VIP-18 baseline fill0.85 heat2 120h' is close to bubble_pressure 4.27 bar at -140.9 C, consistent with two-phase warm-up before liquid_full_h 912.4 h",
+   "source": "Data sheet Fluid row; bubble_pressure tool; logged run 'VIP-18 baseline fill0.85 heat2 120h'"
+  },
+  {
+   "item": "Qualitative heat-ingress response after first valve closure",
+   "measured": "VIP temperature began to rise and LNG vaporised back to tank after XV-101 closed at 08:22 (data sheet Operating record row, NOPV p.3)",
+   "simulated": "With positive heat leak the baseline warms from start_T_C -144.06 C to -140.9 C over 120 h and pressure rises from the 37 psig start to 47.8 psig (run 'VIP-18 baseline fill0.85 heat2 120h')",
+   "source": "Data sheet (NOPV p.3) vs logged run 'VIP-18 baseline fill0.85 heat2 120h'"
+  }
+ ],
+ "assumptions": [
+  "Baseline stated values chosen from ILLUSTRATIVE data-sheet ranges: liquid fill_fraction 0.85 (mid of 0.70-0.95; line had drained toward tank for about 8 h after XV-101 closed so not liquid-full, but was a transfer line in service shortly before so mostly liquid) and sound-VIP heat_leak_W_m 2 (mid of 1-3 W/m for a sound vacuum jacket). Sensitivity runs at fills 0.70/0.95 and heat leaks 1/3/10/20/30 W/m show dependence.",
+  "Hours = 120 in the baseline run is the multi-day blocked-in horizon solved; the data sheet gives the block-in start (3 June 2022 16:44, NOPV p.3) but no public segment length, pipe spec, design pressure or exact failure time, all marked ILLUSTRATIVE where applicable. Length 100 m is ILLUSTRATIVE and pressure history is length-independent because trapped mass and heat leak both scale with length (data sheet).",
+  "Composition is ILLUSTRATIVE lean Gulf Coast LNG from the data sheet (methane 0.95, ethane 0.035, propane 0.010, nitrogen 0.005 mole fraction); DWSIM compound names Methane/Ethane/Propane/Nitrogen used.",
+  "Pipe/design/burst/PSV set are ILLUSTRATIVE documented values, not raised or altered: NPS 18 Sch 10S 457.2 mm OD x 4.78 mm wall; design 230 psig (ASME B16.5 Class 150 304L basis stated in data sheet); estimated burst 1456 psig (Barlow/70 ksi 304L basis stated in data sheet); PSV-101 set equal to design 230 psig.",
+  "As-documented safeguard state is modelled: XV-101 closed, XV-102 closed, PSV-101 isolated=true representing HV-101 left closed after the 26 April 2022 PSV test. Counterfactual runs only change PSV isolated=false or XV-102 closed=false; no limits were edited."
+ ],
+ "model": "muse-wonder-1.0",
+ "engine": "dwsim",
+ "coverage": null,
+ "read_corrections": 0,
+ "seconds": 122,
+ "cost_usd": 0.6807,
+ "at": "2026-10-31 20:59",
+ "review": {
+  "status": "ok",
+  "findings": [],
+  "blocking": 0,
+  "energy": {}
+ },
+ "review_status": "ok",
+ "gaps": []
+}
