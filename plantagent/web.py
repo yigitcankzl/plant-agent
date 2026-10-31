@@ -326,6 +326,7 @@ def _calibration(w):
 def _with_gates(w):
     """The answers, with the cached discipline gates (prefeed.discipline_gates) on the design answer they were computed for."""
     from . import revb
+    from .plant import ROUTING_UNITS
     f = w.model_file.with_name("gates.json")
     d = revb.design_answer(w.answers)
     if not (d and f.exists()):
@@ -335,7 +336,15 @@ def _with_gates(w):
     titles = [p.get("title") for p in d.get("proposals") or [] if p.get("verified")]
     if (key.get("headline"), key.get("request"), key.get("titles"), key.get("revisions")) != (d.get("headline"), d.get("request"), titles, len(w.revisions)):
         return w.answers
-    return [{**a, "disciplines": g["disciplines"], "disciplines_made": g.get("made")} if a is d else a for a in w.answers]
+    fails = [r for r in g["disciplines"] if r.get("status") == "fail"]
+
+    def tag(p):  # stored proposals predate discipline_status: flag the new equipment a failing gate is about
+        ids = [c["add_unit"]["id"] for c in p.get("changes") or [] if isinstance(c.get("add_unit"), dict)
+               and c["add_unit"].get("type") not in ROUTING_UNITS]
+        hit = {r["id"]: "fail" for r in fails if ids and (r["id"] == "electrical" or any(i in json.dumps(r.get("checks")) for i in ids))}
+        return {**p, "discipline_status": {**hit, **(p.get("discipline_status") or {})}, "verified_scope": "process"} if hit else p
+    return [{**a, "disciplines": g["disciplines"], "disciplines_made": g.get("made"),
+             "proposals": [tag(p) if p.get("verified") else p for p in a.get("proposals") or []]} if a is d else a for a in w.answers]
 
 
 def plant_project(case):
@@ -924,6 +933,8 @@ class Handler(SimpleHTTPRequestHandler):
             if what == "accept" and method == "POST":
                 from .copilot import accept, problems
                 from . import audit
+                if not str(body.get("reason") or "").strip():  # every accepted change carries the engineer's reason
+                    return self._send({"error": "a reason is required to accept a change"}, code=400)
                 w = workspace(case)
                 try:
                     r = _case_call(case, lambda: accept(w, body))

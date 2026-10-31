@@ -683,9 +683,11 @@ function proposalHtml(p, i) {
 }
 
 async function acceptProposal(p, box) {
+  const reason = prompt("Applying this as a DRAFT model revision (not an engineering approval). Reason, kept in the audit trail:", p.title || "");
+  if (!reason || !reason.trim()) return;
   const b = box.querySelector(".acc"); b.disabled = true; b.textContent = "Applying…";
   let r;
-  try { r = await api(`/api/ws/${CASE}/accept`, p); }
+  try { r = await api(`/api/ws/${CASE}/accept`, {...p, reason}); }
   catch (e) { b.textContent = "✗ " + e.message.slice(0, 90); b.style.background = "#6b2a2a"; return; }
   const st = p.structure || (ISS.find(i => i.id === p.resolves) || {}).structure || (UNITS.find(u => u.unit === p.unit) || {}).structure;
   ACCEPTED.push({title: p.title, structure: st, rev: r.revision.n});

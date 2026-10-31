@@ -806,6 +806,20 @@ def _source(text):
 
 # ---------------------------------------------------------------- the sheet
 
+LINE_LABEL = re.compile(r'<rect\b[^>]*/>\s*<text\b[^>]*>\d{3,5}-[A-Za-z]+(?: \(new\))?</text>')
+
+
+def _labels_on_top(svg):
+    """Line-number labels (with their backing box) drawn last, so no line, old or new, runs through them.
+    ponytail: assumes labels sit outside transformed groups, true for the generated case sheets."""
+    labels = LINE_LABEL.findall(svg)
+    if not labels:
+        return svg
+    body = LINE_LABEL.sub("", svg)
+    i = body.rfind("</svg>")
+    return body[:i] + "".join(l.replace('fill-opacity="0.85"', 'fill-opacity="1"') for l in labels) + body[i:]
+
+
 def generate(svg, spec, revisions, names=None, meta=None):
     """Return {'svg', 'revisions': [{rev, title, where, drawn}], 'unplaced': [...], 'clouds': n}.
 
@@ -891,7 +905,7 @@ def generate(svg, spec, revisions, names=None, meta=None):
                 label = f"{_new_line_number(sheet, line, used_numbers)} (new)"
                 lx, ly, lbox = _line_label(sheet, pts, label, 2.2)
                 g.append(f'<rect x="{lbox[0]:.1f}" y="{lbox[1]:.1f}" width="{lbox[2] - lbox[0]:.1f}" height="{lbox[3] - lbox[1]:.1f}" fill="#fff" '
-                         f'fill-opacity="0.85" stroke="none"/><text x="{lx:.1f}" y="{ly:.1f}" font-size="2.2" font-weight="700" fill="{colour}" '
+                         f'fill-opacity="0.85" stroke="none"/><text data-line-label="{esc(stream)}" x="{lx:.1f}" y="{ly:.1f}" font-size="2.2" font-weight="700" fill="{colour}" '
                          f'font-family="Arial,sans-serif">{esc(label)}</text></g>')
                 sheet.mark_box(lbox)
                 sheet.mark_path(pts)
@@ -993,7 +1007,7 @@ def generate(svg, spec, revisions, names=None, meta=None):
         report.append({"rev": n, "title": rev.get("title"), "drawn": drawn})
 
     svg_out = _issue(svg, sheet, parts, markers, revisions, report, unplaced, meta)
-    return {"svg": svg_out, "revisions": report, "unplaced": unplaced, "clouds": len(clouds)}
+    return {"svg": _labels_on_top(svg_out), "revisions": report, "unplaced": unplaced, "clouds": len(clouds)}
 
 
 def _issue(svg, sheet, parts, markers, revisions, report, unplaced, meta):

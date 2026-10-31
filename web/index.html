@@ -90,8 +90,8 @@
   <select id="run"></select>
   <button id="replay">Replay saved study</button>
   <select id="speed"><option value="40">fast</option><option value="150" selected>normal</option><option value="500">slow</option></select>
-  <button id="start" class="primary" title="Runs a new study (spends Muse credit)">Run new study</button>
   <div class="spacer"></div>
+  <button id="start" title="Runs a new study (spends Muse credit)">Run new study (paid)</button>
   <div class="score-chip" id="score">—</div>
 </header>
 <main>
@@ -136,8 +136,10 @@ function evHtml(e) {
   if (e.kind === "say") return `<div class="ev say">${esc(e.text)}</div>`;
   if (e.kind === "submit") return `<div class="ev submit">✓ ${esc(e.text)}</div>`;
   const cls = e.kind === "error" ? "error" : SIM.has(e.name) ? "tool sim" : "tool";
-  return `<div class="ev ${cls}"><span class="name">${esc(e.name)}</span> <span class="res">${esc(e.args)}</span>
-          <div class="res">→ ${esc(e.result)}</div></div>`;
+  // raw tool arguments and output stay one click away; the timeline shows the call and a short result
+  const short = String(e.result ?? "").replace(/\s+/g, " ").slice(0, 110);
+  return `<details class="ev ${cls}"><summary><span class="name">${esc(e.name)}</span>${e.kind === "error" ? " · tool error, agent retried" : ""} <span class="res">${esc(short)}${String(e.result ?? "").length > 110 ? "…" : ""}</span></summary>
+          <div class="res">${esc(e.args)}</div><div class="res">→ ${esc(e.result)}</div></details>`;
 }
 
 function showEvents(evs, animate) {

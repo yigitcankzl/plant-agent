@@ -1302,6 +1302,8 @@ function equipmentCard(tag) {  // design data, operating values, every limit wit
     const [ins, outs] = streamPorts(unit);
     const inletS = streams[ins[0]] || {}, outletS = streams[outs[0]] || {};
     const phase = s => s.phase || (s.vapour_frac == null ? 'to confirm' : s.vapour_frac >= 0.5 ? 'vapour' : 'liquid');
+    // the Rev B sheet numbers new lines (3004-ST); model stream ids never reach the card
+    const lineName = (id, side) => !id ? 'to confirm' : ($('sheet').querySelector(`[data-line-label="${CSS.escape(id)}"]`)?.textContent || `new ${side} line`);
     $('modePanel').hidden = true; $('historyDetails').hidden = true; $('answers').hidden = false; $('askDock').hidden = false;
     $('inspectorTitle').textContent = 'Equipment';
     $('answers').innerHTML = `<button class="btn inspector-back" onclick="showMode(ACTIVE_MODE)">← Back to ${esc(ACTIVE_MODE === 'capacity' ? 'result' : ACTIVE_MODE)}</button><div class="ans"><h3>${esc(tag)} <span style="color:var(--muted);font-size:12px">${esc(duty.status)}</span></h3>
@@ -1313,8 +1315,8 @@ function equipmentCard(tag) {  // design data, operating values, every limit wit
         <tr><td>Rating source</td><td class="v">${esc(duty.rating_source || change.rating_source || 'to confirm')}</td></tr>
         <tr><td>Status</td><td class="v">${esc(duty.status)}</td></tr></table>
       <div class="tt" style="margin-top:10px">Inlet / outlet</div><table class="ecard">
-        <tr><td>Inlet</td><td class="v">${esc(ins[0] || 'to confirm')} · ${esc(qtyText(inletS.T_C, '°C'))} · ${esc(qtyText(inletS.P_bar, 'bar'))} · ${esc(phase(inletS))}</td></tr>
-        <tr><td>Outlet</td><td class="v">${esc(outs[0] || 'to confirm')} · ${esc(qtyText(outletS.T_C, '°C'))} · ${esc(qtyText(outletS.P_bar, 'bar'))} · ${esc(phase(outletS))}</td></tr></table>
+        <tr><td>Inlet</td><td class="v">${esc(lineName(ins[0], 'inlet'))} · ${esc(qtyText(inletS.T_C, '°C'))} · ${esc(qtyText(inletS.P_bar, 'bar'))} · ${esc(phase(inletS))}</td></tr>
+        <tr><td>Outlet</td><td class="v">${esc(lineName(outs[0], 'outlet'))} · ${esc(qtyText(outletS.T_C, '°C'))} · ${esc(qtyText(outletS.P_bar, 'bar'))} · ${esc(phase(outletS))}</td></tr></table>
       <div class="tt" style="margin-top:10px">Assumptions</div><div class="diff">${(((added.proposal || {}).calculation || {}).assumptions || ['to confirm']).map(a => '• ' + esc(a)).join('<br>')}</div>
       <div style="margin-top:8px;color:var(--warn)">Vendor curve, materials and mechanical design are to confirm. This is simulator screening and a provisional selection, not vendor approval.</div></div>`;
     return;
