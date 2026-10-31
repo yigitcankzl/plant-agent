@@ -1426,7 +1426,7 @@ function electricalLine(p) {  // one-line load flow of a proposal's new/bigger m
 }
 
 function prop(p, i, j, src) {
-  const spec = P.built.spec, units = Object.fromEntries(spec.units.map(u => [u.id, u]));
+  const spec = P.built.spec, units = Object.fromEntries((spec.units || []).map(u => [u.id, u]));
   const cur = path => { const [k, id, f] = path.split('.'); const o = k === 'units' ? units[id] : (spec[k] || {})[id]; return o ? o[f] : undefined; };
   const diff = (p.changes || []).map(c => `<div>${describe(c.path ? {...c, from: 'from' in c ? c.from : cur(c.path)} : c)}</div>`).join('');
   const added = (p.new_equipment || []).map(e => `<span class="vb" style="color:var(--warn)">${esc(e.id)}: new equipment, rating to confirm</span>`).join('');
