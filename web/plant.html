@@ -1633,6 +1633,9 @@ function gateRows(a) {
   let rows = a.disciplines || a.engineering_gates || a.gates || a.assessment?.disciplines || a.prefeed?.disciplines ||
     P.engineering_gates || P.gates || P.disciplines || P.prefeed?.disciplines || P.gateAssessment?.disciplines || [];
   if (!Array.isArray(rows)) rows = Object.entries(rows).map(([id, row]) => typeof row === 'object' ? {id, ...row} : {id, status: row});
+  rows = [...rows];
+  if ((a.proposals || []).some(p => p.relief_basis) && !rows.some(row => row.id === 'process_safety'))
+    rows.push({id: 'process_safety', status: 'open', summary: 'Ideal relief boundary only; relieving capacity is not checked.', source: 'blocked-in segment simulator'});
   return rows.filter(row => row?.id).sort((x, y) => {
     const xi = GATE_ORDER.indexOf(x.id), yi = GATE_ORDER.indexOf(y.id);
     return (xi < 0 ? GATE_ORDER.length : xi) - (yi < 0 ? GATE_ORDER.length : yi);
@@ -1733,7 +1736,7 @@ function compare(a) {  // the alternatives side by side, from what the server re
   const ps = a.proposals || [];
   if (ps.length < 2) return '';
   return `<section class="answer-section"><h4>Alternative summary</h4><div class="comparison-list">${ps.map(p => `<div class="comparison-item">
-    <div class="comparison-item-head"><span>${esc(p.title)}</span><span style="color:var(--${p.verified ? 'ok' : 'fail'})">${p.verified ? 'Simulated ✓' : p.unverified_reason ? 'Not verifiable' : 'Fails'}${Object.entries(p.discipline_status || {}).filter(([, st]) => st === 'fail').map(([k]) => ` <span style="color:var(--fail)">· ${esc((GATE_NAMES[k] || k).toLowerCase())} ✕</span>`).join('')}</span></div>
+    <div class="comparison-item-head"><span>${esc(p.title)}</span><span style="color:var(--${p.verified ? p.relief_basis ? 'warn' : 'ok' : 'fail'})">${p.verified ? p.relief_basis ? 'Simulated · ideal relief capacity unchecked ○' : 'Simulated ✓' : p.unverified_reason ? 'Not verifiable' : 'Fails'}${Object.entries(p.discipline_status || {}).filter(([, st]) => st === 'fail').map(([k]) => ` <span style="color:var(--fail)">· ${esc((GATE_NAMES[k] || k).toLowerCase())} ✕</span>`).join('')}</span></div>
     <div class="comparison-item-meta"><span>Fixes <b>${esc(p.fixes || p.tag || '—')}</b></span><span>New maximum <b>${p.capacity_multiple ? Math.round(p.capacity_multiple * 100) + '%' : '—'}</b></span><span title="Cost class written by the agent for screening; not a priced estimate">Cost <b>${esc(p.cost_class || '—')}</b> <small style="color:var(--muted)">agent estimate</small></span></div>
     </div>`).join('')}</div></section>`;
 }
@@ -1813,7 +1816,8 @@ function prop(p, i, j, src) {
   const cur = path => { const [k, id, f] = path.split('.'); const o = k === 'units' ? units[id] : (spec[k] || {})[id]; return o ? o[f] : undefined; };
   const diff = (p.changes || []).map(c => `<div>${describe(c.path ? {...c, from: 'from' in c ? c.from : cur(c.path)} : c)}</div>`).join('');
   const added = (p.new_equipment || []).map(e => `<span class="vb" style="color:var(--warn)">${esc(e.id)}: new equipment, rating to confirm</span>`).join('');
-  const v = p.verified ? `<span class="vb y" title="Re-solved in ${simulator()} with this change at ${Math.round(P.target_scale * 100)}% throughput; every limit of ${esc(p.fixes || '')} within 100 %, nothing else pushed over.">✓ Simulated: ${esc(p.fixes || '')} within limits at ${Math.round(P.target_scale * 100)}%</span>`
+  const v = p.verified ? p.relief_basis ? `<span class="vb" style="color:var(--warn);border-color:var(--warn)">○ Simulated against ideal relief boundary — relieving capacity not checked</span>`
+    : `<span class="vb y" title="Re-solved in ${simulator()} with this change at ${Math.round(P.target_scale * 100)}% throughput; every limit of ${esc(p.fixes || '')} within 100 %, nothing else pushed over.">✓ Simulated: ${esc(p.fixes || '')} within limits at ${Math.round(P.target_scale * 100)}%</span>`
     : `<span class="vb n">✗ ${p.unverified_reason ? 'Not verifiable: ' + esc(p.unverified_reason) : p.error ? 'did not solve' : esc((p.still_over?.[0] || p.breaks?.[0] || {}).id || '') + ' still over its limit'}</span>`;
   const ds = Object.entries(p.discipline_status || {}), dfail = ds.filter(([, st]) => st === 'fail');  // verify is process-only; other disciplines are flagged, not hidden
   const scope = p.verified && ds.length ? `<span class="vb ${dfail.length ? 'n' : ''}" title="The simulator verifies the process. Other disciplines are separate checks.">${p.verified_scope || 'process'} verified${ds.map(([k, st]) => ` · ${(GATE_NAMES[k] || k).toLowerCase()} ${st === 'fail' ? '✕' : st === 'pass' ? '✓' : '○'}`).join('')}</span>` : '';

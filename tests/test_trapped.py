@@ -1,11 +1,12 @@
 import math
+import json
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 from plantagent import trapped
-from plantagent.plant import change_errors, patch
+from plantagent.plant import PlantWorkspace, _trapped_spec, change_errors, patch
 
 
 def psat(T):  # bar, a methane-like vapour-pressure curve
@@ -78,6 +79,9 @@ class Trapped(unittest.TestCase):
         r = trapped.run(spec, 1.0)
         self.assertAlmostEqual(r["units"]["SEG"]["P_psig"], 230, delta=0.5)
         self.assertTrue(r["units"]["PSV-1"]["lifted"])
+        self.assertEqual(r["relief_basis"], trapped.IDEAL_RELIEF_BASIS)
+        self.assertFalse(r["units"]["PSV-1"]["capacity_checked"])
+        self.assertIn(trapped.IDEAL_RELIEF_BASIS, r["notes"][-1])
         self.assertTrue(all(c["utilisation"] <= 1.0 for c in r["checks"]))
 
     def test_open_isolating_valve_vents_to_start_pressure(self):
@@ -88,6 +92,40 @@ class Trapped(unittest.TestCase):
 
     def test_spec_uses_the_generic_change_boundary(self):
         self.assertFalse(change_errors(SPEC, [{"path": "units.PSV-1.isolated", "value": False}]))
+
+    def test_stored_freeport_cited_run_keeps_its_model_time_base(self):
+        root = Path(__file__).resolve().parent.parent
+        answer = json.loads((root / "runs/ws/freeport_lng_2022/20261031-210004/answers.json").read_text())[0]
+        label = answer["checks"][1]["item"].removeprefix("run ")
+        events = [json.loads(line) for line in (root / "runs/ws/freeport_lng_2022/20261031-210004/log.jsonl").read_text().splitlines()]
+        event = next(e for e in events if e.get("tool") == "run_trapped" and e.get("result", {}).get("label") == label)
+        spec = _trapped_spec({"throughput": {"base": 96}}, event["args"]["spec"])
+        self.assertEqual(spec["hours"], event["result"]["units"]["VIP-18"]["hours"])
+
+    def test_home_copy_separates_phmsa_record_from_model_screening(self):
+        home = (Path(__file__).resolve().parent.parent / "web/home.html").read_text()
+        self.assertIn("PHMSA recorded a partially filled", home)
+        self.assertIn("under ILLUSTRATIVE fill and heat-leak assumptions", home)
+        self.assertIn("ideal relief boundary, with relieving capacity unchecked", home)
+        self.assertNotIn("LNG-full", home)
+
+
+@unittest.skipUnless(trapped.available(), "DWSIM not installed")
+class FreeportWorkspace(unittest.TestCase):
+    def test_stored_freeport_cited_run_reproduces(self):
+        root = Path(__file__).resolve().parent.parent
+        events = [json.loads(line) for line in (root / "runs/ws/freeport_lng_2022/20261031-210004/log.jsonl").read_text().splitlines()]
+        event = next(e for e in events if e.get("tool") == "run_trapped" and e.get("result", {}).get("label") == "VIP-18 fill0.85 heat10 120h")
+        fresh = PlantWorkspace("freeport_lng_2022")._solve(event["args"]["spec"])
+        self.assertEqual(fresh["units"], event["result"]["units"])
+
+    def test_relief_proposal_keeps_process_safety_open(self):
+        w = PlantWorkspace("freeport_lng_2022")
+        proposal = {"tag": "PSV-101", "changes": [{"path": "units.PSV-101.isolated", "value": False}]}
+        result = w.verify(proposal)
+        self.assertTrue(result["verified"])
+        self.assertEqual(result["relief_basis"], trapped.IDEAL_RELIEF_BASIS)
+        self.assertEqual(result["discipline_status"]["process_safety"], "open")
 
 
 if __name__ == "__main__":

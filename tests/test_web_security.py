@@ -132,6 +132,11 @@ class WebSecurityTests(unittest.TestCase):
             self.assertEqual(status, 200, data)
             start.assert_called_once()
 
+    def test_cross_site_approval_post_is_rejected(self):
+        status, data = self.request("POST", "/api/plant/sample/approval/signoff", b"{}",
+                                    {"Content-Type": "application/json", "Origin": "https://evil.example"})
+        self.assertEqual(status, 403, data)
+
     def test_dns_rebinding_host_is_refused(self):
         status, _ = self.request("GET", "/api/cases", headers={"Host": f"evil.example:{self.server.server_port}"})
         self.assertEqual(status, 403)
