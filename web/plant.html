@@ -142,7 +142,7 @@
   .gate-check small { display: block; color: var(--muted); font-size: 11px; }
   .decision-fact a { color: #9fd0ff; }
   .outcome-compare { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; }
-  .outcome-compare h3 { margin: 0 0 8px; font-size: 13px; } .outcome-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12.5px; }
+  .outcome-compare > summary { color: var(--text); font-size: 13px; font-weight: 700; } .outcome-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; font-size: 12.5px; }
   .outcome-cols small { display: block; color: var(--muted); margin-top: 4px; }
   .tour-on { outline: 3px solid #4da3ff !important; outline-offset: 2px; border-radius: 6px; }
   #tour { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 60; background: #0f2e45; color: #fff; border: 1px solid #4da3ff;
@@ -361,6 +361,89 @@
     .process.focused header #proj { order: 2; max-width: 100%; flex: 1 1 100%; }
     .process.focused #infoBtn { margin-left: auto; }
   }
+
+  /* Engineering cockpit: the drawing stays primary; decisions and commands surround it. */
+  .process.focused .app {
+    grid-template-columns: minmax(0, 1fr) clamp(380px, 31vw, 470px);
+    grid-template-rows: 58px minmax(0, 1fr) auto;
+  }
+  .process.focused header { grid-row: 1; min-height: 58px; }
+  .process.focused main { grid-row: 2; grid-column: 1; background: #dbe4e1; }
+  .process.focused main .stage { padding: 12px; }
+  .process.focused .pid-viewport { min-height: 0; border-color: #93a7a3; box-shadow: inset 0 0 0 1px #f4f7f633; }
+  .process.focused aside.right { grid-row: 2; grid-column: 2; border-bottom: 1px solid var(--line); }
+  .process.focused .rhead { min-height: 48px; padding: 8px 14px; background: #122e34; }
+  .process.focused #rightScroll { scrollbar-gutter: stable; }
+
+  /* The active question is context for the inspector, not a second dashboard above the drawing. */
+  #qa { display: block; flex: 0 0 auto; padding: 14px 18px 13px; background: #17343a; border-bottom: 1px solid #3d555b; }
+  #qa > div + div { margin-top: 10px; }
+  #qaQ { max-width: 68ch; color: #b9c8ca; font-size: 12.5px; line-height: 1.4; }
+  #qaA { max-width: 38ch; color: #f2f7f6; font-size: 18px; line-height: 1.25; }
+  #qaBadges { gap: 5px; margin-top: 8px; }
+  #qaBadges .qa-badge { padding: 2px 7px; font-size: 10.5px; }
+  #qaBadges .qa-badge.open { display: none; }
+  aside.right.workspace-decision .decision-brief > h2,
+  aside.right.workspace-decision .decision-provenance { display: none; }
+
+  /* A single bottom workbench replaces the permanent chat and duplicate result strip. */
+  .workbench { grid-row: 3; grid-column: 1 / 3; position: relative; z-index: 12; background: #10292f; border-top: 1px solid #587075; box-shadow: 0 -10px 30px rgba(4, 17, 20, .22); }
+  .workbench-tabs { height: 38px; display: flex; align-items: stretch; padding: 0 14px; border-bottom: 1px solid #314a50; background: #132f35; }
+  .workbench-tabs button { min-width: 110px; padding: 0 14px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: #9cacae; font: 700 12px var(--sans); cursor: pointer; }
+  .workbench-tabs button:hover { color: #f3f7f6; background: #193b42; }
+  .workbench-tabs button[aria-selected="true"] { color: #f3f7f6; border-bottom-color: #8bcfc3; }
+  .workbench-tabs button:focus-visible { outline: 2px solid #9fd9d0; outline-offset: -3px; }
+  .workbench-tabs .dock-toggle { min-width: auto; margin-left: auto; color: #b8c7c8; }
+  .workbench-body { min-height: 92px; }
+  .workbench.collapsed .workbench-body { display: none; }
+  .workbench.collapsed .workbench-tabs { border-bottom: 0; }
+  .dock-panel[hidden] { display: none !important; }
+  .process.focused .workbench footer { display: grid; position: static; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr) auto; align-items: center; min-height: 92px; border: 0; background: #10292f; }
+  .process.focused .workbench .flowctl { padding: 9px 18px 10px; }
+  .process.focused .workbench .verdict { padding: 9px 20px; border-left: 1px solid #314a50; }
+  .process.focused .workbench #toTarget { margin: 0 18px 0 8px; }
+  .ask-panel { min-height: 104px; padding: 12px 18px; background: #10292f; }
+  .ask-panel .qa-ask { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+  .ask-panel .cmd { max-width: none; }
+  .ask-panel .cmd input { min-height: 38px; background: #17363d; }
+  .ask-panel #qaSugg { display: flex; gap: 6px; margin-top: 9px; overflow-x: auto; scrollbar-width: thin; }
+  .ask-panel #qaSugg .btn { flex: 0 0 auto; padding: 5px 10px; border-radius: 4px; }
+  .evidence-panel { min-height: 92px; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 14px 18px; background: #10292f; }
+  .evidence-panel strong { display: block; margin-bottom: 3px; color: #edf5f3; }
+  .evidence-panel span { color: #9eb0b1; }
+  .evidence-panel .btn { min-height: 40px; }
+
+  .process.canvas-focus #workbench { display: none !important; }
+  .process.canvas-focus .app { grid-template-rows: 52px minmax(0, 1fr) !important; }
+  .process.focused .app.mode-other #workbench { display: none; }
+  .process.focused .app.mode-other main { grid-row: 2; }
+  .process.focused .app.mode-other aside.right { grid-row: 2; }
+
+  @media (max-width: 980px) {
+    .process.focused .app { grid-template-columns: minmax(0, 1fr) 360px; }
+    .process.focused header #proj { max-width: 34vw; }
+  }
+  @media (max-width: 820px) {
+    .process.focused .app { display: flex; height: auto; min-height: 100vh; }
+    .process.focused header { min-height: 112px; }
+    .process.focused main { order: 1; min-height: 0; }
+    .process.focused .pid-viewport { height: 58vh; min-height: 500px; }
+    .process.focused aside.right { order: 3; min-height: auto; max-height: none; }
+    .process.focused #rightScroll { overflow: visible; }
+    .workbench { order: 2; position: sticky; bottom: 0; width: 100%; }
+    .process.focused .workbench footer { grid-template-columns: 1fr auto; }
+    .process.focused .workbench footer .verdict { grid-column: 1 / 3; grid-row: 2; border-top: 1px solid #314a50; border-left: 0; }
+    .workbench-tabs { overflow-x: auto; padding-inline: 8px; }
+    .workbench-tabs button { min-width: 96px; }
+  }
+  @media (max-width: 560px) {
+    .process.focused .pid-viewport { height: 500px; }
+    .process.focused .workbench footer { display: block; }
+    .process.focused .workbench #toTarget { width: calc(100% - 32px); margin: 0 16px 12px; }
+    .ask-panel { padding-inline: 12px; }
+    .ask-panel .qa-ask { grid-template-columns: 1fr auto; }
+    .evidence-panel { align-items: stretch; flex-direction: column; gap: 10px; }
+  }
 </style>
 </head>
 <body class="process focused">
@@ -399,33 +482,17 @@
   </aside>
   <div class="drawer-shade" id="drawerShade" onclick="toggleDrawer(false)"></div>
 
-  <section id="qa" aria-label="Question and answer">
-    <div><span class="qa-k">Question</span><div id="qaQ">–</div></div>
-    <div><span class="qa-k">Answer</span><div id="qaA">–</div><div id="qaBadges"></div></div>
-    <div class="qa-ask" id="askDock">
-      <div class="cmd"><span class="k">›</span><input id="q" aria-label="Ask any engineering question about this plant" placeholder="Ask any engineering question about this plant…" autocomplete="off" disabled></div>
-      <button class="btn go" id="askBtn" type="button" disabled>Ask</button>
-    </div>
-    <div id="qaSugg"></div>
-  </section>
   <main>
     <div id="note" style="display:none;margin:8px 18px 0;padding:6px 10px;border:1px solid #8a6a2e;border-radius:5px;background:#2b2414;color:#f6d28b;font-size:12px"></div>
     <div class="stage" style="position:relative"><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Proposed</button></div><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing controls"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" class="word" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button><button type="button" class="word" id="toggleLabels" aria-label="Show or hide PlantAgent labels" aria-pressed="true" title="Show or hide PlantAgent load and finding labels">Labels</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
   </main>
 
-  <footer id="scenario">
-    <div class="flowctl">
-      <label class="flow-label" for="scale">What-if · throughput</label>
-      <div class="flowv" id="flowv">–</div>
-      <input type="range" id="scale" min="80" max="150" step="1" value="100">
-      <div style="display:flex;justify-content:space-between;color:var(--muted);font:11px var(--mono)"><span>80%</span><span id="tgtLbl"></span><span id="maxLbl">150%</span></div>
-    </div>
-    <div class="verdict"><div class="big" id="verdict">–</div><div class="sub" id="verdictSub"></div></div>
-    <button class="btn go" id="toTarget" disabled>Analyze target</button>
-  </footer>
-
   <aside class="right workspace-decision" id="resultPane">
     <div class="rhead"><span id="inspectorTitle">Result</span><div class="workspace-tabs" role="group" aria-label="Result detail"><button type="button" id="decisionView" aria-pressed="true">Decision</button><button type="button" id="engineeringView" aria-pressed="false">Engineering</button></div><span id="spend"></span></div>
+    <section id="qa" aria-label="Question and answer">
+      <div><span class="qa-k">Question</span><div id="qaQ">–</div></div>
+      <div><span class="qa-k">Answer</span><div id="qaA">–</div><div id="qaBadges"></div></div>
+    </section>
     <div id="rightScroll">
       <div id="modePanel" hidden>
         <section id="troublePanel" hidden></section>
@@ -439,6 +506,37 @@
     </div>
 
   </aside>
+  <section class="workbench" id="workbench" aria-label="Engineering workbench">
+    <div class="workbench-tabs" role="tablist" aria-label="Workbench tools">
+      <button type="button" id="dockWhatIf" role="tab" aria-selected="true" aria-controls="scenario">What-if</button>
+      <button type="button" id="dockAsk" role="tab" aria-selected="false" aria-controls="askPanel">Ask PlantAgent</button>
+      <button type="button" id="dockEvidence" role="tab" aria-selected="false" aria-controls="evidencePanel">Evidence</button>
+      <button type="button" class="dock-toggle" id="dockToggle" aria-expanded="true">Hide</button>
+    </div>
+    <div class="workbench-body" id="workbenchBody">
+      <footer class="dock-panel" id="scenario" role="tabpanel" aria-labelledby="dockWhatIf">
+        <div class="flowctl">
+          <label class="flow-label" for="scale">What-if · throughput</label>
+          <div class="flowv" id="flowv">–</div>
+          <input type="range" id="scale" min="80" max="150" step="1" value="100">
+          <div style="display:flex;justify-content:space-between;color:var(--muted);font:11px var(--mono)"><span>80%</span><span id="tgtLbl"></span><span id="maxLbl">150%</span></div>
+        </div>
+        <div class="verdict"><div class="big" id="verdict">–</div><div class="sub" id="verdictSub"></div></div>
+        <button class="btn go" id="toTarget" disabled>Analyze target</button>
+      </footer>
+      <section class="dock-panel ask-panel" id="askPanel" role="tabpanel" aria-labelledby="dockAsk" hidden>
+        <div class="qa-ask" id="askDock">
+          <div class="cmd"><span class="k">›</span><input id="q" aria-label="Ask any engineering question about this plant" placeholder="Ask any engineering question about this plant…" autocomplete="off" disabled></div>
+          <button class="btn go" id="askBtn" type="button" disabled>Ask</button>
+        </div>
+        <div id="qaSugg"></div>
+      </section>
+      <section class="dock-panel evidence-panel" id="evidencePanel" role="tabpanel" aria-labelledby="dockEvidence" hidden>
+        <div><strong>Engineering evidence</strong><span>Calculations, field checks, alternatives, sources and the revision audit stay in the inspector.</span></div>
+        <button class="btn" type="button" id="openEvidence">Open engineering detail</button>
+      </section>
+    </div>
+  </section>
 </div>
 <div id="tour" role="dialog" aria-live="polite"><div class="st" id="tourStep"></div><div class="tx" id="tourText"></div>
   <div class="row"><button class="btn" onclick="tourEnd()">Close</button><button class="btn go" id="tourNext" onclick="tourGo(TOUR_I + 1)">Next</button></div></div>
@@ -469,6 +567,7 @@ const simulator = () => ({watertap: 'WaterTAP', pandapower: 'pandapower'})[P?.bu
 const modelBlocked = () => Number(P?.built?.review?.blocking || 0) > 0;
 let ACTIVE_MODE = 'capacity';
 let WORKSPACE_VIEW = 'decision';
+let DOCK_PANEL = 'whatif';
 
 function setWorkspaceView(viewName) {
   WORKSPACE_VIEW = viewName === 'engineering' ? 'engineering' : 'decision';
@@ -476,6 +575,26 @@ function setWorkspaceView(viewName) {
   $('resultPane').classList.toggle('workspace-engineering', WORKSPACE_VIEW === 'engineering');
   $('decisionView').setAttribute('aria-pressed', String(WORKSPACE_VIEW === 'decision'));
   $('engineeringView').setAttribute('aria-pressed', String(WORKSPACE_VIEW === 'engineering'));
+}
+
+function setDockPanel(panelName, focus = true) {
+  DOCK_PANEL = ['ask', 'evidence'].includes(panelName) ? panelName : 'whatif';
+  const panels = {whatif: 'scenario', ask: 'askPanel', evidence: 'evidencePanel'};
+  const tabs = {whatif: 'dockWhatIf', ask: 'dockAsk', evidence: 'dockEvidence'};
+  Object.entries(panels).forEach(([name, id]) => { $(id).hidden = name !== DOCK_PANEL; });
+  Object.entries(tabs).forEach(([name, id]) => { $(id).setAttribute('aria-selected', String(name === DOCK_PANEL)); });
+  $('workbench').classList.remove('collapsed');
+  $('dockToggle').textContent = 'Hide';
+  $('dockToggle').setAttribute('aria-expanded', 'true');
+  if (focus && DOCK_PANEL === 'ask') requestAnimationFrame(() => $('q').focus());
+  requestAnimationFrame(() => { fitDrawing(); if (ST) render(ST); });
+}
+
+function toggleWorkbench() {
+  const collapsed = $('workbench').classList.toggle('collapsed');
+  $('dockToggle').textContent = collapsed ? 'Show' : 'Hide';
+  $('dockToggle').setAttribute('aria-expanded', String(!collapsed));
+  requestAnimationFrame(() => { fitDrawing(); if (ST) render(ST); });
 }
 
 function toggleFocus(force) {
@@ -516,7 +635,9 @@ function showMode(mode) {
   selectOnDrawing('');
   document.querySelectorAll('.eq.sel').forEach(e => e.classList.remove('sel'));
   document.querySelectorAll('[data-mode]').forEach(b => { b.classList.toggle('active', b.dataset.mode === mode); b.setAttribute('aria-pressed', String(b.dataset.mode === mode)); });
-  $('scenario').hidden = mode !== 'capacity';
+  $('workbench').hidden = mode !== 'capacity';
+  if (mode === 'capacity') setDockPanel(DOCK_PANEL, false);
+  else $('scenario').hidden = true;
   document.querySelector('.app').classList.toggle('mode-other', mode !== 'capacity');
   $('modePanel').hidden = mode === 'capacity';
   $('troublePanel').hidden = mode !== 'troubleshoot';
@@ -534,6 +655,17 @@ function showMode(mode) {
 document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => showMode(b.dataset.mode));
 $('decisionView').onclick = () => setWorkspaceView('decision');
 $('engineeringView').onclick = () => setWorkspaceView('engineering');
+$('dockWhatIf').onclick = () => setDockPanel('whatif');
+$('dockAsk').onclick = () => setDockPanel('ask');
+$('dockEvidence').onclick = () => setDockPanel('evidence');
+$('dockToggle').onclick = toggleWorkbench;
+$('openEvidence').onclick = () => {
+  setWorkspaceView('engineering');
+  $('workbench').classList.add('collapsed');
+  $('dockToggle').textContent = 'Show';
+  $('dockToggle').setAttribute('aria-expanded', 'false');
+  $('rightScroll').scrollTo({top: 0, behavior: 'smooth'});
+};
 $('focusBtn').onclick = () => toggleFocus();
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
@@ -546,6 +678,7 @@ document.addEventListener('keydown', e => {
   if (e.key.toLowerCase() === 'f') fitDrawing();
   if (e.key.toLowerCase() === 'l') $('toggleLabels').click();
   if (e.key.toLowerCase() === 'd' && ACTIVE_MODE === 'capacity') setWorkspaceView(WORKSPACE_VIEW === 'decision' ? 'engineering' : 'decision');
+  if (e.key === '/' && ACTIVE_MODE === 'capacity') { e.preventDefault(); setDockPanel('ask'); }
 });
 
 async function projects() {
@@ -681,6 +814,7 @@ async function load() {
   P = await api('project');
   if (P.error) throw new Error(P.error);
   document.title = 'PlantAgent · ' + P.title;
+  document.querySelector('[data-mode="capacity"]').textContent = incident() ? 'Incident' : 'Capacity';
   if (P.drawing === 'none') {  // no drawing: draw the agent's own flowsheet, one box per unit in flow order
     // no model yet: lay out the P&ID's own equipment and connections; after Build, the model's units
     const fromPid = !P.built?.spec?.units && (P.pid?.equipment || []).length;
@@ -1604,7 +1738,7 @@ function qaBar(lead) {
     if (P.outcome?.engineers) b.push(['ok', 'answered blind · compare with what happened →']);
     const u = dd.uncertainty; if (u?.p_target != null) b.push([u.p_target >= .8 ? 'ok' : u.p_target >= .5 ? 'open' : 'fail', `target met in ${Math.round(u.p_target * 100)}% of uncertainty re-solves`]);
   }
-  $('qaBadges').innerHTML = b.map(([k, t]) => `<span class="qa-badge ${k}"${/compare/.test(t) ? ' role="button" tabindex="0" style="cursor:pointer" onclick="document.querySelector(\'.outcome-compare\')?.scrollIntoView({behavior:\'smooth\'})"' : ''}>${esc(t)}</span>`).join('');
+  $('qaBadges').innerHTML = b.map(([k, t]) => `<span class="qa-badge ${k}"${/compare/.test(t) ? ' role="button" tabindex="0" style="cursor:pointer" onclick="const o=document.querySelector(\'.outcome-compare\');if(o){o.open=true;o.scrollIntoView({behavior:\'smooth\'})}"' : ''}>${esc(t)}</span>`).join('');
   $('qaSugg').innerHTML = suggestions().map(x => `<button class="btn" ${act('ask', x)}>${esc(x)}</button>`).join('');
 }
 function answers() {
@@ -1711,7 +1845,7 @@ function decisionBrief(a, idx) {
     <div class="decision-fact"><dt>① ${incident() ? 'What the engine shows' : 'What limits it'}</dt><dd>${first ? `<b>${esc(first.tag)}</b> · ${esc(plain(first.text))}` : 'No limiting item reported'}</dd></div>
     <div class="decision-fact"><dt>② ${incident() ? 'What would have prevented it' : 'What Muse proposes'}</dt><dd>${esc(plain(recommendation))}</dd></div>
     <div class="decision-fact status-${statusClass}"><dt>③ What the engines confirmed</dt><dd>${esc(status)}</dd></div>
-    <div class="decision-fact"><dt>Who did what</dt><dd>${whoDidWhat(d, gates)}</dd></div>
+    <div class="decision-fact decision-provenance"><dt>Who did what</dt><dd>${whoDidWhat(d, gates)}</dd></div>
     ${secondOpinionLink(d)}
   </dl></section>${disciplineImpact(d)}${costConfidence(d)}${issue}`;
 }
@@ -1795,9 +1929,9 @@ function outcomeCard() {
   const o = P.outcome;
   if (!o?.engineers) return '';
   const agent = o.agent_headline || designAnswer()?.headline || (P.answers || []).at(-1)?.headline;
-  return `<section class="outcome-compare"><h3>Compare with the ${esc(o.year || 'recorded')} decision</h3><div class="outcome-cols">
+  return `<details class="outcome-compare"><summary>Compare with the ${esc(o.year || 'recorded')} decision</summary><div class="outcome-cols">
     <div><div class="tt">Agent (blind: never saw this outcome)</div><div><b>${esc(plain(agent || 'no answer on record yet'))}</b></div>${o.agent_summary ? `<div class="sm" style="margin-top:4px">${esc((t => t.length > 420 ? t.slice(0, t.lastIndexOf('. ', 420) + 1 || 420) : t)(plain(o.agent_summary)))}</div>` : ''}</div>
-    <div><div class="tt">What the engineers decided</div><div>${esc(o.engineers)}</div>${o.source ? `<small>${esc(o.source)}</small>` : ''}${o.note ? `<small>${esc(o.note)}</small>` : ''}</div></div></section>`;
+    <div><div class="tt">What the engineers decided</div><div>${esc(o.engineers)}</div>${o.source ? `<small>${esc(o.source)}</small>` : ''}${o.note ? `<small>${esc(o.note)}</small>` : ''}</div></div></details>`;
 }
 // files an answer produced; files from an answer that is not the current design say so
 function artifactsSection(a) {

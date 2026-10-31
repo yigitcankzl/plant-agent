@@ -78,6 +78,15 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const workspaceUi = readableAnswer && engineeringView && gateEvidence && focusOn && focusOff && detailShortcut && labelsShortcut;
   console.log(workspaceUi ? 'ok  ' : 'FAIL', 'decision/engineering views, calculated discipline rail, package action and focus mode');
   bad += workspaceUi ? 0 : 1;
+  await p.click('#dockAsk');
+  await p.waitForFunction(() => document.activeElement === document.querySelector('#q'));
+  const askDockOpen = await p.evaluate(() => !document.querySelector('#askPanel').hidden && document.activeElement === document.querySelector('#q'));
+  await p.click('#dockEvidence'); await p.click('#openEvidence');
+  const evidenceOpen = await p.evaluate(() => document.querySelector('#engineeringView').getAttribute('aria-pressed') === 'true' && document.querySelector('#workbench').classList.contains('collapsed'));
+  await p.click('#dockWhatIf');
+  const whatIfRestored = await p.evaluate(() => !document.querySelector('#scenario').hidden && !document.querySelector('#workbench').classList.contains('collapsed'));
+  console.log(askDockOpen && evidenceOpen && whatIfRestored ? 'ok  ' : 'FAIL', 'what-if, ask and evidence workbench panels');
+  bad += askDockOpen && evidenceOpen && whatIfRestored ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
   const saltReady = await p.evaluate(() => Number(P?.built?.review?.blocking || 0) === 0 &&
     Number(P?.capacity?.capacity_multiple || 0) >= 1);
