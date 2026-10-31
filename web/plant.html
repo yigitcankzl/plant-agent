@@ -939,7 +939,7 @@ let AS_BUILT = null, REV_B = {key: null, svg: null};
 // Proposed view: the Rev B sheet re-issued by the server (changes drawn in, clouds, revision block). The client-side
 // overlay is only a fallback when the server cannot generate the sheet, and says so on the drawing.
 async function proposedSheet() {
-  const answer = P?.has_changes ? '' : `&answer=${(P?.answers || []).length - 1}`;
+  const answer = P?.has_changes || !designAnswer() ? '' : `&answer=${P.answers.indexOf(designAnswer())}`;
   const key = `${answer}|${(P?.revisions || []).length}`;
   if (REV_B.key === key) return REV_B.svg;
   let svg = null;
@@ -1507,15 +1507,17 @@ function showGate(index) {
   $('modal').classList.add('on');
 }
 function decisionBrief(a, idx) {
-  const limits = (a.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity));
-  const first = limits[0], verified = (a.proposals || []).filter(p => p.verified), gates = gateRows(a);
+  const d = (a.proposals || []).length ? a : (designAnswer() || a);  // drawing/document commands report on the current design
+  const limits = (d.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity));
+  const first = limits[0], verified = (d.proposals || []).filter(p => p.verified), gates = gateRows(d);
   const failed = gates.filter(row => gateState(row)[0] === 'fail'), open = gates.filter(row => gateState(row)[0] === 'open');
-  const recommendation = (verified.length ? verified : a.proposals || []).map(p => p.title).filter(Boolean).join(' + ') || 'No verified change yet';
+  const recommendation = (verified.length ? verified : d.proposals || []).map(p => p.title).filter(Boolean).join(' + ') || 'No verified change yet';
   let status = 'Analysis needs engineering checks', statusClass = 'open';
   if (modelBlocked()) { status = 'Model review blocked — correct the model before issuing a design'; statusClass = 'fail'; }
   else if (failed.length) { status = `${failed.length} discipline gate${failed.length === 1 ? '' : 's'} failed`; statusClass = 'fail'; }
   else if (open.length) { status = `${simulator()} screening complete · ${open.length} discipline gate${open.length === 1 ? '' : 's'} open`; }
-  else if (a.combined?.reaches_target) { status = `${simulator()} and all supplied discipline gates pass`; statusClass = 'pass'; }
+  else if (d.combined?.reaches_target && !gates.length) status = `${simulator()} verified · discipline gates not run yet`;
+  else if (d.combined?.reaches_target) { status = `${simulator()} and all supplied discipline gates pass`; statusClass = 'pass'; }
   else if (verified.length) status = `${verified.length} change${verified.length === 1 ? '' : 's'} simulated · combined target not yet cleared`;
   const issue = idx === P.answers.length - 1 && !modelBlocked() && verified.length ? `<div class="package-action"><button class="btn go" type="button" onclick="issueEngineeringPackage(this)">Issue engineering package</button><small>DRAFT — generates the decision pack and current pre-FEED gates; not approved for construction.</small></div>` : '';
   return `<section class="decision-brief"><h2>${esc(a.headline || 'Engineering decision')}</h2><dl class="decision-facts">
@@ -1523,7 +1525,7 @@ function decisionBrief(a, idx) {
     <div class="decision-fact"><dt>First bottleneck</dt><dd>${first ? `<b>${esc(first.tag)}</b> · ${esc(first.text)}` : 'No limiting item reported'}</dd></div>
     <div class="decision-fact"><dt>Recommendation</dt><dd>${esc(recommendation)}</dd></div>
     <div class="decision-fact status-${statusClass}"><dt>Status</dt><dd>${esc(status)}</dd></div>
-  </dl></section>${disciplineImpact(a)}${issue}`;
+  </dl></section>${disciplineImpact(d)}${issue}`;
 }
 function compare(a) {  // the alternatives side by side, from what the server re-solved
   const ps = a.proposals || [];
