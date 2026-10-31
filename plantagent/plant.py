@@ -2184,7 +2184,8 @@ class PlantWorkspace(Study):
         """A PDF schematic: Muse vision reads it once into the P&ID structure (cached)."""
         from . import pidvision
         t0, usd0 = time.time(), llm.spent()
-        self.pid = {**pidvision.read(DATA / self.cfg["pid_pdf"], self.cfg.get("pid_page", 1) - 1, self.cfg.get("vision_model", "muse-spark-1.3")),
+        self.pid = {**pidvision.read(DATA / self.cfg["pid_pdf"], self.cfg.get("pid_page", 1) - 1, self.cfg.get("vision_model", "muse-spark-1.3"),
+                                    self.cfg.get("pid_rotate", 0)),
                     "seconds": round(time.time() - t0), "cost_usd": round(llm.spent() - usd0, 4)}
         self.pid_file.write_text(json.dumps(self.pid, indent=1))
         audit.append(self.name, "read_drawing", None, "PDF schematic read by Muse vision", {"model": self.pid["model"], "equipment": len(self.pid["equipment"])})
