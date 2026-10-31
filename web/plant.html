@@ -49,7 +49,7 @@
   .pid-tools { position: absolute; z-index: 7; top: 12px; left: 12px; display: flex; gap: 3px; padding: 4px; border: 1px solid #95a9a6; border-radius: 6px; background: rgba(18,46,52,.94); box-shadow: 0 2px 12px #12303533; }
   .pid-tools button { min-width: 32px; min-height: 30px; padding: 3px 7px; border: 0; border-radius: 3px; background: transparent; color: #f2f7f5; font: 700 15px var(--sans); cursor: pointer; }
   .pid-tools button:hover, .pid-tools button:focus-visible { background: #35616a; outline: 2px solid #9fd9d0; outline-offset: -2px; }
-  .pid-tools button:last-child { font-size: 12px; }
+  .pid-tools button.word { font-size: 12px; }
   .pid-tooltip { position: absolute; z-index: 8; display: none; pointer-events: none; padding: 5px 8px; border-radius: 4px; background: #102e34; color: white; box-shadow: 0 2px 10px #102e3455; font: 12px var(--sans); white-space: nowrap; }
   .sheet [data-tag]:not([data-tag=""]):hover { filter: drop-shadow(0 0 3px #4da3ff); }
   .sheet.has-selection svg g[data-tag]:not([data-tag=""]), .sheet.has-selection svg g[data-line], .sheet.has-selection .tagbox { opacity: .18; }
@@ -80,6 +80,8 @@
   .badge small { font-weight: 500; opacity: .85; }
   .note { position: absolute; transform: translate(-50%, 8px); max-width: 230px; font: 600 11px var(--sans); color: white; background: rgba(239,90,79,.95); padding: 4px 7px; border-radius: 4px; pointer-events: none; }
   .note.warn { background: rgba(197,135,30,.96); } .note.ok { background: rgba(47,150,99,.95); } .note.info { background: rgba(98,112,220,.95); }
+  .pid-viewport.labels-off .badge, .pid-viewport.labels-off .note, .pid-viewport.labels-off .draft-note { display: none !important; }
+  .pid-tools button[aria-pressed="false"] { color: #f4c56a; background: #4b4028; }
   footer { grid-row: 3; grid-column: 2; background: var(--panel); border-top: 1px solid var(--line); display: grid; grid-template-columns: 330px 1fr; }
   .flowctl { padding: 12px 16px; border-right: 1px solid var(--line); }
   .flowv { font: 700 28px var(--mono); } .flowv small { font-size: 13px; color: var(--muted); }
@@ -312,7 +314,7 @@
 
   <main>
     <div id="note" style="display:none;margin:8px 18px 0;padding:6px 10px;border:1px solid #5a4a2a;border-radius:5px;color:var(--warn);font-size:12px"></div>
-    <div class="stage" style="position:relative"><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Proposed</button></div><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing zoom"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
+    <div class="stage" style="position:relative"><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Proposed</button></div><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing controls"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" class="word" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button><button type="button" class="word" id="toggleLabels" aria-label="Show or hide PlantAgent labels" aria-pressed="true" title="Show or hide PlantAgent load and finding labels">Labels</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
   </main>
 
   <footer id="scenario">
@@ -521,6 +523,11 @@ view.addEventListener('pointerleave', () => { $('pidTooltip').style.display = 'n
 $('zoomIn').onclick = () => zoomDrawing(1.35);
 $('zoomOut').onclick = () => zoomDrawing(1 / 1.35);
 $('zoomFit').onclick = fitDrawing;
+$('toggleLabels').onclick = () => {
+  const visible = view.classList.toggle('labels-off') === false;
+  $('toggleLabels').setAttribute('aria-pressed', visible);
+  $('toggleLabels').textContent = visible ? 'Labels' : 'Labels off';
+};
 
 async function load() {
   P = await api('project');
