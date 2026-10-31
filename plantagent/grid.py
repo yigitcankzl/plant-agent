@@ -6,6 +6,7 @@ Usage (worker): .venv-electrical/bin/python -m plantagent.grid --op run < {"spec
 """
 import copy
 import json
+import math
 import subprocess
 import sys
 from pathlib import Path
@@ -41,6 +42,17 @@ def available():
 
 def _index(spec):
     return {(k, e.get("id")): e for k in KINDS for e in spec.get(k) or [] if isinstance(e, dict)}
+
+
+def _duplicate_ids(spec):
+    seen, duplicates = set(), set()
+    for kind in KINDS:
+        for element in spec.get(kind) or []:
+            eid = element.get("id") if isinstance(element, dict) else None
+            if eid in seen:
+                duplicates.add(eid)
+            seen.add(eid)
+    return sorted(duplicates)
 
 
 def change_errors(spec, changes, require_evidence=True):
@@ -96,6 +108,8 @@ def review(spec, result, basis=""):
             f["items"] = list(dict.fromkeys(items))
         return f
     findings, buses = [], {b.get("id") for b in spec.get("buses") or []}
+    for eid in _duplicate_ids(spec):
+        findings.append(finding("block", "duplicate element id", f"element id {eid} is used more than once", [eid]))
     for k, ends in (("lines", ("from", "to")), ("trafos", ("hv", "lv")), ("switches", ("bus_a", "bus_b")),
                     ("gens", ("bus",)), ("loads", ("bus",)), ("ext_grids", ("bus",))):
         for e in spec.get(k) or []:
@@ -174,6 +188,10 @@ def _num(x):
 
 def _solve(spec, scale=1.0):
     import pandapower as pp
+    duplicates = _duplicate_ids(spec)
+    if duplicates:
+        return {"scale": scale, "errors": ["duplicate element id: " + ", ".join(duplicates)],
+                "streams": {}, "units": {}, "buses": {}, "checks": []}
     try:
         net = _net(spec, scale)
         pp.runpp(net, numba=False, max_iteration=50)
@@ -199,6 +217,10 @@ def _solve(spec, scale=1.0):
     for i, row in net.ext_grid.iterrows():
         units[row["name"]] = {"type": "grid equivalent", "p_mw": round(float(net.res_ext_grid.p_mw[i]), 1),
                               "q_mvar": round(float(net.res_ext_grid.q_mvar[i]), 1)}
+    for i, row in net.load.iterrows():
+        if not math.isfinite(float(net.res_bus.vm_pu[row.bus])):
+            checks.append({"id": row["name"], "kind": "load lost", "check": "load lost", "value": round(abs(float(row.p_mw)), 3),
+                           "limit": 0.0, "unit": "MW", "utilisation": 2.0})
     for uid, u in units.items():
         if u["type"] not in ("line", "transformer") or not u.get("in_service", True):
             continue
@@ -254,9 +276,18 @@ def _n1(spec, scale, elements):
     cases = []
     for eid in ids:
         kind = "lines" if any(ln["id"] == eid for ln in spec.get("lines") or []) else "trafos"
-        r = _solve(patch(spec, [{"path": f"{kind}.{eid}.in_service", "value": False}]), scale)
+        element = next(e for e in spec.get(kind) or [] if e["id"] == eid)
+        circuits = int(element.get("parallel") or 1) if kind == "lines" else 1
+        if circuits > 1:
+            r = _solve(patch(spec, [{"path": f"lines.{eid}.parallel", "value": circuits - 1}]), scale)
+            out = f"{eid}: one of {circuits} circuits"
+        else:
+            r = _solve(patch(spec, [{"path": f"{kind}.{eid}.in_service", "value": False}]), scale)
+            out = eid
         over = [c for c in r["checks"] if c["utilisation"] > 1]
-        cases.append({"out": eid, "errors": r["errors"], "over": over[:6], "worst": _worst(r)})
+        remaining = r.get("units", {}).get(eid) if circuits > 1 else None
+        cases.append({"out": out, "element": eid, "remaining": remaining, "errors": r["errors"],
+                      "over": over[:6], "worst": _worst(r)})
     cases.sort(key=lambda c: -((c["worst"] or {}).get("utilisation") or 9))
     bad = [c for c in cases if c["over"] or c["errors"]]
     return {"scale": scale, "secure": not bad and not base["errors"], "violations": len(bad), "base_worst": _worst(base), "cases": cases}
