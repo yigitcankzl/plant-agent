@@ -2847,6 +2847,8 @@ class PlantWorkspace(Study):
         self.runs[self.built["label"]] = {"spec": r["spec_after"], "purpose": "calibrated model (current revision)", "result": r["result_after"]}
         _write_json(self.rev_file, self.revisions)
         self._audit_review(reviewed, r.get("user"), r.get("reason") or r.get("title") or "revision")
+        from . import approval
+        approval.invalidate(self, r.get("user"), r.get("reason") or r.get("title") or "design changed")
         self._state = {}
 
     def state(self, scale=1.0):

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PlantAgent · Engineering review</title>
+  <style>
+    :root{color-scheme:dark;--bg:#10262b;--panel:#19363d;--line:#3f6067;--text:#eef8f5;--muted:#a9c2c2;--mint:#94d6c7;--warn:#f1c36d}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,sans-serif}
+    header{display:flex;gap:16px;align-items:center;padding:18px 24px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:2}
+    h1{font-size:20px;margin:0} select,input,textarea,button{font:inherit;color:inherit;background:#24454d;border:1px solid var(--line);border-radius:7px;padding:9px}
+    button{cursor:pointer;background:var(--mint);color:#113238;font-weight:700} button.secondary{background:#24454d;color:var(--text)}
+    main{max-width:1200px;margin:auto;padding:24px;display:grid;grid-template-columns:1.3fr .7fr;gap:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+    h2{font-size:17px;margin:0 0 14px} h3{font-size:15px;margin:18px 0 8px}.row{border-top:1px solid var(--line);padding:12px 0}.meta{color:var(--muted);font-size:13px}.bad{color:var(--warn)}
+    form{display:grid;gap:9px;margin-top:12px} textarea{min-height:76px}.wide{grid-column:1/-1}.actions{display:flex;gap:9px;flex-wrap:wrap}.empty{color:var(--muted)}
+    @media(max-width:800px){main{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+<header><h1>Engineering review</h1><label>Case <select id="case"></select></label><button class="secondary" id="refresh">Refresh</button></header>
+<main>
+  <section class="card"><h2>Issued MOC packs</h2><div id="packs"></div><div class="actions"><button id="issue">Issue current design as a new revision</button><a id="hazopLink" hidden>HAZOP JSON</a></div></section>
+  <section class="card"><h2>Required sign-offs</h2><div id="signoffs"></div>
+    <form id="signForm"><select id="role"></select><input id="name" required placeholder="Engineer name"><textarea id="reason" required placeholder="Reason for sign-off"></textarea><button>Sign current pack</button></form>
+  </section>
+  <section class="card wide"><h2>Review comments</h2><div id="comments"></div>
+    <form id="commentForm"><div class="actions"><select id="targetType"><option>proposal</option><option>gate</option><option>document</option></select><input id="targetId" required placeholder="Target id, e.g. Rev B.1 or electrical"></div><textarea id="comment" required placeholder="Review comment"></textarea><button>Add comment</button></form>
+  </section>
+  <section class="card wide"><h2>Audit status</h2><div id="audit" class="meta"></div></section>
+</main>
+<script>
+const q=new URLSearchParams(location.search),sel=document.querySelector('#case'); let state;
+async function api(path,body){const r=await fetch(path,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-User':document.querySelector('#name').value||'review page'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw Error(d.error||r.statusText);return d}
+function el(tag,text,cls){const n=document.createElement(tag);n.textContent=text;if(cls)n.className=cls;return n}
+function rows(host,items,draw){host.replaceChildren();if(!items.length)host.append(el('p','None yet.','empty'));else items.forEach(x=>host.append(draw(x)))}
+async function load(){const c=sel.value;if(!c)return;state=await api(`/api/plant/${encodeURIComponent(c)}/approval`);const hz=await api(`/api/plant/${encodeURIComponent(c)}/hazop`);const link=document.querySelector('#hazopLink');link.hidden=!hz.rows;link.href=`/api/plant/${encodeURIComponent(c)}/hazop`;link.textContent=hz.rows?`HAZOP: ${hz.summary.rows} rows (${hz.summary.computed} computed)`:'HAZOP not generated';
+ rows(document.querySelector('#packs'),state.packs,p=>{const d=el('div','', 'row');d.append(el('strong',`${p.id} · ${p.status}`));d.append(el('div',`${p.folder} · integrity ${p.integrity||'not checked'} · issued ${p.issued_at}`,'meta'));return d});
+ rows(document.querySelector('#comments'),state.comments,c=>{const d=el('div','', 'row');d.append(el('strong',`${c.target.type}: ${c.target.id}`));d.append(el('div',c.text));d.append(el('div',`${c.name} · pack R${c.pack_revision} · ${c.at}`,'meta'));return d});
+ rows(document.querySelector('#signoffs'),state.signoffs,s=>{const d=el('div','', 'row');d.append(el('strong',`${s.role} · ${s.name}${s.active?'':' · invalidated'}`,s.active?'':'bad'));d.append(el('div',s.reason));d.append(el('div',`pack R${s.pack_revision} · ${s.at}`,'meta'));return d});
+ document.querySelector('#role').replaceChildren(...state.roles.map(r=>el('option',r))); const a=await api(`/api/plant/${encodeURIComponent(c)}/audit`);document.querySelector('#audit').textContent=`Hash chain ${a.verify.ok?'intact':'BROKEN'} · ${a.verify.entries} entries`;
+}
+async function init(){const projects=await api('/api/projects');const process=projects.filter(p=>p.kind==='process'&&p.built);sel.replaceChildren(...process.map(p=>{const o=el('option',p.title);o.value=p.case;return o}));if(q.get('case')&&process.some(p=>p.case===q.get('case')))sel.value=q.get('case');await load()}
+sel.onchange=()=>{history.replaceState(null,'',`?case=${encodeURIComponent(sel.value)}`);load().catch(show)};document.querySelector('#refresh').onclick=()=>load().catch(show);
+document.querySelector('#issue').onclick=async()=>{try{const pack=await api(`/api/plant/${sel.value}/decision`,{});await api(`/api/plant/${sel.value}/approval/issue`,{folder:pack.folder,reason:'Issued for discipline review'});await load()}catch(e){show(e)}};
+document.querySelector('#commentForm').onsubmit=async e=>{e.preventDefault();const type=document.querySelector('#targetType'),id=document.querySelector('#targetId'),text=document.querySelector('#comment');try{await api(`/api/plant/${sel.value}/approval/comment`,{target_type:type.value,target_id:id.value,text:text.value});text.value='';await load()}catch(x){show(x)}};
+document.querySelector('#signForm').onsubmit=async e=>{e.preventDefault();const role=document.querySelector('#role'),name=document.querySelector('#name'),reason=document.querySelector('#reason');try{await api(`/api/plant/${sel.value}/approval/signoff`,{role:role.value,name:name.value,reason:reason.value});reason.value='';await load()}catch(x){show(x)}};
+function show(e){alert(e.message||e)} init().catch(show);
+</script>
+</body>
+</html>

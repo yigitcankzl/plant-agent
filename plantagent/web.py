@@ -713,7 +713,8 @@ class Handler(SimpleHTTPRequestHandler):
         if parts[:1] == ["wsfiles"] and len(parts) == 4 and (parts[1] in known or parts[1] in set(all_cases("process"))):
             name = parts[3]
             allowed = name in {"calc_sheets.xlsx", "memo.md", "markup.dwg", "profile_sheet.dwg", "profile_sheet.dxf", "decision.md", "decision.pdf",
-                               "memo.pdf", "redline.svg", "rev_a.svg", "rev_b.svg", "rev_b.png", "decision.json", "decision.zip"} or name.endswith(("_editable.dxf", "_editable.dwg"))
+                               "memo.pdf", "redline.svg", "rev_a.svg", "rev_b.svg", "rev_b.png", "decision.json", "decision.zip",
+                               "hazop.json", "hazop.md", "approval.json"} or name.endswith(("_editable.dxf", "_editable.dwg"))
             f = _safe_file(RUNS / "ws" / parts[1], parts[2], name) if allowed else None
             if f:
                 return self._send(f.read_bytes(), mimetypes.guess_type(f.name)[0] or "application/octet-stream")
@@ -728,9 +729,27 @@ class Handler(SimpleHTTPRequestHandler):
             from . import artifacts
             f = artifacts.file(parts[2], parts[4], parts[5])
             return self._send(f.read_bytes(), mimetypes.guess_type(f.name)[0] or "application/octet-stream") if f else self._send({"error": "not found"}, code=404)
+        if parts[:2] == ["api", "plant"] and len(parts) == 5 and parts[2] in set(all_cases("process")) and parts[3] == "approval":
+            from . import approval
+            case, action = parts[2], parts[4]
+            if method != "POST":
+                return self._send({"error": "not found"}, code=404)
+            body = self._json_body()
+            w = plant(case)
+            user = self.headers.get("X-User")
+            if action == "comment":
+                return self._send(_case_call(case, lambda: approval.comment(
+                    w, body.get("target_type"), body.get("target_id"), body.get("text"), user, body.get("pack_revision"))))
+            if action == "signoff":
+                return self._send(_case_call(case, lambda: approval.signoff(
+                    w, body.get("role"), body.get("name"), body.get("reason"), user, body.get("pack_revision"))))
+            if action == "issue":
+                return self._send(_case_call(case, lambda: approval.issue(
+                    w, body.get("folder"), user, body.get("reason"))))
+            return self._send({"error": "not found"}, code=404)
         if parts[:2] == ["api", "plant"] and len(parts) == 4 and parts[2] in set(all_cases("process")):
             case, what = parts[2], parts[3]
-            if method == "POST" and what in ("build", "ask"):
+            if method == "POST" and what in ("build", "ask", "hazop"):
                 _require_runs()
             body = self._json_body() if method == "POST" else {}
             w = plant(case)
@@ -792,6 +811,18 @@ class Handler(SimpleHTTPRequestHandler):
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
                 return self._send({**r, "base": f"/wsfiles/{case}/{r['folder']}/"})
+            if what == "hazop":
+                from . import hazop
+                if method == "POST":
+                    try:
+                        return self._send(_case_call(case, lambda: hazop.generate(w, body.get("answer"), body.get("model"))))
+                    except (ValueError, RuntimeError) as e:
+                        return self._send({"error": str(e)}, code=409)
+                study = hazop.load(w, int(q["answer"]) if q.get("answer", "").isdigit() else None)
+                return self._send(study or {"status": "not generated", "content_hash": hazop.content_hash(w)})
+            if what == "approval":
+                from . import approval
+                return self._send(approval.status(w))
             if what == "gates":  # discipline gates of the design answer: DWSIM/pandapower/ht/Cantera, no model call; cached
                 from . import prefeed
                 try:
