@@ -88,7 +88,7 @@ class SaltHeater(unittest.TestCase):
         for want in ("tube velocity vs minimum", "tube-side pressure drop vs allowable", "shell-side pressure drop vs allowable",
                      "brine circulation needed for the rise limit vs pump rating"):
             self.assertIn(want, names)
-        self.assertTrue(any(n.startswith("model U 2000") for n in names))
+        self.assertTrue(any(n.startswith("model U 2,000") for n in names))
         self.assertTrue(any(f.endswith(".pdf") for f in r["files"]) and r["kind"] == "calculation")
         md = (Path(self.tmp) / "runs" / "ws" / "salt_mvr" / "artifacts" / r["id"] / "hx-E-201.md").read_text()
         self.assertIn("ILLUSTRATIVE", md)

@@ -227,6 +227,8 @@ def value_text(change, names):
     """'U 2,000 → 2,500 W/m²K' for a path change."""
     kind, oid, field = change["path"].split(".", 2)
     unit = FIELD.get(field, ("", ""))[1]
+    if field in ("P_bar", "P_out_bar") and unit == "bar":
+        unit = "bar(a)"  # model pressures are absolute; pressure drops stay plain bar
     frm, to = change.get("from"), change.get("value")
     if field == "fractions" and isinstance(to, list):
         pct = lambda v: f"{v[0] * 100:.1f}" if isinstance(v, list) and v else "?"  # noqa: E731
@@ -358,6 +360,31 @@ def _best_route(sheet, a, b, ends=None):
 def _union(boxes):
     boxes = [b for b in boxes if b]
     return (min(b[0] for b in boxes), min(b[1] for b in boxes), max(b[2] for b in boxes), max(b[3] for b in boxes))
+
+
+def _clear_labels(sheet, cb, content, others=(), bulge=3.4, gap=0.8, reach=20):
+    """Move a cloud's edges off existing labels, equipment and other clouds: each edge goes to the nearest position
+    (within `reach`, never into the clouded content) where its scallops (`bulge` outward) touch none of them."""
+    box = list(cb)
+    lo = (content[0] - 1, content[1] - 1, content[2] + 1, content[3] + 1)  # the edges may not come closer than this
+    texts, clouds = [tb for _, tb, _ in sheet.texts if tb], [tuple(o) for o in others]
+    # clear of everything if possible, else of text and other clouds, else at least of text (a label is never struck through)
+    tiers = (texts + clouds + [b for b in sheet.boxes.values() if b], texts + clouds, texts)
+    for _ in range(2):
+        for side in range(4):  # 0 left, 1 top, 2 right, 3 bottom; scallops bulge outward
+            axis, other, sign = side % 2, 1 - side % 2, -1 if side < 2 else 1
+            band = lambda e: (min(e, e + sign * bulge) - gap, max(e, e + sign * bulge) + gap)  # noqa: E731
+            for obstacles in tiers:
+                span = [o for o in obstacles if o[other] < box[other + 2] and o[other + 2] > box[other]]
+                hits = lambda e: any(o[axis] < band(e)[1] and o[axis + 2] > band(e)[0] for o in span)  # noqa: E731
+                if not hits(box[side]):
+                    break
+                cands = [lo[side]] + [c for o in span for c in (o[axis] - gap - max(0, sign) * bulge, o[axis + 2] + gap + max(0, -sign) * bulge)]
+                ok = [c for c in cands if abs(c - box[side]) <= reach and not hits(c) and (c <= lo[side] if side < 2 else c >= lo[side])]
+                if ok:
+                    box[side] = min(ok, key=lambda c: abs(c - box[side]))
+                    break
+    return tuple(box)
 
 
 def _clusters(boxes, gap=14):
@@ -878,9 +905,9 @@ def generate(svg, spec, revisions, names=None, meta=None):
             title = f"{uid} (NEW)"
             sub = f"Parallel {KIND.get(kind, kind)} to {info['partner']}"
             lines = [f"Rating {_rating(limits)}", f"Rating source: {_source(c.get('rating_source'))}"]
-            duty = _duty(rev.get("calculation"), uid)
+            duty = _duty(rev.get("design") or rev.get("calculation"), uid)
             if duty:
-                lines.insert(1, f"Duty at target: {duty} (DWSIM)")
+                lines.insert(1, f"Duty at target: {duty} ({'combined design, ' if rev.get('design') else ''}DWSIM)")
             above = plan["at"][1] <= sheet.center(info["partner"])[1]
             ty = y - 11 - 3.2 * (len(lines) + 1) if above else y + 12
             label_box = (x - 10, ty - 3.2, x - 10 + max(len(t) for t in [title, sub] + lines) * 1.35, ty + 6.4 + 3 * (len(lines) - 1) + 0.8)
@@ -889,8 +916,9 @@ def generate(svg, spec, revisions, names=None, meta=None):
             sheet.mark_box(sym_box)
             sheet.mark_box(label_box)
             taken.append(label_box)
-            # block valves both sides and a discharge check valve, so the parallel machine can be isolated and not driven backwards
-            for pts, d, end, chk in ((rin, 5, True, False), (rout, 5, False, False), (rout, 10, False, True)):
+            # block valves both sides and a discharge check valve, so the parallel machine can be isolated and not driven backwards;
+            # discharge: check valve next to the machine, block valve after it; suction block valve clear of the arrowhead
+            for pts, d, end, chk in ((rin, 9, True, False), (rout, 5, False, True), (rout, 10, False, False)):
                 v = _along(pts, d, end)
                 if v:
                     g.append(_valve_at(pts, d, end, chk))
@@ -999,7 +1027,7 @@ def generate(svg, spec, revisions, names=None, meta=None):
             boxes.append(_union([box, abox]))  # callout, leader and anchor stay in one cloud
             drawn.append(f"note at {where}: {_short(text, 60)}")
         for cb in _clusters(boxes):  # one cloud per changed area; a revision acting in two places gets two clouds
-            cb = _grow(cb, 3)
+            cb = _clear_labels(sheet, _grow(cb, 3), cb, cloud_boxes)
             clouds.append(cb)
             cloud_boxes.append(cb)
             parts.append(f'<g data-rev-cloud="{n}" pointer-events="none"><path d="{_cloud_rect(cb)}" fill="none" stroke="{CLOUD}" '
@@ -1014,7 +1042,11 @@ def _issue(svg, sheet, parts, markers, revisions, report, unplaced, meta):
     """Insert the Rev B content, extend the sheet with a revision block and mark the title block Rev B."""
     x, y, w, h = sheet.vb
     rows = len(revisions)
-    strip = 33 + 4.2 * rows + (4 if unplaced else 0)
+    import textwrap
+    width = max(40, int((w - 29) / 1.15))  # characters per line at font-size 2.3
+    wrapped = [textwrap.wrap("; ".join(rep["drawn"]) or "-", width) or ["-"] for rep in report]  # wrapped, never cut
+    extra_lines = sum(len(t) for t in wrapped)
+    strip = 33 + 4.2 * rows + 3.1 * extra_lines + (4 if unplaced else 0)
     top = y + h  # the strip starts under the original sheet
     date = meta.get("date") or time.strftime("%Y-%m-%d")
     defs = "<defs>" + "".join(f'<marker id="revb-arr-{k}" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto" '
@@ -1031,8 +1063,8 @@ def _issue(svg, sheet, parts, markers, revisions, report, unplaced, meta):
     blk.append(f'<path d="M{L},{top + 9} H{R} M{L},{ty + 1.2} H{R}" stroke="{INK}" stroke-width="0.3"/>')
     for cx, t in zip(cols, ("REV", "DATE", "DESCRIPTION", "BY", "CHECKED", "APPROVED")):
         blk.append(f'<text x="{cx}" y="{ty}" font-size="2.3" font-weight="700" fill="{INK}">{t}</text>')
-    for i, (rev, cells) in enumerate((("A", ("as received", "Existing plant as drawn (issued for reference)", "-", "-", "-")),
-                                      ("B", (date, f"Proposed: {len(revisions)} change(s) marked by clouds 1-{len(revisions)}; "
+    for i, (rev, cells) in enumerate((("A", (meta.get("rev_a_date") or "—", "Existing plant as drawn (issued for reference)", "-", "-", "-")),
+                                      ("B", (date, f"Proposed: {len(revisions)} change{'' if len(revisions) == 1 else 's'} marked by clouds 1-{len(revisions)}; "
                                                    + ("verified in DWSIM at the target" if meta.get("verified", True)
                                                       else "NOT verified in DWSIM: drawing request only"), "PlantAgent", "", "")))):
         yy = ty + 3.6 * (i + 1)
@@ -1043,15 +1075,16 @@ def _issue(svg, sheet, parts, markers, revisions, report, unplaced, meta):
     yy = ty + 3.6 * 3 + 1
     blk.append(f'<path d="M{L},{yy - 2.6} H{R}" stroke="{INK}" stroke-width="0.3"/>')
     blk.append(f'<text x="{L + 3}" y="{yy + 0.8}" font-size="2.4" font-weight="700" fill="{INK}">REV B CHANGES (clouded on the sheet)</text>')
-    for i, (rev, rep) in enumerate(zip(revisions, report)):
-        ry = yy + 5.4 + 4.2 * i
+    ry = yy + 5.4
+    for rev, detail in zip(revisions, wrapped):
         blk.append(_triangle(L + 6, ry - 0.9, rev["rev"], 0.62))
-        detail = "; ".join(rep["drawn"])
-        detail = detail if len(detail) <= 120 else detail[:119] + "…"
-        blk.append(f'<text x="{L + 11}" y="{ry:.1f}" font-size="2.3" fill="{INK}"><tspan font-weight="700">{esc(_short(rev.get("title"), 70))}</tspan>'
-                   f'<tspan fill="#526b6c">  {esc(detail)}</tspan></text>')
+        blk.append(f'<text x="{L + 11}" y="{ry:.1f}" font-size="2.3" font-weight="700" fill="{INK}">{esc(rev.get("title") or "")}</text>')
+        for t in detail:
+            ry += 3.1
+            blk.append(f'<text x="{L + 11}" y="{ry:.1f}" font-size="2.3" fill="#526b6c">{esc(t)}</text>')
+        ry += 4.2
     if unplaced:
-        blk.append(f'<text x="{L + 3}" y="{yy + 5.4 + 4.2 * rows}" font-size="2.3" fill="{CLOUD}">Not drawn (no free position '
+        blk.append(f'<text x="{L + 3}" y="{ry:.1f}" font-size="2.3" fill="{CLOUD}">Not drawn (no free position '
                    f'found; see the decision file): {esc(", ".join(unplaced))}</text>')
     checked = "verified in DWSIM" if meta.get("verified", True) else "NOT verified in DWSIM"
     blk.append(f'<text x="{R - 3}" y="{top + strip - 5}" font-size="2.2" text-anchor="end" fill="#526b6c">Generated by PlantAgent, '
@@ -1116,6 +1149,29 @@ def design_answer(answers):
     return (reach or has or [None])[-1]
 
 
+_DESIGN = {}
+
+
+def design_solve(w, ans, scale=None):
+    """One basis for every document and drawing: the answer's verified proposals applied together, solved at the target.
+    Returns (result, scale, label) or None with fewer than two verified proposals (one proposal's own record is the design).
+    ponytail: in-process cache keyed on the change set; a few seconds per solve, recomputed after a restart."""
+    import copy
+    from .plant import _is_watertap, patch
+    props = [p for p in (ans or {}).get("proposals") or [] if p.get("verified")]
+    if len(props) < 2:
+        return None
+    scale = float(scale or next((p["target_scale"] for p in props if p.get("target_scale")), None) or w.cfg.get("target_scale", 1.0))
+    changes = [c for p in props for c in p.get("changes") or []]
+    key = (w.name, json.dumps(changes, sort_keys=True, default=str), json.dumps(w.spec, sort_keys=True, default=str), round(scale, 4))
+    if key not in _DESIGN:
+        from . import process, ro
+        spec = patch(copy.deepcopy(w.spec), changes)
+        _DESIGN[key] = ro.run(spec, scale) if _is_watertap(w.cfg) else process.run(spec, scale)
+    sim = "WaterTAP" if _is_watertap(w.cfg) else "DWSIM"
+    return _DESIGN[key], scale, f"combined design at {scale * 100:.0f} % ({len(props)} verified changes applied together, {sim})"
+
+
 def workspace_items(w, answer=None):
     """(base spec, revision items) for the applied change revisions or, if none, an answer's verified proposals."""
     revs = [r for r in w.revisions if r.get("kind") == "change"]
@@ -1125,7 +1181,12 @@ def workspace_items(w, answer=None):
     ans = (w.answers[answer] if isinstance(answer, int) and 0 <= answer < len(w.answers) else
            design_answer(w.answers))
     props = [p for p in (ans or {}).get("proposals") or [] if p.get("verified")]
+    try:  # new-equipment duties on the sheet come from the combined design, the same basis as the documents
+        design = design_solve(w, ans)
+    except Exception:  # noqa: BLE001 - the sheet falls back to each proposal's own calculation record
+        design = None
     return w.spec, [{"rev": i + 1, "title": p.get("title"), "changes": p["changes"], "calculation": p.get("calculation"),
+                     "design": design[0] if design else None,
                      "fixes": p.get("fixes"), "tag": p.get("tag")} for i, p in enumerate(props)]
 
 

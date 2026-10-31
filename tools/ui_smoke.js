@@ -61,7 +61,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const engineeringView = await p.evaluate(() => getComputedStyle(document.querySelector('.engineering-detail')).display !== 'none');
   await p.screenshot({ path: `${OUT}/engineering_workspace.png` });
   await p.click('.discipline-gate.fail');
-  const gateEvidence = await p.evaluate(() => document.querySelector('#modal').classList.contains('on') && /pandapower load flow/.test(document.querySelector('#modalBox').textContent));
+  const gateEvidence = await p.evaluate(() => document.querySelector('#modal').classList.contains('on') && /pandapower/.test(document.querySelector('#modalBox').textContent));
   await p.evaluate(() => document.querySelector('#modal').classList.remove('on'));
   await p.click('#decisionView');
   await p.click('#focusBtn');
@@ -132,10 +132,31 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   for (const c of ['salt_mvr', 'chem_c01']) {
     await p.goto(`${BASE}/plant.html?case=${c}&tour=1`); await p.waitForSelector('#tour', { state: 'visible', timeout: 20000 });
     const texts = [];
-    for (let i = 0; i < 6; i++) { await p.waitForTimeout(1200); texts.push(await p.locator('#tourText').innerText()); await p.click('#tourNext'); }
+    let limitsOnExisting = false, fixOnProposed = false;
+    for (let i = 0; i < 6; i++) {
+      await p.waitForFunction(() => document.querySelector('#tourText').textContent !== '…', null, { timeout: 30000 }).catch(() => {});
+      await p.waitForTimeout(800); texts.push(await p.locator('#tourText').innerText());
+      const step = await p.locator('#tourStep').innerText(), view = await p.evaluate(() => document.querySelector('#vExisting')?.classList.contains('on') ? 'existing' : 'proposed');
+      if (/What limits it/.test(step)) limitsOnExisting = view === 'existing';
+      if (/fix/.test(step)) fixOnProposed = view === 'proposed';
+      await p.click('#tourNext');
+    }
     const stale = texts.some(t => /14 measured values|Three limits bind|No capital spend/.test(t));
-    console.log(errs.length || stale ? 'FAIL' : 'ok  ', `guided demo on ${c}, 6 steps from the case data`, errs.join(' | '));
-    bad += stale ? 1 : 0;
+    const ok = !stale && limitsOnExisting && fixOnProposed && texts.some(t => /Muse/.test(t));
+    console.log(errs.length || !ok ? 'FAIL' : 'ok  ', `guided demo on ${c}: limits on Existing, Muse's fix on Proposed, text from the case data`, errs.join(' | '));
+    bad += ok ? 0 : 1;
+  }
+  // every discipline gate is visible without a hidden horizontal scroll
+  await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForSelector('.discipline-rail', { timeout: 30000 }).catch(() => {});
+  const railFits = await p.evaluate(() => { const r = document.querySelector('.discipline-rail'); return !!r && r.scrollWidth <= r.clientWidth + 1 && r.children.length >= 5; });
+  console.log(railFits ? 'ok  ' : 'FAIL', 'all discipline gates visible on salt_mvr');
+  bad += railFits ? 0 : 1;
+  // a blind case with a recorded outcome shows the agent and the engineers side by side
+  const bv = await (await fetch(`${BASE}/api/plant/swro_brownsville/project`)).json().catch(() => ({}));
+  if (bv.outcome) {
+    await p.goto(`${BASE}/plant.html?case=swro_brownsville`); const shown = await p.waitForSelector('.outcome-compare', { timeout: 30000 }).then(() => true).catch(() => false);
+    console.log(shown ? 'ok  ' : 'FAIL', 'Brownsville compares the agent with the recorded decision');
+    bad += shown ? 0 : 1;
   }
   await b.close(); process.exit(bad || errs.length ? 1 : 0);
 })();

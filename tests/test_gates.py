@@ -1,7 +1,7 @@
 import unittest
 
 from plantagent.plant import calibration_check
-from plantagent.prefeed import _gate, hazard_screen
+from plantagent.prefeed import _fmt, _gate, hazard_screen
 
 
 def chk(util, source="DWSIM", check="x"):
@@ -13,8 +13,23 @@ class Gates(unittest.TestCase):
         self.assertEqual(_gate("electrical", [chk(1.3)], "pandapower", "s")["status"], "fail")
         g = _gate("heat_transfer", [chk(0.8), chk(3.9, "pump rating (ILLUSTRATIVE)")], "ht", "s")
         self.assertEqual(g["status"], "open")
-        self.assertIn("ILLUSTRATIVE", g["summary"])
+        self.assertIn("1 check over illustrative ratings", g["summary"])
+        self.assertEqual([c["status"] for c in g["checks"]], ["ok", "over (illustrative rating)"])
         self.assertEqual(_gate("process", [chk(0.9)], "DWSIM", "s")["status"], "pass")
+
+    def test_minimum_and_temperature_checks_read_as_margins(self):
+        rows = _gate("heat_transfer", [
+            {"id": "E", "check": "tube velocity vs minimum", "value": 2.83, "limit": 1.5, "unit": "m/s", "utilisation": 0.53, "source": "x"},
+            {"id": "H", "check": "gas temperature vs design inlet", "value": 534.0, "limit": 485.0, "unit": "C", "utilisation": 1.1, "source": "x"},
+            {"id": "E", "check": "model U 2,500 vs correlation U 3,297 W/m²K", "value": 24.2, "limit": 20.0, "unit": "% difference",
+             "utilisation": 1.21, "source": "x", "kind": "note"}], "ht", "s")["checks"]
+        self.assertEqual([r["kind"] for r in rows], ["min", "max", "max"])
+        self.assertEqual(rows[0]["result"], "1.33 m/s above the minimum")
+        self.assertEqual(rows[1]["result"], "49 K over the limit")
+        self.assertEqual((rows[2]["status"], rows[2]["result"]), ("note", "24 % apart (flagged above 20 %)"))
+
+    def test_numbers_have_separators_not_exponents(self):
+        self.assertEqual([_fmt(x) for x in (7130.4, 226800, 0.3642, 156000.0, 12)], ["7,130", "226,800", "0.3642", "156,000", "12"])
 
     def test_no_check_or_open_reason_is_never_green(self):
         self.assertEqual(_gate("mechanical", [], "src", "s")["status"], "open")

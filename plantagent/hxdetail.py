@@ -388,7 +388,7 @@ def checks(tag, entry, num, model_U, condition):
         add("LMTD correction factor F vs minimum", num["F"], 0.75, "-", 0.75 / max(num["F"], 1e-6),
             "typical practice: F not below 0.75 for a multi-pass shell (Sinnott, C&R Vol. 6 sec. 12.6); lower means a "
             "temperature cross that needs counter-current flow or shells in series")
-    add(f"area required ({condition} correlation U) vs installed", num["A_req"], num["A_inst"], "m2", num["A_req"] / num["A_inst"],
+    add(f"area required ({condition} correlation U) vs installed", num["A_req"], num["A_inst"], "m²", num["A_req"] / num["A_inst"],
         "Q / (U F LMTD), U from the correlations")
     dps = [("hot", num["dP_hot_bar"], "dP_hot_max_bar"), ("cold", num["dP_cold_bar"], "dP_cold_max_bar")] if plate else \
           [("tube", num["dP_tube_bar"], "dP_tube_max_bar"), ("shell", num["dP_shell_bar"], "dP_shell_max_bar")]
@@ -397,15 +397,17 @@ def checks(tag, entry, num, model_U, condition):
             add(f"{side}-side pressure drop vs allowable", dp, lim[k]["value"], "bar", dp / lim[k]["value"], lim[k]["source"])
     rated = (entry.get("circulation") or {}).get("rated_m3_h")
     if num.get("circulation_m3_h") and rated:
-        add("brine circulation needed for the rise limit vs pump rating", num["circulation_m3_h"], rated["value"], "m3/h",
+        add("brine circulation needed for the rise limit vs pump rating", num["circulation_m3_h"], rated["value"], "m³/h",
             num["circulation_m3_h"] / rated["value"], rated["source"])
     if "brine_rise_K" in num and "brine_rise_max_K" in lim and not num.get("circulation_m3_h"):
         add("brine temperature rise vs maximum", num["brine_rise_K"], lim["brine_rise_max_K"]["value"], "K",
             num["brine_rise_K"] / lim["brine_rise_max_K"]["value"], lim["brine_rise_max_K"]["source"])
     if model_U:
         dev = abs(model_U / num["U"] - 1) * 100
-        add(f"model U {model_U:g} vs correlation U {num['U']:.0f} W/m2K ({condition})", dev, 20.0, "% difference", dev / 20,
-            "flag when the model's U differs by more than 20 % from the correlation")
+        add(f"model U {model_U:,.0f} vs correlation U {num['U']:,.0f} W/m²K ({condition})", dev, 20.0, "% difference", dev / 20,
+            "model-consistency note: flagged when the model's U and the correlation differ by more than 20 % "
+            "(re-check the model U; not a design limit)")
+        out[-1]["kind"] = "note"
     return out
 
 

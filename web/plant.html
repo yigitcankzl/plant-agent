@@ -135,9 +135,19 @@
   .calc-sheet td, .calc-sheet th { border-top: 1px solid var(--line); padding: 3px 4px; text-align: left; vertical-align: top; }
   .calc-sheet td.v, .calc-sheet .v { font-family: var(--mono); }
   .ecard td { padding: 3px 6px; border-top: 1px solid var(--line); font-size: 12px; } .ecard td.v { font-family: var(--mono); }
+  .verdict-which { display: block; font: 600 11px var(--mono); letter-spacing: .5px; color: var(--muted); text-transform: uppercase; }
+  .gate-checks { padding-left: 0; list-style: none; }
+  .gate-check { border-left: 3px solid var(--line); padding: 4px 0 4px 9px; margin: 6px 0; font-size: 12.5px; }
+  .gate-check.fail { border-color: var(--fail); } .gate-check.warn { border-color: var(--warn); } .gate-check.ok { border-color: var(--ok); }
+  .gate-check small { display: block; color: var(--muted); font-size: 11px; }
+  .decision-fact a { color: #9fd0ff; }
+  .outcome-compare { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; }
+  .outcome-compare h3 { margin: 0 0 8px; font-size: 13px; } .outcome-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12.5px; }
+  .outcome-cols small { display: block; color: var(--muted); margin-top: 4px; }
   .tour-on { outline: 3px solid #4da3ff !important; outline-offset: 2px; border-radius: 6px; }
   #tour { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 60; background: #0f2e45; color: #fff; border: 1px solid #4da3ff;
           border-radius: 10px; padding: 12px 16px; width: min(720px, 92vw); box-shadow: 0 10px 40px rgba(0,0,0,.5); display: none; }
+  @media (max-height: 820px) { #tour { left: 12px; bottom: 12px; transform: none; width: min(460px, 40vw); padding: 9px 12px; } #tour .tx { font-size: 12.5px; } }
   #tour .st { font: 600 11px var(--mono); color: #9fd0ff; letter-spacing: .5px; }
   #tour .tx { margin: 4px 0 10px; font-size: 14px; line-height: 1.45; }
   #tour .row { display: flex; gap: 8px; justify-content: flex-end; }
@@ -215,7 +225,7 @@
   .discipline-impact-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
   .discipline-impact-head h3 { margin: 0; font-size: 13px; }
   .discipline-impact-head span { color: var(--muted); font-size: 10px; }
-  .discipline-rail { display: grid; grid-auto-columns: 76px; grid-auto-flow: column; gap: 0; padding: 3px 0 8px; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; }
+  .discipline-rail { display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); row-gap: 6px; padding: 3px 0 8px; }
   .discipline-gate { position: relative; min-height: 65px; padding: 0 3px; border: 0; background: transparent; color: var(--muted); text-align: center; cursor: pointer; }
   .discipline-gate::before { content: ""; position: absolute; z-index: 0; top: 15px; left: 0; width: 100%; height: 2px; background: #50656a; }
   .discipline-gate:first-child::before { left: 50%; width: 50%; }
@@ -508,7 +518,7 @@ document.addEventListener('keydown', e => {
 
 async function projects() {
   const ps = await fetch('/api/projects').then(r => r.json());
-  $('proj').innerHTML = ps.filter(p => p.workspace && (p.kind !== 'process' || p.built || p.case === CASE)).map(p => `<option value="${p.kind}:${p.case}" ${p.case === CASE ? 'selected' : ''}>${p.kind === 'process' ? '⚗ ' : '💧 '}${esc(p.title.replace(/\s*\([^)]*\)?/g, ''))}</option>`).join('');
+  $('proj').innerHTML = ps.filter(p => p.workspace && (p.kind !== 'process' || p.built || p.case === CASE)).map(p => `<option value="${p.kind}:${p.case}" ${p.case === CASE ? 'selected' : ''}>${p.engine === 'watertap' ? '🌊 ' : p.kind === 'process' ? '⚗ ' : '💧 '}${esc(p.title.replace(/\s*\([^)]*\)?/g, ''))}</option>`).join('');
   $('proj').title = $('proj').selectedOptions[0]?.textContent || 'Project';
   $('proj').onchange = e => { const [k, c] = e.target.value.split(':'); location.href = (k === 'process' ? 'plant.html' : 'workspace.html') + '?case=' + c; };
 }
@@ -690,6 +700,7 @@ async function load() {
   $('q').disabled = false;
   $('askBtn').disabled = false;
   $('toTarget').disabled = !P.built;  // no reliable model yet: nothing to analyse
+  $('toTarget').style.display = P.built ? '' : 'none'; document.querySelector('.flowctl').style.visibility = P.built ? '' : 'hidden';
   $('toTarget').textContent = (P.answers || []).length ? 'Show saved analysis' : 'Analyze target';
   $('model').value = P.model;
   $('model').onchange = async e => { await api('model', {model: e.target.value}); P.model = e.target.value; };
@@ -765,6 +776,11 @@ function fillReview() {
 
 // the calibration table as checked against the solve on the server (plant.calibration_check), not the agent's prose
 const CAL = {reproduced: ['reproduced', 'ok'], input: ['model input', 'muted'], differs: ['differs', 'fail'], not_in_solve: ['not in the solve', 'warn'], no_measurement: ['no measurement', 'muted']};
+// 'muse-spark-1.3-contributor' -> 'Muse Spark', 'muse-wonder-1.0' -> 'Muse Wonder'
+function museName(id) {
+  const m = /(muse)-([a-z]+)/i.exec(id || '');
+  return m ? `Muse ${m[2][0].toUpperCase()}${m[2].slice(1)}${/open/i.test(id) ? ' Open' : ''}` : (id || 'the agent');
+}
 function calSummary(b) {
   const k = b?.calibration_check?.counts;
   if (!k) return '';
@@ -787,8 +803,8 @@ function model() {
   const coverage = !cov ? '' : isRO
     ? `<div class="kv" style="margin-top:6px"><span>P&amp;ID coverage</span>${mapped.length} mapped tags · ${(cov.missing_equipment || []).length} unmodelled items</div>`
     : `<div class="kv" style="margin-top:6px"><span>P&amp;ID coverage</span>${conns.filter(c => c.modelled).length} of ${conns.filter(c => !c.relief_path).length} flow connections simulated ${(cov.missing_connections || []).length || (cov.missing_equipment || []).length ? '<span style="color:var(--muted)">· the rest are drawn for context</span>' : '<b style="color:var(--ok)">✓</b>'}</div>
-      <div style="color:var(--muted);font-size:11px">${conns.filter(c => c.relief_path).length} relief path(s) excluded: no normal flow</div>`;
-  $('builtBy').textContent = `${b.model.replace('muse-', '').replace('-contributor', '')} · ${b.seconds}s`;
+      <div style="color:var(--muted);font-size:11px">${plural(conns.filter(c => c.relief_path).length, 'relief path')} excluded: no normal flow</div>`;
+  $('builtBy').textContent = /muse/i.test(b.model || '') ? `built by ${museName(b.model)} in ${b.seconds} s` : `${b.model} (no language model)`;
   $('modelBox').innerHTML = `<div class="why" style="color:var(--muted);font-size:11.5px;margin-bottom:6px">${simulator()} model built by the agent from the P&amp;ID, ${count} ${isRO ? 'RO stages' : 'units'}.</div>` +
     calibrationBlock(b) +
     (P.drawing === 'pdf' ? `<div class="kv" style="margin-top:6px"><span>Drawing read</span>${P.read_confirmed ? `confirmed · ${P.read_corrections} corrections by the engineer` : 'not confirmed'}</div>` : '') +
@@ -863,14 +879,16 @@ function render(st) {
   const top = rows[0], cap = P.capacity;
   const over = rows.filter(c => c.utilisation > 1);
   const blocks = (P.built?.review?.findings || []).filter(f => f.severity === 'block');
-  const capLine = cap?.capacity_multiple != null ? `Existing plant: maximum <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? `Recorded ${simulator()} solution.` : `Solved live in ${simulator()}.`}` : '';
+  const capLine = cap?.capacity_multiple != null ? `Today's plant: maximum <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? `Recorded ${simulator()} solution.` : `Solved live in ${simulator()}.`}` : '';
   if (blocks.length) {
     const more = blocks.length > 1 ? ` · ${blocks.length - 1} more blocking finding${blocks.length > 2 ? 's' : ''}.` : '';
     $('verdict').innerHTML = `<span style="color:var(--fail)">Model needs review</span>`;
     $('verdictSub').innerHTML = `${esc(blocks[0].check)}: ${esc(String(blocks[0].evidence).slice(0, 220))}${more} ${capLine}`;
   } else {
-    $('verdict').innerHTML = over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
-      : `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — tightest: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`;
+    // header and subline name which plant they describe, so 'runs at 120 %' (proposed) and 'maximum 100 %' (today) never read as a contradiction
+    const which = VIEW === 'proposed' && !modelBlocked() && (P?.has_changes || latestProposedChanges().length) ? 'Proposed design' : "Today's plant";
+    $('verdict').innerHTML = `<span class="verdict-which">${which}</span> ` + (over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
+      : `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — tightest: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`);
     $('verdictSub').innerHTML = capLine;
   }
   $('verdictSub').title = $('verdictSub').textContent;
@@ -883,11 +901,28 @@ const nm = id => { const n = (P?.names || {})[id] || id; return /^[a-z]/.test(n)
 const FIELDS = {m3_h: ['flow', 'm³/h'], kg_h: ['flow', 'kg/h'], T_C: ['temperature', '°C'], P_bar: ['pressure', 'bar(a)'], volume_m3: ['working volume', 'm³'],
   area_m2: ['installed area', 'm²'], U_W_m2K: ['heat-transfer coefficient', 'W/m²K'], P_out_bar: ['discharge pressure', 'bar(a)'], T_out_C: ['outlet temperature', '°C'],
   duty_kW: ['duty', 'kW'], dP_bar: ['pressure rise/drop', 'bar'], eff_pct: ['efficiency', '%'], kv: ['valve Kv', '']};
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+// display helpers: engineering units and numbers as people write them
+const unitH = t => String(t ?? '').replace(/\bm2K\b/g, 'm²K').replace(/\bm2\b/g, 'm²').replace(/\bm3\/h\b/g, 'm³/h').replace(/\bm3\b/g, 'm³')
+  .replace(/^C$/, '°C').replace(/MetreCubed/g, 'm³').replace(/MetreSquared/g, 'm²').replace(/MillionGallonPerDay/g, 'MGD').replace(/Kilowatt/g, 'kW').replace(/BarGauge/g, 'barg').replace(/DegreeCelsius/g, '°C');
+const numH = v => { const x = Number(v); if (!isFinite(x) || v === '' || v == null) return String(v ?? ''); const r = Number(x.toPrecision(Math.abs(x) >= 1000 ? 4 : 3)); return r.toLocaleString('en-US', {maximumFractionDigits: 3}); };
+// the engine behind a calculation, in words; library names stay in brackets for the engineer
+function srcName(src) {
+  const t = String(src ?? '');
+  if (!t || t === 'None') return '';
+  const nice = [[/pandapower/i, 'Load-flow and motor-start calculation (pandapower)'], [/^ht\/fluids|ht\/fluids exchanger/i, 'Exchanger rating from heat-transfer correlations (ht/fluids)'],
+    [/^Cantera/i, 'Gas turbine and heat-recovery boiler model (Cantera)']].find(([re]) => re.test(t));
+  return unitH(nice ? nice[1] + (/ILLUSTRATIVE/i.test(t) ? ' · illustrative network/geometry values' : '') : t);
+}
+// 'feeds.s47140.m3_h' -> 'Cooling water flow (m³/h)': model paths never reach judge-facing text
+const humanPaths = t => String(t ?? '').replace(/\b(?:feeds|units|limits|streams)\.([\w/-]+)\.(\w+)/g, (_, id, f) => `${nm(id)} ${FIELDS[f] ? FIELDS[f][0] + (FIELDS[f][1] ? ` (${FIELDS[f][1]})` : '') : f.replace(/_/g, ' ')}`);
 const OPL = {duty_kW: ['Duty', 'kW'], lmtd_C: ['Log-mean temperature difference', 'K'], U_W_m2K: ['Heat-transfer coefficient', 'W/m²K'], area_m2: ['Area', 'm²'],
   dP_hot_bar: ['Pressure drop, hot side', 'bar'], dP_cold_bar: ['Pressure drop, cold side', 'bar'], m3_h: ['Flow', 'm³/h'], head_m: ['Head', 'm'],
   dP_bar: ['Pressure rise or drop', 'bar'], eff_pct: ['Efficiency', '%'], kW: ['Shaft power', 'kW'], npsha_m: ['NPSH available', 'm'],
   discharge_barg: ['Discharge pressure', 'barg'], discharge_C: ['Discharge temperature', '°C'], residence_min: ['Hold time', 'min'], volume_m3: ['Working volume', 'm³'],
   T_C: ['Temperature', '°C'], P_bar: ['Pressure', 'bar(a)'], kg_h: ['Mass flow', 'kg/h'], vapour_frac: ['Vapour fraction', ''], min_stages: ['Minimum stages', ''],
+  boil_kW: ['Boil-up duty', 'kW'], vapour_kg_h: ['Vapour produced', 'kg/h'], brine_T_C: ['Brine temperature', '°C'], bpe_K: ['Boiling-point elevation', 'K'],
+  salt_kg_h: ['Salt crystallised', 'kg/h'], condensing_C: ['Heating steam condensing at', '°C'], driving_dT_K: ['Temperature driving force', 'K'], area_needed_m2: ['Heating area needed', 'm²'],
   stages: ['Stages needed', ''], min_reflux: ['Minimum reflux ratio', ''], reflux: ['Reflux ratio', ''], condenser_kW: ['Condenser duty', 'kW'], reboiler_kW: ['Reboiler duty', 'kW']};
 function describe(c) {
   if (c.add_unit) {
@@ -1282,14 +1317,14 @@ function select(tag, fromCanvas = false) {
   document.querySelectorAll('.eq[data-id]').forEach(e => { if (e.dataset.id === tag) e.classList.add('sel'); });
   selectOnDrawing(tag);
   if (!fromCanvas) focusDrawing(tag);
-  if (P.built && ST) equipmentCard(tag);
+  if (P.built && ST) { equipmentCard(tag); $('rightScroll').scrollTop = 0; }
   else if (P.built) PENDING_CARD = tag;  // the state is still solving (e.g. the Rev B what-if): show the card when it arrives
 }
 
 // DEXPI attribute names and unit words, for people: DesignShaftPower 14000 Kilowatt -> Design shaft power 14,000 kW
 const humanKey = k => String(k).replace(/([a-z])([A-Z])/g, '$1 $2').replace(/_/g, ' ').replace(/^(.)(.*)$/, (m, a, b) => a.toUpperCase() + b.toLowerCase());
 const UNIT_WORDS = {Kilowatt: 'kW', Megawatt: 'MW', Watt: 'W', MetreSquared: 'm²', SquareMetre: 'm²', CubicMetrePerHour: 'm³/h', CubicMetre: 'm³', KilogramPerHour: 'kg/h',
-  DegreeCelsius: '°C', Celsius: '°C', Kelvin: 'K', BarGauge: 'barg', Bar: 'bar', Metre: 'm', Millimetre: 'mm', Percent: '%', RevolutionPerMinute: 'rpm'};
+  MetreCubed: 'm³', MillionGallonPerDay: 'MGD', MetrePerSecond: 'm/s', DegreeCelsius: '°C', Celsius: '°C', Kelvin: 'K', BarGauge: 'barg', Bar: 'bar', Metre: 'm', Millimetre: 'mm', Percent: '%', RevolutionPerMinute: 'rpm'};
 const humanVal = v => String(v).replace(/-?\d+(\.\d+)?/g, m => Number(m).toLocaleString('en-US', {maximumFractionDigits: 3}))
   .replace(/\b([A-Z][A-Za-z]+)\b/g, w => UNIT_WORDS[w] || w);
 function equipmentCard(tag) {  // design data, operating values, every limit with its margin, and a what-if
@@ -1307,7 +1342,7 @@ function equipmentCard(tag) {  // design data, operating values, every limit wit
     $('modePanel').hidden = true; $('historyDetails').hidden = true; $('answers').hidden = false; $('askDock').hidden = false;
     $('inspectorTitle').textContent = 'Equipment';
     $('answers').innerHTML = `<button class="btn inspector-back" onclick="showMode(ACTIVE_MODE)">← Back to ${esc(ACTIVE_MODE === 'capacity' ? 'result' : ACTIVE_MODE)}</button><div class="ans"><h3>${esc(tag)} <span style="color:var(--muted);font-size:12px">${esc(duty.status)}</span></h3>
-      <div class="tt">Calculated operating point (${esc(simulator())})</div><table class="ecard">${[['Flow', duty.flow, duty.flow_unit], ['Shaft power', duty.shaft, duty.shaft_unit],
+      <div class="tt">Calculated operating point at the ${Math.round((added.proposal?.target_scale || P.target_scale) * 100)} % design point (${esc(simulator())})</div><table class="ecard">${[['Flow', duty.flow, duty.flow_unit], ['Shaft power', duty.shaft, duty.shaft_unit],
         ['Pressure ratio', duty.pressure_ratio, ''], ['Head', duty.head, duty.head_unit], ['Assumed efficiency', duty.efficiency_pct, '%']]
         .filter(([, v]) => v != null && v !== '').map(([k, v, u]) => `<tr><td>${k}</td><td class="v">${esc(calcNum(typeof v === 'number' ? Number(v.toPrecision(3)) : v))} ${esc(u || '')}</td></tr>`).join('') || '<tr><td>Operating point not in the stored calculation</td></tr>'}</table>
       <div class="tt" style="margin-top:10px">Provisional rating</div><table class="ecard">
@@ -1325,14 +1360,20 @@ function equipmentCard(tag) {  // design data, operating values, every limit wit
   const e = (P.pid.equipment || []).find(x => x.tag === tag);
   const op = (ST.units || {})[tag] || (ST.streams || {})[tag] || {};
   const checks = (ST.checks || []).filter(c => c.id === tag && c.utilisation != null);
-  const editable = u ? Object.entries(u).filter(([k, v]) => typeof v === 'number' && FIELDS[k]) : feed ? Object.entries(feed).filter(([k, v]) => typeof v === 'number' && FIELDS[k]) : [];
+  // what-if fields start at the live solved value, flow first: the default re-solve is a real change, not 25 -> 25
+  const editable = (u ? Object.entries(u) : feed ? Object.entries(feed) : []).filter(([k, v]) => typeof v === 'number' && FIELDS[k])
+    .map(([k, v]) => [k, typeof op[k] === 'number' ? Number(op[k].toPrecision(4)) : v]).sort(([a], [b]) => /m3_h|kg_h/.test(b) - /m3_h|kg_h/.test(a));
   const path = k => `${u ? 'units' : 'feeds'}.${tag}.${k}`;
+  // only the quantities an engineer reads off a unit, with names and units; model bookkeeping keys stay out
+  const opRows = Object.entries(op).filter(([k, v]) => typeof v === 'number' && OPL[k] && !(k === 'duty_kW' && op.kW === v))
+    .map(([k, v]) => `<tr><td title="${esc(k)}">${esc(OPL[k][0])}</td><td class="v">${esc(numH(v))} ${esc(OPL[k][1])}</td></tr>`).join('');
   $('modePanel').hidden = true; $('historyDetails').hidden = true; $('answers').hidden = false; $('askDock').hidden = false;
   $('inspectorTitle').textContent = 'Equipment';
-  $('answers').innerHTML = `<button class="btn inspector-back" onclick="showMode(ACTIVE_MODE)">← Back to ${esc(ACTIVE_MODE === 'capacity' ? 'result' : ACTIVE_MODE)}</button><div class="ans"><h3>${esc(nm(tag))} <span style="color:var(--muted);font-size:12px">${esc(tag)}</span></h3>
+  $('answers').innerHTML = `<button class="btn inspector-back" onclick="showMode(ACTIVE_MODE)">← Back to ${esc(ACTIVE_MODE === 'capacity' ? 'result' : ACTIVE_MODE)}</button><div class="ans"><h3>${esc(nm(tag))}${nm(tag).includes(tag) ? '' : ` <span style="color:var(--muted);font-size:12px">${esc(tag)}</span>`}</h3>
     ${e ? `<div class="tt">Design data (P&amp;ID)</div><table class="ecard">${Object.entries(e.design || {}).map(([k, v]) => `<tr><td title="${esc(k)}">${esc(humanKey(k))}</td><td class="v">${esc(humanVal(v))}</td></tr>`).join('')}</table>` : ''}
-    <div class="tt" style="margin-top:10px">Operating at ${Math.round(ST.scale * 100)}% (${simulator()})</div><table class="ecard">${Object.entries(op).filter(([k, v]) => typeof v === 'number' && !(k === 'duty_kW' && op.kW === v)).map(([k, v]) => `<tr><td title="${esc(k)}">${esc((OPL[k] || [k])[0])}</td><td class="v">${esc(fmt(v))} ${esc((OPL[k] || ['', ''])[1])}</td></tr>`).join('')}</table>
-    <div class="tt" style="margin-top:10px">Limits</div><table class="ecard">${checks.map(c => `<tr><td>${esc(c.check)}</td><td class="v">${esc(fmt(c.value))} of ${esc(fmt(c.limit))} ${esc(c.unit)}</td><td class="v" style="white-space:nowrap;color:var(--${sev(c.utilisation)})">${Math.round(c.utilisation * 100)}% · margin ${Math.round((1 - c.utilisation) * 100)}%</td></tr>`).join('') || '<tr><td>No stated limit</td></tr>'}</table>
+    ${opRows ? `<div class="tt" style="margin-top:10px">Operating at ${Math.round(ST.scale * 100)}% (${simulator()})</div><table class="ecard">${opRows}</table>` : ''}
+    ${checks.length ? `<div class="tt" style="margin-top:10px">Limits</div><table class="ecard">${checks.map(c => `<tr><td>${esc(unitH(c.check))}</td><td class="v">${esc(numH(c.value))} of ${esc(numH(c.limit))} ${esc(unitH(c.unit))}</td><td class="v" style="white-space:nowrap;color:var(--${sev(c.utilisation)})">${Math.round(c.utilisation * 100)}% · margin ${Math.round((1 - c.utilisation) * 100)}%</td></tr>`).join('')}</table>` : ''}
+    ${!opRows && !checks.length ? `<div class="diff" style="margin-top:10px">Not a separate unit in the ${esc(simulator())} model${u ? '' : ': its duty is carried by the unit it serves'}. Ask about ${esc(tag)} to see how it is represented.</div>` : ''}
     ${editable.length ? `<div class="tt" style="margin-top:10px">What if… (a preview in ${simulator()}, not a revision)</div>
       <select id="wiField">${editable.map(([k, v]) => `<option value="${k}" data-v="${v}">${esc(FIELDS[k][0])} (${esc(fmt(v))} ${esc(FIELDS[k][1])})</option>`).join('')}</select>
       <input id="wiValue" type="number" step="any" style="width:110px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:4px" value="${editable[0][1]}">
@@ -1351,8 +1392,8 @@ function healthOf(tag) {
   if (!x) return '';
   return `<div class="tt" style="margin-top:10px">Performance trend (historian)</div><table class="ecard">
     <tr><td>Heat-transfer coefficient</td><td class="v">${fmt(x.U_start)} → <b>${fmt(x.U_now)}</b> W/m²K (${fmt(x.change_pct)} %), clean ${fmt(x.U_clean)}</td></tr>
-    <tr><td>At today's throughput</td><td class="v">${esc(x.status_today || '')}${x.days_to_limit_today != null ? ` · ${fmt(x.days_to_limit_today)} days to the outlet limit` : ''}</td></tr>
-    <tr><td>At the target throughput</td><td class="v">${esc(x.status_target || '')}${x.U_critical_target ? ` · needs U ≥ ${fmt(x.U_critical_target)}` : ''}</td></tr></table>
+    ${x.status_today || x.days_to_limit_today != null ? `<tr><td>At today's throughput</td><td class="v">${esc(x.status_today || '')}${x.days_to_limit_today != null ? ` · ${fmt(x.days_to_limit_today)} days to the outlet limit` : ''}</td></tr>` : ''}
+    ${x.status_target || x.U_critical_target ? `<tr><td>At the target throughput</td><td class="v">${esc(x.status_target || '')}${x.U_critical_target ? ` · needs U ≥ ${fmt(x.U_critical_target)}` : ''}</td></tr>` : ''}</table>
     <div style="color:var(--warn);font-size:11px">${esc(P.health.source_note || '')}</div>`;
 }
 async function troubleshoot(tag) {
@@ -1508,15 +1549,16 @@ function answers() {
   const all = P.answers || [], last = all.at(-1), d = designAnswer();
   // the verified design leads; a later follow-up that does not reach the target is shown under it, not instead of it
   const lead = d && d !== last && !last?.combined?.reaches_target ? d : last;
-  const follow = lead !== last ? `<details class="ans follow-up"><summary>Latest follow-up · ${esc(last.headline || last.question || 'question')}</summary>${ans(last, all.length - 1)}</details>` : '';
+  const follow = lead !== last ? `<details class="ans follow-up"><summary>Latest follow-up · ${esc(plain(last.headline || last.question || 'question'))}</summary>${briefAns(last, all.length - 1)}</details>` : '';
   const rest = all.map((a, i) => [a, i]).filter(([a]) => a !== lead && a !== last).reverse();
   const list = all.length ? [lead] : [];
-  $('answers').innerHTML = list.length ? (lead !== last ? `<div class="lead-note">Current verified design · answer ${all.indexOf(lead) + 1} of ${all.length}</div>` : '') + ans(lead, all.indexOf(lead)) + follow +
-    (rest.length ? `<details class="ans"><summary>History · ${rest.length} earlier question${rest.length === 1 ? '' : 's'}</summary>${rest.map(([a, i]) => ans(a, i)).join('')}</details>` : '') :
+  $('answers').innerHTML = outcomeCard() + (list.length ? (lead !== last ? `<div class="lead-note">Current verified design · answer ${all.indexOf(lead) + 1} of ${all.length}</div>` : '') + ans(lead, all.indexOf(lead)) + follow +
+    (rest.length ? `<details class="ans"><summary>History · ${rest.length} earlier question${rest.length === 1 ? '' : 's'}</summary>${rest.map(([a, i]) => briefAns(a, i)).join('')}</details>` : '') :
     `<div class="empty"><b>What would you like to test?</b><br>Ask about an equipment limit, or find a path to the target throughput.
-     <div class="sugg">${suggestions().map(s => `<button class="btn" onclick="ask('${esc(s)}')">${esc(s)}</button>`).join('')}</div></div>`;
-  $('spend').textContent = list.length ? 'AI cost $' + all.reduce((t, a) => t + (a.cost_usd || 0), 0).toFixed(2) : '';
-  $('spend').title = 'Estimated model API cost for the answers shown; simulator runs are local.';
+     <div class="sugg">${suggestions().map(s => `<button class="btn" onclick="ask('${esc(s)}')">${esc(s)}</button>`).join('')}</div></div>`);
+  const ac = P.ai_cost, qs = ac?.questions_usd ?? all.reduce((t, a) => t + (a.cost_usd || 0), 0);
+  $('spend').textContent = list.length || ac?.model_build_usd ? `AI cost $${qs.toFixed(2)} questions${ac?.model_build_usd ? ` · $${ac.model_build_usd.toFixed(2)} model build` : ''}` : '';
+  $('spend').title = `Estimated Muse API cost: ${ac?.questions ?? all.length} questions answered${ac?.model_build_usd ? ' plus building the simulation model once' : ''}; simulator runs are local and free.`;
 }
 
 const BASIS = {documented: ['in document', '#4da3ff'], measured: ['measured', '#3fb67a'], computed: ['computed', '#e3a33a'], assumed: ['assumed', '#ef5a4f']};
@@ -1538,7 +1580,7 @@ function gateRows(a) {
 function gateState(row) {
   const status = String(row.status || row.verdict || '').toLowerCase().replaceAll('_', ' ');
   if (status === 'pass' || status === 'ok') return ['pass', '✓', 'pass'];
-  if (status === 'fail' || status === 'failed') return ['fail', '×', 'fail'];
+  if (status === 'fail' || status === 'failed') return ['fail', '✕', 'fail'];
   if (status === 'not affected' || status === 'n/a' || status === 'na') return ['na', '—', 'not affected'];
   return ['open', '○', status || 'open'];
 }
@@ -1549,20 +1591,32 @@ function disciplineImpact(a) {
     const n = GATE_VIEWS.push(row) - 1, [state, mark, status] = gateState(row), name = GATE_NAMES[row.id] || row.id.replaceAll('_', ' ');
     return `<button type="button" class="discipline-gate ${state}" onclick="showGate(${n})" aria-label="${esc(name)}: ${esc(status)}" title="${esc(row.summary || status)}"><span class="discipline-mark">${mark}</span><span class="discipline-name">${esc(name)}</span></button>`;
   }).join('');
-  return `<section class="discipline-impact"><div class="discipline-impact-head"><h3>Engineering impact</h3><span>✓ calculated · ○ open</span></div><div class="discipline-rail">${gates}</div></section>`;
+  return `<section class="discipline-impact"><div class="discipline-impact-head"><h3>Engineering impact</h3><span>✓ pass · ✕ fail (calculated) · ○ open</span></div><div class="discipline-rail">${gates}</div></section>`;
 }
 function showGate(index) {
   const row = GATE_VIEWS[index];
   if (!row) return;
   const [, mark, status] = gateState(row), name = GATE_NAMES[row.id] || row.id.replaceAll('_', ' ');
-  const checks = (row.checks || []).map(check => typeof check === 'string' ? `<li>${esc(check)}</li>` :
-    `<li><b>${esc(check.check || check.name || check.id || 'Check')}</b>${check.result != null ? `: ${esc(check.result)}` : ''}${check.value != null ? ` · ${esc(check.value)}${check.unit ? ' ' + esc(check.unit) : ''}` : ''}${check.limit != null ? ` / limit ${esc(check.limit)}` : ''}</li>`).join('');
-  $('modalBox').innerHTML = `<h3>${esc(name)} <span style="color:var(--muted)">${mark} ${esc(status)}</span></h3><p>${esc(row.summary || 'No summary supplied.')}</p><div class="card"><div class="tt">Calculation source</div><div class="res">${esc(row.source || 'not supplied')}</div></div>${checks ? `<h4>Checks</h4><ul>${checks}</ul>` : '<p style="color:var(--muted)">No deterministic check rows were supplied.</p>'}`;
+  const checks = (row.checks || []).map(check => {
+    if (typeof check === 'string') return `<li>${esc(check)}</li>`;
+    // the server states each row's kind (min/max), status and a ready result sentence; older rows fall back to the percentage
+    const st = String(check.status || ''), pct = parseFloat(check.result), min = check.kind === 'min' || /vs minimum|minimum for/i.test(check.check || ''), u = unitH(check.unit);
+    const sev = st ? (st.startsWith('over') ? (/illustrative/.test(st) ? 'warn' : 'fail') : st === 'ok' ? 'ok' : 'muted') : isNaN(pct) ? 'muted' : pct > 100 ? 'fail' : pct >= 90 ? 'warn' : 'ok';
+    const val = check.value != null ? `${numH(check.value)}${u ? ' ' + u : ''}` : '';
+    const lim = check.limit != null ? `${min ? 'minimum' : 'limit'} ${numH(check.limit)}${u ? ' ' + u : ''}` : '';
+    const verdict = check.status ? `${unitH(check.result || st)}${/illustrative/.test(st) ? ' (illustrative rating)' : ''}` : isNaN(pct) ? (check.result || '') : min ? (pct > 100 ? 'below minimum' : 'above minimum') : Math.round(pct) + ' % of limit';
+    const src = srcName(check.source);
+    return `<li class="gate-check ${sev}"><b>${esc(check.id && check.id !== 'plant' ? check.id + ' · ' : '')}${esc(unitH(check.check || check.name || 'Check'))}</b>` +
+      `<div>${esc(val)}${lim ? ` · ${esc(lim)}` : ''}${verdict ? ` · <b>${esc(verdict)}</b>` : ''}</div>` +
+      (src ? `<small>${esc(src)}</small>` : '') + '</li>';
+  }).join('');
+  const source = String(row.source || ''), path = row.source_file ? [row.source_file] : source.match(/\(?cases\/[^)\s]+\)?/);
+  $('modalBox').innerHTML = `<h3>${esc(name)} <span style="color:var(--muted)">${mark} ${esc(status)}</span></h3><p>${esc(unitH(row.summary || 'No summary supplied.'))}</p><div class="card"><div class="tt">How this was calculated</div><div class="res">${esc(srcName(source.replace(path?.[0] || '', '').trim()) || 'not supplied')}</div>${path ? `<details><summary>input file</summary><code>${esc(path[0].replace(/[()]/g, ''))}</code></details>` : ''}</div>${checks ? `<h4>Checks</h4><ul class="gate-checks">${checks}</ul>` : '<p style="color:var(--muted)">No calculation covers this discipline yet: it stays open until an engineer supplies the check.</p>'}`;
   $('modal').classList.add('on');
 }
 // judge-facing text without internal run and model identifiers; the Engineering view keeps them
-const plain = t => String(t ?? '').replace(/\b(?:the )?(?:logged )?run [“"][^”"]+[”"]/gi, 'the logged simulator run').replace(/\s*\((?:logged )?runs? [^)]*\)/gi, '').replace(/\b(?:logged )?runs? [\w.-]*_[\w.-]+(?:,? (?:and )?[\w.-]*_[\w.-]+)*/gi, 'the simulator run')
-  .replace(/\s*\(?model [\w.-]+ rev \d+\)?/gi, '').replace(/muse-[\w.-]+/gi, 'Muse').replace(/\s{2,}/g, ' ').trim();
+const plain = t => unitH(String(t ?? '').replace(/\b(?:the )?(?:logged )?run [“"][^”"]+[”"]/gi, 'the logged simulator run').replace(/\s*\((?:logged )?runs? [^)]*\)/gi, '').replace(/\b(?:logged )?runs? [\w.-]*_[\w.-]+(?:,? (?:and )?[\w.-]*_[\w.-]+)*/gi, 'the simulator run')
+  .replace(/\s*\(?model [\w.-]+ rev \d+\)?/gi, '').replace(/muse-[\w.-]+/gi, 'Muse').replace(/\s{2,}/g, ' ').trim());
 function decisionBrief(a, idx) {
   const d = (a.proposals || []).length ? a : (designAnswer() || a);  // drawing/document commands report on the current design
   const limits = (d.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity));
@@ -1582,7 +1636,30 @@ function decisionBrief(a, idx) {
     <div class="decision-fact"><dt>First bottleneck</dt><dd>${first ? `<b>${esc(first.tag)}</b> · ${esc(plain(first.text))}` : 'No limiting item reported'}</dd></div>
     <div class="decision-fact"><dt>Recommendation</dt><dd>${esc(plain(recommendation))}</dd></div>
     <div class="decision-fact status-${statusClass}"><dt>Status</dt><dd>${esc(status)}</dd></div>
+    <div class="decision-fact"><dt>Who did what</dt><dd>${whoDidWhat(d, gates)}</dd></div>
+    ${secondOpinionLink(d)}
   </dl></section>${disciplineImpact(d)}${issue}`;
+}
+// the split the whole product rests on: the language model reads and proposes, the solvers produce every number
+function whoDidWhat(d, gates) {
+  const n = (d.proposals || []).length, src = gates.map(g => `${g.source || ''} ${(g.checks || []).map(c => c.source || '').join(' ')}`).join(' ');
+  const eng = [/pandapower/i.test(src) && 'pandapower', /\bht\b|fluids|correlation/i.test(src) && 'ht/fluids', /cantera/i.test(src) && 'Cantera'].filter(Boolean);
+  const builder = museName(P.built?.model), answerer = museName(d.model || P.built?.model);
+  const byMuse = /muse/i.test(P.built?.model || '');
+  return (!byMuse ? `Model: ${esc(P.built?.model || 'template')} (no language model) · <b>${esc(answerer)}</b> answered and proposed ${plural(n, 'change')} · `
+    : builder === answerer ? `<b>${esc(builder)}</b> read the drawing, built the model and proposed ${plural(n, 'change')} · `
+    : `<b>${esc(builder)}</b> read the drawing and built the model · <b>${esc(answerer)}</b> proposed ${plural(n, 'change')} · `) +
+    `<b>${esc(simulator())}</b> re-solved every number` + (eng.length ? ` · <b>${esc(eng.join(', '))}</b> checked the other disciplines` : '');
+}
+function secondOpinionLink(d) {
+  const so = d.second_opinion, c = so?.comparison;
+  if (!c) return '';
+  const word = c.status === 'agree' ? 'agrees' : c.status === 'partly' ? 'partly disagrees' : 'disagrees';
+  return `<div class="decision-fact"><dt>Second opinion</dt><dd>${esc(museName(so.model))} answered independently and <b>${word}</b> · <a href="#" onclick="openSecondOpinion(${P.answers.indexOf(d)});return false">compare →</a></dd></div>`;
+}
+function openSecondOpinion(i) {
+  setWorkspaceView('engineering');
+  requestAnimationFrame(() => document.getElementById(`so-${i}`)?.scrollIntoView({block: 'center', behavior: 'smooth'}));
 }
 function compare(a) {  // the alternatives side by side, from what the server re-solved
   const ps = a.proposals || [];
@@ -1597,18 +1674,47 @@ function secondOpinion(a, idx) {  // the open-weights model's independent answer
   if (!so) return '';
   if (so.error) return `<div class="card warn"><div class="tt">Second opinion · Muse Spark Open</div><div class="res">Not available: ${esc(so.error)}</div></div>`;
   const c = so.comparison, ok = c.status === 'agree';
-  return `<div class="card ${ok ? 'ok' : 'warn'}"><div class="tt">Second opinion · Muse Spark Open (open weights), answered independently</div>
+  return `<div class="card second-opinion ${ok ? 'ok' : 'warn'}" id="so-${idx}"><div class="tt">Second opinion · Muse Spark Open (open weights), answered independently</div>
     <div class="res">${ok ? '✓ Both models agree' : `⚠ The models ${c.status === 'partly' ? 'partly ' : ''}disagree: an engineer should look`}</div>
     <div style="font-size:12px">${esc(so.answer.headline || '')}</div>
-    ${c.disagree.length ? `<div style="margin-top:6px;font-size:11.5px;color:var(--warn)">${c.disagree.map(x => '≠ ' + esc(x)).join('<br>')}</div>` : ''}
-    ${c.agree.length ? `<details><summary>${c.agree.length} points agree</summary><div style="font-size:11.5px">${c.agree.map(x => '= ' + esc(x)).join('<br>')}</div></details>` : ''}
+    ${c.disagree.length ? `<div style="margin-top:6px;font-size:11.5px;color:var(--warn)">${c.disagree.map(x => '≠ ' + esc(humanPaths(x))).join('<br>')}</div>` : ''}
+    ${c.agree.length ? `<details><summary>${c.agree.length} points agree</summary><div style="font-size:11.5px">${c.agree.map(x => '= ' + esc(humanPaths(x))).join('<br>')}</div></details>` : ''}
     ${(so.answer.proposals || []).length ? `<details><summary>Open model's ${so.answer.proposals.length} proposals (each re-solved in ${simulator()})</summary>${so.answer.proposals.map((p, j) => prop(p, idx, j, 'so')).join('')}</details>` : ''}
     <div class="meta">${so.answer.seconds}s · $${(so.answer.cost_usd || 0).toFixed(4)} (conservative estimate)</div></div>`;
 }
 
+// a blind case: what the engineers decided (kept from the agent) next to what the agent concluded; the reader judges the match
+function outcomeCard() {
+  const o = P.outcome;
+  if (!o?.engineers) return '';
+  const agent = o.agent_headline || designAnswer()?.headline || (P.answers || []).at(-1)?.headline;
+  return `<section class="outcome-compare"><h3>Compare with the ${esc(o.year || 'recorded')} decision</h3><div class="outcome-cols">
+    <div><div class="tt">Agent (blind: never saw this outcome)</div><div><b>${esc(plain(agent || 'no answer on record yet'))}</b></div>${o.agent_summary ? `<div class="sm" style="margin-top:4px">${esc((t => t.length > 420 ? t.slice(0, t.lastIndexOf('. ', 420) + 1 || 420) : t)(plain(o.agent_summary)))}</div>` : ''}</div>
+    <div><div class="tt">What the engineers decided</div><div>${esc(o.engineers)}</div>${o.source ? `<small>${esc(o.source)}</small>` : ''}${o.note ? `<small>${esc(o.note)}</small>` : ''}</div></div></section>`;
+}
+// files an answer produced; files from an answer that is not the current design say so
+function artifactsSection(a) {
+  if (!(a.artifacts || []).length) return '';
+  const fileUrl = (art, f) => `/api/plant/${CASE}/artifact/${encodeURIComponent(art.id)}/${encodeURIComponent(f)}`;
+  // an answer with its own proposals that is not the current design is an earlier (superseded) design
+  const earlier = designAnswer() && a !== designAnswer() && (a.proposals || []).length ? ' <span class="vb" style="color:var(--muted);border:1px solid var(--line)">from an earlier answer, not the current design</span>' : '';
+  return `<section class="answer-section"><h4>Files produced · drafts</h4>${a.artifacts.map(art => {
+    const pic = (art.files || []).find(f => /\.(svg|png)$/i.test(f));
+    return `<div class="card info"><div class="tt">${esc(art.kind)} · ${esc(art.title)}${earlier}</div>${pic ? `<a href="${fileUrl(art, pic)}" target="_blank"><img src="${fileUrl(art, pic)}" alt="${esc(art.title)}" style="width:100%;background:#fff;border-radius:4px;margin:6px 0"></a>` : ''}
+      <div class="res">${(art.files || []).map(f => `<a href="${fileUrl(art, f)}" target="_blank" download>${esc(f)}</a>`).join(' · ')}</div></div>`;
+  }).join('')}</section>`;
+}
+// a command that changed no design (a drawing, a document, a chart): its headline and files, not a second design card
+function briefAns(a, idx) {
+  if ((a.proposals || []).some(p => p.verified)) return ans(a, idx);
+  return `<div class="ans"><div class="answer-hero"><div class="hl">${esc(plain(a.headline))}</div><div class="sm" style="margin-top:6px">${esc(plain(a.summary))}</div></div>${artifactsSection(a)}
+    <details class="request-block"><summary>Original request</summary><div class="rq">${esc(a.request)}</div></details>
+    <div class="meta">${a.seconds}s · AI cost $${(a.cost_usd || 0).toFixed(4)}</div></div>`;
+}
+
 function ans(a, idx) {
   const cards = (a.cards || []).map(c => `<div class="card ${c.status || ''}"><div class="tt">${esc(c.title)} <small style="color:var(--muted);font-weight:400" title="Text and colour written by the agent; the cited runs are re-solved, the numbers in the sentence are not parsed">agent summary</small></div><div class="res">${esc(c.result)}</div>
-    ${(c.inputs || []).length ? `<details><summary>${c.inputs.length} inputs (${[...new Set(c.inputs.map(basisOf))].join(', ')}) · runs: ${esc((c.runs || []).join(', ') || 'none')}</summary><div class="evidence-list">${c.inputs.map(x => `<div class="evidence-row"><div class="evidence-row-head"><b>${esc(x.name)}</b>${basisChip(basisOf(x))}</div><div class="evidence-value">${esc(x.value)}</div><div class="evidence-source">${esc(x.source)}</div></div>`).join('')}</div></details>` : ''}</div>`).join('');
+    ${(c.inputs || []).length ? `<details><summary>${plural(c.inputs.length, 'input')} (${[...new Set(c.inputs.map(basisOf))].join(', ')}) · runs: ${esc((c.runs || []).join(', ') || 'none')}</summary><div class="evidence-list">${c.inputs.map(x => `<div class="evidence-row"><div class="evidence-row-head"><b>${esc(x.name)}</b>${basisChip(basisOf(x))}</div><div class="evidence-value">${esc(x.value)}</div><div class="evidence-source">${esc(x.source)}</div></div>`).join('')}</div></details>` : ''}</div>`).join('');
   const fc = (a.field_checks || []).length ? `<section class="field-checks"><h4>Verify in the field first</h4><p>These readings can change the recommendation.</p>${a.field_checks.map(f => `<div class="field-check"><div class="field-check-title">${esc(f.item)}</div><div class="field-check-where">${esc(f.where)}</div><div class="field-check-impact"><b>If the reading differs</b>${esc(f.changes)}</div></div>`).join('')}</section>` : '';
   const props = (a.proposals || []).map((p, j) => prop(p, idx, j)).join('');
   const cb = a.combined, cap = cb?.capacity_multiple == null ? 'not calculated' : Math.round(cb.capacity_multiple * 100) + '%';
@@ -1618,15 +1724,10 @@ function ans(a, idx) {
   const lim = (a.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity)).slice(0, 3);
   const limits = lim.length ? `<section class="answer-section"><h4>What limits the target</h4><div class="limit-list">${lim.map(h => `<div class="limit-item"><b style="color:var(--${h.severity === 'fail' ? 'fail' : 'warn'})">${esc(h.tag)}</b><span>${esc(h.text)}</span></div>`).join('')}</div></section>` : '';
   const fixes = (a.proposals || []).length ? `<section class="answer-section"><h4>Recommended changes</h4>${props}</section>${compare(a)}${comb}` : '';
-  const fileUrl = (art, f) => `/api/plant/${CASE}/artifact/${encodeURIComponent(art.id)}/${encodeURIComponent(f)}`;
-  const files = (a.artifacts || []).length ? `<section class="answer-section"><h4>Files produced · drafts</h4>${a.artifacts.map(art => {
-    const pic = (art.files || []).find(f => /\.(svg|png)$/i.test(f));
-    return `<div class="card info"><div class="tt">${esc(art.kind)} · ${esc(art.title)}</div>${pic ? `<a href="${fileUrl(art, pic)}" target="_blank"><img src="${fileUrl(art, pic)}" alt="${esc(art.title)}" style="width:100%;background:#fff;border-radius:4px;margin:6px 0"></a>` : ''}
-      <div class="res">${(art.files || []).map(f => `<a href="${fileUrl(art, f)}" target="_blank" download>${esc(f)}</a>`).join(' · ')}</div></div>`;
-  }).join('')}</section>` : '';
+  const files = artifactsSection(a);
   const blocked = modelBlocked() ? `<div class="card fail"><div class="tt">Model blocked</div><div class="res">Correct the model-review findings before applying changes or issuing a decision pack.</div></div>` : '';
-  return `<div class="ans">${decisionBrief(a, idx)}<div class="engineering-detail"><div class="answer-hero"><span class="answer-label">Engineering detail</span><div class="hl">${esc(a.headline)}</div><div class="sm" style="margin-top:6px">${esc(a.summary)}</div></div>${blocked}${limits}${files}${fc}${fixes}${secondOpinion(a, idx)}
-    <details class="evidence-block"><summary>Evidence · ${(a.cards || []).length} calculations, sources and assumptions</summary><div class="sm">${esc(a.summary)}</div>${cards}</details>
+  return `<div class="ans">${decisionBrief(a, idx)}<div class="engineering-detail"><div class="answer-hero"><span class="answer-label">Engineering detail</span><div class="hl">${esc(plain(a.headline))}</div><div class="sm" style="margin-top:6px">${esc(plain(a.summary))}</div></div>${blocked}${limits}${files}${fc}${fixes}${secondOpinion(a, idx)}
+    <details class="evidence-block"><summary>Evidence · ${plural((a.cards || []).length, 'calculation')}, sources and assumptions</summary><div class="sm">${esc(a.summary)}</div>${cards}</details>
     <details class="request-block"><summary>Original request</summary><div class="rq">${esc(a.request)}</div></details>
     <div class="meta">${a.seconds}s · AI cost $${(a.cost_usd || 0).toFixed(4)} · ${(a.checks || []).filter(c => c.ok).length}/${(a.checks || []).length} cited runs re-solved to the same result${(a.checks || []).filter(c => !c.ok).map(c => ` · <span style="color:var(--fail)">✗ ${esc(c.item)}: ${esc(c.why || 'not reproduced')}</span>`).join('')}</div></div></div>`;
 }
@@ -1799,42 +1900,64 @@ $('toTarget').onclick = () => {
   }
   ask(`Get the unit to ${target}% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in ${simulator()}, within every utility and frame limit on the data sheet.`);
 };
-// ---- guided demo: question -> source drawing -> limit -> proposal -> before/after -> evidence ----
+// ---- guided demo: source -> question -> limits today -> Muse's fix (Rev B) -> discipline impact -> evidence ----
 let TOUR_I = 0;
-// tour text is built from the loaded case, so it never describes an answer that is not on screen
-function tourLimits() {
-  const d = designAnswer() || (P.answers || []).at(-1);
-  const tags = [...new Set((d?.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity)).map(h => h.tag))];
-  return tags.length ? `At the target, ${tags.length === 1 ? 'one item limits' : tags.length + ' items limit'} the unit: ${tags.join(', ')}. ` : '';
+// tour text is built from the loaded case and the state on screen, so it never describes something that is not shown
+function tourOver() {
+  const over = Object.values(worstBy(ST?.checks || [])).filter(c => c.utilisation > 1).sort((a, b) => b.utilisation - a.utilisation);
+  return over.length ? `At ${Math.round(P.target_scale * 100)} % today's plant runs out of room in ${over.length === 1 ? 'one place' : over.length + ' places'}: ` +
+    over.map(c => `${c.id} ${Math.round(c.utilisation * 100)} %`).join(', ') + '. Red marks on the drawing are over their documented limit.'
+    : 'Every item stays within its documented limit at this throughput.';
 }
 function tourResult() {
   const d = designAnswer(), c = d?.combined;
   if (!d) return 'No verified design is on record yet for this case; ask for one to see the before/after.';
-  const n = (d.proposals || []).filter(p => p.verified).length;
-  return `${n} verified change${n === 1 ? '' : 's'} together, re-solved: ${c?.reaches_target ? `the unit reaches ${Math.round(P.target_scale * 100)} %` : 'the target is not yet reached'}${c?.capacity_multiple ? ` and the new maximum is about ${Math.round(c.capacity_multiple * 100)} %` : ''}. Cost classes are agent estimates for screening, not prices.`;
+  const ps = (d.proposals || []).filter(p => p.verified);
+  return `Muse proposed ${ps.length} change${ps.length === 1 ? '' : 's'}: ${ps.map(p => p.title).join('; ')}. ${simulator()} re-solved them together on the server: ${c?.reaches_target ? `the plant reaches ${Math.round(P.target_scale * 100)} %` : 'the target is not yet reached'}. The drawing is now the Rev B sheet with every change clouded.`;
 }
-const TOUR = [
-  ['The source', () => `The source drawing for this case (documents are listed under Model & sources). The agent read it and built this ${simulator()} simulation itself${calSummary(P.built) ? `; checked against the operating data: ${calSummary(P.built)}` : ''}.`, () => ['sheet', 'infoBtn'], () => setScale(100)],
-  ['The question', () => `The question is +${Math.round((P.target_scale - 1) * 100)} % throughput. Move to ${Math.round(P.target_scale * 100)} %: every equipment item on the P&ID is re-solved in ${simulator()} and coloured by how close it runs to its limit.`, () => ['scale', 'verdict'], () => setScale(Math.round(P.target_scale * 100))],
-  ['What limits it', () => `${tourLimits()}The drawing marks each item by how close it runs to its documented limit.`, () => ['sheet', 'verdict'], null],
-  ['The fixes', () => `The agent proposes the cheapest change for each limit, within the utility and equipment limits on the data sheet. The server re-solves each one in ${simulator()} before it can be applied; a change that only edits a limit is refused.`, () => ['answers'], () => document.querySelector('.prop')?.scrollIntoView({block: 'center'})],
-  ['Before and after', tourResult, () => ['answers'], () => [...document.querySelectorAll('.card')].find(c => /All \d+ changes together|Alternatives compared/.test(c.textContent))?.scrollIntoView({block: 'center'})],
-  ['The evidence', () => 'Every input is labelled as in a document, measured, computed or assumed, and every cited run is re-solved to the same result. Model sources, revisions and the hash-chained audit trail stay one click away without competing with the decision.', () => ['historyDetails', 'infoBtn'], null],
-];
+function tourGates() {
+  const g = designAnswer()?.disciplines || [];
+  if (!g.length) return 'Discipline gates have not been run for this design yet: Issue engineering package runs them.';
+  const mark = {pass: '✓', fail: '✕', open: '○'};
+  return 'The same change, checked beyond the process: ' + g.filter(r => r.status !== 'not affected').map(r => `${GATE_NAMES[r.id] || r.id} ${mark[r.status] || '—'}`).join(' · ') +
+    '. ✕ comes from a calculation (load flow, exchanger correlations, operating envelope); ○ means the input to decide it is still missing. Click a gate to see its checks.';
+}
+function tourSteps() {
+  const b = P.built || {}, so = designAnswer()?.second_opinion;
+  return [
+    ['The source', () => `This is the plant's own drawing. ${/muse/i.test(b.model || '') ? `${museName(b.model)} read it with the data sheets and built this ${simulator()} model itself` : `The ${simulator()} model here is a ${b.model || 'template'} built without a language model`} (${(b.spec?.units || b.spec?.stages || []).length} units, ${b.seconds || '?'} s).${(k => k ? ` Checked against the plant's measurements: ${k.reproduced} of ${k.reproduced + k.differs} match within 3 %.` : '')(b.calibration_check?.counts)}`,
+      () => ['sheet'], async () => { await setView('existing'); setScale(100); }],
+    ['The question', () => `The engineer asks for +${Math.round((P.target_scale - 1) * 100)} % throughput. At ${Math.round(P.target_scale * 100)} % every item on the P&ID is re-solved in ${simulator()} and coloured by how close it runs to its limit.`,
+      () => ['scale', 'verdict'], async () => { await setView('existing'); setScale(Math.round(P.target_scale * 100)); }],
+    ['What limits it today', tourOver, () => ['sheet', 'eqlist'], null],
+    ['Muse\'s fix, re-solved', tourResult, () => ['sheet', 'answers'], async () => { showMode('capacity'); setWorkspaceView('decision'); await setView('proposed'); $('rightScroll').scrollTo({top: 0}); }],
+    ['Beyond the process', tourGates, () => ['answers'], () => document.querySelector('.discipline-impact')?.scrollIntoView({block: 'center'})],
+    ...(so ? [['Second opinion', () => `${so.model ? museName(so.model) : 'An open-weights model'} answered the same question independently; both answers were re-solved in ${simulator()} and compared without picking a winner.`,
+      () => ['answers'], () => { setWorkspaceView('engineering'); document.querySelector('.second-opinion')?.scrollIntoView({block: 'center'}); }]] : []),
+    ['The evidence', () => 'Every input is labelled as from a document, measured, computed or assumed; every cited run re-solves to the same result; revisions and a hash-chained audit trail are kept. Nothing here is approved for construction: it is a draft for a licensed engineer.',
+      () => ['infoDrawer'], () => toggleDrawer(true)],
+  ];
+}
+let TOUR = [];
 function setScale(v) { $('scale').value = v; $('scale').oninput(); }
-function tourGo(i) {
+async function tourGo(i) {
   document.querySelectorAll('.tour-on').forEach(e => e.classList.remove('tour-on'));
+  if (!i) TOUR = tourSteps();
   if (i >= TOUR.length) return tourEnd();
   TOUR_I = i;
+  toggleDrawer(false);
   const [t, x, on, act] = TOUR[i];
   $('tour').style.display = 'block';
   $('tourStep').textContent = `Step ${i + 1} of ${TOUR.length} · ${t}`;
-  $('tourText').textContent = x();
+  $('tourText').textContent = '…';
   $('tourNext').textContent = i === TOUR.length - 1 ? 'Finish' : 'Next';
+  if (act) await act();
+  await new Promise(r => setTimeout(r, 400));  // the slider re-solve settles before the text reads the state
+  if (TOUR_I !== i || $('tour').style.display === 'none') return;  // the user moved on while this step was solving
+  $('tourText').textContent = x();
   on().forEach(id => $(id)?.classList.add('tour-on'));
-  if (act) act();
 }
-function tourEnd() { $('tour').style.display = 'none'; document.querySelectorAll('.tour-on').forEach(e => e.classList.remove('tour-on')); }
+function tourEnd() { $('tour').style.display = 'none'; toggleDrawer(false); document.querySelectorAll('.tour-on').forEach(e => e.classList.remove('tour-on')); }
 
 $('model').onchange = e => api('model', {model: e.target.value});
 window.onresize = () => { fitDrawing(); if (ST) render(ST); };

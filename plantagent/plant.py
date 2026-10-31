@@ -1391,8 +1391,10 @@ def _boundary_duty_kW(units):
 
 def _energy(spec, result):
     """Overall closure when streams carry enthalpy; otherwise evaporator duty closure, and the missing field to add."""
-    note = (f"Streams from process.run have no {ENTHALPY_FIELD}. Add {ENTHALPY_FIELD} (kJ/kg) on each stream to close "
-            "feed and product enthalpy plus duties. Duty checks are the evaporator heat balance (2% band, block above 10%).")
+    evap = any(u.get("type") == "evaporator" for u in spec.get("units") or [])
+    note = ("An overall energy balance is not closed: the simulator's streams do not report enthalpy. "
+            + ("Each evaporator's heat balance is checked instead (within 2 %; a model is blocked above 10 %)." if evap else
+               "Unit duties are checked one by one instead."))
     info = {"method": "duty", "tolerance": ENERGY_TOL, "proposed_field": ENTHALPY_FIELD, "note": note}
     findings = []
     units = (result or {}).get("units") or {}

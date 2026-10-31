@@ -26,6 +26,91 @@ from .revb import _num, qty, value_text
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def _heater_tag(oid, aliases):
+    """The P&ID heater a model unit's heating side stands for (case.json model_aliases {'E-201': 'V-201'}), or None."""
+    return next((t for t, m in (aliases or {}).items() if m == oid), None)
+
+
+def _item(oid, check, aliases, nm=lambda x: x):
+    """Row label of a limit check: heater checks on a model evaporator are named by the P&ID heater ('E-201 (V-201)')."""
+    tag = _heater_tag(oid, aliases)
+    return f"{tag} ({oid})" if tag and "heater" in str(check) else nm(oid)
+
+
+def _limit_cell(limit, unit, check):
+    """An energy-closure 'limit' is the heat available in that solve, not a rating: say so."""
+    q = qty(limit, unit) if limit is not None else "-"
+    return f"available {q}" if "vs heat" in str(check) and limit is not None else q
+
+
+def _plural(text):
+    """'3 change(s)' -> '3 changes', '1 check(s)' -> '1 check' (counts written by the generators)."""
+    return re.sub(r"\b(\d[\d,]*) ((?:[a-z-]+ ){0,2}?)([a-z-]+)\(s\)",
+                  lambda m: f"{m[1]} {m[2]}{m[3]}{'' if m[1] == '1' else 's'}", text)
+
+
+def tidy(text):
+    """Final pass over generated markdown: plural counts and SI unit symbols (m2 -> m², m3 -> m³)."""
+    text = _plural(text)
+    text = re.sub(r"(?<![\w/.-])m2(?![\w])", "m²", text)
+    text = re.sub(r"(?<![\w/.-])m3(?![\w])", "m³", text)
+    return re.sub(r"W/m2K", "W/m²K", re.sub(r"m3/h", "m³/h", text))
+
+
+def cv_unit(text, solved):
+    """'a coefficient of 52' -> 'a flow coefficient Cv of 52 (US units)' when a solved valve requires that Cv."""
+    cvs = [u["cv_required"] for u in ((solved or {}).get("units") or {}).values() if isinstance(u, dict) and u.get("cv_required")]
+
+    def sub(m):
+        v = float(m[2].replace(",", ""))
+        return f"{m[1]}flow coefficient Cv of {m[2]} (US units)" if any(abs(v - c) <= 0.02 * c for c in cvs) else m[0]
+    return re.sub(r"(\b(?:a |the )?)coefficient of (\d[\d,.]*\d|\d)", sub, str(text or ""))
+
+
+RAW = {"x_NaCl": "NaCl mass fraction", "salt_kg_h": "salt production", "brine_bpe": "brine boiling-point elevation (Sparrow)",
+       "BarGauge": "barg", "enthalpy_kJ_kg": "stream enthalpy", "process.run": "the simulator", "area_needed": "area needed"}
+
+
+def no_runs(text):
+    """Model text without its internal run labels: '(run vrc_120_x)', '(89%, run vrc_x)', '(runs a vs b)'."""
+    text = re.sub(r"\s*\(runs? [^()]*\)", "", str(text or ""))
+    return re.sub(r",\s*runs? [\w.~=-]+(?:\s+vs\s+[\w.~=-]+)?(?=\))", "", text)
+
+
+def _plain(text, spec):
+    """Builder text for the file: code keys replaced by words; model stream ids marked as model streams."""
+    for k, v in RAW.items():
+        text = text.replace(k, v)
+    text = re.sub(r"(\d) Bar\b", r"\1 barg", text)  # P&ID relief set pressures are gauge
+    streams = {x for u in spec.get("units") or [] for k in ("in", "out", "vapor", "liquid", "heating", "cold", "hot")
+               for x in ([u.get(k)] if isinstance(u.get(k), str) else list(u.get(k) or []))}
+    return re.sub(r"\b([A-Za-z]+_[A-Za-z0-9_]+)\b", lambda m: f"model stream {m[1]}" if m[1] in streams else m[1], text)
+
+
+def _stale(text, spec, aliases):
+    """Builder assumptions that the current model no longer matches: an area or a flow rating quoted for a tag that differs
+    from the model, or a tag the model no longer has. Returns a short flag or ''."""
+    units = {u["id"]: u for u in spec.get("units") or []}
+    limits = spec.get("limits") or {}
+    flags = []
+    seen = set()
+    for tag in dict.fromkeys(re.findall(r"\b[A-Z]{1,3}-\d{3}\b", text)):
+        uid = tag if tag in units else (aliases or {}).get(tag)
+        if not uid or uid not in units:
+            if re.search(rf"{tag}\b[^.]*\b(simulated|exceeds|rating is entered|limit check)", text):
+                flags.append(f"{tag} is not a unit of the current model (a later model correction removed it)")
+            continue
+        if uid in seen:  # E-301 and its model unit V-301 are one item
+            continue
+        seen.add(uid)
+        area = units[uid].get("area_m2") or (limits.get(uid) or {}).get("area_m2")
+        for m in re.finditer(rf"{tag}[^.;]*?\barea\s+([\d,]+)\s*m(?:2|²)", text):
+            quoted = float(m[1].replace(",", ""))
+            if area and abs(quoted - area) > 0.01 * area:
+                flags.append(f"the current model uses {_num(area)} m² for {tag}, not {_num(quoted)} m²")
+    return ("; ".join(dict.fromkeys(flags)))
+
+
 def _git_head():
     try:
         return subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, capture_output=True, text=True, timeout=5).stdout.strip()
@@ -51,7 +136,7 @@ def _owner(spec, change):
     return oid
 
 
-def pssr(spec, changes, names, at):
+def pssr(spec, changes, names, at, aliases=None):
     """Pre-startup safety review items generated from the kind of each change (deterministic rules)."""
     items = []
     units = {u["id"]: u for u in spec.get("units") or []}
@@ -101,9 +186,11 @@ def pssr(spec, changes, names, at):
             items.append(f"Confirm the high-level alarm and trip on {oid} leave margin above the new working volume of {v:g} m³; update the level setpoint "
                          "in the operating procedure.")
         elif field == "U_W_m2K":
-            items.append(f"Plan and record the cleaning of {oid}; run a performance test after cleaning to confirm U of about {v:g} W/m²K.")
+            heater = _heater_tag(oid, aliases)
+            items.append(f"Plan and record the cleaning of {heater or oid}{f' (heating side of {oid})' if heater else ''}; run a performance "
+                         f"test after cleaning to confirm U of about {_num(v)} W/m²K.")
         elif field == "area_m2":
-            items.append(f"Mechanical: confirm {oid}'s frame accepts {v:g} m² of plates; pressure-test after re-plating; update the datasheet.")
+            items.append(f"Mechanical: confirm {oid}'s frame accepts {_num(v)} m² of plates; pressure-test after re-plating; update the datasheet.")
         elif field in ("P_out_bar", "T_out_C", "dP_bar"):
             items.append(f"Change the {FIELD.get(field, (field,))[0]} setpoint of {oid} to {v:g}; check the alarms and trips around it and the relief "
                          "set pressures downstream.")
@@ -178,7 +265,7 @@ def _md_to_html(md):
         flush()
         if line.startswith("#"):
             n = len(line) - len(line.lstrip("#"))
-            out.append(f"<h{n}>{line[n:].strip()}</h{n}>")
+            out.append(f"<h{n} id='h{len(out)}'>{line[n:].strip()}</h{n}>")
         elif line.startswith(("- ", "* ")):
             out.append(f"<p class='li'>&#8226; {line[2:]}</p>")
         elif line.strip():
@@ -195,19 +282,36 @@ CSS = ("body{font-family:sans-serif;font-size:9pt;color:#17383d} h1{font-size:16
 
 
 def _story_pdf(md):
+    """A4 pages from markdown. Two passes: a heading that lands in the last 70 pt of a page (an orphan without its
+    table) starts the next page instead."""
     import io
     import pymupdf
-    buf = io.BytesIO()
-    writer = pymupdf.DocumentWriter(buf)
-    story = pymupdf.Story(html=_md_to_html(md), user_css=CSS)
-    more = True
-    while more:
-        dev = writer.begin_page(pymupdf.paper_rect("a4"))
-        more, _ = story.place(pymupdf.paper_rect("a4") + (40, 40, -40, -48))
-        story.draw(dev)
-        writer.end_page()
-    writer.close()
-    return pymupdf.open("pdf", buf.getvalue())
+    html, area = _md_to_html(md), pymupdf.paper_rect("a4") + (40, 40, -40, -48)
+
+    def layout(html, seen=None):
+        buf = io.BytesIO()
+        writer = pymupdf.DocumentWriter(buf)
+        story = pymupdf.Story(html=html, user_css=CSS)
+
+        def heading(pos):  # positions are reported per placed page, after place()
+            if pos.heading and pos.id and pos.open_close & 1:
+                seen.append((pos.id, pos.rect[1]))
+        more = True
+        while more:
+            dev = writer.begin_page(pymupdf.paper_rect("a4"))
+            more, _ = story.place(area)
+            if seen is not None:
+                story.element_positions(heading, {})
+            story.draw(dev)
+            writer.end_page()
+        writer.close()
+        return buf.getvalue()
+    seen = []
+    pdf = layout(html, seen)
+    orphans = [i for i, top in seen if top > area.y1 - 70]
+    for i in orphans:
+        html = html.replace(f"id='{i}'>", f"id='{i}' style='page-break-before:always'>", 1)
+    return pymupdf.open("pdf", layout(html) if orphans else pdf)
 
 
 def _pdf(parts, path, drawings=(), footer=""):
@@ -261,20 +365,25 @@ def _describe(spec, c, names, aliases=None):
     return re.sub("<[^>]+>", "", describe_change(spec, c, names, aliases))
 
 
-def _datasheet(changes, calc):
-    """Preliminary equipment datasheet of the new units (rounded, units shown; missing vendor data marked to confirm)."""
+def _datasheet(changes, calc, design=None, basis=None):
+    """Preliminary equipment datasheet of the new units (rounded, units shown; missing vendor data marked to confirm).
+    Operating points come from `design` (the combined design solve, the basis of every document) when given."""
     out = ["#### Preliminary equipment datasheet", "",
-           "Provisional equipment selection only: not a vendor datasheet and not a mechanical design approval.", "",
+           "Provisional equipment selection only: not a vendor datasheet and not a mechanical design approval."
+           + (f" Operating point: {basis}." if design and basis else ""), "",
            "| Tag | Service | Inlet | Outlet | Operating point | Pressure ratio / head | Rating | Rating source |", "|---|---|---|---|---|---|---|---|"]
-    streams = {s.get("id"): s for s in (calc or {}).get("streams") or []}
-    checks = (calc or {}).get("checks") or []
+    if design:
+        streams, checks = design.get("streams") or {}, [c for c in design.get("checks") or [] if c.get("value") is not None]
+    else:
+        streams = {s.get("id"): s for s in (calc or {}).get("streams") or []}
+        checks = (calc or {}).get("checks") or []
     for c in changes:
         u = c.get("add_unit")
         if not u or u.get("type") in ("mixer", "splitter", "recycle"):
             continue
         ins, outs = ports(u)
         si, so_ = streams.get(ins[0]) if ins else None, streams.get(outs[0]) if outs else None
-        side = lambda sid, st: f"{sid}, {_num(st['T_C'])} °C, {_num(st['P_bar'])} bar" if st else f"{sid}, to confirm"  # noqa: E731
+        side = lambda sid, st: f"{_num(st['T_C'])} °C, {_num(st['P_bar'])} bar(a)" if st else "to confirm"  # noqa: E731
         op = [qty(x["value"], x.get("unit") or "") for x in checks if x.get("id") == u["id"] and x.get("value") is not None]
         if u.get("eff_pct"):
             op.append(f"efficiency {u['eff_pct']} % (assumed)")
@@ -288,7 +397,7 @@ def _datasheet(changes, calc):
     return out + ["", "Missing vendor information (to confirm): vendor curve, mechanical design, materials.", ""]
 
 
-def _change_calc(calc, tags=()):
+def _change_calc(calc, tags=(), aliases=None):
     """Before/after table of one change from its stored DWSIM calculation record: only the rows this change moves or
     the items it acts on (values with units, rounded)."""
     rows = ["| Item | Check | Limit | Before | After |", "|---|---|---|---|---|"]
@@ -304,8 +413,46 @@ def _change_calc(calc, tags=()):
         after = qty(c["value"], unit) if c.get("value") is not None else "-"
         if c.get("after") is not None:
             after += f" ({_pct(c['after'])})"
-        rows.append(f"| {c['id']} | {c['check']} | {qty(limit, unit) if limit is not None else '-'} | {before} | {after} |")
+        rows.append(f"| {_item(c['id'], c['check'], aliases)} | {c['check']} | {_limit_cell(limit, unit, c['check'])} | {before} | {after} |")
     return rows if len(rows) > 2 else []
+
+
+def _gates(w, ans):
+    """The discipline gates computed for this answer (gates.json next to the model, made by prefeed.discipline_gates),
+    or [] when none were computed for it."""
+    f = w.model_file.with_name("gates.json") if getattr(w, "model_file", None) else None
+    if not (ans and f and f.exists()):
+        return []
+    g = json.loads(f.read_text())
+    key = g.get("key") or {}
+    if (key.get("headline"), key.get("request")) != (ans.get("headline"), ans.get("request")):
+        return []
+    return g.get("disciplines") or []
+
+
+def _clip(text, n):
+    text = str(text or "")
+    return text if len(text) <= n else text[: n - 1].rsplit(" ", 1)[0] + " …"
+
+
+def _gates_md(gates):
+    """Section 6.1c: discipline gates outside the process model, with every check over its limit and its basis."""
+    rows = [g for g in gates if g["id"] not in ("process", "electrical")]
+    if not rows:
+        return []
+    md = ["", "### 6.1c Discipline gates (outside the process model)", "",
+          "Pass/fail only from a sourced check; a check over an ILLUSTRATIVE rating leaves its gate open until the rating is "
+          "confirmed. Electrical is in section 6.1b.", "",
+          "| Gate | Status | Summary |", "|---|---|---|"]
+    md += [f"| {g['id'].replace('_', ' ')} | **{g.get('status')}** | {g.get('summary') or ''} |" for g in rows]
+    over = [(g, c) for g in rows for c in g.get("checks") or [] if str(c.get("status", "")).startswith("over")]
+    if over:
+        md += ["", "Checks over their limit:", "", "| Gate | Item | Check | Value | Limit | Result | Basis |", "|---|---|---|---|---|---|---|"]
+        md += [f"| {g['id'].replace('_', ' ')} | {c.get('id')} | {c.get('check')} | {c.get('value')} {c.get('unit') or ''} | "
+               f"{c.get('limit')} {c.get('unit') or ''} | {c.get('result')}"
+               + (" (ILLUSTRATIVE rating)" if "illustrative" in str(c.get("status")) + str(c.get("source")).lower() else "")
+               + f" | {_clip(c.get('source'), 90)} |" for g, c in over]
+    return md
 
 
 def make(w, answer=None):
@@ -317,7 +464,9 @@ def make(w, answer=None):
     target = float(w.cfg.get("target_scale", 1.0))
     change_revs = [r for r in w.revisions if r.get("kind") == "change"]
     corrections = [r for r in w.revisions if r.get("kind") == "correction"]
-    ans = w.answers[answer] if isinstance(answer, int) and 0 <= answer < len(w.answers) else (w.answers[-1] if w.answers else None)
+    from .revb import design_answer
+    ans = w.answers[answer] if isinstance(answer, int) and 0 <= answer < len(w.answers) else \
+        (design_answer(w.answers) or (w.answers[-1] if w.answers else None))  # default: the answer that stands for the design
     props = {}
     if change_revs:  # applied revisions: the existing plant is the model before the first design change
         built = change_revs[0]["spec_before"]
@@ -341,6 +490,7 @@ def make(w, answer=None):
     changes = [c for r in revs for c in r["changes"]]
     names = {**display_names(proposed), **w.names()}
     nm = lambda i: names.get(i, i)  # noqa: E731
+    aliases = w.cfg.get("model_aliases") or {}
     before, after = process.run(built, target), process.run(proposed, target)
     bc = {(c["id"], c["check"]): c for c in before["checks"] if "utilisation" in c}
     ac = {(c["id"], c["check"]): c for c in after["checks"] if "utilisation" in c}
@@ -354,8 +504,12 @@ def make(w, answer=None):
             owners.setdefault(_owner(proposed, c), r["rev"])
     new_equipment = [e for r in revs for e in (r.get("new_equipment") or added_equipment(r["changes"]))]
     relief = pid.relief_scan(DATA / w.cfg["pid"]) if w.cfg.get("pid") else []
-    relief_hit = [x for x in relief if x["tag"] in owners and x["status"] != "protected"]
-    checklist = pssr(proposed, changes, names, after)
+    # changed P&ID items: the model units, the P&ID heaters they stand for, and the items the proposals name
+    changed_tags = set(owners) | {t for t, m in aliases.items() if m in owners} | \
+        {t for p in props.values() for t in (p.get("fixes"), p.get("tag")) if t}
+    relief_hit = [x for x in relief if x["tag"] in changed_tags and x["status"] != "protected"]
+    checklist = pssr(proposed, changes, names, after, aliases)
+    gates = _gates(w, ans)
     head = (audit.entries(w.name)[-1:] or [{}])[0].get("hash")
     so = (ans or {}).get("second_opinion") or {}
     over_before = [r for r in rows if (r["before"] or 0) > 1]
@@ -396,24 +550,28 @@ def make(w, answer=None):
         target_text += f" ({tp.get('name', 'throughput')} {_num(tp['base'])} → {_num(tp['base'] * target)} {tp.get('unit', '')})"
     worst = lambda rs, k: max(rs, key=lambda r: r[k] or 0) if rs else None  # noqa: E731
     wb, wa = worst(rows, "before"), worst(rows, "after")
+    gate_over = [(g, c) for g in gates if g["id"] != "electrical" for c in g.get("checks") or [] if str(c.get("status", "")).startswith("over")]
     result = (f"At {target * 100:.0f} %, existing plant: {len(over_before)} limit(s) over 100 %"
-              + (f" (highest {nm(wb['id'])} {wb['check']} {_pct(wb['before'])})" if wb and wb["before"] else "")
-              + f"; with the changes: " + ("all stated limits within 100 %" if not over_after else f"{len(over_after)} limit(s) still over 100 %")
-              + (f" (highest {nm(wa['id'])} {wa['check']} {_pct(wa['after'])})" if wa else "") + ".")
+              + (f" (highest {_item(wb['id'], wb['check'], aliases, nm)} {wb['check']} {_pct(wb['before'])})" if wb and wb["before"] else "")
+              + f"; with the changes: " + ("all modelled process limits within 100 %" if not over_after else f"{len(over_after)} limit(s) still over 100 %")
+              + (f" (highest {_item(wa['id'], wa['check'], aliases, nm)} {wa['check']} {_pct(wa['after'])})" if wa else "") + "."
+              + (f" Discipline screens outside the process model: {len(gate_over)} check(s) over their limit (section 6.1c)." if gate_over else ""))
     if cap_after is not None:
         result += f" Simulated maximum throughput: {_cap(cap_before)} → {_cap(cap_after)} of today."
     elec_md, elec_over = electrical_section(w, changes, built, target, after) if revs else ([], [])
     if not revs:
         decision_line = f"No change to the plant is needed: {(ans or {}).get('headline', '')}."
     else:
-        verb = "Approve for detailed engineering" if not (over_after or elec_over) else "Do not approve yet"
+        gate_fail = [g["id"] for g in gates if g.get("status") == "fail"]
+        verb = "Approve for detailed engineering" if not (over_after or elec_over or gate_fail) else "Do not approve yet"
         decision_line = (f"{verb}: {len(revs)} change(s) to reach {target * 100:.0f} % of today's throughput - "
                          + "; ".join(f"({r['rev']}) {r['title']}" for r in revs) + "."
                          + (f" The process changes pass in DWSIM; the electrical screen fails {len(elec_over)} check(s) "
-                            "(section 6.1b): resolve the supply first." if elec_over and not over_after else ""))
+                            "(section 6.1b): resolve the supply first." if elec_over and not over_after else "")
+                         + (f" Failed discipline gate(s): {', '.join(gate_fail)} (section 6.1c)." if gate_fail else ""))
     approvals = []
     for r in revs:
-        bits = [f"cost class {costs.get(r['rev']) or 'not stated'}"]
+        bits = [f"cost class {costs.get(r['rev']) or 'not stated'} (agent estimate)"]
         if any(c.get("add_unit") and c["add_unit"].get("type") not in ("mixer", "splitter", "recycle") for c in r["changes"]):
             bits.append("purchase of new equipment (vendor quote to confirm)")
         if any(c.get("add_unit") or c.get("reroute") for c in r["changes"]):
@@ -428,12 +586,12 @@ def make(w, answer=None):
           f"| **Decision requested** | {decision_line} |",
           f"| **Target** | {target_text} |",
           f"| **Result (DWSIM, re-solved for this file)** | {result} |",
-          f"| **Cost class** | " + ("; ".join(f"({k}) {v or 'not stated'}" for k, v in costs.items()) or "no change") + " |",
+          f"| **Cost class (agent estimate, unpriced)** | " + ("; ".join(f"({k}) {v or 'not stated'}" for k, v in costs.items()) or "no change") + " |",
           f"| **Needs approval** | " + "<br/>".join(approvals).replace("<br/>", "; ") + " |",
           f"| **Status** | DRAFT for engineering review; to be checked by a licensed engineer. Sign-off in section 7. |", ""]
     if ans and ans.get("summary"):
         md += [f"**Agent's explanation on record** (model text, quoted; its figures are not re-checked here: sections 3 and 4 are the "
-               f"calculation record): {ans.get('headline', '')}. {ans['summary']}", ""]
+               f"calculation record): {ans.get('headline', '')}. {no_runs(ans['summary'])}", ""]
 
     cover = "\n".join(md) + "\n"
     md = ["## 2. Basis", "", f"**Question.** {w.cfg.get('question')}", "",
@@ -452,9 +610,10 @@ def make(w, answer=None):
     md += [f"## 3. Existing vs proposed at {target * 100:.0f} % (DWSIM, re-solved for this file)", "",
            "| Item | Check | Limit | Existing | Proposed | Proposed value |", "|---|---|---|---|---|---|"]
     shown = [r for r in rows if (r["before"] or 0) > 0.8 or r["after"] > 0.8 or r["id"] in owners]
-    md += [f"| {nm(r['id'])} | {r['check']} | {qty(r['limit'], r['unit'])} | {_pct(r['before'])} | **{_pct(r['after'])}** | "
-           f"{qty(r['value_after'], r['unit'])} |" for r in shown[:16]] or ["| - | no limit near 80 % | | | | |"]
-    md += ["", "Existing and Proposed are utilisation (value / limit) of each limiting item at the target; over 100 % fails.", ""]
+    md += [f"| {_item(r['id'], r['check'], aliases, nm)} | {r['check']} | {_limit_cell(r['limit'], r['unit'], r['check'])} | {_pct(r['before'])} | "
+           f"**{_pct(r['after'])}** | {qty(r['value_after'], r['unit'])} |" for r in shown[:16]] or ["| - | no limit near 80 % | | | | |"]
+    md += ["", "Existing and Proposed are utilisation (value / limit) of each limiting item at the target; over 100 % fails. "
+           "For an energy-closure check the limit is the heat available in that solve.", ""]
 
     md += ["## 4. Changes", ""]
     if not revs:
@@ -468,7 +627,7 @@ def make(w, answer=None):
         tags |= {c["add_unit"]["id"] for c in r["changes"] if c.get("add_unit")}
         tags |= set().union(*[_tags_in(c.get("physical_change"), set(names) | {t for t in (p.get("fixes"), p.get("tag")) if t}) for c in r["changes"]])
         md += [f"### 4.{r['rev']} {r['title']}", "",
-               f"Cloud {r['rev']} on the Rev B drawing. Cost class: {costs.get(r['rev']) or 'not stated'}.", ""]
+               f"Cloud {r['rev']} on the Rev B drawing. Cost class (agent estimate, unpriced): {costs.get(r['rev']) or 'not stated'}.", ""]
         phys = [c.get("physical_change") for c in r["changes"] if c.get("physical_change")]
         md += ["**What physically changes.**", ""]
         md += [f"- {x}" for x in phys] or []
@@ -479,7 +638,7 @@ def make(w, answer=None):
             md += [f"- Model-only bookkeeping (no field work of its own): {'; '.join(mo)}."]
         if drawn.get(r["rev"]):
             md += [f"- On the drawing: {'; '.join(drawn[r['rev']])}."]
-        md += ["", f"**Why.** {r.get('reason') or 'not stated'}", ""]
+        md += ["", f"**Why.** {no_runs(r.get('reason')) or 'not stated'}", ""]
         rated = [c for c in r["changes"] if c.get("rating_source")]
         md += ["**Rating and rating source.**", ""]
         md += [f"- {c['add_unit']['id'] if c.get('add_unit') else nm(c['path'].split('.')[1])}: {c['rating_source']}" for c in rated] or \
@@ -489,24 +648,27 @@ def make(w, answer=None):
         if calc:
             md += [f"- Simulated maximum: {_cap(calc.get('capacity_multiple_before'))} → {_cap(calc.get('capacity_multiple_after'))} of today; "
                    f"first limit {((calc.get('limited_by_before') or {}).get('id'))} → {((calc.get('limited_by_after') or {}).get('id'))}.", ""]
-            md += _change_calc(calc, tags)
+            md += _change_calc(calc, tags, aliases)
         else:
             lim = p.get("limited_by") or {}
             md += [f"- Fixes {p.get('fixes') or 'the limit above'}; alone this change gives a simulated maximum of {_cap(r.get('capacity_multiple'))}"
                    + (f" (next limit {nm(lim.get('id'))}, {lim.get('check')})" if lim else "") + "."]
         if r["new_equipment"]:
-            md += ["", *_datasheet(r["changes"], calc),
+            md += ["", *_datasheet(r["changes"], calc, after if len(revs) > 1 else None,
+                                   f"combined design at {target * 100:.0f} % (all {len(revs)} changes applied together, DWSIM)"),
                    "**Simulator screening.** The figures above are a simulator screening solve, not a mechanical design. "
                    "**Provisional equipment selection.** Ratings of new equipment are preliminary and marked to confirm. "
                    "**Vendor and mechanical design approval.** Not granted: vendor curve, materials, relief sizing and shop design remain to confirm.", ""]
         mine = [f for f in field if _tags_in(" ".join(str(f.get(k, "")) for k in ("item", "where", "changes")), tags)]
         used |= {id(f) for f in mine}
         md += ["", "**Field checks that could change this.**", ""]
-        md += [f"- {f.get('item')}. Where: {f.get('where')}. If it differs: {f.get('changes')}" for f in mine] or ["- None raised for this change."]
+        md += [cv_unit(f"- {f.get('item')}. Where: {f.get('where')}. If it differs: {f.get('changes')}", after) for f in mine] \
+            or ["- None raised for this change."]
         md += [""]
     rest = [f for f in field if id(f) not in used]
     if rest:
-        md += [f"### 4.{len(revs) + 1} Other field checks", ""] + [f"- {f.get('item')}. Where: {f.get('where')}. If it differs: {f.get('changes')}" for f in rest] + [""]
+        md += [f"### 4.{len(revs) + 1} Other field checks", ""] + [cv_unit(f"- {f.get('item')}. Where: {f.get('where')}. If it differs: {f.get('changes')}", after)
+                                                                   for f in rest] + [""]
 
     md += ["## 5. Drawings", ""]
     if rev_a:
@@ -522,11 +684,12 @@ def make(w, answer=None):
     part1 = "\n".join(md) + "\n"
 
     md = ["## 6. Risks and safety", "", "### 6.1 Relief protection (P&ID relief scan)", ""]
-    md += ([f"- {x['tag']} {', '.join(x['side_fluids'])} side: {x['status']}. {x['detail']}" + (" Heated side that can be blocked in." if x["thermal_expansion_risk"] else "")
+    md += ([f"- **Finding:** {x['tag']} {', '.join(x['side_fluids'])} side: {x['status']}. {x['detail'].rstrip('.')}." + (" Heated side that can be blocked in." if x["thermal_expansion_risk"] else "")
             for x in relief_hit] or ["- No changed existing equipment side lacks relief on this drawing." if relief else "- No smart P&ID: relief scan not available; review relief manually."])
     if new_equipment:
         md += ["- New equipment is not on the as-built P&ID: its relief, isolation and control design need engineering review before approval."]
     md += elec_md
+    md += _gates_md(gates)
     md += ["", "### 6.2 Pre-startup safety review (PSSR), generated from the changes", ""]
     md += [f"- [ ] {i}" for i in checklist]
     md += ["", "### 6.3 Second opinion", ""]
@@ -543,6 +706,11 @@ def make(w, answer=None):
         risks.append("Limits still over 100 % with the changes: " + ", ".join(f"{nm(r['id'])} {r['check']} {_pct(r['after'])}" for r in over_after[:5]) + ".")
     if ill:
         risks.append("The result depends on ILLUSTRATIVE data-sheet values (section 2).")
+    if relief_hit:
+        risks.append(f"{len(relief_hit)} relief finding(s) on changed equipment (section 6.1).")
+    if gate_over:
+        risks.append("Discipline screens over their limit: " + "; ".join(f"{c['id']} {c['check']} {c.get('result')}" for _, c in gate_over[:4])
+                     + (f" (+{len(gate_over) - 4} more)" if len(gate_over) > 4 else "") + " (section 6.1c).")
     if risks:
         md += ["", "### 6.4 Open risks", ""] + [f"- {x}" for x in risks]
     md += ["", "## 7. Approvals (DRAFT: not approved)", "",
@@ -560,9 +728,15 @@ def make(w, answer=None):
     md += ["", "## Appendix C. Model review", "", f"Status: **{reviewed.get('status', 'ok')}**."]
     md += [f"- **{f.get('severity')}** - {f.get('check')}: {f.get('evidence')}" for f in reviewed.get("findings") or []] or ["- No findings."]
     if (reviewed.get("energy") or {}).get("note"):
-        md += ["", reviewed["energy"]["note"]]
-    md += ["", "## Appendix D. Model assumptions", ""] + ([f"- {a}" for a in (w.built.get("assumptions") or [])[:12]] or ["- None recorded."])
+        md += ["", _plain(reviewed["energy"]["note"], built)]
+    assumptions = w.built.get("assumptions") or []
+    md += ["", "## Appendix D. Model assumptions", "",
+           "Recorded by the model builder when the model was built (model text). Later model corrections (section 2) take "
+           "precedence; items the current model no longer matches are marked **superseded**.", ""]
+    md += [f"- {_plain(a, built)}" + (f" **[superseded: {_stale(a, built, aliases)}]**" if _stale(a, built, aliases) else "")
+           for a in assumptions] or ["- None recorded."]
     part2 = "\n".join(md) + "\n"
+    cover, part1, part2 = tidy(cover), tidy(part1), tidy(part2)
     decision_md = cover + "\n" + part1 + "\n" + part2
 
     diffs = sorted((so.get("comparison") or {}).get("disagree") or [], key=lambda d: d.startswith(("units.", "feeds.", "limits.")))
@@ -576,7 +750,7 @@ def make(w, answer=None):
              "**Measure next:** " + ("; ".join(f.get("item", "") for f in field) or
                                      "the first 24 h at the new throughput against the model's predicted values") + ".", "",
              f"Full MOC file with Rev A/Rev B drawings and PSSR checklist ({len(checklist)} items) attached. Audit head `{(head or '')[:12]}`."]
-    memo_md = "\n".join(memo) + "\n"
+    memo_md = tidy("\n".join(memo) + "\n")
 
     out = w.model_file.with_name("decision-" + time.strftime("%Y%m%d-%H%M%S"))
     out.mkdir(parents=True, exist_ok=True)

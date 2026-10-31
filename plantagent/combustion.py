@@ -471,11 +471,11 @@ def checks_hrsg(cfg, r, tag):
         ms / o["stack_T_C"], lim["stack_dew_margin_K"]["source"])
     if d["fuel_kW_HHV"] > 0:
         add(tag, "gas temperature into the superheater vs unfired design inlet", d["T_C"], des and r["gas_turbine"]["exhaust_T_C"], "C",
-            d["T_C"] / r["gas_turbine"]["exhaust_T_C"], "the documented HRSG is unfired: above 100 % the superheater sees hotter gas "
+            d["T_C"] / r["gas_turbine"]["exhaust_T_C"], "the documented HRSG is unfired: above that inlet the superheater sees hotter gas "
             "than its design point (tube metal and attemperation to confirm with the HRSG vendor)")
         exists = bool(_v(cfg["duct_burner"], "installed"))
-        add("duct burner", "supplementary firing needed" + ("" if exists else " (no duct burner on record)"), d["fuel_MMBtu_h_HHV"],
-            0.0, "MMBtu/h HHV", None, cfg["duct_burner"]["installed"]["source"])
+        add("duct burner", f"supplementary firing needed ({d['fuel_MMBtu_h_HHV']:.1f} MMBtu/h)" + ("" if exists else ", no duct burner on record"),
+            d["fuel_kW_HHV"] / 1000, 0.0, "MW HHV", None, cfg["duct_burner"]["installed"]["source"])
         mo = _v(cfg["duct_burner"], "min_O2_wet_pct")
         add("duct burner", "O2 after duct firing vs minimum for stable firing", d["O2_wet_pct"], mo, "% wet", mo / d["O2_wet_pct"],
             cfg["duct_burner"]["min_O2_wet_pct"]["source"])
@@ -554,9 +554,11 @@ def combustion_check(w, steam_scale=None, firing_scale=None, exhaust_T_C=None, r
         chk = checks_hrsg(cfg, r, tag)
         md = _hrsg_sheet(cfg, base, r, chk, shaft, path, steam_scale, firing_scale, exhaust_T_C, w, scale)
         d, o = r["duct_burner"], r["hrsg"]
-        summary = (f"{cfg['gas_turbine']['tag']} + {tag}: steam {o['steam_lb_h']:,.0f} lb/h (x{r['steam_scale']:.2f}), stack "
-                   f"{base['hrsg']['stack_T_C']:.0f} -> {o['stack_T_C']:.0f} C, duct firing {d.get('fuel_MMBtu_h_HHV', 0):.1f} MMBtu/h HHV, "
-                   f"NOx added {d.get('NOx_added_ppmvd_15O2', 0):.1f} ppmvd @15 % O2 (screening)")
+        # SI first, the plant's US units in brackets
+        summary = (f"{cfg['gas_turbine']['tag']} + {tag}: steam {o['steam_lb_h'] * 0.45359237 / 1000:,.1f} t/h "
+                   f"({o['steam_lb_h']:,.0f} lb/h, ×{r['steam_scale']:.2f}), stack {base['hrsg']['stack_T_C']:.0f} → {o['stack_T_C']:.0f} °C, "
+                   f"duct firing {d.get('fuel_kW_HHV', 0) / 1000:,.2f} MW HHV ({d.get('fuel_MMBtu_h_HHV', 0):.1f} MMBtu/h), "
+                   f"NOx added {d.get('NOx_added_ppmvd_15O2', 0):.1f} ppmvd at 15 % O2 (screening)")
         title, stem = f"Combustion check: {cfg['gas_turbine']['tag']} + {tag}", "combustion-hrsg"
         out = {"mode": "gas turbine + HRSG", "base": _slim(base), "scenario": _slim(r)}
     out.update(checks=chk, summary=summary)

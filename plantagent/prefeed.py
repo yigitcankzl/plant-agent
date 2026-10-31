@@ -305,13 +305,40 @@ def discipline_register(envelope, equipment, dynamics, hazards, construction, su
     return [{"id": did, **row} for did, row in rows.items()]
 
 
-def _gate(did, checks, source, summary, open_reason=None):
+MIN_CHECK = re.compile(r"vs (?:the )?minimum|vs water dew point|pinch|approach", re.I)
+
+
+def _kind(c):
+    """'min' for checks whose value must stay above the limit (velocity, pinch, approach, dew-point margin)."""
+    return c.get("kind") or ("min" if MIN_CHECK.search(str(c.get("check") or "")) else "max")
+
+
+def _result(c, kind):
+    """Plain result text: % of the limit for capacity-type checks; a margin in the check's own unit for minimum-type
+    checks and temperatures (a % of degrees C means nothing)."""
+    u, v, lim, unit = c.get("utilisation"), c.get("value"), c.get("limit"), (c.get("unit") or "").strip()
+    if not isinstance(u, (int, float)):
+        return "information"
+    if c.get("kind") == "note":
+        return f"{v:.0f} % apart (flagged above {lim:g} %)"
+    if isinstance(v, (int, float)) and isinstance(lim, (int, float)) and (kind == "min" or unit in ("C", "°C", "K")):
+        unit = "K" if unit in ("C", "°C", "K") else unit
+        margin = v - lim if kind == "min" else lim - v
+        word = ("above the minimum" if margin >= 0 else "below the minimum") if kind == "min" else \
+               ("below the limit" if margin >= 0 else "over the limit")
+        return f"{_fmt(abs(margin))} {unit} {word}"
+    return f"{u * 100:.0f} %"
+
+
+def _gate(did, checks, source, summary, open_reason=None, source_file=None):
     """A sourced gate row. Only checks that name a non-illustrative source decide pass/fail; an illustrative rating
     over its limit leaves the gate open (the rating has to be confirmed before it can fail or pass the design)."""
     rated = [c for c in checks if isinstance(c.get("utilisation"), (int, float))]
+    consistency = [c for c in rated if c.get("kind") == "note" or str(c.get("check") or "").startswith("model U")]
     # model-consistency flags (model U vs correlation) describe the model, not the design
-    firm = [c for c in rated if "ILLUSTRATIVE" not in str(c.get("source") or "").upper() and not str(c.get("check") or "").startswith("model U")]
-    soft_over = sorted((c for c in rated if c not in firm and c["utilisation"] > 1), key=lambda c: -c["utilisation"])
+    firm = [c for c in rated if "ILLUSTRATIVE" not in str(c.get("source") or "").upper() and c not in consistency]
+    soft_over = sorted((c for c in rated if c not in firm and c not in consistency and c["utilisation"] > 1),
+                       key=lambda c: -c["utilisation"])
     if open_reason:
         status = "open"
     elif any(c["utilisation"] > 1 for c in firm):
@@ -321,13 +348,40 @@ def _gate(did, checks, source, summary, open_reason=None):
     else:
         status = "pass"
     if soft_over and status != "fail":
-        summary += "; over an ILLUSTRATIVE rating (confirm): " + ", ".join(
-            f"{c['id']} {c['check']} {c['utilisation'] * 100:.0f} %" for c in soft_over[:3])
-    rows = [{"id": c.get("id"), "check": c.get("check"), "value": _fmt(c.get("value")), "limit": _fmt(c.get("limit")),
-             "unit": c.get("unit") or "", "result": (f"{c['utilisation'] * 100:.0f} %" if isinstance(c.get("utilisation"), (int, float))
-                                                     else "information"), "source": c.get("source")} for c in checks]
-    return {"id": did, "status": status, "summary": summary + (f"; {open_reason}" if open_reason else ""),
-            "source": source, "checks": rows}
+        summary += (f"; {len(soft_over)} check{'s' if len(soft_over) > 1 else ''} over illustrative ratings or geometry, to confirm "
+                    "before this gate can pass or fail: " + ", ".join(f"{c['id']} {c['check']} {c['utilisation'] * 100:.0f} %" for c in soft_over))
+    for c in consistency:
+        if c["utilisation"] > 1:
+            summary += f"; model-consistency note: {c['check']} are {c.get('value', 0):.0f} % apart"
+    rows = []
+    for c in checks:
+        kind, u = ("max" if c.get("kind") == "note" else _kind(c)), c.get("utilisation")
+        illustrative = "ILLUSTRATIVE" in str(c.get("source") or "").upper()
+        state = ("note" if c in consistency else "info" if not isinstance(u, (int, float)) else
+                 ("over" if not illustrative else "over (illustrative rating)") if u > 1 else "ok")
+        rows.append({"id": c.get("id"), "check": c.get("check"), "value": _fmt(c.get("value")), "limit": _fmt(c.get("limit")),
+                     "unit": c.get("unit") or "", "kind": kind, "status": state, "result": _result(c, kind),
+                     "source": c.get("source") or source})
+    out = {"id": did, "status": status, "summary": summary + (f"; {open_reason}" if open_reason else ""),
+           "source": source, "checks": rows}
+    if source_file:
+        out["source_file"] = source_file
+    return out
+
+
+def design_calculation(w, ans, calc):
+    """A proposal's calculation record re-based on the combined design (all verified proposals solved together), so a new
+    machine's duty matches the documents and the drawing; unchanged when the proposal is the whole design."""
+    from . import revb
+    d = revb.design_solve(w, ans)
+    if not d or not isinstance(calc, dict):
+        return calc
+    res, scale, label = d
+    units = res.get("units") or {}
+    return {**calc, "target_scale": scale, "units": units, "basis": label,
+            "streams": [{"id": k, **v} for k, v in (res.get("streams") or {}).items()],
+            "new_equipment": [{**r, "operating_point": units.get(r.get("id")) or r.get("operating_point")}
+                              for r in calc.get("new_equipment") or []]}
 
 
 def discipline_gates(w, answer=None, refresh=False):
@@ -378,7 +432,8 @@ def discipline_gates(w, answer=None, refresh=False):
     if robust:
         rows.append(_gate("robustness", robust, f"{sim} solves of the pre-FEED operating envelope", rsum))
     # mechanical: provisional ratings of new machines vs the solved duty; a vendor curve is still needed
-    eq = equipment_screen(changes, [_enrich(patch(copy.deepcopy(w.spec), changes), p["calculation"]) for p in proposals if p.get("calculation")])
+    eq = equipment_screen(changes, [_enrich(patch(copy.deepcopy(w.spec), changes), design_calculation(w, ans, p["calculation"]))
+                                    for p in proposals if p.get("calculation")])
     if eq:
         mech = []
         for e in eq:
@@ -399,35 +454,40 @@ def discipline_gates(w, answer=None, refresh=False):
         if cfg and electrical.available():
             if electrical.motor_changes(cfg, changes):
                 e = electrical.for_workspace(w, changes, target, save=False)
-                src = "pandapower load flow of cases/%s/electrical.json%s" % (w.name, " (ILLUSTRATIVE network values)" if "ILLUSTRATIVE" in str(cfg.get("note")) else "")
-                g = _gate("electrical", e["checks"], src, e["summary"])
+                src = "pandapower load flow on the case one-line diagram" + (" (ILLUSTRATIVE network)" if "ILLUSTRATIVE" in str(cfg.get("note")) else "")
+                g = _gate("electrical", e["checks"], src, e["summary"], source_file=f"cases/{w.name}/electrical.json")
                 # the network is illustrative as a whole, but a transformer overload on it is the finding to act on
                 if any(c["utilisation"] > 1 for c in e["checks"]):
                     g["status"] = "fail"
                 rows.append(g)
             else:
                 rows.append({"id": "electrical", "status": "not affected", "summary": "no new or re-rated motor on the one-line diagram",
-                             "source": f"cases/{w.name}/electrical.json motor list", "checks": []})
+                             "source": "motor list of the case one-line diagram", "source_file": f"cases/{w.name}/electrical.json", "checks": []})
     except Exception as ex:  # noqa: BLE001 - a broken adapter leaves the gate open, never green
         rows.append({"id": "electrical", "status": "open", "summary": f"electrical check could not run: {type(ex).__name__}: {ex}"[:200],
                      "source": "pandapower adapter", "checks": []})
     try:
         from . import hxdetail
         geo = ROOT / "cases" / w.name / "hx_geometry.json"
-        hx_checks, notes = [], []
+        hx_checks, notes, illus = [], [], False
         for tag, entry in (json.loads(geo.read_text()).items() if geo.exists() else []):
             if not isinstance(entry, dict) or tag.startswith("_"):
                 continue
             uid = entry.get("model_unit", tag)
             clean = any(str(c.get("path") or "") == f"units.{uid}.U_W_m2K" for c in changes)
             r = hxdetail.hx_detail(w, tag, target, condition="clean" if clean else "fouled", save=False, changes=changes)
+            illus = illus or bool(r.get("illustrative_geometry"))
             if r.get("illustrative_geometry"):  # the rating can only be as firm as the geometry it rates
                 r["checks"] = [{**c, "source": f"{c.get('source')} (ILLUSTRATIVE geometry)"} for c in r["checks"]]
             hx_checks += r["checks"]
-            notes.append(f"{tag} ({r['condition']}): area needed {r['results']['A_req']:.0f} of {r['results']['A_inst']:.0f} m²")
+            res, mu = r["results"], r.get("model_U")
+            note = f"{tag} ({r['condition']}): area needed {_fmt(res['A_req'])} of {_fmt(res['A_inst'])} m² at the correlation U {_fmt(res.get('U'))} W/m²K"
+            if mu and res.get("U") and abs(mu / res["U"] - 1) > 0.2:  # the solved design used the model's (measured) U
+                note += f"; the verified process design uses the model U {_fmt(mu)} W/m²K, which governs until the geometry is confirmed"
+            notes.append(note)
         if hx_checks:
-            rows.append(_gate("heat_transfer", hx_checks, "ht/fluids exchanger rating at the design point (cases/%s/hx_geometry.json)" % w.name,
-                              "; ".join(notes)))
+            rows.append(_gate("heat_transfer", hx_checks, "ht/fluids exchanger rating at the design point"
+                              + (" (ILLUSTRATIVE geometry)" if illus else ""), "; ".join(notes), source_file=f"cases/{w.name}/hx_geometry.json"))
     except Exception as ex:  # noqa: BLE001
         rows.append({"id": "heat_transfer", "status": "open", "summary": f"exchanger rating could not run: {type(ex).__name__}: {ex}"[:200],
                      "source": "ht/fluids adapter", "checks": []})
@@ -437,9 +497,10 @@ def discipline_gates(w, answer=None, refresh=False):
             r = combustion.combustion_check(w, steam_scale=target, scale=target, save=False)
             d = r["scenario"].get("duct_burner") or {}
             fired = (d.get("fuel_MMBtu_h_HHV") or 0) > 0
-            rows.append(_gate("combustion", r["checks"], "Cantera gas turbine + HRSG model (cases/%s/combustion.json)" % w.name,
-                              r["summary"], open_reason=("if HRSG steam rises with throughput (x%.2f), it needs supplementary (duct) firing "
-                                                         "the unfired HRSG does not have: a modification to decide" % target) if fired else None))
+            rows.append(_gate("combustion", r["checks"], "Cantera gas-turbine and HRSG model", r["summary"],
+                              open_reason=("if HRSG steam rises with throughput (×%.2f), it needs supplementary (duct) firing "
+                                           "the unfired HRSG does not have: a modification to decide" % target) if fired else None,
+                              source_file=f"cases/{w.name}/combustion.json"))
     except Exception as ex:  # noqa: BLE001
         rows.append({"id": "combustion", "status": "open", "summary": f"combustion check could not run: {type(ex).__name__}: {ex}"[:200],
                      "source": "Cantera adapter", "checks": []})
@@ -600,11 +661,17 @@ def commissioning_markdown(plan):
 
 
 def _fmt(value):
+    """3-4 significant figures with thousands separators (7,130; 226,800; 0.364), never scientific notation."""
     if value is None:
         return "—"
-    if isinstance(value, float):
-        return f"{value:.3g}"
-    return str(value)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return str(value)
+    if value == 0:
+        return "0"
+    mag = math.floor(math.log10(abs(value)))
+    digits = max(0, 3 - mag)  # 4 significant figures below 1,000, whole numbers above
+    r = round(value, digits) if mag < 3 else round(value)
+    return f"{r:,.{digits}f}".rstrip("0").rstrip(".") if digits else f"{r:,.0f}"
 
 
 def _pct(fraction):

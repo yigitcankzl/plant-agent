@@ -343,8 +343,26 @@ def _with_gates(w):
                and c["add_unit"].get("type") not in ROUTING_UNITS]
         hit = {r["id"]: "fail" for r in fails if ids and (r["id"] == "electrical" or any(i in json.dumps(r.get("checks")) for i in ids))}
         return {**p, "discipline_status": {**hit, **(p.get("discipline_status") or {})}, "verified_scope": "process"} if hit else p
+    from .prefeed import design_calculation
+
+    def rebase(p):  # new equipment cards show the combined design duty, the same basis as the documents and Rev B
+        if p.get("verified") and p.get("calculation", {}).get("new_equipment"):
+            return {**p, "calculation": design_calculation(w, d, p["calculation"])}
+        return p
     return [{**a, "disciplines": g["disciplines"], "disciplines_made": g.get("made"),
-             "proposals": [tag(p) if p.get("verified") else p for p in a.get("proposals") or []]} if a is d else a for a in w.answers]
+             "proposals": [rebase(tag(p)) if p.get("verified") else p for p in a.get("proposals") or []]} if a is d else a for a in w.answers]
+
+
+def _outcome(w):
+    """The case's withheld engineering outcome (cases/<case>/outcome.json, kept out of case.json and basis.md so the
+    agent never reads it) with the agent's current headline beside it."""
+    f = ROOT / "cases" / w.name / "outcome.json"
+    oc = json.loads(f.read_text()) if f.exists() else None
+    if not oc:
+        return None
+    from . import revb
+    a = revb.design_answer(w.answers) or (w.answers[-1] if w.answers else None)
+    return {**oc, "agent_headline": (a or {}).get("headline"), "agent_summary": (a or {}).get("summary")}
 
 
 def plant_project(case):
@@ -362,6 +380,12 @@ def plant_project(case):
             "has_revisions": bool(w.revisions),
             # design changes only: model corrections fix the model itself and are part of the Existing plant
             "has_changes": any(r.get("kind") != "correction" for r in w.revisions),
+            # what the engineers actually decided later, withheld from the agent; shown next to the agent's answer
+            "outcome": _outcome(w),
+            # Muse spend on this case: building the model once, plus every question asked on it (second opinions included)
+            "ai_cost": {"model_build_usd": round((w.built or {}).get("cost_usd") or 0, 4),
+                        "questions_usd": round(sum(a.get("cost_usd") or 0 for a in w.answers), 4),
+                        "questions": len(w.answers)},
             "health": (lambda h: {k: h.get(k) for k in ("today", "exchangers", "source_note", "from", "to")} if h else None)(
                 json.loads(w.model_file.with_name("health.json").read_text()) if w.model_file.with_name("health.json").exists() else None),
             "forecast": _fouling_forecast(w),

@@ -173,6 +173,7 @@
   .prop .r.bad { color: #ffb4ad; }
   .acc { background: var(--ok); color: #fff; border: none; border-radius: 6px; padding: 7px 14px; font: 600 13px var(--sans); cursor: pointer; }
   .det { color: var(--accent); font-size: 12px; cursor: pointer; margin-top: 10px; display: inline-block; }
+  .skel { color: var(--muted); font-size: 12px; animation: pulse2 1.2s infinite alternate; }
   .glow { position: absolute; border-radius: 12px; pointer-events: none; border: 3px solid var(--fail); box-shadow: 0 0 18px rgba(239,90,79,.7); animation: pulse2 1.2s infinite alternate; }
   .glow.ok { border-color: var(--ok); box-shadow: 0 0 18px rgba(63,182,122,.7); animation: none; }
   .glow span { position: absolute; left: 0; top: -24px; white-space: nowrap; font: 700 11.5px var(--sans); color: #fff; background: var(--fail); padding: 2px 7px; border-radius: 4px; }
@@ -295,9 +296,9 @@
     <div id="ubars"></div>
   </aside>
   <aside class="left">
-    <div class="sec"><h4>Documents</h4><div id="docs"></div></div>
-    <div class="sec"><h4>Data</h4><div id="data"></div></div>
-    <div class="sec"><h4>Calibrated models</h4><div id="models"></div></div>
+    <div class="sec"><h4>Documents</h4><div id="docs"><div class="skel">Loading…</div></div></div>
+    <div class="sec"><h4>Data</h4><div id="data"><div class="skel">Loading…</div></div></div>
+    <div class="sec"><h4>Calibrated models</h4><div id="models"><div class="skel">Loading…</div></div></div>
     <div class="sec"><h4>Layers</h4>
       <div class="layer" data-l="hits"><span class="sw" style="background:var(--accent)"></span>Structures (click to act)</div>
       <div class="layer" data-l="ws"><span class="sw" style="background:#1f4e8c"></span>Water surface at flow</div>
@@ -321,8 +322,8 @@
   </aside>
 
   <section id="charts">
-    <div class="cbox"><h5><span id="sproft">Water surface through the plant</span><span><span id="sflowv" style="font:700 13px var(--mono);color:var(--text)"></span> <input type="range" id="sflow" min="4" max="30" step="0.5" value="18"></span></h5><svg id="sprof" viewBox="0 0 700 160" width="100%" height="160"></svg></div>
-    <div class="cbox"><h5><span id="shistt">Demand vs plant capacity</span></h5><svg id="shist" viewBox="0 0 700 160" width="100%" height="160"></svg></div>
+    <div class="cbox"><h5><span id="sproft">Water surface through the plant</span><span><span id="sflowv" style="font:700 13px var(--mono);color:var(--text)"></span> <input type="range" id="sflow" min="4" max="30" step="0.5" value="18"></span></h5><svg id="sprof" viewBox="0 0 700 160" width="100%" height="160"><text x="350" y="84" text-anchor="middle" fill="#8592a3" font-size="13">Loading…</text></svg></div>
+    <div class="cbox"><h5><span id="shistt">Demand vs plant capacity</span></h5><svg id="shist" viewBox="0 0 700 160" width="100%" height="160"><text x="350" y="84" text-anchor="middle" fill="#8592a3" font-size="13">Loading…</text></svg></div>
   </section>
   <aside id="ovl"></aside>
   <div id="askbar"><input id="ask2" aria-label="Ask an engineering question" placeholder="Ask a question about this plant…" autocomplete="off">
@@ -365,7 +366,7 @@ async function load() {
   const cases = await api("/api/cases");
   $("#projsel").innerHTML = cases.filter(c => c.runs.length).map(c => `<option value="${c.name}" ${c.name === CASE ? "selected" : ""}>${esc(c.title.split(",")[0])} · ${esc(c.task_type.split(" ")[0])}</option>`).join("");
   const procs = (await api("/api/projects")).filter(p => p.kind === "process");
-  $("#projsel").insertAdjacentHTML("beforeend", procs.map(p => `<option value="plant:${p.case}">⚗ ${esc(p.title.split("(")[0])} · process</option>`).join(""));
+  $("#projsel").insertAdjacentHTML("beforeend", procs.map(p => `<option value="plant:${p.case}">${p.engine === "watertap" ? "🌊" : "⚗"} ${esc(p.title.split("(")[0])} · ${p.engine === "watertap" ? "desalination" : "process"}</option>`).join(""));
   $("#projsel").onchange = e => e.target.value.startsWith("plant:") ? location.href = "plant.html?case=" + e.target.value.slice(6) : location.search = "?case=" + e.target.value;
   document.title = "PlantAgent · " + P.title.split(",")[0];
   const tl = await api(`/api/ws/${CASE}/tasks`);
@@ -627,6 +628,16 @@ function drawGlows() {
   ISS.filter(i => i.severity === "error" && i.structure).forEach(i => { if (seen.has(i.structure)) return; seen.add(i.structure);
     add(bboxOf(i.structure), "", i.plain_kind); });
   ACCEPTED.forEach(a => add(bboxOf(a.structure), "ok", "✓ " + a.title.slice(0, 40)));
+  // labels of neighbouring structures must not print over each other: lift each one above any it collides with
+  const placed = [];
+  document.querySelectorAll(".glow > span").forEach(sp => {
+    for (let k = 0, top = -24; k < 6; k++) {
+      const r = sp.getBoundingClientRect();
+      if (!placed.some(p => r.left < p.right && r.right > p.left && r.top < p.bottom && r.bottom > p.top)) break;
+      top -= r.height + 3; sp.style.top = top + "px";
+    }
+    placed.push(sp.getBoundingClientRect());
+  });
 }
 
 
@@ -1002,7 +1013,7 @@ async function sprofile(q) {
 }
 
 async function shistory() {
-  const ds = P.datasets[0]; if (!ds) { $("#shistt").textContent = "Capacity by unit (target line)"; return; }
+  const ds = P.datasets[0]; if (!ds) { $("#shistt").textContent = "Capacity by unit (target line)"; if ($("#shist").textContent === "Loading…") $("#shist").innerHTML = ""; return; }
   const h = await api(`/api/ws/${CASE}/history?dataset=${ds.id}&parameter=MDD%20maximum`);
   const hp = await api(`/api/ws/${CASE}/history?dataset=${ds.id}&parameter=MDD%20projected%20medium`).catch(() => null);
   const pts = h.points, proj = ((hp && hp.points) || []).filter(p => p[0] <= 2040), W = 700, H = 160, tgt = P.target_mgd || 18;

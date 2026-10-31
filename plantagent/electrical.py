@@ -129,16 +129,20 @@ def check(cfg, solved, changes=None, overrides=None, scale=1.0):
     base = _run(net)
     checks = []
 
+    names = {b["id"]: b.get("name") or b["id"] for b in cfg.get("buses") or []}
+    where = lambda bid: f"{bid[:-5]} motor terminal" if bid.endswith("-term") else names.get(bid, bid)  # noqa: E731
+
     def add(uid, what, value, key):
         limit, src = LIMITS[key]
         checks.append({"id": uid, "check": what, "value": round(value, 2), "limit": limit, "unit": "%",
-                       "utilisation": round(value / limit, 3), "basis": src})
+                       "utilisation": round(value / limit, 3), "basis": src, "source": src})
     for t in base["transformers"]:
         add(t["id"], "transformer loading vs nameplate", t["loading_percent"], "transformer")
     for c in base["cables"]:
         add(c["id"], "cable loading vs ampacity", c["loading_percent"], "cable")
     for b in base["buses"]:
-        add(b["id"], "bus voltage deviation vs ±5 %", abs(1 - b["vm_pu"]) * 100, "voltage")
+        add(b["id"], f"{where(b['id'])}: {'under' if b['vm_pu'] < 1 else 'over'}-voltage {b['vm_pu']:.3f} p.u. vs ±5 %",
+            abs(1 - b["vm_pu"]) * 100, "voltage")
     movers = [m for m in net["motors"] if m["new"] or m["changed"]]
     start = None
     if movers:
@@ -165,7 +169,7 @@ def check(cfg, solved, changes=None, overrides=None, scale=1.0):
         add(term, f"start dip at {m['id']} terminal ({m['start']})", max(0.0, dips[term]), "dip_motor")
         for bid, d in dips.items():
             if not bid.endswith("-term"):
-                add(bid, f"dip during {m['id']} start ({m['start']})", max(0.0, d), "dip_other")
+                add(bid, f"{where(bid)}: dip during {m['id']} start ({m['start']})", max(0.0, d), "dip_other")
     checks.sort(key=lambda c: -c["utilisation"])
     return {"scale": scale, "checks": checks, **base, "start": start, "net": net}
 
@@ -230,7 +234,8 @@ def summary(res, before=None):
     over = [c for c in res["checks"] if c["utilisation"] > 1]
     return (f"{tr['id']} {'%.0f → ' % b['loading_percent'] if b else ''}{tr['loading_percent']:.0f} % loaded"
             + (f"; {s['motor']} {s['method']} start dip {s['terminal_dip_percent']:.1f} % at its terminal" if s else "")
-            + (f"; OVER: {', '.join(c['id'] + ' ' + c['check'] for c in over[:3])}" if over else "; all electrical checks within limits"))
+            + (f"; OVER: {', '.join(c['id'] + ' ' + c['check'] for c in over[:3])}" + (f" (+{len(over) - 3} more)" if len(over) > 3 else "")
+               if over else "; all electrical checks within limits"))
 
 
 def for_workspace(w, changes=None, scale=None, overrides=None, title=None, save=True, spec=None):

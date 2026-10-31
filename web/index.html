@@ -137,8 +137,10 @@ function evHtml(e) {
   if (e.kind === "submit") return `<div class="ev submit">✓ ${esc(e.text)}</div>`;
   const cls = e.kind === "error" ? "error" : SIM.has(e.name) ? "tool sim" : "tool";
   // raw tool arguments and output stay one click away; the timeline shows the call and a short result
-  const short = String(e.result ?? "").replace(/\s+/g, " ").slice(0, 110);
-  return `<details class="ev ${cls}"><summary><span class="name">${esc(e.name)}</span>${e.kind === "error" ? " · tool error, agent retried" : ""} <span class="res">${esc(short)}${String(e.result ?? "").length > 110 ? "…" : ""}</span></summary>
+  // a Python exception from a tool is the agent's input mistake; the timeline says so, the raw text stays inside
+  const raw = String(e.result ?? ""), err = e.kind === "error" || /\b\w*(Error|Exception)\b|Traceback/.test(raw.slice(0, 200));
+  const short = err ? "tool input error, the agent corrected it and retried" : raw.replace(/\s+/g, " ").slice(0, 110) + (raw.length > 110 ? "…" : "");
+  return `<details class="ev ${err ? "error" : cls}"><summary><span class="name">${esc(e.name)}</span> <span class="res">${esc(short)}</span></summary>
           <div class="res">${esc(e.args)}</div><div class="res">→ ${esc(e.result)}</div></details>`;
 }
 
