@@ -224,6 +224,7 @@
   .process.focused #answers { font-size: 14px; line-height: 1.5; }
   .process.focused #answers > .ans { padding: 22px 20px 28px; animation: none; }
   .decision-brief { border-top: 3px solid #90d2c8; }
+  .cost-conf { margin-top: 14px; } .cost-conf h3 { margin: 12px 0 8px; font-size: 15px; }
   .review-note { margin: 0 0 12px; padding: 9px 11px; border-left: 3px solid var(--warn); background: #2b2414; border-radius: 4px; font-size: 12.5px; color: #f3dca8; }
   .review-note summary { cursor: pointer; color: var(--muted); margin-top: 5px; } .review-note li { margin: 4px 0; } .review-note code { color: var(--warn); }
   .gates-open > summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-top: 8px; }
@@ -1601,6 +1602,7 @@ function qaBar(lead) {
     if (f) b.push(['fail', `${f} discipline check${f === 1 ? '' : 's'} failed`]);
     if (o) b.push(['open', `${o} not calculated yet`]);
     if (P.outcome?.engineers) b.push(['ok', 'answered blind · compare with what happened →']);
+    const u = dd.uncertainty; if (u?.p_target != null) b.push([u.p_target >= .8 ? 'ok' : u.p_target >= .5 ? 'open' : 'fail', `target met in ${Math.round(u.p_target * 100)}% of uncertainty re-solves`]);
   }
   $('qaBadges').innerHTML = b.map(([k, t]) => `<span class="qa-badge ${k}"${/compare/.test(t) ? ' role="button" tabindex="0" style="cursor:pointer" onclick="document.querySelector(\'.outcome-compare\')?.scrollIntoView({behavior:\'smooth\'})"' : ''}>${esc(t)}</span>`).join('');
   $('qaSugg').innerHTML = suggestions().map(x => `<button class="btn" ${act('ask', x)}>${esc(x)}</button>`).join('');
@@ -1711,7 +1713,30 @@ function decisionBrief(a, idx) {
     <div class="decision-fact status-${statusClass}"><dt>③ What the engines confirmed</dt><dd>${esc(status)}</dd></div>
     <div class="decision-fact"><dt>Who did what</dt><dd>${whoDidWhat(d, gates)}</dd></div>
     ${secondOpinionLink(d)}
-  </dl></section>${disciplineImpact(d)}${issue}`;
+  </dl></section>${disciplineImpact(d)}${costConfidence(d)}${issue}`;
+}
+// ⑤ money and confidence: factored cost (economics.py) and the Monte Carlo of re-solves (uncertainty.py), both deterministic;
+// curves and the start-up screen load on demand from their own endpoints
+function costConfidence(d) {
+  const e = d.economics, u = d.uncertainty;
+  if (!e && !u) return '';
+  const M = v => v == null ? '—' : Math.abs(v) >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : `$${Math.round(v / 1e3)}k`;
+  const pay = y => y == null ? '—' : y < 1 ? `${Math.round(y * 12)} months` : `${y.toFixed(1)} years`;
+  const econ = e ? `<div class="decision-fact"><dt>Cost</dt><dd><b>${M(e.capex?.total_usd)}</b> capex (class 5: ${M(e.capex?.range_usd?.[0])}–${M(e.capex?.range_usd?.[1])}) · <b>${M(e.annual?.margin_usd)}/yr</b> margin · payback <b>${pay(e.payback_years)}</b> <span class="vb" style="border:1px solid var(--warn);color:var(--warn)">prices illustrative</span></dd></div>` : '';
+  const pt = u?.p_target, c = u?.capacity;
+  const unc = u ? `<div class="decision-fact status-${pt >= .8 ? 'pass' : pt >= .5 ? 'open' : 'fail'}"><dt>Confidence</dt><dd>Target met in <b>${Math.round(pt * 100)}%</b> of ${u.solved || u.n} re-solves with the uncertain inputs varied · max throughput P10/P50/P90 <b>${[c?.p10, c?.p50, c?.p90].map(x => x == null ? '—' : Math.round(x * 100) + '%').join(' / ')}</b>${u.limiting?.[0] ? ` · most often limited by ${esc(u.limiting[0].item)}` : ''}</dd></div>` : '';
+  return `<section class="decision-brief cost-conf"><h3>⑤ Cost and confidence</h3><dl class="decision-facts">${econ}${unc}<div class="decision-fact"><dt>Machines</dt><dd id="machines"><button class="btn" type="button" onclick="loadMachines()">Check compressor curves and K-202 start-up</button></dd></div>
+    <div class="decision-fact"><dt>Review</dt><dd><a href="review.html?case=${encodeURIComponent(CASE)}" target="_blank">Comments, sign-offs and HAZOP draft →</a></dd></div></dl></section>`;
+}
+async function loadMachines() {
+  const box = $('machines'); box.textContent = 'Loading…';
+  const [cv, arts] = await Promise.all([api('curves').catch(() => null), api('artifacts').catch(() => [])]);
+  const ops = cv?.scales?.[Number(P.target_scale).toFixed(2)]?.operating_points || {};
+  const rows = Object.entries(ops).map(([t, o]) => `<li><b>${esc(t)}</b> ${Math.round(o.kg_h / 1000 * 10) / 10} t/h · ${(o.speed_needed_pct || o.speed_pct) ? Math.round(o.speed_needed_pct || o.speed_pct) + ' % speed · ' : ''}${Math.round(o.eff_pct)} % eff · surge margin <b style="color:var(--${o.surge_margin_pct < 10 ? 'fail' : 'ok'})">${Math.round(o.surge_margin_pct)} %</b></li>`).join('');
+  const tr = (arts || []).filter(a => /transient/i.test(a.title || '')).at(-1);
+  const fileUrl = f => `/api/plant/${CASE}/artifact/${encodeURIComponent(tr.id)}/${encodeURIComponent(f)}`;
+  box.innerHTML = (cv?.error ? `<div>${esc(cv.error)}</div>` : `<div>At ${Math.round(P.target_scale * 100)} % on the compressor curves: ${cv?.target_holds_on_curves ? '<b style="color:var(--ok)">target holds</b>' : '<b style="color:var(--fail)">target does not hold</b>'}</div><ul style="margin:4px 0 6px;padding-left:18px">${rows}</ul><small>${esc(cv?.note || '')}</small>`) +
+    (tr ? `<div style="margin-top:8px"><b>K-202 start-up:</b> <span style="color:var(--${/^FAIL/.test(tr.summary) ? 'fail' : 'ok'})">${esc(tr.summary)}</span><a href="${fileUrl('transient.svg')}" target="_blank"><img src="${fileUrl('transient.svg')}" alt="K-202 start-up transient" style="width:100%;background:#fff;border-radius:4px;margin-top:6px"></a></div>` : '');
 }
 // corrections made after Muse answered (e.g. after an engine fix): shown beside Muse's words, never in place of them
 function reviewNote(a) {
