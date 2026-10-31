@@ -534,12 +534,14 @@ def discipline_gates(w, answer=None, refresh=False):
                      "source": "Cantera adapter", "checks": []})
     physical = [c["add_unit"]["id"] for c in changes if c.get("add_unit") and c["add_unit"].get("type") not in ROUTING]
     routed = physical or any(c.get("reroute") or c.get("bypass") or c.get("remove_unit") for c in changes)
+    ideal_relief = any(p.get("relief_basis") for p in proposals)
     supply = [str(c["path"]).split(".")[1] for c in changes if str(c.get("path") or "").startswith("feeds.")]
     for did, what, needed in (("piping_utilities", "tie-ins, line sizing, supports and utility headers"
                                + (f" (supply change on {', '.join(dict.fromkeys(supply))}: header capacity to confirm)" if supply else ""),
                                routed or supply),
                               ("controls", "control narrative, split/load-sharing control, cause & effect and permissives", routed),
-                              ("process_safety", "change-focused HAZOP, relief case and isolation for the changed equipment", routed),
+                              ("process_safety", "relieving capacity remains unchecked at the ideal relief boundary" if ideal_relief
+                               else "change-focused HAZOP, relief case and isolation for the changed equipment", routed or ideal_relief),
                               ("civil_structural", "plot, access, lifting and foundations", physical)):
         rows.append({"id": did, "status": "open" if needed else "not affected",
                      "summary": (f"no calculation adapter: {what} remain open" + (f" for {', '.join(physical)}" if physical else "")) if needed

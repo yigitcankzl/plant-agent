@@ -22,6 +22,7 @@ PSI = 14.5038           # psi per bar
 ATM_PSI = 14.696
 WALL_CP = 0.35          # kJ/kgK, austenitic stainless at cryogenic temperature (screening value)
 STEEL_KG_M3 = 7900
+IDEAL_RELIEF_BASIS = "ideal relief boundary — relieving capacity not checked"
 
 SPEC_HELP = (
     "Blocked-in segment spec: {fluid: {compounds: [DWSIM names], x: {name: mole fraction}}, "
@@ -30,7 +31,8 @@ SPEC_HELP = (
     "{id, type: 'relief_valve', protects: <segment id>, set_psig, isolated: true|false}, "
     "{id, type: 'valve', isolates: <segment id>, closed: true|false}], hours: documented time blocked in, "
     "limits: {<segment id>: {design_psig, burst_psig}}}. scale multiplies hours. Checks: segment pressure vs design and vs "
-    "burst. A relief valve that is not isolated holds the pressure at its set point; an open isolating valve vents the "
+    "burst. A relief valve that is not isolated is an ideal pressure boundary at its set point; relieving capacity is not "
+    "checked. An open isolating valve vents the "
     "segment to the rest of the system (pressure stays at the start).")
 
 
@@ -163,7 +165,7 @@ def run(spec, scale=1.0):
         set_bar = (float(psv["set_psig"]) + ATM_PSI) / PSI
         if P > set_bar:
             P, lifted = set_bar, True
-            notes.append(f"{psv['id']} lifts at {psv['set_psig']} psig and holds the segment there (LNG vented)")
+            notes.append(f"{psv['id']} lifts at {psv['set_psig']} psig; {IDEAL_RELIEF_BASIS}")
     psig = P * PSI - ATM_PSI
     checks = []
     for k, label in (("design_psig", "pressure vs design pressure"), ("burst_psig", "pressure vs estimated burst pressure")):
@@ -181,11 +183,13 @@ def run(spec, scale=1.0):
                    "mass_kg_per_m": round(basis["mass_kg_m"], 1), "start_T_C": basis["T0_C"], **exceed}}
     if psv:
         units[psv["id"]] = {"type": "relief_valve", "isolated": bool(psv.get("isolated")), "lifted": lifted,
-                            "set_psig": psv.get("set_psig")}
+                            "set_psig": psv.get("set_psig"),
+                            **({"relief_basis": IDEAL_RELIEF_BASIS, "capacity_checked": False} if not psv.get("isolated") else {})}
     for v in valves:
         units[v["id"]] = {"type": "valve", "closed": bool(v.get("closed"))}
     series = [[round(h, 2), round(p * PSI - ATM_PSI, 1)] for h, p, _ in rows]
     return {"scale": scale, "errors": errors, "notes": notes, "units": units,
+            **({"relief_basis": IDEAL_RELIEF_BASIS} if psv and not psv.get("isolated") else {}),
             "streams": {seg.get("in") or "LNG": {"T_C": round(T, 1), "P_bar": round(P, 2), "kg_h": 0.0}},
             "checks": checks, "series_h_psig": series, "basis": {k: (round(v, 4) if isinstance(v, float) else v)
                                                                   for k, v in basis.items()}}

@@ -6,8 +6,8 @@
 - Deterministic engines (DWSIM, WaterTAP, EPANET, pandapower, ht/fluids, Cantera) re-solve every proposal before it can be applied; a change that only edits a limit is refused.
 - Flagship: a vacuum-salt MVR crystalliser reaches **+20 %** with three verified changes (clean E-201, a parallel compressor K-202, a purge-steam trim). The discipline gates then flag what the process answer alone hides: **TX-1 overloaded (~131–133 %)** and **not robust when E-201 re-fouls**.
 - The same loop works outside process plants. Two real incidents, rebuilt by Muse from the investigation reports with the conclusions withheld:
-  - **UCTE 2006 European blackout** (pandapower): coupling the Landesbergen busbars raises the tripping line 1,779 → 1,831 A, and the grid is not N-1 secure, as the investigators found.
-  - **Freeport LNG 2022** (DWSIM, trapped liquid): a blocked-in LNG line with its relief isolated bursts in days; restoring PSV-101 is verified as the fix.
+  - **UCTE 2006 European blackout** (pandapower): coupling the Landesbergen busbars raises the tripping line 1,779 → 1,831 A; the reduced grid remains insecure under three other single outages.
+  - **Freeport LNG 2022** (DWSIM, trapped liquid): a blocked-in LNG line with its relief isolated bursts in days; restoring PSV-101 is screened at an ideal relief boundary, with capacity unchecked.
 - Blind benchmark: on 13 real projects with the engineers' conclusions withheld, Muse reaches **64 %** of them on average (range 33–100 %).
 
 | Muse does | The deterministic engines do |
@@ -78,14 +78,14 @@ The MOC pack carries the failed gates as risks and its decision reads "Do not ap
 - `basis.md` stops at the 22:08 request. The investigators' simulation and conclusion are in `cases/ucte_2006/outcome.json`, which the agent never sees.
 - **Muse's blind answer:** "No relief — coupling raises line current". The line goes from 1,779 to 1,831 A, past the 1,795 A warning, and the N-1 screen on the coupled grid is not secure.
 - **What the report found:** current rose by about 67 A instead of falling, distance protection tripped the line, and the grid split into three areas. It had not been N-1 secure since Conneforde-Diele was switched off.
-- **Limit:** the model gives +52 A against the report's +67 A. It puts the line at 98–99 % of the 2,100 A trip setting, not over it. The direction and the N-1 verdict match; the exact trip is not reproduced.
+- **Limit:** the model gives +52 A against the report's +67 A. It puts the line at 98–99 % of the 2,100 A trip setting, not over it. A corrected single-circuit N-1 screen still finds three other violating outages, but no longer reproduces the report's Bechterdissen–Elsen or Elsen–Twistetal violations; the old eight-case result incorrectly removed both circuits.
 
 ## Incident 2: Freeport LNG, June 2022 (trapped liquid)
 
 `plant.html?case=freeport_lng_2022` is an 18-inch vacuum-insulated LNG line that was blocked in with its relief valve isolated after an annual test. The basis is the PHMSA Notice of Probable Violation (December 2024), up to the second valve closure.
 - `plantagent/trapped.py` steps the blocked-in segment in time at constant volume. DWSIM Peng-Robinson flashes find the pressure at which the trapped mass fills the pipe, as heat leaks in per metre.
 - Engine check (`tools/freeport_spike.py`): the documented 37 → 1,313 psig in 4.78 days is reproduced with an 80–95 % liquid fill and a 10–24 W/m heat leak. Both values are ILLUSTRATIVE because the notice redacts them.
-- **Muse's blind answer:** "Blocked line bursts in days unless relief restored". With sound insulation the line passes design pressure only after about 39 days. With degraded insulation it reaches the illustrative burst pressure at 80 h (actual rupture at about 115 h). Its proposal, putting PSV-101 back in service, is verified: the valve lifts and holds 230 psig.
+- **Muse's blind answer:** "Blocked line bursts in days unless relief restored". With sound insulation the line passes design pressure only after about 39 days. With degraded insulation it reaches the illustrative burst pressure at 80 h (actual rupture at about 115 h). Putting PSV-101 back in service holds 230 psig only at an ideal relief boundary; relieving capacity, backpressure and discharge capacity are not checked.
 - **How blind it is:** the basis was written by us after the notice was public. It gives Muse the redacted inputs as ranges (fill, heat leak) and says the relief valve was isolated; it contains no pressure after the closure.
 - **What it missed:** two of PHMSA's three causes. The transfer procedure did not specify the valve positions, and the inner-pipe temperature points were logged but not alarmed. The page shows this next to the recorded outcome.
 

@@ -477,9 +477,8 @@ def _is_trapped(cfg):
 
 
 def _trapped_spec(cfg, spec):
-    """The case's time base (throughput.base hours) is the one the slider shows: scale x that, whatever hours the model set."""
-    base = ((cfg or {}).get("throughput") or {}).get("base")
-    return {**spec, "hours": float(base)} if base else spec
+    """The built model owns the time base; the workspace slider multiplies spec.hours."""
+    return spec
 
 
 def _ro_stages(spec):
@@ -2527,12 +2526,17 @@ class PlantWorkspace(Study):
         if model_label:
             calculation["model_label"] = model_label
         after = cap.get("capacity_multiple") if isinstance(cap, dict) else None
-        return {"verified": not invalid_reason and not at["errors"] and not own and not broke, "fixes": tag,
+        verified = {"verified": not invalid_reason and not at["errors"] and not own and not broke, "fixes": tag,
                 "still_over": own, "breaks": broke, "disappeared_checks": disappeared,
                 "capacity_multiple": after, "limited_by": cap.get("limited_by") if isinstance(cap, dict) else None,
                 "reaches_target": not invalid_reason and not over and not at["errors"], "over_limits_at_target": over,
                 "target_scale": target, "new_equipment": new, "calculation": calculation,
                 **({"unverified_reason": invalid_reason} if invalid_reason else {})}
+        if _is_trapped(self.cfg) and at.get("relief_basis"):
+            verified.update(relief_basis=at["relief_basis"], verified_scope=at["relief_basis"],
+                            discipline_status={**(p.get("discipline_status") or {}), "process_safety": "open"})
+            calculation.setdefault("warnings", []).append(at["relief_basis"])
+        return verified
 
     def ask(self, text, context=None, second_opinion=False):
         """Answer a request; with second_opinion the open-weights model answers it independently on the same model and
