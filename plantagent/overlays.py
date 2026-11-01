@@ -97,7 +97,8 @@ def errors(case, changes, all_changes=None, require_evidence=True, known_units=(
                     out.append(f"change {n}: {element} tap_percent must be within -10..+10 %")
             elif field in ("start", "cable"):
                 if not _motor(cfg, element) and element not in drives:
-                    out.append(f"change {n}: unknown motor {element} (a motor of the one-line diagram or a new pump/compressor)")
+                    known = sorted({m["unit"] for m in cfg.get("motors") or []} | set(drives))
+                    out.append(f"change {n}: unknown motor {element}; use the unit id of one of: {', '.join(known)}")
                 elif field == "start" and str(v).upper() not in STARTS:
                     out.append(f"change {n}: start must be one of {', '.join(STARTS)}")
                 elif field == "cable" and v not in (cfg.get("cable_types") or {}):

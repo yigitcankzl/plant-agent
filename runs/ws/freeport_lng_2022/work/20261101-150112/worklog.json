@@ -1,0 +1,102 @@
+{
+ "id": "20261101-150112",
+ "case": "freeport_lng_2022",
+ "goal": "VIP-18 must be isolated between XV-101 and XV-102 for several days of maintenance while partially filled with LNG. Design a safe isolation: what must be in place so the blocked-in segment never exceeds its design pressure for up to 10 days at the worst credible heat leak, verify it in the simulator, and list the procedure and alarm requirements.",
+ "label": "post-hoc engineering run",
+ "status": "done",
+ "started": "2026-11-01T15:01:12+0300",
+ "usd_total": 1.2712,
+ "seconds_total": 172,
+ "rounds": [
+  {
+   "n": 1,
+   "answer_index": 1,
+   "steps": [
+    {
+     "actor": "muse",
+     "kind": "propose",
+     "status": "info",
+     "usd": 1.2712,
+     "seconds": 172,
+     "title": "Put PSV-101 back in service (reopen HV-101) before any block-in of VIP-18",
+     "detail": "Relief valve keeps line safe for ten days",
+     "changes": [
+      {
+       "path": "units.PSV-101.isolated",
+       "value": false,
+       "physical_change": "Reopen HV-101, the PSV-101 isolation valve, secure it open (locked or car-sealed), and have its open position independently verified and recorded on the isolation permit before XV-101 and XV-102 are closed together",
+       "from": true
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Put PSV-101 back in service (reopen HV-101) before any block-in of VIP-18",
+     "status": "pass",
+     "detail": "",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "limits",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "VIP-18 pressure vs design pressure: 47.8 vs 230.0 psig",
+     "numbers": {
+      "utilisation_pct": 20.8
+     },
+     "source": "DWSIM re-solve of the proposed actions"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "relief capacity",
+     "engine": "none",
+     "status": "open",
+     "title": "ideal relief boundary — relieving capacity not checked"
+    }
+   ],
+   "open_issues": []
+  }
+ ],
+ "result": {
+  "answer_index": 1,
+  "headline": "Relief valve keeps line safe for ten days",
+  "passes": [
+   "limits"
+  ],
+  "fails": [],
+  "open": [
+   "relief capacity"
+  ]
+ },
+ "deliverables": [
+  {
+   "kind": "moc",
+   "title": "MOC pack not generated: RuntimeError: KeyError: 'compounds'"
+  },
+  {
+   "kind": "chart",
+   "title": "VIP-18 unprotected, worst case (95% fill, 30 W/m) — 10 days",
+   "artifact": "20261101-150209-vip-18-unprotected-worst-case-95-fill-30"
+  },
+  {
+   "kind": "chart",
+   "title": "VIP-18 protected (PSV-101 live), worst case (95% fill, 30 W/m) — 10 days",
+   "artifact": "20261101-150209-vip-18-protected-psv-101-live-worst-case"
+  }
+ ],
+ "needs_human": [
+  "relief capacity: ideal relief boundary — relieving capacity not checked",
+  "Actual design pressure of VIP-18 and actual set pressure of PSV-101 (both are only illustrative at 230 psig in the data sheet): If the real design or set pressure is lower than 230 psig, the unprotected times to failure are shorter than 26.2 hours, the alarm setting changes, and the protected case must be re-run at the real set point before any block-in; the need for a live relief valve does not change",
+  "PSV-101 passing (relieving) capacity and that its discharge route is open to a safe location: The simulator treats the valve as a perfect pressure boundary and does not check capacity; if the real valve cannot pass the required flow, the protected conclusion fails and a larger or additional relief device must be sized before isolation",
+  "Actual heat leak into the inner pipe and condition of the vacuum insulation: If heat leak is above 30 W per metre, unprotected failure is faster than 26.2 hours and relief sizing must be re-checked; if it is truly in the sound 1-3 W per metre range the valve may never lift, but the relief valve is still required because that condition cannot be guaranteed for 10 days",
+  "Actual liquid fill fraction when the second valve is closed: A lower fill only delays failure (70% fill still passes design at 66.0 hours at worst heat leak), so the relief requirement stands; the fill estimate changes how much warning time alarms give and must be recorded at block-in",
+  "Whether a working pressure reading from the blocked segment exists, and its alarm: If no live pressure reading exists, the isolation must not start until a temporary calibrated instrument with a control-room alarm is fitted; without it the alarm requirements in this design cannot be met",
+  "Actual LNG composition (the methane 0.95 / ethane 0.035 / propane 0.01 / nitrogen 0.005 mixture is illustrative): A different composition shifts boiling pressures and the -130 degC temperature alert basis; it does not remove the need for live relief, but temperature alarm levels should be re-based on the real mixture"
+ ],
+ "finished": "2026-11-01T15:04:04+0300"
+}
