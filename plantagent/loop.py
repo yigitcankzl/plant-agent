@@ -71,13 +71,18 @@ def _fix_prompt(goal, issues, last):
     rows = "\n".join(f"- {i['check']}: {i['title']}" + (f" ({json.dumps(i['numbers'])})" if i.get("numbers") else "")
                      for i in issues)
     kept = [p.get("title") for p in (last or {}).get("proposals") or [] if p.get("verified")]
+    replacement = (" A refused existing-equipment rating needs {replace_unit: id, new_rating: {...}, basis: 'why this size', "
+                   "vendor_confirm: true}; do not retry it as a limits.* or rating path edit."
+                   if any("documented limit" in str(i.get("title") or "") or "existing limit" in str(i.get("title") or "")
+                          for i in issues) else "")
     return (f"Engineering loop, next round. Goal: {goal}\n"
             f"The current design (verified changes: {'; '.join(kept) or 'none'}) was re-solved and checked by the engines. "
             f"These checks FAIL:\n{rows}\n"
             "Propose physical changes that fix each failed check (equipment, ratings with a real item behind them, "
             "operating settings within documented limits), cheapest first. Return the FULL design as proposals: every earlier "
             "verified change you keep plus the new ones, so the design answer stands on its own. Do not edit a limit to pass a "
-            f"check. If a failure cannot be fixed with the information available, start the headline with '{UNSOLVABLE}' and "
+            f"check.{replacement} "
+            f"If a failure cannot be fixed with the information available, start the headline with '{UNSOLVABLE}' and "
             "say why and what data would settle it.")
 
 

@@ -162,7 +162,9 @@ def purity_checks(w, spec, solved, scale, purity_cfg):
 def checks_for_design(w, answer_index):
     """Flat check rows for w.answers[answer_index]'s verified proposals taken together (the design)."""
     from . import curves, drafts, prefeed, transient, uncertainty
-    rows = []
+    answer = w.answers[int(answer_index)]
+    rows = [row for proposal in answer.get("proposals") or [] if proposal.get("verified")
+            for row in proposal.get("open_checks") or []]
     try:  # a plant without the engineer's discipline files gets drafts (assumed values), so its checks still run
         drafts.ensure(w)
     except Exception as ex:  # noqa: BLE001

@@ -293,3 +293,16 @@ The port table above is every ObjectType this install could construct. The spec 
 Conversion, equilibrium, CSTR and PFR are `type: reactor`. The rigorous column is `type: distillation`. Both read numbers from DWSIM (conversion from compound molar flows, duties from DeltaQ / CondenserDuty / ReboilerDuty, stage traffic from the column profile text). Stage Parameter vapour and liquid flows stay at zero; the profile string is the source.
 
 DWSIM does not report a flood fraction. The Fair screen uses per-stage mass flows and densities from that profile, with tray spacing and diameter from the unit's limits (`diameter_m` required, `tray_spacing_m` default 0.5, `flood_frac_max` default 0.8). Net area is 90 percent of the shell. Citation is in `fair_flood_fraction` in `plantagent/process.py`.
+
+## Replacing rated equipment
+
+An operating change cannot edit `limits.*`. A physical replacement of an existing unit is explicit:
+
+```json
+{"replace_unit": "K 2750", "new_rating": {"diameter_m": 0.6},
+ "basis": "Fair flooding below 80 percent at 120 percent feed", "vendor_confirm": true}
+```
+
+Only numeric rating or geometry fields already present on that unit or its limits can change. The server re-solves the same process with the new rating and keeps vendor confirmation as an open engineering item; a plain limit edit remains refused.
+
+P&ID coverage is topology-based. It follows model streams through valves and routing nodes, recognises explicit recycle tears and grouped P&ID items, and reports capacity-relevant process lines separately from unmodelled relief, drain and utility lines.
