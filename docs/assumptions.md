@@ -33,7 +33,10 @@ Every numeric engineering input of a plant is one assumption, and each one carri
 `POST /api/plant/<case>/inputs?kind=motors|curves|datasheet` takes the raw file as the body (`Content-Type: application/octet-stream`, `X-Filename`). Rows are validated before anything is stored.
 - **motors.csv:** columns `tag,kw`; optional `voltage_kv,start(dol|soft|vfd),cable_m`. Stored as `inputs/motors.json`.
 - **curves.csv:** columns `tag,flow_m3h,head_m`; optional `efficiency_pct,speed_rpm`. At least 3 points per tag, with flow rising. Stored as `inputs/curves.json`.
-- **datasheet:** a PDF, stored under `inputs/datasheets/` as a documented source.
+- **datasheet:** a PDF or PNG/JPEG, stored under `inputs/datasheets/` as a documented source. With `&read=1` (a paid call, so it needs `WEB_ALLOW_RUNS=1`), Muse vision reads it into `inputs/datasheets/<name>.read.json` (`plantagent/datasheet.py`; model `DATASHEET_MODEL`, default Muse Spark Open on Baseten). Each value comes with its unit, page and printed label, and up to 8 curve points.
+  - **Plausibility checks:** efficiency is between 0 and 1; curve flow rises and head falls; the rated point lies on the curve within 10 %; shaft power is within 30 % of ρgQH/η. A failed check refuses the reading.
+  - **Nothing is applied on read.** `POST ...?kind=datasheet_apply` with `{"name", "tag", "rated"?, "curve"?}` re-checks any corrections, then writes the reading through the same CSV path as `curves` and `motors`. The curve starts at the vendor's MCSF; the motor rating comes from the sheet. The note records the sheet, its pages, the model and who confirmed it.
+  - Evidence: `evidence/datasheet-read/`.
 - Leading `# ...` lines are the file's note (e.g. "ILLUSTRATIVE vendor curve"); the note travels into the check titles.
 
 **Uploads feed the checks.** After a motor list or curve upload, `drafts.resolve_uploads` merges it over the case file (else the draft) into `inputs/resolved/electrical.json` / `curves.json`. Every loader (`drafts.case_file`: electrical, curves, start-up transient) reads in this order: **upload > case file > draft**.

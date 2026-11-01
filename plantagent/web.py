@@ -843,8 +843,15 @@ class Handler(SimpleHTTPRequestHandler):
             from . import assumptions, audit
             if method != "POST":  # templates and what was uploaded; no model call
                 return self._send(assumptions.inputs(parts[2]))
-            r = assumptions.upload(parts[2], q.get("kind", ""), self._body(MAX_UPLOAD), self.headers.get("X-Filename"))
-            audit.append(parts[2], "upload_input", self.headers.get("X-User"), "", r)
+            if q.get("kind") == "datasheet_apply":  # the engineer confirmed (and maybe corrected) a Muse data-sheet reading
+                body = self._json_body()
+                return self._send(_case_call(parts[2], lambda: assumptions.apply_datasheet(
+                    parts[2], body.get("name"), body.get("tag"), body.get("rated"), body.get("curve"), self.headers.get("X-User"))))
+            read = q.get("kind") == "datasheet" and q.get("read") == "1"
+            if read:
+                _require_runs()  # Muse vision is a paid call
+            r = assumptions.upload(parts[2], q.get("kind", ""), self._body(MAX_UPLOAD), self.headers.get("X-Filename"), read=read)
+            audit.append(parts[2], "upload_input", self.headers.get("X-User"), "", {k: v for k, v in r.items() if k != "reading"})
             return self._send(r)
         if parts[:2] == ["api", "plant"] and len(parts) == 4 and parts[2] in set(all_cases("process")):
             case, what = parts[2], parts[3]

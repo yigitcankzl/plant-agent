@@ -22,7 +22,7 @@
   #asDlg .as-impact code { color: var(--text, #d9e0e8); overflow-wrap: anywhere; } #asDlg .as-impact b { display: block; color: var(--accent, #4da3ff); font-weight: 600; }
   #asDlg .as-sum { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; color: var(--muted, #8592a3); }
   #asDlg .src { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px; border: 1px solid currentColor; white-space: nowrap; }
-  #asDlg .src.documented { color: #8fc1ff; } #asDlg .src.datasheet { color: #7fd1b9; } #asDlg .src.muse_default { color: #c7a6ff; }
+  #asDlg table.ds td { padding: 2px 8px 2px 0; } #asDlg li.err { color: #f0b3a6; } #asDlg .src.documented { color: #8fc1ff; } #asDlg .src.datasheet { color: #7fd1b9; } #asDlg .src.muse_default { color: #c7a6ff; }
   #asDlg .src.assumed { color: var(--warn, #e3a33a); } #asDlg .src.engineer_confirmed { color: var(--ok, #3fb67a); }
   #asDlg details { border-top: 1px solid var(--line, #2e3742); padding: 8px 0; }
   #asDlg summary { cursor: pointer; font-weight: 600; }
@@ -97,19 +97,49 @@
       ${Object.entries(r.templates).map(([k, t]) => `<div class="tpl" data-k="${k}"><b>${h(t.title)}</b> <span class="msg">(${t.format})</span>
         <p>${h(t.use)}</p>${t.required.length ? `<p>Columns: <b>${t.required.map(h).join(', ')}</b>${t.optional.length ? `; optional ${t.optional.map(h).join(', ')}` : ''}</p>` : ''}
         ${t.example ? `<pre>${h(t.example)}</pre><a class="btn" download="${k}_template.csv" href="data:text/csv;charset=utf-8,${encodeURIComponent(t.example)}">Download template</a>` : ''}
-        <input type="file" accept="${t.format === 'PDF' ? '.pdf' : '.csv'}" aria-label="${h(t.title)} file"> <button class="btn go" type="button">Upload ${h(t.title.toLowerCase())}</button>
-        <div class="msg" role="status"></div></div>`).join('')}
+        <input type="file" accept="${k === 'datasheet' ? '.pdf,.png,.jpg,.jpeg' : k === 'curves' ? '.csv,.pdf,.png,.jpg,.jpeg' : '.csv'}" aria-label="${h(t.title)} file"> <button class="btn go" type="button" data-up>${k === 'datasheet' ? 'Upload and read with Muse' : `Upload ${h(t.title.toLowerCase())}`}</button>
+        ${k === 'curves' ? '<p class="msg">A vendor curve as PDF or image is read by Muse vision; you confirm the points first.</p>' : ''}
+        <div class="msg" role="status"></div><div class="ds-read"></div></div>`).join('')}
       ${r.files.length ? `<p>Stored with this project: ${r.files.map(h).join(', ')}</p>` : ''}`;
+  }
+  // a data sheet read by Muse vision: the table to confirm, with page and label for each value and the plausibility checks
+  const DS_FIELDS = [['flow_m3h', 'Rated flow', 'm³/h'], ['head_m', 'Rated head', 'm'], ['efficiency', 'Efficiency', '0–1'], ['shaft_kw', 'Shaft power', 'kW'],
+    ['motor_kw', 'Motor rating', 'kW'], ['speed_rpm', 'Speed', 'rpm'], ['min_flow_m3h', 'Minimum flow (MCSF)', 'm³/h'], ['shutoff_head_m', 'Shut-off head', 'm'], ['voltage_kv', 'Voltage', 'kV']];
+  function dsTable(r) {
+    const d = r.reading, rows = DS_FIELDS.filter(([k]) => d.rated[k] != null).map(([k, label, u]) =>
+      `<tr><td>${h(label)}</td><td>${h(d.rated[k])} ${h(u)}</td><td class="msg">p. ${h(d.where[k]?.page ?? '?')}, “${h(d.where[k]?.label ?? '')}”</td></tr>`).join('');
+    const curve = (d.curve || []).map(p => `${h(p.flow_m3h)} m³/h → ${h(p.head_m)} m${p.efficiency_pct != null ? ` (${h(p.efficiency_pct)} %)` : ''}`).join('; ');
+    const checks = d.checks.map(c => `<li class="${c.status === 'ok' ? '' : 'err'}">${c.status === 'ok' ? '✓' : '✕'} ${h(c.check)}: ${h(c.note)}</li>`).join('');
+    return `<p><b>Muse read</b> ${h(d.equipment || '')} ${h(d.model || '')} from ${h(d.pages)} page(s). Check every value against the sheet before applying.</p>
+      <table class="ds"><tbody>${rows}</tbody></table>${curve ? `<p class="msg">Curve (p. ${h(d.curve_page ?? '?')}): ${curve}</p>` : ''}
+      ${d.unreadable?.length ? `<p class="msg">Not readable: ${d.unreadable.map(h).join(', ')}</p>` : ''}<ul class="msg">${checks}</ul>
+      ${d.ok ? `<label>Plant tag <input class="ds-tag" value="${h(d.tag || '')}" placeholder="e.g. K-202" size="10"></label>
+        <button class="btn go" type="button" data-apply="${h(r.name)}">Confirm and apply</button>`
+        : `<p class="msg err">Refused: ${h(d.refused)}. Nothing was applied.</p>`}`;
   }
   I.addEventListener('click', async e => {
     const b = e.target.closest('button'), box = e.target.closest('.tpl');
     if (!b || !box) return;
-    const f = box.querySelector('input[type=file]').files[0], msg = box.querySelector('.msg[role=status]');
+    const msg = box.querySelector('.msg[role=status]');
+    if (b.dataset.apply) {  // the engineer confirms the reading for a tag
+      const tag = box.querySelector('.ds-tag').value.trim();
+      if (!tag) { msg.className = 'msg err'; msg.textContent = 'Give the plant tag first.'; return; }
+      b.disabled = true; msg.className = 'msg'; msg.textContent = 'Applying…';
+      const r = await fetch(api('inputs') + '?kind=datasheet_apply', {method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({name: b.dataset.apply, tag})}).then(x => x.json()).catch(() => ({error: 'the server did not answer'}));
+      b.disabled = false;
+      if (r.error) { msg.className = 'msg err'; msg.textContent = r.error; return; }
+      msg.textContent = `Applied to ${r.tag} as ${Object.keys(r.applied).join(' and ')}; source: ${r.source}.`;
+      return loadA();
+    }
+    const f = box.querySelector('input[type=file]').files[0];
     if (!f) { msg.className = 'msg err'; msg.textContent = 'Choose a file first.'; return; }
-    msg.className = 'msg'; msg.textContent = 'Checking…';
-    const r = await fetch(api('inputs') + '?kind=' + box.dataset.k, {method: 'POST', headers: {'Content-Type': 'application/octet-stream', 'X-Filename': f.name}, body: f})
+    const vision = box.dataset.k === 'datasheet' || (box.dataset.k === 'curves' && !/\.csv$/i.test(f.name));
+    msg.className = 'msg'; msg.textContent = vision ? 'Muse is reading the sheet…' : 'Checking…';
+    const r = await fetch(api('inputs') + '?kind=' + (vision ? 'datasheet&read=1' : box.dataset.k), {method: 'POST', headers: {'Content-Type': 'application/octet-stream', 'X-Filename': f.name}, body: f})
       .then(x => x.json()).catch(() => ({error: 'the server did not answer'}));
     if (r.error) { msg.className = 'msg err'; msg.textContent = r.error; return; }
+    if (r.reading) { msg.textContent = `Stored as ${r.file}.`; box.querySelector('.ds-read').innerHTML = dsTable(r); return; }
     msg.textContent = `Stored as ${r.file}${r.rows ? ` (${r.rows} rows)` : ''}; source: ${LABEL[r.source] || r.source}.`;
     loadA();
   });

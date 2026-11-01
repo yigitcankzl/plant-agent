@@ -1,0 +1,232 @@
+{
+ "equipment": "pump",
+ "model": "475 GPM 8\" 75 HP SS SR Sub-Turbine 7-Stages",
+ "tag": "",
+ "rated": {
+  "flow_m3h": 113.5625,
+  "head_m": 132.588,
+  "shaft_kw": 51.4682,
+  "motor_kw": 55.9275,
+  "min_flow_m3h": 79.0849,
+  "shutoff_head_m": 221.4677,
+  "voltage_kv": null,
+  "speed_rpm": 3450,
+  "efficiency": 0.7998
+ },
+ "where": {
+  "flow_m3h": {
+   "page": 1,
+   "label": "Flow, rated"
+  },
+  "head_m": {
+   "page": 1,
+   "label": "Head, rated (requested)"
+  },
+  "efficiency": {
+   "page": 1,
+   "label": "Efficiency"
+  },
+  "shaft_kw": {
+   "page": 1,
+   "label": "Power, rated"
+  },
+  "motor_kw": {
+   "page": 1,
+   "label": "Motor rating"
+  },
+  "speed_rpm": {
+   "page": 1,
+   "label": "Speed"
+  },
+  "min_flow_m3h": {
+   "page": 1,
+   "label": "MCSF"
+  },
+  "shutoff_head_m": {
+   "page": 1,
+   "label": "Head max."
+  }
+ },
+ "curve": [
+  {
+   "flow_m3h": 0.0,
+   "head_m": 221.59,
+   "efficiency_pct": 0
+  },
+  {
+   "flow_m3h": 22.712,
+   "head_m": 216.408,
+   "efficiency_pct": 32
+  },
+  {
+   "flow_m3h": 45.425,
+   "head_m": 199.644,
+   "efficiency_pct": 57
+  },
+  {
+   "flow_m3h": 79.494,
+   "head_m": 167.64,
+   "efficiency_pct": 76
+  },
+  {
+   "flow_m3h": 113.562,
+   "head_m": 133.502,
+   "efficiency_pct": 80
+  },
+  {
+   "flow_m3h": 136.275,
+   "head_m": 96.012,
+   "efficiency_pct": 67
+  },
+  {
+   "flow_m3h": 156.716,
+   "head_m": 50.292,
+   "efficiency_pct": 46
+  }
+ ],
+ "curve_page": 2,
+ "unreadable": [
+  "Pump Performance Datasheet",
+  "Motor rating:",
+  "Power, hydraulic"
+ ],
+ "checks": [
+  {
+   "check": "efficiency",
+   "status": "ok",
+   "note": "efficiency 0.800 must be between 0 and 1"
+  },
+  {
+   "check": "curve flow rises",
+   "status": "ok",
+   "note": "curve flow must rise from point to point"
+  },
+  {
+   "check": "head falls with flow",
+   "status": "ok",
+   "note": "a centrifugal head-flow curve must fall as flow rises"
+  },
+  {
+   "check": "rated point on the curve",
+   "status": "ok",
+   "note": "curve gives 133.5 m at the rated flow vs the rated 132.6 m (10 % allowed)"
+  },
+  {
+   "check": "shaft power vs rho g Q H / eta",
+   "status": "ok",
+   "note": "51.3 kW from flow, head and efficiency vs 51.5 kW printed (30 % allowed, water density)"
+  }
+ ],
+ "ok": true,
+ "refused": null,
+ "raw": {
+  "equipment": "pump",
+  "model": "475 GPM 8\" 75 HP SS SR Sub-Turbine 7-Stages",
+  "tag": "not on sheet \u2192 value null",
+  "rated": {
+   "flow": {
+    "value": 500.0,
+    "unit": "USgpm",
+    "page": 1,
+    "label": "Flow, rated"
+   },
+   "head": {
+    "value": 435.0,
+    "unit": "ft",
+    "page": 1,
+    "label": "Head, rated (requested)"
+   },
+   "efficiency": {
+    "value": 79.98,
+    "unit": "%",
+    "page": 1,
+    "label": "Efficiency"
+   },
+   "shaft_power": {
+    "value": 69.02,
+    "unit": "hp",
+    "page": 1,
+    "label": "Power, rated"
+   },
+   "motor_power": {
+    "value": 75.0,
+    "unit": "hp",
+    "page": 1,
+    "label": "Motor rating"
+   },
+   "speed": {
+    "value": 3450,
+    "unit": "rpm",
+    "page": 1,
+    "label": "Speed"
+   },
+   "min_flow": {
+    "value": 348.2,
+    "unit": "USgpm",
+    "page": 1,
+    "label": "MCSF"
+   },
+   "shutoff_head": {
+    "value": 726.6,
+    "unit": "ft",
+    "page": 1,
+    "label": "Head max."
+   },
+   "voltage": {
+    "value": null,
+    "unit": "not printed \u2192 see unreadable",
+    "page": -1,
+    "label": "not on sheet"
+   }
+  },
+  "curve": [
+   {
+    "flow": 0,
+    "head": 727,
+    "efficiency_pct": 0
+   },
+   {
+    "flow": 100,
+    "head": 710,
+    "efficiency_pct": 32
+   },
+   {
+    "flow": 200,
+    "head": 655,
+    "efficiency_pct": 57
+   },
+   {
+    "flow": 350,
+    "head": 550,
+    "efficiency_pct": 76
+   },
+   {
+    "flow": 500,
+    "head": 438,
+    "efficiency_pct": 80
+   },
+   {
+    "flow": 600,
+    "head": 315,
+    "efficiency_pct": 67
+   },
+   {
+    "flow": 690,
+    "head": 165,
+    "efficiency_pct": 46
+   }
+  ],
+  "curve_units": {
+   "flow": "USgpm | Head - ft | Efficiency - % | Power - hp | NPSHr - ft",
+   "head": "ft | Flow - USgpm | Efficiency - % | Power - hp | NPSHr - ft",
+   "page": 2
+  },
+  "unreadable": [
+   "Pump Performance Datasheet",
+   "Motor rating:",
+   "Power, hydraulic"
+  ]
+ },
+ "model_used": "baseten:meta-models/muse-spark-open-1026",
+ "pages": 3
+}
