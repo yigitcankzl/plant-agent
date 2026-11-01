@@ -93,10 +93,10 @@ def key(w, ans, inputs, n):
 
 
 def _config(w):
-    f = ROOT / "cases" / w.name / "uncertainty.json"
-    if not f.exists():
+    from . import drafts
+    cfg = drafts.case_file(w.name, "uncertainty.json", ROOT)  # the engineer's file, else the draft of the assumed inputs
+    if not cfg:
         return None
-    cfg = json.loads(f.read_text())
     return cfg, [{**i, "band_pct": i.get("band_pct") or BAND_PCT[i["kind"]]} for i in cfg["inputs"]]
 
 

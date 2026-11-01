@@ -399,7 +399,8 @@ def gates_key(w, ans):
     import hashlib
     proposals = [p for p in (ans or {}).get("proposals") or [] if p.get("verified")]
     changes = [c for p in proposals for c in p.get("changes") or []]
-    files = {f: (ROOT / "cases" / w.name / f).read_text() for f in GATE_INPUTS if (ROOT / "cases" / w.name / f).exists()}
+    from . import drafts
+    files = {f: t for f in GATE_INPUTS if (t := drafts.file_text(w.name, f, ROOT)) is not None}
     blob = json.dumps({"schema": GATES_SCHEMA, "changes": changes, "spec": w.spec, "files": files}, sort_keys=True, default=str)
     return {"headline": (ans or {}).get("headline"), "request": (ans or {}).get("request"),
             "titles": [p.get("title") for p in proposals], "revisions": len(w.revisions),
@@ -439,8 +440,9 @@ def discipline_gates(w, answer=None, refresh=False):
     proc += [{**c, "source": f"{sim} limit check"} for c in comb.get("over_limits_at_target") or []]
     summary = f"design {'reaches' if reach else 'does not reach'} {target * 100:.0f} % (max {(cap or 0) * 100:.0f} %, re-solved now)" + \
               (f"; {comb['unverified_reason']}" if comb.get("unverified_reason") else "")
-    cfg_path = ROOT / "cases" / w.name / "prefeed.json"
-    scen = (json.loads(cfg_path.read_text()) if cfg_path.exists() else {}).get("scenarios")
+    from . import drafts
+    pcfg = drafts.case_file(w.name, "prefeed.json", ROOT) or {}
+    scen = pcfg.get("scenarios")
     robust, rsum = [], ""
     if scen:  # the engineer's operating envelope: the design must hold in every stated scenario, not just at the target
         env = run_envelope(patch(copy.deepcopy(w.spec), changes), scen, w._solve, patch)
@@ -451,8 +453,9 @@ def discipline_gates(w, answer=None, refresh=False):
                          "utilisation": wst.get("utilisation") if not r["errors"] else 2.0,
                          "source": f"{sim} solve; scenario basis: {r['basis']}"})
         failed = [r["name"] for r in env["scenarios"] if not r["pass"]]
-        rsum = f"operating envelope {len(env['scenarios']) - len(failed)}/{len(env['scenarios'])} scenarios pass" + \
-               (f" (fails: {', '.join(failed)})" if failed else "")
+        rsum = ((f"{drafts.DRAFT}: " if drafts.is_draft(pcfg) else "") +
+                f"operating envelope {len(env['scenarios']) - len(failed)}/{len(env['scenarios'])} scenarios pass" +
+                (f" (fails: {', '.join(failed)})" if failed else ""))
     # the target itself and the envelope around it are separate gates: reaching 120 % and holding it when fouled are different questions
     rows = [_gate("process", proc, f"{sim} re-solve of the combined design on the current model", summary)]
     if not reach:  # an unsolved or short design is a process failure even if no single check row says so
@@ -482,8 +485,12 @@ def discipline_gates(w, answer=None, refresh=False):
         if cfg and electrical.available():
             if electrical.affected(cfg, changes):
                 e = electrical.for_workspace(w, changes, target, save=False)
-                src = "pandapower load flow on the case one-line diagram" + (" (ILLUSTRATIVE network)" if "ILLUSTRATIVE" in str(cfg.get("note")) else "")
-                g = _gate("electrical", e["checks"], src, e["summary"], source_file=f"cases/{w.name}/electrical.json")
+                from . import drafts
+                dr = drafts.is_draft(cfg)
+                src = ("pandapower load flow on a drafted one-line diagram (drafts.py)" if dr else
+                       "pandapower load flow on the case one-line diagram" + (" (ILLUSTRATIVE network)" if "ILLUSTRATIVE" in str(cfg.get("note")) else ""))
+                g = _gate("electrical", e["checks"], src, (f"{drafts.DRAFT}: " if dr else "") + e["summary"],
+                          source_file=f"runs/ws/{w.name}/drafts/electrical.json" if dr else f"cases/{w.name}/electrical.json")
                 # the network is illustrative as a whole, but a transformer overload on it is the finding to act on
                 if any(c["utilisation"] > 1 for c in e["checks"]):
                     g["status"] = "fail"
