@@ -1,0 +1,23 @@
+{
+ "id": "sample", "case": "salt_mvr", "label": "ILLUSTRATIVE sample for UI work, not a result",
+ "goal": "Get the unit to 120 % of today's throughput and make the design pass every check.",
+ "status": "done", "started": "2026-11-02T10:15:00+0300", "finished": "2026-11-02T10:48:00+0300",
+ "usd_total": 6.1, "seconds_total": 1980,
+ "rounds": [
+  {"n": 1, "answer_index": 8, "steps": [
+   {"actor": "muse", "kind": "propose", "title": "Clean E-201; add parallel compressor K-202; trim purge steam", "detail": "Yes, with cleaning and extra compression", "status": "info", "usd": 2.1, "seconds": 410},
+   {"actor": "engine", "engine": "DWSIM", "kind": "solve", "title": "Combined design re-solved at 120.1 %", "status": "pass", "numbers": {"capacity_pct": 120.1, "target_pct": 120}},
+   {"actor": "engine", "engine": "pandapower", "kind": "check", "check": "electrical", "title": "TX-1 loading 132.8 % of 2.5 MVA", "status": "fail", "numbers": {"value": 132.8, "limit": 100, "unit": "%"}},
+   {"actor": "engine", "engine": "transient", "kind": "check", "check": "startup", "title": "Anti-surge recycle 35,823 vs 34,030 m3/h", "status": "fail"},
+   {"actor": "engine", "engine": "uncertainty", "kind": "check", "check": "confidence", "title": "Target met in 31 % of 64 re-solves", "status": "fail", "numbers": {"p_target": 0.31}}],
+   "open_issues": [{"check": "electrical", "detail": "TX-1 132.8 %"}, {"check": "startup", "detail": "anti-surge valve small"}, {"check": "confidence", "detail": "31 %"}]},
+  {"n": 2, "answer_index": 9, "steps": [
+   {"actor": "muse", "kind": "fix", "title": "Replace TX-1 with 3.15 MVA; anti-surge valve to 70 % of design flow; K-202 rated 60 t/h", "status": "info", "usd": 1.9, "seconds": 380},
+   {"actor": "engine", "engine": "pandapower", "kind": "check", "check": "electrical", "title": "TX-1 loading 96 % of 3.15 MVA", "status": "pass"},
+   {"actor": "engine", "engine": "transient", "kind": "check", "check": "startup", "title": "Start-up screen passes", "status": "pass"},
+   {"actor": "engine", "engine": "uncertainty", "kind": "check", "check": "confidence", "title": "Target met in 88 % of 64 re-solves", "status": "pass", "numbers": {"p_target": 0.88}}],
+   "open_issues": []}],
+ "result": {"answer_index": 9, "headline": "120 % with three process changes and two supporting upgrades", "passes": ["process", "electrical", "startup", "confidence"], "fails": [], "open": ["piping", "civil"]},
+ "deliverables": [{"kind": "moc", "title": "MOC pack (draft)"}, {"kind": "drawing", "title": "Rev B P&ID"}, {"kind": "hazop", "title": "HAZOP draft"}],
+ "needs_human": ["Vendor curve for K-202", "Confirm TX-1 nameplate and protection"]
+}
