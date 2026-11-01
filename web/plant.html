@@ -386,6 +386,51 @@
   #qa .qa-ask { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-top: 12px; }
   #qa .qa-ask .cmd { max-width: none; } #qa .qa-ask .cmd input { min-height: 36px; }
   #qa #qaSugg { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; } #qa #qaSugg .btn { font-size: 11.5px; padding: 3px 9px; border-radius: 12px; }
+  .work-runner { margin-top: 11px; padding-top: 10px; border-top: 1px solid #3d555b; }
+  .work-runner > button { width: 100%; min-height: 38px; }
+  .work-runner .estimate { margin-top: 5px; color: #a8b9bb; font-size: 11px; text-align: center; }
+  .work-confirm { margin-top: 9px; padding: 10px; border: 1px solid #587075; background: #102c32; }
+  .work-confirm label { display: block; margin-bottom: 5px; color: #dce8e6; font-size: 12px; font-weight: 700; }
+  .work-confirm textarea { width: 100%; min-height: 70px; resize: vertical; padding: 8px; border: 1px solid #587075; border-radius: 3px; background: #0c252b; color: var(--text); font: 12.5px/1.4 var(--sans); }
+  .work-confirm .actions { display: flex; justify-content: flex-end; gap: 7px; margin-top: 8px; }
+  .work-run-error { margin-top: 7px; color: var(--fail); font-size: 12px; }
+
+  /* Engineering loop: a run ledger, not another dashboard. */
+  .worklog { padding: 16px 18px 20px; border-bottom: 1px solid var(--line); background: #122f35; }
+  .worklog-sample, .worklog-posthoc { margin-bottom: 12px; padding: 7px 9px; border-left: 3px solid var(--warn); background: #2b281d; color: #f3d79b; font-size: 11.5px; font-weight: 700; }
+  .worklog-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+  .worklog-head h3 { margin: 0; font-size: 16px; }
+  .worklog-goal { margin: 0 0 13px; color: #b8c8ca; font-size: 12px; line-height: 1.45; }
+  .work-status { flex: 0 0 auto; padding: 3px 8px; border: 1px solid currentColor; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .work-status.pass { color: #83d8a6; } .work-status.fail { color: #ff948a; } .work-status.open { color: #e9c36f; }
+  .work-rounds { position: relative; margin-left: 7px; padding-left: 17px; border-left: 2px solid #536b70; }
+  .work-round { position: relative; border-bottom: 1px solid #3c5358; }
+  .work-round::before { content: ""; position: absolute; left: -23px; top: 14px; width: 10px; height: 10px; border: 2px solid #8ecfc4; border-radius: 50%; background: #122f35; }
+  .work-round > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 38px; list-style: none; color: #eaf2f0; font-size: 12.5px; font-weight: 700; }
+  .work-round > summary::-webkit-details-marker { display: none; }
+  .work-round > summary::after { content: "+"; color: #a7b8ba; font: 16px var(--mono); }
+  .work-round[open] > summary::after { content: "−"; }
+  .work-round-state { color: #9fb1b3; font-size: 11px; font-weight: 500; }
+  .work-steps { padding: 2px 0 12px; }
+  .work-step { display: grid; grid-template-columns: 82px 19px minmax(0, 1fr); gap: 7px; align-items: start; padding: 7px 0; }
+  .work-actor { display: inline-block; overflow: hidden; padding: 2px 5px; border: 1px solid #667c80; border-radius: 2px; color: #dce8e6; font-size: 10px; font-weight: 700; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+  .work-actor.muse { border-color: #6ba99f; background: #1c4747; } .work-actor.engineer { border-style: dashed; color: #f0d68d; }
+  .work-mark { font: 800 14px var(--mono); text-align: center; }
+  .work-mark.pass { color: var(--ok); } .work-mark.fail { color: var(--fail); } .work-mark.open { color: var(--warn); } .work-mark.info { color: #8fb4d9; }
+  .work-step-title { color: #edf4f2; font-size: 12.5px; line-height: 1.35; }
+  .work-step-detail { margin-top: 3px; color: #9fb1b3; font-size: 11.5px; line-height: 1.4; }
+  .work-numbers { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 5px; color: #b9d9d3; font: 10.5px var(--mono); }
+  .work-step-meta { margin-top: 4px; color: #b7c6c7; font-size: 10.5px; }
+  .work-fixes { grid-column: 3; margin: -1px 0 3px; padding: 5px 7px; border-left: 2px solid #8ecfc4; background: #173b40; color: #a9ddd4; font-size: 10.5px; }
+  .work-result { margin-top: 14px; padding: 13px 0 0; border-top: 3px double #6c8589; }
+  .work-result h4 { margin: 0 0 8px; font-size: 15px; }
+  .work-result-headline { margin-bottom: 10px; color: #f2f7f6; font-weight: 700; line-height: 1.35; }
+  .work-result-row { display: grid; grid-template-columns: 76px 1fr; gap: 9px; padding: 5px 0; border-top: 1px solid #3c5358; font-size: 11.5px; }
+  .work-result-row dt { color: #9fb1b3; } .work-result-row dd { margin: 0; color: #e3ecea; }
+  .work-deliverables { display: flex; flex-wrap: wrap; gap: 5px; }
+  .work-deliverables a, .work-deliverables span { padding: 3px 6px; border: 1px solid #5c777b; border-radius: 3px; color: #cce2de; text-decoration: none; }
+  .work-deliverables a:focus-visible { outline: 2px solid #9fd9d0; outline-offset: 2px; }
+  .work-human { margin: 0; padding-left: 16px; } .work-human li + li { margin-top: 3px; }
   aside.right.workspace-decision .decision-brief > h2,
   aside.right.workspace-decision .decision-provenance { display: none; }
 
@@ -500,6 +545,16 @@
           <button class="btn go" id="askBtn" type="button" disabled>Ask</button>
         </div>
         <div id="qaSugg"></div>
+        <div class="work-runner">
+          <button class="btn go" id="workRunOpen" type="button" aria-expanded="false" aria-controls="workConfirm">Run full engineering</button>
+          <div class="estimate">Estimated Muse cost ~$5–10 · simulator runs are local</div>
+          <div class="work-confirm" id="workConfirm" hidden>
+            <label for="workGoal">Engineering goal</label>
+            <textarea id="workGoal"></textarea>
+            <div class="actions"><button class="btn" id="workCancel" type="button">Cancel</button><button class="btn go" id="workStart" type="button">Confirm and run</button></div>
+            <div class="work-run-error" id="workRunError" role="alert"></div>
+          </div>
+        </div>
     </section>
     <div id="rightScroll">
       <div id="modePanel" hidden>
@@ -509,6 +564,7 @@
         </section>
       </div>
       <details class="analysis-log" id="analysisLog" hidden><summary><span id="progressSummary">Analysis log</span></summary><div class="progress" id="progress"></div></details>
+      <section class="worklog" id="worklogPanel" aria-label="Engineering run" hidden></section>
       <details class="side-details" id="historyDetails"><summary>Model revisions and audit</summary><div id="revs"></div></details>
       <div id="answers"></div>
     </div>
@@ -543,7 +599,9 @@
 <div class="modal" id="modal" onclick="if(event.target===this)this.classList.remove('on')"><div class="box"><button class="modal-x" type="button" aria-label="Close" onclick="$('modal').classList.remove('on')">✕</button><div id="modalBox"></div></div></div>
 
 <script>
-const CASE = new URLSearchParams(location.search).get('case') || 'chem_c01';
+const PARAMS = new URLSearchParams(location.search);
+const CASE = PARAMS.get('case') || 'chem_c01';
+const SAMPLE_WORKLOG = PARAMS.get('worklog') === 'sample';
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // data-driven buttons: values travel as JSON in data-args and reach the handler as arguments, never as inline JavaScript
@@ -871,7 +929,9 @@ async function load() {
   $('toTarget').textContent = (P.answers || []).length ? 'Show saved analysis' : 'Analyze target';
   $('model').value = P.model;
   $('model').onchange = async e => { await api('model', {model: e.target.value}); P.model = e.target.value; };
+  $('workGoal').value = P.question || '';
   showMode(ACTIVE_MODE);
+  await loadWorklog();
 }
 
 // ---- engineer confirms Muse's read of a PDF schematic before any model is built ----
@@ -1641,7 +1701,7 @@ function chip(e) {
 
 async function follow(job, title) {
   busy = true;
-  document.querySelectorAll('header .btn, #toTarget, #askBtn').forEach(b => b.disabled = true);
+  document.querySelectorAll('header .btn, #toTarget, #askBtn, #workRunOpen, #workStart').forEach(b => b.disabled = true);
   $('analysisLog').hidden = false; $('analysisLog').open = false; $('progress').innerHTML = '';
   $('progressSummary').textContent = title + '…';
   let off = 0, t0 = Date.now(), steps = 0;
@@ -1654,12 +1714,127 @@ async function follow(job, title) {
     }
     if (j.done) {
       const seconds = Math.round((Date.now() - t0) / 1000);
-      busy = false; document.querySelectorAll('header .btn, #toTarget, #askBtn').forEach(b => b.disabled = false);
+      busy = false; document.querySelectorAll('header .btn, #toTarget, #askBtn, #workRunOpen, #workStart').forEach(b => b.disabled = false);
       $('progressSummary').textContent = j.error ? 'Analysis stopped — open log' : `Analysis complete · ${steps} steps · ${seconds}s`;
       $('progress').insertAdjacentHTML('beforeend', j.error ? `<span class="chip err">${esc(j.error)}</span>` : `<span class="chip done">Complete in ${seconds}s</span>`);
       return j;
     }
     await new Promise(r => setTimeout(r, 700));
+  }
+}
+
+const WORK_MARK = {pass: '✓', fail: '✕', open: '○', info: '•'};
+function workActor(step) {
+  if (step.actor === 'muse') return 'Muse';
+  if (step.actor === 'engineer') return 'Engineer';
+  return step.engine || 'Engine';
+}
+function workNumbers(numbers) {
+  if (!numbers || typeof numbers !== 'object') return '';
+  const unit = numbers.unit || '';
+  const rows = Object.entries(numbers).filter(([key]) => key !== 'unit').map(([key, value]) => {
+    const label = key.replaceAll('_', ' ');
+    const shown = key === 'p_target' && typeof value === 'number' ? `${Math.round(value * 100)}%`
+      : `${typeof value === 'number' ? value.toLocaleString() : String(value)}${unit && ['value', 'limit'].includes(key) ? ` ${unit}` : ''}`;
+    return `<span><b>${esc(label)}</b> ${esc(shown)}</span>`;
+  });
+  return rows.length ? `<div class="work-numbers">${rows.join('')}</div>` : '';
+}
+function workRoundState(round) {
+  const states = (round.steps || []).map(step => step.status);
+  const fail = states.filter(state => state === 'fail').length, open = states.filter(state => state === 'open').length;
+  if (fail) return `${WORK_MARK.fail} ${fail} failed`;
+  if (open) return `${WORK_MARK.open} ${open} open`;
+  return `${WORK_MARK.pass} checks passed`;
+}
+function workFileUrl(path) {
+  if (typeof path !== 'string') return null;
+  const match = path.match(new RegExp(`^runs/ws/${CASE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/([^/]+)/([^/]+)$`));
+  return match ? `/wsfiles/${encodeURIComponent(CASE)}/${encodeURIComponent(match[1])}/${encodeURIComponent(match[2])}` : null;
+}
+function workStep(step, previousIssues) {
+  const status = ['pass', 'fail', 'open', 'info'].includes(step.status) ? step.status : 'info';
+  const actor = workActor(step), actorClass = step.actor === 'muse' ? 'muse' : step.actor === 'engineer' ? 'engineer' : 'engine';
+  const listedFixes = Array.isArray(step.fixes) ? step.fixes.map(item => typeof item === 'string' ? item : item?.check).filter(Boolean) : [];
+  const fixes = step.actor === 'muse' && step.kind === 'fix' ? (listedFixes.length ? listedFixes : previousIssues) : [];
+  const meta = step.actor === 'muse' && (step.usd != null || step.seconds != null)
+    ? `<div class="work-step-meta">${step.usd != null ? `$${Number(step.usd).toFixed(2)}` : ''}${step.usd != null && step.seconds != null ? ' · ' : ''}${step.seconds != null ? `${Math.round(step.seconds)}s` : ''}</div>` : '';
+  return `<div class="work-step"><span class="work-actor ${actorClass}" title="${esc(step.actor === 'engine' ? `Deterministic engine: ${actor}` : actor)}">${esc(actor)}</span>
+    <span class="work-mark ${status}" aria-label="${esc(status)}">${WORK_MARK[status]}</span><div><div class="work-step-title">${esc(step.title || step.kind || 'Step')}</div>
+    ${step.detail ? `<div class="work-step-detail">${esc(step.detail)}</div>` : ''}${workNumbers(step.numbers)}${meta}</div>
+    ${fixes.length ? `<div class="work-fixes">Fixes from the previous round: ${esc(fixes.join(', '))}</div>` : ''}</div>`;
+}
+function workResult(log) {
+  const result = log.result || {}, deliverables = log.deliverables || [], needs = log.needs_human || [];
+  const statusRow = (label, values, status) => Array.isArray(values) && values.length ? `<div class="work-result-row"><dt>${esc(label)}</dt><dd class="work-mark ${status}" style="text-align:left">${WORK_MARK[status]} ${esc(values.join(', '))}</dd></div>` : '';
+  const files = deliverables.map(item => {
+    const url = workFileUrl(item.path);
+    return url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(item.title || item.kind || 'Deliverable')}</a>`
+      : `<span>${esc(item.title || item.kind || 'Deliverable')}</span>`;
+  }).join('');
+  const totalTime = log.seconds_total == null ? '—' : log.seconds_total >= 60 ? `${Math.round(log.seconds_total / 60)} min` : `${Math.round(log.seconds_total)}s`;
+  return `<section class="work-result" data-work-result><h4>Result</h4><div class="work-result-headline">${esc(result.headline || 'Engineering run finished')}</div><dl>
+    ${statusRow('Passes', result.passes, 'pass')}${statusRow('Fails', result.fails, 'fail')}${statusRow('Open', result.open, 'open')}
+    ${deliverables.length ? `<div class="work-result-row"><dt>Deliverables</dt><dd class="work-deliverables">${files}</dd></div>` : ''}
+    ${needs.length ? `<div class="work-result-row"><dt>Needs a human</dt><dd><ul class="work-human">${needs.map(item => `<li>${esc(item)}</li>`).join('')}</ul></dd></div>` : ''}
+    <div class="work-result-row"><dt>Total</dt><dd>${log.usd_total == null ? '—' : `$${Number(log.usd_total).toFixed(2)}`} Muse · ${esc(totalTime)}</dd></div>
+  </dl></section>`;
+}
+function renderWorklog(log) {
+  const panel = $('worklogPanel');
+  if (!log || typeof log !== 'object') { panel.hidden = true; panel.innerHTML = ''; return; }
+  const rounds = Array.isArray(log.rounds) ? log.rounds : [];
+  const status = ({done: ['Done ✓', 'pass'], unsolved: ['Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
+    budget: ['Stopped at budget limit', 'open'], error: ['Stopped with error', 'fail']})[log.status] || ['Running…', 'open'];
+  const sample = SAMPLE_WORKLOG || /illustrative/i.test(log.label || '');
+  const posthoc = /post-hoc engineering run/i.test(log.label || '');
+  const reason = log.reason || log.error || log.result?.reason;
+  panel.innerHTML = `${sample ? '<div class="worklog-sample">ILLUSTRATIVE SAMPLE — fixture numbers, not an engineering result.</div>' : ''}
+    ${posthoc ? '<div class="worklog-posthoc">Post-hoc engineering run — the blind incident answer above remains separate and unchanged.</div>' : ''}
+    <div class="worklog-head"><h3>Engineering run</h3><span class="work-status ${status[1]}">${esc(status[0])}</span></div>
+    <p class="worklog-goal">${esc(log.goal || '')}${reason ? `<br><b>Reason:</b> ${esc(reason)}` : ''}</p>
+    <div class="work-rounds">${rounds.map((round, index) => {
+      const previousIssues = index ? (rounds[index - 1].open_issues || []).map(issue => issue.check).filter(Boolean) : [];
+      return `<details class="work-round"${index === rounds.length - 1 ? ' open' : ''}><summary><span>Round ${esc(round.n ?? index + 1)}</span><span class="work-round-state">${esc(workRoundState(round))}</span></summary>
+        <div class="work-steps">${(round.steps || []).map(step => workStep(step, previousIssues)).join('')}</div></details>`;
+    }).join('')}</div>${log.result || ['done', 'unsolved', 'max_rounds', 'budget', 'error'].includes(log.status) ? workResult(log) : ''}`;
+  panel.hidden = false;
+}
+async function loadWorklog() {
+  try {
+    let log;
+    if (SAMPLE_WORKLOG) {
+      const response = await fetch('/api/worklog-sample');
+      if (!response.ok) throw new Error('sample unavailable');
+      log = await response.json();
+    } else {
+      const runs = await api('work');
+      if (!Array.isArray(runs) || !runs.length) return renderWorklog(null);
+      log = await api(`work/${encodeURIComponent(runs[0].id)}`);
+    }
+    renderWorklog(log);
+  } catch (_) {
+    renderWorklog(null);  // the loop backend may not be installed yet; the run action remains available
+  }
+}
+function showWorkConfirm(show) {
+  $('workConfirm').hidden = !show;
+  $('workRunOpen').setAttribute('aria-expanded', String(show));
+  $('workRunError').textContent = '';
+  if (show) { $('workGoal').value = P?.question || ''; requestAnimationFrame(() => $('workGoal').focus()); }
+}
+async function startEngineeringWork() {
+  if (busy) return;
+  const goal = $('workGoal').value.trim();
+  if (!goal) { $('workRunError').textContent = 'Enter an engineering goal before starting.'; $('workGoal').focus(); return; }
+  $('workRunError').textContent = '';
+  try {
+    const {job} = await api('work', {goal});
+    showWorkConfirm(false);
+    await follow(job, 'Running the full engineering loop');
+    await loadWorklog();
+  } catch (error) {
+    $('workRunError').textContent = error.message || 'The engineering run could not start.';
   }
 }
 
@@ -2136,6 +2311,9 @@ async function reliefScan() {
 
 $('q').onkeydown = e => { if (e.key === 'Enter') { ask($('q').value); $('q').value = ''; } };
 $('askBtn').onclick = () => { ask($('q').value); $('q').value = ''; };
+$('workRunOpen').onclick = () => showWorkConfirm($('workConfirm').hidden);
+$('workCancel').onclick = () => showWorkConfirm(false);
+$('workStart').onclick = startEngineeringWork;
 $('toTarget').onclick = () => {
   const target = Number($('scale').value);
   if ((P.answers || []).length && target === Math.round(P.target_scale * 100)) {

@@ -738,6 +738,9 @@ class Handler(SimpleHTTPRequestHandler):
             if f:
                 return self._send(f.read_bytes(), mimetypes.guess_type(f.name)[0] or "application/octet-stream")
             return self._send({"error": "not found"}, code=404)
+        if method == "GET" and parts == ["api", "worklog-sample"]:
+            f = _safe_file(ROOT / "tests" / "fixtures", "worklog_sample.json")
+            return self._send(f.read_bytes(), "application/json") if f else self._send({"error": "not found"}, code=404)
         if parts[:2] == ["api", "job"] and len(parts) == 3:
             j = JOBS.get(parts[2])
             if not j:
