@@ -9,7 +9,7 @@
 - The same loop works outside process plants. Two real incidents, rebuilt by Muse from the investigation reports with the conclusions withheld:
   - **UCTE 2006 European blackout** (pandapower): coupling the Landesbergen busbars raises the tripping line 1,779 → 1,831 A; the reduced grid remains insecure under three other single outages.
   - **Freeport LNG 2022** (DWSIM, trapped liquid): a blocked-in LNG line with its relief isolated bursts in days; restoring PSV-101 is screened at an ideal relief boundary, with capacity unchecked.
-- **Not only our demos.** An official DEXPI drawing we had never used (BASF column C02) went through the upload path with no hand-written case file: Muse built the DWSIM column, the discipline files were drafted, an engineer confirmed three assumptions, and Muse found the column floods first at +13 % ($1.54 on open weights). Its no-capex fix, cutting reflux to 0.8, was then failed by the product-purity check we added: the minimum reflux for today's purity is 1.10. The column's duty is Muse's assumption; the page says so.
+- **Not only our demos.** An official DEXPI drawing we had never used (BASF column C02) went through the upload path with no hand-written case file: Muse built the DWSIM column, the discipline files were drafted, an engineer confirmed three assumptions, and Muse found the column floods first at +13 % ($1.54 on open weights). Its first no-capex fix, cutting reflux to 0.8, was failed by the product-purity check we added (minimum reflux 1.10). In the next loop Muse kept reflux at 1.5 and raised the bottoms draw instead: 120 %, flooding 79 % of the limit and both purities pass; only the +10 % feed robustness case still fails. The column's duty is Muse's assumption; the page says so.
 - **Open weights in the loop.** Muse Spark Open on Baseten ran the same engineering loop: on Freeport it reached the same conclusion as Muse Wonder; on UCTE, where the Meta-hosted endpoint refused the prompt four times (content policy), it found a switching plan that passes line limits and N-1; on the salt plant neither model finished, and the page says so.
 - Blind benchmark: on 13 real projects with the engineers' conclusions withheld, Muse reaches **64 %** of them on average (range 33–100 %).
 
@@ -137,8 +137,9 @@ The flagship cases above were prepared by us. To show the tool is not tied to th
 
 - **Answer:** the column floods first, at +13 % (Fair flood fraction 0.876 against 0.80 at reflux 1.5).
 - **First loop:** cut reflux to 0.8 reached 120 % at 79 % of the flood limit. **Then the purity check failed it:** distillate ethanol 90.3 vs 90.8 % minimum, and the minimum reflux that holds today's purity is 1.10 (a DWSIM search). Reflux 1.10 would hold purity at 73.6 % of flood.
-- **Rejected every round:** a new 600 mm shell. Replacing equipment is a change the loop cannot verify yet, so the run ends at the round limit rather than "done".
-- **Cost:** $1.54 on Baseten (build $0.77, question $0.23, loop $0.55).
+- **Loop with the purity check** (`work/20261101-214001`, $3.89): Muse kept reflux at 1.5 and raised the bottoms draw to 3.6 mol/s. Verified: 120 % (max 121 %), flooding 79.0 vs 80 %, distillate ethanol 91.3 vs 90.8 % minimum, bottoms water 24.3 vs 23.8 %, reflux 1.5 vs 1.28 minimum, target met in 85 % of 48 uncertainty re-solves. Still failing: the operating envelope at feed +10 % beyond the target. It stopped at its $4 budget. A new 600 mm shell was proposed and rejected each time: replacing equipment is a change the loop cannot verify yet.
+- An intermediate loop (`work/20261101-211936`, $2.38) ended without a verified design: Muse ran out of tool steps.
+- **Cost:** $1.54 for the build, first question and first loop; $7.81 in total with the two later loops, all on Baseten.
 - **Limits:** the drawing does not say what the column separates, so the duty (water/ethanol, 1,000 kg/h, 85 °C, 3 bar) is Muse's assumption, and the result holds for that duty, not BASF's. The purity spec is a draft (today's purity within 0.5 points) until an engineer sets one. Disciplines without data (mechanical, electrical, piping…) are shown as open with what they need.
 
 **What makes this work for any plant**
@@ -155,7 +156,7 @@ The same loop ran with **Muse Spark Open** on Baseten ([`evidence/open-weights-e
 |---|---|---|
 | UCTE 2006 | four attempts rejected by the Meta endpoint's content policy (not a quality result) | redispatch + open the BIO-SPX 220 kV tie: line limits pass, N-1 with 0 violations, in one independent paid run (plus a $0 cache replay of an earlier, interrupted run) ($1.73 for the paid one) |
 | Freeport LNG | restore relief: limits and worst case pass, relief capacity open ($0.68) | same conclusion in two independent runs ($0.15 each) |
-| Salt MVR | unsolved after 2 rounds: process, robustness and uncertainty pass; electrical, compressor curve and start-up fail ($5.56) | stopped at its budget after 3 rounds: 120 % and 4/4 envelope reached, VFD start dip 0.5 %; cable ampacity, K-202 surge and start-up recycle still fail ($4.93) |
+| Salt MVR | unsolved after 2 rounds: process, robustness and uncertainty pass; electrical, compressor curve and start-up fail ($5.56) | stopped at its budget after 3 rounds: 120 % and 4/4 envelope reached, VFD start dip 0.5 %; cable ampacity, K-202 surge and start-up recycle still fail ($4.93). A later run with a larger step budget verified 4 of 5 changes in round 1 (120 %, max 122 %, envelope 4/4, curves at the target pass); K-202's direct-on-line start dip (46 %), its surge at today's flow and 50 % confidence still failed, and Muse ran out of steps in round 2 ($4.28) |
 
 This is loop evidence, not a controlled benchmark: prompt wording and cache state were not held fixed.
 
