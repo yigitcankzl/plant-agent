@@ -97,6 +97,21 @@ The MOC pack carries the failed gates as risks and its decision reads "Do not ap
 - **How blind it is:** the basis was written by us after the notice was public. It gives Muse the redacted inputs as ranges (fill, heat leak) and says the relief valve was isolated; it contains no pressure after the closure.
 - **What it missed:** two of PHMSA's three causes. The transfer procedure did not specify the valve positions, and the inner-pipe temperature points were logged but not alarmed. The page shows this next to the recorded outcome.
 
+## A real-scale plant: NREL 2011 cellulosic ethanol, area by area
+
+`plant.html?case=nrel_ethanol_a300` and `nrel_ethanol_a500` rebuild two areas of the NREL corn-stover ethanol design (Humbird et al. 2011, NREL/TP-5100-47764). Muse builds each area in DWSIM from the design basis. The report's stream tables (154 of 155 streams extracted by `tools/nrel_tables.py`) are withheld and scored by `tools/nrel_compare.py`, without an LLM.
+
+| Area | Model | Stream checks within 3 % / 5 % | Key number vs report | Muse cost |
+|---|---|---|---|---|
+| A300 hydrolysis and fermentation | 11 units, one build | 26 / 33 of 35 | beer ethanol 21,229 vs 21,941 kg/h (−3.2 %) | $4.30 |
+| A500 distillation, molecular sieve, filter | 18 units, all 10 P&ID tags | 22 / 27 of 64 | ethanol product 21,755 vs 21,673 kg/h (+0.4 %) | $2.90 (accepted run) |
+
+Limits:
+- The NREL numbers are themselves an Aspen Plus simulation, not plant measurements. The claim is "Muse rebuilt NREL's model in DWSIM".
+- DWSIM's sugars and solids stall its column solver, so mass-equivalent ChemSep stand-ins are used. The basis says so.
+- A500 took five builds; the failed ones cost $14.6. The accepted model is Muse's last submission, replayed after column-solver fixes. Its basis carries modelling notes from our engine tests, labelled as such. Water in the rectifier and sieve loop, and the heat duties, are not calibrated.
+- The joined A300 → A500 plant (`nrel_ethanol`) does not converge yet: the rectifier fails on A300's beer with Muse's fixed-rate specs.
+
 ## Second opinion: two models, one simulator
 
 `plant.html?case=chem_c01` opens a chemical unit from its **DEXPI P&ID** (the DEXPI e.V. reference example C01). Its operating data sheet is illustrative, written for this demo, and the page says so.
