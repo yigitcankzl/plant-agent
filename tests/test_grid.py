@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 from plantagent import grid
-from plantagent.plant import _simulator_name, change_errors, patch
+from plantagent.plant import _grid_deactivated, _simulator_name, change_errors, patch
 
 ROOT = Path(__file__).resolve().parent.parent
 _s = importlib.util.spec_from_file_location("make_ucte_case", ROOT / "tools" / "make_ucte_case.py")
@@ -21,6 +21,11 @@ class GridChanges(unittest.TestCase):
         self.assertFalse(spec["switches"][0]["closed"])
         self.assertTrue(change_errors(spec, [{"path": "lines.NOPE.in_service", "value": False}]))
         self.assertTrue(change_errors(spec, [{"add_unit": {"id": "X"}}]))
+
+    def test_opened_grid_element_is_the_only_intentionally_removed_check(self):
+        changes = [{"path": "lines.BIO-SPX 220.in_service", "value": False},
+                   {"path": "gens.DOL injection.p_mw", "value": 1200}]
+        self.assertEqual(_grid_deactivated(changes), {"BIO-SPX 220"})
 
     def test_review_blocks_undefined_bus_and_basis_has_no_outcome(self):
         spec = UCTE.reference_spec(ANGLE)

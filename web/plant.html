@@ -1867,8 +1867,8 @@ async function follow(job, title) {
 }
 
 const WORK_MARK = {pass: '✓', fail: '✕', open: '○', info: '•'};
-function workActor(step) {
-  if (step.actor === 'muse') return 'Muse';
+function workActor(step, model) {
+  if (step.actor === 'muse') return museName(step.model || model || 'Muse');
   if (step.actor === 'engineer') return 'Engineer';
   return step.engine || 'Engine';
 }
@@ -1910,9 +1910,9 @@ async function workFocus(tags, view, el) {
   if (view && VIEW !== view && $('viewTog').style.display !== 'none') await setView(view);
   if (tags[0]) { selectOnDrawing(tags[0]); focusDrawing(tags[0]); }
 }
-function workStep(step, previousIssues) {
+function workStep(step, previousIssues, model) {
   const status = ['pass', 'fail', 'open', 'info'].includes(step.status) ? step.status : 'info';
-  const actor = workActor(step), actorClass = step.actor === 'muse' ? 'muse' : step.actor === 'engineer' ? 'engineer' : 'engine';
+  const actor = workActor(step, model), actorClass = step.actor === 'muse' ? 'muse' : step.actor === 'engineer' ? 'engineer' : 'engine';
   const listedFixes = Array.isArray(step.fixes) ? step.fixes.map(item => typeof item === 'string' ? item : item?.check).filter(Boolean) : [];
   const fixes = step.actor === 'muse' && step.kind === 'fix' ? (listedFixes.length ? listedFixes : previousIssues) : [];
   const meta = step.actor === 'muse' && (step.usd != null || step.seconds != null)
@@ -1955,7 +1955,7 @@ function renderWorklog(log) {
     <div class="work-rounds">${rounds.map((round, index) => {
       const previousIssues = index ? (rounds[index - 1].open_issues || []).map(issue => issue.check).filter(Boolean) : [];
       return `<details class="work-round" data-n="${esc(round.n ?? index + 1)}"${index === rounds.length - 1 ? ' open' : ''}><summary><span>Round ${esc(round.n ?? index + 1)}</span><span class="work-round-state">${esc(workRoundState(round))}</span></summary>
-        <div class="work-steps">${(round.steps || []).map(step => workStep(step, previousIssues)).join('')}</div></details>`;
+        <div class="work-steps">${(round.steps || []).map(step => workStep(step, previousIssues, log.model)).join('')}</div></details>`;
     }).join('')}</div>${log.result || ['done', 'unsolved', 'max_rounds', 'budget', 'error'].includes(log.status) ? workResult(log) : ''}`;
   panel.hidden = false;
 }

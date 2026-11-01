@@ -81,9 +81,9 @@ def _fix_prompt(goal, issues, last):
             "say why and what data would settle it.")
 
 
-def _muse_step(ans, kind, usd, seconds):
+def _muse_step(ans, kind, usd, seconds, model):
     props = ans.get("proposals") or []
-    return {"actor": "muse", "kind": kind, "status": "info", "usd": round(usd, 4), "seconds": round(seconds),
+    return {"actor": "muse", "model": model, "kind": kind, "status": "info", "usd": round(usd, 4), "seconds": round(seconds),
             "title": "; ".join(p.get("title", "") for p in props) or ans.get("headline", ""),
             "detail": ans.get("headline", ""),
             "changes": [c for p in props for c in p.get("changes") or []]}
@@ -93,50 +93,55 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
     rid = time.strftime("%Y%m%d-%H%M%S")
     out = work_dir(w) / rid
     out.mkdir(parents=True, exist_ok=True)
-    log = {"id": rid, "case": w.name, "goal": goal, "label": label, "status": "running", "started": _now(),
+    model = getattr(w, "model", "unknown")
+    log = {"id": rid, "case": w.name, "goal": goal, "label": label, "model": model,
+           "provider": llm._host(model) or "meta", "max_rounds": max_rounds, "budget_usd": budget_usd,
+           "status": "running", "started": _now(),
            "usd_total": 0.0, "seconds_total": 0, "rounds": [], "result": None, "deliverables": [], "needs_human": []}
     save = lambda: (out / "worklog.json").write_text(json.dumps(log, indent=1, ensure_ascii=False))  # noqa: E731
     t0, usd0 = time.time(), llm.spent()
     issues, last, rows = [], None, []
     try:
-        for n in range(1, max_rounds + 1):
-            t, u = time.time(), llm.spent()
-            ans = w.ask(goal if n == 1 else _fix_prompt(goal, issues, last))
-            idx = len(w.answers) - 1
-            rnd = {"n": n, "answer_index": idx, "steps": [_muse_step(ans, "propose" if n == 1 else "fix", llm.spent() - u, time.time() - t)]}
-            log["rounds"].append(rnd)
-            for p in ans.get("proposals") or []:
-                rnd["steps"].append({"actor": "engine", "engine": "server verify", "kind": "solve", "title": p.get("title", ""),
-                                     "status": "pass" if p.get("verified") else "fail",
-                                     "detail": p.get("unverified_reason") or "",
-                                     "numbers": {"capacity_pct": round(p["capacity_multiple"] * 100, 1)} if p.get("capacity_multiple") else None})
-            last = ans
-            save()
-            if str(ans.get("headline", "")).startswith(UNSOLVABLE):
-                log["status"] = "unsolved"
-                break
-            if not any(p.get("verified") for p in ans.get("proposals") or []):
-                issues = [{"check": "process", "title": "no proposal verified on the server: " +
-                           "; ".join(p.get("unverified_reason", "") for p in ans.get("proposals") or [])[:400] or "no proposal made"}]
-                rnd["open_issues"] = issues
-            else:
-                rows = checks(w, idx)
-                rnd["steps"] += [{"actor": "engine", "kind": "check", **r} for r in rows]
-                # a rejected proposal is an issue too: Muse must see why the server refused it, or it repeats the mistake
-                rejected = [{"check": "proposal rejected", "title": f"{p.get('title', '')}: {p.get('unverified_reason', 'not verified')}"}
-                            for p in ans.get("proposals") or [] if not p.get("verified")]
-                issues = rejected + [r for r in rows if r.get("status") == "fail"]
-                rnd["open_issues"] = [{"check": r["check"], "detail": r.get("title", "")} for r in issues]
-                if not issues:
-                    log["status"] = "done"
-                    save()
+        with llm.spend_cap(budget_usd):
+            for n in range(1, max_rounds + 1):
+                t, u = time.time(), llm.spent()
+                ans = w.ask(goal if n == 1 else _fix_prompt(goal, issues, last))
+                idx = len(w.answers) - 1
+                muse = _muse_step(ans, "propose" if n == 1 else "fix", llm.spent() - u, time.time() - t, model)
+                rnd = {"n": n, "answer_index": idx, "steps": [muse]}
+                log["rounds"].append(rnd)
+                for p in ans.get("proposals") or []:
+                    rnd["steps"].append({"actor": "engine", "engine": "server verify", "kind": "solve", "title": p.get("title", ""),
+                                         "status": "pass" if p.get("verified") else "fail",
+                                         "detail": p.get("unverified_reason") or "",
+                                         "numbers": {"capacity_pct": round(p["capacity_multiple"] * 100, 1)} if p.get("capacity_multiple") else None})
+                last = ans
+                save()
+                if str(ans.get("headline", "")).startswith(UNSOLVABLE):
+                    log["status"] = "unsolved"
                     break
-            save()
-            if llm.spent() - usd0 >= budget_usd:
-                log["status"] = "budget"
-                break
-        else:
-            log["status"] = "max_rounds"
+                if not any(p.get("verified") for p in ans.get("proposals") or []):
+                    reasons = "; ".join(p.get("unverified_reason", "") for p in ans.get("proposals") or [])[:400]
+                    issues = [{"check": "process", "title": "no proposal verified on the server: " + (reasons or "no proposal made")}]
+                    rnd["open_issues"] = issues
+                else:
+                    rows = checks(w, idx)
+                    rnd["steps"] += [{"actor": "engine", "kind": "check", **r} for r in rows]
+                    # a rejected proposal is an issue too: Muse must see why the server refused it, or it repeats the mistake
+                    rejected = [{"check": "proposal rejected", "title": f"{p.get('title', '')}: {p.get('unverified_reason', 'not verified')}"}
+                                for p in ans.get("proposals") or [] if not p.get("verified")]
+                    issues = rejected + [r for r in rows if r.get("status") == "fail"]
+                    rnd["open_issues"] = [{"check": r["check"], "detail": r.get("title", "")} for r in issues]
+                    if not issues:
+                        log["status"] = "done"
+                        save()
+                        break
+                save()
+                if llm.spent() - usd0 >= budget_usd:
+                    log["status"] = "budget"
+                    break
+            else:
+                log["status"] = "max_rounds"
         final = log["rounds"][-1]["answer_index"] if log["rounds"] else None
         log["result"] = {"answer_index": final, "headline": (last or {}).get("headline"),
                          "passes": [r["check"] for r in rows if r.get("status") == "pass"],
@@ -154,8 +159,14 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
         log["deliverables"] += [{"kind": a.get("kind"), "title": a.get("title"), "artifact": a.get("id")}
                                 for a in (last or {}).get("artifacts") or []]
     except Exception as e:  # noqa: BLE001 - a crashed run still leaves its log
-        log["status"] = "error"
+        log["status"] = "budget" if isinstance(e, llm.BudgetExceeded) else "error"
         log["error"] = f"{type(e).__name__}: {e}"[:500]
+        if last is not None:  # keep the last completed round when later work fails
+            final = log["rounds"][-1]["answer_index"]
+            log["result"] = {"answer_index": final, "headline": last.get("headline"),
+                             "passes": [r["check"] for r in rows if r.get("status") == "pass"],
+                             "fails": [r["check"] for r in rows if r.get("status") == "fail"],
+                             "open": [r["check"] for r in rows if r.get("status") == "open"]}
     log["finished"] = _now()
     log["usd_total"] = round(llm.spent() - usd0, 4)
     log["seconds_total"] = round(time.time() - t0)
@@ -168,7 +179,8 @@ def runs(w):
     out = []
     for f in sorted(d.glob("*/worklog.json"), reverse=True):
         x = json.loads(f.read_text())
-        out.append({k: x.get(k) for k in ("id", "goal", "status", "usd_total", "started", "label")} | {"rounds": len(x.get("rounds") or [])})
+        out.append({k: x.get(k) for k in ("id", "goal", "status", "usd_total", "started", "label", "model", "provider")} |
+                   {"rounds": len(x.get("rounds") or [])})
     return out
 
 

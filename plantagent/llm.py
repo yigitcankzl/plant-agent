@@ -25,10 +25,16 @@ PRICES = {
     "muse-spark-1.3": (1.25, 4.25),
     # Contributor tier: data may be used to train Meta models. Public documents only.
     "muse-spark-1.3-contributor": (0.10, 0.20),
+    "baseten:meta-models/muse-spark-open-1026": (1.25, 4.25),
 }
 # ponytail: one global cap; keep ~$30 of the $150 for final demo runs and video takes.
 _TAG = threading.local()
+_SPEND_CAP = threading.local()
 _LOCK = threading.RLock()
+
+
+class BudgetExceeded(RuntimeError):
+    pass
 
 
 def set_tag(value):
@@ -66,7 +72,21 @@ def spent(tag=None):
     if not LEDGER.exists():
         return 0.0
     rows = [json.loads(l) for l in LEDGER.read_text().splitlines() if l]
+    if tag in OPEN_HOSTS:
+        return sum(r["usd"] for r in rows if r.get("provider") == tag or r.get("tag") == tag or
+                   str(r.get("model", "")).startswith(tag + ":"))
     return sum(r["usd"] for r in rows if tag is None or r.get("tag") == tag)
+
+
+@contextmanager
+def spend_cap(usd):
+    """Hard cap for one task: a call that could cross it is refused before sending."""
+    previous = getattr(_SPEND_CAP, "value", None)
+    _SPEND_CAP.value = (spent(), float(usd))
+    try:
+        yield
+    finally:
+        _SPEND_CAP.value = previous
 
 
 @contextmanager
@@ -86,7 +106,7 @@ def _billing_lock():
 
 # Open-weights hosts, addressed as "<host>:<model id>" (e.g. "baseten:meta-models/muse-spark-open-1026"); own key and budget each.
 OPEN_HOSTS = {"fireworks": ("https://api.fireworks.ai/inference/v1", "FIREWORKS_API_KEY", float(os.getenv("FIREWORKS_BUDGET_USD", "80"))),
-              "baseten": ("https://inference.baseten.co/v1", "BASETEN_API_KEY", float(os.getenv("BASETEN_BUDGET_USD", "80")))}
+              "baseten": ("https://inference.baseten.co/v1", "BASETEN_API_KEY", float(os.getenv("BASETEN_BUDGET_USD", "90")))}
 # ponytail: hackathon credit hosts publish no per-token price for this model; a conservative default over-counts spend
 OPEN_DEFAULT_PRICE = (1.0, 3.0)
 
@@ -111,12 +131,12 @@ def _client_for(model):
     if host:
         url, key, budget = OPEN_HOSTS[host]
         if spent(host) >= budget:
-            raise RuntimeError(f"{host} budget reached (${spent(host):.2f} of ${budget}).")
+            raise BudgetExceeded(f"{host} budget reached (${spent(host):.2f} of ${budget}).")
         if host not in _open:
             _open[host] = OpenAI(api_key=os.environ[key], base_url=url, timeout=300, max_retries=2)
         return _open[host], model.split(":", 1)[1]
     if spent() - sum(spent(h) for h in OPEN_HOSTS) >= BUDGET_USD:
-        raise RuntimeError(f"Muse budget reached (${spent():.2f} of ${BUDGET_USD}). Raise MUSE_BUDGET_USD deliberately.")
+        raise BudgetExceeded(f"Muse budget reached (${spent():.2f} of ${BUDGET_USD}). Raise MUSE_BUDGET_USD deliberately.")
     _client = _client or OpenAI(api_key=os.environ["META_API_KEY"], base_url=os.getenv("META_BASE_URL", "https://api.meta.ai/v1"), timeout=480, max_retries=1)
     return _client, model
 
@@ -133,8 +153,9 @@ def _budget(model):
 
 def _reserve(model, messages, params):
     pin, pout = PRICES.get(model) or OPEN_DEFAULT_PRICE
-    input_tokens = max(1, len(json.dumps(messages, default=str)) // 4)
-    output_tokens = int(params.get("max_tokens") or 4096)
+    # Include tool schemas and over-count text at two characters/token so a task cap stops before the next paid call.
+    input_tokens = max(1, len(json.dumps([messages, params], default=str)) // 2)
+    output_tokens = int(params.get("max_tokens") or 8192)
     return (input_tokens * pin + output_tokens * pout) / 1e6
 
 
@@ -146,16 +167,29 @@ def _append_usage(row):
         os.fsync(handle.fileno())
 
 
+def _tool_names(message, params):
+    """Accept provider-qualified names only when their final segment is an advertised tool."""
+    valid = {t.get("function", {}).get("name") for t in params.get("tools") or []}
+    for call in message.get("tool_calls") or []:
+        leaf = str(call.get("name", "")).rsplit(".", 1)[-1]
+        if call.get("name") not in valid and leaf in valid:
+            call["name"] = leaf
+    return message
+
+
 def complete(model, messages, **params):
     """Returns the assistant message as a dict {content, tool_calls}. Cached; raises once the budget is used up."""
     key = hashlib.sha256(json.dumps([model, messages, params], sort_keys=True).encode()).hexdigest()
     hit = CACHE / f"{key}.json"
     with _billing_lock():
         if hit.exists():
-            return json.loads(hit.read_text())["message"]
+            return _tool_names(json.loads(hit.read_text())["message"], params)
         reserve = _reserve(model, messages, params)
+        run_cap = getattr(_SPEND_CAP, "value", None)
+        if run_cap and spent() - run_cap[0] + reserve > run_cap[1]:
+            raise BudgetExceeded(f"run budget would be exceeded by this call (${run_cap[1]:.2f} cap); no model call made")
         if _provider_spend(model) + reserve > _budget(model):
-            raise RuntimeError(f"{_host(model) or 'Muse'} budget would be exceeded by this call; no model call made")
+            raise BudgetExceeded(f"{_host(model) or 'Muse'} budget would be exceeded by this call; no model call made")
         client, model_id = _client_for(model)
         r = client.chat.completions.create(model=model_id, messages=messages, **params)
         m = r.choices[0].message
@@ -166,9 +200,10 @@ def complete(model, messages, **params):
         tmp = hit.with_name(f".{hit.name}.{os.getpid()}.{threading.get_ident()}.tmp")
         tmp.write_text(json.dumps({"message": msg}))
         os.replace(tmp, hit)
-        _append_usage({"model": model, "tag": _host(model) or current_tag(), "in": r.usage.prompt_tokens,
+        provider = _host(model) or "meta"
+        _append_usage({"model": model, "provider": provider, "tag": current_tag() or provider, "in": r.usage.prompt_tokens,
                        "out": r.usage.completion_tokens, "usd": round(usd, 5)})
-        return msg
+        return _tool_names(msg, params)
 
 
 def transcribe(wav: bytes):

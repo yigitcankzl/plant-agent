@@ -58,6 +58,36 @@ class LlmSafetyTests(unittest.TestCase):
                 llm.complete("muse-spark-1.3", [{"role": "user", "content": "hello"}], max_tokens=100)
         self.assertEqual(client.calls, 0)
 
+    def test_per_run_cap_blocks_before_the_api_call(self):
+        client = FakeClient()
+        with mock.patch.object(llm, "_client_for", return_value=(client, "muse-spark-1.3")), \
+             llm.spend_cap(0.000001):
+            with self.assertRaisesRegex(llm.BudgetExceeded, "run budget"):
+                llm.complete("muse-spark-1.3", [{"role": "user", "content": "hello"}], max_tokens=100)
+        self.assertEqual(client.calls, 0)
+
+    def test_reservation_counts_tool_schemas(self):
+        plain = llm._reserve("muse-spark-1.3", [{"role": "user", "content": "hello"}], {})
+        with_tools = llm._reserve("muse-spark-1.3", [{"role": "user", "content": "hello"}],
+                                  {"tools": [{"function": {"name": "x", "description": "z" * 1000}}]})
+        self.assertGreater(with_tools, plain)
+
+    def test_open_model_usage_keeps_provider_and_case_tag(self):
+        client = FakeClient()
+        llm.set_tag("plant:salt_mvr")
+        model = "baseten:meta-models/muse-spark-open-1026"
+        with mock.patch.object(llm, "_client_for", return_value=(client, model.split(":", 1)[1])):
+            llm.complete(model, [{"role": "user", "content": "hello"}], max_tokens=10)
+        row = json.loads(llm.LEDGER.read_text())
+        self.assertEqual((row["provider"], row["tag"]), ("baseten", "plant:salt_mvr"))
+        self.assertGreater(llm.spent("baseten"), 0)
+
+    def test_provider_qualified_tool_name_is_recovered_only_for_an_advertised_tool(self):
+        params = {"tools": [{"function": {"name": "answer"}}]}
+        msg = {"content": "", "tool_calls": [{"name": "answer.answer"}, {"name": "bad.unknown"}]}
+        fixed = llm._tool_names(msg, params)
+        self.assertEqual([c["name"] for c in fixed["tool_calls"]], ["answer", "bad.unknown"])
+
     def test_spend_tag_can_be_inherited_by_worker_threads(self):
         llm.set_tag("sheet:one")
         with ThreadPoolExecutor(1) as pool:

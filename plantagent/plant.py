@@ -782,6 +782,17 @@ KIND = {"pipe_segment": "blocked-in line", "pump": "pump", "hx": "heat exchanger
         "compressor": "compressor", "mixer": "junction", "splitter": "branch", "recycle": "loop closure", "column": "column"}
 
 
+def _spec_object(spec, kind, oid):
+    group = spec.get(kind, {})
+    return next((x for x in group if isinstance(x, dict) and x.get("id") == oid), {}) if isinstance(group, list) else group.get(oid, {})
+
+
+def _grid_deactivated(changes):
+    return {parts[1] for c in changes if c.get("value") is False and
+            len(parts := str(c.get("path") or "").split(".", 2)) == 3 and
+            parts[0] in ("lines", "trafos") and parts[2] == "in_service"}
+
+
 def stitch_areas(specs):
     """Join area models (in process order) into one plant flowsheet. A feed of a later area that an earlier area's unit
     produces is joined to that unit's outlet; a feed produced by a later area (a recycle back upstream) stays a feed at its
@@ -2632,6 +2643,8 @@ class PlantWorkspace(Study):
         calculation = _calculation(p, target, before_cap, cap, before, at, spec, new, simulator)
         after_checks = {(c["id"], c["check"]): c["utilisation"] for c in at.get("checks") or [] if "utilisation" in c}
         removed = ro_changes.removed(self.spec, changes) if is_ro else set()  # e.g. a second pass switched off
+        if _is_grid(self.cfg):
+            removed |= _grid_deactivated(changes)  # an intentionally opened element no longer has an operating limit check
         # a failed solve has no checks at all: the solver error is the reason, not vanished checks
         disappeared = [] if at.get("errors") else [{"id": uid, "check": check} for uid, check in before
                                                     if (uid, check) not in after_checks and uid not in removed]
@@ -2742,8 +2755,7 @@ class PlantWorkspace(Study):
                         c["from"] = next(u for u in self.spec["units"] if u["id"] == r["unit"]).get(r["field"])
                     elif c.get("path"):
                         k, oid, fld = c["path"].split(".", 2)
-                        o = next(u for u in self.spec["units"] if u["id"] == oid) if k == "units" else self.spec.get(k, {}).get(oid, {})
-                        c["from"] = o.get(fld)
+                        c["from"] = _spec_object(self.spec, k, oid).get(fld)
                 except (KeyError, ValueError, StopIteration):
                     c["from"] = None
             try:
