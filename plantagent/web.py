@@ -103,6 +103,52 @@ def _short(v, n=220):
     return s if len(s) <= n else s[:n] + "…"
 
 
+def _job_event(event):
+    """One compact, UI-ready engineering step; the short raw values remain available under Details."""
+    result, args, name = event.get("result"), event.get("args") or {}, event.get("name")
+    out = {"kind": event["kind"], "name": name, "text": event.get("text"),
+           "args": _short(args, 140) if args else None,
+           "result": _short(result, 220) if result is not None else None}
+    if event["kind"] != "tool":
+        return out
+    bad = isinstance(result, dict) and bool(result.get("error") or result.get("errors"))
+    checks = result.get("checks") or [] if isinstance(result, dict) else []
+    checked = [c for c in checks if isinstance(c, dict) and c.get("utilisation") is not None]
+    worst = max(checked, key=lambda c: c["utilisation"], default=None)
+    tags = [str(c["id"]) for c in checked if c.get("id")]
+    label = args.get("label") if isinstance(args, dict) else None
+    summary = None
+    if name == "read_pid" and isinstance(result, dict):
+        equipment = result.get("equipment") or []
+        tags = [str(e.get("tag")) for e in equipment if isinstance(e, dict) and e.get("tag")]
+        summary = f"{len(equipment)} equipment items"
+    elif name in ("run_process", "run_ro"):
+        if worst:
+            pct = round(float(worst["utilisation"]) * 100)
+            summary = f"{worst.get('id', 'plant')} {pct}% {'✕' if pct > 100 else '✓'}"
+            bad = bad or pct > 100
+        else:
+            summary = "solve failed" if bad else "solve completed"
+    elif name in ("process_capacity", "ro_capacity") and isinstance(result, dict):
+        cap = result.get("capacity_multiple")
+        summary = f"maximum {round(float(cap) * 100)}%" if cap is not None else None
+    elif name == "sweep" and isinstance(result, dict):
+        summary = f"{len(result.get('points') or result.get('results') or [])} operating points"
+    elif name == "search_documents":
+        summary = f"{len(result or [])} matches" if isinstance(result, list) else "search complete"
+    elif name == "read_document_page" and isinstance(args, dict):
+        summary = f"{args.get('doc', 'document')} p.{args.get('page', '?')}"
+    elif name == "read_data_sheet":
+        summary = "operating limits loaded"
+    elif name == "get_spec":
+        summary = f"model {label or (result or {}).get('label', '')}".strip() if isinstance(result, dict) else "model loaded"
+    out.update(summary=summary, tags=list(dict.fromkeys(tags))[:8], status="fail" if bad else "pass" if name in
+               ("run_process", "run_ro", "process_capacity", "ro_capacity") else "info")
+    if label:
+        out["label"] = label
+    return out
+
+
 def log_events(case, run, offset=0):
     """The run log as display events: agent narration, tool calls with short results, submissions."""
     lines = (RUNS / case / run / "log.jsonl").read_text().splitlines()
@@ -292,16 +338,20 @@ def plant(case):
 
 def plant_job(case, fn):
     """Run a plant-workspace agent call in the background and stream its tool calls (same job protocol as ws_ask)."""
+    from . import llm
     w = plant(case)
-    job = _new_job(case)
+    spend_tag = "plant:" + case
+    job = _new_job(case, model=w.model, started_at=time.time(), _spend_tag=spend_tag,
+                   _cost_start=llm.spent(spend_tag))
 
     def work():
-        w.listener = lambda e: JOBS[job]["events"].append({
-            "kind": e["kind"], "name": e.get("name"), "text": e.get("text"),
-            "args": _short(e.get("args"), 140) if e.get("args") else None,
-            "result": _short(e.get("result"), 160) if e.get("result") is not None else None})
+        w.listener = lambda e: JOBS[job]["events"].append(_job_event(e))
         try:
-            JOBS[job]["answer"] = fn(w)
+            answer = fn(w)
+            if w.answers and answer is w.answers[-1]:
+                answer["chat_steps"] = list(JOBS[job]["events"])
+                (w.dir / "answers.json").write_text(json.dumps(w.answers, indent=1))
+            JOBS[job]["answer"] = answer
         except Exception as ex:
             JOBS[job]["error"] = f"{type(ex).__name__}: {ex}"
         finally:
@@ -389,6 +439,46 @@ def _outcome(w):
     return {**oc, "agent_headline": (a or {}).get("headline"), "agent_summary": (a or {}).get("summary"), "scorecard": card}
 
 
+def _answer_chat_steps(w, answers):
+    """Attach the tool rows from old session logs to their saved answers without changing the files."""
+    keyed = {}
+    for answer_file in sorted((RUNS / "ws" / w.name).glob("2*/answers.json")):
+        log_file = answer_file.with_name("log.jsonl")
+        if not log_file.exists():
+            continue
+        groups, current = [], []
+        for line in log_file.read_text().splitlines():
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if row.get("phase") != "ask":
+                continue
+            if row.get("tool"):
+                current.append(_job_event({"kind": "tool", "name": row["tool"],
+                                           "args": row.get("args"), "result": row.get("result")}))
+            if row.get("submit") is not None:
+                groups.append(current)
+                current = []
+        try:
+            saved = json.loads(answer_file.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not groups:
+            continue
+        for answer, steps in zip(saved[-len(groups):], groups):
+            key = (answer.get("request"), answer.get("headline"), answer.get("seconds"), answer.get("cost_usd"))
+            keyed[key] = steps
+    out = []
+    for answer in answers:
+        copy = dict(answer)
+        key = (answer.get("request"), answer.get("headline"), answer.get("seconds"), answer.get("cost_usd"))
+        if not copy.get("chat_steps") and keyed.get(key):
+            copy["chat_steps"] = keyed[key]
+        out.append(copy)
+    return out
+
+
 def plant_project(case):
     w = plant(case)
     st = w.state(float(w.cfg.get("target_scale", 1.0))) if w.built else None
@@ -400,7 +490,7 @@ def plant_project(case):
     return {"case": case, "kind": "process", "engine": w.cfg.get("engine", "dwsim"), "title": w.cfg["title"], "source": w.cfg["source"], "question": w.cfg["question"], "task_type": w.cfg.get("task_type"), "suggested_questions": w.cfg.get("suggested_questions"), "drawing_note": w.cfg.get("drawing_note"),
             "data_note": w.cfg.get("data_note"), "featured_work": w.cfg.get("featured_work"), "throughput": w.cfg.get("throughput"), "drawing": "svg" if w.cfg.get("svg") else "pdf" if w.cfg.get("pid_pdf") else "none", "dexpi": bool(w.cfg.get("pid")),
             "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid or {"equipment": [], "connections": [], "valves": [], "control": []}, "basis": w.basis, "model": w.model,
-            "has_compressor_curve": has_compressor_curve,
+            "has_compressor_curve": has_compressor_curve, "allow_runs": os.getenv("WEB_ALLOW_RUNS") == "1",
             "built": {**{k: v for k, v in w.built.items() if k != "result"},
                       "coverage": w._coverage(w.spec, w.built.get("mapping")),
                       # the calibration table checked against the solve (inputs vs reproduced outputs), not the agent's prose
@@ -424,7 +514,7 @@ def plant_project(case):
                                  if not hx.get("u_tag")]
             if (ROOT / "cases" / case / "historian_map.json").exists() else [],
             "read_confirmed": bool((w.pid or {}).get("confirmed")), "read_corrections": len((w.pid or {}).get("corrections") or []),
-            "answers": _with_gates(w), "revisions": [{k: r.get(k) for k in ("rev", "kind", "title", "changes", "capacity_multiple", "at", "user", "reason")}
+            "answers": _answer_chat_steps(w, _with_gates(w)), "revisions": [{k: r.get(k) for k in ("rev", "kind", "title", "changes", "capacity_multiple", "at", "user", "reason")}
                                                 for r in w.revisions],
             "audit": {"verify": __import__("plantagent.audit", fromlist=["x"]).verify(case),
                       "entries": __import__("plantagent.audit", fromlist=["x"]).entries(case)[-50:]},
@@ -815,7 +905,12 @@ class Handler(SimpleHTTPRequestHandler):
             if not j:
                 return self._send({"error": "unknown job"}, code=404)
             off = int(q.get("offset", 0))
-            return self._send({**j, "events": j["events"][off:], "offset": len(j["events"])})
+            public = {k: v for k, v in j.items() if not k.startswith("_")}
+            if j.get("_spend_tag"):
+                from . import llm
+                public["cost_usd"] = round(llm.spent(j["_spend_tag"]) - j["_cost_start"], 4)
+                public["seconds"] = round((j.get("finished_at") or time.time()) - j["started_at"])
+            return self._send({**public, "events": j["events"][off:], "offset": len(j["events"])})
         if parts[:2] == ["api", "plant"] and len(parts) == 6 and parts[3] == "artifact" and parts[2] in set(all_cases("process")):
             from . import artifacts
             f = artifacts.file(parts[2], parts[4], parts[5])
