@@ -575,6 +575,7 @@
   #qaQ { font-size: 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   #qaA { font-size: 17px; margin-top: 8px; }
   #qaBadges { flex-direction: column; gap: 4px; }
+  .design-source { margin: 2px 0 8px; font-size: 12px; color: var(--fg-2, #9aa); }
   #qaBadges .qa-badge.muse { font-style: italic; color: var(--fg-2); }
   .work-runner { margin-top: 14px; }
   .work-runner .estimate { display: none; }
@@ -1438,6 +1439,13 @@ function proposedTopology(spec, changes) {
   return {units, existing: new Set([...baseIds].filter(id => !addedIds.has(id))), added: addedIds};
 }
 // same rule as revb.design_answer: latest answer whose verified changes reach the target, else latest with any verified
+// which design this card shows, and how it relates to the engineering run on the strip: never two designs without saying so
+let LAST_WORK = null;
+function designSource(a) {
+  const who = a?.model ? museName(a.model) : 'Muse', when = a?.at || a?.started || '';
+  const run = LAST_WORK && LAST_WORK.rounds?.length ? ` The engineering run on the left is a separate, later run (${LAST_WORK.model ? museName(LAST_WORK.model) : 'Muse'}, ${LAST_WORK.rounds.length} round${LAST_WORK.rounds.length === 1 ? '' : 's'}, ${({done: 'done', unsolved: 'unsolved', max_rounds: 'stopped at the round limit', budget: 'stopped at its budget', error: 'stopped with an error'})[LAST_WORK.status] || LAST_WORK.status}); its checks are the latest word.` : '';
+  return esc(`Saved answer by ${who}${when ? `, ${String(when).slice(0, 16).replace('T', ' ')}` : ''}.${run}`);
+}
 function designAnswer() {
   const has = (P?.answers || []).filter(a => (a.proposals || []).some(p => p.verified));
   const reach = has.filter(a => a.combined?.reaches_target);
@@ -1946,6 +1954,8 @@ function workResult(log) {
   </dl></section>`;
 }
 function renderWorklog(log) {
+  LAST_WORK = log;
+  document.querySelectorAll('.design-source').forEach(e => { const d = designAnswer(); if (d) e.innerHTML = designSource(d); });
   const panel = $('worklogPanel');
   if (!log || typeof log !== 'object') { panel.hidden = true; panel.innerHTML = ''; return; }
   const rounds = Array.isArray(log.rounds) ? log.rounds : [];
@@ -2191,7 +2201,7 @@ function decisionBrief(a, idx) {
     else if (bad.length) { status = `${bad.length} of ${runs.length} cited ${simulator()} runs re-solve to a different result: check before relying on the numbers`; statusClass = 'fail'; }
   }
   const issue = (idx === P.answers.length - 1 || a === designAnswer()) && !modelBlocked() && verified.length ? `<div class="package-action"><button class="btn go" type="button" onclick="issueEngineeringPackage(this)">Issue engineering package</button><small>DRAFT — generates the decision pack and current pre-FEED gates; not approved for construction.</small></div>` : '';
-  return `<section class="decision-brief"><h2>${esc(plain(a.headline) || 'Engineering decision')}</h2>${reviewNote(a)}<dl class="decision-facts">
+  return `<section class="decision-brief"><h2>${esc(plain(a.headline) || 'Engineering decision')}</h2><p class="design-source">${designSource(a)}</p>${reviewNote(a)}<dl class="decision-facts">
     <div class="decision-fact"><dt>① ${incident() ? 'What the engine shows' : 'What limits it'}</dt><dd>${first ? `<b>${esc(first.tag)}</b> · ${esc(plain(first.text))}` : 'No limiting item reported'}</dd></div>
     <div class="decision-fact"><dt>② ${incident() ? 'What would have prevented it' : 'What Muse proposes'}</dt><dd>${esc(plain(recommendation))}</dd></div>
     <div class="decision-fact status-${statusClass}"><dt>③ What the engines confirmed</dt><dd>${esc(status)}</dd></div>
