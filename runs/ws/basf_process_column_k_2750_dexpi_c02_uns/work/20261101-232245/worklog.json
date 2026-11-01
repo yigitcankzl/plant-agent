@@ -1,0 +1,213 @@
+{
+ "id": "20261101-232245",
+ "case": "basf_process_column_k_2750_dexpi_c02_uns",
+ "goal": "+20 % feed: what limits it first and what does it cost? Make the design pass every engineering check that has data, including product purity and the +10 % operating envelope. If the existing column cannot pass, replace it with replace_unit and a new rating (vendor to confirm).",
+ "label": null,
+ "model": "baseten:meta-models/muse-spark-open-1026",
+ "provider": "baseten",
+ "max_rounds": 4,
+ "budget_usd": 5.0,
+ "status": "done",
+ "started": "2026-11-01T23:22:45+0300",
+ "usd_total": 0.5791,
+ "seconds_total": 284,
+ "rounds": [
+  {
+   "n": 1,
+   "answer_index": 9,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "baseten:meta-models/muse-spark-open-1026",
+     "kind": "propose",
+     "status": "info",
+     "usd": 0.5791,
+     "seconds": 147,
+     "title": "Hold base split - ratio-control bottoms withdrawal; Replace column with 600 mm ID rated shell (vendor to confirm)",
+     "detail": "Flood limits first - 600 mm shell needed for envelope",
+     "changes": [
+      {
+       "path": "units.K 2750.reboiler_spec.value",
+       "value": 3.6,
+       "from": null
+      },
+      {
+       "replace_unit": "K 2750",
+       "new_rating": {
+        "diameter_m": 0.6
+       },
+       "basis": "DWSIM Fair flood requires 0.638 m at 1.32× scaled 3.96 mol/s; 600 mm uniform (next standard matching KX 2750 600 mm section) gives 0.604 vs 0.80 =75.5 % at envelope (K2750_1p32_600_verify) and 0.549 =68.6 % at 1.2× (K2750_1p2_600 family); 525 mm gives 0.789 =98.6 % no margin (K2750_1p32_525). Height 14000 mm, 6 bar/150 °C, 1.4571, 15 stages same.",
+       "vendor_confirm": true
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Hold base split - ratio-control bottoms withdrawal",
+     "status": "fail",
+     "detail": "still over at the target: K 2750 Fair flood fraction vs limit 110 %",
+     "numbers": {
+      "capacity_pct": 113.1
+     }
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Replace column with 600 mm ID rated shell (vendor to confirm)",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 145.1
+     }
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "vendor confirmation of K 2750 new rating",
+     "engine": "vendor",
+     "status": "open",
+     "title": "K 2750 new rating: DWSIM Fair flood requires 0.638 m at 1.32× scaled 3.96 mol/s; 600 mm uniform (next standard matching KX 2750 600 mm section) gives 0.604 vs 0.80 =75.5 % at envelope (K2750_1p32_600_verify) and 0.549 =68.6 % at 1.2× (K2750_1p2_600 family); 525 mm gives 0.789 =98.6 % no margin (K2750_1p32_525). Height 14000 mm, 6 bar/150 °C, 1.4571, 15 stages same.; vendor to confirm",
+     "numbers": {
+      "diameter_m": 0.6
+     },
+     "source": "replacement sizing basis"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process",
+     "engine": "DWSIM",
+     "title": "design reaches 120 % (max 145 %, re-solved now)",
+     "status": "pass",
+     "numbers": {},
+     "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "robustness",
+     "engine": "DWSIM",
+     "title": "draft (assumed values): operating envelope 2/2 scenarios pass",
+     "status": "pass",
+     "numbers": {},
+     "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.flooding",
+     "engine": "Fair/Souders-Brown",
+     "title": "K 2750: column flooding 60.8 vs 80 %",
+     "status": "pass",
+     "numbers": {
+      "value": 0.608,
+      "limit": 0.8,
+      "unit": "fraction of flood",
+      "utilisation": 0.76
+     },
+     "source": "DWSIM tray traffic with Fair capacity-factor correlation"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.purity_distillate",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "draft (assumed values): K 2750 distillate Ethanol 91.3 vs 90.8 mass-% minimum",
+     "numbers": {
+      "value": 0.9131,
+      "limit": 0.9079,
+      "unit": "mass fraction",
+      "utilisation": 0.994
+     },
+     "source": "drafted purity spec (runs/ws/<case>/drafts/purity.json) on the DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.purity_bottoms",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "draft (assumed values): K 2750 bottoms Water 28.4 vs 23.8 mass-% minimum",
+     "numbers": {
+      "value": 0.2839,
+      "limit": 0.2384,
+      "unit": "mass fraction",
+      "utilisation": 0.84
+     },
+     "source": "drafted purity spec (runs/ws/<case>/drafts/purity.json) on the DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.min_reflux",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "draft (assumed values): K 2750 reflux 1.5 vs 1.09 minimum to hold the purity spec at 120 %",
+     "numbers": {
+      "value": 1.5,
+      "limit": 1.092,
+      "unit": "reflux ratio",
+      "utilisation": 0.728
+     },
+     "source": "DWSIM bisection on reflux, 15 stages as built; drafted purity spec (runs/ws/<case>/drafts/purity.json)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "confidence",
+     "engine": "uncertainty",
+     "title": "draft (assumed values): target met in 100 % of 48 re-solves with uncertain inputs varied; most often limited by K 2750: Fair flood fraction vs limit",
+     "status": "pass",
+     "numbers": {
+      "p_target": 1.0,
+      "p10": 1.4444,
+      "p50": 1.451,
+      "p90": 1.451,
+      "n": 48
+     },
+     "source": "Latin hypercube, 48 samples (seed 20261101), uniform ± band per input kind; each sample re-solved (DWSIM): capacity bisection plus the solve at the target (pass at P(target) ≥ 80%)"
+    }
+   ],
+   "open_issues": [
+    {
+     "check": "proposal rejected",
+     "detail": "Hold base split - ratio-control bottoms withdrawal: still over at the target: K 2750 Fair flood fraction vs limit 110 %"
+    }
+   ]
+  }
+ ],
+ "result": {
+  "answer_index": 9,
+  "headline": "Flood limits first - 600 mm shell needed for envelope",
+  "passes": [
+   "process",
+   "robustness",
+   "separation.K 2750.flooding",
+   "separation.K 2750.purity_distillate",
+   "separation.K 2750.purity_bottoms",
+   "separation.K 2750.min_reflux",
+   "confidence"
+  ],
+  "fails": [],
+  "open": [
+   "vendor confirmation of K 2750 new rating"
+  ]
+ },
+ "deliverables": [
+  {
+   "kind": "moc",
+   "title": "MOC pack not generated: KeyError: 'path'"
+  }
+ ],
+ "needs_human": [
+  "vendor confirmation of K 2750 new rating: K 2750 new rating: DWSIM Fair flood requires 0.638 m at 1.32× scaled 3.96 mol/s; 600 mm uniform (next standard matching KX 2750 600 mm section) gives 0.604 vs 0.80 =75.5 % at envelope (K2750_1p32_600_verify) and 0.549 =68.6 % at 1.2× (K2750_1p2_600 family); 525 mm gives 0.789 =98.6 % no margin (K2750_1p32_525). Height 14000 mm, 6 bar/150 °C, 1.4571, 15 stages same.; vendor to confirm",
+  "Actual product purity spec for 2750.001.6 and *at N3* vent/distillate: If spec is tighter than base split, required reflux or stages may increase and flood/duty numbers change; if looser, fixed bottoms could be tolerated at 1.2× but still fails flood at 1.32×",
+  "Feed rate/composition envelope and actual reboiler/condenser capacity: If available duty <563 kW the 1.32× envelope cannot be met even with new shell - would need utility upgrade",
+  "Tray type, spacing and fouling/pressure-drop: Different spacing or high-pressure-drop internals shifts flood correlation and the 0.638 m required diameter"
+ ],
+ "finished": "2026-11-01T23:27:29+0300"
+}

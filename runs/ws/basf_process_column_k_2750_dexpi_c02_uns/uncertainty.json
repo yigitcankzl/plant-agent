@@ -1,14 +1,14 @@
 {
- "key": "8c5c6c8b56af73af272d81f17e09e2f116b87b9a",
- "made": "2026-11-01T21:51:31+0300",
+ "key": "7630d343db8e8ff6139feb117b8c58d4c214ed7b",
+ "made": "2026-11-01T23:27:28+0300",
  "case": "basf_process_column_k_2750_dexpi_c02_uns",
- "answer_headline": "Flood limits first - 600 mm shell passes",
+ "answer_headline": "Flood limits first - 600 mm shell needed for envelope",
  "method": "Latin hypercube, 48 samples (seed 20261101), uniform \u00b1 band per input kind; each sample re-solved (DWSIM): capacity bisection plus the solve at the target",
  "n": 48,
  "solved": 48,
  "failed": 0,
  "workers": 4,
- "seconds": 112.8,
+ "seconds": 124.7,
  "target": 1.2,
  "bands_pct": {
   "documented": 3,
@@ -69,12 +69,12 @@
   }
  ],
  "capacity": {
-  "p10": 1.1987,
-  "p50": 1.209,
-  "p90": 1.214
+  "p10": 1.4444,
+  "p50": 1.451,
+  "p90": 1.451
  },
  "capacity_basis": "48 feasible samples",
- "p_target": 0.854,
+ "p_target": 1.0,
  "infeasible_share": 0.0,
  "limiting": [
   {
@@ -84,35 +84,30 @@
  ],
  "limiting_load_at_target": {
   "item": "K 2750: Fair flood fraction vs limit",
-  "p10": 0.981,
-  "p50": 0.988,
-  "p90": 1.003
+  "p10": 0.76,
+  "p50": 0.76,
+  "p90": 0.77
  },
  "drivers": [
   {
    "path": "feeds.FEED.T_C",
    "kind": "assumed",
-   "effect": 0.0105
+   "effect": 0.0032
   },
   {
    "path": "units.*at N3*/*C2*.dP_bar",
    "kind": "assumed",
-   "effect": 0.0021
+   "effect": 0.0014
   },
   {
    "path": "limits.FEED.max_T_C",
    "kind": "assumed",
-   "effect": 0.0013
+   "effect": 0.0009
   },
   {
    "path": "units.K 2750.dP_bar",
    "kind": "assumed",
-   "effect": -0.0005
-  },
-  {
-   "path": "feeds.FEED.P_bar",
-   "kind": "assumed",
-   "effect": 0.0005
+   "effect": 0.0008
   },
   {
    "path": "limits.*at N3*.max_T_C",
@@ -122,10 +117,15 @@
   {
    "path": "limits.VENT_INT.max_T_C",
    "kind": "assumed",
-   "effect": 0.0002
+   "effect": 0.0003
+  },
+  {
+   "path": "feeds.FEED.P_bar",
+   "kind": "assumed",
+   "effect": 0.0001
   }
  ],
- "summary": "Target 120% met in 85% of 48 samples; max throughput P10/P50/P90 120% / 121% / 121%; most often limited by K 2750: Fair flood fraction vs limit (100%); biggest driver feeds.FEED.T_C (assumed).",
+ "summary": "Target 120% met in 100% of 48 samples; max throughput P10/P50/P90 144% / 145% / 145%; most often limited by K 2750: Fair flood fraction vs limit (100%); biggest driver feeds.FEED.T_C (assumed).",
  "samples": [
   {
    "factors": {
@@ -137,13 +137,13 @@
     "limits.FEED.max_T_C": 0.9121,
     "limits.VENT_INT.max_T_C": 1.0719
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.981,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "FEED: temperature vs design": 0.672,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.605,
     "VENT_INT: temperature vs design": 0.552,
     "*at N3*: temperature vs design": 0.474,
     "FEED: pressure vs design": 0.457,
@@ -162,12 +162,12 @@
     "limits.FEED.max_T_C": 1.0131,
     "limits.VENT_INT.max_T_C": 1.0538
    },
-   "capacity": 1.211,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.986,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.76,
+    "2750.001.6: temperature vs design": 0.605,
     "FEED: temperature vs design": 0.567,
     "VENT_INT: temperature vs design": 0.562,
     "*at N3*: temperature vs design": 0.541,
@@ -187,14 +187,14 @@
     "limits.FEED.max_T_C": 0.9303,
     "limits.VENT_INT.max_T_C": 1.0912
    },
-   "capacity": 1.208,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.989,
+    "K 2750: Fair flood fraction vs limit": 0.76,
+    "2750.001.6: temperature vs design": 0.606,
     "FEED: temperature vs design": 0.605,
-    "2750.001.6: temperature vs design": 0.603,
-    "*at N3*: temperature vs design": 0.56,
+    "*at N3*: temperature vs design": 0.559,
     "VENT_INT: temperature vs design": 0.542,
     "FEED: pressure vs design": 0.514,
     "2750.001.6: pressure vs design": 0.255,
@@ -212,13 +212,13 @@
     "limits.FEED.max_T_C": 1.0007,
     "limits.VENT_INT.max_T_C": 0.9625
    },
-   "capacity": 1.202,
+   "capacity": 1.449,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.998,
+    "K 2750: Fair flood fraction vs limit": 0.766,
     "VENT_INT: temperature vs design": 0.615,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.606,
     "FEED: temperature vs design": 0.537,
     "*at N3*: temperature vs design": 0.499,
     "FEED: pressure vs design": 0.462,
@@ -237,13 +237,13 @@
     "limits.FEED.max_T_C": 1.0554,
     "limits.VENT_INT.max_T_C": 0.9125
    },
-   "capacity": 1.2,
+   "capacity": 1.446,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 1.0,
+    "K 2750: Fair flood fraction vs limit": 0.767,
     "VENT_INT: temperature vs design": 0.649,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.606,
     "FEED: temperature vs design": 0.5,
     "*at N3*: temperature vs design": 0.496,
     "FEED: pressure vs design": 0.485,
@@ -262,14 +262,14 @@
     "limits.FEED.max_T_C": 0.9367,
     "limits.VENT_INT.max_T_C": 0.9494
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.983,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "FEED: temperature vs design": 0.635,
     "VENT_INT: temperature vs design": 0.623,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.605,
     "*at N3*: temperature vs design": 0.522,
     "FEED: pressure vs design": 0.516,
     "2750.001.6: pressure vs design": 0.255,
@@ -287,13 +287,13 @@
     "limits.FEED.max_T_C": 0.9583,
     "limits.VENT_INT.max_T_C": 0.9517
    },
-   "capacity": 1.199,
+   "capacity": 1.445,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 1.002,
+    "K 2750: Fair flood fraction vs limit": 0.77,
     "VENT_INT: temperature vs design": 0.622,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.605,
     "FEED: temperature vs design": 0.546,
     "FEED: pressure vs design": 0.51,
     "*at N3*: temperature vs design": 0.496,
@@ -312,12 +312,12 @@
     "limits.FEED.max_T_C": 1.0359,
     "limits.VENT_INT.max_T_C": 0.9902
    },
-   "capacity": 1.202,
+   "capacity": 1.449,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.998,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.766,
+    "2750.001.6: temperature vs design": 0.605,
     "VENT_INT: temperature vs design": 0.598,
     "*at N3*: temperature vs design": 0.539,
     "FEED: temperature vs design": 0.52,
@@ -337,12 +337,12 @@
     "limits.FEED.max_T_C": 1.0692,
     "limits.VENT_INT.max_T_C": 1.0861
    },
-   "capacity": 1.208,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.99,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.761,
+    "2750.001.6: temperature vs design": 0.606,
     "*at N3*: temperature vs design": 0.549,
     "FEED: pressure vs design": 0.549,
     "VENT_INT: temperature vs design": 0.545,
@@ -362,12 +362,12 @@
     "limits.FEED.max_T_C": 0.9019,
     "limits.VENT_INT.max_T_C": 1.0787
    },
-   "capacity": 1.202,
+   "capacity": 1.448,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.999,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.766,
+    "2750.001.6: temperature vs design": 0.606,
     "FEED: temperature vs design": 0.593,
     "*at N3*: temperature vs design": 0.574,
     "VENT_INT: temperature vs design": 0.549,
@@ -387,12 +387,12 @@
     "limits.FEED.max_T_C": 0.9741,
     "limits.VENT_INT.max_T_C": 1.0635
    },
-   "capacity": 1.201,
+   "capacity": 1.447,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.999,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.767,
+    "2750.001.6: temperature vs design": 0.606,
     "*at N3*: temperature vs design": 0.559,
     "VENT_INT: temperature vs design": 0.557,
     "FEED: temperature vs design": 0.545,
@@ -412,12 +412,12 @@
     "limits.FEED.max_T_C": 1.0619,
     "limits.VENT_INT.max_T_C": 1.0547
    },
-   "capacity": 1.204,
+   "capacity": 1.45,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.995,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.765,
+    "2750.001.6: temperature vs design": 0.606,
     "VENT_INT: temperature vs design": 0.561,
     "*at N3*: temperature vs design": 0.56,
     "FEED: temperature vs design": 0.511,
@@ -437,13 +437,13 @@
     "limits.FEED.max_T_C": 1.0512,
     "limits.VENT_INT.max_T_C": 0.9736
    },
-   "capacity": 1.212,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.984,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "VENT_INT: temperature vs design": 0.608,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.605,
     "*at N3*: temperature vs design": 0.568,
     "FEED: temperature vs design": 0.552,
     "FEED: pressure vs design": 0.497,
@@ -462,12 +462,12 @@
     "limits.FEED.max_T_C": 1.0275,
     "limits.VENT_INT.max_T_C": 1.036
    },
-   "capacity": 1.207,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.991,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.762,
+    "2750.001.6: temperature vs design": 0.605,
     "VENT_INT: temperature vs design": 0.571,
     "FEED: temperature vs design": 0.542,
     "*at N3*: temperature vs design": 0.479,
@@ -487,13 +487,13 @@
     "limits.FEED.max_T_C": 0.9593,
     "limits.VENT_INT.max_T_C": 0.9704
    },
-   "capacity": 1.196,
+   "capacity": 1.441,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 1.006,
+    "K 2750: Fair flood fraction vs limit": 0.772,
     "VENT_INT: temperature vs design": 0.61,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.605,
     "*at N3*: temperature vs design": 0.538,
     "FEED: temperature vs design": 0.532,
     "FEED: pressure vs design": 0.511,
@@ -512,14 +512,14 @@
     "limits.FEED.max_T_C": 0.9265,
     "limits.VENT_INT.max_T_C": 0.9623
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.981,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "FEED: temperature vs design": 0.652,
     "VENT_INT: temperature vs design": 0.615,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.606,
     "*at N3*: temperature vs design": 0.476,
     "FEED: pressure vs design": 0.463,
     "2750.001.6: pressure vs design": 0.256,
@@ -537,13 +537,13 @@
     "limits.FEED.max_T_C": 1.0328,
     "limits.VENT_INT.max_T_C": 0.9372
    },
-   "capacity": 1.198,
+   "capacity": 1.443,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 1.004,
-    "VENT_INT: temperature vs design": 0.632,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.77,
+    "VENT_INT: temperature vs design": 0.631,
+    "2750.001.6: temperature vs design": 0.606,
     "FEED: temperature vs design": 0.501,
     "FEED: pressure vs design": 0.493,
     "*at N3*: temperature vs design": 0.489,
@@ -562,13 +562,13 @@
     "limits.FEED.max_T_C": 1.0952,
     "limits.VENT_INT.max_T_C": 0.906
    },
-   "capacity": 1.204,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.995,
+    "K 2750: Fair flood fraction vs limit": 0.765,
     "VENT_INT: temperature vs design": 0.653,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.605,
     "FEED: pressure vs design": 0.531,
     "*at N3*: temperature vs design": 0.519,
     "FEED: temperature vs design": 0.497,
@@ -587,14 +587,14 @@
     "limits.FEED.max_T_C": 0.9834,
     "limits.VENT_INT.max_T_C": 0.958
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.981,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "FEED: temperature vs design": 0.633,
     "VENT_INT: temperature vs design": 0.618,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.606,
     "*at N3*: temperature vs design": 0.58,
     "FEED: pressure vs design": 0.548,
     "2750.001.6: pressure vs design": 0.255,
@@ -612,12 +612,12 @@
     "limits.FEED.max_T_C": 1.0738,
     "limits.VENT_INT.max_T_C": 1.0323
    },
-   "capacity": 1.197,
+   "capacity": 1.442,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 1.005,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.771,
+    "2750.001.6: temperature vs design": 0.605,
     "VENT_INT: temperature vs design": 0.573,
     "FEED: pressure vs design": 0.522,
     "*at N3*: temperature vs design": 0.496,
@@ -637,13 +637,13 @@
     "limits.FEED.max_T_C": 0.9881,
     "limits.VENT_INT.max_T_C": 1.0031
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.981,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "FEED: temperature vs design": 0.613,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.605,
     "VENT_INT: temperature vs design": 0.59,
     "*at N3*: temperature vs design": 0.484,
     "FEED: pressure vs design": 0.48,
@@ -662,13 +662,13 @@
     "limits.FEED.max_T_C": 0.9198,
     "limits.VENT_INT.max_T_C": 1.0461
    },
-   "capacity": 1.209,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.988,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "FEED: temperature vs design": 0.616,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.606,
     "VENT_INT: temperature vs design": 0.566,
     "*at N3*: temperature vs design": 0.513,
     "FEED: pressure vs design": 0.458,
@@ -687,13 +687,13 @@
     "limits.FEED.max_T_C": 1.0402,
     "limits.VENT_INT.max_T_C": 0.938
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.981,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "VENT_INT: temperature vs design": 0.631,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.605,
     "FEED: temperature vs design": 0.584,
     "*at N3*: temperature vs design": 0.558,
     "FEED: pressure vs design": 0.531,
@@ -712,12 +712,12 @@
     "limits.FEED.max_T_C": 1.021,
     "limits.VENT_INT.max_T_C": 1.0439
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.981,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.76,
+    "2750.001.6: temperature vs design": 0.606,
     "FEED: temperature vs design": 0.58,
     "VENT_INT: temperature vs design": 0.567,
     "*at N3*: temperature vs design": 0.533,
@@ -737,13 +737,13 @@
     "limits.FEED.max_T_C": 1.0845,
     "limits.VENT_INT.max_T_C": 0.9761
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.981,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "VENT_INT: temperature vs design": 0.606,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.605,
     "FEED: temperature vs design": 0.562,
     "*at N3*: temperature vs design": 0.529,
     "FEED: pressure vs design": 0.502,
@@ -762,12 +762,12 @@
     "limits.FEED.max_T_C": 0.9212,
     "limits.VENT_INT.max_T_C": 0.9936
    },
-   "capacity": 1.197,
+   "capacity": 1.443,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 1.004,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.771,
+    "2750.001.6: temperature vs design": 0.605,
     "VENT_INT: temperature vs design": 0.596,
     "*at N3*: temperature vs design": 0.577,
     "FEED: temperature vs design": 0.561,
@@ -787,13 +787,13 @@
     "limits.FEED.max_T_C": 1.0429,
     "limits.VENT_INT.max_T_C": 0.9284
    },
-   "capacity": 1.213,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.983,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "VENT_INT: temperature vs design": 0.638,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.606,
     "FEED: temperature vs design": 0.559,
     "FEED: pressure vs design": 0.504,
     "*at N3*: temperature vs design": 0.49,
@@ -812,12 +812,12 @@
     "limits.FEED.max_T_C": 1.0785,
     "limits.VENT_INT.max_T_C": 1.0251
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.983,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.76,
+    "2750.001.6: temperature vs design": 0.605,
     "VENT_INT: temperature vs design": 0.577,
     "FEED: temperature vs design": 0.546,
     "*at N3*: temperature vs design": 0.512,
@@ -837,12 +837,12 @@
     "limits.FEED.max_T_C": 0.9968,
     "limits.VENT_INT.max_T_C": 1.0601
    },
-   "capacity": 1.206,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.993,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.762,
+    "2750.001.6: temperature vs design": 0.606,
     "VENT_INT: temperature vs design": 0.558,
     "FEED: temperature vs design": 0.552,
     "*at N3*: temperature vs design": 0.522,
@@ -862,14 +862,14 @@
     "limits.FEED.max_T_C": 0.9132,
     "limits.VENT_INT.max_T_C": 0.9011
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.981,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "FEED: temperature vs design": 0.675,
     "VENT_INT: temperature vs design": 0.657,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.605,
     "*at N3*: temperature vs design": 0.569,
     "FEED: pressure vs design": 0.536,
     "2750.001.6: pressure vs design": 0.255,
@@ -887,13 +887,13 @@
     "limits.FEED.max_T_C": 0.9918,
     "limits.VENT_INT.max_T_C": 0.9298
    },
-   "capacity": 1.206,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.993,
+    "K 2750: Fair flood fraction vs limit": 0.762,
     "VENT_INT: temperature vs design": 0.637,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.605,
     "FEED: temperature vs design": 0.559,
     "FEED: pressure vs design": 0.544,
     "*at N3*: temperature vs design": 0.53,
@@ -912,12 +912,12 @@
     "limits.FEED.max_T_C": 1.018,
     "limits.VENT_INT.max_T_C": 1.0123
    },
-   "capacity": 1.21,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.986,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.76,
+    "2750.001.6: temperature vs design": 0.605,
     "VENT_INT: temperature vs design": 0.585,
     "FEED: temperature vs design": 0.561,
     "*at N3*: temperature vs design": 0.52,
@@ -937,12 +937,12 @@
     "limits.FEED.max_T_C": 0.9476,
     "limits.VENT_INT.max_T_C": 1.0989
    },
-   "capacity": 1.198,
+   "capacity": 1.443,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 1.004,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.77,
+    "2750.001.6: temperature vs design": 0.605,
     "FEED: temperature vs design": 0.549,
     "VENT_INT: temperature vs design": 0.539,
     "*at N3*: temperature vs design": 0.499,
@@ -962,12 +962,12 @@
     "limits.FEED.max_T_C": 0.9687,
     "limits.VENT_INT.max_T_C": 1.0402
    },
-   "capacity": 1.199,
+   "capacity": 1.445,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 1.001,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.769,
+    "2750.001.6: temperature vs design": 0.606,
     "VENT_INT: temperature vs design": 0.569,
     "FEED: temperature vs design": 0.542,
     "*at N3*: temperature vs design": 0.503,
@@ -987,12 +987,12 @@
     "limits.FEED.max_T_C": 1.0627,
     "limits.VENT_INT.max_T_C": 1.0191
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.981,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.76,
+    "2750.001.6: temperature vs design": 0.605,
     "VENT_INT: temperature vs design": 0.581,
     "FEED: temperature vs design": 0.561,
     "*at N3*: temperature vs design": 0.53,
@@ -1012,13 +1012,13 @@
     "limits.FEED.max_T_C": 0.9418,
     "limits.VENT_INT.max_T_C": 0.9121
    },
-   "capacity": 1.208,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.99,
+    "K 2750: Fair flood fraction vs limit": 0.761,
     "VENT_INT: temperature vs design": 0.649,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.606,
     "FEED: temperature vs design": 0.593,
     "*at N3*: temperature vs design": 0.483,
     "FEED: pressure vs design": 0.472,
@@ -1037,12 +1037,12 @@
     "limits.FEED.max_T_C": 0.9758,
     "limits.VENT_INT.max_T_C": 1.0941
    },
-   "capacity": 1.201,
+   "capacity": 1.447,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 1.0,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.767,
+    "2750.001.6: temperature vs design": 0.605,
     "FEED: temperature vs design": 0.545,
     "VENT_INT: temperature vs design": 0.541,
     "*at N3*: temperature vs design": 0.531,
@@ -1062,12 +1062,12 @@
     "limits.FEED.max_T_C": 1.0466,
     "limits.VENT_INT.max_T_C": 0.9825
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.981,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.76,
+    "2750.001.6: temperature vs design": 0.605,
     "VENT_INT: temperature vs design": 0.602,
     "FEED: temperature vs design": 0.592,
     "*at N3*: temperature vs design": 0.56,
@@ -1087,14 +1087,14 @@
     "limits.FEED.max_T_C": 0.9082,
     "limits.VENT_INT.max_T_C": 0.9186
    },
-   "capacity": 1.205,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.994,
+    "K 2750: Fair flood fraction vs limit": 0.764,
     "VENT_INT: temperature vs design": 0.644,
+    "2750.001.6: temperature vs design": 0.605,
     "FEED: temperature vs design": 0.604,
-    "2750.001.6: temperature vs design": 0.603,
     "FEED: pressure vs design": 0.519,
     "*at N3*: temperature vs design": 0.481,
     "2750.001.6: pressure vs design": 0.255,
@@ -1112,14 +1112,14 @@
     "limits.FEED.max_T_C": 0.9532,
     "limits.VENT_INT.max_T_C": 0.9218
    },
-   "capacity": 1.212,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.985,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "VENT_INT: temperature vs design": 0.642,
+    "2750.001.6: temperature vs design": 0.606,
     "FEED: temperature vs design": 0.605,
-    "2750.001.6: temperature vs design": 0.603,
     "*at N3*: temperature vs design": 0.508,
     "FEED: pressure vs design": 0.456,
     "2750.001.6: pressure vs design": 0.255,
@@ -1137,13 +1137,13 @@
     "limits.FEED.max_T_C": 0.9657,
     "limits.VENT_INT.max_T_C": 0.9987
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.981,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "FEED: temperature vs design": 0.622,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.606,
     "VENT_INT: temperature vs design": 0.593,
     "*at N3*: temperature vs design": 0.553,
     "FEED: pressure vs design": 0.478,
@@ -1162,13 +1162,13 @@
     "limits.FEED.max_T_C": 0.9381,
     "limits.VENT_INT.max_T_C": 1.0247
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.983,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "FEED: temperature vs design": 0.626,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.605,
     "VENT_INT: temperature vs design": 0.578,
     "*at N3*: temperature vs design": 0.506,
     "FEED: pressure vs design": 0.489,
@@ -1187,12 +1187,12 @@
     "limits.FEED.max_T_C": 1.0889,
     "limits.VENT_INT.max_T_C": 1.0061
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.981,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.76,
+    "2750.001.6: temperature vs design": 0.605,
     "VENT_INT: temperature vs design": 0.588,
     "FEED: temperature vs design": 0.566,
     "*at N3*: temperature vs design": 0.555,
@@ -1212,12 +1212,12 @@
     "limits.FEED.max_T_C": 1.0962,
     "limits.VENT_INT.max_T_C": 1.0695
    },
-   "capacity": 1.214,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.981,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.76,
+    "2750.001.6: temperature vs design": 0.606,
     "VENT_INT: temperature vs design": 0.553,
     "FEED: temperature vs design": 0.546,
     "FEED: pressure vs design": 0.534,
@@ -1237,12 +1237,12 @@
     "limits.FEED.max_T_C": 1.0088,
     "limits.VENT_INT.max_T_C": 0.9836
    },
-   "capacity": 1.209,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.988,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.76,
+    "2750.001.6: temperature vs design": 0.606,
     "VENT_INT: temperature vs design": 0.602,
     "FEED: temperature vs design": 0.562,
     "FEED: pressure vs design": 0.526,
@@ -1262,13 +1262,13 @@
     "limits.FEED.max_T_C": 1.0802,
     "limits.VENT_INT.max_T_C": 0.9434
    },
-   "capacity": 1.21,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.986,
+    "K 2750: Fair flood fraction vs limit": 0.76,
     "VENT_INT: temperature vs design": 0.627,
-    "2750.001.6: temperature vs design": 0.603,
+    "2750.001.6: temperature vs design": 0.606,
     "*at N3*: temperature vs design": 0.566,
     "FEED: pressure vs design": 0.54,
     "FEED: temperature vs design": 0.528,
@@ -1287,12 +1287,12 @@
     "limits.FEED.max_T_C": 1.0064,
     "limits.VENT_INT.max_T_C": 1.0149
    },
-   "capacity": 1.204,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.995,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.764,
+    "2750.001.6: temperature vs design": 0.606,
     "VENT_INT: temperature vs design": 0.583,
     "FEED: temperature vs design": 0.542,
     "*at N3*: temperature vs design": 0.532,
@@ -1312,12 +1312,12 @@
     "limits.FEED.max_T_C": 0.9803,
     "limits.VENT_INT.max_T_C": 1.0832
    },
-   "capacity": 1.213,
+   "capacity": 1.451,
    "infeasible": false,
    "limited_by": "K 2750: Fair flood fraction vs limit",
    "at_target": {
-    "K 2750: Fair flood fraction vs limit": 0.983,
-    "2750.001.6: temperature vs design": 0.603,
+    "K 2750: Fair flood fraction vs limit": 0.76,
+    "2750.001.6: temperature vs design": 0.605,
     "FEED: temperature vs design": 0.596,
     "VENT_INT: temperature vs design": 0.546,
     "*at N3*: temperature vs design": 0.495,
