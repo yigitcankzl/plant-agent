@@ -94,6 +94,71 @@ def separation_checks(spec, solved):
     return rows
 
 
+def purity_checks(w, spec, solved, scale, purity_cfg):
+    """Product purity of each column against its spec (cases/<case>/purity.json or the draft), and the lowest reflux that
+    still holds the spec at this throughput (DWSIM bisection on the column as built: its stages, feed stage, reboiler spec)."""
+    from . import drafts
+    from .plant import patch
+    rows, cols = [], (purity_cfg or {}).get("columns") or {}
+    pre = f"{drafts.DRAFT}: " if drafts.is_draft(purity_cfg) else ""
+    src = "drafted purity spec (runs/ws/<case>/drafts/purity.json)" if pre else "product spec (cases/<case>/purity.json)"
+    for u in spec.get("units") or []:
+        uid = u.get("id")
+        if u.get("type") not in ("column", "distillation"):
+            continue
+        cs = cols.get(uid)
+        if not cs:
+            rows.append(_open(f"separation.{uid}.purity", "DWSIM", f"{uid}: open: needs a product purity specification"))
+            continue
+
+        def meets(sol):
+            k = drafts.column_keys(spec, sol, uid)
+            if not k:
+                return None, {}
+            got = {p: next((v / sum((sol["streams"][s].get("components_kg_h") or {}).values())
+                            for c_, v in (sol["streams"][s].get("components_kg_h") or {}).items() if c_ == cs[p]["component"]), 0.0)
+                   for p, (s, _, _) in k.items() if p in cs}
+            return all(got[p] >= cs[p]["min_mass_frac"] for p in got), got
+
+        ok, got = meets(solved)
+        if ok is None:
+            rows.append(_open(f"separation.{uid}.purity", "DWSIM", f"{uid}: open: product streams did not solve"))
+            continue
+        for p, f in got.items():
+            c = cs[p]
+            rows.append({"check": f"separation.{uid}.purity_{p}", "engine": "DWSIM", "status": "pass" if f >= c["min_mass_frac"] else "fail",
+                         "title": f"{pre}{uid} {p} {c['component']} {f * 100:.1f} vs {c['min_mass_frac'] * 100:.1f} mass-% minimum",
+                         "numbers": {"value": round(f, 4), "limit": c["min_mass_frac"], "unit": "mass fraction",
+                                     "utilisation": round(c["min_mass_frac"] / f, 3) if f else 9.99}, "source": f"{src} on the DWSIM solve"})
+        r = u.get("reflux_ratio")
+        if not isinstance(r, (int, float)):
+            continue
+
+        def ok_at(rr):  # ponytail: assumes purity rises with reflux (true away from azeotropes and pinches)
+            try:
+                return meets(w._solve(patch(spec, [{"path": f"units.{uid}.reflux_ratio", "value": rr}]), scale))[0]
+            except Exception:  # noqa: BLE001 - an unsolved reflux counts as not meeting the spec
+                return False
+        lo, hi = (0.05, float(r)) if ok else (float(r), max(5.0, 4 * float(r)))
+        if not ok and not ok_at(hi):
+            rows.append(_open(f"separation.{uid}.min_reflux", "DWSIM", f"{uid}: the purity spec is not met at any reflux up to "
+                                                                       f"{hi:g} on {u.get('stages')} stages: needs more stages or a different spec"))
+            continue
+        if ok and ok_at(lo):
+            hi = lo
+        else:
+            for _ in range(7):
+                mid = (lo + hi) / 2
+                lo, hi = (lo, mid) if ok_at(mid) else (mid, hi)
+        rmin = hi
+        rows.append({"check": f"separation.{uid}.min_reflux", "engine": "DWSIM", "status": "pass" if ok else "fail",
+                     "title": f"{pre}{uid} reflux {float(r):g} vs {rmin:.2f} minimum to hold the purity spec at {scale * 100:.0f} %",
+                     "numbers": {"value": float(r), "limit": round(rmin, 3), "unit": "reflux ratio",
+                                 "utilisation": round(rmin / float(r), 3) if r else 9.99},
+                     "source": f"DWSIM bisection on reflux, {u.get('stages')} stages as built; {src}"})
+    return rows
+
+
 def checks_for_design(w, answer_index):
     """Flat check rows for w.answers[answer_index]'s verified proposals taken together (the design)."""
     from . import curves, drafts, prefeed, transient, uncertainty
@@ -153,6 +218,12 @@ def checks_for_design(w, answer_index):
             except Exception:  # each equipment row below remains open instead of disappearing with the failed solve
                 solved = {"streams": {}, "units": {}}
             rows += separation_checks(design_spec, solved)
+            if any(u.get("type") in ("column", "distillation") for u in equipment):
+                try:
+                    rows += purity_checks(w, design_spec, solved, float(w.cfg.get("target_scale", 1.0)),
+                                          drafts.case_file(w.name, "purity.json"))
+                except Exception as ex:  # noqa: BLE001
+                    rows.append(_open("separation.purity", "DWSIM", f"purity check could not run: {type(ex).__name__}: {ex}"))
             starts = transient.startup_checks(w, design_spec, solved)
             rows += starts
             if starts:

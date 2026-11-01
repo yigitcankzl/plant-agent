@@ -89,6 +89,19 @@ def _muse_step(ans, kind, usd, seconds, model):
             "changes": [c for p in props for c in p.get("changes") or []]}
 
 
+def _why(p):
+    """Why the server did not verify a proposal, with numbers: the stated reason, else the limits still over at the target."""
+    if p.get("unverified_reason"):
+        return p["unverified_reason"]
+    over = (p.get("still_over") or []) + (p.get("breaks") or []) + (p.get("over_limits_at_target") or [])
+    if over:
+        return "still over at the target: " + "; ".join(dict.fromkeys(
+            f"{c.get('id')} {c.get('check')} {round((c.get('utilisation') or 0) * 100)} %" for c in over[:4]))
+    if p.get("capacity_multiple") is not None:
+        return f"reaches only {p['capacity_multiple'] * 100:.0f} % of today, short of the target"
+    return "not verified"
+
+
 def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
     rid = time.strftime("%Y%m%d-%H%M%S")
     out = work_dir(w) / rid
@@ -113,7 +126,7 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
                 for p in ans.get("proposals") or []:
                     rnd["steps"].append({"actor": "engine", "engine": "server verify", "kind": "solve", "title": p.get("title", ""),
                                          "status": "pass" if p.get("verified") else "fail",
-                                         "detail": p.get("unverified_reason") or "",
+                                         "detail": _why(p) if not p.get("verified") else "",
                                          "numbers": {"capacity_pct": round(p["capacity_multiple"] * 100, 1)} if p.get("capacity_multiple") else None})
                 last = ans
                 save()
@@ -121,14 +134,14 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
                     log["status"] = "unsolved"
                     break
                 if not any(p.get("verified") for p in ans.get("proposals") or []):
-                    reasons = "; ".join(p.get("unverified_reason", "") for p in ans.get("proposals") or [])[:400]
+                    reasons = "; ".join(f"{p.get('title', '')}: {_why(p)}" for p in ans.get("proposals") or [])[:400]
                     issues = [{"check": "process", "title": "no proposal verified on the server: " + (reasons or "no proposal made")}]
                     rnd["open_issues"] = issues
                 else:
                     rows = checks(w, idx)
                     rnd["steps"] += [{"actor": "engine", "kind": "check", **r} for r in rows]
                     # a rejected proposal is an issue too: Muse must see why the server refused it, or it repeats the mistake
-                    rejected = [{"check": "proposal rejected", "title": f"{p.get('title', '')}: {p.get('unverified_reason', 'not verified')}"}
+                    rejected = [{"check": "proposal rejected", "title": f"{p.get('title', '')}: {_why(p)}"}
                                 for p in ans.get("proposals") or [] if not p.get("verified")]
                     issues = rejected + [r for r in rows if r.get("status") == "fail"]
                     rnd["open_issues"] = [{"check": r["check"], "detail": r.get("title", "")} for r in issues]

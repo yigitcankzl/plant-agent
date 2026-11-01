@@ -423,6 +423,46 @@ def draft_uncertainty(w, prov=None):
             "inputs": [{"path": p, "kind": "assumed", "provenance": "muse_default", "source": prov[p]["source"]} for p in picks]}
 
 
+PURITY_DROP = 0.005  # ponytail: "hold today's product purity" within 0.5 mass-% points; the engineer replaces it with the real spec
+
+
+def column_keys(spec, solved, uid):
+    """{'distillate': (stream, component, mass fraction), 'bottoms': (...)} for a solved column: the distillate key is the
+    component most enriched overhead, the bottoms key the one most enriched in the bottoms."""
+    u = next((x for x in spec.get("units") or [] if x.get("id") == uid), {})
+    st = solved.get("streams") or {}
+    d, b = st.get(u.get("distillate")) or {}, st.get(u.get("bottoms")) or {}
+    cd, cb = d.get("components_kg_h") or {}, b.get("components_kg_h") or {}
+    if not sum(cd.values()) or not sum(cb.values()):
+        return None
+    fd = {c: v / sum(cd.values()) for c, v in cd.items()}
+    fb = {c: v / sum(cb.values()) for c, v in cb.items()}
+    light = max(fd, key=lambda c: fd[c] - fb.get(c, 0))
+    heavy = max(fb, key=lambda c: fb[c] - fd.get(c, 0))
+    return {"distillate": (u["distillate"], light, fd[light]), "bottoms": (u["bottoms"], heavy, fb[heavy])}
+
+
+def draft_purity(w):
+    """Product purity spec per column, drafted from today's solve: each product keeps its key component's mass fraction
+    within PURITY_DROP of today. A capacity change must not buy throughput by spoiling the product."""
+    cols = [u["id"] for u in w.spec.get("units") or [] if u.get("type") in ("column", "distillation")
+            and u.get("distillate") and u.get("bottoms")]
+    if not cols:
+        return None
+    solved = w._solve(w.spec, 1.0)
+    out = {}
+    for uid in cols:
+        k = column_keys(w.spec, solved, uid)
+        if k:
+            out[uid] = {p: {"component": c, "today_mass_frac": round(f, 4), "min_mass_frac": round(f - PURITY_DROP, 4),
+                            "provenance": "muse_default", "source": f"today's solve at reflux "
+                            f"{next(u for u in w.spec['units'] if u['id'] == uid).get('reflux_ratio')}, minus {PURITY_DROP * 100:g} points"}
+                        for p, (_, c, f) in k.items()}
+    return {"draft": True, "note": f"{DRAFT}: no product specification in the documents, so each product must hold today's "
+                                   f"key-component purity within {PURITY_DROP * 100:g} mass-% points; the engineer sets the real spec.",
+            "columns": out} if out else None
+
+
 def draft_envelope(w, muse=False, model="muse-spark-1.3-contributor"):
     """Operating envelope around the target (prefeed.json 'scenarios'). Deterministic default: feed ±10 % around the
     target, a hot-day utility case (+5 C on cooling/chilled water) and fouled exchangers (U at 85 %). With muse=True one
@@ -462,7 +502,7 @@ def draft_envelope(w, muse=False, model="muse-spark-1.3-contributor"):
 
 
 BUILDERS = {"electrical.json": draft_electrical, "curves.json": draft_curves, "economics.json": draft_economics,
-            "uncertainty.json": draft_uncertainty, "prefeed.json": draft_envelope}
+            "uncertainty.json": draft_uncertainty, "prefeed.json": draft_envelope, "purity.json": draft_purity}
 
 
 def ensure(w, refresh=False):

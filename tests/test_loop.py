@@ -85,5 +85,13 @@ class LoopTest(unittest.TestCase):
         self.assertEqual(log["result"]["fails"], ["startup"])
 
 
+    def test_unverified_without_reason_sends_the_limit_back(self):
+        p = prop("bottoms 3.6", ok=False) | {"capacity_multiple": 1.131, "over_limits_at_target": [
+            {"id": "K 2750", "check": "Fair flood fraction vs limit", "utilisation": 1.09}]}
+        w, _ = self.run_loop([{"headline": "a", "proposals": [p]}, {"headline": "b", "proposals": [prop("reflux 1.1")]}],
+                             [[{"check": "process", "title": "120 %", "status": "pass"}]])
+        self.assertIn("K 2750 Fair flood fraction vs limit 109 %", w.asked[1])
+
+
 if __name__ == "__main__":
     unittest.main()
