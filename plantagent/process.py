@@ -878,6 +878,8 @@ class _Sheet:
                 col.SolvingMethodName = methods[u["method"]]
             if u.get("max_iterations"):
                 col.MaxIterations = int(u["max_iterations"])
+            if u.get("tolerance"):
+                col.InternalLoopTolerance = col.ExternalLoopTolerance = float(u["tolerance"])
             if u.get("vapor_mol_s") is not None:  # partial condenser: the vapour product rate is a fixed input in DWSIM
                 col.VaporFlowRate = float(u["vapor_mol_s"]) * self.scale
             if eff is not None:  # condenser and reboiler stay equilibrium stages
@@ -1352,6 +1354,40 @@ def _capacity_search(worst, max_scale=5.0):
             "note": "multiple of the current feed flows at which the first stated limit reaches 100 %"}
 
 
+TRACE_X = 1e-6
+
+
+def _strip_traces(sh, spec, errs):
+    """DWSIM's bubble-point column solver fails when a feed carries traces (mole fraction < 1e-6) of a non-volatile
+    compound, e.g. glycol carried over in a column's vapour product. For each column that failed, strip those traces off
+    its feeds in a component_separator (reported, with the kg/h removed) and solve again. Returns (spec or None, notes)."""
+    failed = [u for u in spec["units"] if u["type"] == "distillation" and any(e.startswith(f"{u['id']}:") for e in errs)]
+    if not failed:
+        return None, []
+    import copy
+    new, notes = copy.deepcopy(spec), []
+    for u in failed:
+        feeds = u["in"] if isinstance(u["in"], list) else [u["in"]]
+        renamed = []
+        for f in feeds:
+            s = sh.streams.get(f)
+            x = [float(v) for v in s.GetOverallComposition()] if s is not None else []
+            trace = [c for c, v in zip(sh.comps, x) if 0 < v < TRACE_X]
+            if not trace:
+                renamed.append(f)
+                continue
+            kg = sum(float(w) for c, w in zip(sh.comps, s.GetOverallMassComposition()) if c in trace) * s.GetMassFlow() * 3600
+            uid = f"{u['id']}-traces-{f}"
+            new["units"].insert(next(i for i, v in enumerate(new["units"]) if v["id"] == u["id"]),
+                                {"id": uid, "type": "component_separator", "in": f, "product": f + "~", "reject": f + "~traces",
+                                 "recover_pct": {c: 0.0 for c in trace}})
+            renamed.append(f + "~")
+            notes.append(f"{u['id']}: stripped traces of {', '.join(trace)} ({kg:.3g} kg/h) from feed {f} so the column solver converges")
+        target = next(v for v in new["units"] if v["id"] == u["id"])
+        target["in"] = renamed if isinstance(u["in"], list) else renamed[0]
+    return (new, notes) if notes else (None, [])
+
+
 def _worker(a):
     global _MGR
     mgr = _MGR = _MGR or _dwsim()
@@ -1359,8 +1395,15 @@ def _worker(a):
     if op == "run":
         sh = _Sheet(mgr, spec, float(a.get("scale", 1.0)))
         errs = sh.solve()
+        retry, notes = _strip_traces(sh, spec, errs)
+        if retry:
+            sh = _Sheet(mgr, retry, float(a.get("scale", 1.0)))
+            errs = sh.solve()
         res = sh.results()
-        return {"scale": a.get("scale", 1.0), "errors": errs, **res, "checks": _checks(sh, res)}
+        out = {"scale": a.get("scale", 1.0), "errors": errs, **res, "checks": _checks(sh, res)}
+        if retry:
+            out["notes"] = notes + ([] if not errs else ["the columns still did not converge with the traces removed"])
+        return out
     if op == "capacity":
         # throughput multiple at which the first stated limit reaches 100 % (bisection on all feed flows)
         def worst(scale):

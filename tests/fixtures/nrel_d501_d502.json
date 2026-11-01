@@ -1,0 +1,125 @@
+{
+ "compounds": [
+  "Acetic acid",
+  "Ammonia",
+  "Carbon dioxide",
+  "Ethanol",
+  "Glycerol",
+  "HexaEthylene Glycol",
+  "HexaPropylene Glycol",
+  "Nitrogen",
+  "Oxygen",
+  "PentaEthylene Glycol",
+  "TetraPropylene Glycol",
+  "Tetraethylene glycol",
+  "Triethylene glycol",
+  "Water"
+ ],
+ "package": "NRTL",
+ "feeds": {
+  "S501": {
+   "T_C": 32.0,
+   "P_bar": 6.079,
+   "kg_h": 450741.0,
+   "x": {
+    "Acetic acid": 0.000542,
+    "Ammonia": 0.0,
+    "Carbon dioxide": 0.000575,
+    "Ethanol": 0.021964,
+    "Glycerol": 0.000701,
+    "HexaEthylene Glycol": 0.003727,
+    "HexaPropylene Glycol": 0.002711,
+    "Nitrogen": 0.0,
+    "Oxygen": 0.0,
+    "PentaEthylene Glycol": 0.000243,
+    "TetraPropylene Glycol": 7.8e-05,
+    "Tetraethylene glycol": 0.000124,
+    "Triethylene glycol": 0.000326,
+    "Water": 0.969009
+   }
+  },
+  "S521": {
+   "T_C": 50.0,
+   "P_bar": 1.621,
+   "kg_h": 7000.0,
+   "x": {
+    "Acetic acid": 0.0,
+    "Ammonia": 0.0,
+    "Carbon dioxide": 0.0,
+    "Ethanol": 0.489,
+    "Glycerol": 0.0,
+    "HexaEthylene Glycol": 0.0,
+    "HexaPropylene Glycol": 0.0,
+    "Nitrogen": 0.0,
+    "Oxygen": 0.0,
+    "PentaEthylene Glycol": 0.0,
+    "TetraPropylene Glycol": 0.0,
+    "Tetraethylene glycol": 0.0,
+    "Triethylene glycol": 0.0,
+    "Water": 0.511
+   }
+  }
+ },
+ "units": [
+  {
+   "id": "SEP-CO2",
+   "type": "component_separator",
+   "in": "S501",
+   "product": "S506L",
+   "reject": "S509G",
+   "recover_pct": {
+    "Carbon dioxide": 0.0
+   }
+  },
+  {
+   "id": "D-501",
+   "type": "distillation",
+   "in": "S506L",
+   "vapor": "S510",
+   "distillate": "S509L",
+   "bottoms": "S507C",
+   "stages": 25,
+   "feed_stage": 2,
+   "efficiency": 0.48,
+   "condenser": "partial",
+   "P_bar": 2.026,
+   "vapor_mol_s": 634.0,
+   "reflux_ratio": 0.2,
+   "bottoms_mol_s": 5380.0,
+   "tolerance": 0.0001
+  },
+  {
+   "id": "PCV-510",
+   "type": "valve",
+   "in": "S510",
+   "out": "S510B",
+   "P_out_bar": 1.621
+  },
+  {
+   "id": "D-502",
+   "type": "distillation",
+   "in": [
+    "S510B",
+    "S521"
+   ],
+   "feed_stage": [
+    33,
+    14
+   ],
+   "distillate": "S511L",
+   "bottoms": "S516",
+   "stages": 45,
+   "efficiency": 0.76,
+   "condenser": "total",
+   "P_bar": 1.621,
+   "condenser_spec": {
+    "type": "Reflux Ratio",
+    "value": 3.5
+   },
+   "reboiler_spec": {
+    "type": "Boilup Ratio",
+    "value": 3.0
+   }
+  }
+ ]
+}

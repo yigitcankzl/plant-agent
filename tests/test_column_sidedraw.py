@@ -29,6 +29,16 @@ class ColumnSideDrawTests(unittest.TestCase):
         self.assertAlmostEqual(eth, feed_eth, delta=0.02 * feed_eth)
         self.assertGreater(s["D"]["components_kg_h"]["Ethanol"], s["B"]["components_kg_h"]["Ethanol"])
 
+    def test_trace_heavies_in_a_vapour_feed_are_stripped(self):
+        # Muse's NREL Area 500 build: glycol traces (x ~ 1e-7) carried over in D-501's vapour stalled D-502's solver
+        import json
+        from pathlib import Path
+        spec = json.loads((Path(__file__).parent / "fixtures" / "nrel_d501_d502.json").read_text())
+        r = process.run(spec)
+        self.assertEqual(r["errors"], [])
+        self.assertTrue(any("stripped traces" in n for n in r.get("notes", [])))  # the retry is reported, never silent
+        self.assertGreater(r["streams"]["S511L"]["components_kg_h"]["Ethanol"], 20000)
+
     def test_mismatched_side_draw_is_rejected(self):
         with self.assertRaises(RuntimeError):
             process.run(self.spec(out=["SD", "SD2"]))
