@@ -528,7 +528,7 @@ def new_project(b):
     label, questions = TASK_TYPES[task]
     cfg = {"kind": "process", "title": title, "source": "Uploaded by the engineer", "basis": "basis.md", "task_type": label,
            "question": question, "target_scale": target, "benchmark": False, "uploaded": True,
-           "suggested_questions": [x.format(pct=round((target - 1) * 100)) for x in questions],
+           "suggested_questions": [x.format(pct=round((target - 1) * 100)) if round((target - 1) * 100) else x.replace("What limits +{pct}% throughput?", "What limits throughput today?") for x in questions],
            ("pid" if ext == ".xml" else "pid_pdf"): f"uploads/{slug}/drawing{ext}"}
     if ext == ".xml":  # draw the sheet from the DEXPI file so the workspace (and Rev B clouds) have a drawing
         err = render_pid_svg(f, d / "pid.svg")

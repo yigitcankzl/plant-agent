@@ -98,7 +98,7 @@ The MOC pack carries the failed gates as risks and its decision reads "Do not ap
 `plant.html?case=freeport_lng_2022` is an 18-inch vacuum-insulated LNG line that was blocked in with its relief valve isolated after an annual test. The basis is the PHMSA Notice of Probable Violation (December 2024), up to the second valve closure.
 - `plantagent/trapped.py` steps the blocked-in segment in time at constant volume. DWSIM Peng-Robinson flashes find the pressure at which the trapped mass fills the pipe, as heat leaks in per metre.
 - Engine check (`tools/freeport_spike.py`): the documented 37 → 1,313 psig in 4.78 days is reproduced with an 80–95 % liquid fill and a 10–24 W/m heat leak (`evidence/freeport_spike/output.txt`). Both values are ILLUSTRATIVE because the notice redacts them.
-- **Muse's blind answer:** "Blocked line bursts in days unless relief restored". With sound insulation the line passes design pressure only after about 39 days. With degraded insulation it reaches the illustrative burst pressure at 80 h (actual rupture at about 115 h). Putting PSV-101 back in service holds 230 psig only at an ideal relief boundary; relieving capacity, backpressure and discharge capacity are not checked.
+- **Muse's blind answer:** "Blocked line bursts in days unless relief restored". With sound insulation the line passes design pressure only after about 39 days. With degraded insulation it reaches the illustrative burst pressure at 80 h (actual rupture at about 115 h). The later engineering run adds a worse credible case (95 % fill, 30 W/m): design pressure at 26 h and burst at 44 h with the relief isolated, which is why its fix holds. Putting PSV-101 back in service holds 230 psig only at an ideal relief boundary; relieving capacity, backpressure and discharge capacity are not checked.
 - **How blind it is:** the basis was written by us after the notice was public. It gives Muse the redacted inputs as ranges (fill, heat leak) and says the relief valve was isolated; it contains no pressure after the closure.
 - **What it missed:** two of PHMSA's three causes. The transfer procedure did not specify the valve positions, and the inner-pipe temperature points were logged but not alarmed. The page shows this next to the recorded outcome.
 
@@ -153,8 +153,8 @@ The same loop ran with **Muse Spark Open** on Baseten ([`evidence/open-weights-e
 
 | Case | Muse Wonder | Muse Spark Open |
 |---|---|---|
-| UCTE 2006 | four attempts rejected by the Meta endpoint's content policy (not a quality result) | redispatch + open the BIO-SPX 220 kV tie: line limits pass, N-1 with 0 violations, in two independent runs ($1.73 for the paid one) |
-| Freeport LNG | restore relief: limits and worst case pass, relief capacity open ($0.68) | same conclusion in two runs ($0.15 each) |
+| UCTE 2006 | four attempts rejected by the Meta endpoint's content policy (not a quality result) | redispatch + open the BIO-SPX 220 kV tie: line limits pass, N-1 with 0 violations, in one independent paid run (plus a $0 cache replay of an earlier, interrupted run) ($1.73 for the paid one) |
+| Freeport LNG | restore relief: limits and worst case pass, relief capacity open ($0.68) | same conclusion in two independent runs ($0.15 each) |
 | Salt MVR | unsolved after 2 rounds: process, robustness and uncertainty pass; electrical, compressor curve and start-up fail ($5.56) | stopped at its budget after 3 rounds: 120 % and 4/4 envelope reached, VFD start dip 0.5 %; cable ampacity, K-202 surge and start-up recycle still fail ($4.93) |
 
 This is loop evidence, not a controlled benchmark: prompt wording and cache state were not held fixed.

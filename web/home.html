@@ -64,7 +64,7 @@
       <div class="hero-copy">
         <p class="kicker">An AI engineer for plant changes, with the working shown</p>
         <h1 id="hero-title">Give it the change. It does the engineering.</h1>
-        <p class="lead">PlantAgent is an AI engineer built on Meta's <b>Muse</b>. Tell it what you want to change. Muse reads the plant's drawings and data sheets, builds the simulation model and designs the change; <b>engineering solvers</b> (DWSIM, pandapower, WaterTAP, Cantera) re-solve it and run every check: electrical, heat transfer, compressor curves, start-up, uncertainty. Failed checks go back to Muse with their numbers, round after round. A run ends when every check passes, when Muse says why it cannot, or at its round or budget limit, and the checks still open are listed. You get the drawings, the MOC pack and a HAZOP draft for an engineer to review.</p>
+        <p class="lead">PlantAgent is an AI engineer built on Meta's <b>Muse</b>. Tell it what you want to change. Muse reads the plant's drawings and data sheets, builds the simulation model and designs the change; <b>engineering solvers</b> (DWSIM, pandapower, WaterTAP, Cantera) re-solve it and run every check: electrical, heat transfer, compressor curves, start-up, uncertainty. Failed checks go back to Muse with their numbers, round after round. A run ends when every check passes, when Muse says why it cannot, or at its round or budget limit, and the checks still open are listed. You get the drawings, the MOC pack and a change-focused HAZOP draft (P&amp;ID tags only) for an engineer to review.</p>
         <div class="hero-actions">
           <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Start the 3-minute demo</a>
           <a class="btn" href="#cases">See the grid and LNG incidents</a>
@@ -138,7 +138,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
     .map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join("");
   const card = (id, pitch, label, figure, figNote) => {
       const c = by[id], p = ws[id];
-      const title = (c?.title || p.title).replace(/\s*\([^)]*\)?/g, "").split(figure ? /(?!)/ : ", ")[0];  // drop parentheticals, keep the plant name (featured rows keep the full title)
+      const raw = c?.title || p.title, title = /Area \d/.test(raw) ? raw.split(":")[0] : raw.replace(/\s*\([^)]*\)?/g, "").split(figure ? /(?!)/ : ", ")[0];  // keep "Area 300" so the NREL areas differ  // drop parentheticals, keep the plant name (featured rows keep the full title)
       const task = label || c?.task_type || p.task_type;
       const score = c?.benchmark && c.score != null ? `<div class="score">Matched ${Math.round(c.score * 100)}% of the engineers' conclusions</div><div class="bar"><i style="width:${c.score * 100}%"></i></div>` :
         p?.kind === "process" ? `<div class="score" style="color:var(--muted)">${p.engine === "watertap" ? "WaterTAP template model · Muse answers the questions" : p.built ? (["pandapower", "trapped"].includes(p.engine) || p.task_type === "incident" ? "Model built by Muse from the investigation report" : "Model built by Muse from the drawing and data sheet") : "Drawing read by Muse; simulation model not reliable yet"}</div>` : `<div class="score" style="color:var(--muted)">Not benchmarked</div>`;

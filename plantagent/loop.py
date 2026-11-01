@@ -139,6 +139,7 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
                 if not any(p.get("verified") for p in ans.get("proposals") or []):
                     reasons = "; ".join(f"{p.get('title', '')}: {_why(p)}" for p in ans.get("proposals") or [])[:400]
                     issues = [{"check": "process", "title": "no proposal verified on the server: " + (reasons or "no proposal made")}]
+                    rows = []  # a round that verifies nothing must not inherit the last round's checks
                     rnd["open_issues"] = issues
                 else:
                     rows = checks(w, idx)
@@ -148,7 +149,8 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
                                 for p in ans.get("proposals") or [] if not p.get("verified")]
                     issues = rejected + [r for r in rows if r.get("status") == "fail"]
                     rnd["open_issues"] = [{"check": r["check"], "detail": r.get("title", "")} for r in issues]
-                    if not issues:
+                    # done = the verified design passes every check; a rejected alternative is fed back but does not block it
+                    if not any(r.get("status") == "fail" for r in rows):
                         log["status"] = "done"
                         save()
                         break

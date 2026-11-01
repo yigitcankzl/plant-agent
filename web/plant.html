@@ -1298,7 +1298,7 @@ function render(st) {
     $('verdictSub').innerHTML = `${esc(blocks[0].check)}: ${esc(String(blocks[0].evidence).slice(0, 220))}${more} ${capLine}`;
   } else {
     // header and subline name which plant they describe, so 'runs at 120 %' (proposed) and 'maximum 100 %' (today) never read as a contradiction
-    const which = VIEW === 'proposed' && !modelBlocked() && (P?.has_changes || latestProposedChanges().length) ? (incident() ? 'With the fix' : 'Proposed design') : (incident() ? 'As documented' : "Today's plant");
+    const which = VIEW === 'proposed' && !modelBlocked() && (P?.has_changes || latestProposedChanges().length) ? (incident() ? 'With the fix' : 'Proposed design') : (incident() ? (P.engine === 'trapped' ? 'Base model (sound insulation, illustrative)' : 'Base model') : "Today's plant");
     $('verdict').innerHTML = `<span class="verdict-which">${which}</span> ` + (incident() ? (over.length ? `<span style="color:var(--fail)">✗ Limit crossed at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
       : `<span style="color:var(--ok)">✓ Within limits at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`) : over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
       : `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`);
@@ -2067,7 +2067,8 @@ function renderWorklog(log) {
   const panel = $('worklogPanel');
   if (!log || typeof log !== 'object') { replayPause(); REPLAY.events = []; panel.hidden = true; panel.innerHTML = ''; return; }
   const rounds = Array.isArray(log.rounds) ? log.rounds : [];
-  const status = ({done: ['Done ✓', 'pass'], unsolved: ['Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
+  const openN = (log.result?.open || []).length;
+  const status = ({done: openN ? [`Done · ${openN} check${openN === 1 ? '' : 's'} open`, 'open'] : ['Done ✓', 'pass'], unsolved: ['Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
     budget: ['Stopped at budget limit', 'open'], error: ['Stopped with error', 'fail']})[log.status] || ['Running…', 'open'];
   const sample = SAMPLE_WORKLOG || /illustrative/i.test(log.label || '');
   const posthoc = /post-hoc engineering run/i.test(log.label || '');
@@ -2234,7 +2235,7 @@ function suggestions() {  // from this case's own equipment, so a desalination p
   if (incident()) return P.engine === 'pandapower' ? ['Will the planned switching relieve the overloaded line?', 'Is the grid N-1 secure after it?', 'Which protection setting trips first?']
     : P.engine === 'trapped' ? ['When does the pressure pass the design pressure?', 'What would have prevented it?', 'How sensitive is the timing to the heat leak?']
     : ['What happened, and which limit was crossed first?'];
-  const out = [`What limits +${pct}% throughput?`, 'What happens if the main pump or compressor trips?'];
+  const out = [pct ? `What limits +${pct}% throughput?` : 'What limits throughput today?', 'What happens if the main pump or compressor trips?'];
   if (simulator() === 'WaterTAP') out.push('Which membrane stage is closest to its limit, and why?', 'How does colder or saltier feed change recovery?');
   else {
     if ([...types].some(t => /heat|cool|exchanger|evaporator/.test(t))) out.push('Which exchanger is closest to its limit, and why?');

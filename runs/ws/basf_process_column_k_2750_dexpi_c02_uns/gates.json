@@ -1,60 +1,60 @@
 {
  "key": {
-  "headline": "1.2\u00d7 feasible with reflux cut or new shell",
-  "request": "Engineering loop, next round. Goal: +20 % feed: what limits it first and what does it cost? Make the design pass every engineering check that has data.\nThe current design (verified changes: No capex: cut reflux to 0.8 to stay below flood at 1.2\u00d7) was re-solved and checked by the engines. These checks FAIL:\n- proposal rejected: New 600 mm ID shell for 1.2\u00d7 at design reflux (replace K 2750) - corrected physical replacement: change 2 cannot raise existing limit K 2750.diameter_m\nPropose physical changes that fix each failed check (equipment, ratings with a real item behind them, operating settings within documented limits), cheapest first. Return the FULL design as proposals: every earlier verified change you keep plus the new ones, so the design answer stands on its own. Do not edit a limit to pass a check. If a failure cannot be fixed with the information available, start the headline with 'UNSOLVABLE:' and say why and what data would settle it.",
+  "headline": "Flood limits first - 600 mm shell passes",
+  "request": "Engineering loop, next round. Goal: +20 % feed: what limits it first and what does it cost? Make the design pass every engineering check that has data, including product purity.\nThe current design (verified changes: none) was re-solved and checked by the engines. These checks FAIL:\n- process: no proposal verified on the server: No capex: scale bottoms withdrawal to hold purity at 1.2\u00d7: still over at the target: K 2750 Fair flood fraction vs limit 110 %; New 600 mm ID shell + scaled bottoms for margin: change 2 cannot raise existing limit K 2750.diameter_m\nPropose physical changes that fix each failed check (equipment, ratings with a real item behind them, operating settings within documented limits), cheapest first. Return the FULL design as proposals: every earlier verified change you keep plus the new ones, so the design answer stands on its own. Do not edit a limit to pass a check. If a failure cannot be fixed with the information available, start the headline with 'UNSOLVABLE:' and say why and what data would settle it.",
   "titles": [
-   "No capex: cut reflux to 0.8 to stay below flood at 1.2\u00d7"
+   "Hold base split - scale bottoms to 3.6 mol/s (no capex)"
   ],
   "revisions": 0,
-  "content": "fcf5df3a905c454b9a23c1a12f93307752f9d99c"
+  "content": "e414b28997f6c41cc8791d0a7b27e4f62a62c22d"
  },
- "made": "2026-11-01T20:43:24+0300",
+ "made": "2026-11-01T21:49:36+0300",
  "disciplines": [
   {
    "id": "process",
    "status": "pass",
-   "summary": "design reaches 120 % (max 142 %, re-solved now)",
+   "summary": "design reaches 120 % (max 121 %, re-solved now)",
    "source": "DWSIM re-solve of the combined design on the current model",
    "checks": [
     {
      "id": "plant",
      "check": "maximum throughput with all verified changes vs target",
-     "value": "141.6",
+     "value": "120.9",
      "limit": "120",
      "unit": "%",
      "kind": "max",
      "status": "ok",
-     "result": "85 %",
+     "result": "99 %",
      "source": "DWSIM re-solve of all 1 verified change(s) together on the current model"
     }
    ]
   },
   {
    "id": "robustness",
-   "status": "pass",
-   "summary": "draft (assumed values): operating envelope 2/2 scenarios pass",
+   "status": "fail",
+   "summary": "draft (assumed values): operating envelope 1/2 scenarios pass (fails: Target, feed +10 %)",
    "source": "DWSIM solves of the pre-FEED operating envelope",
    "checks": [
     {
      "id": "K 2750",
      "check": "scenario 'Target, feed +10 %': Fair flood fraction vs limit",
-     "value": "0.726",
+     "value": "0.92",
      "limit": "0.8",
      "unit": "fraction of flood",
      "kind": "max",
-     "status": "ok",
-     "result": "91 %",
+     "status": "over",
+     "result": "115 %",
      "source": "DWSIM solve; scenario basis: draft (assumed values): feed swing above the target"
     },
     {
      "id": "K 2750",
      "check": "scenario 'Target, feed -10 %': Fair flood fraction vs limit",
-     "value": "0.54",
+     "value": "0.661",
      "limit": "0.8",
      "unit": "fraction of flood",
      "kind": "max",
      "status": "ok",
-     "result": "68 %",
+     "result": "83 %",
      "source": "DWSIM solve; scenario basis: draft (assumed values): turndown below the target (minimum flows)"
     }
    ]
