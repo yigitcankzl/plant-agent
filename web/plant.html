@@ -2049,6 +2049,7 @@ function placeClear(n, sheet) {  // push a note down until it no longer overlaps
 
 const incident = () => /incident/i.test(P?.task_type || '');
 function suggestions() {  // from this case's own equipment, so a desalination plant is never asked about cooling water
+  if (P.suggested_questions?.length) return P.suggested_questions.slice(0, 4);  // chosen by the project's task type
   const types = new Set((P.built?.spec?.units || []).map(u => u.type)), pct = Math.round((P.target_scale - 1) * 100);
   if (incident()) return P.engine === 'pandapower' ? ['Will the planned switching relieve the overloaded line?', 'Is the grid N-1 secure after it?', 'Which protection setting trips first?']
     : P.engine === 'trapped' ? ['When does the pressure pass the design pressure?', 'What would have prevented it?', 'How sensitive is the timing to the heat leak?']
@@ -2582,5 +2583,6 @@ load().then(() => { if (new URLSearchParams(location.search).get('tour') && P?.b
   $('verdict').textContent = 'Case unavailable';
 });
 </script>
+<script src="assumptions.js"></script>
 </body>
 </html>
