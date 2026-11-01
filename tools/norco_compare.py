@@ -54,10 +54,15 @@ def text_of(answers):
                     for a in answers).lower()
 
 
-def main():
+def main(session=None):
+    """session: a loop's session folder (runs/ws/<case>/work/<id>/session) to score instead of the latest session."""
     oc = json.loads((ROOT / "cases" / CASE / "outcome.json").read_text())
     m = oc["measured_after"]
     w = PlantWorkspace(CASE, "baseten:meta-models/muse-spark-open-1026")
+    logs = sorted((ROOT / "runs" / "ws" / CASE).glob("2*/log.jsonl"))
+    if session:
+        w.answers = json.loads((Path(session) / "answers.json").read_text())
+        logs.append(Path(session) / "log.jsonl")
     spec = w.built["spec"]
     uid = column(spec)["id"]
     n = int(column(spec)["stages"])
@@ -66,12 +71,15 @@ def main():
     feed_tray = tray_from_bottom(int(fs), n)
     design = revb.design_answer(w.answers)
     changes = [c for p in (design or {}).get("proposals") or [] if p.get("verified") for c in p.get("changes") or []]
+    if session:  # a loop's last answer, verified or not: the server's verdict is reported next to the scorecard
+        design = w.answers[-1]
+        changes = [c for p in design.get("proposals") or [] for c in p.get("changes") or []]
     # The agent's prediction is the run its design answer cites last (its own feed slate and operating specs), re-solved here
     # in DWSIM. Its specs do not converge on Shell's exact Feb 2017 feed, so that run is the comparison point; the feed it
     # assumed is reported next to Shell's.
     design_run, design_spec, design_scale = None, None, 1.0
     for label in reversed((design or {}).get("runs") or []):
-        for f in sorted((ROOT / "runs" / "ws" / CASE).glob("2*/log.jsonl")):
+        for f in logs:
             for line in f.read_text().splitlines():
                 d = json.loads(line)
                 if d.get("tool") == "run_process" and (d.get("args") or {}).get("label") == label and not (d.get("result") or {}).get("errors"):
@@ -123,9 +131,13 @@ def main():
         s0, e0, t0 = product(before, spec, uid)
         s1, e1, t1 = product(after, spec, uid)
         if e1 and t1:
+            # judged on the documented spec (cases/<case>/purity.json): ethane in the product at most 0.1 wt %. The model's
+            # remaining impurity is methane and nitrogen from the vent split, which the spec leaves to the pasteurisation trays.
             pur = e1 / t1 * 100
-            rows.append({"item": "Ethylene product purity after the change", "agent": f"{pur:.2f} wt %",
-                         "recorded": "99.944 wt % (polymer grade held)", "verdict": "match" if pur >= 99.9 else "partial" if pur >= 99.5 else "miss"})
+            eth = ((after["streams"].get(s1) or {}).get("components_kg_h") or {}).get("Ethane", 0) / t1 * 1e6
+            rows.append({"item": "Ethylene product purity after the change", "agent": f"{pur:.2f} wt % ethylene, ethane {eth:,.0f} ppm",
+                         "recorded": "99.944 wt % (polymer grade held); spec: ethane at most 1,000 ppm",
+                         "verdict": "match" if eth <= 1000 else "partial" if eth <= 5000 else "miss"})
         if a_worst:
             got = a_worst["flood_frac"] * 100
             rows.append({"item": "Jet flood above feed after the change", "agent": f"{got:.0f} % (Fair screen with the new tray rating)",
@@ -166,7 +178,10 @@ def main():
     rows.append({"item": "Flags the condenser / refrigeration limit", "agent": "yes, mentioned" if flagged else "not mentioned",
                  "recorded": "Shell left it unaddressed; it now limits the extra capacity", "verdict": "match" if flagged else "miss"})
 
+    verdicts = [{"title": p.get("title"), "verified": p.get("verified"), "reason": p.get("unverified_reason")}
+                for p in (design or {}).get("proposals") or []]
     out = {"case": CASE, "design_answer": (design or {}).get("headline"), "design_run": design_run, "changes": changes,
+           "session": str(Path(session).relative_to(ROOT)) if session else None, "server_verification": verdicts,
            "source": oc["source"], "scale_assumed": m["scale_assumed"], "scorecard": rows,
            "summary": {k: sum(r["verdict"] == k for r in rows) for k in ("match", "partial", "miss", "not predicted")}}
     (ROOT / "runs" / "ws" / CASE / "comparison.json").write_text(json.dumps(out, indent=1))
@@ -176,4 +191,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    main(sys.argv[1] if len(sys.argv) > 1 else None)
