@@ -94,6 +94,8 @@
     <form id="newForm">
       <label>Project title<input name="title" required minlength="4" placeholder="Line 3 product cooler"></label>
       <label>Engineering question<input name="question" required minlength="10" placeholder="Can we run +15 % throughput? What limits first, and the cheapest fix?"></label>
+      <label>Task<select name="task_type"><option value="capacity">Capacity study</option><option value="troubleshoot">Troubleshooting</option>
+        <option value="energy">Energy study</option><option value="change">Change assessment</option></select></label>
       <label>Target throughput multiple<input name="target_scale" type="number" step="0.01" min="0.5" max="5" value="1.2"></label>
       <label>P&amp;ID or schematic (.xml DEXPI or .pdf, up to 20 MB)<input name="drawing" type="file" accept=".xml,.pdf" required></label>
       <label class="wide">Operating data sheet (current flows, temperatures, pressures, equipment ratings, utility limits, requirements)
@@ -166,7 +168,7 @@ document.getElementById("newForm").onsubmit = async e => {
   const b64 = await new Promise((ok, bad) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = bad; r.readAsDataURL(file); });
   const res = await fetch("/api/newproject", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({
     title: f.title.value, question: f.question.value, target_scale: f.target_scale.value, data_sheet: f.data_sheet.value,
-    drawing_name: file.name, drawing_b64: b64})}).then(r => r.json()).catch(() => ({error: "the server did not answer"}));
+    task_type: f.task_type.value, drawing_name: file.name, drawing_b64: b64})}).then(r => r.json()).catch(() => ({error: "the server did not answer"}));
   if (res.error) { msg.style.color = "#b42318"; msg.textContent = res.error; return; }
   msg.style.color = ""; msg.textContent = "Created. Opening the workspace…";
   location.href = res.url;

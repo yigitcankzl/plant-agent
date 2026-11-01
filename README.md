@@ -272,6 +272,7 @@ cp .env.example .env && chmod 600 .env          # then add keys
 **Engines, for asking, building and applying changes** (plus a Muse key in `.env`)
 - DWSIM 9 under `~/opt/dwsim/usr/local/lib/dwsim` and .NET 8 under `~/opt/dotnet` (paths in `plantagent/process.py`).
 - pandapower in its own venv: `uv venv .venv-electrical --python 3.12 && uv pip install --python .venv-electrical -r requirements-electrical.txt`.
+- pyDEXPI in its own venv, so an uploaded DEXPI P&ID is drawn as SVG (Rev B clouds on new plants): `uv venv .venv-pid --python 3.12 && uv pip install --python .venv-pid pydexpi` (or set `PID_RENDER_PYTHON`).
 - WaterTAP in its own venv: `python3 -m venv .venv-watertap && .venv-watertap/bin/pip install -r requirements-watertap.txt`.
 - Optional: ODA File Converter (DWG), LibreCAD, and `.venv-surge` with TSNet.
 

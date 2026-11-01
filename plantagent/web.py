@@ -392,7 +392,7 @@ def plant_project(case):
     st = w.state(float(w.cfg.get("target_scale", 1.0))) if w.built else None
     historian_map = ROOT / "cases" / case / "historian_map.json"
     historian_cfg = json.loads(historian_map.read_text()) if historian_map.exists() else {}
-    return {"case": case, "kind": "process", "engine": w.cfg.get("engine", "dwsim"), "title": w.cfg["title"], "source": w.cfg["source"], "question": w.cfg["question"], "task_type": w.cfg.get("task_type"),
+    return {"case": case, "kind": "process", "engine": w.cfg.get("engine", "dwsim"), "title": w.cfg["title"], "source": w.cfg["source"], "question": w.cfg["question"], "task_type": w.cfg.get("task_type"), "suggested_questions": w.cfg.get("suggested_questions"), "drawing_note": w.cfg.get("drawing_note"),
             "data_note": w.cfg.get("data_note"), "throughput": w.cfg.get("throughput"), "drawing": "svg" if w.cfg.get("svg") else "pdf" if w.cfg.get("pid_pdf") else "none", "dexpi": bool(w.cfg.get("pid")),
             "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid or {"equipment": [], "connections": [], "valves": [], "control": []}, "basis": w.basis, "model": w.model,
             "built": {**{k: v for k, v in w.built.items() if k != "result"},
@@ -428,12 +428,43 @@ MAX_UPLOAD = 20 * 1024 * 1024
 MAX_POST = 28 * 1024 * 1024
 
 
+TASK_TYPES = {  # new-project task type: the case label and the questions offered first
+    "capacity": ("capacity study", ["What limits +{pct}% throughput?", "What is the cheapest change that reaches the target?",
+                                    "Which equipment has the least margin at the target?", "What does the change cost, and when does it pay back?"]),
+    "troubleshoot": ("troubleshooting", ["Which equipment best explains the symptom?", "What reading would confirm the cause?",
+                                         "Which limit is closest today?", "What happens if the main pump or compressor trips?"]),
+    "energy": ("energy study", ["Where is energy being wasted, and what would fix it?", "Which utility dominates the operating cost?",
+                                "Can heat be recovered between streams?", "What would the saving pay back?"]),
+    "change": ("change assessment", ["Is this change safe to make, and what must be checked first?", "Which discipline checks does the change touch?",
+                                     "What new hazards does the change introduce?", "What does the change cost?"]),
+}
+
+
+def render_pid_svg(xml, out):
+    """Draw a DEXPI file to SVG with tools/render_pid.py in the pyDEXPI venv (kept out of the runtime venv). None when drawn,
+    else why not; the project still works without a drawing."""
+    py = Path(os.getenv("PID_RENDER_PYTHON") or ROOT / ".venv-pid" / "bin" / "python")
+    if not py.exists():
+        return "the pyDEXPI renderer is not installed (.venv-pid, see README)"
+    try:
+        r = subprocess.run([str(py), str(ROOT / "tools" / "render_pid.py"), str(xml.parent), xml.name, str(out)],
+                           capture_output=True, text=True, timeout=120)
+    except subprocess.TimeoutExpired:
+        return "the renderer timed out"
+    if r.returncode or not out.exists():
+        return (r.stderr.strip().splitlines() or ["renderer failed"])[-1][:200]
+    return None
+
+
 def new_project(b):
     """Start a process-plant project from the engineer's own drawing and data sheet. The drawing is a DEXPI XML P&ID or a
     PDF; it is checked before anything is written. Nothing is spent until the engineer presses Build."""
     import re as _re
     from . import pid as _pid
     title, question, sheet = (str(b.get(k) or "").strip() for k in ("title", "question", "data_sheet"))
+    task = str(b.get("task_type") or "capacity")
+    if task not in TASK_TYPES:
+        raise ValueError(f"task_type must be one of {', '.join(TASK_TYPES)}")
     if not 4 <= len(title) <= 200 or not 10 <= len(question) <= 4000:
         raise ValueError("give a project title and the engineering question")
     if not 200 <= len(sheet) <= 1024 * 1024:
@@ -490,9 +521,17 @@ def new_project(b):
     up.mkdir(parents=True, exist_ok=True)
     f = up / ("drawing" + ext)
     f.write_bytes(data)
-    cfg = {"kind": "process", "title": title, "source": "Uploaded by the engineer", "basis": "basis.md", "task_type": "capacity study",
+    label, questions = TASK_TYPES[task]
+    cfg = {"kind": "process", "title": title, "source": "Uploaded by the engineer", "basis": "basis.md", "task_type": label,
            "question": question, "target_scale": target, "benchmark": False, "uploaded": True,
+           "suggested_questions": [x.format(pct=round((target - 1) * 100)) for x in questions],
            ("pid" if ext == ".xml" else "pid_pdf"): f"uploads/{slug}/drawing{ext}"}
+    if ext == ".xml":  # draw the sheet from the DEXPI file so the workspace (and Rev B clouds) have a drawing
+        err = render_pid_svg(f, d / "pid.svg")
+        if err:
+            cfg["drawing_note"] = f"P&ID not drawn: {err}"
+        else:
+            cfg["svg"] = "pid.svg"
     (d / "basis.md").write_text(sheet + "\n")
     (d / "case.json").write_text(json.dumps(cfg, indent=2))
     from . import audit
@@ -773,6 +812,13 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(_case_call(case, lambda: approval.issue(
                     w, body.get("folder"), user, body.get("reason"))))
             return self._send({"error": "not found"}, code=404)
+        if parts[:2] == ["api", "plant"] and len(parts) == 4 and parts[2] in set(all_cases("process")) and parts[3] == "inputs":
+            from . import assumptions, audit
+            if method != "POST":  # templates and what was uploaded; no model call
+                return self._send(assumptions.inputs(parts[2]))
+            r = assumptions.upload(parts[2], q.get("kind", ""), self._body(MAX_UPLOAD), self.headers.get("X-Filename"))
+            audit.append(parts[2], "upload_input", self.headers.get("X-User"), "", r)
+            return self._send(r)
         if parts[:2] == ["api", "plant"] and len(parts) == 4 and parts[2] in set(all_cases("process")):
             case, what = parts[2], parts[3]
             if method == "POST" and what in ("build", "ask", "hazop", "work"):
@@ -781,6 +827,17 @@ class Handler(SimpleHTTPRequestHandler):
             w = plant(case)
             if what == "project":
                 return self._send(plant_project(case))
+            if what == "assumptions":  # every input value with its source; the engineer confirms or edits (assumptions.py)
+                from . import assumptions
+                if method == "POST":
+                    from . import audit
+                    e = _case_call(case, lambda: assumptions.confirm(case, str(body.get("id") or ""), body.get("value"),
+                                                                       self.headers.get("X-User"), body.get("note"), bool(w.cfg.get("uploaded"))))
+                    audit.append(case, "confirm_assumption", self.headers.get("X-User"), "", e)
+                    return self._send(e)
+                items = assumptions.collect(case)
+                return self._send({"summary": assumptions.summary(items), "sources": assumptions.SOURCES,
+                                   "items": [{k: v for k, v in i.items() if k != "loc"} for i in items]})
             if what == "svg" and q.get("view") == "proposed":  # Rev B: the whole sheet re-issued with the verified changes
                 from . import revb
                 answer = int(q["answer"]) if q.get("answer", "").lstrip("-").isdigit() else None
