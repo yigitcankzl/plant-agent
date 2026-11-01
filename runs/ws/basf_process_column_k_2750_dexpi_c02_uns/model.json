@@ -1,0 +1,503 @@
+{
+ "label": "K2750_submitted",
+ "spec": {
+  "compounds": [
+   "Water",
+   "Ethanol"
+  ],
+  "package": "NRTL",
+  "feeds": {
+   "FEED": {
+    "T_C": 85,
+    "P_bar": 3.0,
+    "kg_h": 1000,
+    "x": {
+     "Water": 0.3,
+     "Ethanol": 0.7
+    }
+   }
+  },
+  "units": [
+   {
+    "id": "K 2750",
+    "type": "distillation",
+    "in": "FEED",
+    "distillate": "VENT_INT",
+    "bottoms": "2750.001.6",
+    "stages": 15,
+    "feed_stage": 8,
+    "P_bar": 1.5,
+    "dP_bar": 0.03,
+    "condenser": "total",
+    "reflux_ratio": 1.5,
+    "reboiler_spec": {
+     "type": "Product Molar Flow Rate",
+     "value": 3.0,
+     "units": "mol/s"
+    },
+    "efficiency": 0.7
+   },
+   {
+    "id": "*at N3*/*C2*",
+    "type": "valve",
+    "in": "VENT_INT",
+    "out": "*at N3*",
+    "dP_bar": 0.487
+   }
+  ],
+  "limits": {
+   "K 2750": {
+    "diameter_m": 0.5,
+    "tray_spacing_m": 0.5,
+    "flood_frac_max": 0.8,
+    "max_P_bar": 6,
+    "max_T_C": 150
+   },
+   "2750.001.6": {
+    "max_P_bar": 6,
+    "max_T_C": 150
+   },
+   "*at N3*": {
+    "max_P_bar": 6,
+    "max_T_C": 150
+   },
+   "VENT_INT": {
+    "max_P_bar": 6,
+    "max_T_C": 150
+   },
+   "FEED": {
+    "max_P_bar": 6,
+    "max_T_C": 150
+   }
+  }
+ },
+ "result": {
+  "scale": 1.0,
+  "errors": [],
+  "streams": {
+   "FEED": {
+    "T_C": 85.0,
+    "P_bar": 3.0,
+    "kg_h": 1000.0,
+    "m3_h": 1.27,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 143.54,
+     "Ethanol": 856.46
+    }
+   },
+   "VENT_INT": {
+    "T_C": 88.79,
+    "P_bar": 1.5,
+    "kg_h": 639.2,
+    "m3_h": 0.84,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 55.7,
+     "Ethanol": 583.54
+    }
+   },
+   "2750.001.6": {
+    "T_C": 90.46,
+    "P_bar": 1.53,
+    "kg_h": 360.8,
+    "m3_h": 0.44,
+    "vapour_frac": 0.0,
+    "components_kg_h": {
+     "Water": 87.83,
+     "Ethanol": 272.95
+    }
+   },
+   "*at N3*": {
+    "T_C": 78.43,
+    "P_bar": 1.013,
+    "kg_h": 639.2,
+    "m3_h": 15.34,
+    "vapour_frac": 0.032,
+    "components_kg_h": {
+     "Water": 55.7,
+     "Ethanol": 583.54
+    }
+   }
+  },
+  "units": {
+   "K 2750": {
+    "type": "distillation",
+    "stages": 15,
+    "feed_stage": 8,
+    "reflux": 1.5,
+    "condenser_kW": 422.94,
+    "reboiler_kW": 426.58,
+    "condenser_duty_kW": 422.94,
+    "reboiler_duty_kW": -426.58,
+    "dwsim_estimated_diameter_m": 0.555,
+    "profile": [
+     {
+      "stage": 1,
+      "T_C": 88.79,
+      "P_bar": 1.5,
+      "vapour_kg_h": 0.0,
+      "liquid_kg_h": 958.86,
+      "vapour_mol_s": 0.0,
+      "liquid_mol_s": 6.5661,
+      "rho_v_kg_m3": 2.04,
+      "rho_l_kg_m3": 760.5,
+      "sigma_N_m": 0.02522
+     },
+     {
+      "stage": 2,
+      "T_C": 88.86,
+      "P_bar": 1.5021,
+      "vapour_kg_h": 1592.96,
+      "liquid_kg_h": 945.39,
+      "vapour_mol_s": 10.9407,
+      "liquid_mol_s": 6.5542,
+      "rho_v_kg_m3": 2.02,
+      "rho_l_kg_m3": 764.0,
+      "sigma_N_m": 0.026,
+      "flood_frac": 0.655
+     },
+     {
+      "stage": 3,
+      "T_C": 88.93,
+      "P_bar": 1.5043,
+      "vapour_kg_h": 1580.53,
+      "liquid_kg_h": 934.08,
+      "vapour_mol_s": 10.9316,
+      "liquid_mol_s": 6.5459,
+      "rho_v_kg_m3": 2.01,
+      "rho_l_kg_m3": 767.1,
+      "sigma_N_m": 0.02668,
+      "flood_frac": 0.646
+     },
+     {
+      "stage": 4,
+      "T_C": 89.01,
+      "P_bar": 1.5064,
+      "vapour_kg_h": 1569.66,
+      "liquid_kg_h": 923.98,
+      "vapour_mol_s": 10.9233,
+      "liquid_mol_s": 6.5383,
+      "rho_v_kg_m3": 2.0,
+      "rho_l_kg_m3": 769.8,
+      "sigma_N_m": 0.02728,
+      "flood_frac": 0.639
+     },
+     {
+      "stage": 5,
+      "T_C": 89.09,
+      "P_bar": 1.5086,
+      "vapour_kg_h": 1559.88,
+      "liquid_kg_h": 914.69,
+      "vapour_mol_s": 10.9157,
+      "liquid_mol_s": 6.531,
+      "rho_v_kg_m3": 1.99,
+      "rho_l_kg_m3": 772.3,
+      "sigma_N_m": 0.02783,
+      "flood_frac": 0.633
+     },
+     {
+      "stage": 6,
+      "T_C": 89.16,
+      "P_bar": 1.5107,
+      "vapour_kg_h": 1550.94,
+      "liquid_kg_h": 905.96,
+      "vapour_mol_s": 10.9085,
+      "liquid_mol_s": 6.5243,
+      "rho_v_kg_m3": 1.98,
+      "rho_l_kg_m3": 774.7,
+      "sigma_N_m": 0.02835,
+      "flood_frac": 0.627
+     },
+     {
+      "stage": 7,
+      "T_C": 89.24,
+      "P_bar": 1.5129,
+      "vapour_kg_h": 1542.87,
+      "liquid_kg_h": 902.04,
+      "vapour_mol_s": 10.9017,
+      "liquid_mol_s": 6.5505,
+      "rho_v_kg_m3": 1.97,
+      "rho_l_kg_m3": 777.0,
+      "sigma_N_m": 0.02885,
+      "flood_frac": 0.621
+     },
+     {
+      "stage": 8,
+      "T_C": 89.33,
+      "P_bar": 1.515,
+      "vapour_kg_h": 1540.97,
+      "liquid_kg_h": 1911.55,
+      "vapour_mol_s": 10.9279,
+      "liquid_mol_s": 13.999,
+      "rho_v_kg_m3": 1.97,
+      "rho_l_kg_m3": 779.3,
+      "sigma_N_m": 0.02935,
+      "flood_frac": 0.656
+     },
+     {
+      "stage": 9,
+      "T_C": 89.37,
+      "P_bar": 1.5171,
+      "vapour_kg_h": 1550.12,
+      "liquid_kg_h": 1910.39,
+      "vapour_mol_s": 10.999,
+      "liquid_mol_s": 13.9981,
+      "rho_v_kg_m3": 1.97,
+      "rho_l_kg_m3": 779.5,
+      "sigma_N_m": 0.02938,
+      "flood_frac": 0.659
+     },
+     {
+      "stage": 10,
+      "T_C": 89.41,
+      "P_bar": 1.5193,
+      "vapour_kg_h": 1548.19,
+      "liquid_kg_h": 1907.89,
+      "vapour_mol_s": 10.9981,
+      "liquid_mol_s": 13.9952,
+      "rho_v_kg_m3": 1.97,
+      "rho_l_kg_m3": 779.7,
+      "sigma_N_m": 0.02944,
+      "flood_frac": 0.657
+     },
+     {
+      "stage": 11,
+      "T_C": 89.46,
+      "P_bar": 1.5214,
+      "vapour_kg_h": 1544.1,
+      "liquid_kg_h": 1902.47,
+      "vapour_mol_s": 10.9952,
+      "liquid_mol_s": 13.9883,
+      "rho_v_kg_m3": 1.97,
+      "rho_l_kg_m3": 780.3,
+      "sigma_N_m": 0.02958,
+      "flood_frac": 0.655
+     },
+     {
+      "stage": 12,
+      "T_C": 89.53,
+      "P_bar": 1.5236,
+      "vapour_kg_h": 1535.67,
+      "liquid_kg_h": 1890.75,
+      "vapour_mol_s": 10.9883,
+      "liquid_mol_s": 13.9732,
+      "rho_v_kg_m3": 1.96,
+      "rho_l_kg_m3": 781.7,
+      "sigma_N_m": 0.02987,
+      "flood_frac": 0.651
+     },
+     {
+      "stage": 13,
+      "T_C": 89.64,
+      "P_bar": 1.5257,
+      "vapour_kg_h": 1519.08,
+      "liquid_kg_h": 1864.94,
+      "vapour_mol_s": 10.9732,
+      "liquid_mol_s": 13.9415,
+      "rho_v_kg_m3": 1.95,
+      "rho_l_kg_m3": 784.9,
+      "sigma_N_m": 0.03054,
+      "flood_frac": 0.641
+     },
+     {
+      "stage": 14,
+      "T_C": 89.85,
+      "P_bar": 1.5279,
+      "vapour_kg_h": 1488.99,
+      "liquid_kg_h": 1809.65,
+      "vapour_mol_s": 10.9415,
+      "liquid_mol_s": 13.9065,
+      "rho_v_kg_m3": 1.91,
+      "rho_l_kg_m3": 792.5,
+      "sigma_N_m": 0.03213,
+      "flood_frac": 0.623
+     },
+     {
+      "stage": 15,
+      "T_C": 90.46,
+      "P_bar": 1.53,
+      "vapour_kg_h": 1448.79,
+      "liquid_kg_h": 360.77,
+      "vapour_mol_s": 10.9065,
+      "liquid_mol_s": 3.0,
+      "rho_v_kg_m3": 1.87,
+      "rho_l_kg_m3": 813.9,
+      "sigma_N_m": 0.03641,
+      "flood_frac": 0.54
+     }
+    ],
+    "flood_frac": 0.659,
+    "flood_error": null,
+    "tray_spacing_m": 0.5
+   },
+   "*at N3*/*C2*": {
+    "type": "valve",
+    "dP_bar": 0.487,
+    "cv_required": 1.215
+   }
+  },
+  "checks": [
+   {
+    "id": "K 2750",
+    "check": "Fair flood fraction vs limit",
+    "value": 0.659,
+    "limit": 0.8,
+    "unit": "fraction of flood",
+    "utilisation": 0.824
+   },
+   {
+    "id": "2750.001.6",
+    "check": "temperature vs design",
+    "value": 90.46,
+    "limit": 150,
+    "unit": "C",
+    "utilisation": 0.603
+   },
+   {
+    "id": "VENT_INT",
+    "check": "temperature vs design",
+    "value": 88.79,
+    "limit": 150,
+    "unit": "C",
+    "utilisation": 0.592
+   },
+   {
+    "id": "FEED",
+    "check": "temperature vs design",
+    "value": 85.0,
+    "limit": 150,
+    "unit": "C",
+    "utilisation": 0.567
+   },
+   {
+    "id": "*at N3*",
+    "check": "temperature vs design",
+    "value": 78.43,
+    "limit": 150,
+    "unit": "C",
+    "utilisation": 0.523
+   },
+   {
+    "id": "FEED",
+    "check": "pressure vs design",
+    "value": 3.0,
+    "limit": 6,
+    "unit": "bar",
+    "utilisation": 0.5
+   },
+   {
+    "id": "2750.001.6",
+    "check": "pressure vs design",
+    "value": 1.53,
+    "limit": 6,
+    "unit": "bar",
+    "utilisation": 0.255
+   },
+   {
+    "id": "VENT_INT",
+    "check": "pressure vs design",
+    "value": 1.5,
+    "limit": 6,
+    "unit": "bar",
+    "utilisation": 0.25
+   },
+   {
+    "id": "*at N3*",
+    "check": "pressure vs design",
+    "value": 1.013,
+    "limit": 6,
+    "unit": "bar",
+    "utilisation": 0.169
+   }
+  ]
+ },
+ "mapping": [
+  {
+   "tag": "K 2750",
+   "modelled_as": "K 2750 (distillation)",
+   "source": "P&ID ProcessColumn-1: Height 14000 mm, InsideDiameter 500 mm, UpperLimitDesignPressure 6 Bar, UpperLimitDesignTemperature 150 C, Material 1.4571, Chamber 1"
+  },
+  {
+   "tag": "KX 2750",
+   "modelled_as": "K 2750 (grouped - column section forming enlarged section of same shell)",
+   "source": "P&ID TaggedColumnSection-1: InsideDiameter 600 mm, Material 1.4571 - physically part of K 2750 column, not separate unit; modelled as single distillation column K 2750"
+  },
+  {
+   "tag": "*at N3*/*C2*",
+   "modelled_as": "*at N3*/*C2* (valve)",
+   "source": "P&ID valve *at N3*/*C2* OperatedValve on line *at N3* to open-out"
+  },
+  {
+   "tag": "2750.001.6",
+   "modelled_as": "2750.001.6 (bottoms product stream to off-page connector)",
+   "source": "P&ID line 2750.001.6 fluid code 8503 piping class 10HB25T10B1 via PipeReducer to FlowOutPipeOffPageConnector"
+  },
+  {
+   "tag": "*at N3*",
+   "modelled_as": "*at N3* (vent/distillate product stream to open end)",
+   "source": "P&ID connection K 2750 -> open-out:PipingNetworkSegment-4 via *at N3*"
+  }
+ ],
+ "calibration": [
+  {
+   "item": "K 2750 design pressure (upper)",
+   "measured": "6 Bar (P&ID design limit)",
+   "simulated": "1.5-1.53 Bar operating in model (utilisation 25%)",
+   "source": "P&ID ProcessColumn-1 UpperLimitDesignPressure 6 Bar"
+  },
+  {
+   "item": "K 2750 design temperature (upper)",
+   "measured": "150 C (P&ID design limit)",
+   "simulated": "88.79 C distillate / 90.46 C bottoms (utilisation 59-60%)",
+   "source": "P&ID ProcessColumn-1 UpperLimitDesignTemperature 150 C"
+  },
+  {
+   "item": "K 2750 flooding (Fair) at assumed feed 1000 kg/h",
+   "measured": "No measured flood point in data sheet - data sheet auto-generated from DEXPI, no operating T/P/flow stated",
+   "simulated": "0.659 (82.4% of 0.8 limit), DWSIM estimated diameter 0.555 m vs installed 0.5 m",
+   "source": "Data sheet text: 'Only what drawing states is listed; process conditions unknown and must be assumed' - no measured temperatures/flows/pressure drops to calibrate"
+  },
+  {
+   "item": "*at N3* valve differential",
+   "measured": "No Cv/kv or dP measured on drawing",
+   "simulated": "0.487 bar drop from 1.5 Bar to atmospheric 1.013 Bar",
+   "source": "P&ID valve *at N3*/*C2* - atmospheric vent assumed for open-out"
+  }
+ ],
+ "assumptions": [
+  "Fluid composition assumption: Line 2750.001.6 fluid code 8503 and piping class 10HB25T10B1 not defined in project documents (search_documents for K2750/C02/8503/10HB25T10B1/BASF/DEXPI returned no pages). Data sheet states no process conditions on drawing. Model uses Water+Ethanol with NRTL as generic organic-water proxy to demonstrate column hydraulics; all temperatures/duties/compositions illustrative and must be replaced with actual fluid 8503 assay.",
+  "Operating condition assumption: No feed temperature, pressure, flow or product specs on P&ID or data sheet. Assumed feed 1000 kg/h, 85 C, 3 Bar, x Water 0.3 / Ethanol 0.7; reflux ratio 1.5, reboiler product 3.0 mol/s; condenser total. No measured values to calibrate against - calibration section reports design-limit utilisation only.",
+  "Column staging assumption: Height 14000 mm with tray spacing 0.5 m allows ~28 theoretical trays max. Model uses 15 stages feed stage 8 efficiency 0.7 for numerical stability and to fit within shell; actual internals (trays vs packing, stage count) not on DEXPI export.",
+  "Diameter conflict/assumption: K 2750 Chamber 1 InsideDiameter 500 mm vs KX 2750 ColumnSection InsideDiameter 600 mm - both Material 1.4571. Interpreted as single column with two diameters (enlarged section). Model uses conservative 0.5 m for flood screening; DWSIM estimates 0.555 m required at assumed rate, indicating tight fit - to be checked once actual vapour loads known. Listed as assumption per instruction to note site/P&ID conflicts.",
+  "Exclusions justified: Valves *at P3*/OperatedValve and *at P4*/OperatedValve and lines *at P3*/*at P4* are instrument root valves to BlindFlange -> PI(Z) 275003A/B -> PIS+Z+A 275003 pressure measurement loops, not process flow lines; no connection to off-page flow. Closed per check_coverage guidance and not modelled as process valves. No data_quality warnings present on latest P&ID export.",
+  "Topology assumption: Recirculation/utility loops: none on this DEXPI C02 extract. Both documented connections carry normal flow and are modelled: VENT_INT via *at N3*/*C2* to open-out (*at N3*) and bottoms to 2750.001.6 off-page connector via PipeReducer. No recycle unit needed (no temperature-by-mixing loop; no closed coolant loop at known supply temperature).",
+  "Limits assumption: All limits taken from P&ID design_limits (max_P 6 Bar, max_T 150 C for K2750 and derived for streams 2750.001.6/*at N3*/VENT_INT/FEED). No pump, exchanger area, tank residence, relief or utility supply ratings appear on this column-only P&ID extract; none added. Later alternatives must not raise these 6 Bar/150 C ratings per instruction."
+ ],
+ "model": "baseten:meta-models/muse-spark-open-1026",
+ "engine": "dwsim",
+ "coverage": {
+  "connections": [],
+  "missing_connections": [],
+  "missing_equipment": [
+   "KX 2750"
+  ]
+ },
+ "read_corrections": 0,
+ "seconds": 297,
+ "cost_usd": 0.7674,
+ "at": "2026-11-01 20:35",
+ "review": {
+  "status": "ok",
+  "findings": [],
+  "blocking": 0,
+  "energy": {
+   "method": "duty",
+   "tolerance": 0.02,
+   "proposed_field": "enthalpy_kJ_kg",
+   "note": "An overall energy balance is not closed: the simulator's streams do not report enthalpy. Unit duties are checked one by one instead."
+  }
+ },
+ "review_status": "ok",
+ "gaps": []
+}

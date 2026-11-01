@@ -1,0 +1,100 @@
+{
+ "draft": true,
+ "note": "draft (assumed values): prices are typical values, not the site's. Product price must come from the engineer.",
+ "currency": "USD",
+ "throughput": {
+  "name": "Process feed",
+  "base": 24.0,
+  "unit": "t/d",
+  "source": "sum of the non-utility feeds of the built model",
+  "provenance": "documented"
+ },
+ "product": {
+  "price": {
+   "value": null,
+   "unit": "USD per t",
+   "source": "engineer to supply",
+   "provenance": "open"
+  },
+  "variable_cost": {
+   "value": 0,
+   "unit": "USD per t",
+   "source": "muse_default"
+  }
+ },
+ "drivers": [],
+ "utilities": [],
+ "operating_days": {
+  "value": 330,
+  "source": "muse_default"
+ },
+ "outage": {
+  "days": 2,
+  "source": "muse_default shutdown for a tie-in or exchanger clean"
+ },
+ "discount_rate": {
+  "value": 0.1,
+  "source": "muse_default"
+ },
+ "years": {
+  "value": 10,
+  "source": "muse_default"
+ },
+ "capex_correlations": {
+  "source": "Towler & Sinnott, Chemical Engineering Design 2nd ed. (2012), Table 7.2; Lang factor Table 7.1 (fluids processing)",
+  "items": {
+   "pump": {
+    "a": 8000,
+    "b": 240,
+    "n": 0.9,
+    "S": "flow L/s",
+    "range": [
+     0.2,
+     126
+    ],
+    "item": "single-stage centrifugal pump"
+   },
+   "compressor": {
+    "a": 580000,
+    "b": 20000,
+    "n": 0.6,
+    "S": "driver power kW",
+    "range": [
+     75,
+     30000
+    ],
+    "item": "centrifugal compressor"
+   },
+   "hx": {
+    "a": 28000,
+    "b": 54,
+    "n": 1.2,
+    "S": "area m2",
+    "range": [
+     10,
+     1000
+    ],
+    "item": "U-tube shell and tube exchanger"
+   },
+   "tank": {
+    "a": 5800,
+    "b": 1600,
+    "n": 0.7,
+    "S": "volume m3",
+    "range": [
+     10,
+     4000
+    ],
+    "item": "cone-roof storage tank"
+   }
+  },
+  "cepci": {
+   "base": 532.9,
+   "base_date": "Jan 2010",
+   "now": 797.9,
+   "now_date": "2023 annual average",
+   "source": "Chemical Engineering Plant Cost Index (Chemical Engineering magazine); muse_default until updated"
+  },
+  "lang_factor": 4.74
+ }
+}
