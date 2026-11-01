@@ -25,6 +25,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const worklogOk = await p.evaluate(() => {
     const rounds = [...document.querySelectorAll('.work-round')], actors = [...document.querySelectorAll('.work-actor')].map(x => x.textContent.trim());
     return rounds.length === 2 && !rounds[0].open && rounds[1].open && actors.includes('Muse') && actors.includes('DWSIM') && actors.includes('pandapower') &&
+      workActor({actor: 'muse'}, 'baseten:meta-models/muse-spark-open-1026') === 'Muse Spark Open' &&
       !!document.querySelector('[data-work-result]') && !!document.querySelector('.worklog-sample') && /ILLUSTRATIVE SAMPLE/.test(document.querySelector('.worklog-sample').textContent);
   });
   await p.screenshot({ path: `${OUT}/salt_mvr_worklog_sample_1920x1080.png` });

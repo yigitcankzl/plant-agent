@@ -1,0 +1,147 @@
+{
+ "id": "20261101-164131",
+ "case": "freeport_lng_2022",
+ "goal": "VIP-18 must be isolated between XV-101 and XV-102 for several days of maintenance while partially filled with LNG. Design a safe isolation: what must be in place so the blocked-in segment never exceeds its design pressure for up to 10 days at the worst credible heat leak, verify it in the simulator, and list the procedure and alarm requirements.",
+ "label": "post-hoc engineering run",
+ "model": "baseten:meta-models/muse-spark-open-1026",
+ "provider": "baseten",
+ "max_rounds": 2,
+ "budget_usd": 3.0,
+ "status": "done",
+ "started": "2026-11-01T16:41:31+0300",
+ "usd_total": 0.1517,
+ "seconds_total": 70,
+ "rounds": [
+  {
+   "n": 1,
+   "answer_index": 0,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "baseten:meta-models/muse-spark-open-1026",
+     "kind": "propose",
+     "status": "info",
+     "usd": 0.1517,
+     "seconds": 70,
+     "title": "Return PSV-101 to service — car-seal HV-101 open, forbid double-block without relief; Add 100% redundant thermal PSV with CSO isolations for online test",
+     "detail": "VIP-18 needs relief in service always",
+     "changes": [
+      {
+       "path": "units.PSV-101.isolated",
+       "value": false,
+       "from": true
+      },
+      {
+       "add_unit": {
+        "id": "PSV-102",
+        "type": "relief_valve",
+        "protects": "VIP-18",
+        "set_psig": 230
+       },
+       "limits": {
+        "set_psig": 230,
+        "capacity_kg_h": 50
+       },
+       "rating_source": "Vendor sizing to confirm for 30 W/m LNG — standard thermal relief, dual PSV with isolations per API 520 allows one in service always"
+      },
+      {
+       "path": "units.PSV-101.isolated",
+       "value": false,
+       "from": true
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Return PSV-101 to service — car-seal HV-101 open, forbid double-block without relief",
+     "status": "pass",
+     "detail": "",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Add 100% redundant thermal PSV with CSO isolations for online test",
+     "status": "pass",
+     "detail": "",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "limits",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "VIP-18 pressure vs design pressure: 47.8 vs 230.0 psig",
+     "numbers": {
+      "utilisation_pct": 20.8
+     },
+     "source": "DWSIM re-solve of the proposed actions"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "worst case",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "worst credible case from the basis (fill 0.95, degraded insulation 30 W/m, over the case's 120 h): VIP-18 230.0 vs 230.0 psig",
+     "source": "basis.md, 'Assumptions to state and vary' (ILLUSTRATIVE upper bounds)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "relief capacity",
+     "engine": "none",
+     "status": "open",
+     "title": "ideal relief boundary — relieving capacity not checked"
+    }
+   ],
+   "open_issues": []
+  }
+ ],
+ "result": {
+  "answer_index": 0,
+  "headline": "VIP-18 needs relief in service always",
+  "passes": [
+   "limits",
+   "worst case"
+  ],
+  "fails": [],
+  "open": [
+   "relief capacity"
+  ]
+ },
+ "deliverables": [
+  {
+   "kind": "moc",
+   "title": "MOC pack not generated: RuntimeError: KeyError: 'compounds'"
+  },
+  {
+   "kind": "chart",
+   "title": "VIP-18 - Worst credible blocked-in: 95% fill, 30 W/m, PSV isolated - exceeds design in 26h and burst in 44h",
+   "artifact": "20261101-164216-vip-18-worst-credible-blocked-in-95-fill"
+  },
+  {
+   "kind": "chart",
+   "title": "VIP-18 - Safe isolation: same 95% fill, 30 W/m, PSV in service - pressure held at design 230 psig for 10 days",
+   "artifact": "20261101-164216-vip-18-safe-isolation-same-95-fill-30-w-"
+  },
+  {
+   "kind": "chart",
+   "title": "VIP-18 - Even at lowest fill 70%, 30 W/m, no relief: exceeds design in 66h",
+   "artifact": "20261101-164216-vip-18-even-at-lowest-fill-70-30-w-m-no-"
+  }
+ ],
+ "needs_human": [
+  "relief capacity: ideal relief boundary — relieving capacity not checked",
+  "Actual VIP-18 design pressure, MAWP, pipe spec/wall/grade and trapped length between XV-101 and XV-102: Scales liquid-full time and time to design; if real MAWP >230 psig design times shift but conclusion unchanged unless MAWP >> 1000 psig",
+  "Actual trapped inventory: liquid level/fill at isolation and pressure PT-101/PT-102 at XV-102 closure: Determines 0.70 vs 0.95 case — even low fill fails in 66h at 30 W/m, so fill reduction alone not a safeguard",
+  "Actual heat leak / vacuum state: annulus vacuum pressure and TI-101 to TI-104 skin temps: If vacuum proven <3 W/m, 10-day exposure would stay <design (261h to design); if degraded/lost vacuum, fails in 26-78h — determines if maintenance window can be extended",
+  "PSV-101 set point, certified capacity, and HV-101 position indication: Simulator holds pressure at set point but does not check capacity — if undersized, pressure will exceed design despite valve lifting; if HV-101 closed, protection is defeated",
+  "Relief header / flare backpressure and routing from PSV-101: High backpressure raises effective set — must verify capacity at worst header pressure"
+ ],
+ "finished": "2026-11-01T16:42:42+0300"
+}

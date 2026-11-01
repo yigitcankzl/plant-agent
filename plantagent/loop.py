@@ -161,6 +161,12 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
     except Exception as e:  # noqa: BLE001 - a crashed run still leaves its log
         log["status"] = "budget" if isinstance(e, llm.BudgetExceeded) else "error"
         log["error"] = f"{type(e).__name__}: {e}"[:500]
+        if last is not None:  # keep the last completed round when later work fails
+            final = log["rounds"][-1]["answer_index"]
+            log["result"] = {"answer_index": final, "headline": last.get("headline"),
+                             "passes": [r["check"] for r in rows if r.get("status") == "pass"],
+                             "fails": [r["check"] for r in rows if r.get("status") == "fail"],
+                             "open": [r["check"] for r in rows if r.get("status") == "open"]}
     log["finished"] = _now()
     log["usd_total"] = round(llm.spent() - usd0, 4)
     log["seconds_total"] = round(time.time() - t0)

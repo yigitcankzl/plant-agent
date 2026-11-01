@@ -20,6 +20,8 @@ class Stub:
     def ask(self, text):
         self.asked.append(text)
         a = self.queue.pop(0)
+        if isinstance(a, Exception):
+            raise a
         self.answers.append(a)
         return a
 
@@ -73,6 +75,14 @@ class LoopTest(unittest.TestCase):
     def test_grid_list_path_gets_previous_value(self):
         spec = {"gens": [{"id": "DOL injection", "p_mw": 1564}]}
         self.assertEqual(_spec_object(spec, "gens", "DOL injection").get("p_mw"), 1564)
+
+    def test_budget_stop_keeps_last_completed_result(self):
+        _, log = self.run_loop([{"headline": "first result", "proposals": [prop("K-202")]},
+                                loop.llm.BudgetExceeded("run budget reached")],
+                               [[{"check": "startup", "title": "voltage dip", "status": "fail"}]])
+        self.assertEqual(log["status"], "budget")
+        self.assertEqual(log["result"]["headline"], "first result")
+        self.assertEqual(log["result"]["fails"], ["startup"])
 
 
 if __name__ == "__main__":

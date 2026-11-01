@@ -1,0 +1,128 @@
+{
+ "id": "20261101-164847",
+ "case": "freeport_lng_2022",
+ "goal": "Independent repeatability run. VIP-18 must be isolated between XV-101 and XV-102 for several days of maintenance while partially filled with LNG. Design a safe isolation: what must be in place so the blocked-in segment never exceeds its design pressure for up to 10 days at the worst credible heat leak, verify it in the simulator, and list the procedure and alarm requirements.",
+ "label": "post-hoc engineering run",
+ "model": "baseten:meta-models/muse-spark-open-1026",
+ "provider": "baseten",
+ "max_rounds": 1,
+ "budget_usd": 1.0,
+ "status": "done",
+ "started": "2026-11-01T16:48:47+0300",
+ "usd_total": 0.1484,
+ "seconds_total": 50,
+ "rounds": [
+  {
+   "n": 1,
+   "answer_index": 0,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "baseten:meta-models/muse-spark-open-1026",
+     "kind": "propose",
+     "status": "info",
+     "usd": 0.1484,
+     "seconds": 48,
+     "title": "Mandatory overpressure protection - return HV-101 to locked open, PSV-101 in service before any LNG isolation; Prohibit LNG block-in - drain, purge to gas and verify vent path if both block valves must stay closed",
+     "detail": "Never block in LNG with PSV isolated",
+     "changes": [
+      {
+       "path": "units.PSV-101.isolated",
+       "value": false,
+       "from": true
+      },
+      {
+       "path": "units.XV-101.closed",
+       "value": false,
+       "from": true
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Mandatory overpressure protection - return HV-101 to locked open, PSV-101 in service before any LNG isolation",
+     "status": "pass",
+     "detail": "",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Prohibit LNG block-in - drain, purge to gas and verify vent path if both block valves must stay closed",
+     "status": "pass",
+     "detail": "",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "limits",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "VIP-18 pressure vs design pressure: 37.0 vs 230.0 psig",
+     "numbers": {
+      "utilisation_pct": 16.1
+     },
+     "source": "DWSIM re-solve of the proposed actions"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "worst case",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "worst credible case from the basis (fill 0.95, degraded insulation 30 W/m, over the case's 120 h): VIP-18 37.0 vs 230.0 psig",
+     "source": "basis.md, 'Assumptions to state and vary' (ILLUSTRATIVE upper bounds)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "relief capacity",
+     "engine": "none",
+     "status": "open",
+     "title": "ideal relief boundary — relieving capacity not checked"
+    }
+   ],
+   "open_issues": []
+  }
+ ],
+ "result": {
+  "answer_index": 0,
+  "headline": "Never block in LNG with PSV isolated",
+  "passes": [
+   "limits",
+   "worst case"
+  ],
+  "fails": [],
+  "open": [
+   "relief capacity"
+  ]
+ },
+ "deliverables": [
+  {
+   "kind": "moc",
+   "title": "MOC pack not generated: RuntimeError: KeyError: 'compounds'"
+  },
+  {
+   "kind": "chart",
+   "title": "Worst credible trapped LNG 30 W/m fill 0.95 isolated - exceeds design in 26h",
+   "artifact": "20261101-164916-worst-credible-trapped-lng-30-w-m-fill-0"
+  },
+  {
+   "kind": "chart",
+   "title": "Safe isolation with PSV-101 in service - pressure capped at 230 psig",
+   "artifact": "20261101-164916-safe-isolation-with-psv-101-in-service-p"
+  }
+ ],
+ "needs_human": [
+  "relief capacity: ideal relief boundary — relieving capacity not checked",
+  "Real design pressure, MAWP, pipe spec, length, elevation profile and actual PSV-101 set/blowdown/capacity: Time to design and required relief rate scale with volume and set - determines if existing PSV-101 is enough or larger orifice needed",
+  "Actual heat leak at sound and degraded vacuum: If worst exceeds 30 W/m, design reached <26 h; if <2 W/m, trajectory shifts but conclusion - no block-in without relief - unchanged",
+  "Liquid fill before isolation and effectiveness of drain/purge: Decides whether drained-to-gas alternative is credible; any residual LNG still gives rapid hydraulic pressurisation",
+  "XV-101/XV-102 leak-tightness and interlock logic: If valves pass, vented alternative fails - then PSV in service is the only acceptable barrier"
+ ],
+ "finished": "2026-11-01T16:49:37+0300"
+}
