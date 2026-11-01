@@ -72,6 +72,14 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   console.log(parityOk ? 'ok  ' : 'FAIL', 'NREL A300 parity chart and calibration result replace the empty answer');
   bad += parityOk ? 0 : 1;
   await p.setViewportSize({ width: 1440, height: 900 });
+  // the MOC sign-off page: read only here (no signature is written by the smoke test)
+  await p.goto(`${BASE}/review.html?case=salt_mvr`); await p.waitForSelector('#block .stamp', { timeout: 15000 }).catch(() => {});
+  const signoffOk = await p.evaluate(() => /Draft|Reviewed|Approved|Rejected/.test(document.querySelector('#block .stamp')?.textContent || '') &&
+    document.querySelectorAll('#block .cell').length === 3 && document.querySelectorAll('#fails .check').length >= 1 &&
+    document.querySelectorAll('#files li').length >= 1 && !/None yet/.test(document.body.textContent));
+  await p.screenshot({ path: `${OUT}/review_signoff.png`, fullPage: true });
+  console.log(signoffOk ? 'ok  ' : 'FAIL', 'MOC sign-off page: approval block, failed checks with dispositions, package files');
+  bad += signoffOk ? 0 : 1;
   await p.goto(`${BASE}/home.html`); await p.waitForTimeout(2000);
   const homeOk = await p.evaluate(() => !document.body.innerHTML.includes('bt_column_debottleneck') &&
     /case=salt_mvr&tour=1/.test(document.querySelector('.hero-actions a').getAttribute('href')));
