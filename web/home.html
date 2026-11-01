@@ -64,7 +64,7 @@
       <div class="hero-copy">
         <p class="kicker">An AI engineer for plant changes, with the working shown</p>
         <h1 id="hero-title">Give it the change. It does the engineering.</h1>
-        <p class="lead">PlantAgent is an AI engineer built on Meta's <b>Muse</b>. Tell it what you want to change. Muse reads the plant's drawings and data sheets, builds the simulation model and designs the change; <b>engineering solvers</b> (DWSIM, pandapower, WaterTAP, Cantera) re-solve it and run every check: electrical, heat transfer, compressor curves, start-up, uncertainty. Failed checks go back to Muse with their numbers, round after round, until the design passes or it says why it cannot. You get the drawings, the MOC pack and a HAZOP draft for an engineer to review.</p>
+        <p class="lead">PlantAgent is an AI engineer built on Meta's <b>Muse</b>. Tell it what you want to change. Muse reads the plant's drawings and data sheets, builds the simulation model and designs the change; <b>engineering solvers</b> (DWSIM, pandapower, WaterTAP, Cantera) re-solve it and run every check: electrical, heat transfer, compressor curves, start-up, uncertainty. Failed checks go back to Muse with their numbers, round after round. A run ends when every check passes, when Muse says why it cannot, or at its round or budget limit, and the checks still open are listed. You get the drawings, the MOC pack and a HAZOP draft for an engineer to review.</p>
         <div class="hero-actions">
           <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Start the 3-minute demo</a>
           <a class="btn" href="#cases">See the grid and LNG incidents</a>
@@ -74,7 +74,7 @@
       <div class="case-board" aria-label="Featured engineering case">
         <div class="case-board-top"><span>Featured case / Vacuum-salt plant, US Patent 5,366,514</span><span>Chemical process</span></div>
         <h2>Can this salt plant make 20 % more?</h2>
-        <p class="case-question">Muse built the evaporator model from the patent's flowsheet. It finds the compressor limit, proposes cleaning plus a parallel compressor, and DWSIM re-solves the plant at 120 %. Then the same change is checked for the transformer, the exchangers and the boiler.</p>
+        <p class="case-question">Muse built the evaporator model from the patent's flowsheet. It finds the compressor limit; with cleaning and a parallel compressor (the engineer's idea, sized by Muse), DWSIM re-solves the plant at 120 %. Then the same change is checked for the transformer, the exchangers and the boiler, and the transformer check fails.</p>
         <div class="case-path"><span><b>01 / Read</b>P&amp;ID and data sheet</span><span><b>02 / Solve</b>DWSIM model</span><span><b>03 / Check</b>Electrical, heat transfer, combustion</span></div>
         <div class="case-board-foot"><a href="plant.html?case=salt_mvr&tour=1">Take the guided tour →</a></div>
       </div>
@@ -110,7 +110,7 @@
 <script>
 // the three interactive workspaces to open first; everything else is the evidence library below
 // [case, pitch, task label]: salt_mvr is the flagship demo
-const FEATURED = [["salt_mvr", "+20 % on a patent salt evaporator: Muse finds the compressor limit, proposes cleaning and a parallel compressor; DWSIM verifies 120 %, then load flow, exchanger and boiler checks show what else the change needs.", "Design change · chemical process", "100 % → 120 %", "DWSIM re-solves three changes; the transformer gate still fails"],
+const FEATURED = [["salt_mvr", "+20 % on a patent salt evaporator: Muse finds the compressor limit; with cleaning and a parallel compressor (the engineer's idea, sized by Muse) DWSIM verifies 120 %, then load flow, exchanger and boiler checks show what else the change needs.", "Design change · chemical process", "100 % → 120 %", "DWSIM re-solves three changes; the transformer gate still fails"],
   ["ucte_2006", "4 November 2006: dispatchers coupled two busbars at Landesbergen to relieve a line. Muse rebuilt the grid from the UCTE report and, blind to the outcome, predicted the coupling would load the line more, not less.", "Incident reconstruction · power grid", "1,779 → 1,831 A", "pandapower: coupling adds current; the grid is not N-1 secure"],
   ["freeport_lng_2022", "June 2022: PHMSA recorded a partially filled 18-inch LNG line rising from 37 to 1,313 psig after it was blocked in with its relief isolated. The model brackets a days-scale rupture under ILLUSTRATIVE fill and heat-leak assumptions; restoring relief holds pressure only at an ideal relief boundary, with relieving capacity unchecked.", "Incident reconstruction · LNG terminal", "37 → 1,313 psig · PHMSA recorded", "DWSIM isochore: illustrative scenarios bracket days-scale rupture"],
   ["basf_process_column_k_2750_dexpi_c02_uns", "Unseen DEXPI, no hand-written files: the official BASF process-column example (DEXPI C02) was uploaded as is. The drawing was rendered from the file, the open-weight Muse Spark Open built a DWSIM column from it, assuming the duty the drawing does not state, and the drafted discipline files carry every assumption.", "Unseen drawing · open-weight model", "floods at +13 % → 120 % at reflux 0.8", "DWSIM: column at 79 % of flood; product purity not checked"]];
@@ -157,7 +157,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
     more += list.length;
     return list.length ? `<h2><i>${icon}</i>${name}</h2><div class="grid">${list.join("")}</div>` : "";
   }).join("");
-  document.getElementById("groups").innerHTML = `<h2><i>★</i>Build, switch, block, and one drawing it had never seen</h2><div class="grid featured">${featured}</div>
+  document.getElementById("groups").innerHTML = `<h2><i>★</i>Four workspaces: a plant change, a blackout, an LNG line, and a drawing it had never seen</h2><div class="grid featured">${featured}</div>
     <details class="library"><summary>▸ Show ${more} more plants · evidence library with ${graded.length} blind studies on real engineering reports</summary>${library}</details>`;
 })().catch(() => { document.getElementById("groups").innerHTML = '<p class="foot">Cases could not be loaded. Start the PlantAgent server and reload this page.</p>'; });
 document.getElementById("newForm").onsubmit = async e => {

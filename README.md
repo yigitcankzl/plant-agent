@@ -5,12 +5,12 @@
 - Meta's **Muse** reads the P&ID and data sheets, builds the simulator model itself, and designs the change.
 - **The engineering loop** (`plantagent/loop.py`): the engines re-solve Muse's design and run every check (process, robustness, electrical, compressor curves and surge, start-up transient, uncertainty; limits and N-1 for grids). Failed checks go back to Muse with their numbers; Muse fixes them; repeat until everything passes or Muse says why it cannot. Every round is logged with who did what.
 - Deterministic engines (DWSIM, WaterTAP, EPANET, pandapower, ht/fluids, Cantera) re-solve every proposal before it can be applied; a change that only edits a limit is refused.
-- Flagship: a vacuum-salt MVR crystalliser reaches **+20 %** with three verified changes (clean E-201, a parallel compressor K-202, a purge-steam trim). The discipline gates then flag what the process answer alone hides: **TX-1 overloaded (~131–133 %)** and **not robust when E-201 re-fouls**.
+- Flagship: a vacuum-salt MVR crystalliser reaches **+20 %** with three verified changes (clean E-201, a parallel compressor K-202, a purge-steam trim). The discipline gates then flag what the process answer alone hides: **TX-1 overloaded (~133 %)** and **not robust when E-201 re-fouls**.
 - The same loop works outside process plants. Two real incidents, rebuilt by Muse from the investigation reports with the conclusions withheld:
   - **UCTE 2006 European blackout** (pandapower): coupling the Landesbergen busbars raises the tripping line 1,779 → 1,831 A; the reduced grid remains insecure under three other single outages.
   - **Freeport LNG 2022** (DWSIM, trapped liquid): a blocked-in LNG line with its relief isolated bursts in days; restoring PSV-101 is screened at an ideal relief boundary, with capacity unchecked.
-- **Not only our demos.** An official DEXPI drawing we had never used (BASF column C02) went through the upload path with no hand-written case file: Muse built the DWSIM column, the discipline files were drafted, an engineer confirmed three assumptions, and the loop verified a no-capex +20 % for $1.54 on open weights. The column's duty is Muse's assumption, and the page says so.
-- **Open weights in the loop.** Muse Spark Open on Baseten ran the same engineering loop: on UCTE and Freeport it reached the same strategy as Muse Wonder; on the salt plant neither model finished, and the page says so.
+- **Not only our demos.** An official DEXPI drawing we had never used (BASF column C02) went through the upload path with no hand-written case file: Muse built the DWSIM column, the discipline files were drafted, an engineer confirmed three assumptions, and the loop process-verified a no-capex +20 % for $1.54 on open weights. The column's duty is Muse's assumption and product purity was not checked, so this shows the path works, not a valid design; the page says so.
+- **Open weights in the loop.** Muse Spark Open on Baseten ran the same engineering loop: on Freeport it reached the same conclusion as Muse Wonder; on UCTE, where the Meta-hosted endpoint refused the prompt four times (content policy), it found a switching plan that passes line limits and N-1; on the salt plant neither model finished, and the page says so.
 - Blind benchmark: on 13 real projects with the engineers' conclusions withheld, Muse reaches **64 %** of them on average (range 33–100 %).
 
 | Muse does | The deterministic engines do |
@@ -52,7 +52,7 @@ On the salt plant, look at:
 - The first limit is K-201 suction.
 - The verified design has three changes:
   - clean E-201 back to its clean U;
-  - add a parallel vapour compressor K-202, operating at 48.8 t/h and 2.0 MW in the solve, with a provisional rating of 55 t/h / 2.4 MW for the vendor to confirm;
+  - add a parallel vapour compressor K-202, operating at 49.5 t/h and 2.05 MW in the combined solve, with a provisional rating of 55 t/h / 2.4 MW for the vendor to confirm;
   - trim the purge-heater steam.
 - DWSIM re-solves the combination at 120.1 %.
 - **Where K-202 came from.** Muse's first answer proposed raising K-201's rating, and the server refused it because a change that only edits a limit is not accepted. The engineer then asked for a physical change and named a parallel compressor (answer 2 in `runs/ws/salt_mvr/`); the verified design builds on that. In a clean session with no earlier answers (`salt_mvr_vision`, model built from the scanned patent figure), Muse did not propose a second compressor and did not reach 120 %. So the K-202 idea is the engineer's; the sizing, the re-solve and the consequences are the agent's and the engines'.
@@ -65,7 +65,7 @@ On the salt plant, look at:
 | Process | ✓ reaches 120 % | DWSIM re-solve of the combined changes |
 | Robustness | ✕ 3 of 4 operating scenarios pass; fails with E-201 fouled back | DWSIM, pre-FEED operating envelope |
 | Mechanical | ○ K-202 within its provisional rating; vendor curve needed | solve vs rating |
-| Electrical | ✕ TX-1 45 → ~131–133 %, 29 % start dip direct-on-line; a VFD fixes the dip, not the transformer | pandapower on an illustrative one-line diagram |
+| Electrical | ✕ TX-1 45 → ~133 %, 29 % start dip direct-on-line; a VFD fixes the dip, not the transformer | pandapower on an illustrative one-line diagram |
 | Heat transfer | ○ E-201 needs 7,130 of 8,800 m² clean; pump and shell-side ratings illustrative | ht/fluids (Gnielinski, Bell-Delaware) |
 | Combustion | ○ +20 % steam needs about 10.1 MMBtu/h (3.0 MW) of duct firing on the proposed design | Cantera GRI-Mech 3.0 |
 | Piping, controls, safety, civil | ○ no calculation adapter; listed as open work | change register |
@@ -91,13 +91,13 @@ The MOC pack carries the failed gates as risks and its decision reads "Do not ap
 - `basis.md` stops at the 22:08 request. The investigators' simulation and conclusion are in `cases/ucte_2006/outcome.json`, which the agent never sees.
 - **Muse's blind answer:** "No relief — coupling raises line current". The line goes from 1,779 to 1,831 A, past the 1,795 A warning, and the N-1 screen on the coupled grid is not secure.
 - **What the report found:** current rose by about 67 A instead of falling, distance protection tripped the line, and the grid split into three areas. It had not been N-1 secure since Conneforde-Diele was switched off.
-- **Limit:** the model gives +52 A against the report's +67 A. It puts the line at 98–99 % of the 2,100 A trip setting, not over it. A corrected single-circuit N-1 screen still finds three other violating outages, but no longer reproduces the report's Bechterdissen–Elsen or Elsen–Twistetal violations; the old eight-case result incorrectly removed both circuits.
+- **Limit:** the model gives +52 A against the report's +67 A. It puts the line at 1,831 A, 87 % of the 2,100 A trip setting, not over it. A corrected single-circuit N-1 screen still finds three other violating outages, but no longer reproduces the report's Bechterdissen–Elsen or Elsen–Twistetal violations; the old eight-case result incorrectly removed both circuits.
 
 ## Incident 2: Freeport LNG, June 2022 (trapped liquid)
 
 `plant.html?case=freeport_lng_2022` is an 18-inch vacuum-insulated LNG line that was blocked in with its relief valve isolated after an annual test. The basis is the PHMSA Notice of Probable Violation (December 2024), up to the second valve closure.
 - `plantagent/trapped.py` steps the blocked-in segment in time at constant volume. DWSIM Peng-Robinson flashes find the pressure at which the trapped mass fills the pipe, as heat leaks in per metre.
-- Engine check (`tools/freeport_spike.py`): the documented 37 → 1,313 psig in 4.78 days is reproduced with an 80–95 % liquid fill and a 10–24 W/m heat leak. Both values are ILLUSTRATIVE because the notice redacts them.
+- Engine check (`tools/freeport_spike.py`): the documented 37 → 1,313 psig in 4.78 days is reproduced with an 80–95 % liquid fill and a 10–24 W/m heat leak (`evidence/freeport_spike/output.txt`). Both values are ILLUSTRATIVE because the notice redacts them.
 - **Muse's blind answer:** "Blocked line bursts in days unless relief restored". With sound insulation the line passes design pressure only after about 39 days. With degraded insulation it reaches the illustrative burst pressure at 80 h (actual rupture at about 115 h). Putting PSV-101 back in service holds 230 psig only at an ideal relief boundary; relieving capacity, backpressure and discharge capacity are not checked.
 - **How blind it is:** the basis was written by us after the notice was public. It gives Muse the redacted inputs as ranges (fill, heat leak) and says the relief valve was isolated; it contains no pressure after the closure.
 - **What it missed:** two of PHMSA's three causes. The transfer procedure did not specify the valve positions, and the inner-pipe temperature points were logged but not alarmed. The page shows this next to the recorded outcome.
@@ -176,7 +176,7 @@ Tick **+ open-model second opinion** and **Muse Spark Open** (open weights, on B
 | Case | Agree | Disagree |
 |---|---|---|
 | Chemical unit, +20 % | Cooling water to 27 m³/h and tank level up; both reach 120 % (124 % max) | Muse Spark also raised the H1008 chilled water. The open model left it out, and the re-solve shows the open model's fix was the cheaper one |
-| Dairy refrigeration, N+1 and floating head | The new load fits with N+1; the condensers are the closest limit | Annual saving 1,716 MWh (Spark) vs 1,330 MWh (Open). A direct bin calculation gives 1,329 MWh, so the open model was right here |
+| Dairy refrigeration, N+1 and floating head | The new load fits with N+1; the condensers are the closest limit | Annual saving 1,716 MWh (Spark) vs 1,329 MWh (Open). A direct bin calculation gives 1,329 MWh, so the open model was right here |
 
 Neither model is always right; the engineer is shown the disagreements (`runs/ws/*/second_opinion_answer.json`).
 
@@ -195,7 +195,7 @@ The 2008 pilot report (`cases/swro_brownsville/hidden_outcome.md`) was withheld 
   - the pilot's recommendation of a phased 2.5 MGD demonstration plant;
   - its post-treatment and concentrate findings, which came from pilot data the agent never had.
 
-**Monterey** (`swro_monterey`), a second RO screen: nine first-pass trains with one out, 8.66 vs 8.75 gfd maximum average flux at 12.8 MGD. Second-pass performance and boron are not claimed.
+**Monterey** (`swro_monterey`), a second RO screen: nine first-pass trains with one out. The throughput slider's average-flux check gives 8.65 vs 8.75 gfd at 12.8 MGD, but the stored Muse answer, made against the lead-element flux, says no (lead flux 132 % of its limit). Second-pass performance and boron are not claimed.
 
 ## Evidence: blind benchmark against real engineers
 
@@ -327,7 +327,7 @@ cp .env.example .env && chmod 600 .env          # then add keys
 
 ## Timeline
 
-Built during the hackathon window. Kickoff was Oct 26, 2026 at 12:00 PM ET. The first source file was created on Oct 27 at 01:44 Istanbul time (Oct 26, 6:44 PM ET). The git history shows the order of the work.
+Built during the hackathon window. Kickoff was Oct 26, 2026 at 12:00 PM ET. The first stored run is from Oct 27 at 01:53 Istanbul time (`runs/20261027-015311`); the first commit is from Oct 27 at 10:42. The git history shows the order of the work.
 
 ## Data and credits
 
