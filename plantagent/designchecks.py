@@ -118,7 +118,7 @@ def checks_for_design(w, answer_index):
         rows.append(_open("process", "DWSIM", f"discipline gates could not run: {type(ex).__name__}: {ex}"))
     ov = curves.overlay(w.name)
     if ov:
-        pre = f"{drafts.DRAFT}: " if drafts.is_draft(ov) else ""
+        pre = drafts.label(ov)
         try:
             ev = curves.evaluate(w, answer=answer_index)
             target = f"{ev['target_scale']:.2f}"
@@ -136,7 +136,9 @@ def checks_for_design(w, answer_index):
                           else f"all within curve limits (worst {w_.get('id')} {w_.get('check')} {(w_.get('utilisation') or 0) * 100:.0f} %)"))
                 rows.append({"check": "curves" if sc == target else "curves_today", "engine": "curves", "title": title,
                              "status": "fail" if over else "pass", "numbers": w_,
-                             "source": ("drafted curve templates (runs/ws/<case>/drafts/curves.json)" if pre else
+                             "source": ("engineer-uploaded curves merged over the case file (runs/ws/<case>/inputs/resolved/curves.json)"
+                                        if drafts.uploaded(ov) else
+                                        "drafted curve templates (runs/ws/<case>/drafts/curves.json)" if drafts.is_draft(ov) else
                                         "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor)") + " on a DWSIM solve"})
         except Exception as ex:  # noqa: BLE001
             rows.append(_open("curves", "curves", f"curves could not run: {type(ex).__name__}: {ex}"))

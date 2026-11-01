@@ -34,5 +34,12 @@ Every numeric engineering input of a plant is one assumption, and each one carri
 - **motors.csv:** columns `tag,kw`; optional `voltage_kv,start(dol|soft|vfd),cable_m`. Stored as `inputs/motors.json`.
 - **curves.csv:** columns `tag,flow_m3h,head_m`; optional `efficiency_pct,speed_rpm`. At least 3 points per tag, with flow rising. Stored as `inputs/curves.json`.
 - **datasheet:** a PDF, stored under `inputs/datasheets/` as a documented source.
+- Leading `# ...` lines are the file's note (e.g. "ILLUSTRATIVE vendor curve"); the note travels into the check titles.
+
+**Uploads feed the checks.** After a motor list or curve upload, `drafts.resolve_uploads` merges it over the case file (else the draft) into `inputs/resolved/electrical.json` / `curves.json`. Every loader (`drafts.case_file`: electrical, curves, start-up transient) reads in this order: **upload > case file > draft**.
+- A curve becomes the `curves.py` form: design point = best-efficiency row, lowest-flow row = surge line (compressor) or minimum continuous flow (pump). A compressor keeps the case's suction temperature and gets the pressure ratio its vendor head implies.
+- A motor row updates the unit's motor (kW, start method, cable length) or adds one on the bus whose voltage is closest.
+- Check rows built on uploaded units start with "vendor data (uploaded)" (", ILLUSTRATIVE" when the file says so).
+- Demo file: `cases/salt_mvr/demo_inputs/K-202_vendor_curve_ILLUSTRATIVE.csv`.
 
 `GET /api/plant/<case>/inputs` returns the templates and the stored files.
