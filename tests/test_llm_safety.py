@@ -66,6 +66,12 @@ class LlmSafetyTests(unittest.TestCase):
                 llm.complete("muse-spark-1.3", [{"role": "user", "content": "hello"}], max_tokens=100)
         self.assertEqual(client.calls, 0)
 
+    def test_reservation_counts_tool_schemas(self):
+        plain = llm._reserve("muse-spark-1.3", [{"role": "user", "content": "hello"}], {})
+        with_tools = llm._reserve("muse-spark-1.3", [{"role": "user", "content": "hello"}],
+                                  {"tools": [{"function": {"name": "x", "description": "z" * 1000}}]})
+        self.assertGreater(with_tools, plain)
+
     def test_open_model_usage_keeps_provider_and_case_tag(self):
         client = FakeClient()
         llm.set_tag("plant:salt_mvr")

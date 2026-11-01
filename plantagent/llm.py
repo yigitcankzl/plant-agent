@@ -153,8 +153,9 @@ def _budget(model):
 
 def _reserve(model, messages, params):
     pin, pout = PRICES.get(model) or OPEN_DEFAULT_PRICE
-    input_tokens = max(1, len(json.dumps(messages, default=str)) // 4)
-    output_tokens = int(params.get("max_tokens") or 4096)
+    # Include tool schemas and over-count text at two characters/token so a task cap stops before the next paid call.
+    input_tokens = max(1, len(json.dumps([messages, params], default=str)) // 2)
+    output_tokens = int(params.get("max_tokens") or 8192)
     return (input_tokens * pin + output_tokens * pout) / 1e6
 
 
