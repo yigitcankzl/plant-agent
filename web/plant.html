@@ -2106,7 +2106,7 @@ function outcomeCard() {
   const o = P.outcome;
   if (!o?.engineers) return '';
   const agent = o.agent_headline || designAnswer()?.headline || (P.answers || []).at(-1)?.headline;
-  return `<details class="outcome-compare"><summary>Compare with the ${esc(o.year || 'recorded')} decision</summary><div class="outcome-cols">
+  return `<details class="outcome-compare"${incident() ? ' open' : ''}><summary>Compare with the ${esc(o.year || 'recorded')} decision</summary><div class="outcome-cols">
     <div><div class="tt">Agent (blind: never saw this outcome)</div><div><b>${esc(plain(agent || 'no answer on record yet'))}</b></div>${o.agent_summary ? `<div class="sm" style="margin-top:4px">${esc((t => t.length > 420 ? t.slice(0, t.lastIndexOf('. ', 420) + 1 || 420) : t)(plain(o.agent_summary)))}</div>` : ''}</div>
     <div><div class="tt">What the engineers decided</div><div>${esc(o.engineers)}</div>${o.source ? `<small>${esc(o.source)}</small>` : ''}${o.note ? `<small>${esc(o.note)}</small>` : ''}</div></div></details>`;
 }

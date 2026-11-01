@@ -1,8 +1,9 @@
-# PlantAgent: an AI engineer for any plant
+# PlantAgent: give it the change, it does the engineering
 
 **TL;DR**
-- PlantAgent is an engineering workspace for existing plants: you open the plant's drawings and documents and ask an engineering question.
-- Meta's **Muse** reads the P&ID and data sheets, builds the simulator model itself, and proposes physical changes.
+- PlantAgent is an AI engineer for changes to existing plants. You state the change or the goal; it does the engineering.
+- Meta's **Muse** reads the P&ID and data sheets, builds the simulator model itself, and designs the change.
+- **The engineering loop** (`plantagent/loop.py`): the engines re-solve Muse's design and run every check (process, robustness, electrical, compressor curves and surge, start-up transient, uncertainty; limits and N-1 for grids). Failed checks go back to Muse with their numbers; Muse fixes them; repeat until everything passes or Muse says why it cannot. Every round is logged with who did what.
 - Deterministic engines (DWSIM, WaterTAP, EPANET, pandapower, ht/fluids, Cantera) re-solve every proposal before it can be applied; a change that only edits a limit is refused.
 - Flagship: a vacuum-salt MVR crystalliser reaches **+20 %** with three verified changes (clean E-201, a parallel compressor K-202, a purge-steam trim). The discipline gates then flag what the process answer alone hides: **TX-1 overloaded (~131–133 %)** and **not robust when E-201 re-fouls**.
 - The same loop works outside process plants. Two real incidents, rebuilt by Muse from the investigation reports with the conclusions withheld:

@@ -62,9 +62,9 @@
   <main>
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="kicker">An AI engineer agent for process plants, with the working shown</p>
-        <h1 id="hero-title">Know what the plant can actually take.</h1>
-        <p class="lead">PlantAgent is an AI agent built on Muse. <b>Muse</b> reads the plant's drawings and data sheets, builds the simulation model and proposes the changes; <b>engineering solvers</b> (DWSIM, WaterTAP, EPANET, pandapower, Cantera) produce every number and re-check every proposal. Nothing is accepted until it re-solves.</p>
+        <p class="kicker">An AI engineer for plant changes, with the working shown</p>
+        <h1 id="hero-title">Give it the change. It does the engineering.</h1>
+        <p class="lead">PlantAgent is an AI engineer built on Meta's <b>Muse</b>. Tell it what you want to change. Muse reads the plant's drawings and data sheets, builds the simulation model and designs the change; <b>engineering solvers</b> (DWSIM, pandapower, WaterTAP, Cantera) re-solve it and run every check: electrical, heat transfer, compressor curves, start-up, uncertainty. Failed checks go back to Muse with their numbers, round after round, until the design passes or it says why it cannot. You get the drawings, the MOC pack and a HAZOP draft for an engineer to review.</p>
         <div class="hero-actions">
           <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Start the 3-minute demo</a>
           <a class="btn" href="#cases">See the grid and LNG incidents</a>
@@ -154,7 +154,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
     more += list.length;
     return list.length ? `<h2><i>${icon}</i>${name}</h2><div class="grid">${list.join("")}</div>` : "";
   }).join("");
-  document.getElementById("groups").innerHTML = `<h2><i>★</i>Three ways to use it: change a plant, explain a grid failure, reconstruct an accident</h2><div class="grid featured">${featured}</div>
+  document.getElementById("groups").innerHTML = `<h2><i>★</i>Build, switch, block: three changes, engineered before they happen</h2><div class="grid featured">${featured}</div>
     <details class="library"><summary>▸ Show ${more} more plants · evidence library with ${graded.length} blind studies on real engineering reports</summary>${library}</details>`;
 })().catch(() => { document.getElementById("groups").innerHTML = '<p class="foot">Cases could not be loaded. Start the PlantAgent server and reload this page.</p>'; });
 document.getElementById("newForm").onsubmit = async e => {
