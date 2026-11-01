@@ -31,6 +31,14 @@ def incident_checks(w, idx):
              "numbers": {"utilisation_pct": round(100 * lb["utilisation"], 1)} if lb.get("utilisation") is not None else None,
              "source": f"{eng} re-solve of the proposed actions"}]
     rows += [{"check": "limits", "engine": eng, "status": "fail", "title": f"{o.get('id')} {o.get('check')} at {round(100 * o.get('utilisation', 0))} %"} for o in over]
+    env = w.cfg.get("check_envelope")  # the case's documented worst credible conditions, applied on top of the actions
+    if env:
+        e = w.verify({"changes": ch + env["changes"]})
+        elb, eover = e.get("limited_by") or {}, e.get("over_limits_at_target") or []
+        rows.append({"check": "worst case", "engine": eng, "status": "pass" if e.get("reaches_target") and not eover else "fail",
+                     "title": env["name"] + ": " + ("; ".join(f"{o.get('id')} {o.get('check')} at {round(100 * o.get('utilisation', 0))} %" for o in eover)
+                                                   or f"{elb.get('id')} {elb.get('value')} vs {elb.get('limit')} {elb.get('unit', '')}".strip()),
+                     "source": env.get("source")})
     if v.get("relief_basis"):
         rows.append({"check": "relief capacity", "engine": "none", "status": "open", "title": v["relief_basis"]})
     if _is_grid(w.cfg):
