@@ -42,14 +42,38 @@ def _short(v):
     return [_short(x) for x in v] if isinstance(v, list) else round(v, 3) if isinstance(v, float) else v
 
 
-def _change_lines(change, design_units, spec, tag=lambda x: x):
-    """Capex lines for one model change; tag maps a model unit id back to its P&ID tag (case model_aliases)."""
+def _correlated(u, t, lim, solved, corr):
+    """Towler & Sinnott Ce = a + b S^n (drafts.py capex_correlations), escalated by CEPCI, times the Lang factor; None when
+    the type has no correlation or no size."""
+    c = (corr.get("items") or {}).get(t)
+    if not c:
+        return None
+    size = {"pump": (solved.get("m3_h") or lim.get("max_m3_h") or 0) / 3.6, "compressor": lim.get("max_kW") or solved.get("kW"),
+            "hx": u.get("area_m2") or lim.get("area_m2"), "tank": u.get("volume_m3")}.get(t)
+    if not size:
+        return None
+    cep, lang = corr["cepci"], float(corr["lang_factor"])
+    esc = float(cep["now"]) / float(cep["base"])
+    lo, hi = c["range"]
+    bare = c["a"] + c["b"] * float(size) ** c["n"]
+    return [{"item": f"{u['id']} {t}", "size": size, "size_unit": c["S"],
+             "basis": f"Ce = {c['a']:,} + {c['b']:,}·S^{c['n']} at S = {size:,.1f} {c['S']}"
+                      f"{'' if lo <= size <= hi else f' (outside {lo}-{hi})'} × CEPCI {cep['now']}/{cep['base']} × Lang {lang}",
+             "usd": round(bare * esc * lang, -3), "source": corr["source"] + " (draft, assumed values)"}]
+
+
+def _change_lines(change, design_units, spec, tag=lambda x: x, corr=None):
+    """Capex lines for one model change; tag maps a model unit id back to its P&ID tag (case model_aliases). corr: the
+    Towler & Sinnott correlations of a drafted economics.json, used before the FACTORS table when present."""
     f, inst = FACTORS, FACTORS["install_factor"]["value"]
     u = change.get("add_unit")
     if u:
         t = u.get("type")
         if t in ROUTING:
             return [{"item": f"tie-in {u['id']}", "basis": "new tee/join", "usd": f["tie_in"]["usd"], "source": f["tie_in"]["source"]}]
+        got = corr and _correlated(u, t, change.get("limits") or {}, design_units.get(u["id"]) or {}, corr)
+        if got:
+            return got
         if t not in FACTORS:
             return [{"item": f"{u['id']} ({t})", "basis": "no factor for this equipment type", "usd": None, "source": "to price"}]
         fac, lim = FACTORS[t], change.get("limits") or {}
@@ -83,8 +107,8 @@ def _flow(spec, sid, field, scale):
 
 def key(w, ans):
     from .prefeed import gates_key
-    cfg = ROOT / "cases" / w.name / "economics.json"
-    blob = json.dumps({"design": gates_key(w, ans)["content"], "prices": cfg.read_text() if cfg.exists() else None,
+    from . import drafts
+    blob = json.dumps({"design": gates_key(w, ans)["content"], "prices": drafts.file_text(w.name, "economics.json", ROOT),
                        "factors": FACTORS, "combined": (ans or {}).get("combined")}, sort_keys=True, default=str)
     return hashlib.sha1(blob.encode()).hexdigest()
 
@@ -93,8 +117,9 @@ def assess(w, answer=None, refresh=False):
     """Economics of the design answer (or answers[answer]); cached in economics.json next to the model."""
     from . import revb
     from .plant import patch
-    cfg_path = ROOT / "cases" / w.name / "economics.json"
-    if not cfg_path.exists():
+    from . import drafts
+    cfg = drafts.case_file(w.name, "economics.json", ROOT)  # the engineer's prices, else the drafted ones
+    if not cfg:
         return {"error": f"no economics.json for {w.name}"}
     ans = (w.answers[int(answer)] if answer is not None and -len(w.answers) <= int(answer) < len(w.answers)
            else revb.design_answer(w.answers))
@@ -107,7 +132,6 @@ def assess(w, answer=None, refresh=False):
         old = json.loads(cache.read_text())
         if old.get("key") == k:
             return old
-    cfg = json.loads(cfg_path.read_text())
     target = float(w.cfg.get("target_scale") or 1.0)
     changes = [c for p in props for c in p.get("changes") or []]
     spec_d = patch(copy.deepcopy(w.spec), changes)
@@ -117,7 +141,7 @@ def assess(w, answer=None, refresh=False):
     back = {v: k for k, v in (w.cfg.get("model_aliases") or {}).items()}
     rows, total = [], 0.0
     for p in props:
-        lines = [ln for c in p.get("changes") or [] for ln in _change_lines(c, du, w.spec, lambda x: back.get(x, x))]
+        lines = [ln for c in p.get("changes") or [] for ln in _change_lines(c, du, w.spec, lambda x: back.get(x, x), cfg.get("capex_correlations"))]
         usd = sum(ln["usd"] or 0 for ln in lines)
         lo, hi = CLASS_USD.get(p.get("cost_class"), (None, None))
         rows.append({"title": p.get("title"), "cost_class": p.get("cost_class"), "capex_usd": usd, "lines": lines,
@@ -131,9 +155,10 @@ def assess(w, answer=None, refresh=False):
     sold = min(cap, target) if cap else target
     days = float(cfg["operating_days"]["value"])
     price, var = cfg["product"]["price"], cfg["product"].get("variable_cost") or {"value": 0}
-    unit_margin = float(price["value"]) - float(var["value"])
+    no_price = price.get("value") is None  # a drafted economics.json leaves the product price to the engineer
+    unit_margin = 0.0 if no_price else float(price["value"]) - float(var["value"])
     gain_day = float(tp["base"]) * max(0.0, sold - 1.0)
-    revenue = gain_day * days * float(price["value"])
+    revenue = 0.0 if no_price else gain_day * days * float(price["value"])
     product_margin = gain_day * days * unit_margin
 
     energy = []
@@ -165,11 +190,13 @@ def assess(w, answer=None, refresh=False):
         return f"${v / 1e6:.1f}M" if abs(v) >= 1e6 else f"${v / 1e3:.0f}k"
     pb = ("none" if payback is None else f"{payback * 52:.0f} weeks" if payback < 0.25 else
           f"{payback * 12:.0f} months" if payback < 2 else f"{payback:.1f} years")
-    summary = (f"Capex ≈ {money(total)} (class 5: {money(band[0])}–{money(band[1])}); +{gain_day:,.0f} {tp.get('unit', '')} "
-               f"→ {money(margin)}/yr margin after energy and utilities; payback {pb}; NPV {years} y @ {rate:.0%} "
-               f"{money(npv(total))}. All prices ILLUSTRATIVE.")
+    summary = ((f"{drafts.DRAFT}: " if drafts.is_draft(cfg) else "") +
+               f"Capex ≈ {money(total)} (class 5: {money(band[0])}–{money(band[1])}); " +
+               (f"product price not given: margin, payback and NPV open (energy and utilities {money(margin)}/yr)" if no_price else
+                f"+{gain_day:,.0f} {tp.get('unit', '')} → {money(margin)}/yr margin after energy and utilities; payback {pb}; "
+                f"NPV {years} y @ {rate:.0%} {money(npv(total))}") + ". All prices ILLUSTRATIVE.")
     out = {"key": k, "made": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "case": w.name, "answer_headline": ans.get("headline"),
-           "currency": cur, "illustrative": True, "summary": summary,
+           "currency": cur, "illustrative": True, "summary": summary, "draft": drafts.is_draft(cfg), "product_price_open": no_price,
            "capex": {"total_usd": round(total, -3), "range_usd": band, "range_basis": "AACE 18R-97 class 5, -50 % / +100 %",
                      "proposals": rows},
            "annual": {"throughput_name": tp.get("name"), "unit": tp.get("unit"), "base": tp["base"], "sold_multiple": round(sold, 4),
@@ -190,7 +217,8 @@ def assess(w, answer=None, refresh=False):
 def cached(w, ans):
     """The cached economics for this answer, or None if missing or stale (no solve)."""
     f = w.model_file.with_name("economics.json")
-    if not (ans and f.exists() and (ROOT / "cases" / w.name / "economics.json").exists()):
+    from . import drafts
+    if not (ans and f.exists() and drafts.file_text(w.name, "economics.json", ROOT) is not None):
         return None
     e = json.loads(f.read_text())
     return e if e.get("key") == key(w, ans) else None
@@ -198,7 +226,7 @@ def cached(w, ans):
 
 def for_prefeed(e):
     """The pre-FEED constructability input (prefeed.constructability economics) from an assessment."""
-    if not e or e.get("error"):
+    if not e or e.get("error") or e["prices"]["product"].get("value") is None:
         return None
     lo, hi = e["capex"]["range_usd"]
     per_day = e["annual"]["base"] * (float(e["prices"]["product"]["value"]) - float(e["prices"]["variable_cost"]["value"]))

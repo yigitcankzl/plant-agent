@@ -25,8 +25,12 @@ def _open(check, engine, why):
 
 def checks_for_design(w, answer_index):
     """Flat check rows for w.answers[answer_index]'s verified proposals taken together (the design)."""
-    from . import curves, prefeed, transient, uncertainty
+    from . import curves, drafts, prefeed, transient, uncertainty
     rows = []
+    try:  # a plant without the engineer's discipline files gets drafts (assumed values), so its checks still run
+        drafts.ensure(w)
+    except Exception as ex:  # noqa: BLE001
+        rows.append(_open("drafts", "drafts", f"discipline drafts could not be made: {type(ex).__name__}: {ex}"))
     try:
         g = prefeed.discipline_gates(w, answer_index)
         if g.get("error"):
@@ -41,7 +45,9 @@ def checks_for_design(w, answer_index):
                          "numbers": _worst(d.get("checks")), "source": d.get("source") or ""})
     except Exception as ex:  # noqa: BLE001 - a broken part stays open, never green
         rows.append(_open("process", "DWSIM", f"discipline gates could not run: {type(ex).__name__}: {ex}"))
-    if curves.overlay(w.name):
+    ov = curves.overlay(w.name)
+    if ov:
+        pre = f"{drafts.DRAFT}: " if drafts.is_draft(ov) else ""
         try:
             ev = curves.evaluate(w, answer=answer_index)
             target = f"{ev['target_scale']:.2f}"
@@ -54,14 +60,16 @@ def checks_for_design(w, answer_index):
                     continue
                 over = [c for c in r["checks"] if c.get("utilisation", 0) > 1.0]
                 w_ = _worst(r["checks"])
-                title = (f"compressor/pump curves {label}: " +
+                title = (f"{pre}compressor/pump curves {label}: " +
                          ("; ".join(f"{c['id']} {c['check']} {c['utilisation'] * 100:.0f} %" for c in over[:3]) if over
                           else f"all within curve limits (worst {w_.get('id')} {w_.get('check')} {(w_.get('utilisation') or 0) * 100:.0f} %)"))
                 rows.append({"check": "curves" if sc == target else "curves_today", "engine": "curves", "title": title,
                              "status": "fail" if over else "pass", "numbers": w_,
-                             "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"})
+                             "source": ("drafted curve templates (runs/ws/<case>/drafts/curves.json)" if pre else
+                                        "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor)") + " on a DWSIM solve"})
         except Exception as ex:  # noqa: BLE001
             rows.append(_open("curves", "curves", f"curves could not run: {type(ex).__name__}: {ex}"))
+    if ov and not drafts.is_draft(ov):  # ponytail: the start-up screen is the salt K-202 model; a general one replaces this gate
         try:
             t = transient.k202_startup(w, save=False, answer=answer_index)
             if t.get("error"):
@@ -81,7 +89,8 @@ def checks_for_design(w, answer_index):
         if u and not u.get("error"):
             p = u["p_target"]
             rows.append({"check": "confidence", "engine": "uncertainty",
-                         "title": f"target met in {p * 100:.0f} % of {u['solved']} re-solves with uncertain inputs varied"
+                         "title": (f"{drafts.DRAFT}: " if drafts.is_draft(drafts.case_file(w.name, "uncertainty.json")) else "") +
+                                  f"target met in {p * 100:.0f} % of {u['solved']} re-solves with uncertain inputs varied"
                                   + (f"; most often limited by {u['limiting'][0]['item']}" if u.get("limiting") else ""),
                          "status": "pass" if p >= P_TARGET_PASS else "fail",
                          "numbers": {"p_target": p, **{k: v for k, v in (u.get("capacity") or {}).items()}, "n": u["solved"]},

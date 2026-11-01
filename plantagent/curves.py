@@ -126,7 +126,8 @@ def _groups(spec):
         if len(members) > 1 and len({u.get("P_out_bar") for u in members}) == 1:
             out.append(members)
             seen |= {u["id"] for u in members}
-    return out + [[u] for u in comps if u["id"] not in seen]
+    pumps = [[u] for u in spec.get("units") or [] if u.get("type") == "pump" and isinstance(u.get("curve"), dict)]
+    return out + [[u] for u in comps if u["id"] not in seen] + pumps
 
 
 def _row(uid, check, value, limit, unit, util, **extra):
@@ -202,9 +203,9 @@ def checks(spec, res):
 
 
 def overlay(case):
-    """cases/<case>/curves.json: {"basis": ..., "units": {tag: curve}}; None without one."""
-    f = ROOT / "cases" / case / "curves.json"
-    return json.loads(f.read_text()) if f.exists() else None
+    """cases/<case>/curves.json: {"basis": ..., "units": {tag: curve}}, else the drafted templates (drafts.py); None without."""
+    from . import drafts
+    return drafts.case_file(case, "curves.json", ROOT)
 
 
 def scaled(curve, spec, uid):

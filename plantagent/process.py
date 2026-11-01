@@ -566,7 +566,7 @@ class _Sheet:
             self._link(self.stream(u["in"]), p); self._link(p, self.stream(u["out"]))
             self._link(self._add("EnergyStream", f"E-{uid}"), p)
             p.Eficiencia = float(u.get("eff_pct", 70))
-            if u.get("curve"):
+            if isinstance(u.get("curve"), list):  # a dict curve is a curves.py overlay: checked after the solve, not solved on
                 from System.Collections.Generic import List
                 cs = p.PumpCurveSet
                 xs, ys = List[self.Double](), List[self.Double]()

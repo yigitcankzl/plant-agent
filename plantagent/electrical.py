@@ -40,8 +40,9 @@ def available():
 
 
 def config(case):
-    f = ROOT / "cases" / case / "electrical.json"
-    return json.loads(f.read_text()) if f.exists() else None
+    """cases/<case>/electrical.json, else the drafted one-line (plantagent/drafts.py), else None."""
+    from . import drafts
+    return drafts.case_file(case, "electrical.json", ROOT)
 
 
 def _q(p_mw, pf):
