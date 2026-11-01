@@ -130,7 +130,10 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
                                          "numbers": {"capacity_pct": round(p["capacity_multiple"] * 100, 1)} if p.get("capacity_multiple") else None})
                 last = ans
                 save()
-                if str(ans.get("headline", "")).startswith(UNSOLVABLE):
+                # UNSOLVABLE is accepted only once every proposal re-solved: a proposal refused for a fixable reason
+                # (wrong path or unit id) goes back to Muse first, or "unsolvable" may just mean "mis-typed"
+                fixable = [p for p in ans.get("proposals") or [] if not p.get("verified")]
+                if str(ans.get("headline", "")).startswith(UNSOLVABLE) and (not fixable or n == max_rounds):
                     log["status"] = "unsolved"
                     break
                 if not any(p.get("verified") for p in ans.get("proposals") or []):

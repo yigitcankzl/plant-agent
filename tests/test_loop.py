@@ -56,6 +56,13 @@ class LoopTest(unittest.TestCase):
         _, log = self.run_loop([{"headline": loop.UNSOLVABLE + " no vendor curve", "proposals": []}], [])
         self.assertEqual(log["status"], "unsolved")
 
+    def test_unsolvable_with_a_fixable_rejection_goes_back_first(self):
+        w, log = self.run_loop([{"headline": loop.UNSOLVABLE + " no curve", "proposals": [prop("K-202", ok=False) | {"unverified_reason": "unknown motor M-K-202"}]},
+                                {"headline": "b", "proposals": [prop("K-202")]}],
+                               [[{"check": "process", "title": "120 %", "status": "pass"}]])
+        self.assertIn("unknown motor M-K-202", w.asked[1])
+        self.assertEqual(log["status"], "done")
+
     def test_unverified_proposal_goes_back(self):
         w, log = self.run_loop([{"headline": "a", "proposals": [prop("raise limit", ok=False) | {"unverified_reason": "edits a limit"}]},
                                 {"headline": "b", "proposals": [prop("K-202")]}],

@@ -1,0 +1,269 @@
+{
+ "id": "20261101-214006",
+ "case": "salt_mvr",
+ "goal": "Get the unit to 120 % of today's throughput (3,000 short t/d of salt instead of 2,500). Find what limits it, propose the cheapest physical changes, and make the design pass every engineering check: process, robustness, electrical, compressor curves and surge, K-202 start-up, and confidence under uncertainty. If a check cannot pass without data the tool does not have, say UNSOLVABLE: and name the data.",
+ "label": null,
+ "model": "baseten:meta-models/muse-spark-open-1026",
+ "provider": "baseten",
+ "max_rounds": 5,
+ "budget_usd": 12.0,
+ "status": "unsolved",
+ "started": "2026-11-01T21:40:06+0300",
+ "usd_total": 1.8608,
+ "seconds_total": 448,
+ "rounds": [
+  {
+   "n": 1,
+   "answer_index": 12,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "baseten:meta-models/muse-spark-open-1026",
+     "kind": "propose",
+     "status": "info",
+     "usd": 1.8608,
+     "seconds": 448,
+     "title": "Clean main heater E-201 and extend to 11,000 m²; Hold purge steam at today's rate (no new E-301); Add parallel vapour compressor K-202 for 25% of vapour; Replace TX-1 2.5 MVA with 7.5 MVA and raise tap 5%, VFD and 185mm² cable for K-202",
+     "detail": "UNSOLVABLE: vendor compressor curve still missing",
+     "changes": [
+      {
+       "path": "units.V-201.U_W_m2K",
+       "value": 2500,
+       "physical_change": "Chemical/mechanical clean of E-201 to restore design performance",
+       "rating_source": "Data sheet clean U 2,500 W/m²K ILLUSTRATIVE - post-clean survey to confirm",
+       "from": 2000
+      },
+      {
+       "path": "units.V-201.area_m2",
+       "value": 11000,
+       "physical_change": "Install extension/additional bundle to E-201 heater for total 11,000 m²",
+       "rating_source": "Vendor quote to confirm - standard shell-and-tube extension, total 11,000 m²",
+       "from": 8800
+      },
+      {
+       "path": "units.OVERHEAD_SPLIT.fractions",
+       "value": [
+        0.07033,
+        0.763,
+        0.16667
+       ],
+       "from": [
+        0.0843762616067824,
+        0.9156237383932176
+       ]
+      },
+      {
+       "path": "units.OVERHEAD_SPLIT.out",
+       "value": [
+        "S3101",
+        "S3001_K201",
+        "S3001_K202"
+       ],
+       "from": [
+        "S3101",
+        "S3001"
+       ]
+      },
+      {
+       "path": "units.OVERHEAD_SPLIT.out",
+       "value": [
+        "S3101",
+        "S3001_K201",
+        "S3001_K202"
+       ],
+       "from": [
+        "S3101",
+        "S3001"
+       ]
+      },
+      {
+       "path": "units.OVERHEAD_SPLIT.fractions",
+       "value": [
+        0.07033,
+        0.763,
+        0.16667
+       ],
+       "from": [
+        0.0843762616067824,
+        0.9156237383932176
+       ]
+      },
+      {
+       "add_unit": {
+        "id": "K-202",
+        "type": "compressor",
+        "in": "S3001_K202",
+        "out": "S3002raw_K202",
+        "P_out_bar": 3.08,
+        "eff_pct": 75
+       },
+       "limits": {
+        "max_kg_h": 55000,
+        "max_kW": 2400,
+        "max_discharge_C": 250
+       },
+       "rating_source": "Vendor quote to confirm / standard size 55 t/h suction, 2,400 kW driver at PR 1.8 (3.08 bar discharge) - provisional"
+      },
+      {
+       "add_unit": {
+        "id": "K201_JOIN",
+        "type": "mixer",
+        "in": [
+         "S3002raw_K201",
+         "S3002raw_K202"
+        ],
+        "out": "S3002raw"
+       },
+       "limits": {},
+       "rating_source": "Routing only - no rating"
+      },
+      {
+       "reroute": {
+        "unit": "K-201",
+        "field": "in",
+        "value": "S3001_K201"
+       },
+       "from": "S3001"
+      },
+      {
+       "reroute": {
+        "unit": "K-201",
+        "field": "out",
+        "value": "S3002raw_K201"
+       },
+       "from": "S3002raw"
+      },
+      {
+       "path": "electrical.TX-1.sn_mva",
+       "value": 7.5,
+       "physical_change": "Replace TX-1 with larger 7.5 MVA transformer",
+       "rating_source": "Vendor quote to confirm - 7.5 MVA ONAN, 34.5/4.16 kV",
+       "from": null
+      },
+      {
+       "path": "electrical.TX-1.tap_percent",
+       "value": 5,
+       "from": null
+      },
+      {
+       "path": "electrical.M-K-202.start",
+       "value": "VFD",
+       "physical_change": "Fit VFD starter for K-202 motor",
+       "rating_source": "Vendor quote to confirm - VFD rated for 2,052 kW motor",
+       "from": null
+      },
+      {
+       "path": "electrical.M-K-202.cable",
+       "value": "185mm2 Cu XLPE",
+       "physical_change": "Install new 185 mm² feeder for K-202",
+       "rating_source": "Vendor catalogue to confirm - ampacity per IEC 60287",
+       "from": null
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Clean main heater E-201 and extend to 11,000 m²",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 100.1
+     }
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Hold purge steam at today's rate (no new E-301)",
+     "status": "fail",
+     "detail": "change 2 cannot edit existing unit structure OVERHEAD_SPLIT.out; use reroute or add_unit",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Add parallel vapour compressor K-202 for 25% of vapour",
+     "status": "fail",
+     "detail": "change 1 cannot edit existing unit structure OVERHEAD_SPLIT.out; use reroute or add_unit",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Replace TX-1 2.5 MVA with 7.5 MVA and raise tap 5%, VFD and 185mm² cable for K-202",
+     "status": "fail",
+     "detail": "change 3: unknown motor M-K-202; use the unit id of one of: COMP_SPLIT, K-201, K-201_SPLIT, K-202, K201_JOIN, K201_MERGE, K201_SPLIT, KDISCH_MIX, P-201; change 4: unknown motor M-K-202; use the unit id of one of: COMP_SPLIT, K-201, K-201_SPLIT, K-202, K201_JOIN, K201_MERGE, K201_SPLIT, KDISCH_MIX, P-201",
+     "numbers": null
+    }
+   ]
+  }
+ ],
+ "result": {
+  "answer_index": 12,
+  "headline": "UNSOLVABLE: vendor compressor curve still missing",
+  "passes": [],
+  "fails": [],
+  "open": []
+ },
+ "deliverables": [
+  {
+   "kind": "calculation",
+   "title": "Electrical check at 120 %",
+   "artifact": "20261101-214123-electrical-check-at-120"
+  },
+  {
+   "kind": "calculation",
+   "title": "Electrical check at 120 %",
+   "artifact": "20261101-214141-electrical-check-at-120"
+  },
+  {
+   "kind": "calculation",
+   "title": "Electrical check at 120 %",
+   "artifact": "20261101-214214-electrical-check-at-120"
+  },
+  {
+   "kind": "chart",
+   "title": "V-201 U sensitivity at 120%",
+   "artifact": "20261101-214214-v-201-u-sensitivity-at-120"
+  },
+  {
+   "kind": "calculation",
+   "title": "Electrical check at 120 %",
+   "artifact": "20261101-214238-electrical-check-at-120"
+  },
+  {
+   "kind": "calculation",
+   "title": "Electrical check at 120 %",
+   "artifact": "20261101-214252-electrical-check-at-120"
+  },
+  {
+   "kind": "analysis",
+   "title": "Pre-FEED design gate",
+   "artifact": "20261101-214325-pre-feed-design-gate"
+  },
+  {
+   "kind": "calculation",
+   "title": "HX detail E-201",
+   "artifact": "20261101-214325-hx-detail-e-201"
+  },
+  {
+   "kind": "calculation",
+   "title": "Electrical check at 120 %",
+   "artifact": "20261101-214407-electrical-check-at-120"
+  }
+ ],
+ "needs_human": [
+  "E-201 clean heat-transfer coefficient actually achieved (U): If clean U < ~2,230 W/m²K, 11,000 m² is still too small at 120% and a second heater extension or higher circulation is needed",
+  "P-201 circulation flow and E-201 brine rise at 120%: If flow cannot keep DT ≤3 K, P-201 is an additional limit needing pump upgrade; correlation shows 58,514 m³/h needed for 3 K vs 15,000 m³/h rating",
+  "Purge disposal permit and V-301 concentration limit: If minimum purge evaporation is enforced, the split-trim is not allowed and E-301 needs enlargement from 900 to ~1,500 m² plus larger K-202",
+  "K-201 nameplate suction capacity and curve vs 226,800 kg/h: If real capacity <226.8 t/h, K-202 must take >25% and rating grows; if >226.8 t/h the split can be 80/20",
+  "Vendor compressor map, surge line and anti-surge valve capacity for K-202: Selection cannot be finalised and surge/start-up checks cannot pass without this; determines driver size and recycle",
+  "Cable catalogue ampacity for 185 mm² and TX-1 7.5 MVA rating: If ampacity lower, cable must go to 240-400 mm² or load centre moved; provisional 90.3% loading becomes over-limit",
+  "K-202 start-up dynamics and anti-surge control tuning: Without measured dynamics the pre-FEED dynamics gate stays not-run and commissioning tests stay open"
+ ],
+ "finished": "2026-11-01T21:47:34+0300"
+}
