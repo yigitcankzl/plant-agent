@@ -9,7 +9,7 @@
 - The same loop works outside process plants. Two real incidents, rebuilt by Muse from the investigation reports with the conclusions withheld:
   - **UCTE 2006 European blackout** (pandapower): coupling the Landesbergen busbars raises the tripping line 1,779 → 1,831 A; the reduced grid remains insecure under three other single outages.
   - **Freeport LNG 2022** (DWSIM, trapped liquid): a blocked-in LNG line with its relief isolated bursts in days; restoring PSV-101 is screened at an ideal relief boundary, with capacity unchecked.
-- **Not only our demos.** An official DEXPI drawing we had never used (BASF column C02) went through the upload path with no hand-written case file: Muse built the DWSIM column, the discipline files were drafted, an engineer confirmed three assumptions, and the loop process-verified a no-capex +20 % for $1.54 on open weights. The column's duty is Muse's assumption and product purity was not checked, so this shows the path works, not a valid design; the page says so.
+- **Not only our demos.** An official DEXPI drawing we had never used (BASF column C02) went through the upload path with no hand-written case file: Muse built the DWSIM column, the discipline files were drafted, an engineer confirmed three assumptions, and Muse found the column floods first at +13 % ($1.54 on open weights). Its no-capex fix, cutting reflux to 0.8, was then failed by the product-purity check we added: the minimum reflux for today's purity is 1.10. The column's duty is Muse's assumption; the page says so.
 - **Open weights in the loop.** Muse Spark Open on Baseten ran the same engineering loop: on Freeport it reached the same conclusion as Muse Wonder; on UCTE, where the Meta-hosted endpoint refused the prompt four times (content policy), it found a switching plan that passes line limits and N-1; on the salt plant neither model finished, and the page says so.
 - Blind benchmark: on 13 real projects with the engineers' conclusions withheld, Muse reaches **64 %** of them on average (range 33–100 %).
 
@@ -136,10 +136,10 @@ The flagship cases above were prepared by us. To show the tool is not tied to th
 | "+20 % feed: what limits it first?" then the loop, 3 rounds | Muse proposes, DWSIM and the checks decide |
 
 - **Answer:** the column floods first, at +13 % (Fair flood fraction 0.876 against 0.80 at reflux 1.5).
-- **Verified:** cut reflux to 0.8. DWSIM reaches 120 % at 79 % of the flood limit, no capex. Envelope (2 of 2) and uncertainty (100 % of 48 re-solves) pass on drafted values.
+- **First loop:** cut reflux to 0.8 reached 120 % at 79 % of the flood limit. **Then the purity check failed it:** distillate ethanol 90.3 vs 90.8 % minimum, and the minimum reflux that holds today's purity is 1.10 (a DWSIM search). Reflux 1.10 would hold purity at 73.6 % of flood.
 - **Rejected every round:** a new 600 mm shell. Replacing equipment is a change the loop cannot verify yet, so the run ends at the round limit rather than "done".
 - **Cost:** $1.54 on Baseten (build $0.77, question $0.23, loop $0.55).
-- **Limits:** the drawing does not say what the column separates, so the duty (water/ethanol, 1,000 kg/h, 85 °C, 3 bar) is Muse's assumption, and the result holds for that duty, not BASF's. Cutting reflux lowers separation and product purity is not checked. Disciplines without data (mechanical, electrical, piping…) are shown as open with what they need.
+- **Limits:** the drawing does not say what the column separates, so the duty (water/ethanol, 1,000 kg/h, 85 °C, 3 bar) is Muse's assumption, and the result holds for that duty, not BASF's. The purity spec is a draft (today's purity within 0.5 points) until an engineer sets one. Disciplines without data (mechanical, electrical, piping…) are shown as open with what they need.
 
 **What makes this work for any plant**
 - **Drafts** (`plantagent/drafts.py`): a plant without electrical, curve, economics, uncertainty or envelope files gets deterministic drafts: IEC motor sizes and a transformer from the motor list, pump/compressor curves scaled from the rated point, Towler & Sinnott factored costs with CEPCI and a Lang factor, ±10 % on every assumed input. Check rows built on them start with "draft (assumed values)". An engineer's file always wins over a draft.
