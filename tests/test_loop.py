@@ -58,5 +58,14 @@ class LoopTest(unittest.TestCase):
         self.assertIn("edits a limit", w.asked[1])
 
 
+    def test_rejected_proposal_reason_goes_back_even_when_checks_run(self):
+        w, log = self.run_loop([{"headline": "a", "proposals": [prop("clean"), prop("K-202", ok=False) | {"unverified_reason": "cable must be one of X"}]},
+                                {"headline": "b", "proposals": [prop("clean"), prop("K-202")]}],
+                               [[{"check": "process", "title": "98 %", "status": "fail"}],
+                                [{"check": "process", "title": "120 %", "status": "pass"}]])
+        self.assertIn("cable must be one of X", w.asked[1])
+        self.assertEqual(log["status"], "done")
+
+
 if __name__ == "__main__":
     unittest.main()

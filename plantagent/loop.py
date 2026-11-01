@@ -122,7 +122,10 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
             else:
                 rows = checks(w, idx)
                 rnd["steps"] += [{"actor": "engine", "kind": "check", **r} for r in rows]
-                issues = [r for r in rows if r.get("status") == "fail"]
+                # a rejected proposal is an issue too: Muse must see why the server refused it, or it repeats the mistake
+                rejected = [{"check": "proposal rejected", "title": f"{p.get('title', '')}: {p.get('unverified_reason', 'not verified')}"}
+                            for p in ans.get("proposals") or [] if not p.get("verified")]
+                issues = rejected + [r for r in rows if r.get("status") == "fail"]
                 rnd["open_issues"] = [{"check": r["check"], "detail": r.get("title", "")} for r in issues]
                 if not issues:
                     log["status"] = "done"
