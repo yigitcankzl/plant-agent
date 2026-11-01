@@ -1,1 +1,5357 @@
-[]
+[
+ {
+  "rev": 1,
+  "kind": "correction",
+  "title": "Calibration to the design basis (Muse Wonder session)",
+  "changes": [],
+  "spec_before": {
+   "compounds": [
+    "Acetic acid",
+    "Ammonia",
+    "Carbon dioxide",
+    "Ethanol",
+    "Glycerol",
+    "HexaEthylene Glycol",
+    "HexaPropylene Glycol",
+    "Nitrogen",
+    "Oxygen",
+    "PentaEthylene Glycol",
+    "TetraPropylene Glycol",
+    "Tetraethylene glycol",
+    "Triethylene glycol",
+    "Water"
+   ],
+   "package": "NRTL",
+   "feeds": {
+    "S501": {
+     "T_C": 32.0,
+     "P_bar": 6.079,
+     "kg_h": 450741.0,
+     "x": {
+      "Acetic acid": 0.000542,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.000575,
+      "Ethanol": 0.021964,
+      "Glycerol": 0.000701,
+      "HexaEthylene Glycol": 0.003727,
+      "HexaPropylene Glycol": 0.002711,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.000243,
+      "TetraPropylene Glycol": 7.8e-05,
+      "Tetraethylene glycol": 0.000124,
+      "Triethylene glycol": 0.000326,
+      "Water": 0.969009
+     }
+    },
+    "S305": {
+     "T_C": 32.0,
+     "P_bar": 1.013,
+     "kg_h": 1969.0,
+     "x": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.92765,
+      "Ethanol": 0.015068,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.011525,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 0.045758
+     }
+    },
+    "S317": {
+     "T_C": 32.0,
+     "P_bar": 1.013,
+     "kg_h": 19180.0,
+     "x": {
+      "Acetic acid": 7.4e-05,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.927498,
+      "Ethanol": 0.016006,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.010791,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 0.045631
+     }
+    },
+    "S524": {
+     "T_C": 33.0,
+     "P_bar": 5.066,
+     "kg_h": 26836.0,
+     "x": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 1.0
+     }
+    }
+   },
+   "units": [
+    {
+     "id": "REC-507",
+     "type": "recycle",
+     "in": "S507C",
+     "out": "S507",
+     "guess": {
+      "T_C": 121.0,
+      "P_bar": 2.026,
+      "kg_h": 393000.0,
+      "x": {
+       "Acetic acid": 0.000586,
+       "Ammonia": 0.0,
+       "Carbon dioxide": 0.0,
+       "Ethanol": 3e-06,
+       "Glycerol": 0.000789,
+       "HexaEthylene Glycol": 0.004195,
+       "HexaPropylene Glycol": 0.00321,
+       "Nitrogen": 0.0,
+       "Oxygen": 0.0,
+       "PentaEthylene Glycol": 0.000273,
+       "TetraPropylene Glycol": 8.8e-05,
+       "Tetraethylene glycol": 0.00014,
+       "Triethylene glycol": 0.000367,
+       "Water": 0.990349
+      }
+     }
+    },
+    {
+     "id": "H-512",
+     "type": "hx",
+     "cold": [
+      "S501",
+      "S506"
+     ],
+     "hot": [
+      "S507",
+      "S508"
+     ],
+     "U_W_m2K": 857.0,
+     "area_m2": 310.0
+    },
+    {
+     "id": "SEP-CO2",
+     "type": "component_separator",
+     "in": "S506",
+     "product": "S506L",
+     "reject": "S509G",
+     "recover_pct": {
+      "Carbon dioxide": 0.0
+     }
+    },
+    {
+     "id": "D-501",
+     "type": "distillation",
+     "in": "S506L",
+     "vapor": "S510",
+     "distillate": "S509L",
+     "bottoms": "S507C",
+     "stages": 25,
+     "feed_stage": 2,
+     "efficiency": 0.48,
+     "condenser": "partial",
+     "P_bar": 2.026,
+     "vapor_mol_s": 634.0,
+     "reflux_ratio": 0.2,
+     "bottoms_mol_s": 5350.0
+    },
+    {
+     "id": "MIX-509",
+     "type": "mixer",
+     "in": [
+      "S509G",
+      "S509L"
+     ],
+     "out": "S509"
+    },
+    {
+     "id": "MIX-523",
+     "type": "mixer",
+     "in": [
+      "S509",
+      "S305",
+      "S317"
+     ],
+     "out": "S523"
+    },
+    {
+     "id": "MIX-524",
+     "type": "mixer",
+     "in": [
+      "S523",
+      "S524"
+     ],
+     "out": "S523W"
+    },
+    {
+     "id": "T-512",
+     "type": "component_separator",
+     "in": "S523W",
+     "product": "S551",
+     "reject": "S550",
+     "recover_pct": {
+      "Acetic acid": 99.0,
+      "Ammonia": 50.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 99.0,
+      "Glycerol": 99.0,
+      "HexaEthylene Glycol": 99.0,
+      "HexaPropylene Glycol": 99.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 99.0,
+      "TetraPropylene Glycol": 99.0,
+      "Tetraethylene glycol": 99.0,
+      "Triethylene glycol": 99.0,
+      "Water": 50.0
+     }
+    },
+    {
+     "id": "REC-521",
+     "type": "recycle",
+     "in": "S521C",
+     "out": "S521",
+     "guess": {
+      "T_C": 50.0,
+      "P_bar": 1.621,
+      "kg_h": 7000.0,
+      "x": {
+       "Acetic acid": 0.0,
+       "Ammonia": 0.0,
+       "Carbon dioxide": 0.0,
+       "Ethanol": 0.489,
+       "Glycerol": 0.0,
+       "HexaEthylene Glycol": 0.0,
+       "HexaPropylene Glycol": 0.0,
+       "Nitrogen": 0.0,
+       "Oxygen": 0.0,
+       "PentaEthylene Glycol": 0.0,
+       "TetraPropylene Glycol": 0.0,
+       "Tetraethylene glycol": 0.0,
+       "Triethylene glycol": 0.0,
+       "Water": 0.511
+      }
+     }
+    },
+    {
+     "id": "D-502",
+     "type": "distillation",
+     "in": [
+      "S510",
+      "S521"
+     ],
+     "feed_stage": [
+      33,
+      14
+     ],
+     "distillate": "S511L",
+     "bottoms": "S516",
+     "stages": 45,
+     "efficiency": 0.76,
+     "condenser": "total",
+     "P_bar": 1.621,
+     "condenser_spec": {
+      "type": "Reflux Ratio",
+      "value": 3.5
+     },
+     "reboiler_spec": {
+      "type": "Boilup Ratio",
+      "value": 3.0
+     }
+    },
+    {
+     "id": "H-503",
+     "type": "heater",
+     "in": "S511L",
+     "out": "S511",
+     "T_out_C": 120.0
+    },
+    {
+     "id": "M-503",
+     "type": "component_separator",
+     "in": "S511",
+     "product": "S514DRY",
+     "reject": "S512",
+     "recover_pct": {
+      "Ethanol": 99.0,
+      "Water": 1.0
+     }
+    },
+    {
+     "id": "SPLIT-514",
+     "type": "splitter",
+     "in": "S514DRY",
+     "out": [
+      "S514",
+      "S512RAW"
+     ],
+     "fractions": [
+      0.85,
+      0.15
+     ]
+    },
+    {
+     "id": "MIX-512",
+     "type": "mixer",
+     "in": [
+      "S512RAW",
+      "S512"
+     ],
+     "out": "S512M"
+    },
+    {
+     "id": "H-507",
+     "type": "cooler",
+     "in": "S512M",
+     "out": "S517",
+     "T_out_C": 40.0
+    },
+    {
+     "id": "H-506",
+     "type": "hx",
+     "cold": [
+      "S517",
+      "S521C"
+     ],
+     "hot": [
+      "S514",
+      "S519"
+     ],
+     "U_W_m2K": 500.0,
+     "area_m2": 100.0
+    },
+    {
+     "id": "H-509",
+     "type": "cooler",
+     "in": "S519",
+     "out": "S515",
+     "T_out_C": 35.0
+    },
+    {
+     "id": "S-505",
+     "type": "component_separator",
+     "in": "S508",
+     "product": "S571",
+     "reject": "S535",
+     "recover_pct": {
+      "Acetic acid": 20.0,
+      "Ammonia": 20.0,
+      "Carbon dioxide": 20.0,
+      "Ethanol": 20.0,
+      "Glycerol": 20.0,
+      "HexaEthylene Glycol": 20.0,
+      "HexaPropylene Glycol": 100.0,
+      "Nitrogen": 20.0,
+      "Oxygen": 20.0,
+      "PentaEthylene Glycol": 100.0,
+      "TetraPropylene Glycol": 100.0,
+      "Tetraethylene glycol": 20.0,
+      "Triethylene glycol": 20.0,
+      "Water": 20.0
+     }
+    }
+   ],
+   "limits": {
+    "H-512": {
+     "area_m2": 310.0,
+     "out_T_C": 47.0,
+     "side": "hot"
+    },
+    "H-506": {
+     "area_m2": 100.0
+    },
+    "D-501": {
+     "diameter_m": 4.27,
+     "tray_spacing_m": 0.61
+    },
+    "D-502": {
+     "diameter_m": 3.96,
+     "tray_spacing_m": 0.61
+    }
+   }
+  },
+  "spec_after": {
+   "compounds": [
+    "Acetic acid",
+    "Ammonia",
+    "Carbon dioxide",
+    "Ethanol",
+    "Glycerol",
+    "HexaEthylene Glycol",
+    "HexaPropylene Glycol",
+    "Nitrogen",
+    "Oxygen",
+    "PentaEthylene Glycol",
+    "TetraPropylene Glycol",
+    "Tetraethylene glycol",
+    "Triethylene glycol",
+    "Water"
+   ],
+   "package": "NRTL",
+   "feeds": {
+    "S501": {
+     "T_C": 32.0,
+     "P_bar": 6.079,
+     "kg_h": 450741.0,
+     "x": {
+      "Acetic acid": 0.000542,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.000575,
+      "Ethanol": 0.021964,
+      "Glycerol": 0.000701,
+      "HexaEthylene Glycol": 0.003727,
+      "HexaPropylene Glycol": 0.002711,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.000243,
+      "TetraPropylene Glycol": 7.8e-05,
+      "Tetraethylene glycol": 0.000124,
+      "Triethylene glycol": 0.000326,
+      "Water": 0.969009
+     }
+    },
+    "S305": {
+     "T_C": 32.0,
+     "P_bar": 1.013,
+     "kg_h": 1969.0,
+     "x": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.92765,
+      "Ethanol": 0.015068,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.011525,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 0.045758
+     }
+    },
+    "S317": {
+     "T_C": 32.0,
+     "P_bar": 1.013,
+     "kg_h": 19180.0,
+     "x": {
+      "Acetic acid": 7.4e-05,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.927498,
+      "Ethanol": 0.016006,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.010791,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 0.045631
+     }
+    },
+    "S524": {
+     "T_C": 33.0,
+     "P_bar": 5.066,
+     "kg_h": 26836.0,
+     "x": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 1.0
+     }
+    }
+   },
+   "units": [
+    {
+     "id": "REC-507",
+     "type": "recycle",
+     "in": "S507C",
+     "out": "S507",
+     "guess": {
+      "T_C": 121.0,
+      "P_bar": 2.026,
+      "kg_h": 393000.0,
+      "x": {
+       "Acetic acid": 0.000586,
+       "Ammonia": 0.0,
+       "Carbon dioxide": 0.0,
+       "Ethanol": 3e-06,
+       "Glycerol": 0.000789,
+       "HexaEthylene Glycol": 0.004195,
+       "HexaPropylene Glycol": 0.00321,
+       "Nitrogen": 0.0,
+       "Oxygen": 0.0,
+       "PentaEthylene Glycol": 0.000273,
+       "TetraPropylene Glycol": 8.8e-05,
+       "Tetraethylene glycol": 0.00014,
+       "Triethylene glycol": 0.000367,
+       "Water": 0.990349
+      }
+     }
+    },
+    {
+     "id": "H-512",
+     "type": "hx",
+     "cold": [
+      "S501",
+      "S506"
+     ],
+     "hot": [
+      "S507",
+      "S508"
+     ],
+     "U_W_m2K": 857.0,
+     "area_m2": 310.0
+    },
+    {
+     "id": "SEP-CO2",
+     "type": "component_separator",
+     "in": "S506",
+     "product": "S506L",
+     "reject": "S509G",
+     "recover_pct": {
+      "Carbon dioxide": 0.0
+     }
+    },
+    {
+     "id": "D-501",
+     "type": "distillation",
+     "in": "S506L",
+     "vapor": "S510",
+     "distillate": "S509L",
+     "bottoms": "S507C",
+     "stages": 25,
+     "feed_stage": 2,
+     "efficiency": 0.48,
+     "condenser": "partial",
+     "P_bar": 2.026,
+     "vapor_mol_s": 634.0,
+     "reflux_ratio": 0.2,
+     "bottoms_mol_s": 5350.0
+    },
+    {
+     "id": "MIX-509",
+     "type": "mixer",
+     "in": [
+      "S509G",
+      "S509L"
+     ],
+     "out": "S509"
+    },
+    {
+     "id": "MIX-523",
+     "type": "mixer",
+     "in": [
+      "S509",
+      "S305",
+      "S317"
+     ],
+     "out": "S523"
+    },
+    {
+     "id": "MIX-524",
+     "type": "mixer",
+     "in": [
+      "S523",
+      "S524"
+     ],
+     "out": "S523W"
+    },
+    {
+     "id": "T-512",
+     "type": "component_separator",
+     "in": "S523W",
+     "product": "S551",
+     "reject": "S550",
+     "recover_pct": {
+      "Acetic acid": 99.0,
+      "Ammonia": 50.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 99.0,
+      "Glycerol": 99.0,
+      "HexaEthylene Glycol": 99.0,
+      "HexaPropylene Glycol": 99.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 99.0,
+      "TetraPropylene Glycol": 99.0,
+      "Tetraethylene glycol": 99.0,
+      "Triethylene glycol": 99.0,
+      "Water": 50.0
+     }
+    },
+    {
+     "id": "REC-521",
+     "type": "recycle",
+     "in": "S521C",
+     "out": "S521",
+     "guess": {
+      "T_C": 50.0,
+      "P_bar": 1.621,
+      "kg_h": 7000.0,
+      "x": {
+       "Acetic acid": 0.0,
+       "Ammonia": 0.0,
+       "Carbon dioxide": 0.0,
+       "Ethanol": 0.489,
+       "Glycerol": 0.0,
+       "HexaEthylene Glycol": 0.0,
+       "HexaPropylene Glycol": 0.0,
+       "Nitrogen": 0.0,
+       "Oxygen": 0.0,
+       "PentaEthylene Glycol": 0.0,
+       "TetraPropylene Glycol": 0.0,
+       "Tetraethylene glycol": 0.0,
+       "Triethylene glycol": 0.0,
+       "Water": 0.511
+      }
+     }
+    },
+    {
+     "id": "D-502",
+     "type": "distillation",
+     "in": [
+      "S510",
+      "S521"
+     ],
+     "feed_stage": [
+      33,
+      14
+     ],
+     "distillate": "S511L",
+     "bottoms": "S516",
+     "stages": 45,
+     "efficiency": 0.76,
+     "condenser": "total",
+     "P_bar": 1.621,
+     "condenser_spec": {
+      "type": "Reflux Ratio",
+      "value": 3.5
+     },
+     "reboiler_spec": {
+      "type": "Boilup Ratio",
+      "value": 3.0
+     }
+    },
+    {
+     "id": "H-503",
+     "type": "heater",
+     "in": "S511L",
+     "out": "S511",
+     "T_out_C": 120.0
+    },
+    {
+     "id": "M-503",
+     "type": "component_separator",
+     "in": "S511",
+     "product": "S514DRY",
+     "reject": "S512",
+     "recover_pct": {
+      "Ethanol": 99.0,
+      "Water": 1.0
+     },
+     "recover_pct.Water": 5
+    },
+    {
+     "id": "SPLIT-514",
+     "type": "splitter",
+     "in": "S514DRY",
+     "out": [
+      "S514",
+      "S512RAW"
+     ],
+     "fractions": [
+      0.82,
+      0.18
+     ]
+    },
+    {
+     "id": "MIX-512",
+     "type": "mixer",
+     "in": [
+      "S512RAW",
+      "S512"
+     ],
+     "out": "S512M"
+    },
+    {
+     "id": "H-507",
+     "type": "cooler",
+     "in": "S512M",
+     "out": "S517",
+     "T_out_C": 40.0
+    },
+    {
+     "id": "H-506",
+     "type": "hx",
+     "cold": [
+      "S517",
+      "S521C"
+     ],
+     "hot": [
+      "S514",
+      "S519"
+     ],
+     "U_W_m2K": 500.0,
+     "area_m2": 100.0
+    },
+    {
+     "id": "H-509",
+     "type": "cooler",
+     "in": "S519",
+     "out": "S515",
+     "T_out_C": 35.0
+    },
+    {
+     "id": "S-505",
+     "type": "component_separator",
+     "in": "S508",
+     "product": "S571",
+     "reject": "S535",
+     "recover_pct": {
+      "Acetic acid": 20.0,
+      "Ammonia": 20.0,
+      "Carbon dioxide": 20.0,
+      "Ethanol": 20.0,
+      "Glycerol": 20.0,
+      "HexaEthylene Glycol": 20.0,
+      "HexaPropylene Glycol": 100.0,
+      "Nitrogen": 20.0,
+      "Oxygen": 20.0,
+      "PentaEthylene Glycol": 100.0,
+      "TetraPropylene Glycol": 100.0,
+      "Tetraethylene glycol": 20.0,
+      "Triethylene glycol": 20.0,
+      "Water": 20.0
+     }
+    }
+   ],
+   "limits": {
+    "H-512": {
+     "area_m2": 310.0,
+     "out_T_C": 47.0,
+     "side": "hot"
+    },
+    "H-506": {
+     "area_m2": 100.0
+    },
+    "D-501": {
+     "diameter_m": 4.27,
+     "tray_spacing_m": 0.61
+    },
+    "D-502": {
+     "diameter_m": 3.96,
+     "tray_spacing_m": 0.61
+    }
+   }
+  },
+  "capacity_multiple": null,
+  "at": "2026-11-01T14:20:08+0300",
+  "user": "calibration session",
+  "reason": "Values proposed by Muse Wonder in calibration session 20261101-140645 against the design-basis text (report section 3.5.2), not the withheld stream tables: Set sieve water removal to documented 95 percent and regeneration slip to 18 percent",
+  "result_after": {
+   "scale": 1.0,
+   "errors": [],
+   "streams": {
+    "S501": {
+     "T_C": 32.0,
+     "P_bar": 6.079,
+     "kg_h": 450741.0,
+     "m3_h": 455.12,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 705.75,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 548.71,
+      "Ethanol": 21940.16,
+      "Glycerol": 1399.82,
+      "HexaEthylene Glycol": 22816.14,
+      "HexaPropylene Glycol": 21543.52,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 1255.5,
+      "TetraPropylene Glycol": 423.39,
+      "Tetraethylene glycol": 522.22,
+      "Triethylene glycol": 1061.54,
+      "Water": 378524.26
+     }
+    },
+    "S305": {
+     "T_C": 32.0,
+     "P_bar": 1.013,
+     "kg_h": 1969.0,
+     "m3_h": 1154.52,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 1882.0,
+      "Ethanol": 32.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 17.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 38.0
+     }
+    },
+    "S317": {
+     "T_C": 32.0,
+     "P_bar": 1.013,
+     "kg_h": 19180.0,
+     "m3_h": 11242.19,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 1.99,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 18323.0,
+      "Ethanol": 331.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 155.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 369.01
+     }
+    },
+    "S524": {
+     "T_C": 33.0,
+     "P_bar": 5.066,
+     "kg_h": 26836.0,
+     "m3_h": 27.0,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 26836.0
+     }
+    },
+    "S507": {
+     "T_C": 120.96,
+     "P_bar": 2.026,
+     "kg_h": 393384.6,
+     "m3_h": 416.88,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 680.79,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.03,
+      "Glycerol": 1399.89,
+      "HexaEthylene Glycol": 22817.03,
+      "HexaPropylene Glycol": 21544.18,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 1255.42,
+      "TetraPropylene Glycol": 423.41,
+      "Tetraethylene glycol": 522.25,
+      "Triethylene glycol": 1061.58,
+      "Water": 343680.05
+     }
+    },
+    "S507C": {
+     "T_C": 120.96,
+     "P_bar": 2.026,
+     "kg_h": 393384.6,
+     "m3_h": 416.88,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 680.79,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.03,
+      "Glycerol": 1399.89,
+      "HexaEthylene Glycol": 22817.03,
+      "HexaPropylene Glycol": 21544.18,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 1255.42,
+      "TetraPropylene Glycol": 423.41,
+      "Tetraethylene glycol": 522.25,
+      "Triethylene glycol": 1061.58,
+      "Water": 343680.05
+     }
+    },
+    "S506": {
+     "T_C": 70.33,
+     "P_bar": 6.079,
+     "kg_h": 450741.0,
+     "m3_h": 463.53,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 705.75,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 548.71,
+      "Ethanol": 21940.16,
+      "Glycerol": 1399.82,
+      "HexaEthylene Glycol": 22816.14,
+      "HexaPropylene Glycol": 21543.52,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 1255.5,
+      "TetraPropylene Glycol": 423.39,
+      "Tetraethylene glycol": 522.22,
+      "Triethylene glycol": 1061.54,
+      "Water": 378524.26
+     }
+    },
+    "S508": {
+     "T_C": 119.99,
+     "P_bar": 2.026,
+     "kg_h": 393385.2,
+     "m3_h": 416.54,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 680.78,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.03,
+      "Glycerol": 1399.91,
+      "HexaEthylene Glycol": 22817.31,
+      "HexaPropylene Glycol": 21544.44,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 1255.43,
+      "TetraPropylene Glycol": 423.41,
+      "Tetraethylene glycol": 522.25,
+      "Triethylene glycol": 1061.6,
+      "Water": 343680.02
+     }
+    },
+    "S506L": {
+     "T_C": 70.33,
+     "P_bar": 6.079,
+     "kg_h": 450192.3,
+     "m3_h": 463.24,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 705.75,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 21940.16,
+      "Glycerol": 1399.82,
+      "HexaEthylene Glycol": 22816.14,
+      "HexaPropylene Glycol": 21543.52,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 1255.5,
+      "TetraPropylene Glycol": 423.39,
+      "Tetraethylene glycol": 522.22,
+      "Triethylene glycol": 1061.54,
+      "Water": 378524.26
+     }
+    },
+    "S509G": {
+     "T_C": 70.33,
+     "P_bar": 6.079,
+     "kg_h": 548.7,
+     "m3_h": 58.57,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 548.71,
+      "Ethanol": 0.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 0.0
+     }
+    },
+    "S509L": {
+     "T_C": 114.31,
+     "P_bar": 2.026,
+     "kg_h": 2422.9,
+     "m3_h": 2.58,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 3.01,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 174.93,
+      "Glycerol": 0.01,
+      "HexaEthylene Glycol": 0.39,
+      "HexaPropylene Glycol": 0.53,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.14,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.01,
+      "Water": 2243.93
+     }
+    },
+    "S510": {
+     "T_C": 114.31,
+     "P_bar": 2.026,
+     "kg_h": 54381.1,
+     "m3_h": 36290.61,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 21.97,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 21754.94,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.01,
+      "HexaPropylene Glycol": 0.01,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.01,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 32604.11
+     }
+    },
+    "S509": {
+     "T_C": 85.91,
+     "P_bar": 2.026,
+     "kg_h": 2971.7,
+     "m3_h": 286.57,
+     "vapour_frac": 0.1369,
+     "components_kg_h": {
+      "Acetic acid": 3.01,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 548.71,
+      "Ethanol": 174.93,
+      "Glycerol": 0.01,
+      "HexaEthylene Glycol": 0.39,
+      "HexaPropylene Glycol": 0.53,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.14,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.01,
+      "Water": 2243.93
+     }
+    },
+    "S523": {
+     "T_C": 39.0,
+     "P_bar": 1.013,
+     "kg_h": 24120.7,
+     "m3_h": 13374.69,
+     "vapour_frac": 0.8209,
+     "components_kg_h": {
+      "Acetic acid": 5.01,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 20753.7,
+      "Ethanol": 537.92,
+      "Glycerol": 0.01,
+      "HexaEthylene Glycol": 0.39,
+      "HexaPropylene Glycol": 0.53,
+      "Nitrogen": 0.0,
+      "Oxygen": 172.0,
+      "PentaEthylene Glycol": 0.14,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.01,
+      "Water": 2650.94
+     }
+    },
+    "S523W": {
+     "T_C": 36.4,
+     "P_bar": 1.013,
+     "kg_h": 50956.7,
+     "m3_h": 12971.71,
+     "vapour_frac": 0.2397,
+     "components_kg_h": {
+      "Acetic acid": 5.01,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 20753.7,
+      "Ethanol": 537.92,
+      "Glycerol": 0.01,
+      "HexaEthylene Glycol": 0.39,
+      "HexaPropylene Glycol": 0.53,
+      "Nitrogen": 0.0,
+      "Oxygen": 172.0,
+      "PentaEthylene Glycol": 0.14,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.01,
+      "Water": 29486.94
+     }
+    },
+    "S551": {
+     "T_C": 36.4,
+     "P_bar": 1.013,
+     "kg_h": 15282.0,
+     "m3_h": 15.45,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 4.96,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 532.54,
+      "Glycerol": 0.01,
+      "HexaEthylene Glycol": 0.38,
+      "HexaPropylene Glycol": 0.53,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.14,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.01,
+      "Water": 14743.47
+     }
+    },
+    "S550": {
+     "T_C": 36.4,
+     "P_bar": 1.013,
+     "kg_h": 35674.6,
+     "m3_h": 12898.38,
+     "vapour_frac": 0.3915,
+     "components_kg_h": {
+      "Acetic acid": 0.05,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 20753.7,
+      "Ethanol": 5.38,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.01,
+      "Nitrogen": 0.0,
+      "Oxygen": 172.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 14743.47
+     }
+    },
+    "S521": {
+     "T_C": 100.07,
+     "P_bar": 1.621,
+     "kg_h": 25730.3,
+     "m3_h": 27.67,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 5043.37,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 20686.92
+     }
+    },
+    "S521C": {
+     "T_C": 100.07,
+     "P_bar": 1.621,
+     "kg_h": 25730.3,
+     "m3_h": 27.67,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 5043.37,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 20686.92
+     }
+    },
+    "S510~": {
+     "T_C": 114.31,
+     "P_bar": 2.026,
+     "kg_h": 54381.0,
+     "m3_h": 36290.61,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 21.97,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 21754.94,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 32604.11
+     }
+    },
+    "S510~traces": {
+     "T_C": 114.31,
+     "P_bar": 2.026,
+     "kg_h": 0.0,
+     "m3_h": 0.0,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.01,
+      "HexaPropylene Glycol": 0.01,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.01,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 0.0
+     }
+    },
+    "S511L": {
+     "T_C": 93.89,
+     "P_bar": 1.621,
+     "kg_h": 47655.9,
+     "m3_h": 55.17,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 26797.9,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 20857.96
+     }
+    },
+    "S516": {
+     "T_C": 113.72,
+     "P_bar": 1.621,
+     "kg_h": 32440.1,
+     "m3_h": 34.22,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 21.97,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 32418.09
+     }
+    },
+    "S511": {
+     "T_C": 120.0,
+     "P_bar": 1.621,
+     "kg_h": 47655.9,
+     "m3_h": 35075.77,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 26797.9,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 20857.96
+     }
+    },
+    "S514DRY": {
+     "T_C": 120.0,
+     "P_bar": 1.621,
+     "kg_h": 26738.5,
+     "m3_h": 11845.75,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 26529.93,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 208.58
+     }
+    },
+    "S512": {
+     "T_C": 120.0,
+     "P_bar": 1.621,
+     "kg_h": 20917.4,
+     "m3_h": 23230.02,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 267.98,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 20649.38
+     }
+    },
+    "S514": {
+     "T_C": 120.0,
+     "P_bar": 1.621,
+     "kg_h": 21925.6,
+     "m3_h": 9713.52,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 21754.54,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 171.04
+     }
+    },
+    "S512RAW": {
+     "T_C": 120.0,
+     "P_bar": 1.621,
+     "kg_h": 4812.9,
+     "m3_h": 2132.24,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 4775.39,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 37.54
+     }
+    },
+    "S512M": {
+     "T_C": 119.93,
+     "P_bar": 1.621,
+     "kg_h": 25730.3,
+     "m3_h": 25358.04,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 5043.37,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 20686.92
+     }
+    },
+    "S517": {
+     "T_C": 40.0,
+     "P_bar": 1.621,
+     "kg_h": 25730.3,
+     "m3_h": 26.59,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 5043.37,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 20686.92
+     }
+    },
+    "S519": {
+     "T_C": 91.11,
+     "P_bar": 1.621,
+     "kg_h": 21925.6,
+     "m3_h": 6596.46,
+     "vapour_frac": 0.7321,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 21754.54,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 171.04
+     }
+    },
+    "S515": {
+     "T_C": 35.0,
+     "P_bar": 1.621,
+     "kg_h": 21925.6,
+     "m3_h": 28.07,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 21754.54,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 171.04
+     }
+    },
+    "S571": {
+     "T_C": 119.99,
+     "P_bar": 2.026,
+     "kg_h": 97255.7,
+     "m3_h": 102.61,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 136.16,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.01,
+      "Glycerol": 279.98,
+      "HexaEthylene Glycol": 4563.46,
+      "HexaPropylene Glycol": 21544.44,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 1255.43,
+      "TetraPropylene Glycol": 423.41,
+      "Tetraethylene glycol": 104.45,
+      "Triethylene glycol": 212.32,
+      "Water": 68736.0
+     }
+    },
+    "S535": {
+     "T_C": 119.99,
+     "P_bar": 2.026,
+     "kg_h": 296129.5,
+     "m3_h": 313.85,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 544.63,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.03,
+      "Glycerol": 1119.93,
+      "HexaEthylene Glycol": 18253.85,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 417.8,
+      "Triethylene glycol": 849.28,
+      "Water": 274944.01
+     }
+    }
+   },
+   "units": {
+    "REC-507": {
+     "type": "recycle"
+    },
+    "H-512": {
+     "type": "hx",
+     "duty_kW": 17964.7,
+     "lmtd_C": 67.62,
+     "U_W_m2K": 857.0,
+     "area_m2": 310.0,
+     "dP_hot_bar": 0.0,
+     "dP_cold_bar": 0.0
+    },
+    "SEP-CO2": {
+     "type": "component_separator"
+    },
+    "D-501": {
+     "type": "distillation",
+     "stages": 25,
+     "feed_stage": 2,
+     "reflux": 0.011,
+     "condenser_kW": 15084.95,
+     "reboiler_kW": 61593.69,
+     "condenser_duty_kW": 15084.95,
+     "reboiler_duty_kW": -61593.69,
+     "dwsim_estimated_diameter_m": 4.485,
+     "profile": [
+      {
+       "stage": 1,
+       "T_C": 114.31,
+       "P_bar": 2.026,
+       "vapour_kg_h": 54380.88,
+       "liquid_kg_h": 484.59,
+       "vapour_mol_s": 634.0,
+       "liquid_mol_s": 7.1338,
+       "rho_v_kg_m3": 1.5,
+       "rho_l_kg_m3": 937.4,
+       "sigma_N_m": 0.055,
+       "flood_frac": 0.226
+      },
+      {
+       "stage": 2,
+       "T_C": 116.49,
+       "P_bar": 2.026,
+       "vapour_kg_h": 72951.48,
+       "liquid_kg_h": 485287.2,
+       "vapour_mol_s": 961.126,
+       "liquid_mol_s": 6570.78,
+       "rho_v_kg_m3": 1.32,
+       "rho_l_kg_m3": 940.3,
+       "sigma_N_m": 0.05497,
+       "flood_frac": 0.481
+      },
+      {
+       "stage": 3,
+       "T_C": 117.87,
+       "P_bar": 2.026,
+       "vapour_kg_h": 88377.84,
+       "liquid_kg_h": 480603.6,
+       "vapour_mol_s": 1220.78,
+       "liquid_mol_s": 6566.06,
+       "rho_v_kg_m3": 1.25,
+       "rho_l_kg_m3": 941.5,
+       "sigma_N_m": 0.05497,
+       "flood_frac": 0.558
+      },
+      {
+       "stage": 4,
+       "T_C": 118.94,
+       "P_bar": 2.026,
+       "vapour_kg_h": 84794.76,
+       "liquid_kg_h": 477262.8,
+       "vapour_mol_s": 1216.06,
+       "liquid_mol_s": 6562.61,
+       "rho_v_kg_m3": 1.2,
+       "rho_l_kg_m3": 942.3,
+       "sigma_N_m": 0.05495,
+       "flood_frac": 0.548
+      },
+      {
+       "stage": 5,
+       "T_C": 119.68,
+       "P_bar": 2.026,
+       "vapour_kg_h": 82320.84,
+       "liquid_kg_h": 475070.4,
+       "vapour_mol_s": 1212.61,
+       "liquid_mol_s": 6560.3,
+       "rho_v_kg_m3": 1.17,
+       "rho_l_kg_m3": 942.8,
+       "sigma_N_m": 0.05493,
+       "flood_frac": 0.541
+      },
+      {
+       "stage": 6,
+       "T_C": 120.16,
+       "P_bar": 2.026,
+       "vapour_kg_h": 80725.68,
+       "liquid_kg_h": 473702.4,
+       "vapour_mol_s": 1210.3,
+       "liquid_mol_s": 6558.84,
+       "rho_v_kg_m3": 1.15,
+       "rho_l_kg_m3": 943.0,
+       "sigma_N_m": 0.05492,
+       "flood_frac": 0.536
+      },
+      {
+       "stage": 7,
+       "T_C": 120.46,
+       "P_bar": 2.026,
+       "vapour_kg_h": 79742.88,
+       "liquid_kg_h": 472874.4,
+       "vapour_mol_s": 1208.84,
+       "liquid_mol_s": 6557.96,
+       "rho_v_kg_m3": 1.13,
+       "rho_l_kg_m3": 943.2,
+       "sigma_N_m": 0.0549,
+       "flood_frac": 0.534
+      },
+      {
+       "stage": 8,
+       "T_C": 120.64,
+       "P_bar": 2.026,
+       "vapour_kg_h": 79153.92,
+       "liquid_kg_h": 472388.4,
+       "vapour_mol_s": 1207.96,
+       "liquid_mol_s": 6557.43,
+       "rho_v_kg_m3": 1.13,
+       "rho_l_kg_m3": 943.3,
+       "sigma_N_m": 0.0549,
+       "flood_frac": 0.532
+      },
+      {
+       "stage": 9,
+       "T_C": 120.74,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78807.24,
+       "liquid_kg_h": 472104.0,
+       "vapour_mol_s": 1207.43,
+       "liquid_mol_s": 6557.12,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.531
+      },
+      {
+       "stage": 10,
+       "T_C": 120.81,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78605.64,
+       "liquid_kg_h": 471938.4,
+       "vapour_mol_s": 1207.12,
+       "liquid_mol_s": 6556.95,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 11,
+       "T_C": 120.84,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78489.0,
+       "liquid_kg_h": 471844.8,
+       "vapour_mol_s": 1206.95,
+       "liquid_mol_s": 6556.85,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 12,
+       "T_C": 120.86,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78421.32,
+       "liquid_kg_h": 471790.8,
+       "vapour_mol_s": 1206.85,
+       "liquid_mol_s": 6556.78,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 13,
+       "T_C": 120.87,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78382.08,
+       "liquid_kg_h": 471758.4,
+       "vapour_mol_s": 1206.78,
+       "liquid_mol_s": 6556.73,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 14,
+       "T_C": 120.88,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78358.68,
+       "liquid_kg_h": 471736.8,
+       "vapour_mol_s": 1206.73,
+       "liquid_mol_s": 6556.69,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 15,
+       "T_C": 120.88,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78344.28,
+       "liquid_kg_h": 471726.0,
+       "vapour_mol_s": 1206.69,
+       "liquid_mol_s": 6556.66,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.5,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 16,
+       "T_C": 120.88,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78335.64,
+       "liquid_kg_h": 471718.8,
+       "vapour_mol_s": 1206.66,
+       "liquid_mol_s": 6556.65,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.5,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 17,
+       "T_C": 120.88,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78331.32,
+       "liquid_kg_h": 471718.8,
+       "vapour_mol_s": 1206.65,
+       "liquid_mol_s": 6556.67,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.5,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 18,
+       "T_C": 120.89,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78330.6,
+       "liquid_kg_h": 471718.8,
+       "vapour_mol_s": 1206.67,
+       "liquid_mol_s": 6556.72,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.5,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 19,
+       "T_C": 120.89,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78332.76,
+       "liquid_kg_h": 471718.8,
+       "vapour_mol_s": 1206.72,
+       "liquid_mol_s": 6556.77,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05488,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 20,
+       "T_C": 120.9,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78335.64,
+       "liquid_kg_h": 471718.8,
+       "vapour_mol_s": 1206.77,
+       "liquid_mol_s": 6556.79,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05488,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 21,
+       "T_C": 120.89,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78336.36,
+       "liquid_kg_h": 471718.8,
+       "vapour_mol_s": 1206.79,
+       "liquid_mol_s": 6556.73,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05488,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 22,
+       "T_C": 120.89,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78333.48,
+       "liquid_kg_h": 471711.6,
+       "vapour_mol_s": 1206.73,
+       "liquid_mol_s": 6556.61,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.5,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 23,
+       "T_C": 120.88,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78326.64,
+       "liquid_kg_h": 471704.4,
+       "vapour_mol_s": 1206.61,
+       "liquid_mol_s": 6556.52,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.5,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 24,
+       "T_C": 120.88,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78322.68,
+       "liquid_kg_h": 471704.4,
+       "vapour_mol_s": 1206.52,
+       "liquid_mol_s": 6556.49,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.5,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.53
+      },
+      {
+       "stage": 25,
+       "T_C": 120.96,
+       "P_bar": 2.026,
+       "vapour_kg_h": 78325.2,
+       "liquid_kg_h": 393386.4,
+       "vapour_mol_s": 1206.49,
+       "liquid_mol_s": 5350.0,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.6,
+       "sigma_N_m": 0.05486,
+       "flood_frac": 0.505
+      }
+     ],
+     "flood_frac": 0.558,
+     "flood_error": null,
+     "tray_spacing_m": 0.61
+    },
+    "MIX-509": {
+     "type": "mixer"
+    },
+    "MIX-523": {
+     "type": "mixer"
+    },
+    "MIX-524": {
+     "type": "mixer"
+    },
+    "T-512": {
+     "type": "component_separator"
+    },
+    "REC-521": {
+     "type": "recycle"
+    },
+    "D-502-traces-S510": {
+     "type": "component_separator"
+    },
+    "D-502": {
+     "type": "distillation",
+     "stages": 45,
+     "feed_stage": [
+      33,
+      14
+     ],
+     "reflux": 3.5,
+     "condenser_kW": 85471.08,
+     "reboiler_kW": 60017.3,
+     "condenser_duty_kW": 85471.08,
+     "reboiler_duty_kW": -60017.3,
+     "dwsim_estimated_diameter_m": 6.682,
+     "profile": [
+      {
+       "stage": 1,
+       "T_C": 93.89,
+       "P_bar": 1.621,
+       "vapour_kg_h": 0.0,
+       "liquid_kg_h": 166795.56,
+       "vapour_mol_s": 0.0,
+       "liquid_mol_s": 1691.17,
+       "rho_v_kg_m3": 1.84,
+       "rho_l_kg_m3": 863.8,
+       "sigma_N_m": 0.04542
+      },
+      {
+       "stage": 2,
+       "T_C": 103.27,
+       "P_bar": 1.621,
+       "vapour_kg_h": 202324.32,
+       "liquid_kg_h": 118354.32,
+       "vapour_mol_s": 2169.28,
+       "liquid_mol_s": 1667.84,
+       "rho_v_kg_m3": 1.34,
+       "rho_l_kg_m3": 935.9,
+       "sigma_N_m": 0.05581,
+       "flood_frac": 1.084
+      },
+      {
+       "stage": 3,
+       "T_C": 110.22,
+       "P_bar": 1.621,
+       "vapour_kg_h": 164118.6,
+       "liquid_kg_h": 110145.6,
+       "vapour_mol_s": 2151.03,
+       "liquid_mol_s": 1660.73,
+       "rho_v_kg_m3": 1.08,
+       "rho_l_kg_m3": 945.7,
+       "sigma_N_m": 0.05646,
+       "flood_frac": 0.974
+      },
+      {
+       "stage": 4,
+       "T_C": 111.27,
+       "P_bar": 1.621,
+       "vapour_kg_h": 157607.64,
+       "liquid_kg_h": 109280.88,
+       "vapour_mol_s": 2143.92,
+       "liquid_mol_s": 1659.69,
+       "rho_v_kg_m3": 1.04,
+       "rho_l_kg_m3": 946.6,
+       "sigma_N_m": 0.05646,
+       "flood_frac": 0.955
+      },
+      {
+       "stage": 5,
+       "T_C": 111.37,
+       "P_bar": 1.621,
+       "vapour_kg_h": 156917.88,
+       "liquid_kg_h": 109196.64,
+       "vapour_mol_s": 2142.88,
+       "liquid_mol_s": 1659.59,
+       "rho_v_kg_m3": 1.03,
+       "rho_l_kg_m3": 946.6,
+       "sigma_N_m": 0.05646,
+       "flood_frac": 0.953
+      },
+      {
+       "stage": 6,
+       "T_C": 111.38,
+       "P_bar": 1.621,
+       "vapour_kg_h": 156850.56,
+       "liquid_kg_h": 109188.36,
+       "vapour_mol_s": 2142.78,
+       "liquid_mol_s": 1659.58,
+       "rho_v_kg_m3": 1.03,
+       "rho_l_kg_m3": 946.6,
+       "sigma_N_m": 0.05646,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 7,
+       "T_C": 111.38,
+       "P_bar": 1.621,
+       "vapour_kg_h": 156844.08,
+       "liquid_kg_h": 109187.64,
+       "vapour_mol_s": 2142.77,
+       "liquid_mol_s": 1659.58,
+       "rho_v_kg_m3": 1.03,
+       "rho_l_kg_m3": 946.6,
+       "sigma_N_m": 0.05646,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 8,
+       "T_C": 111.38,
+       "P_bar": 1.621,
+       "vapour_kg_h": 156843.36,
+       "liquid_kg_h": 109187.64,
+       "vapour_mol_s": 2142.77,
+       "liquid_mol_s": 1659.58,
+       "rho_v_kg_m3": 1.03,
+       "rho_l_kg_m3": 946.6,
+       "sigma_N_m": 0.05646,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 9,
+       "T_C": 111.38,
+       "P_bar": 1.621,
+       "vapour_kg_h": 156843.0,
+       "liquid_kg_h": 109187.64,
+       "vapour_mol_s": 2142.77,
+       "liquid_mol_s": 1659.58,
+       "rho_v_kg_m3": 1.03,
+       "rho_l_kg_m3": 946.6,
+       "sigma_N_m": 0.05646,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 10,
+       "T_C": 111.38,
+       "P_bar": 1.621,
+       "vapour_kg_h": 156841.2,
+       "liquid_kg_h": 109188.0,
+       "vapour_mol_s": 2142.77,
+       "liquid_mol_s": 1659.58,
+       "rho_v_kg_m3": 1.03,
+       "rho_l_kg_m3": 946.6,
+       "sigma_N_m": 0.05646,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 11,
+       "T_C": 111.38,
+       "P_bar": 1.621,
+       "vapour_kg_h": 156834.36,
+       "liquid_kg_h": 109189.08,
+       "vapour_mol_s": 2142.77,
+       "liquid_mol_s": 1659.6,
+       "rho_v_kg_m3": 1.03,
+       "rho_l_kg_m3": 946.6,
+       "sigma_N_m": 0.05646,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 12,
+       "T_C": 111.38,
+       "P_bar": 1.621,
+       "vapour_kg_h": 156805.92,
+       "liquid_kg_h": 109193.04,
+       "vapour_mol_s": 2142.79,
+       "liquid_mol_s": 1659.66,
+       "rho_v_kg_m3": 1.03,
+       "rho_l_kg_m3": 946.6,
+       "sigma_N_m": 0.05646,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 13,
+       "T_C": 111.38,
+       "P_bar": 1.621,
+       "vapour_kg_h": 156687.84,
+       "liquid_kg_h": 109168.2,
+       "vapour_mol_s": 2142.85,
+       "liquid_mol_s": 1659.28,
+       "rho_v_kg_m3": 1.03,
+       "rho_l_kg_m3": 946.6,
+       "sigma_N_m": 0.05646,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 14,
+       "T_C": 111.38,
+       "P_bar": 1.621,
+       "vapour_kg_h": 156149.64,
+       "liquid_kg_h": 132027.48,
+       "vapour_mol_s": 2142.47,
+       "liquid_mol_s": 2006.72,
+       "rho_v_kg_m3": 1.03,
+       "rho_l_kg_m3": 946.6,
+       "sigma_N_m": 0.05646,
+       "flood_frac": 0.959
+      },
+      {
+       "stage": 15,
+       "T_C": 111.75,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153891.0,
+       "liquid_kg_h": 131683.32,
+       "vapour_mol_s": 2140.77,
+       "liquid_mol_s": 2006.29,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.953
+      },
+      {
+       "stage": 16,
+       "T_C": 111.79,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153615.6,
+       "liquid_kg_h": 131644.44,
+       "vapour_mol_s": 2140.34,
+       "liquid_mol_s": 2006.25,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 17,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153584.64,
+       "liquid_kg_h": 131640.12,
+       "vapour_mol_s": 2140.29,
+       "liquid_mol_s": 2006.24,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 18,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153581.04,
+       "liquid_kg_h": 131639.76,
+       "vapour_mol_s": 2140.28,
+       "liquid_mol_s": 2006.24,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 19,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153580.68,
+       "liquid_kg_h": 131639.76,
+       "vapour_mol_s": 2140.28,
+       "liquid_mol_s": 2006.24,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 20,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153580.68,
+       "liquid_kg_h": 131639.76,
+       "vapour_mol_s": 2140.28,
+       "liquid_mol_s": 2006.24,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 21,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153580.68,
+       "liquid_kg_h": 131639.76,
+       "vapour_mol_s": 2140.28,
+       "liquid_mol_s": 2006.24,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 22,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153580.68,
+       "liquid_kg_h": 131639.76,
+       "vapour_mol_s": 2140.28,
+       "liquid_mol_s": 2006.24,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 23,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153580.68,
+       "liquid_kg_h": 131639.76,
+       "vapour_mol_s": 2140.28,
+       "liquid_mol_s": 2006.24,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 24,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153580.68,
+       "liquid_kg_h": 131639.76,
+       "vapour_mol_s": 2140.28,
+       "liquid_mol_s": 2006.24,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 25,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153580.68,
+       "liquid_kg_h": 131639.76,
+       "vapour_mol_s": 2140.28,
+       "liquid_mol_s": 2006.24,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 26,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153580.68,
+       "liquid_kg_h": 131640.12,
+       "vapour_mol_s": 2140.28,
+       "liquid_mol_s": 2006.24,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 27,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153580.68,
+       "liquid_kg_h": 131640.48,
+       "vapour_mol_s": 2140.28,
+       "liquid_mol_s": 2006.24,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 28,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153579.6,
+       "liquid_kg_h": 131641.2,
+       "vapour_mol_s": 2140.29,
+       "liquid_mol_s": 2006.25,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 29,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153574.92,
+       "liquid_kg_h": 131643.36,
+       "vapour_mol_s": 2140.29,
+       "liquid_mol_s": 2006.26,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 30,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153552.6,
+       "liquid_kg_h": 131649.12,
+       "vapour_mol_s": 2140.31,
+       "liquid_mol_s": 2006.32,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.952
+      },
+      {
+       "stage": 31,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153456.12,
+       "liquid_kg_h": 131672.16,
+       "vapour_mol_s": 2140.36,
+       "liquid_mol_s": 2006.62,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.951
+      },
+      {
+       "stage": 32,
+       "T_C": 111.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 153053.28,
+       "liquid_kg_h": 121662.0,
+       "vapour_mol_s": 2140.66,
+       "liquid_mol_s": 1853.98,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.9,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.946
+      },
+      {
+       "stage": 33,
+       "T_C": 111.66,
+       "P_bar": 1.621,
+       "vapour_kg_h": 140493.96,
+       "liquid_kg_h": 131506.92,
+       "vapour_mol_s": 1988.02,
+       "liquid_mol_s": 2002.07,
+       "rho_v_kg_m3": 0.99,
+       "rho_l_kg_m3": 946.8,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.881
+      },
+      {
+       "stage": 34,
+       "T_C": 113.42,
+       "P_bar": 1.621,
+       "vapour_kg_h": 98716.32,
+       "liquid_kg_h": 129966.12,
+       "vapour_mol_s": 1502.12,
+       "liquid_mol_s": 2000.12,
+       "rho_v_kg_m3": 0.92,
+       "rho_l_kg_m3": 947.9,
+       "sigma_N_m": 0.0564,
+       "flood_frac": 0.656
+      },
+      {
+       "stage": 35,
+       "T_C": 113.68,
+       "P_bar": 1.621,
+       "vapour_kg_h": 97478.28,
+       "liquid_kg_h": 129755.88,
+       "vapour_mol_s": 1500.16,
+       "liquid_mol_s": 1999.84,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05639,
+       "flood_frac": 0.652
+      },
+      {
+       "stage": 36,
+       "T_C": 113.71,
+       "P_bar": 1.621,
+       "vapour_kg_h": 97309.44,
+       "liquid_kg_h": 129727.8,
+       "vapour_mol_s": 1499.89,
+       "liquid_mol_s": 1999.81,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.652
+      },
+      {
+       "stage": 37,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 97286.76,
+       "liquid_kg_h": 129723.84,
+       "vapour_mol_s": 1499.85,
+       "liquid_mol_s": 1999.8,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.652
+      },
+      {
+       "stage": 38,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 97283.88,
+       "liquid_kg_h": 129723.48,
+       "vapour_mol_s": 1499.85,
+       "liquid_mol_s": 1999.8,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.651
+      },
+      {
+       "stage": 39,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 97283.52,
+       "liquid_kg_h": 129723.48,
+       "vapour_mol_s": 1499.85,
+       "liquid_mol_s": 1999.8,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.651
+      },
+      {
+       "stage": 40,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 97283.52,
+       "liquid_kg_h": 129723.84,
+       "vapour_mol_s": 1499.85,
+       "liquid_mol_s": 1999.8,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.651
+      },
+      {
+       "stage": 41,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 97284.24,
+       "liquid_kg_h": 129724.56,
+       "vapour_mol_s": 1499.85,
+       "liquid_mol_s": 1999.8,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.651
+      },
+      {
+       "stage": 42,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 97285.32,
+       "liquid_kg_h": 129726.36,
+       "vapour_mol_s": 1499.85,
+       "liquid_mol_s": 1999.81,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.652
+      },
+      {
+       "stage": 43,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 97287.48,
+       "liquid_kg_h": 129730.32,
+       "vapour_mol_s": 1499.85,
+       "liquid_mol_s": 1999.82,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.652
+      },
+      {
+       "stage": 44,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 97292.52,
+       "liquid_kg_h": 129739.68,
+       "vapour_mol_s": 1499.86,
+       "liquid_mol_s": 1999.83,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.652
+      },
+      {
+       "stage": 45,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 97299.36,
+       "liquid_kg_h": 32440.07,
+       "vapour_mol_s": 1499.87,
+       "liquid_mol_s": 499.956,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.612
+      }
+     ],
+     "flood_frac": 1.084,
+     "flood_error": null,
+     "tray_spacing_m": 0.61
+    },
+    "H-503": {
+     "type": "heater",
+     "duty_kW": 19464.95
+    },
+    "M-503": {
+     "type": "component_separator"
+    },
+    "SPLIT-514": {
+     "type": "splitter"
+    },
+    "MIX-512": {
+     "type": "mixer"
+    },
+    "H-507": {
+     "type": "cooler",
+     "duty_kW": 15712.42
+    },
+    "H-506": {
+     "type": "hx",
+     "duty_kW": 1655.5,
+     "lmtd_C": 33.11,
+     "U_W_m2K": 500.0,
+     "area_m2": 100.0,
+     "dP_hot_bar": 0.0,
+     "dP_cold_bar": 0.0
+    },
+    "H-509": {
+     "type": "cooler",
+     "duty_kW": 4698.94
+    },
+    "S-505": {
+     "type": "component_separator"
+    }
+   },
+   "checks": [
+    {
+     "id": "D-502",
+     "check": "Fair flood fraction vs limit",
+     "value": 1.084,
+     "limit": 0.8,
+     "unit": "fraction of flood",
+     "utilisation": 1.355
+    },
+    {
+     "id": "D-501",
+     "check": "Fair flood fraction vs limit",
+     "value": 0.558,
+     "limit": 0.8,
+     "unit": "fraction of flood",
+     "utilisation": 0.698
+    },
+    {
+     "id": "H-512",
+     "check": "required area",
+     "error": "D-501: Solver reached the maximum number of iterations without converging."
+    },
+    {
+     "id": "REC-507",
+     "check": "no limit check for this unit type",
+     "type": "recycle"
+    },
+    {
+     "id": "SEP-CO2",
+     "check": "no limit check for this unit type",
+     "type": "component_separator"
+    },
+    {
+     "id": "MIX-509",
+     "check": "no limit check for this unit type",
+     "type": "mixer"
+    },
+    {
+     "id": "MIX-523",
+     "check": "no limit check for this unit type",
+     "type": "mixer"
+    },
+    {
+     "id": "MIX-524",
+     "check": "no limit check for this unit type",
+     "type": "mixer"
+    },
+    {
+     "id": "T-512",
+     "check": "no limit check for this unit type",
+     "type": "component_separator"
+    },
+    {
+     "id": "REC-521",
+     "check": "no limit check for this unit type",
+     "type": "recycle"
+    },
+    {
+     "id": "D-502-traces-S510",
+     "check": "no limit check for this unit type",
+     "type": "component_separator"
+    },
+    {
+     "id": "M-503",
+     "check": "no limit check for this unit type",
+     "type": "component_separator"
+    },
+    {
+     "id": "SPLIT-514",
+     "check": "no limit check for this unit type",
+     "type": "splitter"
+    },
+    {
+     "id": "MIX-512",
+     "check": "no limit check for this unit type",
+     "type": "mixer"
+    },
+    {
+     "id": "S-505",
+     "check": "no limit check for this unit type",
+     "type": "component_separator"
+    }
+   ],
+   "notes": [
+    "D-502: stripped traces of Glycerol, HexaEthylene Glycol, HexaPropylene Glycol, PentaEthylene Glycol, TetraPropylene Glycol, Tetraethylene glycol, Triethylene glycol (0.0341 kg/h) from feed S510 so the column solver converges"
+   ]
+  },
+  "review": {
+   "status": "ok",
+   "blocking": 0,
+   "findings": []
+  },
+  "audit": "ea1d32750295ab7b8d89b202dea9c61f469f2f890ae98945fe69d82de1f4e644"
+ },
+ {
+  "rev": 2,
+  "kind": "correction",
+  "title": "D-502 boilup set to meet the documented overhead purity",
+  "changes": [],
+  "spec_before": {
+   "compounds": [
+    "Acetic acid",
+    "Ammonia",
+    "Carbon dioxide",
+    "Ethanol",
+    "Glycerol",
+    "HexaEthylene Glycol",
+    "HexaPropylene Glycol",
+    "Nitrogen",
+    "Oxygen",
+    "PentaEthylene Glycol",
+    "TetraPropylene Glycol",
+    "Tetraethylene glycol",
+    "Triethylene glycol",
+    "Water"
+   ],
+   "package": "NRTL",
+   "feeds": {
+    "S501": {
+     "T_C": 32.0,
+     "P_bar": 6.079,
+     "kg_h": 450741.0,
+     "x": {
+      "Acetic acid": 0.000542,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.000575,
+      "Ethanol": 0.021964,
+      "Glycerol": 0.000701,
+      "HexaEthylene Glycol": 0.003727,
+      "HexaPropylene Glycol": 0.002711,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.000243,
+      "TetraPropylene Glycol": 7.8e-05,
+      "Tetraethylene glycol": 0.000124,
+      "Triethylene glycol": 0.000326,
+      "Water": 0.969009
+     }
+    },
+    "S305": {
+     "T_C": 32.0,
+     "P_bar": 1.013,
+     "kg_h": 1969.0,
+     "x": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.92765,
+      "Ethanol": 0.015068,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.011525,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 0.045758
+     }
+    },
+    "S317": {
+     "T_C": 32.0,
+     "P_bar": 1.013,
+     "kg_h": 19180.0,
+     "x": {
+      "Acetic acid": 7.4e-05,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.927498,
+      "Ethanol": 0.016006,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.010791,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 0.045631
+     }
+    },
+    "S524": {
+     "T_C": 33.0,
+     "P_bar": 5.066,
+     "kg_h": 26836.0,
+     "x": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 1.0
+     }
+    }
+   },
+   "units": [
+    {
+     "id": "REC-507",
+     "type": "recycle",
+     "in": "S507C",
+     "out": "S507",
+     "guess": {
+      "T_C": 121.0,
+      "P_bar": 2.026,
+      "kg_h": 393000.0,
+      "x": {
+       "Acetic acid": 0.000586,
+       "Ammonia": 0.0,
+       "Carbon dioxide": 0.0,
+       "Ethanol": 3e-06,
+       "Glycerol": 0.000789,
+       "HexaEthylene Glycol": 0.004195,
+       "HexaPropylene Glycol": 0.00321,
+       "Nitrogen": 0.0,
+       "Oxygen": 0.0,
+       "PentaEthylene Glycol": 0.000273,
+       "TetraPropylene Glycol": 8.8e-05,
+       "Tetraethylene glycol": 0.00014,
+       "Triethylene glycol": 0.000367,
+       "Water": 0.990349
+      }
+     }
+    },
+    {
+     "id": "H-512",
+     "type": "hx",
+     "cold": [
+      "S501",
+      "S506"
+     ],
+     "hot": [
+      "S507",
+      "S508"
+     ],
+     "U_W_m2K": 857.0,
+     "area_m2": 310.0
+    },
+    {
+     "id": "SEP-CO2",
+     "type": "component_separator",
+     "in": "S506",
+     "product": "S506L",
+     "reject": "S509G",
+     "recover_pct": {
+      "Carbon dioxide": 0.0
+     }
+    },
+    {
+     "id": "D-501",
+     "type": "distillation",
+     "in": "S506L",
+     "vapor": "S510",
+     "distillate": "S509L",
+     "bottoms": "S507C",
+     "stages": 25,
+     "feed_stage": 2,
+     "efficiency": 0.48,
+     "condenser": "partial",
+     "P_bar": 2.026,
+     "vapor_mol_s": 634.0,
+     "reflux_ratio": 0.2,
+     "bottoms_mol_s": 5350.0
+    },
+    {
+     "id": "MIX-509",
+     "type": "mixer",
+     "in": [
+      "S509G",
+      "S509L"
+     ],
+     "out": "S509"
+    },
+    {
+     "id": "MIX-523",
+     "type": "mixer",
+     "in": [
+      "S509",
+      "S305",
+      "S317"
+     ],
+     "out": "S523"
+    },
+    {
+     "id": "MIX-524",
+     "type": "mixer",
+     "in": [
+      "S523",
+      "S524"
+     ],
+     "out": "S523W"
+    },
+    {
+     "id": "T-512",
+     "type": "component_separator",
+     "in": "S523W",
+     "product": "S551",
+     "reject": "S550",
+     "recover_pct": {
+      "Acetic acid": 99.0,
+      "Ammonia": 50.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 99.0,
+      "Glycerol": 99.0,
+      "HexaEthylene Glycol": 99.0,
+      "HexaPropylene Glycol": 99.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 99.0,
+      "TetraPropylene Glycol": 99.0,
+      "Tetraethylene glycol": 99.0,
+      "Triethylene glycol": 99.0,
+      "Water": 50.0
+     }
+    },
+    {
+     "id": "REC-521",
+     "type": "recycle",
+     "in": "S521C",
+     "out": "S521",
+     "guess": {
+      "T_C": 50.0,
+      "P_bar": 1.621,
+      "kg_h": 7000.0,
+      "x": {
+       "Acetic acid": 0.0,
+       "Ammonia": 0.0,
+       "Carbon dioxide": 0.0,
+       "Ethanol": 0.489,
+       "Glycerol": 0.0,
+       "HexaEthylene Glycol": 0.0,
+       "HexaPropylene Glycol": 0.0,
+       "Nitrogen": 0.0,
+       "Oxygen": 0.0,
+       "PentaEthylene Glycol": 0.0,
+       "TetraPropylene Glycol": 0.0,
+       "Tetraethylene glycol": 0.0,
+       "Triethylene glycol": 0.0,
+       "Water": 0.511
+      }
+     }
+    },
+    {
+     "id": "D-502",
+     "type": "distillation",
+     "in": [
+      "S510",
+      "S521"
+     ],
+     "feed_stage": [
+      33,
+      14
+     ],
+     "distillate": "S511L",
+     "bottoms": "S516",
+     "stages": 45,
+     "efficiency": 0.76,
+     "condenser": "total",
+     "P_bar": 1.621,
+     "condenser_spec": {
+      "type": "Reflux Ratio",
+      "value": 3.5
+     },
+     "reboiler_spec": {
+      "type": "Boilup Ratio",
+      "value": 3.0
+     }
+    },
+    {
+     "id": "H-503",
+     "type": "heater",
+     "in": "S511L",
+     "out": "S511",
+     "T_out_C": 120.0
+    },
+    {
+     "id": "M-503",
+     "type": "component_separator",
+     "in": "S511",
+     "product": "S514DRY",
+     "reject": "S512",
+     "recover_pct": {
+      "Ethanol": 99.0,
+      "Water": 1.0
+     },
+     "recover_pct.Water": 5
+    },
+    {
+     "id": "SPLIT-514",
+     "type": "splitter",
+     "in": "S514DRY",
+     "out": [
+      "S514",
+      "S512RAW"
+     ],
+     "fractions": [
+      0.82,
+      0.18
+     ]
+    },
+    {
+     "id": "MIX-512",
+     "type": "mixer",
+     "in": [
+      "S512RAW",
+      "S512"
+     ],
+     "out": "S512M"
+    },
+    {
+     "id": "H-507",
+     "type": "cooler",
+     "in": "S512M",
+     "out": "S517",
+     "T_out_C": 40.0
+    },
+    {
+     "id": "H-506",
+     "type": "hx",
+     "cold": [
+      "S517",
+      "S521C"
+     ],
+     "hot": [
+      "S514",
+      "S519"
+     ],
+     "U_W_m2K": 500.0,
+     "area_m2": 100.0
+    },
+    {
+     "id": "H-509",
+     "type": "cooler",
+     "in": "S519",
+     "out": "S515",
+     "T_out_C": 35.0
+    },
+    {
+     "id": "S-505",
+     "type": "component_separator",
+     "in": "S508",
+     "product": "S571",
+     "reject": "S535",
+     "recover_pct": {
+      "Acetic acid": 20.0,
+      "Ammonia": 20.0,
+      "Carbon dioxide": 20.0,
+      "Ethanol": 20.0,
+      "Glycerol": 20.0,
+      "HexaEthylene Glycol": 20.0,
+      "HexaPropylene Glycol": 100.0,
+      "Nitrogen": 20.0,
+      "Oxygen": 20.0,
+      "PentaEthylene Glycol": 100.0,
+      "TetraPropylene Glycol": 100.0,
+      "Tetraethylene glycol": 20.0,
+      "Triethylene glycol": 20.0,
+      "Water": 20.0
+     }
+    }
+   ],
+   "limits": {
+    "H-512": {
+     "area_m2": 310.0,
+     "out_T_C": 47.0,
+     "side": "hot"
+    },
+    "H-506": {
+     "area_m2": 100.0
+    },
+    "D-501": {
+     "diameter_m": 4.27,
+     "tray_spacing_m": 0.61
+    },
+    "D-502": {
+     "diameter_m": 3.96,
+     "tray_spacing_m": 0.61
+    }
+   }
+  },
+  "spec_after": {
+   "compounds": [
+    "Acetic acid",
+    "Ammonia",
+    "Carbon dioxide",
+    "Ethanol",
+    "Glycerol",
+    "HexaEthylene Glycol",
+    "HexaPropylene Glycol",
+    "Nitrogen",
+    "Oxygen",
+    "PentaEthylene Glycol",
+    "TetraPropylene Glycol",
+    "Tetraethylene glycol",
+    "Triethylene glycol",
+    "Water"
+   ],
+   "package": "NRTL",
+   "feeds": {
+    "S501": {
+     "T_C": 32.0,
+     "P_bar": 6.079,
+     "kg_h": 450741.0,
+     "x": {
+      "Acetic acid": 0.000542,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.000575,
+      "Ethanol": 0.021964,
+      "Glycerol": 0.000701,
+      "HexaEthylene Glycol": 0.003727,
+      "HexaPropylene Glycol": 0.002711,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.000243,
+      "TetraPropylene Glycol": 7.8e-05,
+      "Tetraethylene glycol": 0.000124,
+      "Triethylene glycol": 0.000326,
+      "Water": 0.969009
+     }
+    },
+    "S305": {
+     "T_C": 32.0,
+     "P_bar": 1.013,
+     "kg_h": 1969.0,
+     "x": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.92765,
+      "Ethanol": 0.015068,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.011525,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 0.045758
+     }
+    },
+    "S317": {
+     "T_C": 32.0,
+     "P_bar": 1.013,
+     "kg_h": 19180.0,
+     "x": {
+      "Acetic acid": 7.4e-05,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.927498,
+      "Ethanol": 0.016006,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.010791,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 0.045631
+     }
+    },
+    "S524": {
+     "T_C": 33.0,
+     "P_bar": 5.066,
+     "kg_h": 26836.0,
+     "x": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 1.0
+     }
+    }
+   },
+   "units": [
+    {
+     "id": "REC-507",
+     "type": "recycle",
+     "in": "S507C",
+     "out": "S507",
+     "guess": {
+      "T_C": 121.0,
+      "P_bar": 2.026,
+      "kg_h": 393000.0,
+      "x": {
+       "Acetic acid": 0.000586,
+       "Ammonia": 0.0,
+       "Carbon dioxide": 0.0,
+       "Ethanol": 3e-06,
+       "Glycerol": 0.000789,
+       "HexaEthylene Glycol": 0.004195,
+       "HexaPropylene Glycol": 0.00321,
+       "Nitrogen": 0.0,
+       "Oxygen": 0.0,
+       "PentaEthylene Glycol": 0.000273,
+       "TetraPropylene Glycol": 8.8e-05,
+       "Tetraethylene glycol": 0.00014,
+       "Triethylene glycol": 0.000367,
+       "Water": 0.990349
+      }
+     }
+    },
+    {
+     "id": "H-512",
+     "type": "hx",
+     "cold": [
+      "S501",
+      "S506"
+     ],
+     "hot": [
+      "S507",
+      "S508"
+     ],
+     "U_W_m2K": 857.0,
+     "area_m2": 310.0
+    },
+    {
+     "id": "SEP-CO2",
+     "type": "component_separator",
+     "in": "S506",
+     "product": "S506L",
+     "reject": "S509G",
+     "recover_pct": {
+      "Carbon dioxide": 0.0
+     }
+    },
+    {
+     "id": "D-501",
+     "type": "distillation",
+     "in": "S506L",
+     "vapor": "S510",
+     "distillate": "S509L",
+     "bottoms": "S507C",
+     "stages": 25,
+     "feed_stage": 2,
+     "efficiency": 0.48,
+     "condenser": "partial",
+     "P_bar": 2.026,
+     "vapor_mol_s": 634.0,
+     "reflux_ratio": 0.2,
+     "bottoms_mol_s": 5350.0
+    },
+    {
+     "id": "MIX-509",
+     "type": "mixer",
+     "in": [
+      "S509G",
+      "S509L"
+     ],
+     "out": "S509"
+    },
+    {
+     "id": "MIX-523",
+     "type": "mixer",
+     "in": [
+      "S509",
+      "S305",
+      "S317"
+     ],
+     "out": "S523"
+    },
+    {
+     "id": "MIX-524",
+     "type": "mixer",
+     "in": [
+      "S523",
+      "S524"
+     ],
+     "out": "S523W"
+    },
+    {
+     "id": "T-512",
+     "type": "component_separator",
+     "in": "S523W",
+     "product": "S551",
+     "reject": "S550",
+     "recover_pct": {
+      "Acetic acid": 99.0,
+      "Ammonia": 50.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 99.0,
+      "Glycerol": 99.0,
+      "HexaEthylene Glycol": 99.0,
+      "HexaPropylene Glycol": 99.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 99.0,
+      "TetraPropylene Glycol": 99.0,
+      "Tetraethylene glycol": 99.0,
+      "Triethylene glycol": 99.0,
+      "Water": 50.0
+     }
+    },
+    {
+     "id": "REC-521",
+     "type": "recycle",
+     "in": "S521C",
+     "out": "S521",
+     "guess": {
+      "T_C": 50.0,
+      "P_bar": 1.621,
+      "kg_h": 7000.0,
+      "x": {
+       "Acetic acid": 0.0,
+       "Ammonia": 0.0,
+       "Carbon dioxide": 0.0,
+       "Ethanol": 0.489,
+       "Glycerol": 0.0,
+       "HexaEthylene Glycol": 0.0,
+       "HexaPropylene Glycol": 0.0,
+       "Nitrogen": 0.0,
+       "Oxygen": 0.0,
+       "PentaEthylene Glycol": 0.0,
+       "TetraPropylene Glycol": 0.0,
+       "Tetraethylene glycol": 0.0,
+       "Triethylene glycol": 0.0,
+       "Water": 0.511
+      }
+     }
+    },
+    {
+     "id": "D-502",
+     "type": "distillation",
+     "in": [
+      "S510",
+      "S521"
+     ],
+     "feed_stage": [
+      33,
+      14
+     ],
+     "distillate": "S511L",
+     "bottoms": "S516",
+     "stages": 45,
+     "efficiency": 0.76,
+     "condenser": "total",
+     "P_bar": 1.621,
+     "condenser_spec": {
+      "type": "Reflux Ratio",
+      "value": 3.5
+     },
+     "reboiler_spec": {
+      "type": "Boilup Ratio",
+      "value": 0.47
+     }
+    },
+    {
+     "id": "H-503",
+     "type": "heater",
+     "in": "S511L",
+     "out": "S511",
+     "T_out_C": 120.0
+    },
+    {
+     "id": "M-503",
+     "type": "component_separator",
+     "in": "S511",
+     "product": "S514DRY",
+     "reject": "S512",
+     "recover_pct": {
+      "Ethanol": 99.0,
+      "Water": 1.0
+     },
+     "recover_pct.Water": 5
+    },
+    {
+     "id": "SPLIT-514",
+     "type": "splitter",
+     "in": "S514DRY",
+     "out": [
+      "S514",
+      "S512RAW"
+     ],
+     "fractions": [
+      0.82,
+      0.18
+     ]
+    },
+    {
+     "id": "MIX-512",
+     "type": "mixer",
+     "in": [
+      "S512RAW",
+      "S512"
+     ],
+     "out": "S512M"
+    },
+    {
+     "id": "H-507",
+     "type": "cooler",
+     "in": "S512M",
+     "out": "S517",
+     "T_out_C": 40.0
+    },
+    {
+     "id": "H-506",
+     "type": "hx",
+     "cold": [
+      "S517",
+      "S521C"
+     ],
+     "hot": [
+      "S514",
+      "S519"
+     ],
+     "U_W_m2K": 500.0,
+     "area_m2": 100.0
+    },
+    {
+     "id": "H-509",
+     "type": "cooler",
+     "in": "S519",
+     "out": "S515",
+     "T_out_C": 35.0
+    },
+    {
+     "id": "S-505",
+     "type": "component_separator",
+     "in": "S508",
+     "product": "S571",
+     "reject": "S535",
+     "recover_pct": {
+      "Acetic acid": 20.0,
+      "Ammonia": 20.0,
+      "Carbon dioxide": 20.0,
+      "Ethanol": 20.0,
+      "Glycerol": 20.0,
+      "HexaEthylene Glycol": 20.0,
+      "HexaPropylene Glycol": 100.0,
+      "Nitrogen": 20.0,
+      "Oxygen": 20.0,
+      "PentaEthylene Glycol": 100.0,
+      "TetraPropylene Glycol": 100.0,
+      "Tetraethylene glycol": 20.0,
+      "Triethylene glycol": 20.0,
+      "Water": 20.0
+     }
+    }
+   ],
+   "limits": {
+    "H-512": {
+     "area_m2": 310.0,
+     "out_T_C": 47.0,
+     "side": "hot"
+    },
+    "H-506": {
+     "area_m2": 100.0
+    },
+    "D-501": {
+     "diameter_m": 4.27,
+     "tray_spacing_m": 0.61
+    },
+    "D-502": {
+     "diameter_m": 3.96,
+     "tray_spacing_m": 0.61
+    }
+   }
+  },
+  "capacity_multiple": null,
+  "at": "2026-11-01T14:41:25+0300",
+  "user": "engineer correction",
+  "reason": "Muse's calibration session could not converge a purity spec on D-502. With the documented molar reflux 3.5 (report 3.5.2), a boilup ratio of 0.470 found by bisection on full A500 solves gives 89.7 wt % ethanol overhead against the documented 92.5 wt %; lower boilups that would approach 92.5 wt % do not converge (0.43 and below), so this is the closest converging value. Design-basis target only; the withheld stream tables were not used.",
+  "result_after": {
+   "scale": 1.0,
+   "errors": [],
+   "streams": {
+    "S501": {
+     "T_C": 32.0,
+     "P_bar": 6.079,
+     "kg_h": 450741.0,
+     "m3_h": 455.12,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 705.75,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 548.71,
+      "Ethanol": 21940.16,
+      "Glycerol": 1399.82,
+      "HexaEthylene Glycol": 22816.14,
+      "HexaPropylene Glycol": 21543.52,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 1255.5,
+      "TetraPropylene Glycol": 423.39,
+      "Tetraethylene glycol": 522.22,
+      "Triethylene glycol": 1061.54,
+      "Water": 378524.26
+     }
+    },
+    "S305": {
+     "T_C": 32.0,
+     "P_bar": 1.013,
+     "kg_h": 1969.0,
+     "m3_h": 1154.52,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 1882.0,
+      "Ethanol": 32.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 17.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 38.0
+     }
+    },
+    "S317": {
+     "T_C": 32.0,
+     "P_bar": 1.013,
+     "kg_h": 19180.0,
+     "m3_h": 11242.19,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 1.99,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 18323.0,
+      "Ethanol": 331.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 155.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 369.01
+     }
+    },
+    "S524": {
+     "T_C": 33.0,
+     "P_bar": 5.066,
+     "kg_h": 26836.0,
+     "m3_h": 27.0,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 26836.0
+     }
+    },
+    "S507": {
+     "T_C": 120.97,
+     "P_bar": 2.026,
+     "kg_h": 393387.7,
+     "m3_h": 416.89,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 681.39,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.01,
+      "Glycerol": 1399.97,
+      "HexaEthylene Glycol": 22818.33,
+      "HexaPropylene Glycol": 21545.42,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 1255.5,
+      "TetraPropylene Glycol": 423.43,
+      "Tetraethylene glycol": 522.28,
+      "Triethylene glycol": 1061.64,
+      "Water": 343679.71
+     }
+    },
+    "S507C": {
+     "T_C": 120.97,
+     "P_bar": 2.026,
+     "kg_h": 393387.7,
+     "m3_h": 416.89,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 681.39,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.01,
+      "Glycerol": 1399.97,
+      "HexaEthylene Glycol": 22818.33,
+      "HexaPropylene Glycol": 21545.42,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 1255.5,
+      "TetraPropylene Glycol": 423.43,
+      "Tetraethylene glycol": 522.28,
+      "Triethylene glycol": 1061.64,
+      "Water": 343679.71
+     }
+    },
+    "S506": {
+     "T_C": 63.69,
+     "P_bar": 6.079,
+     "kg_h": 450741.0,
+     "m3_h": 461.75,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 705.75,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 548.71,
+      "Ethanol": 21940.16,
+      "Glycerol": 1399.82,
+      "HexaEthylene Glycol": 22816.14,
+      "HexaPropylene Glycol": 21543.52,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 1255.5,
+      "TetraPropylene Glycol": 423.39,
+      "Tetraethylene glycol": 522.22,
+      "Triethylene glycol": 1061.54,
+      "Water": 378524.26
+     }
+    },
+    "S508": {
+     "T_C": 86.42,
+     "P_bar": 2.026,
+     "kg_h": 393383.3,
+     "m3_h": 406.02,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 680.8,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.03,
+      "Glycerol": 1399.85,
+      "HexaEthylene Glycol": 22816.35,
+      "HexaPropylene Glycol": 21543.54,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 1255.38,
+      "TetraPropylene Glycol": 423.39,
+      "Tetraethylene glycol": 522.23,
+      "Triethylene glycol": 1061.55,
+      "Water": 343680.14
+     }
+    },
+    "S506L": {
+     "T_C": 63.69,
+     "P_bar": 6.079,
+     "kg_h": 450192.3,
+     "m3_h": 461.46,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 705.75,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 21940.16,
+      "Glycerol": 1399.82,
+      "HexaEthylene Glycol": 22816.14,
+      "HexaPropylene Glycol": 21543.52,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 1255.5,
+      "TetraPropylene Glycol": 423.39,
+      "Tetraethylene glycol": 522.22,
+      "Triethylene glycol": 1061.54,
+      "Water": 378524.26
+     }
+    },
+    "S509G": {
+     "T_C": 63.69,
+     "P_bar": 6.079,
+     "kg_h": 548.7,
+     "m3_h": 57.44,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 548.71,
+      "Ethanol": 0.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 0.0
+     }
+    },
+    "S509L": {
+     "T_C": 114.33,
+     "P_bar": 2.026,
+     "kg_h": 2422.8,
+     "m3_h": 2.58,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 2.94,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 174.82,
+      "Glycerol": 0.01,
+      "HexaEthylene Glycol": 0.36,
+      "HexaPropylene Glycol": 0.49,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.13,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.01,
+      "Water": 2243.99
+     }
+    },
+    "S510": {
+     "T_C": 114.33,
+     "P_bar": 2.026,
+     "kg_h": 54374.5,
+     "m3_h": 36292.3,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 21.47,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 21744.71,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.01,
+      "HexaPropylene Glycol": 0.01,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.01,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 32608.26
+     }
+    },
+    "S509": {
+     "T_C": 85.79,
+     "P_bar": 2.026,
+     "kg_h": 2971.5,
+     "m3_h": 285.81,
+     "vapour_frac": 0.1366,
+     "components_kg_h": {
+      "Acetic acid": 2.94,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 548.71,
+      "Ethanol": 174.82,
+      "Glycerol": 0.01,
+      "HexaEthylene Glycol": 0.36,
+      "HexaPropylene Glycol": 0.49,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.13,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.01,
+      "Water": 2243.99
+     }
+    },
+    "S523": {
+     "T_C": 38.98,
+     "P_bar": 1.013,
+     "kg_h": 24120.5,
+     "m3_h": 13372.23,
+     "vapour_frac": 0.8208,
+     "components_kg_h": {
+      "Acetic acid": 4.94,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 20753.7,
+      "Ethanol": 537.82,
+      "Glycerol": 0.01,
+      "HexaEthylene Glycol": 0.36,
+      "HexaPropylene Glycol": 0.49,
+      "Nitrogen": 0.0,
+      "Oxygen": 172.0,
+      "PentaEthylene Glycol": 0.13,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.01,
+      "Water": 2651.01
+     }
+    },
+    "S523W": {
+     "T_C": 36.38,
+     "P_bar": 1.013,
+     "kg_h": 50956.5,
+     "m3_h": 12970.46,
+     "vapour_frac": 0.2397,
+     "components_kg_h": {
+      "Acetic acid": 4.94,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 20753.7,
+      "Ethanol": 537.82,
+      "Glycerol": 0.01,
+      "HexaEthylene Glycol": 0.36,
+      "HexaPropylene Glycol": 0.49,
+      "Nitrogen": 0.0,
+      "Oxygen": 172.0,
+      "PentaEthylene Glycol": 0.13,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.01,
+      "Water": 29487.01
+     }
+    },
+    "S551": {
+     "T_C": 36.38,
+     "P_bar": 1.013,
+     "kg_h": 15281.8,
+     "m3_h": 15.45,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 4.89,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 532.44,
+      "Glycerol": 0.01,
+      "HexaEthylene Glycol": 0.35,
+      "HexaPropylene Glycol": 0.49,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.12,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.01,
+      "Water": 14743.5
+     }
+    },
+    "S550": {
+     "T_C": 36.38,
+     "P_bar": 1.013,
+     "kg_h": 35674.6,
+     "m3_h": 12897.19,
+     "vapour_frac": 0.3915,
+     "components_kg_h": {
+      "Acetic acid": 0.05,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 20753.7,
+      "Ethanol": 5.38,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 172.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 14743.5
+     }
+    },
+    "S521": {
+     "T_C": 94.99,
+     "P_bar": 1.621,
+     "kg_h": 8077.9,
+     "m3_h": 2428.66,
+     "vapour_frac": 0.4618,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 5040.25,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 3037.64
+     }
+    },
+    "S521C": {
+     "T_C": 94.99,
+     "P_bar": 1.621,
+     "kg_h": 8077.9,
+     "m3_h": 2428.66,
+     "vapour_frac": 0.4618,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 5040.25,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 3037.64
+     }
+    },
+    "S510~": {
+     "T_C": 114.33,
+     "P_bar": 2.026,
+     "kg_h": 54374.4,
+     "m3_h": 36292.3,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 21.47,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 21744.71,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 32608.26
+     }
+    },
+    "S510~traces": {
+     "T_C": 114.33,
+     "P_bar": 2.026,
+     "kg_h": 0.0,
+     "m3_h": 0.0,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.01,
+      "HexaPropylene Glycol": 0.01,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.01,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 0.0
+     }
+    },
+    "S511L": {
+     "T_C": 90.98,
+     "P_bar": 1.621,
+     "kg_h": 29844.1,
+     "m3_h": 39.05,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 26781.37,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 3062.75
+     }
+    },
+    "S516": {
+     "T_C": 113.72,
+     "P_bar": 1.621,
+     "kg_h": 32571.7,
+     "m3_h": 34.36,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 21.47,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.0,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 32550.26
+     }
+    },
+    "S511": {
+     "T_C": 120.0,
+     "P_bar": 1.621,
+     "kg_h": 29844.1,
+     "m3_h": 15150.47,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 26781.37,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 3062.75
+     }
+    },
+    "S514DRY": {
+     "T_C": 120.0,
+     "P_bar": 1.621,
+     "kg_h": 26544.2,
+     "m3_h": 11639.4,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 26513.55,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 30.63
+     }
+    },
+    "S512": {
+     "T_C": 120.0,
+     "P_bar": 1.621,
+     "kg_h": 3299.9,
+     "m3_h": 3511.06,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 267.81,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 3032.13
+     }
+    },
+    "S514": {
+     "T_C": 120.0,
+     "P_bar": 1.621,
+     "kg_h": 21766.2,
+     "m3_h": 9544.31,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 21741.11,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 25.11
+     }
+    },
+    "S512RAW": {
+     "T_C": 120.0,
+     "P_bar": 1.621,
+     "kg_h": 4778.0,
+     "m3_h": 2095.09,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 4772.44,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 5.51
+     }
+    },
+    "S512M": {
+     "T_C": 119.98,
+     "P_bar": 1.621,
+     "kg_h": 8077.9,
+     "m3_h": 5605.89,
+     "vapour_frac": 1.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 5040.25,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 3037.64
+     }
+    },
+    "S517": {
+     "T_C": 40.0,
+     "P_bar": 1.621,
+     "kg_h": 8077.9,
+     "m3_h": 9.05,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 5040.25,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 3037.64
+     }
+    },
+    "S519": {
+     "T_C": 91.18,
+     "P_bar": 1.621,
+     "kg_h": 21766.2,
+     "m3_h": 6136.29,
+     "vapour_frac": 0.6927,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 21741.11,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 25.11
+     }
+    },
+    "S515": {
+     "T_C": 35.0,
+     "P_bar": 1.621,
+     "kg_h": 21766.2,
+     "m3_h": 27.97,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 0.0,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 21741.11,
+      "Glycerol": 0.0,
+      "HexaEthylene Glycol": 0.0,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 0.0,
+      "Triethylene glycol": 0.0,
+      "Water": 25.11
+     }
+    },
+    "S571": {
+     "T_C": 86.42,
+     "P_bar": 2.026,
+     "kg_h": 97254.5,
+     "m3_h": 100.0,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 136.16,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.01,
+      "Glycerol": 279.97,
+      "HexaEthylene Glycol": 4563.27,
+      "HexaPropylene Glycol": 21543.54,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 1255.38,
+      "TetraPropylene Glycol": 423.39,
+      "Tetraethylene glycol": 104.45,
+      "Triethylene glycol": 212.31,
+      "Water": 68736.03
+     }
+    },
+    "S535": {
+     "T_C": 86.42,
+     "P_bar": 2.026,
+     "kg_h": 296128.8,
+     "m3_h": 305.93,
+     "vapour_frac": 0.0,
+     "components_kg_h": {
+      "Acetic acid": 544.64,
+      "Ammonia": 0.0,
+      "Carbon dioxide": 0.0,
+      "Ethanol": 0.03,
+      "Glycerol": 1119.88,
+      "HexaEthylene Glycol": 18253.08,
+      "HexaPropylene Glycol": 0.0,
+      "Nitrogen": 0.0,
+      "Oxygen": 0.0,
+      "PentaEthylene Glycol": 0.0,
+      "TetraPropylene Glycol": 0.0,
+      "Tetraethylene glycol": 417.79,
+      "Triethylene glycol": 849.24,
+      "Water": 274944.11
+     }
+    }
+   },
+   "units": {
+    "REC-507": {
+     "type": "recycle"
+    },
+    "H-512": {
+     "type": "hx",
+     "duty_kW": 14828.9,
+     "lmtd_C": 55.82,
+     "U_W_m2K": 857.0,
+     "area_m2": 310.0,
+     "dP_hot_bar": 0.0,
+     "dP_cold_bar": 0.0
+    },
+    "SEP-CO2": {
+     "type": "component_separator"
+    },
+    "D-501": {
+     "type": "distillation",
+     "stages": 25,
+     "feed_stage": 2,
+     "reflux": 0.011,
+     "condenser_kW": 17003.3,
+     "reboiler_kW": 66651.42,
+     "condenser_duty_kW": 17003.3,
+     "reboiler_duty_kW": -66651.42,
+     "dwsim_estimated_diameter_m": 4.612,
+     "profile": [
+      {
+       "stage": 1,
+       "T_C": 114.33,
+       "P_bar": 2.026,
+       "vapour_kg_h": 54374.4,
+       "liquid_kg_h": 484.55,
+       "vapour_mol_s": 634.0,
+       "liquid_mol_s": 7.1338,
+       "rho_v_kg_m3": 1.5,
+       "rho_l_kg_m3": 937.4,
+       "sigma_N_m": 0.055,
+       "flood_frac": 0.226
+      },
+      {
+       "stage": 2,
+       "T_C": 116.65,
+       "P_bar": 2.026,
+       "vapour_kg_h": 75364.92,
+       "liquid_kg_h": 489985.2,
+       "vapour_mol_s": 1001.88,
+       "liquid_mol_s": 6648.84,
+       "rho_v_kg_m3": 1.31,
+       "rho_l_kg_m3": 940.4,
+       "sigma_N_m": 0.05497,
+       "flood_frac": 0.495
+      },
+      {
+       "stage": 3,
+       "T_C": 118.15,
+       "P_bar": 2.026,
+       "vapour_kg_h": 92916.36,
+       "liquid_kg_h": 484909.2,
+       "vapour_mol_s": 1298.84,
+       "liquid_mol_s": 6643.77,
+       "rho_v_kg_m3": 1.24,
+       "rho_l_kg_m3": 941.7,
+       "sigma_N_m": 0.05497,
+       "flood_frac": 0.582
+      },
+      {
+       "stage": 4,
+       "T_C": 119.23,
+       "P_bar": 2.026,
+       "vapour_kg_h": 89168.04,
+       "liquid_kg_h": 481557.6,
+       "vapour_mol_s": 1293.77,
+       "liquid_mol_s": 6640.32,
+       "rho_v_kg_m3": 1.19,
+       "rho_l_kg_m3": 942.4,
+       "sigma_N_m": 0.05495,
+       "flood_frac": 0.572
+      },
+      {
+       "stage": 5,
+       "T_C": 119.93,
+       "P_bar": 2.026,
+       "vapour_kg_h": 86759.64,
+       "liquid_kg_h": 479509.2,
+       "vapour_mol_s": 1290.32,
+       "liquid_mol_s": 6638.16,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 942.9,
+       "sigma_N_m": 0.05492,
+       "flood_frac": 0.565
+      },
+      {
+       "stage": 6,
+       "T_C": 120.34,
+       "P_bar": 2.026,
+       "vapour_kg_h": 85311.36,
+       "liquid_kg_h": 478321.2,
+       "vapour_mol_s": 1288.16,
+       "liquid_mol_s": 6636.88,
+       "rho_v_kg_m3": 1.14,
+       "rho_l_kg_m3": 943.1,
+       "sigma_N_m": 0.05491,
+       "flood_frac": 0.561
+      },
+      {
+       "stage": 7,
+       "T_C": 120.58,
+       "P_bar": 2.026,
+       "vapour_kg_h": 84476.16,
+       "liquid_kg_h": 477648.0,
+       "vapour_mol_s": 1286.88,
+       "liquid_mol_s": 6636.14,
+       "rho_v_kg_m3": 1.13,
+       "rho_l_kg_m3": 943.3,
+       "sigma_N_m": 0.0549,
+       "flood_frac": 0.559
+      },
+      {
+       "stage": 8,
+       "T_C": 120.72,
+       "P_bar": 2.026,
+       "vapour_kg_h": 84005.64,
+       "liquid_kg_h": 477270.0,
+       "vapour_mol_s": 1286.14,
+       "liquid_mol_s": 6635.73,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.558
+      },
+      {
+       "stage": 9,
+       "T_C": 120.79,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83744.28,
+       "liquid_kg_h": 477064.8,
+       "vapour_mol_s": 1285.73,
+       "liquid_mol_s": 6635.51,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.557
+      },
+      {
+       "stage": 10,
+       "T_C": 120.84,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83600.64,
+       "liquid_kg_h": 476953.2,
+       "vapour_mol_s": 1285.51,
+       "liquid_mol_s": 6635.39,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 11,
+       "T_C": 120.86,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83522.16,
+       "liquid_kg_h": 476888.4,
+       "vapour_mol_s": 1285.39,
+       "liquid_mol_s": 6635.32,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 12,
+       "T_C": 120.87,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83479.32,
+       "liquid_kg_h": 476856.0,
+       "vapour_mol_s": 1285.32,
+       "liquid_mol_s": 6635.28,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 13,
+       "T_C": 120.88,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83455.2,
+       "liquid_kg_h": 476838.0,
+       "vapour_mol_s": 1285.28,
+       "liquid_mol_s": 6635.24,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 14,
+       "T_C": 120.88,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83441.16,
+       "liquid_kg_h": 476827.2,
+       "vapour_mol_s": 1285.24,
+       "liquid_mol_s": 6635.2,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 15,
+       "T_C": 120.88,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83432.52,
+       "liquid_kg_h": 476820.0,
+       "vapour_mol_s": 1285.2,
+       "liquid_mol_s": 6635.18,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 16,
+       "T_C": 120.88,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83427.12,
+       "liquid_kg_h": 476816.4,
+       "vapour_mol_s": 1285.18,
+       "liquid_mol_s": 6635.17,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 17,
+       "T_C": 120.88,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83424.96,
+       "liquid_kg_h": 476812.8,
+       "vapour_mol_s": 1285.17,
+       "liquid_mol_s": 6635.2,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 18,
+       "T_C": 120.88,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83426.04,
+       "liquid_kg_h": 476816.4,
+       "vapour_mol_s": 1285.2,
+       "liquid_mol_s": 6635.25,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 19,
+       "T_C": 120.89,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83428.92,
+       "liquid_kg_h": 476816.4,
+       "vapour_mol_s": 1285.25,
+       "liquid_mol_s": 6635.31,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 20,
+       "T_C": 120.89,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83432.16,
+       "liquid_kg_h": 476820.0,
+       "vapour_mol_s": 1285.31,
+       "liquid_mol_s": 6635.32,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 21,
+       "T_C": 120.89,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83433.6,
+       "liquid_kg_h": 476820.0,
+       "vapour_mol_s": 1285.32,
+       "liquid_mol_s": 6635.26,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 22,
+       "T_C": 120.88,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83430.36,
+       "liquid_kg_h": 476812.8,
+       "vapour_mol_s": 1285.26,
+       "liquid_mol_s": 6635.12,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 23,
+       "T_C": 120.87,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83422.8,
+       "liquid_kg_h": 476805.6,
+       "vapour_mol_s": 1285.12,
+       "liquid_mol_s": 6635.03,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.5,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 24,
+       "T_C": 120.88,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83419.2,
+       "liquid_kg_h": 476805.6,
+       "vapour_mol_s": 1285.03,
+       "liquid_mol_s": 6635.02,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05489,
+       "flood_frac": 0.556
+      },
+      {
+       "stage": 25,
+       "T_C": 120.97,
+       "P_bar": 2.026,
+       "vapour_kg_h": 83423.52,
+       "liquid_kg_h": 393386.4,
+       "vapour_mol_s": 1285.02,
+       "liquid_mol_s": 5350.0,
+       "rho_v_kg_m3": 1.12,
+       "rho_l_kg_m3": 943.6,
+       "sigma_N_m": 0.05486,
+       "flood_frac": 0.53
+      }
+     ],
+     "flood_frac": 0.582,
+     "flood_error": null,
+     "tray_spacing_m": 0.61
+    },
+    "MIX-509": {
+     "type": "mixer"
+    },
+    "MIX-523": {
+     "type": "mixer"
+    },
+    "MIX-524": {
+     "type": "mixer"
+    },
+    "T-512": {
+     "type": "component_separator"
+    },
+    "REC-521": {
+     "type": "recycle"
+    },
+    "D-502-traces-S510": {
+     "type": "component_separator"
+    },
+    "D-502": {
+     "type": "distillation",
+     "stages": 45,
+     "feed_stage": [
+      33,
+      14
+     ],
+     "reflux": 3.5,
+     "condenser_kW": 36272.43,
+     "reboiler_kW": 9451.82,
+     "condenser_duty_kW": 36272.43,
+     "reboiler_duty_kW": -9451.82,
+     "dwsim_estimated_diameter_m": 4.874,
+     "profile": [
+      {
+       "stage": 1,
+       "T_C": 90.98,
+       "P_bar": 1.621,
+       "vapour_kg_h": 0.0,
+       "liquid_kg_h": 104454.36,
+       "vapour_mol_s": 0.0,
+       "liquid_mol_s": 730.477,
+       "rho_v_kg_m3": 2.16,
+       "rho_l_kg_m3": 764.3,
+       "sigma_N_m": 0.0263
+      },
+      {
+       "stage": 2,
+       "T_C": 91.08,
+       "P_bar": 1.621,
+       "vapour_kg_h": 133373.88,
+       "liquid_kg_h": 101625.12,
+       "vapour_mol_s": 938.608,
+       "liquid_mol_s": 727.26,
+       "rho_v_kg_m3": 2.11,
+       "rho_l_kg_m3": 770.9,
+       "sigma_N_m": 0.02773,
+       "flood_frac": 0.747
+      },
+      {
+       "stage": 3,
+       "T_C": 91.23,
+       "P_bar": 1.621,
+       "vapour_kg_h": 130343.04,
+       "liquid_kg_h": 98080.2,
+       "vapour_mol_s": 935.968,
+       "liquid_mol_s": 723.368,
+       "rho_v_kg_m3": 2.07,
+       "rho_l_kg_m3": 779.4,
+       "sigma_N_m": 0.02954,
+       "flood_frac": 0.723
+      },
+      {
+       "stage": 4,
+       "T_C": 91.5,
+       "P_bar": 1.621,
+       "vapour_kg_h": 126253.8,
+       "liquid_kg_h": 92968.92,
+       "vapour_mol_s": 932.075,
+       "liquid_mol_s": 716.708,
+       "rho_v_kg_m3": 2.01,
+       "rho_l_kg_m3": 791.7,
+       "sigma_N_m": 0.0321,
+       "flood_frac": 0.691
+      },
+      {
+       "stage": 5,
+       "T_C": 92.08,
+       "P_bar": 1.621,
+       "vapour_kg_h": 120106.08,
+       "liquid_kg_h": 84422.52,
+       "vapour_mol_s": 925.416,
+       "liquid_mol_s": 703.366,
+       "rho_v_kg_m3": 1.92,
+       "rho_l_kg_m3": 812.9,
+       "sigma_N_m": 0.03629,
+       "flood_frac": 0.644
+      },
+      {
+       "stage": 6,
+       "T_C": 93.69,
+       "P_bar": 1.621,
+       "vapour_kg_h": 109934.64,
+       "liquid_kg_h": 69535.44,
+       "vapour_mol_s": 912.074,
+       "liquid_mol_s": 692.099,
+       "rho_v_kg_m3": 1.78,
+       "rho_l_kg_m3": 859.1,
+       "sigma_N_m": 0.04464,
+       "flood_frac": 0.566
+      },
+      {
+       "stage": 7,
+       "T_C": 98.99,
+       "P_bar": 1.621,
+       "vapour_kg_h": 95046.84,
+       "liquid_kg_h": 54433.44,
+       "vapour_mol_s": 900.806,
+       "liquid_mol_s": 709.726,
+       "rho_v_kg_m3": 1.54,
+       "rho_l_kg_m3": 921.4,
+       "sigma_N_m": 0.05413,
+       "flood_frac": 0.484
+      },
+      {
+       "stage": 8,
+       "T_C": 105.62,
+       "P_bar": 1.621,
+       "vapour_kg_h": 82930.68,
+       "liquid_kg_h": 48773.88,
+       "vapour_mol_s": 918.433,
+       "liquid_mol_s": 706.738,
+       "rho_v_kg_m3": 1.29,
+       "rho_l_kg_m3": 940.4,
+       "sigma_N_m": 0.0562,
+       "flood_frac": 0.451
+      },
+      {
+       "stage": 9,
+       "T_C": 107.54,
+       "P_bar": 1.621,
+       "vapour_kg_h": 78403.32,
+       "liquid_kg_h": 47821.68,
+       "vapour_mol_s": 915.445,
+       "liquid_mol_s": 705.831,
+       "rho_v_kg_m3": 1.22,
+       "rho_l_kg_m3": 943.0,
+       "sigma_N_m": 0.05637,
+       "flood_frac": 0.438
+      },
+      {
+       "stage": 10,
+       "T_C": 107.84,
+       "P_bar": 1.621,
+       "vapour_kg_h": 77636.52,
+       "liquid_kg_h": 47685.96,
+       "vapour_mol_s": 914.538,
+       "liquid_mol_s": 705.69,
+       "rho_v_kg_m3": 1.21,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05639,
+       "flood_frac": 0.436
+      },
+      {
+       "stage": 11,
+       "T_C": 107.89,
+       "P_bar": 1.621,
+       "vapour_kg_h": 77522.04,
+       "liquid_kg_h": 47667.6,
+       "vapour_mol_s": 914.398,
+       "liquid_mol_s": 705.679,
+       "rho_v_kg_m3": 1.21,
+       "rho_l_kg_m3": 943.5,
+       "sigma_N_m": 0.05639,
+       "flood_frac": 0.435
+      },
+      {
+       "stage": 12,
+       "T_C": 107.89,
+       "P_bar": 1.621,
+       "vapour_kg_h": 77487.12,
+       "liquid_kg_h": 47668.32,
+       "vapour_mol_s": 914.387,
+       "liquid_mol_s": 705.727,
+       "rho_v_kg_m3": 1.2,
+       "rho_l_kg_m3": 943.5,
+       "sigma_N_m": 0.05639,
+       "flood_frac": 0.435
+      },
+      {
+       "stage": 13,
+       "T_C": 107.89,
+       "P_bar": 1.621,
+       "vapour_kg_h": 77405.04,
+       "liquid_kg_h": 47075.76,
+       "vapour_mol_s": 914.434,
+       "liquid_mol_s": 696.961,
+       "rho_v_kg_m3": 1.2,
+       "rho_l_kg_m3": 943.5,
+       "sigma_N_m": 0.0564,
+       "flood_frac": 0.435
+      },
+      {
+       "stage": 14,
+       "T_C": 107.84,
+       "P_bar": 1.621,
+       "vapour_kg_h": 76318.92,
+       "liquid_kg_h": 50373.0,
+       "vapour_mol_s": 905.669,
+       "liquid_mol_s": 745.441,
+       "rho_v_kg_m3": 1.2,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05639,
+       "flood_frac": 0.431
+      },
+      {
+       "stage": 15,
+       "T_C": 108.68,
+       "P_bar": 1.621,
+       "vapour_kg_h": 72090.0,
+       "liquid_kg_h": 49995.36,
+       "vapour_mol_s": 877.449,
+       "liquid_mol_s": 745.033,
+       "rho_v_kg_m3": 1.17,
+       "rho_l_kg_m3": 944.3,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.413
+      },
+      {
+       "stage": 16,
+       "T_C": 108.8,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71786.16,
+       "liquid_kg_h": 49942.8,
+       "vapour_mol_s": 877.041,
+       "liquid_mol_s": 744.974,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.4,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.413
+      },
+      {
+       "stage": 17,
+       "T_C": 108.81,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71744.04,
+       "liquid_kg_h": 49935.6,
+       "vapour_mol_s": 876.982,
+       "liquid_mol_s": 744.966,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 18,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71737.92,
+       "liquid_kg_h": 49934.88,
+       "vapour_mol_s": 876.974,
+       "liquid_mol_s": 744.965,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 19,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71737.2,
+       "liquid_kg_h": 49934.52,
+       "vapour_mol_s": 876.973,
+       "liquid_mol_s": 744.965,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 20,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71737.2,
+       "liquid_kg_h": 49934.52,
+       "vapour_mol_s": 876.973,
+       "liquid_mol_s": 744.965,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 21,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71737.2,
+       "liquid_kg_h": 49934.52,
+       "vapour_mol_s": 876.973,
+       "liquid_mol_s": 744.965,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 22,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71737.2,
+       "liquid_kg_h": 49934.52,
+       "vapour_mol_s": 876.973,
+       "liquid_mol_s": 744.965,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 23,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71737.2,
+       "liquid_kg_h": 49934.52,
+       "vapour_mol_s": 876.973,
+       "liquid_mol_s": 744.965,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 24,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71737.2,
+       "liquid_kg_h": 49934.52,
+       "vapour_mol_s": 876.973,
+       "liquid_mol_s": 744.965,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 25,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71737.2,
+       "liquid_kg_h": 49934.52,
+       "vapour_mol_s": 876.973,
+       "liquid_mol_s": 744.965,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 26,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71737.2,
+       "liquid_kg_h": 49934.88,
+       "vapour_mol_s": 876.973,
+       "liquid_mol_s": 744.965,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 27,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71737.2,
+       "liquid_kg_h": 49934.88,
+       "vapour_mol_s": 876.973,
+       "liquid_mol_s": 744.966,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 28,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71737.56,
+       "liquid_kg_h": 49935.24,
+       "vapour_mol_s": 876.974,
+       "liquid_mol_s": 744.967,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 29,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71737.92,
+       "liquid_kg_h": 49935.96,
+       "vapour_mol_s": 876.974,
+       "liquid_mol_s": 744.968,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 30,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71738.28,
+       "liquid_kg_h": 49937.4,
+       "vapour_mol_s": 876.976,
+       "liquid_mol_s": 744.971,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 31,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71738.64,
+       "liquid_kg_h": 49954.68,
+       "vapour_mol_s": 876.979,
+       "liquid_mol_s": 745.189,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.412
+      },
+      {
+       "stage": 32,
+       "T_C": 108.82,
+       "P_bar": 1.621,
+       "vapour_kg_h": 71752.68,
+       "liquid_kg_h": 39726.72,
+       "vapour_mol_s": 877.197,
+       "liquid_mol_s": 592.565,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 944.5,
+       "sigma_N_m": 0.05643,
+       "flood_frac": 0.408
+      },
+      {
+       "stage": 33,
+       "T_C": 107.85,
+       "P_bar": 1.621,
+       "vapour_kg_h": 59257.8,
+       "liquid_kg_h": 50063.4,
+       "vapour_mol_s": 724.573,
+       "liquid_mol_s": 740.636,
+       "rho_v_kg_m3": 1.16,
+       "rho_l_kg_m3": 943.4,
+       "sigma_N_m": 0.05639,
+       "flood_frac": 0.344
+      },
+      {
+       "stage": 34,
+       "T_C": 111.36,
+       "P_bar": 1.621,
+       "vapour_kg_h": 17148.49,
+       "liquid_kg_h": 48644.28,
+       "vapour_mol_s": 238.644,
+       "liquid_mol_s": 738.957,
+       "rho_v_kg_m3": 1.01,
+       "rho_l_kg_m3": 946.6,
+       "sigma_N_m": 0.05645,
+       "flood_frac": 0.119
+      },
+      {
+       "stage": 35,
+       "T_C": 112.91,
+       "P_bar": 1.621,
+       "vapour_kg_h": 15949.44,
+       "liquid_kg_h": 48127.32,
+       "vapour_mol_s": 236.965,
+       "liquid_mol_s": 738.277,
+       "rho_v_kg_m3": 0.94,
+       "rho_l_kg_m3": 947.6,
+       "sigma_N_m": 0.05641,
+       "flood_frac": 0.115
+      },
+      {
+       "stage": 36,
+       "T_C": 113.46,
+       "P_bar": 1.621,
+       "vapour_kg_h": 15515.21,
+       "liquid_kg_h": 47956.68,
+       "vapour_mol_s": 236.285,
+       "liquid_mol_s": 738.047,
+       "rho_v_kg_m3": 0.92,
+       "rho_l_kg_m3": 947.9,
+       "sigma_N_m": 0.05639,
+       "flood_frac": 0.113
+      },
+      {
+       "stage": 37,
+       "T_C": 113.64,
+       "P_bar": 1.621,
+       "vapour_kg_h": 15372.22,
+       "liquid_kg_h": 47902.32,
+       "vapour_mol_s": 236.055,
+       "liquid_mol_s": 737.972,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.113
+      },
+      {
+       "stage": 38,
+       "T_C": 113.69,
+       "P_bar": 1.621,
+       "vapour_kg_h": 15326.57,
+       "liquid_kg_h": 47885.04,
+       "vapour_mol_s": 235.98,
+       "liquid_mol_s": 737.949,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.113
+      },
+      {
+       "stage": 39,
+       "T_C": 113.71,
+       "P_bar": 1.621,
+       "vapour_kg_h": 15312.13,
+       "liquid_kg_h": 47879.64,
+       "vapour_mol_s": 235.957,
+       "liquid_mol_s": 737.942,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.113
+      },
+      {
+       "stage": 40,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 15307.6,
+       "liquid_kg_h": 47877.84,
+       "vapour_mol_s": 235.949,
+       "liquid_mol_s": 737.939,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.113
+      },
+      {
+       "stage": 41,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 15306.16,
+       "liquid_kg_h": 47877.48,
+       "vapour_mol_s": 235.947,
+       "liquid_mol_s": 737.938,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.113
+      },
+      {
+       "stage": 42,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 15305.72,
+       "liquid_kg_h": 47877.48,
+       "vapour_mol_s": 235.946,
+       "liquid_mol_s": 737.938,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.113
+      },
+      {
+       "stage": 43,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 15305.65,
+       "liquid_kg_h": 47877.48,
+       "vapour_mol_s": 235.946,
+       "liquid_mol_s": 737.939,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.113
+      },
+      {
+       "stage": 44,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 15305.8,
+       "liquid_kg_h": 47877.84,
+       "vapour_mol_s": 235.947,
+       "liquid_mol_s": 737.939,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.113
+      },
+      {
+       "stage": 45,
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "vapour_kg_h": 15306.26,
+       "liquid_kg_h": 32571.72,
+       "vapour_mol_s": 235.947,
+       "liquid_mol_s": 501.992,
+       "rho_v_kg_m3": 0.91,
+       "rho_l_kg_m3": 948.0,
+       "sigma_N_m": 0.05638,
+       "flood_frac": 0.107
+      }
+     ],
+     "flood_frac": 0.747,
+     "flood_error": null,
+     "tray_spacing_m": 0.61
+    },
+    "H-503": {
+     "type": "heater",
+     "duty_kW": 8365.91
+    },
+    "M-503": {
+     "type": "component_separator"
+    },
+    "SPLIT-514": {
+     "type": "splitter"
+    },
+    "MIX-512": {
+     "type": "mixer"
+    },
+    "H-507": {
+     "type": "cooler",
+     "duty_kW": 3518.15
+    },
+    "H-506": {
+     "type": "hx",
+     "duty_kW": 1829.0,
+     "lmtd_C": 36.58,
+     "U_W_m2K": 500.0,
+     "area_m2": 100.0,
+     "dP_hot_bar": 0.0,
+     "dP_cold_bar": 0.0
+    },
+    "H-509": {
+     "type": "cooler",
+     "duty_kW": 4423.01
+    },
+    "S-505": {
+     "type": "component_separator"
+    }
+   },
+   "checks": [
+    {
+     "id": "D-502",
+     "check": "Fair flood fraction vs limit",
+     "value": 0.747,
+     "limit": 0.8,
+     "unit": "fraction of flood",
+     "utilisation": 0.934
+    },
+    {
+     "id": "D-501",
+     "check": "Fair flood fraction vs limit",
+     "value": 0.582,
+     "limit": 0.8,
+     "unit": "fraction of flood",
+     "utilisation": 0.727
+    },
+    {
+     "id": "H-512",
+     "check": "required area",
+     "error": "D-501: Solver reached the maximum number of iterations without converging."
+    },
+    {
+     "id": "REC-507",
+     "check": "no limit check for this unit type",
+     "type": "recycle"
+    },
+    {
+     "id": "SEP-CO2",
+     "check": "no limit check for this unit type",
+     "type": "component_separator"
+    },
+    {
+     "id": "MIX-509",
+     "check": "no limit check for this unit type",
+     "type": "mixer"
+    },
+    {
+     "id": "MIX-523",
+     "check": "no limit check for this unit type",
+     "type": "mixer"
+    },
+    {
+     "id": "MIX-524",
+     "check": "no limit check for this unit type",
+     "type": "mixer"
+    },
+    {
+     "id": "T-512",
+     "check": "no limit check for this unit type",
+     "type": "component_separator"
+    },
+    {
+     "id": "REC-521",
+     "check": "no limit check for this unit type",
+     "type": "recycle"
+    },
+    {
+     "id": "D-502-traces-S510",
+     "check": "no limit check for this unit type",
+     "type": "component_separator"
+    },
+    {
+     "id": "M-503",
+     "check": "no limit check for this unit type",
+     "type": "component_separator"
+    },
+    {
+     "id": "SPLIT-514",
+     "check": "no limit check for this unit type",
+     "type": "splitter"
+    },
+    {
+     "id": "MIX-512",
+     "check": "no limit check for this unit type",
+     "type": "mixer"
+    },
+    {
+     "id": "S-505",
+     "check": "no limit check for this unit type",
+     "type": "component_separator"
+    }
+   ],
+   "notes": [
+    "D-502: stripped traces of Glycerol, HexaEthylene Glycol, HexaPropylene Glycol, PentaEthylene Glycol, TetraPropylene Glycol, Tetraethylene glycol, Triethylene glycol (0.0341 kg/h) from feed S510 so the column solver converges"
+   ]
+  },
+  "review": {
+   "status": "ok",
+   "blocking": 0,
+   "findings": []
+  },
+  "audit": "42f96245bfa0e1628e53c0cf5119405969c786057f87efc3035f861a99359a94"
+ }
+]

@@ -640,7 +640,7 @@
     },
     "reboiler_spec": {
      "type": "Boilup Ratio",
-     "value": 3.0
+     "value": 0.47
     }
    },
    {
@@ -659,7 +659,8 @@
     "recover_pct": {
      "Ethanol": 99.0,
      "Water": 1.0
-    }
+    },
+    "recover_pct.Water": 5
    },
    {
     "id": "SPLIT-514",
@@ -670,8 +671,8 @@
      "S512RAW"
     ],
     "fractions": [
-     0.85,
-     0.15
+     0.82,
+     0.18
     ]
    },
    {
@@ -775,7 +776,7 @@
  "result": {
   "scale": 1.0,
   "errors": [
-   "D-502: Failed to fulfill mass balance for Ethanol: Relative Error = 0.9684619781766522 [Tolerance = 0.001]"
+   "D-502: Solver reached the maximum number of iterations without converging."
   ],
   "streams": {
    "S301": {
@@ -1722,49 +1723,49 @@
     }
    },
    "S511L": {
-    "T_C": 110.41,
-    "P_bar": 1.621,
-    "kg_h": 24031.7,
+    "T_C": 25.0,
+    "P_bar": 1.013,
+    "kg_h": 3600.0,
     "m3_h": 0.0,
     "vapour_frac": 0.0,
     "components_kg_h": {
-     "Acetic acid": 0.0,
-     "Ammonia": 0.0,
-     "Carbon dioxide": 0.0,
-     "Ethanol": 820.93,
-     "Glycerol": 0.0,
-     "HexaEthylene Glycol": 0.0,
-     "HexaPropylene Glycol": 0.0,
-     "Nitrogen": 0.0,
-     "Oxygen": 0.0,
-     "PentaEthylene Glycol": 0.0,
-     "TetraPropylene Glycol": 0.0,
-     "Tetraethylene glycol": 0.0,
-     "Triethylene glycol": 0.0,
-     "Water": 23210.76
+     "Acetic acid": 118.84,
+     "Ammonia": 33.7,
+     "Carbon dioxide": 87.09,
+     "Ethanol": 91.17,
+     "Glycerol": 182.25,
+     "HexaEthylene Glycol": 558.73,
+     "HexaPropylene Glycol": 725.28,
+     "Nitrogen": 55.44,
+     "Oxygen": 63.33,
+     "PentaEthylene Glycol": 471.55,
+     "TetraPropylene Glycol": 495.4,
+     "Tetraethylene glycol": 384.37,
+     "Triethylene glycol": 297.19,
+     "Water": 35.65
     }
    },
    "S516": {
-    "T_C": 113.72,
-    "P_bar": 1.621,
-    "kg_h": 21575.9,
+    "T_C": 25.0,
+    "P_bar": 1.013,
+    "kg_h": 3600.0,
     "m3_h": 0.0,
     "vapour_frac": 0.0,
     "components_kg_h": {
-     "Acetic acid": 22.37,
-     "Ammonia": 0.0,
-     "Carbon dioxide": 0.0,
-     "Ethanol": 0.0,
-     "Glycerol": 0.0,
-     "HexaEthylene Glycol": 0.0,
-     "HexaPropylene Glycol": 0.0,
-     "Nitrogen": 0.0,
-     "Oxygen": 0.0,
-     "PentaEthylene Glycol": 0.0,
-     "TetraPropylene Glycol": 0.0,
-     "Tetraethylene glycol": 0.0,
-     "Triethylene glycol": 0.0,
-     "Water": 21553.54
+     "Acetic acid": 118.84,
+     "Ammonia": 33.7,
+     "Carbon dioxide": 87.09,
+     "Ethanol": 91.17,
+     "Glycerol": 182.25,
+     "HexaEthylene Glycol": 558.73,
+     "HexaPropylene Glycol": 725.28,
+     "Nitrogen": 55.44,
+     "Oxygen": 63.33,
+     "PentaEthylene Glycol": 471.55,
+     "TetraPropylene Glycol": 495.4,
+     "Tetraethylene glycol": 384.37,
+     "Triethylene glycol": 297.19,
+     "Water": 35.65
     }
    },
    "S511": {
@@ -2582,600 +2583,15 @@
      33,
      14
     ],
-    "reflux": 3.5,
-    "condenser_kW": 65482.81,
-    "reboiler_kW": 40067.76,
-    "condenser_duty_kW": 65482.81,
-    "reboiler_duty_kW": -40067.76,
-    "dwsim_estimated_diameter_m": 5.478,
-    "profile": [
-     {
-      "stage": 1,
-      "T_C": 110.41,
-      "P_bar": 1.621,
-      "vapour_kg_h": 0.0,
-      "liquid_kg_h": 84110.76,
-      "vapour_mol_s": 0.0,
-      "liquid_mol_s": 1269.93,
-      "rho_v_kg_m3": 1.08,
-      "rho_l_kg_m3": 945.9,
-      "sigma_N_m": 0.05646
-     },
-     {
-      "stage": 2,
-      "T_C": 110.41,
-      "P_bar": 1.621,
-      "vapour_kg_h": 124954.92,
-      "liquid_kg_h": 84110.76,
-      "vapour_mol_s": 1632.77,
-      "liquid_mol_s": 1269.93,
-      "rho_v_kg_m3": 1.08,
-      "rho_l_kg_m3": 945.9,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.741
-     },
-     {
-      "stage": 3,
-      "T_C": 110.41,
-      "P_bar": 1.621,
-      "vapour_kg_h": 124954.92,
-      "liquid_kg_h": 84110.76,
-      "vapour_mol_s": 1632.77,
-      "liquid_mol_s": 1269.93,
-      "rho_v_kg_m3": 1.08,
-      "rho_l_kg_m3": 945.9,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.741
-     },
-     {
-      "stage": 4,
-      "T_C": 110.41,
-      "P_bar": 1.621,
-      "vapour_kg_h": 124954.92,
-      "liquid_kg_h": 84110.76,
-      "vapour_mol_s": 1632.77,
-      "liquid_mol_s": 1269.93,
-      "rho_v_kg_m3": 1.08,
-      "rho_l_kg_m3": 945.9,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.741
-     },
-     {
-      "stage": 5,
-      "T_C": 110.41,
-      "P_bar": 1.621,
-      "vapour_kg_h": 124954.56,
-      "liquid_kg_h": 84111.12,
-      "vapour_mol_s": 1632.77,
-      "liquid_mol_s": 1269.93,
-      "rho_v_kg_m3": 1.08,
-      "rho_l_kg_m3": 945.9,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.741
-     },
-     {
-      "stage": 6,
-      "T_C": 110.41,
-      "P_bar": 1.621,
-      "vapour_kg_h": 124953.48,
-      "liquid_kg_h": 84111.12,
-      "vapour_mol_s": 1632.77,
-      "liquid_mol_s": 1269.93,
-      "rho_v_kg_m3": 1.08,
-      "rho_l_kg_m3": 945.9,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.741
-     },
-     {
-      "stage": 7,
-      "T_C": 110.41,
-      "P_bar": 1.621,
-      "vapour_kg_h": 124948.8,
-      "liquid_kg_h": 84111.84,
-      "vapour_mol_s": 1632.77,
-      "liquid_mol_s": 1269.94,
-      "rho_v_kg_m3": 1.08,
-      "rho_l_kg_m3": 945.9,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.741
-     },
-     {
-      "stage": 8,
-      "T_C": 110.41,
-      "P_bar": 1.621,
-      "vapour_kg_h": 124929.0,
-      "liquid_kg_h": 84112.92,
-      "vapour_mol_s": 1632.78,
-      "liquid_mol_s": 1269.96,
-      "rho_v_kg_m3": 1.08,
-      "rho_l_kg_m3": 945.9,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.741
-     },
-     {
-      "stage": 9,
-      "T_C": 110.41,
-      "P_bar": 1.621,
-      "vapour_kg_h": 124844.04,
-      "liquid_kg_h": 84111.48,
-      "vapour_mol_s": 1632.8,
-      "liquid_mol_s": 1269.94,
-      "rho_v_kg_m3": 1.08,
-      "rho_l_kg_m3": 945.9,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.741
-     },
-     {
-      "stage": 10,
-      "T_C": 110.48,
-      "P_bar": 1.621,
-      "vapour_kg_h": 124483.32,
-      "liquid_kg_h": 84066.12,
-      "vapour_mol_s": 1632.77,
-      "liquid_mol_s": 1269.87,
-      "rho_v_kg_m3": 1.08,
-      "rho_l_kg_m3": 946.0,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.74
-     },
-     {
-      "stage": 11,
-      "T_C": 110.53,
-      "P_bar": 1.621,
-      "vapour_kg_h": 124198.2,
-      "liquid_kg_h": 84032.64,
-      "vapour_mol_s": 1632.71,
-      "liquid_mol_s": 1269.84,
-      "rho_v_kg_m3": 1.07,
-      "rho_l_kg_m3": 946.0,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.739
-     },
-     {
-      "stage": 12,
-      "T_C": 110.57,
-      "P_bar": 1.621,
-      "vapour_kg_h": 123955.56,
-      "liquid_kg_h": 84011.04,
-      "vapour_mol_s": 1632.68,
-      "liquid_mol_s": 1269.87,
-      "rho_v_kg_m3": 1.07,
-      "rho_l_kg_m3": 946.0,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.738
-     },
-     {
-      "stage": 13,
-      "T_C": 110.6,
-      "P_bar": 1.621,
-      "vapour_kg_h": 123661.8,
-      "liquid_kg_h": 84084.12,
-      "vapour_mol_s": 1632.71,
-      "liquid_mol_s": 1271.25,
-      "rho_v_kg_m3": 1.07,
-      "rho_l_kg_m3": 946.1,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.737
-     },
-     {
-      "stage": 14,
-      "T_C": 110.63,
-      "P_bar": 1.621,
-      "vapour_kg_h": 123070.32,
-      "liquid_kg_h": 88379.28,
-      "vapour_mol_s": 1634.09,
-      "liquid_mol_s": 1336.43,
-      "rho_v_kg_m3": 1.06,
-      "rho_l_kg_m3": 946.1,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.738
-     },
-     {
-      "stage": 15,
-      "T_C": 111.19,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120912.12,
-      "liquid_kg_h": 88012.8,
-      "vapour_mol_s": 1637.99,
-      "liquid_mol_s": 1335.99,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.5,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.733
-     },
-     {
-      "stage": 16,
-      "T_C": 111.25,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120575.16,
-      "liquid_kg_h": 87969.96,
-      "vapour_mol_s": 1637.55,
-      "liquid_mol_s": 1335.93,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.5,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.732
-     },
-     {
-      "stage": 17,
-      "T_C": 111.27,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120503.88,
-      "liquid_kg_h": 87961.32,
-      "vapour_mol_s": 1637.49,
-      "liquid_mol_s": 1335.92,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 18,
-      "T_C": 111.27,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120467.16,
-      "liquid_kg_h": 87956.64,
-      "vapour_mol_s": 1637.48,
-      "liquid_mol_s": 1335.91,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 19,
-      "T_C": 111.28,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120439.08,
-      "liquid_kg_h": 87953.4,
-      "vapour_mol_s": 1637.48,
-      "liquid_mol_s": 1335.91,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 20,
-      "T_C": 111.28,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120416.76,
-      "liquid_kg_h": 87950.88,
-      "vapour_mol_s": 1637.47,
-      "liquid_mol_s": 1335.91,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 21,
-      "T_C": 111.29,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120398.4,
-      "liquid_kg_h": 87948.72,
-      "vapour_mol_s": 1637.47,
-      "liquid_mol_s": 1335.9,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 22,
-      "T_C": 111.29,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120383.64,
-      "liquid_kg_h": 87946.92,
-      "vapour_mol_s": 1637.46,
-      "liquid_mol_s": 1335.9,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 23,
-      "T_C": 111.29,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120371.76,
-      "liquid_kg_h": 87945.48,
-      "vapour_mol_s": 1637.46,
-      "liquid_mol_s": 1335.9,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 24,
-      "T_C": 111.29,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120362.04,
-      "liquid_kg_h": 87944.4,
-      "vapour_mol_s": 1637.46,
-      "liquid_mol_s": 1335.9,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 25,
-      "T_C": 111.29,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120354.12,
-      "liquid_kg_h": 87943.68,
-      "vapour_mol_s": 1637.46,
-      "liquid_mol_s": 1335.9,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 26,
-      "T_C": 111.3,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120347.64,
-      "liquid_kg_h": 87943.32,
-      "vapour_mol_s": 1637.46,
-      "liquid_mol_s": 1335.9,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 27,
-      "T_C": 111.3,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120342.6,
-      "liquid_kg_h": 87943.32,
-      "vapour_mol_s": 1637.46,
-      "liquid_mol_s": 1335.9,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 28,
-      "T_C": 111.3,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120337.92,
-      "liquid_kg_h": 87944.04,
-      "vapour_mol_s": 1637.46,
-      "liquid_mol_s": 1335.9,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 29,
-      "T_C": 111.3,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120330.72,
-      "liquid_kg_h": 87946.2,
-      "vapour_mol_s": 1637.46,
-      "liquid_mol_s": 1335.91,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 30,
-      "T_C": 111.3,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120309.48,
-      "liquid_kg_h": 87951.24,
-      "vapour_mol_s": 1637.48,
-      "liquid_mol_s": 1335.96,
-      "rho_v_kg_m3": 1.04,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05646,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 31,
-      "T_C": 111.3,
-      "P_bar": 1.621,
-      "vapour_kg_h": 120227.04,
-      "liquid_kg_h": 87973.56,
-      "vapour_mol_s": 1637.53,
-      "liquid_mol_s": 1336.24,
-      "rho_v_kg_m3": 1.03,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05645,
-      "flood_frac": 0.731
-     },
-     {
-      "stage": 32,
-      "T_C": 111.3,
-      "P_bar": 1.621,
-      "vapour_kg_h": 119889.0,
-      "liquid_kg_h": 77927.4,
-      "vapour_mol_s": 1637.8,
-      "liquid_mol_s": 1183.57,
-      "rho_v_kg_m3": 1.03,
-      "rho_l_kg_m3": 946.6,
-      "sigma_N_m": 0.05645,
-      "flood_frac": 0.726
-     },
-     {
-      "stage": 33,
-      "T_C": 111.07,
-      "P_bar": 1.621,
-      "vapour_kg_h": 107359.2,
-      "liquid_kg_h": 87822.36,
-      "vapour_mol_s": 1485.13,
-      "liquid_mol_s": 1331.66,
-      "rho_v_kg_m3": 1.02,
-      "rho_l_kg_m3": 946.4,
-      "sigma_N_m": 0.05645,
-      "flood_frac": 0.661
-     },
-     {
-      "stage": 34,
-      "T_C": 113.33,
-      "P_bar": 1.621,
-      "vapour_kg_h": 65940.12,
-      "liquid_kg_h": 86477.76,
-      "vapour_mol_s": 999.223,
-      "liquid_mol_s": 1329.98,
-      "rho_v_kg_m3": 0.92,
-      "rho_l_kg_m3": 947.8,
-      "sigma_N_m": 0.0564,
-      "flood_frac": 0.437
-     },
-     {
-      "stage": 35,
-      "T_C": 113.67,
-      "P_bar": 1.621,
-      "vapour_kg_h": 64859.76,
-      "liquid_kg_h": 86293.44,
-      "vapour_mol_s": 997.544,
-      "liquid_mol_s": 1329.74,
-      "rho_v_kg_m3": 0.91,
-      "rho_l_kg_m3": 948.0,
-      "sigma_N_m": 0.05638,
-      "flood_frac": 0.434
-     },
-     {
-      "stage": 36,
-      "T_C": 113.71,
-      "P_bar": 1.621,
-      "vapour_kg_h": 64711.8,
-      "liquid_kg_h": 86268.6,
-      "vapour_mol_s": 997.304,
-      "liquid_mol_s": 1329.71,
-      "rho_v_kg_m3": 0.91,
-      "rho_l_kg_m3": 948.0,
-      "sigma_N_m": 0.05638,
-      "flood_frac": 0.433
-     },
-     {
-      "stage": 37,
-      "T_C": 113.72,
-      "P_bar": 1.621,
-      "vapour_kg_h": 64692.0,
-      "liquid_kg_h": 86265.36,
-      "vapour_mol_s": 997.272,
-      "liquid_mol_s": 1329.71,
-      "rho_v_kg_m3": 0.91,
-      "rho_l_kg_m3": 948.0,
-      "sigma_N_m": 0.05638,
-      "flood_frac": 0.433
-     },
-     {
-      "stage": 38,
-      "T_C": 113.72,
-      "P_bar": 1.621,
-      "vapour_kg_h": 64689.12,
-      "liquid_kg_h": 86264.64,
-      "vapour_mol_s": 997.268,
-      "liquid_mol_s": 1329.7,
-      "rho_v_kg_m3": 0.91,
-      "rho_l_kg_m3": 948.0,
-      "sigma_N_m": 0.05638,
-      "flood_frac": 0.433
-     },
-     {
-      "stage": 39,
-      "T_C": 113.72,
-      "P_bar": 1.621,
-      "vapour_kg_h": 64689.12,
-      "liquid_kg_h": 86265.0,
-      "vapour_mol_s": 997.267,
-      "liquid_mol_s": 1329.71,
-      "rho_v_kg_m3": 0.91,
-      "rho_l_kg_m3": 948.0,
-      "sigma_N_m": 0.05638,
-      "flood_frac": 0.433
-     },
-     {
-      "stage": 40,
-      "T_C": 113.72,
-      "P_bar": 1.621,
-      "vapour_kg_h": 64689.12,
-      "liquid_kg_h": 86265.0,
-      "vapour_mol_s": 997.267,
-      "liquid_mol_s": 1329.71,
-      "rho_v_kg_m3": 0.91,
-      "rho_l_kg_m3": 948.0,
-      "sigma_N_m": 0.05638,
-      "flood_frac": 0.433
-     },
-     {
-      "stage": 41,
-      "T_C": 113.72,
-      "P_bar": 1.621,
-      "vapour_kg_h": 64689.48,
-      "liquid_kg_h": 86266.08,
-      "vapour_mol_s": 997.268,
-      "liquid_mol_s": 1329.71,
-      "rho_v_kg_m3": 0.91,
-      "rho_l_kg_m3": 948.0,
-      "sigma_N_m": 0.05638,
-      "flood_frac": 0.433
-     },
-     {
-      "stage": 42,
-      "T_C": 113.72,
-      "P_bar": 1.621,
-      "vapour_kg_h": 64690.56,
-      "liquid_kg_h": 86267.52,
-      "vapour_mol_s": 997.27,
-      "liquid_mol_s": 1329.71,
-      "rho_v_kg_m3": 0.91,
-      "rho_l_kg_m3": 948.0,
-      "sigma_N_m": 0.05638,
-      "flood_frac": 0.433
-     },
-     {
-      "stage": 43,
-      "T_C": 113.72,
-      "P_bar": 1.621,
-      "vapour_kg_h": 64693.08,
-      "liquid_kg_h": 86271.84,
-      "vapour_mol_s": 997.274,
-      "liquid_mol_s": 1329.72,
-      "rho_v_kg_m3": 0.91,
-      "rho_l_kg_m3": 948.0,
-      "sigma_N_m": 0.05638,
-      "flood_frac": 0.433
-     },
-     {
-      "stage": 44,
-      "T_C": 113.72,
-      "P_bar": 1.621,
-      "vapour_kg_h": 64698.12,
-      "liquid_kg_h": 86281.2,
-      "vapour_mol_s": 997.282,
-      "liquid_mol_s": 1329.73,
-      "rho_v_kg_m3": 0.91,
-      "rho_l_kg_m3": 948.0,
-      "sigma_N_m": 0.05638,
-      "flood_frac": 0.433
-     },
-     {
-      "stage": 45,
-      "T_C": 113.72,
-      "P_bar": 1.621,
-      "vapour_kg_h": 64705.32,
-      "liquid_kg_h": 21575.92,
-      "vapour_mol_s": 997.293,
-      "liquid_mol_s": 332.438,
-      "rho_v_kg_m3": 0.91,
-      "rho_l_kg_m3": 948.0,
-      "sigma_N_m": 0.05638,
-      "flood_frac": 0.407
-     }
-    ],
-    "flood_frac": 0.741,
-    "flood_error": null,
+    "reflux": 5.0,
+    "condenser_kW": 0.0,
+    "reboiler_kW": 0.0,
+    "condenser_duty_kW": 0.0,
+    "reboiler_duty_kW": 0.0,
+    "dwsim_estimated_diameter_m": null,
+    "profile": [],
+    "flood_frac": null,
+    "flood_error": "DWSIM reported no stage with vapour traffic to screen for flooding",
     "tray_spacing_m": 0.61
    },
    "H-503": {
@@ -3246,14 +2662,6 @@
     "utilisation": 1.0
    },
    {
-    "id": "D-502",
-    "check": "Fair flood fraction vs limit",
-    "value": 0.741,
-    "limit": 0.8,
-    "unit": "fraction of flood",
-    "utilisation": 0.926
-   },
-   {
     "id": "D-501",
     "check": "Fair flood fraction vs limit",
     "value": 0.557,
@@ -3264,7 +2672,12 @@
    {
     "id": "H-512",
     "check": "required area",
-    "error": "D-502: Failed to fulfill mass balance for Ethanol: Relative Error = 0.9728099937500579 [Tolerance = 0.001]"
+    "error": "D-502: Failed to fulfill mass balance for Ethanol: Relative Error = 0.9691972444206162 [Tolerance = 0.001]"
+   },
+   {
+    "id": "D-502",
+    "check": "Fair flooding screen",
+    "error": "DWSIM reported no stage with vapour traffic to screen for flooding"
    },
    {
     "id": "A-308",
@@ -3389,9 +2802,9 @@
    "kind": "joined"
   }
  ],
- "seconds": 14,
+ "seconds": 64,
  "cost_usd": 0.0,
- "at": "2026-11-01 13:54",
+ "at": "2026-11-01 14:43",
  "review": {
   "status": "model needs review",
   "findings": [
@@ -3406,7 +2819,7 @@
    {
     "severity": "block",
     "check": "unit did not solve",
-    "evidence": "Flowsheet errors: D-502: Failed to fulfill mass balance for Ethanol: Relative Error = 0.9684619781766522 [Tolerance = 0.001]"
+    "evidence": "Flowsheet errors: D-502: Solver reached the maximum number of iterations without converging."
    }
   ],
   "blocking": 2,

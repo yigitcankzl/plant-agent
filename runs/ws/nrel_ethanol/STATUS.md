@@ -38,5 +38,19 @@ and passed review and the coverage gate (accepted by replay, no LLM, recorded in
 - Column products report their compound split. The DWSIM worker no longer crashes on compound pairs without NRTL data.
 - Plant cases list `areas`; their models join deterministically. Submit is blocked when most P&ID equipment is missing.
 
+## Calibration session (after the merge)
+- Muse Wonder calibration session on A500 ($5.84, 777 s, `runs/ws/nrel_ethanol_a500/20261101-140645`), against the
+  design-basis text only (no withheld stream tables): every D-502 purity/recovery spec it tried failed to converge; the
+  one change that converged (molecular sieve removes 95 % of the water, 18 % regeneration slipstream) is rev 1.
+- Engineer correction, rev 2 (`tools/nrel_d502_boilup.py`, no LLM): at the documented molar reflux 3.5, D-502 boilup
+  0.47 is the lowest that converges; it gives 89.7 wt % ethanol overhead against the documented 92.5 wt % (0.43 and
+  below do not converge).
+- A500 after both: 64 checks, 24 within 3 %, 28 within 5 % (was 22 / 27). D-502 overhead S511 29,844 vs 29,213 kg/h
+  (+2.2 %, was +61 %); water in the sieve loop S512/S521 +47 % (was +920 %); D-502 reboiler 9.5 vs 6.6 MW (was 60 MW),
+  condenser 36.3 vs 27.0 MW (was 85 MW). Still 0 of 7 duties within 10 %; temperatures of the solids streams and the
+  D-501 condenser duty are not calibrated.
+- Join A300 -> A500: still does not converge. On the joined feed D-502 fails its ethanol mass balance (~95 % relative
+  error) at boilups 0.47-0.8, a different failure from the standalone area.
+
 ## Spend
-$21.83 of this task's $30.
+$21.83 of the build task's $30; calibration session $5.84 of its $9.

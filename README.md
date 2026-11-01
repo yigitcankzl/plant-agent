@@ -104,13 +104,13 @@ The MOC pack carries the failed gates as risks and its decision reads "Do not ap
 | Area | Model | Stream checks within 3 % / 5 % | Key number vs report | Muse cost |
 |---|---|---|---|---|
 | A300 hydrolysis and fermentation | 11 units, one build | 26 / 33 of 35 | beer ethanol 21,229 vs 21,941 kg/h (−3.2 %) | $4.30 |
-| A500 distillation, molecular sieve, filter | 18 units, all 10 P&ID tags | 22 / 27 of 64 | ethanol product 21,755 vs 21,673 kg/h (+0.4 %) | $2.90 (accepted run) |
+| A500 distillation, molecular sieve, filter | 18 units, all 10 P&ID tags; 2 calibration revisions | 24 / 28 of 64 | ethanol product 21,741 vs 21,673 kg/h (+0.3 %); D-502 overhead +2.2 % | $2.90 (accepted run) + $5.84 (calibration) |
 
 Limits:
 - The NREL numbers are themselves an Aspen Plus simulation, not plant measurements. The claim is "Muse rebuilt NREL's model in DWSIM".
 - DWSIM's sugars and solids stall its column solver, so mass-equivalent ChemSep stand-ins are used. The basis says so.
-- A500 took five builds; the failed ones cost $14.6. The accepted model is Muse's last submission, replayed after column-solver fixes. Its basis carries modelling notes from our engine tests, labelled as such. Water in the rectifier and sieve loop, and the heat duties, are not calibrated.
-- The joined A300 → A500 plant (`nrel_ethanol`) does not converge yet: the rectifier fails on A300's beer with Muse's fixed-rate specs.
+- A500 took five builds; the failed ones cost $14.6. The accepted model is Muse's last submission, replayed after column-solver fixes. Its basis carries modelling notes from our engine tests, labelled as such. A Muse calibration session against the design-basis text (not the stream tables) fixed the sieve split; its D-502 purity specs did not converge, so an engineer correction sets D-502's boilup to the lowest value that converges (89.7 wt % overhead against the documented 92.5 wt %). Water in the sieve loop is still +47 %, and no heat duty is within 10 % (D-502 reboiler 9.5 vs 6.6 MW).
+- The joined A300 → A500 plant (`nrel_ethanol`) does not converge yet: on A300's beer the rectifier fails its ethanol mass balance.
 
 ## Second opinion: two models, one simulator
 
