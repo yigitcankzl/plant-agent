@@ -1,55 +1,40 @@
 {
- "key": "5fc508e1e29569650bcc5fb182d821d3b7fb7151",
- "made": "2026-11-01T01:43:32+0300",
+ "key": "b1cfd6138a284536ed987cead2349b7631231379",
+ "made": "2026-11-01T15:24:07+0300",
  "case": "salt_mvr",
- "answer_headline": "Yes, with cleaning and extra compression",
+ "answer_headline": "More salt possible but not yet proven",
  "currency": "USD",
  "illustrative": true,
- "summary": "Capex \u2248 $5.7M (class 5: $2.9M\u2013$11.5M); +502 short t/d \u2192 $22.7M/yr margin after energy and utilities; payback 4 months; NPV 10 y @ 10% $132.2M. All prices ILLUSTRATIVE.",
+ "summary": "Capex \u2248 $9.4M (class 5: $4.7M\u2013$18.8M); +502 short t/d \u2192 $22.5M/yr margin after energy and utilities; payback 6 months; NPV 10 y @ 10% $127.3M. All prices ILLUSTRATIVE.",
  "capex": {
-  "total_usd": 5735000.0,
+  "total_usd": 9380000.0,
   "range_usd": [
-   2868000.0,
-   11470000.0
+   4690000.0,
+   18760000.0
   ],
   "range_basis": "AACE 18R-97 class 5, -50 % / +100 %",
   "proposals": [
    {
-    "title": "Clean the main circulating heater back to its clean performance",
-    "cost_class": "<$100k",
-    "capex_usd": 80000,
-    "lines": [
-     {
-      "item": "clean E-201",
-      "basis": "restore clean U",
-      "usd": 80000,
-      "source": "ILLUSTRATIVE chemical/mechanical clean of one large exchanger incl. waste handling"
-     }
-    ],
-    "unpriced": [],
-    "cost_class_check": "consistent"
-   },
-   {
-    "title": "Add a small parallel vapour compressor K-202",
+    "title": "Add parallel compressor K-202 taking 25% of the vapour",
     "cost_class": ">$1M",
-    "capex_usd": 5640000.0,
+    "capex_usd": 9240000.0,
     "lines": [
      {
-      "item": "tie-in K-201_SPLIT",
+      "item": "tie-in K201_SPLIT",
       "basis": "new tee/join",
       "usd": 120000,
       "source": "ILLUSTRATIVE allowance per new tee/join tied into a live line (hot tap or shutdown tie-in)"
      },
      {
       "item": "K-202 compressor",
-      "basis": "2,400 kW \u00d7 $900/kW \u00d7 install 2.5",
-      "size": 2400,
+      "basis": "4,000 kW \u00d7 $900/kW \u00d7 install 2.5",
+      "size": 4000,
       "size_unit": "kW",
-      "usd": 5400000.0,
+      "usd": 9000000.0,
       "source": "ILLUSTRATIVE order-of-magnitude factor of the kind tabulated in Towler & Sinnott, Chemical Engineering Design (2nd ed., 2012), ch. 7; not a vendor quote"
      },
      {
-      "item": "tie-in K201_JOIN",
+      "item": "tie-in K201_MERGE",
       "basis": "new tee/join",
       "usd": 120000,
       "source": "ILLUSTRATIVE allowance per new tee/join tied into a live line (hot tap or shutdown tie-in)"
@@ -59,7 +44,28 @@
     "cost_class_check": "consistent"
    },
    {
-    "title": "Hold purge-heater steam at today's rate by trimming the overhead split",
+    "title": "Clean main heater E-201 and extend its area to 11,000 m2",
+    "cost_class": "$100k-$1M",
+    "capex_usd": 95000,
+    "lines": [
+     {
+      "item": "clean E-201",
+      "basis": "restore clean U",
+      "usd": 80000,
+      "source": "ILLUSTRATIVE chemical/mechanical clean of one large exchanger incl. waste handling"
+     },
+     {
+      "item": "set-point units.V-201.area_m2",
+      "basis": "8800 \u2192 11000",
+      "usd": 15000,
+      "source": "ILLUSTRATIVE instrument, DCS and procedure change for a flow, level or set-point change"
+     }
+    ],
+    "unpriced": [],
+    "cost_class_check": "factored $95,000 is outside the stated class $100k-$1M"
+   },
+   {
+    "title": "Hold purge steam at today's rate of 20.9 t/h",
     "cost_class": "no capex",
     "capex_usd": 15000,
     "lines": [
@@ -72,6 +78,27 @@
     ],
     "unpriced": [],
     "cost_class_check": "consistent"
+   },
+   {
+    "title": "Replace transformer TX-1 with a 7.5 MVA unit and raise its tap 5%",
+    "cost_class": "$100k-$1M",
+    "capex_usd": 30000,
+    "lines": [
+     {
+      "item": "set-point electrical.TX-1.sn_mva",
+      "basis": "None \u2192 7.5",
+      "usd": 15000,
+      "source": "ILLUSTRATIVE instrument, DCS and procedure change for a flow, level or set-point change"
+     },
+     {
+      "item": "set-point electrical.TX-1.tap_percent",
+      "basis": "None \u2192 5",
+      "usd": 15000,
+      "source": "ILLUSTRATIVE instrument, DCS and procedure change for a flow, level or set-point change"
+     }
+    ],
+    "unpriced": [],
+    "cost_class_check": "factored $30,000 is outside the stated class $100k-$1M"
    }
   ]
  },
@@ -90,13 +117,13 @@
     "units": [
      "K-201"
     ],
-    "delta_kW": 1.4,
+    "delta_kW": -807.1,
     "price": {
      "value": 0.039,
      "unit": "USD per kWh shaft",
      "source": "ASSUMED, ILLUSTRATIVE: gas at $4/MMBtu, 35 % turbine efficiency"
     },
-    "usd_per_year": 400.0
+    "usd_per_year": -256900.0
    },
    {
     "name": "Electric motors (K-202, P-201)",
@@ -104,29 +131,29 @@
      "K-202",
      "P-201"
     ],
-    "delta_kW": 2051.7,
+    "delta_kW": 2864.1,
     "price": {
      "value": 0.07,
      "unit": "USD per kWh",
      "source": "ASSUMED, ILLUSTRATIVE: industrial power price (same value as historian_map.json)"
     },
-    "usd_per_year": 1171900.0
+    "usd_per_year": 1636000.0
    }
   ],
   "utilities": [],
-  "margin_usd": 22732400.0,
-  "basis": "solved 1.201 \u00d7 base, capped at the 120% target; energy from DWSIM solves (design at 120% vs today at 100 %)"
+  "margin_usd": 22525600.0,
+  "basis": "solved 1.200 \u00d7 base, capped at the 120% target; energy from DWSIM solves (design at 120% vs today at 100 %)"
  },
  "outage": {
   "days": 5.0,
   "usd": 1758000.0,
   "source": "ASSUMED, ILLUSTRATIVE: one shutdown for the K-202 tie-ins, with the E-201 clean done in the same window"
  },
- "payback_years": 0.33,
- "npv_usd": 132188000.0,
+ "payback_years": 0.49,
+ "npv_usd": 127272000.0,
  "npv_range_usd": [
-  126453000.0,
-  135055000.0
+  117892000.0,
+  131962000.0
  ],
  "discount_rate": 0.1,
  "years": 10,
