@@ -914,7 +914,8 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(f.read_bytes(), "image/svg+xml") if f else self._send({"error": "not found"}, code=404)
             if what == "sheet.png":
                 from . import pidvision
-                return self._send(pidvision.render(DATA_ROOT / w.cfg["pid_pdf"], w.cfg.get("pid_page", 1) - 1), "image/png")
+                rotate = w.cfg.get("pid_rotate", 0) if q.get("rotate") == "1" else 0
+                return self._send(pidvision.render(DATA_ROOT / w.cfg["pid_pdf"], w.cfg.get("pid_page", 1) - 1, rotate=rotate), "image/png")
             if what == "build" and method == "POST":
                 return self._send(plant_job(case, lambda w: {k: v for k, v in w.build().items() if k != "result"}))
             if what == "work":  # the engineering loop (loop.py): Muse proposes and fixes, the engines check every round
@@ -1033,7 +1034,8 @@ class Handler(SimpleHTTPRequestHandler):
                 orig = json.loads(w.pid_file.read_text()) if w.pid_file.exists() else None
                 conf = json.loads(w.confirmed_file.read_text()) if w.confirmed_file.exists() else None
                 return self._send({"original": (orig or {}).get("raw"), "model": (orig or {}).get("model"),
-                                   "confirmed": (conf or {}).get("raw"), "corrections": (conf or {}).get("corrections") or []})
+                                   "sheet": (orig or {}).get("sheet"), "confirmed": (conf or {}).get("raw"),
+                                   "corrections": (conf or {}).get("corrections") or []})
             if what == "confirmread" and method == "POST":
                 try:
                     return self._send(_case_call(case, lambda: w.confirm_read(

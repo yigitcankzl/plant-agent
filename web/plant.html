@@ -648,6 +648,69 @@
   #rightScroll > #askDock .cmd { max-width: none; min-width: 0; } #rightScroll > #askDock input { min-width: 0; width: 100%; font-size: 13px; }
   #rightScroll > #qaSugg { display: flex; flex-direction: column; gap: 4px; padding: 0 18px 12px; }
   #rightScroll > #qaSugg > * { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; font-size: 12px; padding: 4px 8px; }
+
+  /* Recording-only view: the ordinary workspace is unchanged unless ?present=1 is present. */
+  .present-caption, .openweights-story { display: none; }
+  body.present-mode { overflow: hidden; }
+  body.present-mode .app { grid-template-columns: 420px minmax(0, 1fr) !important; grid-template-rows: 64px minmax(0, 1fr) !important; padding-bottom: 132px; }
+  body.present-mode header { min-height: 64px; padding: 0 24px; }
+  body.present-mode header #proj { font-size: 18px; }
+  body.present-mode header .logo { font-size: 20px; }
+  body.present-mode header .mode-tabs, body.present-mode #focusBtn, body.present-mode #infoBtn,
+  body.present-mode #note, body.present-mode .workbench, body.present-mode .detail-drawer,
+  body.present-mode .drawer-shade, body.present-mode .pid-tools, body.present-mode #qa,
+  body.present-mode .analysis-log, body.present-mode .side-details, body.present-mode #answers,
+  body.present-mode .dd-open-btn, body.present-mode .step-card { display: none !important; }
+  body.present-mode aside.right { grid-row: 2; grid-column: 1; border-right: 1px solid var(--rule); }
+  body.present-mode main { grid-row: 2; grid-column: 2; }
+  body.present-mode #rightScroll { padding: 8px 20px 24px; }
+  body.present-mode #worklogPanel { padding: 20px 8px; }
+  body.present-mode #worklogPanel .worklog-head h3 { font-size: 23px; }
+  body.present-mode #worklogPanel .worklog-head { display: block; }
+  body.present-mode #worklogPanel .work-status { display: block; margin-top: 4px; }
+  body.present-mode #worklogPanel .work-status, body.present-mode #worklogPanel .replay-progress,
+  body.present-mode #worklogPanel .replay-controls .btn, body.present-mode #worklogPanel .work-round > summary,
+  body.present-mode #worklogPanel .work-round-state { font-size: 18px; }
+  body.present-mode #worklogPanel .work-step { padding: 10px 8px; }
+  body.present-mode #worklogPanel .work-step-title { display: block; overflow: visible; font-size: 18px; line-height: 1.35; -webkit-line-clamp: unset; }
+  body.present-mode #worklogPanel .replay-stage { min-height: 112px; padding: 14px 16px; }
+  body.present-mode #worklogPanel .replay-stage .replay-who { font-size: 18px; }
+  body.present-mode #worklogPanel .replay-stage .replay-text { font-size: 19px; }
+  body.present-mode #worklogPanel .replay-controls { grid-template-columns: auto auto auto auto; }
+  body.present-mode #worklogPanel .replay-progress { grid-column: 1 / -1; justify-self: start; }
+  body.present-mode .present-caption { display: grid; position: fixed; z-index: 80; left: 0; right: 0; bottom: 0; min-height: 132px;
+    grid-template-columns: 260px minmax(0, 1fr); align-items: center; gap: 24px; padding: 22px 42px; color: #f2f4ef;
+    background: rgba(10, 24, 28, .96); border-top: 3px solid #78d6c6; box-shadow: 0 -18px 42px rgba(0,0,0,.32); }
+  .present-caption .present-actor { color: #78d6c6; font: 700 20px var(--mono); letter-spacing: .02em; text-transform: uppercase; }
+  .present-caption .present-text { font-size: 27px; line-height: 1.25; overflow-wrap: anywhere; }
+  .present-caption[data-status="fail"] { border-top-color: #e35b4f; }
+  .present-caption[data-status="pass"] { border-top-color: #78c98f; }
+  body.present-mode.openweights-story-mode .app { grid-template-columns: 38vw minmax(0, 1fr) !important; }
+  body.present-mode.openweights-story-mode #resultPane { display: none; }
+  body.present-mode.openweights-story-mode #sheet .badge { display: none; }
+  body.present-mode.openweights-story-mode .openweights-story { display: flex; grid-column: 1; grid-row: 2; flex-direction: column; justify-content: center;
+    padding: 48px; background: #101d22; border-right: 1px solid #35474c; }
+  .ow-refusal-kicker { color: #e35b4f; font: 700 18px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+  .ow-refusal-count { margin: 12px 0 20px; color: #f2f4ef; font: 700 78px/1 var(--mono); }
+  .ow-refusal-copy { max-width: 560px; color: #c7d2d1; font-size: 24px; line-height: 1.35; }
+  .ow-refusal-copy a { color: #e8bd60; }
+  .ow-incident-slider { margin-top: 34px; padding-top: 20px; border-top: 1px solid #35474c; }
+  .ow-incident-slider label { display: flex; justify-content: space-between; gap: 18px; color: #c7d2d1; font: 700 17px var(--mono); }
+  .ow-incident-slider output { color: #e8bd60; }
+  .ow-incident-slider input { width: 100%; margin-top: 12px; accent-color: #e35b4f; }
+  .story-readout { position: absolute; z-index: 18; top: 34px; right: 34px; max-width: 570px; padding: 16px 20px;
+    color: #173039; background: rgba(242,244,239,.94); border-left: 6px solid #e35b4f; box-shadow: 0 8px 30px rgba(0,0,0,.25); font-size: 21px; }
+  .story-readout strong { display: block; font: 700 17px var(--mono); color: #9c3029; text-transform: uppercase; }
+  .story-readout.passed { border-left-color: #2f9663; }
+  .story-readout.passed strong { color: #195a3d; }
+  .story-redispatch { margin-top: 8px; color: #38535a; font: 700 17px var(--mono); white-space: pre-line; }
+  .story-n1 { position: absolute; z-index: 19; right: 48px; bottom: 42px; transform: rotate(-3deg) scale(.85); opacity: 0;
+    padding: 17px 24px; color: #195a3d; background: rgba(238,249,241,.96); border: 5px solid #2f9663; font: 800 28px var(--mono); text-transform: uppercase; }
+  .story-n1.on { opacity: 1; transform: rotate(-3deg) scale(1); transition: opacity .22s ease, transform .22s ease; }
+  #sheet [data-tag].story-overload * { stroke: #e35b4f !important; stroke-width: 2.2 !important; }
+  #sheet [data-tag].story-pass * { stroke: #2f9663 !important; }
+  #sheet [data-tag].story-open > polyline { stroke: #e8bd60 !important; stroke-dasharray: 3 2; }
+  @media (prefers-reduced-motion: reduce) { .story-n1.on { transition: none; } }
 </style>
 </head>
 <body class="process focused">
@@ -752,7 +815,9 @@
       </section>
     </div>
   </section>
+  <section class="openweights-story" id="openWeightsStory" aria-label="Open-weights evidence" hidden></section>
 </div>
+<div class="present-caption" id="presentCaption" aria-live="polite" hidden><div class="present-actor" id="presentActor"></div><div class="present-text" id="presentText"></div></div>
 <aside class="detail-drawer workspace-decision" id="detailDrawer" aria-label="Decision, package and details"><div class="dd-head"><b>Decision and details</b><button class="btn" id="ddClose" type="button" aria-label="Close details">✕</button></div><div id="ddBody"></div></aside>
 <div id="tour" role="dialog" aria-live="polite"><div class="st" id="tourStep"></div><div class="tx" id="tourText"></div>
   <div class="row"><button class="btn" onclick="tourEnd()">Close</button><button class="btn go" id="tourNext" onclick="tourGo(TOUR_I + 1)">Next</button></div></div>
@@ -763,8 +828,12 @@ const PARAMS = new URLSearchParams(location.search);
 const CASE = PARAMS.get('case') || 'chem_c01';
 const SAMPLE_WORKLOG = PARAMS.get('worklog') === 'sample';
 const REPLAY_ID = PARAMS.get('replay');
+const PRESENT = PARAMS.get('present') === '1';
+const STORY = PARAMS.get('story');
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+document.body.classList.toggle('present-mode', PRESENT);
+if (PRESENT) $('presentCaption').hidden = false;
 // data-driven buttons: values travel as JSON in data-args and reach the handler as arguments, never as inline JavaScript
 // (an HTML-escaped apostrophe in an onclick attribute is decoded before the script runs, so escaping cannot make it safe)
 const act = (name, ...args) => `data-act="${name}" data-args="${esc(JSON.stringify(args))}"`;
@@ -971,6 +1040,24 @@ function focusDrawing(tag) {
   V.scale = Math.max(V.scale, V.fit * 2);
   V.x = view.clientWidth / 2 - p.x * V.scale;
   V.y = view.clientHeight / 2 - (p.y + r.height / (2 * oldScale)) * V.scale;
+  view.classList.add('smooth'); moveDrawing();
+  setTimeout(() => view.classList.remove('smooth'), 350);
+}
+function focusDrawingTags(tags) {
+  const groups = tags.map(tag => sheet.querySelector(`[data-tag="${CSS.escape(tag)}"]`)).filter(Boolean);
+  if (!groups.length) return;
+  if (groups.length === 1) return focusDrawing(tags[0]);
+  fitDrawing();
+  const rects = groups.map(g => (g.querySelector('rect,circle,ellipse,path,polygon,polyline,line') || g).getBoundingClientRect());
+  const left = Math.min(...rects.map(r => r.left)), right = Math.max(...rects.map(r => r.right));
+  const top = Math.min(...rects.map(r => r.top)), bottom = Math.max(...rects.map(r => r.bottom));
+  const vr = view.getBoundingClientRect(), sr = sheet.getBoundingClientRect(), spanX = right - left, spanY = bottom - top;
+  const factor = Math.min(3.2, (vr.width - 180) / Math.max(180, spanX), (vr.height - 150) / Math.max(130, spanY));
+  if (factor <= 1.15) return;
+  const localX = ((left + right) / 2 - sr.left) / V.fit, localY = ((top + bottom) / 2 - sr.top) / V.fit;
+  V.scale = V.fit * factor;
+  V.x = view.clientWidth / 2 - localX * V.scale;
+  V.y = view.clientHeight / 2 - localY * V.scale;
   view.classList.add('smooth'); moveDrawing();
   setTimeout(() => view.classList.remove('smooth'), 350);
 }
@@ -1991,6 +2078,17 @@ function workResult(log) {
 }
 const REPLAY = {events: [], index: -1, playing: false, speed: 1, timer: null,
   reduced: matchMedia('(prefers-reduced-motion: reduce)').matches};
+function presentLabel(step) {
+  if (step?.actor === 'muse') return 'Muse proposed';
+  const named = step?.engine || P?.engine || 'DWSIM';
+  const engine = /server verify/i.test(named) ? (P?.engine || 'DWSIM') : named;
+  return `${/pandapower/i.test(engine) ? 'pandapower' : /dwsim/i.test(engine) ? 'DWSIM' : engine} checked`;
+}
+function showPresentCaption(label, text, status = 'info') {
+  if (!PRESENT) return;
+  $('presentCaption').hidden = false; $('presentCaption').dataset.status = status;
+  $('presentActor').textContent = label; $('presentText').textContent = text;
+}
 function replayEvents(log) {
   const events = [], rounds = log.rounds || [];
   rounds.forEach((round, ri) => {
@@ -2028,6 +2126,7 @@ async function replayShow(index) {
     selectOnDrawing('');
     stage.dataset.status = event.failed ? 'fail' : 'pass';
     stage.innerHTML = `<div class="replay-who">Engineering loop</div><div class="replay-text">Round ${esc(event.round)}: ${event.failed} check${event.failed === 1 ? '' : 's'} failed → back to Muse</div>`;
+    showPresentCaption('Engineering loop', `Round ${event.round}: ${event.failed} check${event.failed === 1 ? '' : 's'} failed → back to Muse`, event.failed ? 'fail' : 'pass');
     return;
   }
   const step = event.step, view = step.actor === 'muse' || step.kind === 'check' ? 'proposed' : null;
@@ -2041,6 +2140,7 @@ async function replayShow(index) {
       if (line.dataset.from === tag || line.dataset.to === tag) line.classList.add('focus-active');
     });
   }
+  if (PRESENT) focusDrawingTags(tags);
   if (step.actor === 'engine' && ['pass', 'fail'].includes(step.status)) {
     tags.forEach(tag => $('sheet').querySelector(`[data-tag="${CSS.escape(tag)}"]`)?.classList.add(`replay-${step.status}`));
   }
@@ -2050,6 +2150,8 @@ async function replayShow(index) {
   const text = [step.title, step.detail].filter(Boolean).join('\n');
   stage.innerHTML = `<div class="replay-who">${esc(workActor(step, window.WORK_LOG?.model))} · round ${esc((window.WORK_LOG?.rounds?.[event.ri]?.n) ?? event.ri + 1)}</div>
     <div class="replay-text">${esc(text || step.kind || 'Step')}</div>${workNumbers(step.numbers)}`;
+  const numbers = step.numbers && Object.entries(step.numbers).map(([key, value]) => `${key.replaceAll('_', ' ')} ${value}${key === 'utilisation_pct' || key === 'capacity_pct' ? '%' : ''}`).join(' · ');
+  showPresentCaption(presentLabel(step), [text, numbers].filter(Boolean).join(' — '), step.status || 'info');
 }
 function replayPlay() {
   if (!REPLAY.events.length) return;
@@ -2064,6 +2166,85 @@ function bindReplay(log) {
   $('replayBack').onclick = async () => { replayPause(); await replayShow(REPLAY.index - 1); };
   $('replayNext').onclick = async () => { replayPause(); await replayShow(REPLAY.index + 1); };
   $('replaySpeed').onclick = () => { REPLAY.speed = REPLAY.speed === 1 ? 2 : 1; $('replaySpeed').textContent = `${REPLAY.speed}×`; if (REPLAY.playing) replaySchedule(); };
+}
+function drawOpenSwitch(tag) {
+  const group = sheet.querySelector(`[data-tag="${CSS.escape(tag)}"]`), line = group?.querySelector('polyline,path,line');
+  if (!line || group.querySelector('.story-switch')) return;
+  const point = line.getPointAtLength(line.getTotalLength() / 2), ns = 'http://www.w3.org/2000/svg';
+  const mark = document.createElementNS(ns, 'g'); mark.classList.add('story-switch');
+  const disc = document.createElementNS(ns, 'circle'); disc.setAttribute('cx', point.x); disc.setAttribute('cy', point.y); disc.setAttribute('r', '3.8'); disc.setAttribute('fill', '#f2f4ef');
+  const blade = document.createElementNS(ns, 'line'); blade.setAttribute('x1', point.x - 3); blade.setAttribute('y1', point.y + 2.2); blade.setAttribute('x2', point.x + 2.4); blade.setAttribute('y2', point.y - 3.4); blade.setAttribute('stroke', '#9a6412'); blade.setAttribute('stroke-width', '1.3');
+  mark.append(disc, blade); group.append(mark); group.classList.add('story-open');
+}
+async function initOpenWeightsStory() {
+  if (!PRESENT || STORY !== 'openweights' || CASE !== 'ucte_2006') return;
+  document.body.classList.add('openweights-story-mode');
+  const [evidence, log] = await Promise.all([
+    fetch('/api/evidence/open-weights').then(r => r.json()), api('work/20261101-164315')
+  ]);
+  const caseEvidence = evidence.by_case?.[CASE] || {}, refusal = caseEvidence.closed_endpoint_attempts || {};
+  const muse = (log.rounds || []).flatMap(r => r.steps || []).find(step => step.actor === 'muse') || {};
+  const n1 = (log.rounds || []).flatMap(r => r.steps || []).find(step => step.check === 'N-1') || {};
+  const changes = muse.changes || [], gens = [...new Map(changes.filter(c => String(c.path).startsWith('gens.')).map(c => [c.path, c])).values()];
+  const tie = changes.find(c => String(c.path).startsWith('lines.') && c.value === false);
+  const tieTag = String(tie?.path || '').replace(/^lines\./, '').replace(/\.in_service$/, '');
+  const incidentPct = Math.ceil(Number(P.capacity?.capacity_multiple || P.target_scale || 1) * 100), incidentScale = incidentPct / 100;
+  const [baseState, incidentState] = await Promise.all([api('state?scale=1'), api(`state?scale=${incidentScale}`)]), overloaded = (incidentState.checks || []).filter(c => c.utilisation > 1);
+  const warning = String(log.goal || '').match(/([\d,]+)\s*A warning/i)?.[1];
+  const panel = $('openWeightsStory'); panel.hidden = false;
+  panel.innerHTML = `<div class="ow-refusal-kicker">Meta-hosted endpoint</div><div class="ow-refusal-count">refused ×${esc(refusal.count ?? '—')}</div>
+    <div class="ow-refusal-copy">${esc(refusal.status || 'request refused')}. The stored prompt and outcome remain visible; this is not a model-quality result.<br><br><a href="/api/evidence/open-weights" target="_blank" rel="noopener">Open raw evidence JSON ↗</a></div>
+    <div class="ow-incident-slider"><label for="storyScale">Stored grid state <output id="storyScaleOut">100%</output></label><input id="storyScale" type="range" min="100" max="${incidentPct}" value="100" disabled></div>`;
+  document.querySelector('.stage').insertAdjacentHTML('beforeend', '<div class="story-readout" id="storyReadout"></div><div class="story-n1" id="storyN1"></div>');
+  const readout = $('storyReadout'), stamp = $('storyN1');
+  const redispatch = gens.map(c => `${String(c.path).slice(5).replace('.p_mw', '')}: ${c.from} → ${c.value} MW`).join('\n');
+  let final = false;
+  const setPhase = phase => {
+    if (final && phase !== 'done') return;
+    document.body.dataset.storyPhase = phase;
+    if (phase === 'incident') {
+      readout.classList.remove('passed');
+      render(baseState);
+      const main = overloaded[0]; readout.innerHTML = `<strong>Stored incident state</strong>${main ? `${esc(main.id)} · ${esc(main.value)} ${esc(main.unit || '')}` : 'No overloaded line in stored state'}${warning ? ` · warning ${esc(warning)} A` : ''}`;
+      showPresentCaption('pandapower checked', readout.textContent, main ? 'fail' : 'info');
+      const begin = performance.now(), move = now => {
+        if (final) return;
+        const part = REPLAY.reduced ? 1 : Math.min(1, (now - begin) / 1400), pct = Math.round(100 + (incidentPct - 100) * part);
+        $('storyScale').value = pct; $('storyScaleOut').textContent = `${pct}%`;
+        if (part < 1) requestAnimationFrame(move);
+        else { $('scale').value = incidentPct; render(incidentState); overloaded.forEach(c => sheet.querySelector(`[data-tag="${CSS.escape(c.id)}"]`)?.classList.add('story-overload')); }
+      };
+      requestAnimationFrame(move);
+    } else if (phase === 'proposal') {
+      readout.classList.remove('passed');
+      readout.innerHTML = `<strong>${esc(museName(log.model))} proposed</strong>${esc(muse.detail || muse.title || '')}<div class="story-redispatch">${esc(redispatch)}</div>`;
+      showPresentCaption('Muse proposed', `${muse.detail || muse.title || ''}${redispatch ? ` — ${redispatch.replaceAll('\n', ' · ')}` : ''}`);
+    } else if (phase === 'switch') {
+      readout.classList.remove('passed');
+      if (tieTag) drawOpenSwitch(tieTag);
+      readout.innerHTML = `<strong>Switching action</strong>${esc(tieTag || 'Stored tie')} → open<div class="story-redispatch">${esc(redispatch)}</div>`;
+      if (tieTag) focusDrawingTags([tieTag]);
+      showPresentCaption('Muse proposed', `${tieTag || 'Stored tie'} → open`);
+    } else {
+      final = true;
+      $('storyScale').value = incidentPct; $('storyScaleOut').textContent = `${incidentPct}%`;
+      readout.classList.add('passed');
+      if (tieTag) drawOpenSwitch(tieTag);
+      sheet.querySelectorAll('.story-overload').forEach(el => el.classList.remove('story-overload'));
+      (P.built?.spec?.lines || []).forEach(line => sheet.querySelector(`[data-tag="${CSS.escape(line.id)}"]`)?.classList.add('story-pass'));
+      const violations = n1.numbers?.violations;
+      stamp.textContent = `N-1: ${violations ?? '—'} violations`; stamp.classList.add('on');
+      readout.innerHTML = `<strong>Independent Spark Open repeat</strong>${esc(log.result?.headline || n1.title || '')}`;
+      showPresentCaption('pandapower checked', `${n1.title || 'N-1 check'} — ${violations ?? '—'} violations`, n1.status || 'pass');
+      document.body.dataset.storyPhase = 'done';
+    }
+  };
+  window.finishOpenWeightsStory = () => setPhase('done');
+  setPhase('incident');
+  if (REPLAY.reduced) return setPhase('done');
+  setTimeout(() => setPhase('proposal'), 2200);
+  setTimeout(() => setPhase('switch'), 4700);
+  setTimeout(() => setPhase('done'), 7200);
 }
 function renderWorklog(log) {
   LAST_WORK = log;
@@ -2767,7 +2948,10 @@ function openDetails(on) {
   $('stage-card-host')?.remove();
   document.querySelector('.stage').insertAdjacentHTML('beforeend', '<div class="step-card" id="stepCard" hidden></div>');
 })();
-load().then(() => { if (new URLSearchParams(location.search).get('tour') && P?.built) tourGo(0); }).catch(e => {
+load().then(async () => {
+  if (new URLSearchParams(location.search).get('tour') && P?.built) tourGo(0);
+  await initOpenWeightsStory();
+}).catch(e => {
   $('eqlist').innerHTML = `<div class="empty" role="alert"><b>Could not load this case.</b><br>The case data or simulation server is not available.<details><summary>Details</summary>${esc((e.message || '').replace(/(\/[\w.-]+)+\/([\w.-]+)/g, '$2'))}</details><button class="btn" onclick="location.reload()">Reload the page</button></div>`;
   $('sheet').innerHTML = '<div class="sheet-error">The source drawing could not be displayed. Check the case server and reload.</div>';
   $('answers').innerHTML = '<div class="empty">Check that the project data and simulation server are available, then reload.</div>';

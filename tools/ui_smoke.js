@@ -52,6 +52,41 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const worklogErrors = errs.splice(0);
   console.log(workConfirmOk && worklogOk && replayOk && !worklogErrors.length ? 'ok  ' : 'FAIL', 'engineering run sample: confirmation, replay, rounds, actors and result', worklogErrors.join(' | '));
   bad += workConfirmOk && worklogOk && replayOk && !worklogErrors.length ? 0 : 1;
+  await p.goto(`${BASE}/plant.html?case=salt_mvr&present=1&worklog=sample&replay=sample`);
+  await p.waitForSelector('#presentCaption:not([hidden])', { timeout: 30000 }).catch(() => {});
+  await p.waitForFunction(() => REPLAY.events.length > 0, null, { timeout: 30000 }).catch(() => {});
+  const presentOk = await p.evaluate(async () => {
+    replayPause(); await replayShow(0);
+    const caption = document.querySelector('#presentCaption'), title = document.querySelector('#worklogPanel .work-step-title');
+    return document.body.classList.contains('present-mode') && /Muse proposed|DWSIM checked|pandapower checked/.test(document.querySelector('#presentActor').textContent) &&
+      parseFloat(getComputedStyle(document.querySelector('#presentText')).fontSize) >= 18 && parseFloat(getComputedStyle(title).fontSize) >= 18 &&
+      getComputedStyle(title).overflow === 'visible' && !document.querySelector('#presentText').textContent.endsWith('…');
+  });
+  await p.screenshot({ path: `${OUT}/video_present_salt_1920x1080.png` });
+  console.log(presentOk ? 'ok  ' : 'FAIL', 'presentation mode: large actor caption and untruncated replay step');
+  bad += presentOk ? 0 : 1;
+  await p.goto(`${BASE}/scan.html?case=salt_mvr_vision`);
+  await p.waitForFunction(() => document.querySelectorAll('[data-read-tag]').length >= 10, null, { timeout: 30000 }).catch(() => {});
+  await p.waitForFunction(() => document.querySelector('#scan').naturalWidth > 0 || document.querySelector('.scan-missing'), null, { timeout: 30000 }).catch(() => {});
+  const scanOk = await p.evaluate(() => {
+    finishScanStory();
+    return document.querySelectorAll('[data-read-tag]').length >= 10 && document.querySelectorAll('#corrections li').length === 9 &&
+      document.querySelectorAll('.review.fixed').length === 3 && /226\.8 t\/h to K-201/.test(document.querySelector('#counter').textContent) && document.body.dataset.scanPhase === 'done';
+  });
+  await p.screenshot({ path: `${OUT}/video_scan_to_simulator_1920x1080.png` });
+  console.log(scanOk ? 'ok  ' : 'FAIL', 'scan story: stored tags, nine corrections, DWSIM counter and three closed reviews');
+  bad += scanOk ? 0 : 1;
+  await p.goto(`${BASE}/plant.html?case=ucte_2006&present=1&story=openweights`);
+  await p.waitForFunction(() => typeof finishOpenWeightsStory === 'function' && document.querySelector('#storyN1'), null, { timeout: 30000 }).catch(() => {});
+  const ucteStoryOk = await p.evaluate(() => {
+    finishOpenWeightsStory();
+    return /refused ×4/.test(document.querySelector('#openWeightsStory').textContent) && /N-1:\s*0 violations/.test(document.querySelector('#storyN1').textContent) &&
+      document.querySelector('#sheet [data-tag="BIO-SPX 220"]')?.classList.contains('story-open') && document.body.dataset.storyPhase === 'done';
+  });
+  await p.screenshot({ path: `${OUT}/video_ucte_openweights_1920x1080.png` });
+  const videoErrors = errs.splice(0);
+  console.log(ucteStoryOk && !videoErrors.length ? 'ok  ' : 'FAIL', 'UCTE story: stored refusal count, opened tie and N-1 zero stamp', videoErrors.join(' | '));
+  bad += ucteStoryOk && !videoErrors.length ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=ucte_2006`); await p.waitForSelector('[data-open-weights]', { timeout: 30000 }).catch(() => {});
   await p.evaluate(() => { openDetails(true); setWorkspaceView('engineering'); });
   const comparisonOk = await p.evaluate(() => {

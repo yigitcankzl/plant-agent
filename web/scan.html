@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PlantAgent · Scan to simulator</title>
+<style>
+  :root { --ink:#10272c; --paper:#f2f4ef; --act:#78d6c6; --warn:#e8bd60; --fail:#e35b4f; --ok:#78c98f;
+    --mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace; --sans:"Segoe UI",system-ui,sans-serif; }
+  * { box-sizing:border-box; }
+  body { margin:0; overflow:hidden; background:#071317; color:var(--paper); font:16px/1.4 var(--sans); }
+  .scene { position:relative; width:100vw; height:calc(100vh - 78px); overflow:hidden; }
+  .source, .pid { position:absolute; inset:0; display:grid; place-items:center; transition:opacity 1.1s ease; }
+  .source { background:#161c1e; }
+  .scan-paper { position:relative; box-shadow:0 12px 55px rgba(0,0,0,.5); }
+  .scan-paper > img { display:block; width:100%; height:100%; }
+  .scan-missing { position:absolute; inset:0; display:grid; place-items:center; padding:12%; color:#19323a; background:#e5e7e2; text-align:center; font:700 22px/1.4 var(--mono); }
+  .tag-pin { position:absolute; border:2px solid var(--act); color:#08232a; background:rgba(120,214,198,.9); opacity:0;
+    box-shadow:0 0 0 2px rgba(7,19,23,.3); transition:opacity .2s ease; }
+  .tag-pin span { position:absolute; left:0; top:-26px; padding:2px 6px; white-space:nowrap; background:var(--act); font:700 14px var(--mono); }
+  .tag-pin.on { opacity:1; }
+  .source-badge { position:absolute; left:28px; top:24px; z-index:5; padding:9px 13px; color:#bcd1d2; background:rgba(8,25,29,.9);
+    border-left:4px solid var(--act); font:15px var(--mono); }
+  .corrections { position:absolute; z-index:6; right:28px; top:24px; width:min(470px,36vw); margin:0; padding:0; list-style:none; }
+  .corrections li { margin:0 0 6px; padding:7px 10px; color:#251b06; background:rgba(232,189,96,.94); border-left:4px solid #8b6214;
+    font:700 14px/1.25 var(--mono); opacity:0; transform:translateX(14px); transition:opacity .18s ease,transform .18s ease; }
+  .corrections li.on { opacity:1; transform:none; }
+  .pid { opacity:0; background:#dfe6e3; }
+  .pid.on { opacity:1; }
+  .pid-sheet { width:94vw; height:88vh; padding:14px; background:#fff; box-shadow:0 12px 55px rgba(0,0,0,.4); }
+  .pid-sheet svg { display:block; width:100%; height:100%; }
+  .stream-values { position:absolute; left:38px; top:28px; z-index:8; display:flex; flex-wrap:wrap; gap:8px; max-width:74vw; }
+  .stream-value { padding:8px 11px; color:#d8f5ef; background:rgba(16,39,44,.93); border-left:4px solid var(--act); font:700 16px var(--mono); opacity:0; }
+  .stream-value.on { opacity:1; }
+  .counter { position:absolute; z-index:9; left:50%; bottom:34px; transform:translateX(-50%) translateY(15px); opacity:0; white-space:nowrap;
+    padding:17px 25px; color:#09282e; background:rgba(242,244,239,.96); border:3px solid var(--act); font:800 29px var(--mono); }
+  .counter.on { opacity:1; transform:translateX(-50%); transition:opacity .25s ease,transform .25s ease; }
+  .reviews { position:absolute; z-index:9; right:32px; bottom:30px; width:min(520px,40vw); display:grid; gap:7px; }
+  .review { padding:9px 12px; color:#fff; background:rgba(227,91,79,.94); border-left:5px solid #8e231c; font:700 15px/1.25 var(--mono); opacity:0; }
+  .review.on { opacity:1; }
+  .review.fixed { background:rgba(47,150,99,.94); border-left-color:#174e35; }
+  .review b::before { content:"REVIEW ✕ · "; }
+  .review.fixed b::before { content:"CORRECTED ✓ · "; }
+  .controls { height:78px; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:20px; padding:0 28px; background:var(--ink); border-top:2px solid #365158; }
+  button { min-width:120px; padding:9px 14px; border:1px solid #6a8a8f; background:#18383f; color:#fff; font:700 16px var(--sans); cursor:pointer; }
+  input[type="range"] { width:100%; accent-color:var(--act); }
+  .caption { min-width:310px; font:700 18px var(--mono); color:var(--act); text-align:right; }
+  @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } }
+</style>
+</head>
+<body>
+<main class="scene" id="scene" aria-label="Scan to simulator story">
+  <section class="source" id="source"><div class="source-badge">MUSE VISION READ · STORED CASE-DATA SCAN<br><small>Source image lives in case-data, outside this Git repository.</small></div><div class="scan-paper" id="scanPaper"><img id="scan" alt="Scanned U.S. Patent 5,366,514 Figure I"></div><ol class="corrections" id="corrections" aria-label="Engineer corrections"></ol></section>
+  <section class="pid" id="pid"><div class="pid-sheet" id="pidSheet" aria-label="Rendered salt plant P and ID"></div><div class="stream-values" id="streamValues"></div><div class="counter" id="counter"></div><div class="reviews" id="reviews"></div></section>
+</main>
+<div class="controls"><button type="button" id="toggle">Pause</button><input id="progress" type="range" min="0" max="25" step="0.05" value="0" aria-label="Story progress"><div class="caption" id="caption" aria-live="polite">Muse reads the scan</div></div>
+<script>
+const params = new URLSearchParams(location.search), CASE = params.get('case') || 'salt_mvr_vision';
+const $ = id => document.getElementById(id), reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const text = (el, value) => { el.textContent = value == null ? '' : String(value); return el; };
+let playing = !reduced, elapsed = 0, started = performance.now(), raf = 0;
+let scanRatio = 1.47;
+function calibrationValue(rows, pattern, unit) {
+  const row = rows.find(item => pattern.test(item.item || '')) || {}, source = `${row.measured || ''} ${row.simulated || ''}`;
+  const match = source.match(new RegExp(`([\\d,.]+)\\s*${unit}`, 'i'));
+  return match ? Number(match[1].replaceAll(',', '')) : null;
+}
+function sizePaper() {
+  const image = $('scan'), stage = $('scene'), ratio = image.naturalWidth ? image.naturalWidth / image.naturalHeight : scanRatio, box = stage.getBoundingClientRect();
+  const width = Math.min(box.width, box.height * ratio), height = width / ratio;
+  $('scanPaper').style.width = `${width}px`; $('scanPaper').style.height = `${height}px`;
+}
+function show(t) {
+  elapsed = Math.max(0, Math.min(25, t)); $('progress').value = elapsed;
+  document.querySelectorAll('.tag-pin').forEach((el, i) => el.classList.toggle('on', elapsed >= .8 + i * .72));
+  document.querySelectorAll('.corrections li').forEach((el, i) => el.classList.toggle('on', elapsed >= 10.4 + i * .38));
+  const blend = Math.max(0, Math.min(1, (elapsed - 14.2) / 2.2)); $('source').style.opacity = 1 - blend; $('pid').style.opacity = blend; $('pid').classList.toggle('on', blend > 0);
+  document.querySelectorAll('.stream-value').forEach((el, i) => el.classList.toggle('on', elapsed >= 17 + i * .35));
+  $('counter').classList.toggle('on', elapsed >= 18.6);
+  document.querySelectorAll('.review').forEach((el, i) => { el.classList.toggle('on', elapsed >= 20 + i * .35); el.classList.toggle('fixed', elapsed >= 21 + i * 1.05); });
+  const label = elapsed < 10.4 ? 'Muse reads equipment and topology' : elapsed < 14.2 ? 'Engineer confirms 9 corrections' : elapsed < 18.6 ? 'The confirmed read becomes a DWSIM model' : elapsed < 21 ? 'DWSIM reproduces the Table I stream' : 'Model review closes three blocking errors';
+  text($('caption'), label); document.body.dataset.scanPhase = elapsed >= 24 ? 'done' : label;
+}
+function frame(now) {
+  if (!playing) return;
+  show(elapsed + (now - started) / 1000); started = now;
+  if (elapsed >= 25) { playing = false; text($('toggle'), 'Replay'); return; }
+  raf = requestAnimationFrame(frame);
+}
+function play() { if (elapsed >= 25) show(0); playing = true; started = performance.now(); text($('toggle'), 'Pause'); cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); }
+$('toggle').onclick = () => { if (playing) { playing = false; cancelAnimationFrame(raf); text($('toggle'), 'Play'); } else play(); };
+$('progress').oninput = e => { playing = false; cancelAnimationFrame(raf); text($('toggle'), 'Play'); show(Number(e.target.value)); };
+window.finishScanStory = () => { playing = false; cancelAnimationFrame(raf); show(25); text($('toggle'), 'Replay'); };
+Promise.all([
+  fetch(`/api/plant/${encodeURIComponent(CASE)}/pidread`).then(r => r.json()),
+  fetch('/api/plant/salt_mvr/project').then(r => r.json()),
+  fetch('/api/plant/salt_mvr/svg').then(r => r.text())
+]).then(([read, plant, svg]) => {
+  const original = read.original || {}, equipment = original.equipment || [], corrections = read.corrections || [];
+  if (Array.isArray(read.sheet) && read.sheet[0] > 0 && read.sheet[1] > 0) scanRatio = read.sheet[0] / read.sheet[1];
+  equipment.forEach(item => { if (!Array.isArray(item.box) || item.box.length !== 4) return;
+    const [x0,y0,x1,y1] = item.box, pin = document.createElement('div'); pin.className = 'tag-pin'; pin.dataset.readTag = item.tag; pin.style.cssText = `left:${x0*100}%;top:${y0*100}%;width:${(x1-x0)*100}%;height:${(y1-y0)*100}%`;
+    pin.append(text(document.createElement('span'), item.tag)); $('scanPaper').append(pin); });
+  sizePaper();
+  $('scan').src = `/api/plant/${encodeURIComponent(CASE)}/sheet.png?rotate=1`;
+  $('scan').onload = () => { sizePaper(); show(elapsed); };
+  $('scan').onerror = () => { const missing = text(document.createElement('div'), 'The source scan is not available on this host. Showing the stored Muse read positions.');
+    missing.className = 'scan-missing'; $('scan').hidden = true; $('scanPaper').prepend(missing); show(elapsed); };
+  corrections.forEach(item => $('corrections').append(text(document.createElement('li'), item)));
+  $('pidSheet').innerHTML = svg;
+  const rows = plant.built?.calibration_check?.rows || plant.built?.calibration || [];
+  const values = [
+    ['K-201 suction', calibrationValue(rows, /K-201 suction flow/i, 't/h'), 't/h'],
+    ['V-201 boil-up', calibrationValue(rows, /total boil-up/i, 't/h'), 't/h'],
+    ['K-201 discharge', calibrationValue(rows, /discharge pressure/i, 'bar'), 'bar(a)']
+  ];
+  values.filter(([,value]) => Number.isFinite(value)).forEach(([label,value,unit]) => {
+    const item = text(document.createElement('div'), `${label} · ${value} ${unit}`); item.className = 'stream-value'; $('streamValues').append(item);
+  });
+  const suction = calibrationValue(rows, /K-201 suction flow/i, 't/h');
+  text($('counter'), `${Number.isFinite(suction) ? suction.toFixed(1) : '—'} t/h to K-201 — matches Table I`);
+  (plant.revisions || []).filter(r => r.kind === 'correction').slice(0,3).forEach(rev => { const row = document.createElement('div'); row.className = 'review'; row.append(text(document.createElement('b'), rev.title)); $('reviews').append(row); });
+  show(reduced ? 25 : 0); if (!reduced) { started = performance.now(); raf = requestAnimationFrame(frame); }
+}).catch(error => { text($('caption'), `Stored story data unavailable: ${error.message}`); playing = false; });
+addEventListener('resize', sizePaper);
+</script>
+</body>
+</html>
