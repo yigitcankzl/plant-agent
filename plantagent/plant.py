@@ -2395,7 +2395,7 @@ class PlantWorkspace(Study):
 
     def build(self):
         """The agent reads the P&ID and data sheet and builds + calibrates the process model itself."""
-        if self.cfg.get("areas"):
+        if getattr(self, "cfg", {}).get("areas"):
             return self.join_areas()
         if getattr(self, "revisions", []):
             raise ValueError("cannot rebuild while revisions exist; archive or explicitly reset the revision history first")
@@ -2482,8 +2482,8 @@ class PlantWorkspace(Study):
     def _coverage_block(self, label):
         """A submitted model that leaves out most of the P&ID's equipment is not the plant: block it unless each missing
         item is named in a reported gap (an alias in case.json counts as modelled)."""
-        run = self.runs.get(label) if label else None
-        if not run or not self.pid or _is_watertap(self.cfg) or _is_trapped(self.cfg) or _is_grid(self.cfg):
+        run = getattr(self, "runs", {}).get(label) if label else None
+        if not run or not getattr(self, "pid", None) or _is_watertap(self.cfg) or _is_trapped(self.cfg) or _is_grid(self.cfg):
             return []
         cov = coverage(self.pid, run["spec"])
         tags = [e["tag"] for e in self.pid["equipment"] if e.get("tag")]
