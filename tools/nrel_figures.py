@@ -134,6 +134,8 @@ def map_svg(rows, counts, w=1150, h=520, bw=170, bh=110):
                    f'<text x="{x + 8}" y="{y + 34}" fill="#111" font-size="11.5">{escape(name)}</text>')
         lines = [counts[a]] if a in counts else []
         lines += re.findall(r".{1,28}(?:\s|$)", why)[:5] if _kind(verdict) != "built" else []
+        if len(lines) > 4:
+            lines = lines[:3] + [lines[3].rstrip() + " …"]
         for i, t in enumerate(lines[:4]):
             out.append(f'<text x="{x + 8}" y="{y + 52 + i * 14}" fill="{stroke}" font-size="10.5">{escape(t.strip())}</text>')
     for i, (k, (fill, stroke, lab)) in enumerate(FILL.items()):
