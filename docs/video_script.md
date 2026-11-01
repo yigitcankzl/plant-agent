@@ -1,22 +1,37 @@
 # Demo video: 3 minutes
 
-Judges score the video as "genuinely cool to watch?" and the Meta AI criterion as "capabilities that surprised even us?". So the video needs one clear story (the loop), visible engines and drawings rather than chat, and three surprises: the loop catches what the process answer hides; a drawing it had never seen; the open model solves what the hosted endpoint refused.
+## Organiser rules (Nov 1)
+- The video is at most 3:00, in English. Judges stop watching at 3:00.
+- It shows the working product, not slides, end to end, with **live Meta model calls visible**. Show briefly where and how Meta's models are used.
+- **Open with one line on what existed before the event and what was built this week.**
+- An AI English voice-over is allowed, but a video made and presented by a person is preferred.
+- Most of the video must be real footage of the product running.
+- No hosted URL needed. Judges need the public GitHub repo with setup instructions, plus the video.
 
-Recording: 1920×1080, browser at 100 %, server `WEB_ALLOW_RUNS=1 .venv/bin/python -m plantagent.web --port 8765`. The replay URLs (`&replay=<id>`) play stored runs, so nothing waits on a model call. The voiceover is recorded separately and fits about 150 words a minute.
+## The story in one line
+Muse proposes, physics disposes: Meta's Muse builds the simulator and designs the change, engineering engines check every round, failures go back to Muse, and the engineer signs the package.
+
+## Recording setup
+- 1920×1080, browser at 100 %, presentation mode once it exists (`?present=1`).
+- Server: `WEB_ALLOW_RUNS=1 .venv/bin/python -m plantagent.web --port 8765`.
+- **Live calls:**
+  - The BASF loop runs live on Muse Spark Open, about 5 min, ~$0.60. Record it in full and speed up the waiting parts on screen, labelled "×8".
+  - Record one live question on Muse (Meta API) on the salt plant (~$0.10–0.50), with the model name and cost visible.
+- Keep the terminal or the page's AI-cost readout in frame once, so the calls are visibly live. No API keys on screen.
+- Before recording, use a fresh copy of the BASF case so the live loop starts from Muse's first answer, not from the stored "done".
 
 | Time | Screen | Voiceover |
 |---|---|---|
-| 0:00–0:15 | `home.html`, hero. Slow zoom on "Give it the change. It does the engineering." | "A plant engineer asked for 20 % more output spends weeks on it: build the model, find the limit, design the fix, then check the electrics, the compressor, the start-up. PlantAgent does that work with Meta's Muse, and shows every step." |
-| 0:15–0:35 | `plant.html?case=salt_mvr`: the P&ID and the question on the strip. Click **Existing**: limits light up on K-201, V-201, V-301. | "This salt plant comes from a 1994 patent. Muse read the flowsheet and built the simulator model itself. The question: can it make 3,000 tons a day instead of 2,500? The model says the compressor is the first limit." |
-| 0:35–1:20 | `&replay=20261101-214821`. Let round 1 play: Muse's four changes, each re-solved ✓; then the checks: process 120 % ✓, envelope 4/4 ✓, curves ✓, then the red rows: start-up voltage dip 46 %, surge at today's flow. Pause on a red row with its tag lit on the drawing. | "Muse proposes the changes: clean the heater, add a parallel compressor, upsize the transformer. Every change is re-solved in DWSIM before it counts, and a change that only edits a limit is refused. Then the engines run every check. The process passes. The electrical and start-up checks don't: starting the new compressor drops the voltage 46 %. A process answer alone would have said yes. The failed checks go back to Muse with their numbers, round after round." |
-| 1:20–1:35 | **Proposed** view: Rev B clouds on the drawing; open the details drawer to the MOC package. | "What the engineer gets is a marked-up drawing, the checks with their sources, and a change package that says 'do not approve yet', and why." |
-| 1:35–2:05 | `plant.html?case=basf_process_column_k_2750_dexpi_c02_uns`: the banner, then `&replay=20261101-214001` fast (2×), stopping on the purity rows ✓. | "Is it only our prepared demos? This is an official DEXPI drawing from BASF that we had never used. No hand-written files: the drawing is rendered from the file, Muse built the column, the discipline files were drafted and labelled as assumptions. A first fix, cutting reflux, failed the purity check. The next round kept purity and passed at 120 %." |
-| 2:05–2:30 | `plant.html?case=ucte_2006`: the open-weights comparison card, then the N-1 row ✓. | "It isn't only process plants. For the 2006 European blackout, Meta's hosted endpoint refused the prompt. Muse Spark Open, the open-weights model, ran the same engineering loop on Baseten and found a switching plan that holds every line limit and passes N-1." |
-| 2:30–2:50 | Assumptions panel: "Top 10 that change the answer"; then an open row "upload the real rating". | "Missing data is shown, not hidden: every value carries its source, and the ten assumptions that change the answer come first, for the engineer to confirm or replace with the vendor's data." |
-| 2:50–3:00 | Back to the salt drawing, Rev B. Title card: "PlantAgent · built on Muse · github.com/yigitcankzl/plant-agent". | "Muse does the engineering. The engines check it. The engineer decides." |
+| 0:00–0:08 | Title over the home page | "Before this event: no code. Everything you'll see, the agent, the engine integrations and the loop, was built this week, on Meta's Muse." |
+| 0:08–0:20 | UCTE page: drag the slider, LAN–WEH turns red | "One switching action in 2006 split Europe's grid. Engineers check every plant change like this one by hand, for weeks. We gave it to Muse, with physics checking every step." |
+| 0:20–0:45 | Scan → simulator page (salt patent FIG. I → tags → rendered P&ID, "226.8 t/h, matches Table I") | "Muse Wonder read this scanned 1994 patent drawing and built a working DWSIM simulator from it, calibrated to the patent's own table." |
+| 0:45–1:50 | **Live:** BASF column page, a drawing the tool had never seen. Type the goal "+20 % feed, pass every check" → Run full engineering. The strip fills: Muse Spark Open's proposal → server re-solve ✓ → checks: flooding 61 %, purity ✓, envelope ✓, uncertainty ✓ → **Done**. Speed up the waits. Rev B cloud on the column. | "This is an official BASF drawing we had never used. No hand-written files. Live now, on Muse Spark Open, the open-weights model: it proposes a 600 mm column shell. DWSIM re-solves it, then every check runs: flooding, product purity, a +10 % feed case, uncertainty. Earlier rounds failed purity, and those numbers went back to Muse. This one passes. The only open item is the vendor confirming the new shell." |
+| 1:50–2:15 | Salt plant: **live** question on Muse via the Meta API (e.g. "What limits +20 %?"); the answer appears with its model name and cost. Then the strip of the featured loop: red rows, start-up voltage dip 46 % lit on K-202 | "On the salt plant, Muse's design reaches 120 % in the simulator. The electrical and start-up checks fail: the new compressor's start drops the voltage 46 %. With no vendor curve, Muse stops and names the data it needs instead of guessing." |
+| 2:15–2:40 | UCTE "refused, then solved" story: hosted refused ×4 | open-weights fix, lines go green, "N-1: 0 violations" | "For the blackout grid, Meta's hosted endpoint refused the prompt. Muse Spark Open, the open-weights model, ran the same loop and found a switching plan that holds every line and passes N-1." |
+| 2:40–2:55 | `review.html`: the sign-off page with failed checks needing a disposition, then reviewer and approver | "The engineer gets a marked-up drawing and a change package to sign. Nothing is approved by the AI." |
+| 2:55–3:00 | End card: repo URL, "Muse Wonder · Muse Spark · Muse Spark Open" | "PlantAgent. Muse proposes, physics disposes." |
 
-## Checks before recording
-- The salt loops are finished and their cache files restored (`git status runs/ws/salt_mvr` clean apart from new work folders).
-- Pick the replay id that tells the story best once the Muse Wonder salt run is in; update the table above.
-- Hide the browser bookmarks bar; dark OS theme; cursor highlight on.
-- No API keys or `.env` on screen.
+## Before recording
+- The Codex video work is merged: `?present=1`, the scan page and the UCTE story.
+- `git status` is clean. After the live BASF run, either keep the new worklog as evidence or reset the case.
+- Rehearse the live loop once; if Muse needs more than one round, keep it: red → back to Muse → green is the better shot.
