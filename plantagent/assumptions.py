@@ -7,6 +7,7 @@ import csv
 import hashlib
 import io
 import json
+import os
 import math
 import re
 import time
@@ -251,8 +252,9 @@ TEMPLATES = {
                "optional": ["efficiency_pct", "speed_rpm"],
                "example": "tag,flow_m3h,head_m,efficiency_pct\nP-101,0,62,0\nP-101,60,58,71\nP-101,120,47,78\nP-101,160,35,70\n",
                "use": "vendor curve: at least three points per tag, flow rising; the lowest flow row is the minimum-flow point"},
-    "datasheet": {"title": "Equipment data sheet", "format": "PDF", "required": [], "optional": [],
-                  "example": None, "use": "stored with the project as a documented source"},
+    "datasheet": {"title": "Equipment data sheet or vendor curve", "format": "PDF or image", "required": [], "optional": [],
+                  "example": None, "use": "Muse vision reads the rated point and the curve; you confirm the table, then it is "
+                                          "applied as a curve and motor entry with datasheet provenance (page and label kept)"},
 }
 
 
@@ -290,20 +292,30 @@ def _rows(data, kind):
     return out
 
 
-def upload(case, kind, data, filename=None):
+IMAGE_MAGIC = {b"\x89PNG": ".png", b"\xff\xd8\xff": ".jpg"}
+DATASHEET_MODEL = os.getenv("DATASHEET_MODEL", "baseten:meta-models/muse-spark-open-1026")
+
+
+def upload(case, kind, data, filename=None, read=False):
     if kind not in TEMPLATES:
         raise ValueError(f"kind must be one of {', '.join(TEMPLATES)}")
     d = ws_dir(case) / "inputs"
     d.mkdir(parents=True, exist_ok=True)
     if kind == "datasheet":
-        if not data.startswith(b"%PDF-"):
-            raise ValueError("upload a PDF data sheet")
-        name = re.sub(r"[^A-Za-z0-9._-]+", "_", Path(filename or "datasheet.pdf").name)[:80] or "datasheet.pdf"
-        if not name.lower().endswith(".pdf"):
-            name += ".pdf"
+        ext = ".pdf" if data.startswith(b"%PDF-") else next((e for m, e in IMAGE_MAGIC.items() if data.startswith(m)), None)
+        if not ext:
+            raise ValueError("upload a PDF data sheet or a PNG/JPEG image of it")
+        name = re.sub(r"[^A-Za-z0-9._-]+", "_", Path(filename or "datasheet").stem)[:70] or "datasheet"
         (d / "datasheets").mkdir(exist_ok=True)
-        (d / "datasheets" / name).write_bytes(data)
-        return {"kind": kind, "file": f"inputs/datasheets/{name}", "source": "documented", "bytes": len(data)}
+        (d / "datasheets" / (name + ext)).write_bytes(data)
+        out = {"kind": kind, "file": f"inputs/datasheets/{name}{ext}", "source": "documented", "bytes": len(data)}
+        if read:  # Muse vision reads it; nothing is applied until the engineer confirms (apply_datasheet)
+            from . import datasheet
+            r = datasheet.read(data, DATASHEET_MODEL, name)
+            (d / "datasheets" / f"{name}.read.json").write_text(json.dumps(r, indent=1))
+            out["reading"] = {k: v for k, v in r.items() if k != "raw"}
+            out["name"] = name
+        return out
     # leading "# ..." lines are the file's own note (e.g. "ILLUSTRATIVE vendor curve"); it travels with every value
     text = data.decode("utf-8-sig")
     note = " ".join(ln.lstrip("#").strip() for ln in text.splitlines() if ln.startswith("#"))
@@ -327,6 +339,47 @@ def upload(case, kind, data, filename=None):
     used = drafts.resolve_uploads(case, ROOT)  # into the discipline files the checks read (inputs > case > draft)
     return {"kind": kind, "file": f"inputs/{kind}.json", "source": "datasheet", "rows": len(rows),
             "applied_to": {k: v for k, v in used.items() if v}}
+
+
+def apply_datasheet(case, name, tag, rated=None, curve=None, user=None):
+    """The engineer confirmed a data-sheet reading (optionally corrected): write it through the typed-upload path so the
+    checks use it, with the sheet, page and label as its source. A reading that fails its checks is refused."""
+    from . import datasheet
+    name = re.sub(r"[^A-Za-z0-9._-]+", "_", str(name))[:70]
+    f = ws_dir(case) / "inputs" / "datasheets" / f"{name}.read.json"
+    if not f.exists():
+        raise ValueError(f"no reading for {name}: upload the data sheet with read first")
+    if not re.fullmatch(r"[A-Za-z0-9 ._/-]{1,40}", str(tag or "")):
+        raise ValueError("give the plant tag this data sheet belongs to")
+    r = json.loads(f.read_text())
+    if rated or curve:  # engineer corrections: re-checked like the reading itself
+        raw = dict(r["raw"])
+        raw["rated"] = {**raw["rated"], **{k: {"value": v, "unit": raw["rated"].get(k, {}).get("unit", ""),
+                                               "page": raw["rated"].get(k, {}).get("page", 0), "label": "engineer correction"}
+                                           for k, v in (rated or {}).items()}}
+        if curve is not None:
+            raw["curve"] = curve
+        r = {**datasheet.normalise(raw), "raw": raw}
+    if not r["ok"]:
+        raise ValueError(f"data sheet reading refused: {r['refused']}")
+    pages = sorted({w["page"] for w in r["where"].values() if w.get("page")} | ({r["curve_page"]} if r.get("curve_page") else set()))
+    src = (f"vendor data sheet {name} ({r.get('model') or 'model not printed'}), page(s) {', '.join(map(str, pages)) or '?'}; "
+           f"read by Muse vision ({r.get('model_used', '')}), confirmed by {user or 'the engineer'}")
+    out = {}
+    for kind, text in datasheet.to_csv(r, tag, src).items():
+        out[kind] = upload(case, kind, text.encode())
+    if not out:
+        raise ValueError("the reading has neither a curve (3+ points or rated + shutoff) nor a power rating to apply")
+    _audit(case, "datasheet", user, src)
+    return {"tag": tag, "source": src, "applied": out}
+
+
+def _audit(case, kind, user, note):
+    try:
+        from . import audit
+        audit.append(case, kind, user, note)
+    except Exception:  # noqa: BLE001 - the upload stands without its audit line
+        pass
 
 
 def inputs(case):
