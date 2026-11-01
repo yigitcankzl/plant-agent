@@ -2732,7 +2732,7 @@ class PlantWorkspace(Study):
                         "a value that decides the answer is missing or only assumed, say the conclusion is provisional and add a "
                         "field check: what to measure, where, and which conclusion it would change. " + RULES,
                         json.dumps(brief) + "\n\nRequest: " + text + (f"\nContext: {json.dumps(context)}" if context else ""),
-                        self.tools() + [ANSWER], "answer", 26 if llm._host(self.model) else 18)  # the open model takes more turns
+                        self.tools() + [ANSWER], "answer", int(os.getenv("ASK_MAX_STEPS", 26 if llm._host(self.model) else 18)))  # the open model takes more turns
         for k in ("cards", "highlights", "proposals"):
             ans[k] = ans.get(k) if isinstance(ans.get(k), list) else []
         ans["artifacts"] = list(self._artifacts)  # files the tools produced for this request (documents, drawings, charts)
