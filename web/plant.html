@@ -433,6 +433,28 @@
   .work-deliverables a, .work-deliverables span { padding: 3px 6px; border: 1px solid #5c777b; border-radius: 3px; color: #cce2de; text-decoration: none; }
   .work-deliverables a:focus-visible { outline: 2px solid #9fd9d0; outline-offset: 2px; }
   .work-human { margin: 0; padding-left: 16px; } .work-human li + li { margin-top: 3px; }
+  .replay-controls { display: grid; grid-template-columns: auto auto auto auto 1fr; gap: 5px; align-items: center; margin: 10px 0; }
+  .replay-controls .btn { min-width: 34px; padding: 4px 7px; }
+  .replay-progress { justify-self: end; color: #8fa1a9; font: 10.5px var(--mono); }
+  .replay-stage { min-height: 72px; margin-bottom: 12px; padding: 10px; border-left: 3px solid #8fd0c2; background: #18242c; }
+  .replay-stage[data-status="fail"] { border-left-color: #e0735d; }
+  .replay-stage[data-status="pass"] { border-left-color: #6fbf9a; }
+  .replay-stage .replay-who { margin-bottom: 4px; color: #8fd0c2; font-size: 11px; font-weight: 700; }
+  .replay-stage .replay-text { color: #e4eaed; font-size: 13px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .replay-stage .work-numbers { display: flex !important; }
+  .sheet [data-tag].replay-pass * { stroke: #2f9663 !important; stroke-width: 1.8 !important; }
+  .sheet [data-tag].replay-fail * { stroke: #e0392c !important; stroke-width: 2 !important; animation: replay-alert .45s 3 alternate; }
+  @keyframes replay-alert { to { stroke-opacity: .25; } }
+  .open-weights-card, .nrel-parity-card { margin: 16px 0; padding: 13px; border: 1px solid #34464f; background: #151f26; }
+  .open-weights-card h4, .nrel-parity-card h4 { margin: 0 0 9px; }
+  .ow-row { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 4px 10px; padding: 8px 0; border-top: 1px solid #2c3c44; color: #9aabb4; font-size: 11.5px; }
+  .ow-row:first-of-type { border-top: 0; }
+  .ow-row a, .ow-row .ow-model { color: #e4eaed; font-weight: 700; }
+  .ow-row .ow-outcome { color: #c6d1d5; }
+  .ow-note { margin-top: 8px; color: #d4b064; font-size: 11px; line-height: 1.45; }
+  .nrel-parity-card .parity-score { margin-bottom: 9px; color: #e4eaed; font-size: 15px; font-weight: 700; }
+  .nrel-parity-card img { display: block; width: 100%; background: #fff; }
+  @media (prefers-reduced-motion: reduce) { .sheet [data-tag].replay-fail * { animation: none; } }
   aside.right.workspace-decision .decision-brief > h2, .detail-drawer.workspace-decision .decision-brief > h2,
   aside.right.workspace-decision .decision-provenance, .detail-drawer.workspace-decision .decision-provenance { display: none; }
 
@@ -739,6 +761,7 @@
 const PARAMS = new URLSearchParams(location.search);
 const CASE = PARAMS.get('case') || 'chem_c01';
 const SAMPLE_WORKLOG = PARAMS.get('worklog') === 'sample';
+const REPLAY_ID = PARAMS.get('replay');
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // data-driven buttons: values travel as JSON in data-args and reach the handler as arguments, never as inline JavaScript
@@ -747,6 +770,7 @@ const act = (name, ...args) => `data-act="${name}" data-args="${esc(JSON.stringi
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   const fn = el && {select, whatIf, troubleshoot, ask, undo, accept, workFocus: (tags, view) => workFocus(tags, view, el),
+    showParity: () => { openDetails(true); setWorkspaceView('engineering'); requestAnimationFrame(() => document.querySelector('[data-nrel-parity]')?.scrollIntoView({block: 'start'})); },
     askAbout: tag => { $('q').value = `Why is ${tag} limiting, and what is the cheapest fix?`; $('q').focus(); }}[el.dataset.act];
   if (fn) fn(...JSON.parse(el.dataset.args || '[]'));
 });
@@ -755,7 +779,7 @@ const api = async (p, body) => { const r = await fetch(`/api/plant/${CASE}/${p}`
   if (!r.ok) throw new Error(data?.error || `Case data unavailable (${r.status})`);
   if (!data) throw new Error('Invalid response from the case server');
   return data; };
-let P = null, ST = null, busy = false, base = null, PENDING_CARD = null;
+let P = null, ST = null, busy = false, base = null, PENDING_CARD = null, OPEN_WEIGHTS = null, NREL_EVIDENCE = null;
 const NAMES = {pump: 'Pump', hx: 'Heat exchanger', tank: 'Tank', valve: 'Valve', heater: 'Heater / heat load', cooler: 'Cooler', compressor: 'Compressor', mixer: 'Mixer', splitter: 'Splitter', recycle: 'Loop closure'};
 const sev = u => u > 1.0 ? 'fail' : u > 0.9 ? 'warn' : 'ok';
 const simulator = () => ({watertap: 'WaterTAP', pandapower: 'pandapower'})[P?.built?.engine || P?.engine] || 'DWSIM';
@@ -874,6 +898,7 @@ $('openEvidence').onclick = () => {
 $('focusBtn').onclick = () => toggleFocus();
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.matches?.('.work-step[data-act]')) { e.target.click(); return; }
+  if (['Enter', ' '].includes(e.key) && e.target.matches?.('[data-act][role="button"]')) { e.preventDefault(); e.target.click(); return; }
   if (e.key === 'Escape') {
     if (document.body.classList.contains('canvas-focus')) toggleFocus(false);
     else if ($('infoDrawer').classList.contains('open')) toggleDrawer(false);
@@ -881,6 +906,12 @@ document.addEventListener('keydown', e => {
     return;
   }
   if (e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  if (!$('worklogPanel').hidden && REPLAY.events.length && [' ', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+    e.preventDefault();
+    if (e.key === ' ') REPLAY.playing ? replayPause() : replayPlay();
+    else { replayPause(); replayShow(REPLAY.index + (e.key === 'ArrowRight' ? 1 : -1)); }
+    return;
+  }
   if (e.key.toLowerCase() === 'f') fitDrawing();
   if (e.key.toLowerCase() === 'l') $('toggleLabels').click();
   if (e.key.toLowerCase() === 'd' && ACTIVE_MODE === 'capacity') setWorkspaceView(WORKSPACE_VIEW === 'decision' ? 'engineering' : 'decision');
@@ -1068,6 +1099,7 @@ async function load() {
   $('scale').value = Math.round(P.target_scale * 100);
   syncViewToggle();
   await loadGateAssessment();
+  await loadDemoEvidence();
   model(); answers(); revs();
   if (P.built) render(await stateForView(P.target_scale)); else noModel();
   $('q').disabled = false;
@@ -1916,7 +1948,7 @@ async function workFocus(tags, view, el) {
   if (view && VIEW !== view && $('viewTog').style.display !== 'none') await setView(view);
   if (tags[0]) { selectOnDrawing(tags[0]); focusDrawing(tags[0]); }
 }
-function workStep(step, previousIssues, model) {
+function workStep(step, previousIssues, model, roundIndex, stepIndex) {
   const status = ['pass', 'fail', 'open', 'info'].includes(step.status) ? step.status : 'info';
   const actor = workActor(step, model), actorClass = step.actor === 'muse' ? 'muse' : step.actor === 'engineer' ? 'engineer' : 'engine';
   const listedFixes = Array.isArray(step.fixes) ? step.fixes.map(item => typeof item === 'string' ? item : item?.check).filter(Boolean) : [];
@@ -1924,7 +1956,7 @@ function workStep(step, previousIssues, model) {
   const meta = step.actor === 'muse' && (step.usd != null || step.seconds != null)
     ? `<div class="work-step-meta">${step.usd != null ? `$${Number(step.usd).toFixed(2)}` : ''}${step.usd != null && step.seconds != null ? ' · ' : ''}${step.seconds != null ? `${Math.round(step.seconds)}s` : ''}</div>` : '';
   const tags = stepTags(step), view = step.actor === 'muse' ? 'proposed' : step.kind === 'check' ? 'proposed' : null;
-  return `<div class="work-step" ${tags.length || view ? act('workFocus', tags, view) + ' tabindex="0"' : ''}><span class="work-actor ${actorClass}" title="${esc(step.actor === 'engine' ? `Deterministic engine: ${actor}` : actor)}">${esc(actor)}</span>
+  return `<div class="work-step" data-round="${roundIndex}" data-step="${stepIndex}" ${tags.length || view ? act('workFocus', tags, view) + ' tabindex="0"' : ''}><span class="work-actor ${actorClass}" title="${esc(step.actor === 'engine' ? `Deterministic engine: ${actor}` : actor)}">${esc(actor)}</span>
     <span class="work-mark ${status}" aria-label="${esc(status)}">${WORK_MARK[status]}</span><div><div class="work-step-title">${esc(step.title || step.kind || 'Step')}</div>
     ${step.detail ? `<div class="work-step-detail">${esc(step.detail)}</div>` : ''}${workNumbers(step.numbers)}${meta}${tags.length ? `<div class="work-step-tags">◉ ${esc(tags.join(' · '))}</div>` : ''}</div>
     ${fixes.length ? `<div class="work-fixes">Fixes from the previous round: ${esc(fixes.join(', '))}</div>` : ''}</div>`;
@@ -1945,9 +1977,85 @@ function workResult(log) {
     <div class="work-result-row"><dt>Total</dt><dd>${log.usd_total == null ? '—' : `$${Number(log.usd_total).toFixed(2)}`} Muse · ${esc(totalTime)}</dd></div>
   </dl></section>`;
 }
+const REPLAY = {events: [], index: -1, playing: false, speed: 1, timer: null,
+  reduced: matchMedia('(prefers-reduced-motion: reduce)').matches};
+function replayEvents(log) {
+  const events = [], rounds = log.rounds || [];
+  rounds.forEach((round, ri) => {
+    if (ri) {
+      const previous = rounds[ri - 1], failed = (previous.steps || []).filter(step => step.status === 'fail').length;
+      events.push({kind: 'round', round: previous.n ?? ri, failed});
+    }
+    (round.steps || []).forEach((step, si) => events.push({kind: 'step', step, ri, si}));
+  });
+  return events;
+}
+function replayClear() {
+  clearTimeout(REPLAY.timer); REPLAY.timer = null;
+  $('sheet').querySelectorAll('.replay-pass,.replay-fail').forEach(el => el.classList.remove('replay-pass', 'replay-fail'));
+}
+function replayPause() {
+  REPLAY.playing = false; replayClear();
+  if ($('replayToggle')) { $('replayToggle').textContent = '▶ Play'; $('replayToggle').setAttribute('aria-label', 'Play replay'); }
+}
+function replaySchedule() {
+  clearTimeout(REPLAY.timer);
+  if (!REPLAY.playing) return;
+  if (REPLAY.index >= REPLAY.events.length - 1) return replayPause();
+  REPLAY.timer = setTimeout(async () => { await replayShow(REPLAY.index + 1); replaySchedule(); }, REPLAY.reduced ? 0 : 1500 / REPLAY.speed);
+}
+async function replayShow(index) {
+  if (!REPLAY.events.length) return;
+  REPLAY.index = Math.max(0, Math.min(index, REPLAY.events.length - 1));
+  replayClear();
+  const event = REPLAY.events[REPLAY.index], stage = $('replayStage');
+  document.querySelectorAll('#worklogPanel .work-round').forEach(round => round.open = false);
+  $('replayProgress').textContent = `${REPLAY.index + 1} / ${REPLAY.events.length}`;
+  stage.hidden = false;
+  if (event.kind === 'round') {
+    selectOnDrawing('');
+    stage.dataset.status = event.failed ? 'fail' : 'pass';
+    stage.innerHTML = `<div class="replay-who">Engineering loop</div><div class="replay-text">Round ${esc(event.round)}: ${event.failed} check${event.failed === 1 ? '' : 's'} failed → back to Muse</div>`;
+    return;
+  }
+  const step = event.step, view = step.actor === 'muse' || step.kind === 'check' ? 'proposed' : null;
+  if (view && VIEW !== view && $('viewTog').style.display !== 'none') await setView(view);
+  const tags = stepTags(step), el = document.querySelector(`.work-step[data-round="${event.ri}"][data-step="${event.si}"]`);
+  selectOnDrawing('');
+  await workFocus(tags, null, el);
+  for (const tag of tags) {
+    $('sheet').querySelector(`[data-tag="${CSS.escape(tag)}"]`)?.classList.add('focus-active');
+    $('sheet').querySelectorAll('[data-line]').forEach(line => {
+      if (line.dataset.from === tag || line.dataset.to === tag) line.classList.add('focus-active');
+    });
+  }
+  if (step.actor === 'engine' && ['pass', 'fail'].includes(step.status)) {
+    tags.forEach(tag => $('sheet').querySelector(`[data-tag="${CSS.escape(tag)}"]`)?.classList.add(`replay-${step.status}`));
+  }
+  el?.closest('.work-round')?.setAttribute('open', '');
+  el?.scrollIntoView({block: 'nearest', behavior: REPLAY.reduced ? 'auto' : 'smooth'});
+  stage.dataset.status = step.status || 'info';
+  const text = [step.title, step.detail].filter(Boolean).join('\n');
+  stage.innerHTML = `<div class="replay-who">${esc(workActor(step, window.WORK_LOG?.model))} · round ${esc((window.WORK_LOG?.rounds?.[event.ri]?.n) ?? event.ri + 1)}</div>
+    <div class="replay-text">${esc(text || step.kind || 'Step')}</div>${workNumbers(step.numbers)}`;
+}
+function replayPlay() {
+  if (!REPLAY.events.length) return;
+  if (REPLAY.index >= REPLAY.events.length - 1) REPLAY.index = -1;
+  REPLAY.playing = true; $('replayToggle').textContent = '❚❚ Pause'; $('replayToggle').setAttribute('aria-label', 'Pause replay');
+  replayShow(REPLAY.index + 1).then(replaySchedule);
+}
+function bindReplay(log) {
+  window.WORK_LOG = log; replayPause(); REPLAY.events = replayEvents(log); REPLAY.index = -1; REPLAY.speed = 1;
+  $('replaySpeed').textContent = '1×'; $('replayProgress').textContent = `0 / ${REPLAY.events.length}`;
+  $('replayToggle').onclick = () => REPLAY.playing ? replayPause() : replayPlay();
+  $('replayBack').onclick = async () => { replayPause(); await replayShow(REPLAY.index - 1); };
+  $('replayNext').onclick = async () => { replayPause(); await replayShow(REPLAY.index + 1); };
+  $('replaySpeed').onclick = () => { REPLAY.speed = REPLAY.speed === 1 ? 2 : 1; $('replaySpeed').textContent = `${REPLAY.speed}×`; if (REPLAY.playing) replaySchedule(); };
+}
 function renderWorklog(log) {
   const panel = $('worklogPanel');
-  if (!log || typeof log !== 'object') { panel.hidden = true; panel.innerHTML = ''; return; }
+  if (!log || typeof log !== 'object') { replayPause(); REPLAY.events = []; panel.hidden = true; panel.innerHTML = ''; return; }
   const rounds = Array.isArray(log.rounds) ? log.rounds : [];
   const status = ({done: ['Done ✓', 'pass'], unsolved: ['Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
     budget: ['Stopped at budget limit', 'open'], error: ['Stopped with error', 'fail']})[log.status] || ['Running…', 'open'];
@@ -1958,26 +2066,34 @@ function renderWorklog(log) {
     ${posthoc ? '<div class="worklog-posthoc">Post-hoc engineering run — the blind incident answer above remains separate and unchanged.</div>' : ''}
     <div class="worklog-head"><h3>Engineering run</h3><span class="work-status ${status[1]}">${esc(status[0])}</span></div>
     <p class="worklog-goal">${esc(log.goal || '')}${reason ? `<br><b>Reason:</b> ${esc(reason)}` : ''}</p>
+    <div class="replay-controls" role="group" aria-label="Replay this engineering run"><button class="btn" type="button" id="replayToggle">▶ Replay this run</button>
+      <button class="btn" type="button" id="replayBack" aria-label="Previous replay step">←</button><button class="btn" type="button" id="replayNext">Step →</button>
+      <button class="btn" type="button" id="replaySpeed" aria-label="Replay speed">1×</button><span class="replay-progress" id="replayProgress">0 / 0</span></div>
+    <div class="replay-stage" id="replayStage" aria-live="polite" hidden></div>
     <div class="work-rounds">${rounds.map((round, index) => {
       const previousIssues = index ? (rounds[index - 1].open_issues || []).map(issue => issue.check).filter(Boolean) : [];
       return `<details class="work-round" data-n="${esc(round.n ?? index + 1)}"${index === rounds.length - 1 ? ' open' : ''}><summary><span>Round ${esc(round.n ?? index + 1)}</span><span class="work-round-state">${esc(workRoundState(round))}</span></summary>
-        <div class="work-steps">${(round.steps || []).map(step => workStep(step, previousIssues, log.model)).join('')}</div></details>`;
+        <div class="work-steps">${(round.steps || []).map((step, si) => workStep(step, previousIssues, log.model, index, si)).join('')}</div></details>`;
     }).join('')}</div>${log.result || ['done', 'unsolved', 'max_rounds', 'budget', 'error'].includes(log.status) ? workResult(log) : ''}`;
   panel.hidden = false;
+  bindReplay(log);
 }
 async function loadWorklog() {
   try {
     let log;
-    if (SAMPLE_WORKLOG) {
+    if (SAMPLE_WORKLOG || REPLAY_ID === 'sample') {
       const response = await fetch('/api/worklog-sample');
       if (!response.ok) throw new Error('sample unavailable');
       log = await response.json();
+    } else if (REPLAY_ID) {
+      log = await api(`work/${encodeURIComponent(REPLAY_ID)}`);
     } else {
       const runs = await api('work');
       if (!Array.isArray(runs) || !runs.length) return renderWorklog(null);
       log = await api(`work/${encodeURIComponent(runs[0].id)}`);
     }
     renderWorklog(log);
+    if (REPLAY_ID) replayPlay();
   } catch (_) {
     renderWorklog(null);  // the loop backend may not be installed yet; the run action remains available
   }
@@ -2048,6 +2164,60 @@ function placeClear(n, sheet) {  // push a note down until it no longer overlaps
 }
 
 const incident = () => /incident/i.test(P?.task_type || '');
+function worklogSummary(label, ref, log) {
+  const last = (log?.rounds || []).at(-1), checked = (last?.steps || []).filter(step => step.actor === 'engine' || step.kind === 'check');
+  const result = log?.result || {};
+  const passes = Array.isArray(result.passes) ? result.passes.length : checked.filter(step => step.status === 'pass').length;
+  const fails = Array.isArray(result.fails) ? result.fails.length : checked.filter(step => step.status === 'fail').length;
+  const status = log?.status || ref?.status || 'unknown';
+  const fallback = status === 'budget' ? 'Stopped at budget limit before a completed design'
+    : status === 'unsolved' ? 'Unsolved' : status === 'done' ? 'Completed' : String(status).replaceAll('_', ' ');
+  return {label, run: ref?.run, outcome: result.headline || fallback, rounds: log?.rounds?.length ?? ref?.rounds ?? 0,
+    passes, fails, usd: log?.usd_total ?? ref?.usd};
+}
+async function loadDemoEvidence() {
+  OPEN_WEIGHTS = null; NREL_EVIDENCE = null;
+  const ow = await fetch('/api/evidence/open-weights').then(r => r.ok ? r.json() : null).catch(() => null);
+  const item = ow?.by_case?.[CASE];
+  if (item) {
+    let closed;
+    if (item.closed_reference?.run) {
+      const log = await api(`work/${encodeURIComponent(item.closed_reference.run)}`).catch(() => null);
+      closed = worklogSummary('Muse Wonder', item.closed_reference, log);
+    } else if (item.closed_endpoint_attempts) {
+      closed = {label: 'Muse Wonder', run: null, outcome: 'Content-policy filtered before an engineering result', rounds: 0,
+        passes: null, fails: null, usd: item.closed_endpoint_attempts.usd};
+    }
+    const openRef = [...(item.open_runs || [])].reverse().find(run => !run.cache_replay);
+    const openLog = openRef?.run ? await api(`work/${encodeURIComponent(openRef.run)}`).catch(() => null) : null;
+    const open = openRef ? worklogSummary('Muse Spark Open', openRef, openLog) : null;
+    if (closed && open) OPEN_WEIGHTS = {rows: [closed, open], note: CASE === 'ucte_2006'
+      ? 'Muse Wonder endpoint attempts were content-policy filtered; this is not a model-quality result. The cached Spark Open replay is not independent and is excluded here; this row uses the independent repeat.'
+      : CASE === 'salt_mvr' ? 'Neither model finished: Wonder marked the design unsolved; Spark Open stopped at its run budget before a completed design.'
+      : 'Both runs leave relief capacity open: the pressure clamp is an ideal relief boundary, not a relief-sizing result.'};
+  }
+  if (['nrel_ethanol', 'nrel_ethanol_a300', 'nrel_ethanol_a500'].includes(CASE)) {
+    NREL_EVIDENCE = await fetch(`/api/evidence/nrel/${CASE}`).then(r => r.ok ? r.json() : null).catch(() => null);
+  }
+}
+function openWeightsCard(a) {
+  if (!OPEN_WEIGHTS || a !== (designAnswer() || (P.answers || []).at(-1))) return '';
+  const rows = OPEN_WEIGHTS.rows.map(row => {
+    const model = row.run ? `<a href="plant.html?case=${encodeURIComponent(CASE)}&amp;replay=${encodeURIComponent(row.run)}">${esc(row.label)}</a>`
+      : `<span class="ow-model">${esc(row.label)}</span>`;
+    const checks = row.passes == null ? 'no engineering result' : `${row.passes} passed / ${row.fails} failed`;
+    return `<div class="ow-row" data-open-model><div>${model}</div><div class="ow-outcome">${esc(row.outcome)}</div><div>${esc(row.rounds)} round${row.rounds === 1 ? '' : 's'}</div><div>${esc(checks)} · ${row.usd == null ? 'cost unavailable' : `$${Number(row.usd).toFixed(2)}`}</div></div>`;
+  }).join('');
+  return `<section class="open-weights-card" data-open-weights><h4>Closed vs open-weights engineering loop</h4>${rows}<div class="ow-note">${esc(OPEN_WEIGHTS.note)}</div></section>`;
+}
+function nrelParityCard() {
+  if (!NREL_EVIDENCE) return '';
+  const area = NREL_EVIDENCE.areas?.length > 1 ? 'A300 + A500' : NREL_EVIDENCE.areas?.[0]?.area || 'NREL model';
+  return `<section class="nrel-parity-card" data-nrel-parity><h4>${esc(area)} blind design reproduction</h4>
+    <div class="parity-score">${esc(NREL_EVIDENCE.within_5)} of ${esc(NREL_EVIDENCE.checks)} checks within 5%</div>
+    <img src="${esc(NREL_EVIDENCE.figure)}" alt="Simulated values versus NREL report values with a plus or minus five percent band">
+    <div class="ow-note">Report stream tables were withheld from Muse. NREL values are Aspen Plus design-model results, not plant measurements.</div></section>`;
+}
 function suggestions() {  // from this case's own equipment, so a desalination plant is never asked about cooling water
   if (P.suggested_questions?.length) return P.suggested_questions.slice(0, 4);  // chosen by the project's task type
   const types = new Set((P.built?.spec?.units || []).map(u => u.type)), pct = Math.round((P.target_scale - 1) * 100);
@@ -2067,7 +2237,8 @@ function suggestions() {  // from this case's own equipment, so a desalination p
 function qaBar(lead) {
   const d = designAnswer(), q = lead && lead === d && P.question ? P.question : lead ? (lead.request || lead.question) : P.question;
   $('qaQ').textContent = plain(q || '') || 'Ask a question below.';
-  $('qaA').textContent = lead ? plain(lead.headline) || 'Answered' : 'Not answered yet';
+  $('qaA').textContent = lead ? plain(lead.headline) || 'Answered' : NREL_EVIDENCE
+    ? `${NREL_EVIDENCE.within_5} of ${NREL_EVIDENCE.checks} withheld checks reproduced within 5%` : 'Not answered yet';
   const b = [];
   if (lead) {
     const dd = (lead.proposals || []).length ? lead : (d || lead), v = (dd.proposals || []).filter(p => p.verified).length;
@@ -2080,8 +2251,9 @@ function qaBar(lead) {
     if (o) b.push(['open', `${o} not calculated yet`]);
     if (P.outcome?.engineers) b.push(['ok', 'answered blind · compare with what happened →']);
     const u = dd.uncertainty; if (u?.p_target != null) b.push([u.p_target >= .8 ? 'ok' : u.p_target >= .5 ? 'open' : 'fail', `target met in ${Math.round(u.p_target * 100)}% of uncertainty re-solves`]);
-  }
-  $('qaBadges').innerHTML = b.map(([k, t]) => `<span class="qa-badge ${k}"${/compare/.test(t) ? ' role="button" tabindex="0" style="cursor:pointer" onclick="const o=document.querySelector(\'.outcome-compare\');if(o){o.open=true;o.scrollIntoView({behavior:\'smooth\'})}"' : ''}>${esc(t)}</span>`).join('');
+  } else if (NREL_EVIDENCE) b.push(['ok', 'blind calibration · view parity chart →']);
+  $('qaBadges').innerHTML = b.map(([k, t]) => `<span class="qa-badge ${k}"${/parity/.test(t) ? ` ${act('showParity')} role="button" tabindex="0" style="cursor:pointer"`
+    : /compare/.test(t) ? ' role="button" tabindex="0" style="cursor:pointer" onclick="const o=document.querySelector(\'.outcome-compare\');if(o){o.open=true;o.scrollIntoView({behavior:\'smooth\'})}"' : ''}>${esc(t)}</span>`).join('');
   $('qaSugg').innerHTML = suggestions().map(x => `<button class="btn" ${act('ask', x)}>${esc(x)}</button>`).join('');
 }
 function answers() {
@@ -2093,9 +2265,9 @@ function answers() {
   const follow = lead !== last ? `<details class="ans follow-up"><summary>Latest follow-up · ${esc(plain(last.headline || last.question || 'question'))}</summary>${briefAns(last, all.length - 1)}</details>` : '';
   const rest = all.map((a, i) => [a, i]).filter(([a]) => a !== lead && a !== last).reverse();
   const list = all.length ? [lead] : [];
-  $('answers').innerHTML = outcomeCard() + (list.length ? (lead !== last ? `<div class="lead-note">Current verified design · answer ${all.indexOf(lead) + 1} of ${all.length}</div>` : '') + ans(lead, all.indexOf(lead)) + follow +
+  $('answers').innerHTML = nrelParityCard() + outcomeCard() + (list.length ? (lead !== last ? `<div class="lead-note">Current verified design · answer ${all.indexOf(lead) + 1} of ${all.length}</div>` : '') + ans(lead, all.indexOf(lead)) + follow +
     (rest.length ? `<details class="ans"><summary>History · ${rest.length} earlier question${rest.length === 1 ? '' : 's'}</summary>${rest.map(([a, i]) => briefAns(a, i)).join('')}</details>` : '') :
-    `<div class="empty"><b>What would you like to test?</b><br>${incident() ? 'Ask what happened, which limit was crossed first, and what would have prevented it.' : 'Ask about an equipment limit, or find a path to the target throughput.'}
+    NREL_EVIDENCE ? '' : `<div class="empty"><b>What would you like to test?</b><br>${incident() ? 'Ask what happened, which limit was crossed first, and what would have prevented it.' : 'Ask about an equipment limit, or find a path to the target throughput.'}
      <div class="sugg">${suggestions().map(s => `<button class="btn" ${act('ask', s)}>${esc(s)}</button>`).join('')}</div></div>`);
   qaBar(lead);
   const ac = P.ai_cost, qs = ac?.questions_usd ?? all.reduce((t, a) => t + (a.cost_usd || 0), 0);
@@ -2317,7 +2489,7 @@ function ans(a, idx) {
   const fixes = (a.proposals || []).length ? `<section class="answer-section"><h4>Recommended changes</h4>${props}</section>${compare(a)}${comb}` : '';
   const files = artifactsSection(a);
   const blocked = modelBlocked() ? `<div class="card fail"><div class="tt">Model blocked</div><div class="res">Correct the model-review findings before applying changes or issuing a decision pack.</div></div>` : '';
-  return `<div class="ans">${decisionBrief(a, idx)}<div class="engineering-detail"><div class="answer-hero"><span class="answer-label">Engineering detail</span><div class="hl">${esc(plain(a.headline))}</div><div class="sm" style="margin-top:6px">${esc(plain(a.summary))}</div></div>${blocked}${limits}${files}${fc}${fixes}${secondOpinion(a, idx)}
+  return `<div class="ans">${decisionBrief(a, idx)}<div class="engineering-detail"><div class="answer-hero"><span class="answer-label">Engineering detail</span><div class="hl">${esc(plain(a.headline))}</div><div class="sm" style="margin-top:6px">${esc(plain(a.summary))}</div></div>${blocked}${limits}${files}${fc}${fixes}${secondOpinion(a, idx)}${openWeightsCard(a)}
     <details class="evidence-block"><summary>Evidence · ${plural((a.cards || []).length, 'calculation')}, sources and assumptions</summary><div class="sm">${esc(a.summary)}</div>${cards}</details>
     <details class="request-block"><summary>Original request</summary><div class="rq">${esc(a.request)}</div></details>
     <div class="meta">${a.seconds}s · AI cost $${(a.cost_usd || 0).toFixed(4)} · ${(a.checks || []).filter(c => c.ok).length}/${(a.checks || []).length} cited runs re-solved to the same result${(a.checks || []).filter(c => !c.ok).map(c => ` · <span style="color:var(--fail)">✗ ${esc(c.item)}: ${esc(c.why || 'not reproduced')}</span>`).join('')}</div></div></div>`;
