@@ -16,6 +16,24 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     console.log(stuck || errs.length ? 'FAIL' : 'ok  ', u, stuck ? 'stuck loading or case unavailable' : '', errs.splice(0).join(' | '));
     bad += stuck ? 1 : 0;
   }
+  await p.setViewportSize({ width: 1920, height: 1080 });
+  await p.goto(`${BASE}/plant.html?case=salt_mvr&worklog=sample`);
+  await p.waitForSelector('#worklogPanel:not([hidden])', { timeout: 30000 }).catch(() => {});
+  await p.click('#workRunOpen');
+  const workConfirmOk = await p.evaluate(() => !document.querySelector('#workConfirm').hidden && document.querySelector('#workGoal').value === P.question && /\$5.?10/.test(document.querySelector('.work-runner .estimate').textContent));
+  await p.click('#workCancel');
+  const worklogOk = await p.evaluate(() => {
+    const rounds = [...document.querySelectorAll('.work-round')], actors = [...document.querySelectorAll('.work-actor')].map(x => x.textContent.trim());
+    return rounds.length === 2 && !rounds[0].open && rounds[1].open && actors.includes('Muse') && actors.includes('DWSIM') && actors.includes('pandapower') &&
+      !!document.querySelector('[data-work-result]') && !!document.querySelector('.worklog-sample') && /ILLUSTRATIVE SAMPLE/.test(document.querySelector('.worklog-sample').textContent);
+  });
+  await p.screenshot({ path: `${OUT}/salt_mvr_worklog_sample_1920x1080.png` });
+  await p.locator('[data-work-result]').scrollIntoViewIfNeeded();
+  await p.screenshot({ path: `${OUT}/salt_mvr_worklog_result_1920x1080.png` });
+  const worklogErrors = errs.splice(0);
+  console.log(workConfirmOk && worklogOk && !worklogErrors.length ? 'ok  ' : 'FAIL', 'engineering run sample: confirmation, rounds, actors and result', worklogErrors.join(' | '));
+  bad += workConfirmOk && worklogOk && !worklogErrors.length ? 0 : 1;
+  await p.setViewportSize({ width: 1440, height: 900 });
   await p.goto(`${BASE}/home.html`); await p.waitForTimeout(2000);
   const homeOk = await p.evaluate(() => !document.body.innerHTML.includes('bt_column_debottleneck') &&
     /case=salt_mvr&tour=1/.test(document.querySelector('.hero-actions a').getAttribute('href')));
