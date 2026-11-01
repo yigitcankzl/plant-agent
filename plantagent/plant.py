@@ -200,7 +200,8 @@ _STRUCTURAL_UNIT_FIELDS = {"id", "type", "kind", *CONNECTION_FIELDS}
 _PHYSICAL_UNIT_FIELDS = {"U_W_m2K", "area_m2", "eff_pct", "efficiency", "cv_rated", "kv_rated", "rangeability",
                          "diameter_m", "id_mm", "dn_mm", "length_m", "roughness_mm", "stages", "feed_stage"}
 _REPLACEMENT_FIELDS = {"cv_rated", "kv_rated", "rangeability", "diameter_m", "id_mm", "dn_mm", "length_m",
-                       "roughness_mm", "stages", "tray_spacing_m", "volume_m3", "area_m2"}
+                       "roughness_mm", "stages", "tray_spacing_m", "volume_m3", "area_m2", "tray_capacity_factor", "efficiency",
+                       "feed_stage"}
 
 
 def added_equipment(changes):

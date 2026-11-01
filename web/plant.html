@@ -2653,7 +2653,16 @@ function outcomeCard() {
   const agent = o.agent_headline || designAnswer()?.headline || (P.answers || []).at(-1)?.headline;
   return `<details class="outcome-compare"${incident() ? ' open' : ''}><summary>Compare with the ${esc(o.year || 'recorded')} decision</summary><div class="outcome-cols">
     <div><div class="tt">Agent (blind: never saw this outcome)</div><div><b>${esc(plain(agent || 'no answer on record yet'))}</b></div>${o.agent_summary ? `<div class="sm" style="margin-top:4px">${esc((t => t.length > 420 ? t.slice(0, t.lastIndexOf('. ', 420) + 1 || 420) : t)(plain(o.agent_summary)))}</div>` : ''}</div>
-    <div><div class="tt">What the engineers decided</div><div>${esc(o.engineers)}</div>${o.source ? `<small>${esc(o.source)}</small>` : ''}${o.note ? `<small>${esc(o.note)}</small>` : ''}</div></div></details>`;
+    <div><div class="tt">What the engineers decided</div><div>${esc(o.engineers)}</div>${o.source ? `<small>${esc(o.source)}</small>` : ''}${o.note ? `<small>${esc(o.note)}</small>` : ''}</div></div>${scorecardTable(o.scorecard)}</details>`;
+}
+// the deterministic scorecard (tools/*_compare.py): the agent's blind value next to the measured one, no model involved
+function scorecardTable(rows) {
+  if (!Array.isArray(rows) || !rows.length) return '';
+  const mark = {match: ['✓', 'ok'], partial: ['◐', 'warn'], miss: ['✕', 'fail'], 'not predicted': ['—', 'muted']};
+  return `<table class="scorecard" style="width:100%;margin-top:10px;font-size:12px;border-collapse:collapse"><thead><tr><th style="text-align:left">Did the agent reach what the engineers did?</th><th style="text-align:left">Agent (blind)</th><th style="text-align:left">Measured / recorded</th><th></th></tr></thead><tbody>${rows.map(r => {
+    const [m, c] = mark[r.verdict] || ['·', 'muted'];
+    return `<tr style="border-top:1px solid var(--line)"><td>${esc(r.item)}</td><td>${esc(r.agent ?? '')}</td><td>${esc(r.recorded ?? '')}</td><td style="color:var(--${c});white-space:nowrap">${m} ${esc(r.verdict || '')}</td></tr>`;
+  }).join('')}</tbody></table>`;
 }
 // files an answer produced; files from an answer that is not the current design say so
 function artifactsSection(a) {

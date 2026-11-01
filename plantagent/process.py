@@ -99,7 +99,7 @@ SPEC_HELP = {
               "design conditions, e.g. design wet bulb + approach for an evaporative condenser), "
               "max_duty_kW (reactor cooling capacity: compared with cooling_kW, the heat the jacket must remove), "
               "max_T_C on a reactor (outlet temperature), "
-              "diameter_m, tray_spacing_m (default 0.5 m, DWSIM's tray spacing), flood_frac_max (default 0.8) for a distillation column: "
+              "diameter_m, tray_spacing_m (default 0.5 m, DWSIM's tray spacing), flood_frac_max (default 0.8), tray_capacity_factor (default 1; a vendor-rated high-capacity tray floods at this multiple of the sieve-tray vapour load) for a distillation column: "
               "Fair sieve-tray flood fraction from DWSIM's per-stage traffic. DWSIM does not report flooding. "
               "A unit type with no limit check is reported as 'no limit check for this unit type' and is not treated as within limits. "
               "Allowlisted classes and SI units: docs/dwsim_units.md.}}. Values come from the P&ID or datasheets; cite them.",
@@ -1146,6 +1146,8 @@ class _Sheet:
                         if diameter and row["vapour_kg_s"] > 1e-6 and row["rho_l"] > row["rho_v"] > 0:
                             frac = fair_flood_fraction(row["vapour_kg_s"], row["liquid_kg_s"], row["rho_v"], row["rho_l"],
                                                        row["sigma_N_m"], float(diameter), spacing)
+                            if frac is not None:  # a high-capacity tray (rated by its vendor) floods later than Fair's sieve tray
+                                frac /= float(lim.get("tray_capacity_factor") or 1.0)
                             item["flood_frac"] = _r(frac, 3)
                             if frac is not None:
                                 fracs.append(frac)

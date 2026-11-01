@@ -384,7 +384,9 @@ def _outcome(w):
         return None
     from . import revb
     a = revb.design_answer(w.answers) or (w.answers[-1] if w.answers else None)
-    return {**oc, "agent_headline": (a or {}).get("headline"), "agent_summary": (a or {}).get("summary")}
+    cmp = ROOT / "runs" / "ws" / w.name / "comparison.json"  # deterministic scorecard against the outcome, when one exists
+    card = json.loads(cmp.read_text()).get("scorecard") if cmp.exists() else None
+    return {**oc, "agent_headline": (a or {}).get("headline"), "agent_summary": (a or {}).get("summary"), "scorecard": card}
 
 
 def plant_project(case):
