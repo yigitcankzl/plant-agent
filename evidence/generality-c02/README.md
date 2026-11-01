@@ -37,10 +37,34 @@ The only manual step was choosing this file and starting the script.
   - At design reflux 1.5 and 1.2× feed, the Fair flood fraction is 0.876 against the 0.80 limit (110 %). Reboiler duty rises from 427 to 570 kW.
 - **Verified proposal:** cut reflux to 0.8. DWSIM re-solved it: 120 % is reached (maximum 142 %) and the column runs at 79 % of the flood limit. No capex.
 - **Rejected proposal:** a new 600 mm shell. The server's guardrail rejected it every round, because replacing the shell removes, or tries to raise, the existing K 2750 diameter and flood limit. The guardrail is working as designed; replacing equipment is a change the loop cannot verify yet.
-- **Engineering loop** (`work/20261101-203737`):
+- **Engineering loop, first run** (`work/20261101-203737`, before the purity check existed):
   - Process, robustness (2 of 2 envelope scenarios, draft) and confidence (100 % of 48 uncertainty re-solves, draft) passed.
   - Nothing failed.
   - The status is still **max_rounds**, not *done*, because Muse proposed the rejected shell again in every round, and a rejected proposal counts as an open issue.
+
+## Product purity added afterwards: the reflux cut does not hold
+
+The first loop "verified" cutting reflux 1.5 → 0.8 without looking at product purity. A purity and minimum-reflux check now runs on every column (`designchecks.purity_checks`, test `tests/test_purity.py`):
+- **Spec:** the drawing gives none, so a draft (`drafts/purity.json`, *draft (assumed values)*) holds today's key-component purity within 0.5 mass-% points: distillate ethanol ≥ 90.8 % (today 91.3 %), bottoms water ≥ 23.8 % (today 24.3 %). An engineer must replace it with the real specification.
+- **Minimum reflux:** DWSIM bisection on reflux for the column as built (15 stages, same reboiler spec) at the target throughput.
+
+**Deterministic re-check of the stored design (no model call):**
+
+| Check at 120 % | Result |
+|---|---|
+| Flooding | 63.3 % of flood vs 80 % limit: pass |
+| Distillate ethanol | 90.3 vs 90.8 mass-% minimum: **fail** |
+| Bottoms water | 25.4 vs 23.8 mass-% minimum: pass |
+| Reflux | 0.8 vs **1.10** minimum to hold the spec: **fail** |
+
+So the reflux cut buys throughput by spoiling the overhead product. A direct DWSIM sweep at 120 % shows a valid no-capex window does exist: reflux 1.10 holds the spec at 73.6 % of flood, reflux 1.15 at 75.3 %, while reflux 1.5 floods (87.6 %). The stored "verified" proposal is withdrawn; reflux ≈ 1.1–1.15 is the candidate for the next run.
+
+**Second loop with the check in place** (`work/20261101-211936`, Muse Spark Open on Baseten, 3 rounds, $3 cap):
+- Muse kept reflux 1.5 and proposed raising the bottoms draw from 3.0 to 3.6 mol/s instead (rounds 1 and 2). The server re-solved it: it reaches only 113 %, because K 2750 is still at 110 % of flood at the target. It was not verified.
+- The loop told Muse "no proposal made" instead of the flood number, because that proposal had no explicit rejection text. Fixed after the run (`loop._why`, test in `tests/test_loop.py`): an unverified proposal now goes back with the limits still over at the target.
+- Round 3 ended with an **error**: Muse used its 26 tool steps on its own solves without returning an answer.
+- Outcome: **no verified design**. Cost $2.38 (Baseten).
+
 - **Disciplines not calculated** (shown as open on the page): mechanical, heat transfer, electrical, combustion, piping, controls, safety and civil. This file carries no data for them.
 
 ## Cost
@@ -50,13 +74,14 @@ The only manual step was choosing this file and starting the script.
 | Build | 0.7674 |
 | Ask | 0.2294 |
 | Loop (3 rounds) | 0.5474 |
-| **Total** | **1.5442** |
+| **Total, first run** | **1.5442** |
+| Second loop with the purity check | 2.3774 |
 
 The Baseten ledger went from $18.147 to $19.692.
 
 ## Limits (read these before quoting the result)
 - **The whole duty is a Muse assumption.** The drawing does not say what the column separates. The +13 % flood limit is a property of the assumed water/ethanol duty on the documented 500 mm shell, not of BASF's real service.
-- **Cutting reflux to 0.8 lowers separation, and product purity was not checked.** No purity target is on the drawing, and no check exists for it. An engineer must set the purity specification before this proposal means anything.
+- **The purity spec is a draft.** No purity target is on the drawing; the check holds today's purity within 0.5 points until an engineer sets the real one. Against that draft, reflux 0.8 fails (see above).
 - **Fixed after the run:** `economics.throughput.base` (24 t/d) was tagged *documented* but comes from Muse's assumed 1,000 kg/h; drafts now tag a built model's feed as assumed.
 - **The loop cannot verify a shell replacement**, so the capex option went to the engineer unverified.
 - **One renderer fix was needed.** This exporter writes coordinates in metres. `tools/render_pid.py` now scales padding to the sheet and converts metre sheets to millimetres; before that, the drawing came out about 10 units wide.
