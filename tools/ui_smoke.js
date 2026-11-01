@@ -76,7 +76,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   });
   await p.screenshot({ path: `${OUT}/decision_workspace.png` });
   await p.click('#engineeringView');
-  const engineeringView = await p.evaluate(() => getComputedStyle(document.querySelector('.engineering-detail')).display !== 'none');
+  const engineeringView = await p.evaluate(() => getComputedStyle(document.querySelector('.engineering-detail')).display !== 'none' && document.querySelector('#inspectorTitle').textContent === 'Review');
   await p.screenshot({ path: `${OUT}/engineering_workspace.png` });
   await p.click('.discipline-gate.fail');
   const gateEvidence = await p.evaluate(() => document.querySelector('#modal').classList.contains('on') && /pandapower/.test(document.querySelector('#modalBox').textContent));
@@ -96,14 +96,14 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const workspaceUi = readableAnswer && engineeringView && gateEvidence && focusOn && focusOff && detailShortcut && labelsShortcut;
   console.log(workspaceUi ? 'ok  ' : 'FAIL', 'decision/engineering views, calculated discipline rail, package action and focus mode');
   bad += workspaceUi ? 0 : 1;
-  await p.keyboard.press('/');  // the ask box sits under the answer; '/' focuses it
-  await p.waitForFunction(() => document.activeElement === document.querySelector('#q'), null, {timeout: 5000}).catch(() => {});
-  const askDockOpen = await p.evaluate(() => !!document.querySelector('#qa #q') && document.activeElement === document.querySelector('#q'));
+  await p.click('#dockAsk');
+  await p.waitForFunction(() => document.activeElement === document.querySelector('#q'));
+  const askDockOpen = await p.evaluate(() => !document.querySelector('#askPanel').hidden && document.activeElement === document.querySelector('#q'));
   await p.click('#dockEvidence'); await p.click('#openEvidence');
   const evidenceOpen = await p.evaluate(() => document.querySelector('#engineeringView').getAttribute('aria-pressed') === 'true' && document.querySelector('#workbench').classList.contains('collapsed'));
   await p.click('#dockWhatIf');
   const whatIfRestored = await p.evaluate(() => !document.querySelector('#scenario').hidden && !document.querySelector('#workbench').classList.contains('collapsed'));
-  console.log(askDockOpen && evidenceOpen && whatIfRestored ? 'ok  ' : 'FAIL', 'ask box under the answer; what-if and evidence workbench panels');
+  console.log(askDockOpen && evidenceOpen && whatIfRestored ? 'ok  ' : 'FAIL', 'what-if, ask and evidence workbench panels');
   bad += askDockOpen && evidenceOpen && whatIfRestored ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
   const saltReady = await p.evaluate(() => Number(P?.built?.review?.blocking || 0) === 0 &&
