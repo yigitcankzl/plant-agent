@@ -70,7 +70,7 @@ SPEC_HELP = {
              "in the same order, condenser total|partial|full_reflux (partial needs vapor and vapor_mol_s, the vapour product rate; "
              "the condenser spec then sets the liquid distillate, and reflux_ratio is reflux over LIQUID distillate), P_bar, dP_bar, "
              "subcool_K, method bubble_point (default)|modified_bubble_point|simultaneous_correction|sum_rates (absorbers), "
-             "max_iterations. Bubble-point solvers stall on non-condensable gases (CO2, N2, O2) and on liquid-liquid splits: take "
+             "max_iterations, tolerance (loop tolerance, default 1e-4). Bubble-point solvers stall on non-condensable gases (CO2, N2, O2) and on liquid-liquid splits: take "
              "non-condensables off upstream (flash or component_separator) and state it as an assumption. A large vapour side draw "
              "(more vapour leaving at the draw than above it) rarely converges: model the column from the draw tray down, with a "
              "partial condenser whose vapour product (vapor_mol_s) is the draw and a small reflux_ratio, and say so. With a partial "
@@ -878,8 +878,9 @@ class _Sheet:
                 col.SolvingMethodName = methods[u["method"]]
             if u.get("max_iterations"):
                 col.MaxIterations = int(u["max_iterations"])
-            if u.get("tolerance"):
-                col.InternalLoopTolerance = col.ExternalLoopTolerance = float(u["tolerance"])
+            # DWSIM's default 1e-5 loop tolerance also sets a 1e-4 relative mass-balance check after convergence, which a
+            # converged 30-stage beer column misses by 0.01 % and then reports as an error that stops every unit downstream
+            col.InternalLoopTolerance = col.ExternalLoopTolerance = float(u.get("tolerance") or 1e-4)
             if u.get("vapor_mol_s") is not None:  # partial condenser: the vapour product rate is a fixed input in DWSIM
                 col.VaporFlowRate = float(u["vapor_mol_s"]) * self.scale
             if eff is not None:  # condenser and reboiler stay equilibrium stages

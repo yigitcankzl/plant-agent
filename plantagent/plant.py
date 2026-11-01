@@ -2408,6 +2408,27 @@ class PlantWorkspace(Study):
         self._phase = "build"
         system, user, submit_tool = self._build_prompt()
         sub = self.loop("build", system, user, self.tools() + [submit_tool], "submit_model", 30)
+        return self._finish_build(sub, round(time.time() - t0), round(llm.spent() - usd0, 4))
+
+    def accept_submission(self, run_dir, seconds=None, cost_usd=None):
+        """Replay the agent's last submit_model from a build log (no LLM) through today's engine, review and coverage gate.
+        For a build whose submission was blocked by an engine defect that has since been fixed; the record says so."""
+        log = [json.loads(line) for line in (Path(run_dir) / "log.jsonl").read_text().splitlines()]
+        subs = [r.get("submit") or r.get("args") for r in log if r.get("submit") or r.get("tool") == "submit_model"]
+        if not subs:
+            raise ValueError("no submit_model in that build log")
+        sub = subs[-1]
+        spec = next(r["args"]["spec"] for r in reversed(log) if r.get("tool") == "run_process" and r["args"].get("label") == sub["label"])
+        self.runs[sub["label"]] = {"spec": spec, "purpose": "replayed submission", "scale": 1.0, "result": self._solve(spec)}
+        blocks = [f for f in self._review_run(sub["label"])["findings"] if f["severity"] == "block"] + self._coverage_block(sub["label"])
+        if blocks:
+            raise RuntimeError("replayed submission still blocked: " + "; ".join(f["check"] for f in blocks))
+        built = self._finish_build(sub, seconds, cost_usd)
+        built["accepted"] = {"how": "agent's last submit_model replayed without an LLM after an engine fix", "log": str(run_dir)}
+        self.model_file.write_text(json.dumps(built, indent=1))
+        return built
+
+    def _finish_build(self, sub, seconds, cost_usd):
         run = self.runs.get(sub["label"]) or list(self.runs.values())[-1]
         reviewed = self._review(run["spec"], run.get("result"), sub.get("mapping"), sub.get("assumptions"))
         if reviewed["blocking"]:
@@ -2418,8 +2439,8 @@ class PlantWorkspace(Study):
                       "result": run["result"], "mapping": sub.get("mapping"), "calibration": sub.get("calibration"),
                       "assumptions": sub.get("assumptions"), "model": self.model, "engine": _simulator_name(self.cfg),
                       "coverage": cov,
-                      "read_corrections": len((self.pid or {}).get("corrections") or []), "seconds": round(time.time() - t0),
-                      "cost_usd": round(llm.spent() - usd0, 4), "at": time.strftime("%Y-%m-%d %H:%M"),
+                      "read_corrections": len((self.pid or {}).get("corrections") or []), "seconds": seconds,
+                      "cost_usd": cost_usd, "at": time.strftime("%Y-%m-%d %H:%M"),
                       "review": reviewed, "review_status": reviewed["status"], "gaps": self.gaps}
         self.model_file.write_text(json.dumps(self.built, indent=1))
         self.revisions = []
