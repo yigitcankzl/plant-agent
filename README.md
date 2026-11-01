@@ -1,8 +1,25 @@
-# PlantAgent: give it the change, it does the engineering
+# PlantAgent: Muse proposes, physics disposes
 
-**TL;DR**
-- PlantAgent is an AI engineer for changes to existing plants. You state the change or the goal; it does the engineering.
-- Meta's **Muse** reads the P&ID and data sheets, builds the simulator model itself, and designs the change.
+**Give it a change to an existing plant. Meta's Muse builds the simulator from the drawings and designs the change; deterministic engineering engines check every round; failed checks go back to Muse with their numbers; the engineer gets the marked-up drawing and a change package to sign.** The AI is not trusted, it is checked.
+
+```mermaid
+flowchart LR
+  D[P&ID, data sheets, reports] --> M[Muse builds the model and proposes a change]
+  M --> E[Engines re-solve it: DWSIM, pandapower, WaterTAP, ht, Cantera]
+  E --> C{Every check: process, robustness, electrical, curves, start-up, uncertainty}
+  C -- fails, with numbers --> M
+  C -- passes, or Muse names the missing data --> P[Rev B drawing + MOC package for engineer sign-off]
+```
+
+Hackathon theme: **Push the Frontier** (manufacturing and energy). Built on Muse Wonder and Muse Spark (Meta API) and Muse Spark Open (open weights, on Baseten).
+
+```bash
+python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/python -m plantagent.web --port 8765     # no API key needed for the stored runs
+# open http://127.0.0.1:8765/home.html and press "Start the 3-minute demo"
+```
+
+## What it has done
 - **The engineering loop** (`plantagent/loop.py`): the engines re-solve Muse's design and run every check (process, robustness, electrical, compressor curves and surge, start-up transient, uncertainty; limits and N-1 for grids). Failed checks go back to Muse with their numbers; Muse fixes them; repeat until everything passes or Muse says why it cannot. Every round is logged with who did what.
 - Deterministic engines (DWSIM, WaterTAP, EPANET, pandapower, ht/fluids, Cantera) re-solve every proposal before it can be applied; a change that only edits a limit is refused.
 - Flagship: a vacuum-salt MVR crystalliser reaches **+20 %** with three verified changes (clean E-201, a parallel compressor K-202, a purge-steam trim). The discipline gates then flag what the process answer alone hides: **TX-1 overloaded (~133 %)** and **not robust when E-201 re-fouls**.
@@ -24,7 +41,7 @@
 
 ## Try it in three minutes
 
-Open `web/home.html` and press **Start the 3-minute demo**. It opens the salt crystalliser (`plant.html?case=salt_mvr&tour=1`) and walks through it in six steps: the source P&ID and the model Muse built from it; the +20 % question; what limits it; the fixes, each re-solved in DWSIM; before and after; the evidence.
+With the server running (above), open `http://127.0.0.1:8765/home.html` and press **Start the 3-minute demo**. It opens the salt crystalliser (`plant.html?case=salt_mvr&tour=1`) and walks through it in six steps: the source P&ID and the model Muse built from it; the +20 % question; what limits it; the fixes, each re-solved in DWSIM; before and after; the evidence.
 
 Then open the BASF column card (`plant.html?case=basf_process_column_k_2750_dexpi_c02_uns`): a drawing the tool had never seen, with no hand-written case file.
 
@@ -137,7 +154,7 @@ The flagship cases above were prepared by us. To show the tool is not tied to th
 
 - **Answer:** the column floods first, at +13 % (Fair flood fraction 0.876 against 0.80 at reflux 1.5).
 - **First loop:** cut reflux to 0.8 reached 120 % at 79 % of the flood limit. **Then the purity check failed it:** distillate ethanol 90.3 vs 90.8 % minimum, and the minimum reflux that holds today's purity is 1.10 (a DWSIM search). Reflux 1.10 would hold purity at 73.6 % of flood.
-- **Loop with the purity check** (`work/20261101-214001`, $3.89): Muse kept reflux at 1.5 and raised the bottoms draw to 3.6 mol/s. Verified: 120 % (max 121 %), flooding 79.0 vs 80 %, distillate ethanol 91.3 vs 90.8 % minimum, bottoms water 24.3 vs 23.8 %, reflux 1.5 vs 1.28 minimum, target met in 85 % of 48 uncertainty re-solves. Still failing: the operating envelope at feed +10 % beyond the target. It stopped at its $4 budget. A new 600 mm shell was proposed and rejected each time: replacing equipment is a change the loop cannot verify yet.
+- **Loop with the purity check** (`work/20261101-214001`, $3.89): Muse kept reflux at 1.5 and raised the bottoms draw to 3.6 mol/s. Verified: 120 % (max 121 %), flooding 79.0 vs 80 %, distillate ethanol 91.3 vs 90.8 % minimum, bottoms water 24.3 vs 23.8 %, reflux 1.5 vs 1.28 minimum, target met in 85 % of 48 uncertainty re-solves. Still failing: the operating envelope at feed +10 % beyond the target. It stopped at its $4 budget. A new 600 mm shell was proposed and rejected each time, because the loop could not yet verify a replaced unit. It can now (`replace_unit`: new rating re-solved, vendor confirmation left open); re-checked deterministically, the 600 mm shell takes flooding from 87.6 % to 60.8 % at 120 % with purity unchanged.
 - An intermediate loop (`work/20261101-211936`, $2.38) ended without a verified design: Muse ran out of tool steps.
 - **Cost:** $1.54 for the build, first question and first loop; $7.81 in total with the two later loops, all on Baseten.
 - **Limits:** the drawing does not say what the column separates, so the duty (water/ethanol, 1,000 kg/h, 85 °C, 3 bar) is Muse's assumption, and the result holds for that duty, not BASF's. The purity spec is a draft (today's purity within 0.5 points) until an engineer sets one. Disciplines without data (mechanical, electrical, piping…) are shown as open with what they need.
@@ -156,7 +173,7 @@ The same loop ran with **Muse Spark Open** on Baseten ([`evidence/open-weights-e
 |---|---|---|
 | UCTE 2006 | four attempts rejected by the Meta endpoint's content policy (not a quality result) | redispatch + open the BIO-SPX 220 kV tie: line limits pass, N-1 with 0 violations, in one independent paid run (plus a $0 cache replay of an earlier, interrupted run) ($1.73 for the paid one) |
 | Freeport LNG | restore relief: limits and worst case pass, relief capacity open ($0.68) | same conclusion in two independent runs ($0.15 each) |
-| Salt MVR | unsolved after 2 rounds: process, robustness and uncertainty pass; electrical, compressor curve and start-up fail ($5.56) | stopped at its budget after 3 rounds: 120 % and 4/4 envelope reached, VFD start dip 0.5 %; cable ampacity, K-202 surge and start-up recycle still fail ($4.93). A later run with a larger step budget verified 4 of 5 changes in round 1 (120 %, max 122 %, envelope 4/4, curves at the target pass); K-202's direct-on-line start dip (46 %), its surge at today's flow and 50 % confidence still failed, and Muse ran out of steps in round 2 ($4.28) |
+| Salt MVR | unsolved after 2 rounds: process, robustness and uncertainty pass; electrical, compressor curve and start-up fail ($5.56). With the same settings as the open run below: UNSOLVABLE in round 1, naming the missing vendor compressor curve, no proposal ($0.52) | stopped at its budget after 3 rounds: 120 % and 4/4 envelope reached, VFD start dip 0.5 %; cable ampacity, K-202 surge and start-up recycle still fail ($4.93). A later run with a larger step budget verified 4 of 5 changes in round 1 (120 %, max 122 %, envelope 4/4, curves at the target pass); K-202's direct-on-line start dip (46 %), its surge at today's flow and 50 % confidence still failed, and Muse ran out of steps in round 2 ($4.28). A 5-round run ($6.66) did worse and ended UNSOLVABLE on the missing vendor surge curve |
 
 This is loop evidence, not a controlled benchmark: prompt wording and cache state were not held fixed.
 
@@ -299,11 +316,9 @@ It makes no paid model call.
 ## Roadmap
 
 What stands between this and use on a real plant, in order:
-1. **Site data in, assumptions out.** Read data sheets and vendor curves from PDF with Muse vision into the inputs files, and calibrate against the plant historian (PI / IP.21 export). The assumptions panel already ranks the ten inputs that change the answer most; those are the ones to fill first.
-2. **Replace-equipment changes.** The loop refuses any change that edits an existing rating, so "new 600 mm shell" or "larger impeller" is rejected today. A replace change with a new rating, marked "vendor to confirm", lets the loop verify it.
-3. **Fuller models.** Muse builds the part of the plant that sets capacity. Utilities, control loops and dynamics (start-up, trips) beyond the screening transient are next.
-4. **MOC sign-off.** Revisions and the audit trail are hash-chained; a named reviewer and approver per revision, with the package frozen at sign-off, is missing.
-5. **Proof on a real change.** Predict a documented debottleneck before its after-measurements are opened, then compare.
+1. **Site data in, assumptions out.** Data sheets and vendor curves are already read from PDF by Muse vision (`plantagent/datasheet.py`, `evidence/datasheet-read/`); next is calibration against the plant historian (PI / IP.21 export). The assumptions panel already ranks the ten inputs that change the answer most; those are the ones to fill first.
+2. **Fuller models.** Muse builds the part of the plant that sets capacity. Utilities, control loops and dynamics (start-up, trips) beyond the screening transient are next.
+3. **Proof on a real change.** Predict a documented debottleneck before its after-measurements are opened, then compare.
 
 ## Run it
 
