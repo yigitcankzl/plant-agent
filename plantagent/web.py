@@ -748,6 +748,10 @@ class Handler(SimpleHTTPRequestHandler):
             from . import artifacts
             f = artifacts.file(parts[2], parts[4], parts[5])
             return self._send(f.read_bytes(), mimetypes.guess_type(f.name)[0] or "application/octet-stream") if f else self._send({"error": "not found"}, code=404)
+        if parts[:2] == ["api", "plant"] and len(parts) == 5 and parts[2] in set(all_cases("process")) and parts[3] == "work" and method == "GET":
+            from . import loop
+            log = loop.load(plant(parts[2]), parts[4])
+            return self._send(log) if log else self._send({"error": "not found"}, code=404)
         if parts[:2] == ["api", "plant"] and len(parts) == 5 and parts[2] in set(all_cases("process")) and parts[3] == "approval":
             from . import approval
             case, action = parts[2], parts[4]
@@ -768,7 +772,7 @@ class Handler(SimpleHTTPRequestHandler):
             return self._send({"error": "not found"}, code=404)
         if parts[:2] == ["api", "plant"] and len(parts) == 4 and parts[2] in set(all_cases("process")):
             case, what = parts[2], parts[3]
-            if method == "POST" and what in ("build", "ask", "hazop"):
+            if method == "POST" and what in ("build", "ask", "hazop", "work"):
                 _require_runs()
             body = self._json_body() if method == "POST" else {}
             w = plant(case)
@@ -798,6 +802,18 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(pidvision.render(DATA_ROOT / w.cfg["pid_pdf"], w.cfg.get("pid_page", 1) - 1), "image/png")
             if what == "build" and method == "POST":
                 return self._send(plant_job(case, lambda w: {k: v for k, v in w.build().items() if k != "result"}))
+            if what == "work":  # the engineering loop (loop.py): Muse proposes and fixes, the engines check every round
+                from . import audit, loop
+                if method != "POST":
+                    return self._send(loop.runs(w))
+                goal = str(body.get("goal") or w.cfg.get("question") or "").strip()
+                if len(goal) < 10:
+                    return self._send({"error": "a goal of at least 10 characters is required"}, code=400)
+                rounds = max(1, min(int(body.get("max_rounds") or 4), 6))
+                budget = max(0.5, min(float(body.get("budget_usd") or 12), 20))
+                label = "post-hoc engineering run" if (ROOT / "cases" / case / "outcome.json").exists() else None
+                audit.append(case, "engineering_loop", self.headers.get("X-User"), "", {"goal": goal[:500], "max_rounds": rounds, "budget_usd": budget})
+                return self._send(plant_job(case, lambda w: loop.run(w, goal, rounds, budget, label)))
             if what == "ask" and method == "POST":
                 from . import audit
                 audit.append(case, "ask", self.headers.get("X-User"), "", {"request": body["text"][:500], "model": w.model})
