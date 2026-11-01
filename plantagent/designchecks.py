@@ -250,4 +250,11 @@ def checks_for_design(w, answer_index):
             rows.append(_open("confidence", "uncertainty", u["error"]))
     except Exception as ex:  # noqa: BLE001
         rows.append(_open("confidence", "uncertainty", f"uncertainty could not run: {type(ex).__name__}: {ex}"))
+    # a fail against a rating the tool drafted (no site data) is not a finding about the plant: it is an open item
+    # until the real rating is uploaded. Process, robustness and purity fails stay fails.
+    for r in rows:
+        if r.get("status") == "fail" and str(r.get("title", "")).startswith(drafts.DRAFT) \
+                and str(r.get("check", "")).startswith(("electrical", "curves", "startup")):
+            r["status"] = "open"
+            r["title"] += " (against a drafted rating: upload the real rating to decide)"
     return rows

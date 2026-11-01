@@ -6,7 +6,7 @@
   if (!CASE_ID || !body) return;
   const api = p => `/api/plant/${encodeURIComponent(CASE_ID)}/${p}`;
   const h = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
-  const LABEL = {documented: 'From documents', datasheet: 'Data sheet', muse_default: 'Muse default', assumed: 'Assumed', engineer_confirmed: 'Confirmed by engineer'};
+  const LABEL = {documented: 'From documents', datasheet: 'Data sheet', muse_default: 'Draft default (tool)', assumed: 'Assumed', engineer_confirmed: 'Confirmed by engineer'};
   const st = document.createElement('style');
   st.textContent = `
   .as-open { display: block; width: calc(100% - 36px); margin: 12px 18px 4px; text-align: left; }

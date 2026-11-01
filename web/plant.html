@@ -2063,6 +2063,9 @@ function bindReplay(log) {
 }
 function renderWorklog(log) {
   LAST_WORK = log;
+  // one confidence number on the strip: when the engineering run measured it, the saved answer's older number goes
+  const runConf = (log?.rounds?.at(-1)?.steps || []).find(st => st.check === 'confidence' && st.numbers?.p_target != null);
+  if (runConf) document.querySelectorAll('#qaBadges .qa-badge').forEach(b => { if (/uncertainty re-solves/.test(b.textContent)) b.remove(); });
   document.querySelectorAll('.design-source').forEach(e => { const d = designAnswer(); if (d) e.innerHTML = designSource(d); });
   const panel = $('worklogPanel');
   if (!log || typeof log !== 'object') { replayPause(); REPLAY.events = []; panel.hidden = true; panel.innerHTML = ''; return; }
