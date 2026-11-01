@@ -434,11 +434,14 @@ def discipline_gates(w, answer=None, refresh=False):
         comb = {"reaches_target": False, "capacity_multiple": None, "over_limits_at_target": [],
                 "unverified_reason": f"{type(ex).__name__}: {ex}"[:200]}
     reach, cap = bool(comb.get("reaches_target")), comb.get("capacity_multiple")
-    proc = [{"id": "plant", "check": "maximum throughput with all verified changes vs target", "value": (cap or 0) * 100,
-             "limit": target * 100, "unit": "%", "utilisation": target / cap if cap else 2.0,
+    # the target re-solve decides reach; a capacity search that finds no maximum (e.g. a column held at a fixed product
+    # rate that is infeasible away from the target) leaves the margin unknown, not 0 %
+    proc = [{"id": "plant", "check": "maximum throughput with all verified changes vs target", "value": (cap or (target if reach else 0)) * 100,
+             "limit": target * 100, "unit": "%", "utilisation": target / cap if cap else 1.0 if reach else 2.0,
              "source": f"{sim} re-solve of all {len(proposals)} verified change(s) together on the current model"}]
     proc += [{**c, "source": f"{sim} limit check"} for c in comb.get("over_limits_at_target") or []]
-    summary = f"design {'reaches' if reach else 'does not reach'} {target * 100:.0f} % (max {(cap or 0) * 100:.0f} %, re-solved now)" + \
+    maxtxt = f"max {cap * 100:.0f} %" if cap else "maximum not found: the capacity search did not solve away from the target"
+    summary = f"design {'reaches' if reach else 'does not reach'} {target * 100:.0f} % ({maxtxt}, re-solved now)" + \
               (f"; {comb['unverified_reason']}" if comb.get("unverified_reason") else "")
     from . import drafts
     pcfg = drafts.case_file(w.name, "prefeed.json", ROOT) or {}
