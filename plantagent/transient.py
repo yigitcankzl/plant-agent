@@ -1,4 +1,4 @@
-"""K-202 start-up on the salt MVR plant: a lumped dynamic screen, not a rigorous plant dynamic simulation.
+"""Start-up screens for driven equipment, plus the salt MVR K-202 lumped transient.
 
 One vapour volume (evaporator vapour space + suction duct) at saturation temperature; its pressure follows the mass
 balance  d(rho V)/dt = boil-up - K-201 flow - K-202 forward flow,  with density proportional to pressure (isothermal,
@@ -11,6 +11,8 @@ ILLUSTRATIVE and listed in the result.
 ponytail: explicit Euler on one pressure state with a first-order speed drive; a dynamic simulator (holdups, heater
 dynamics, valve and check-valve behaviour, trip logic) replaces this for detailed design.
 """
+import math
+
 from .curves import Curve, head_kJ_kg
 
 DEFAULTS = {  # ILLUSTRATIVE unless stated
@@ -30,6 +32,115 @@ DEFAULTS = {  # ILLUSTRATIVE unless stated
     "motor_kW": 2400.0,        # K-202 provisional motor rating (proposal)
     "t_end_s": 1200.0, "dt_s": 0.05,
 }
+
+
+def _open(uid, part, need):
+    return {"check": f"startup.{uid}.{part}", "engine": "transient", "status": "open",
+            "title": f"{uid}: open: needs: {need}", "numbers": {}, "source": "start-up screen"}
+
+
+def acceleration(motor):
+    """Time to 95 % speed against a typical centrifugal load-torque curve (Tload/Trated = speed²)."""
+    kw = float(motor.get("kw") or 0)
+    if kw <= 0:
+        return None
+    rpm = float(motor.get("speed_rpm") or 1500)
+    inertia = float(motor.get("inertia_kg_m2") or 0.25 * kw ** 1.1)
+    method = str(motor.get("start") or "DOL").upper()
+    torque = {"SOFT": 1.25, "SOFT_STARTER": 1.25, "VFD": 1.5}.get(method, 1.5)
+    dn, integral = 0.95 / 400, 0.0
+    for i in range(400):
+        n = (i + 0.5) * dn
+        integral += dn / max(0.05, torque - n * n)
+    seconds = inertia * (2 * math.pi * rpm / 60) ** 2 / (kw * 1000) * integral
+    if method == "VFD":
+        seconds = max(seconds, float(motor.get("ramp_s") or 10))
+    limit = float(motor.get("max_accel_s") or (10 if kw < 75 else 20))
+    return {"seconds": round(seconds, 2), "limit_s": limit, "pass": seconds <= limit,
+            "assumed": any(k not in motor for k in ("speed_rpm", "inertia_kg_m2", "max_accel_s")),
+            "basis": "typical centrifugal load torque proportional to speed squared; motor/load inertia and limit are screening assumptions when not supplied"}
+
+
+def _compressor_ramp(curve, unit, solved):
+    """Worst loaded point while speed rises at the solved suction/discharge pressure."""
+    sin, sout = (solved.get("streams") or {}).get(unit.get("in")) or {}, (solved.get("streams") or {}).get(unit.get("out")) or {}
+    if not (sin.get("P_bar") and sout.get("P_bar") and sin.get("T_C") is not None):
+        return None
+    cv = Curve(curve)
+    head = head_kJ_kg(float(sout["P_bar"]) / float(sin["P_bar"]), float(sin["T_C"]), cv.k, cv.M)
+    final = float(curve.get("speed_pct", 100)) / 100
+    points = []
+    for i in range(1, 101):
+        speed = final * i / 100
+        flow, surge = cv.flow_at_head(head, speed), cv.surge_m3_h(speed)
+        if flow and surge:
+            points.append((flow / (1.1 * surge), flow, 1.1 * surge, speed))
+    if not points:
+        return {"ratio": 0.0, "flow": 0.0, "minimum": 0.0, "speed_pct": round(final * 100, 1), "pass": False}
+    ratio, flow, minimum, speed = min(points)
+    return {"ratio": round(ratio, 3), "flow": round(flow, 1), "minimum": round(minimum, 1),
+            "speed_pct": round(speed * 100, 1), "pass": ratio >= 1.0}
+
+
+def startup_checks(w, spec, solved):
+    """One voltage-dip and acceleration row per pump/compressor, plus a ramp surge row per compressor."""
+    from . import curves, drafts, electrical
+    units = [u for u in spec.get("units") or [] if u.get("type") in ("pump", "compressor")]
+    if not units:
+        return []
+    cfg, overlay = electrical.config(w.name), curves.overlay(w.name)
+    motors = {m.get("unit"): m for m in (cfg or {}).get("motors") or []}
+    unmodelled = {m.get("unit") for m in (cfg or {}).get("unmodelled_drives") or []}
+    curve_units = (overlay or {}).get("units") or {}
+    out = []
+    for unit in units:
+        uid, motor = unit["id"], motors.get(unit["id"])
+        rating = ((spec.get("limits") or {}).get(uid) or {}).get("max_kW")
+        if not motor and cfg and rating and uid not in unmodelled:
+            default = cfg.get("new_motor") or {}
+            motor = {"unit": uid, "kw": rating, "start": default.get("start", "DOL"),
+                     "source": default.get("source") or "new motor defaults"}
+        if not motor:
+            out += [_open(uid, "voltage", "motor list"), _open(uid, "acceleration", "motor list")]
+        else:
+            pre = f"{drafts.DRAFT}: " if drafts.is_draft(cfg) else ""
+            try:
+                e = electrical.check(cfg, solved, overrides=[{"unit": uid, "kw": motor["kw"], "start": motor.get("start", "DOL"),
+                                                              "source": motor.get("source") or "motor list"}])
+                start = e.get("start") or {}
+                dip, limit = start.get("terminal_dip_percent"), electrical.LIMITS["dip_motor"][0]
+                if dip is None:
+                    out.append(_open(uid, "voltage", "motor list"))
+                else:
+                    out.append({"check": f"startup.{uid}.voltage", "engine": "pandapower", "status": "pass" if dip <= limit else "fail",
+                                "title": f"{pre}{uid}: motor start voltage dip {dip:.1f} % vs {limit:g} % limit",
+                                "numbers": {"value": dip, "limit": limit, "unit": "%"},
+                                "source": "electrical one-line motor-start load flow"})
+            except Exception as ex:  # noqa: BLE001 - unavailable electrical solve stays open
+                out.append(_open(uid, "voltage", f"electrical start solve ({type(ex).__name__}: {ex})"))
+            a = acceleration(motor)
+            if not a:
+                out.append(_open(uid, "acceleration", "motor list"))
+            else:
+                assumed = drafts.is_draft(cfg) or a["assumed"]
+                out.append({"check": f"startup.{uid}.acceleration", "engine": "transient", "status": "pass" if a["pass"] else "fail",
+                            "title": f"{drafts.DRAFT + ': ' if assumed else ''}{uid}: acceleration to 95 % speed {a['seconds']:.2f} s vs {a['limit_s']:g} s",
+                            "numbers": {"value": a["seconds"], "limit": a["limit_s"], "unit": "s"}, "source": a["basis"]})
+        if unit["type"] == "compressor":
+            c = curve_units.get(uid)
+            if not isinstance(c, dict):
+                out.append(_open(uid, "surge", "curve"))
+                continue
+            pre = f"{drafts.DRAFT}: " if drafts.is_draft(overlay) else ""
+            r = _compressor_ramp(curves.scaled(c, spec, uid), unit, solved)
+            if not r:
+                out.append(_open(uid, "surge", "solved suction/discharge state"))
+            else:
+                out.append({"check": f"startup.{uid}.surge", "engine": "curves", "status": "pass" if r["pass"] else "fail",
+                            "title": f"{pre}{uid}: loaded ramp minimum flow {r['flow']:,.0f} vs surge +10 % {r['minimum']:,.0f} m3/h at {r['speed_pct']:.0f} % speed",
+                            "numbers": {"value": r["flow"], "limit": r["minimum"], "unit": "m3/h actual", "margin_ratio": r["ratio"]},
+                            "source": "compressor map at the solved pressure ratio during the speed ramp"})
+    return out
 
 
 def run(curve_201, curve_202, G0_kg_h, G1_kg_h, **params):

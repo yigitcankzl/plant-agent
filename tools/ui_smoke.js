@@ -16,6 +16,12 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     console.log(stuck || errs.length ? 'FAIL' : 'ok  ', u, stuck ? 'stuck loading or case unavailable' : '', errs.splice(0).join(' | '));
     bad += stuck ? 1 : 0;
   }
+  await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
+  const saltStartup = await p.evaluate(() => P.has_compressor_curve && !!document.querySelector('#machines button'));
+  await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForTimeout(5000);
+  const chemStartup = await p.evaluate(() => !P.has_compressor_curve && !document.querySelector('#machines button'));
+  console.log(saltStartup && chemStartup ? 'ok  ' : 'FAIL', 'compressor start-up action only appears with a compressor curve');
+  bad += saltStartup && chemStartup ? 0 : 1;
   await p.setViewportSize({ width: 1920, height: 1080 });
   await p.goto(`${BASE}/plant.html?case=salt_mvr&worklog=sample`);
   await p.waitForSelector('#worklogPanel:not([hidden])', { timeout: 30000 }).catch(() => {});
