@@ -141,7 +141,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
       const title = (c?.title || p.title).replace(/\s*\([^)]*\)?/g, "").split(figure ? /(?!)/ : ", ")[0];  // drop parentheticals, keep the plant name (featured rows keep the full title)
       const task = label || c?.task_type || p.task_type;
       const score = c?.benchmark && c.score != null ? `<div class="score">Matched ${Math.round(c.score * 100)}% of the engineers' conclusions</div><div class="bar"><i style="width:${c.score * 100}%"></i></div>` :
-        p?.kind === "process" ? `<div class="score" style="color:var(--muted)">${p.engine === "watertap" ? "WaterTAP template model · Muse answers the questions" : p.built ? "Model built by Muse from the drawing and data sheet" : "Drawing read by Muse; simulation model not reliable yet"}</div>` : `<div class="score" style="color:var(--muted)">Not benchmarked</div>`;
+        p?.kind === "process" ? `<div class="score" style="color:var(--muted)">${p.engine === "watertap" ? "WaterTAP template model · Muse answers the questions" : p.built ? (["pandapower", "trapped"].includes(p.engine) || p.task_type === "incident" ? "Model built by Muse from the investigation report" : "Model built by Muse from the drawing and data sheet") : "Drawing read by Muse; simulation model not reliable yet"}</div>` : `<div class="score" style="color:var(--muted)">Not benchmarked</div>`;
       const open = p?.kind === "process" ? `<a class="btn go" href="plant.html?case=${id}">Explore case</a>` :
         p?.workspace ? `<a class="btn go" href="workspace.html?case=${id}">Explore case</a>` : "";
       const replay = c?.runs?.length ? `<a class="btn" href="index.html?case=${id}">View study replay</a>` : "";
