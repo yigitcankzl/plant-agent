@@ -260,9 +260,9 @@
   .package-action .go { width: 100%; min-height: 43px; white-space: normal; }
   .package-action small { display: block; margin-top: 6px; color: var(--muted); }
   .engineering-detail { margin-top: 20px; }
-  aside.right.workspace-decision .engineering-detail { display: none; }
-  aside.right.workspace-decision #historyDetails { display: none; }
-  aside.right.workspace-engineering .engineering-detail { display: block; }
+  aside.right.workspace-decision .engineering-detail, .detail-drawer.workspace-decision .engineering-detail { display: none; }
+  aside.right.workspace-decision #historyDetails, .detail-drawer.workspace-decision #historyDetails { display: none; }
+  aside.right.workspace-engineering .engineering-detail, .detail-drawer.workspace-engineering .engineering-detail { display: block; }
   .answer-hero { padding-bottom: 18px; border-bottom: 1px solid var(--line); }
   .answer-label { color: var(--accent); font-size: 12px; font-weight: 700; }
   .process.focused .ans .hl { margin: 5px 0 0; font-size: 20px; line-height: 1.3; letter-spacing: -.015em; }
@@ -433,8 +433,8 @@
   .work-deliverables a, .work-deliverables span { padding: 3px 6px; border: 1px solid #5c777b; border-radius: 3px; color: #cce2de; text-decoration: none; }
   .work-deliverables a:focus-visible { outline: 2px solid #9fd9d0; outline-offset: 2px; }
   .work-human { margin: 0; padding-left: 16px; } .work-human li + li { margin-top: 3px; }
-  aside.right.workspace-decision .decision-brief > h2,
-  aside.right.workspace-decision .decision-provenance { display: none; }
+  aside.right.workspace-decision .decision-brief > h2, .detail-drawer.workspace-decision .decision-brief > h2,
+  aside.right.workspace-decision .decision-provenance, .detail-drawer.workspace-decision .decision-provenance { display: none; }
 
   /* A single bottom workbench replaces the permanent chat and duplicate result strip. */
   .workbench { grid-row: 3; grid-column: 1 / 3; position: relative; z-index: 12; background: #10292f; border-top: 1px solid #587075; box-shadow: 0 -10px 30px rgba(4, 17, 20, .22); }
@@ -557,6 +557,69 @@
   .process.focused .workbench, .process.focused .workbench footer, .process.focused .workbench-tabs { background: var(--ink); }
   .process.focused .workbench { border-top: 1px solid var(--rule); box-shadow: none; }
   .process.focused .workbench-tabs { border-bottom: 1px solid var(--rule); }
+
+  /* Clean layout (chosen by the user): drawing + thin step strip; details in a drawer; what-if floats on the drawing. */
+  .process.focused .app { grid-template-columns: 300px minmax(0, 1fr) !important; grid-template-rows: 52px minmax(0, 1fr) !important; }
+  .process.focused header { min-height: 52px; gap: 14px; background: var(--ink); border-bottom: 1px solid var(--rule); }
+  .process.focused header #proj { background: transparent; border-color: transparent; font-size: 14px; font-weight: 600; color: var(--fg); }
+  .process.focused .mode-tabs .btn { font-size: 12px; color: var(--fg-3); padding: 0 10px; }
+  .process.focused .mode-tabs .btn.active { color: var(--fg); box-shadow: inset 0 -2px var(--act); }
+  .process.focused #focusBtn, .process.focused #infoBtn { background: transparent; border-color: var(--rule); color: var(--fg-2); font-size: 12px; min-height: 30px; padding: 4px 10px; }
+  .process.focused aside.right { grid-row: 2; grid-column: 1; }
+  .process.focused main { grid-row: 2; grid-column: 2; }
+  #ddClose { position: absolute; right: 12px; top: 9px; z-index: 3; }
+  .dd-head { gap: 8px; position: relative; padding-right: 56px !important; min-width: 0; }
+  .dd-head .rhead > * { min-width: 0; }
+  .dd-head .rhead { overflow: hidden; display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; padding: 0; border: 0; background: none; }
+  #qa { padding: 18px 18px 4px; }
+  #qaQ { font-size: 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  #qaA { font-size: 17px; margin-top: 8px; }
+  #qaBadges { flex-direction: column; gap: 4px; }
+  .work-runner { margin-top: 14px; }
+  .work-runner .estimate { display: none; }
+  .worklog { padding: 18px 18px 10px; }
+  .worklog-goal, .worklog-posthoc { display: none; }
+  .work-rounds { margin-left: 8px; padding-left: 18px; }
+  .work-round::before { left: -28px; } .work-round::after { left: -28px; }
+  #worklogPanel .work-step { grid-template-columns: 14px minmax(0, 1fr); gap: 8px; padding: 6px 6px; margin: 0 -6px; }
+  #worklogPanel .work-step .work-actor, #worklogPanel .work-step-detail, #worklogPanel .work-numbers, #worklogPanel .work-step-meta,
+  #worklogPanel .work-step-tags, #worklogPanel .work-fixes { display: none; }
+  #worklogPanel .work-step-title { font-size: 12.5px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  #worklogPanel .work-step > div { min-width: 0; }
+  #worklogPanel .work-result { font-size: 12px; } #worklogPanel .work-result-row:not(:first-of-type) { display: none; }
+  .dd-open-btn { display: block; width: calc(100% - 36px); margin: 8px 18px 22px; background: transparent; border: 1px solid var(--rule); color: var(--fg-2); }
+  .dd-open-btn:hover { color: var(--fg); border-color: var(--act); }
+
+  .detail-drawer { position: fixed; top: 52px; right: 0; bottom: 0; width: min(500px, 92vw); z-index: 40; background: var(--ink, #121b21);
+    border-left: 1px solid var(--rule, #22323b); transform: translateX(100%); transition: transform .18s ease; display: flex; flex-direction: column; box-shadow: -18px 0 40px rgba(0,0,0,.35); }
+  body.dd-open .detail-drawer { transform: none; }
+  .dd-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-bottom: 1px solid var(--rule, #22323b); color: var(--fg, #e4eaed); }
+  #ddBody { overflow: auto; flex: 1; min-height: 0; }
+  #ddBody .qa-ask { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 14px 18px 4px; }
+  #ddBody #qaSugg { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 18px 12px; }
+  #ddBody #qaSugg .btn { font-size: 11.5px; border-radius: 12px; padding: 3px 9px; }
+  @media (prefers-reduced-motion: reduce) { .detail-drawer { transition: none; } }
+
+  .process.focused .workbench { position: absolute; left: 316px; bottom: 16px; width: min(640px, calc(100vw - 360px)); z-index: 20;
+    border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+  .process.focused .workbench-tabs { display: none; }
+  .process.focused .workbench footer { min-height: 0 !important; grid-template-columns: 220px minmax(0, 1fr) auto !important; }
+  .process.focused .workbench .flowctl { padding: 8px 14px !important; }
+  .process.focused .workbench .flowv { font-size: 15px !important; }
+  .process.focused .workbench .verdict { padding: 8px 14px !important; } .process.focused .workbench .verdict .big { font-size: 13px !important; }
+  .process.focused .workbench .verdict .sub { display: none; }
+  .process.focused .workbench #toTarget { min-height: 32px !important; margin: 0 10px 0 0 !important; font-size: 12px; }
+  .process.focused .pid-tools { left: auto; right: 16px; }
+
+  .step-card { position: absolute; right: 18px; top: 60px; width: min(420px, 40%); z-index: 15; background: var(--ink); color: var(--fg);
+    border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; box-shadow: 0 10px 30px rgba(0,0,0,.3); font-size: 13px; }
+  .step-card .work-actor { display: inline-block; margin-right: 6px; color: var(--act); font: 600 11px var(--sans); }
+  .step-card .work-mark { margin-right: 6px; }
+  .step-card .sc-x { float: right; background: transparent; border: 0; color: var(--fg-3); padding: 0 0 6px 8px; }
+  .step-card .work-step-title { font-size: 14px; color: var(--fg); margin: 4px 0; }
+  .step-card .work-step-detail, .step-card .work-numbers, .step-card .work-step-meta, .step-card .work-step-tags { color: var(--fg-2); margin-top: 6px; }
+  .step-card .work-fixes { margin-top: 8px; border-left: 2px solid var(--act); padding-left: 10px; color: var(--fg-2); }
+  .process.focused .stage { position: relative; }
 </style>
 </head>
 <body class="process focused">
@@ -662,6 +725,7 @@
     </div>
   </section>
 </div>
+<aside class="detail-drawer workspace-decision" id="detailDrawer" aria-label="Decision, package and details"><div class="dd-head"><b>Decision and details</b><button class="btn" id="ddClose" type="button" aria-label="Close details">✕</button></div><div id="ddBody"></div></aside>
 <div id="tour" role="dialog" aria-live="polite"><div class="st" id="tourStep"></div><div class="tx" id="tourText"></div>
   <div class="row"><button class="btn" onclick="tourEnd()">Close</button><button class="btn go" id="tourNext" onclick="tourGo(TOUR_I + 1)">Next</button></div></div>
 <div class="modal" id="modal" onclick="if(event.target===this)this.classList.remove('on')"><div class="box"><button class="modal-x" type="button" aria-label="Close" onclick="$('modal').classList.remove('on')">✕</button><div id="modalBox"></div></div></div>
@@ -699,12 +763,20 @@ function setWorkspaceView(viewName) {
   WORKSPACE_VIEW = viewName === 'engineering' ? 'engineering' : 'decision';
   $('resultPane').classList.toggle('workspace-decision', WORKSPACE_VIEW === 'decision');
   $('resultPane').classList.toggle('workspace-engineering', WORKSPACE_VIEW === 'engineering');
+  $('detailDrawer')?.classList.toggle('workspace-decision', WORKSPACE_VIEW === 'decision');
+  $('detailDrawer')?.classList.toggle('workspace-engineering', WORKSPACE_VIEW === 'engineering');
   $('decisionView').setAttribute('aria-pressed', String(WORKSPACE_VIEW === 'decision'));
   $('engineeringView').setAttribute('aria-pressed', String(WORKSPACE_VIEW === 'engineering'));
   if (ACTIVE_MODE === 'capacity') $('inspectorTitle').textContent = 'Engineering session';
 }
 
 function setDockPanel(panelName, focus = true) {
+  if (panelName === 'ask' || panelName === 'evidence') {  // both live in the details drawer now
+    openDetails(true);
+    if (panelName === 'evidence') setWorkspaceView('engineering');
+    else if (focus) requestAnimationFrame(() => $('q').focus());
+    return;
+  }
   DOCK_PANEL = ['ask', 'evidence'].includes(panelName) ? panelName : 'whatif';
   const panels = {whatif: 'scenario', ask: 'askPanel', evidence: 'evidencePanel'};
   const tabs = {whatif: 'dockWhatIf', ask: 'dockAsk', evidence: 'dockEvidence'};
@@ -772,6 +844,7 @@ function showMode(mode) {
   $('answers').hidden = mode !== 'capacity';
   $('historyDetails').hidden = mode !== 'capacity';
   $('askDock').hidden = mode !== 'capacity';
+  if (mode !== 'capacity') openDetails(true);
   document.querySelector('.workspace-tabs').hidden = mode !== 'capacity';
   if (mode === 'troubleshoot') { renderTroubleshootMode(); $('inspectorTitle').textContent = 'Troubleshoot'; }
   else if (mode === 'safety') $('inspectorTitle').textContent = 'Safety';
@@ -1621,7 +1694,7 @@ function select(tag, fromCanvas = false) {
   document.querySelectorAll('.eq[data-id]').forEach(e => { if (e.dataset.id === tag) e.classList.add('sel'); });
   selectOnDrawing(tag);
   if (!fromCanvas) focusDrawing(tag);
-  if (P.built && ST) { equipmentCard(tag); $('rightScroll').scrollTop = 0; }
+  if (P.built && ST) { equipmentCard(tag); openDetails(true); $('ddBody').scrollTop = 0; }
   else if (P.built) PENDING_CARD = tag;  // the state is still solving (e.g. the Rev B what-if): show the card when it arrives
 }
 
@@ -1833,6 +1906,7 @@ function stepTags(step) {
 async function workFocus(tags, view, el) {
   document.querySelectorAll('#worklogPanel .work-step.on').forEach(e => e.classList.remove('on'));
   el?.classList.add('on');
+  if (el) { const c = $('stepCard'); c.innerHTML = `<button class="btn sc-x" type="button" aria-label="Close" onclick="this.parentNode.hidden=true">✕</button>${el.innerHTML}`; c.hidden = false; }
   if (view && VIEW !== view && $('viewTog').style.display !== 'none') await setView(view);
   if (tags[0]) { selectOnDrawing(tags[0]); focusDrawing(tags[0]); }
 }
@@ -2468,6 +2542,24 @@ function tourEnd() { $('tour').style.display = 'none'; toggleDrawer(false); docu
 $('model').onchange = e => api('model', {model: e.target.value});
 window.onresize = () => { fitDrawing(); if (ST) render(ST); };
 projects().catch(() => { $('proj').innerHTML = '<option>Project list unavailable</option>'; });
+// Clean layout: the strip (left) carries the question, the run and one line per step; the decision, package, ask box and
+// mode panels live in a drawer; a step opens a card on the drawing. Nodes are moved, not rebuilt, so every handler stays.
+function openDetails(on) {
+  const open = on ?? !document.body.classList.contains('dd-open');
+  document.body.classList.toggle('dd-open', open);
+  requestAnimationFrame(() => { fitDrawing(); if (ST) render(ST); });
+}
+(() => {
+  const body = $('ddBody');
+  [$('askDock'), $('qaSugg'), $('modePanel'), $('analysisLog'), $('historyDetails'), $('answers')].forEach(n => n && body.appendChild(n));
+  const head = document.querySelector('#detailDrawer .dd-head'), rh = document.querySelector('#resultPane .rhead');
+  head.querySelector('b').replaceWith(rh);  // inspector title, Decision/Engineering and AI cost head the drawer
+  $('rightScroll').insertAdjacentHTML('beforeend', '<button class="btn dd-open-btn" id="ddOpen" type="button">Decision, package and details</button>');
+  $('ddOpen').onclick = () => openDetails(true);
+  $('ddClose').onclick = () => openDetails(false);
+  $('stage-card-host')?.remove();
+  document.querySelector('.stage').insertAdjacentHTML('beforeend', '<div class="step-card" id="stepCard" hidden></div>');
+})();
 load().then(() => { if (new URLSearchParams(location.search).get('tour') && P?.built) tourGo(0); }).catch(e => {
   $('eqlist').innerHTML = `<div class="empty" role="alert"><b>Could not load this case.</b><br>The case data or simulation server is not available.<details><summary>Details</summary>${esc((e.message || '').replace(/(\/[\w.-]+)+\/([\w.-]+)/g, '$2'))}</details><button class="btn" onclick="location.reload()">Reload the page</button></div>`;
   $('sheet').innerHTML = '<div class="sheet-error">The source drawing could not be displayed. Check the case server and reload.</div>';
