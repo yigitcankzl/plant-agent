@@ -18,8 +18,34 @@ def work_dir(w):
     return Path(w.model_file).with_name("work")
 
 
+def incident_checks(w, idx):
+    """Grid and trapped-line cases: limits re-solved with the proposed actions; the grid also gets its N-1 screen.
+    (The plant gates are capacity questions and do not apply to an incident scenario.)"""
+    from .plant import _is_grid, patch
+    ch = [c for p in w.answers[idx].get("proposals") or [] if p.get("verified") for c in p.get("changes") or []]
+    v = w.verify({"changes": ch})
+    lb, over = v.get("limited_by") or {}, v.get("over_limits_at_target") or []
+    eng = "pandapower" if _is_grid(w.cfg) else "DWSIM"
+    rows = [{"check": "limits", "engine": eng, "status": "pass" if v.get("reaches_target") and not over else "fail",
+             "title": f"{lb.get('id')} {str(lb.get('check'))[:80]}: {lb.get('value')} vs {lb.get('limit')} {lb.get('unit', '')}".strip(),
+             "numbers": {"utilisation_pct": round(100 * lb["utilisation"], 1)} if lb.get("utilisation") is not None else None,
+             "source": f"{eng} re-solve of the proposed actions"}]
+    rows += [{"check": "limits", "engine": eng, "status": "fail", "title": f"{o.get('id')} {o.get('check')} at {round(100 * o.get('utilisation', 0))} %"} for o in over]
+    if v.get("relief_basis"):
+        rows.append({"check": "relief capacity", "engine": "none", "status": "open", "title": v["relief_basis"]})
+    if _is_grid(w.cfg):
+        from . import grid
+        n1 = grid.n_minus_1(patch(w.built["spec"], ch))
+        rows.append({"check": "N-1", "engine": "pandapower", "status": "pass" if n1["secure"] else "fail",
+                     "title": "N-1 secure" if n1["secure"] else f"N-1 not secure: {n1['violations']} outage cases over limits",
+                     "numbers": {"violations": n1["violations"]}})
+    return rows
+
+
 def checks(w, idx):
     """Flat check rows {check, engine, title, status, numbers?, source?} for the design in answer idx."""
+    if w.cfg.get("engine") in ("pandapower", "trapped"):
+        return incident_checks(w, idx)
     try:
         from .designchecks import checks_for_design
         return checks_for_design(w, idx)
