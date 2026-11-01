@@ -364,14 +364,19 @@
 
   /* Engineering cockpit: the drawing stays primary; decisions and commands surround it. */
   .process.focused .app {
-    grid-template-columns: minmax(0, 1fr) clamp(380px, 31vw, 470px);
+    grid-template-columns: clamp(400px, 31vw, 480px) minmax(0, 1fr);
     grid-template-rows: 58px minmax(0, 1fr) auto;
   }
   .process.focused header { grid-row: 1; min-height: 58px; }
-  .process.focused main { grid-row: 2; grid-column: 1; background: #dbe4e1; }
+  .process.focused main { grid-row: 2; grid-column: 2; background: #dbe4e1; }
   .process.focused main .stage { padding: 12px; }
   .process.focused .pid-viewport { min-height: 0; border-color: #93a7a3; box-shadow: inset 0 0 0 1px #f4f7f633; }
-  .process.focused aside.right { grid-row: 2; grid-column: 2; border-bottom: 1px solid var(--line); }
+  .process.focused aside.right { grid-row: 2; grid-column: 1; border-bottom: 1px solid var(--line); border-right: 1px solid #3d555b; }
+  /* a step is a pointer into the drawing: click it and the canvas shows that step's equipment and design */
+  #worklogPanel .work-step[data-act] { cursor: pointer; border-radius: 4px; margin: 0 -6px; padding-inline: 6px; }
+  #worklogPanel .work-step[data-act]:hover, #worklogPanel .work-step.on { background: #1d454b; }
+  #worklogPanel .work-step.on { box-shadow: inset 3px 0 #8ecfc4; }
+  .work-step-tags { margin-top: 4px; font: 10.5px var(--mono); color: #8ecfc4; }
   .process.focused .rhead { min-height: 48px; padding: 8px 14px; background: #122e34; }
   .process.focused #rightScroll { scrollbar-gutter: stable; }
 
@@ -609,7 +614,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const act = (name, ...args) => `data-act="${name}" data-args="${esc(JSON.stringify(args))}"`;
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
-  const fn = el && {select, whatIf, troubleshoot, ask, undo, accept,
+  const fn = el && {select, whatIf, troubleshoot, ask, undo, accept, workFocus: (tags, view) => workFocus(tags, view, el),
     askAbout: tag => { $('q').value = `Why is ${tag} limiting, and what is the cheapest fix?`; $('q').focus(); }}[el.dataset.act];
   if (fn) fn(...JSON.parse(el.dataset.args || '[]'));
 });
@@ -633,7 +638,7 @@ function setWorkspaceView(viewName) {
   $('resultPane').classList.toggle('workspace-engineering', WORKSPACE_VIEW === 'engineering');
   $('decisionView').setAttribute('aria-pressed', String(WORKSPACE_VIEW === 'decision'));
   $('engineeringView').setAttribute('aria-pressed', String(WORKSPACE_VIEW === 'engineering'));
-  if (ACTIVE_MODE === 'capacity') $('inspectorTitle').textContent = 'Review';
+  if (ACTIVE_MODE === 'capacity') $('inspectorTitle').textContent = 'Engineering session';
 }
 
 function setDockPanel(panelName, focus = true) {
@@ -727,6 +732,7 @@ $('openEvidence').onclick = () => {
 };
 $('focusBtn').onclick = () => toggleFocus();
 document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.matches?.('.work-step[data-act]')) { e.target.click(); return; }
   if (e.key === 'Escape') {
     if (document.body.classList.contains('canvas-focus')) toggleFocus(false);
     else if ($('infoDrawer').classList.contains('open')) toggleDrawer(false);
@@ -1753,6 +1759,20 @@ function workFileUrl(path) {
   const match = path.match(new RegExp(`^runs/ws/${CASE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/([^/]+)/([^/]+)$`));
   return match ? `/wsfiles/${encodeURIComponent(CASE)}/${encodeURIComponent(match[1])}/${encodeURIComponent(match[2])}` : null;
 }
+// equipment named by a step (title, detail, change paths) that exists on this drawing
+function stepTags(step) {
+  const text = [step.title, step.detail, ...(step.changes || []).map(c => `${c.path || ''} ${c.add_unit?.id || ''}`)].join(' ');
+  const onSheet = new Set([...$('sheet').querySelectorAll('[data-tag]')].map(e => e.dataset.tag).filter(Boolean));
+  const reEsc = t => t.replace(/[.*+?^$|()[\]{}\\]/g, '\\$&');
+  const at = t => text.search(new RegExp('(^|[^A-Za-z0-9-])' + reEsc(t) + '($|[^A-Za-z0-9])'));
+  return [...onSheet].filter(t => at(t) >= 0).sort((x, y) => at(x) - at(y));  // the equipment the step names first leads
+}
+async function workFocus(tags, view, el) {
+  document.querySelectorAll('#worklogPanel .work-step.on').forEach(e => e.classList.remove('on'));
+  el?.classList.add('on');
+  if (view && VIEW !== view && $('viewTog').style.display !== 'none') await setView(view);
+  if (tags[0]) { selectOnDrawing(tags[0]); focusDrawing(tags[0]); }
+}
 function workStep(step, previousIssues) {
   const status = ['pass', 'fail', 'open', 'info'].includes(step.status) ? step.status : 'info';
   const actor = workActor(step), actorClass = step.actor === 'muse' ? 'muse' : step.actor === 'engineer' ? 'engineer' : 'engine';
@@ -1760,9 +1780,10 @@ function workStep(step, previousIssues) {
   const fixes = step.actor === 'muse' && step.kind === 'fix' ? (listedFixes.length ? listedFixes : previousIssues) : [];
   const meta = step.actor === 'muse' && (step.usd != null || step.seconds != null)
     ? `<div class="work-step-meta">${step.usd != null ? `$${Number(step.usd).toFixed(2)}` : ''}${step.usd != null && step.seconds != null ? ' · ' : ''}${step.seconds != null ? `${Math.round(step.seconds)}s` : ''}</div>` : '';
-  return `<div class="work-step"><span class="work-actor ${actorClass}" title="${esc(step.actor === 'engine' ? `Deterministic engine: ${actor}` : actor)}">${esc(actor)}</span>
+  const tags = stepTags(step), view = step.actor === 'muse' ? 'proposed' : step.kind === 'check' ? 'proposed' : null;
+  return `<div class="work-step" ${tags.length || view ? act('workFocus', tags, view) + ' tabindex="0"' : ''}><span class="work-actor ${actorClass}" title="${esc(step.actor === 'engine' ? `Deterministic engine: ${actor}` : actor)}">${esc(actor)}</span>
     <span class="work-mark ${status}" aria-label="${esc(status)}">${WORK_MARK[status]}</span><div><div class="work-step-title">${esc(step.title || step.kind || 'Step')}</div>
-    ${step.detail ? `<div class="work-step-detail">${esc(step.detail)}</div>` : ''}${workNumbers(step.numbers)}${meta}</div>
+    ${step.detail ? `<div class="work-step-detail">${esc(step.detail)}</div>` : ''}${workNumbers(step.numbers)}${meta}${tags.length ? `<div class="work-step-tags">◉ ${esc(tags.join(' · '))}</div>` : ''}</div>
     ${fixes.length ? `<div class="work-fixes">Fixes from the previous round: ${esc(fixes.join(', '))}</div>` : ''}</div>`;
 }
 function workResult(log) {

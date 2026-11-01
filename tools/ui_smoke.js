@@ -76,7 +76,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   });
   await p.screenshot({ path: `${OUT}/decision_workspace.png` });
   await p.click('#engineeringView');
-  const engineeringView = await p.evaluate(() => getComputedStyle(document.querySelector('.engineering-detail')).display !== 'none' && document.querySelector('#inspectorTitle').textContent === 'Review');
+  const engineeringView = await p.evaluate(() => getComputedStyle(document.querySelector('.engineering-detail')).display !== 'none' && document.querySelector('#inspectorTitle').textContent === 'Engineering session');
   await p.screenshot({ path: `${OUT}/engineering_workspace.png` });
   await p.click('.discipline-gate.fail');
   const gateEvidence = await p.evaluate(() => document.querySelector('#modal').classList.contains('on') && /pandapower/.test(document.querySelector('#modalBox').textContent));
