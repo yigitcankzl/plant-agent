@@ -296,6 +296,15 @@ It makes no paid model call.
 - **Drafted discipline files are screening values.** Their check rows say "draft (assumed values)"; the start-up check uses typical inertia and load curves until vendor data is uploaded.
 - **No vendor curves, no rigorous dynamics, no multidisciplinary HAZOP, no relief sizing.** Everything PlantAgent produces is a draft for a licensed engineer.
 
+## Roadmap
+
+What stands between this and use on a real plant, in order:
+1. **Site data in, assumptions out.** Read data sheets and vendor curves from PDF with Muse vision into the inputs files, and calibrate against the plant historian (PI / IP.21 export). The assumptions panel already ranks the ten inputs that change the answer most; those are the ones to fill first.
+2. **Replace-equipment changes.** The loop refuses any change that edits an existing rating, so "new 600 mm shell" or "larger impeller" is rejected today. A replace change with a new rating, marked "vendor to confirm", lets the loop verify it.
+3. **Fuller models.** Muse builds the part of the plant that sets capacity. Utilities, control loops and dynamics (start-up, trips) beyond the screening transient are next.
+4. **MOC sign-off.** Revisions and the audit trail are hash-chained; a named reviewer and approver per revision, with the package frozen at sign-off, is missing.
+5. **Proof on a real change.** Predict a documented debottleneck before its after-measurements are opened, then compare.
+
 ## Run it
 
 ```bash
