@@ -957,6 +957,28 @@ def generate(svg, spec, revisions, names=None, meta=None):
             handled_reroutes |= rerouted  # the tie-in tees are the reroutes of a parallel addition
             drawn.append(f"{uid} drawn parallel to {info['partner']} with tie-ins on the existing lines, block valves and a discharge check valve (sizes to confirm)")
         for c in changes:
+            uid = c.get("replace_unit")
+            if not uid:
+                continue
+            anchor = sheet.boxes.get(uid)
+            if not anchor:
+                unplaced.append(f"replacement of {uid}")
+                continue
+            rating = ", ".join(f"{SHORT.get(k, k.replace('_', ' '))} {_num(v)}" for k, v in (c.get("new_rating") or {}).items())
+            lines = [f"{uid} REPLACED", f"New rating: {rating}", f"Basis: {_short(c.get('basis'))}", "Vendor confirmation: OPEN"]
+            abox, box = _place_callout(sheet, [anchor], lines, taken, cloud_boxes)
+            if not box:
+                unplaced.append(f"replacement of {uid}")
+                continue
+            a, b = _leader(box, abox)
+            parts.append(f'<g data-rev="{n}" data-replaced="{esc(uid)}" class="revb-note" pointer-events="none">'
+                         f'<line x1="{a[0]:.1f}" y1="{a[1]:.1f}" x2="{b[0]:.1f}" y2="{b[1]:.1f}" stroke="{NOTE}" stroke-width="0.35"/>'
+                         f'<circle cx="{b[0]:.1f}" cy="{b[1]:.1f}" r="0.6" fill="{NOTE}"/>{_callout_svg(box, lines, n)}</g>')
+            sheet.mark_box(box)
+            taken.append(box)
+            boxes.append(_union([box, anchor]))
+            drawn.append(f"{uid} REPLACED: {rating} (vendor to confirm)")
+        for c in changes:
             if not c.get("path"):
                 continue
             tag, anchors = _anchor(sheet, spec, c, rev, names)
@@ -1230,6 +1252,7 @@ def svg_png(svg, zoom=4.0):
 def _signature(changes):
     """What a set of changes does, independent of the ids it invents for routing: changed paths and new physical units."""
     return ({c["path"] for c in changes or [] if c.get("path")} |
+            {f"replace_unit.{c['replace_unit']}" for c in changes or [] if c.get("replace_unit")} |
             {c["add_unit"]["id"] for c in changes or [] if isinstance(c.get("add_unit"), dict) and c["add_unit"].get("type") not in ROUTING_UNITS})
 
 
@@ -1258,7 +1281,8 @@ def select_proposals(w, changes=None, answer=None, proposals=None, pool_answer=N
         mine = _signature(changes)
         chosen += [p for p in verified if _signature(p["changes"]) & mine and p not in chosen]
         covered = set().union(*(_signature(p["changes"]) for p in chosen)) if chosen else set()
-        changes = [c for c in changes if not (c.get("path") and c["path"] in covered)]
+        changes = [c for c in changes if not ((c.get("path") and c["path"] in covered) or
+                                               (c.get("replace_unit") and f"replace_unit.{c['replace_unit']}" in covered))]
         if covered & _signature([c for c in changes if c.get("add_unit")]):  # a verified addition replaces the re-typed topology
             changes = [c for c in changes if not (c.get("add_unit") or c.get("reroute"))]
     return chosen, changes

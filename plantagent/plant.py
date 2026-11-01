@@ -26,7 +26,8 @@ def _write_json(path, value):
 RULES = ("Rules: every number comes from the P&ID (cite the tag and attribute), the operating data sheet (cite the row), or a "
          "logged simulator run (cite its label). Never invent equipment ratings. State each assumption. Use the simulator, not "
          "your own arithmetic, for temperatures, duties, areas and capacity. Never raise an existing limits.* rating to make a "
-         "proposal pass. If the spec cannot express the physics or change, call report_gap instead of approximating or changing a "
+         "proposal pass. A physically replaced existing item uses replace_unit with its new rating, sizing basis and vendor_confirm. "
+         "If the spec cannot express the physics or change, call report_gap instead of approximating or changing a "
          "documented limit. For physical "
          "new equipment use add_unit with a complete unit spec, its own limits and a rating_source; "
          "use routing-only splitter/mixer units and reroute changes when needed so flow actually passes through parallel equipment. "
@@ -34,7 +35,9 @@ RULES = ("Rules: every number comes from the P&ID (cite the tag and attribute), 
 
 CHANGE_HELP = ("One change is either {path, value} for an existing operating/model field; "
                "{add_unit: {complete unit spec}, limits: {that new unit's ratings}, rating_source: 'vendor quote to confirm / "
-               "standard size ...'}; or {reroute: {unit, field, value}} for a process connection. Do not edit limits.* for "
+               "standard size ...'}; {replace_unit: id, new_rating: {rating/geometry field: value}, basis: 'sizing basis', "
+               "vendor_confirm: true} for a physically larger replacement of existing equipment; or "
+               "{reroute: {unit, field, value}} for a process connection. Do not edit limits.* for "
                "existing equipment. A physical change to an existing performance field (for example clean U, efficiency or "
                "installed area) also needs physical_change and rating_source; equipment type/kind cannot be edited in place. "
                "A parallel train normally needs a splitter, the new rated unit, a mixer, and reroutes of "
@@ -53,6 +56,10 @@ CHANGE = {"path": {"type": "string", "description": "feeds.<stream>.<field> | un
           "value": {"description": "new value for path"},
           "physical_change": {"type": "string", "description": "physical work that changes an existing performance field"},
           "rating_source": {"type": "string", "description": "source for a changed performance value or a new unit rating"},
+          "replace_unit": {"type": "string", "description": "existing unit id physically replaced by a newly rated item"},
+          "new_rating": {"type": "object", "description": "new numeric rating/geometry fields for replace_unit"},
+          "basis": {"type": "string", "description": "why the replacement has this size"},
+          "vendor_confirm": {"type": "boolean", "description": "must be true: vendor rating remains an open item"},
           "add_unit": {"type": "object", "description": "complete process unit spec, including id, type and connections"},
           "limits": {"type": "object", "description": "ratings for add_unit only; stored under limits.<new id>"},
           "remove_unit": {"type": "string", "description": "id of an existing unit taken out (needs physical_change)"},
@@ -192,6 +199,8 @@ ROUTING_UNITS = {"mixer", "splitter", "recycle"}
 _STRUCTURAL_UNIT_FIELDS = {"id", "type", "kind", *CONNECTION_FIELDS}
 _PHYSICAL_UNIT_FIELDS = {"U_W_m2K", "area_m2", "eff_pct", "efficiency", "cv_rated", "kv_rated", "rangeability",
                          "diameter_m", "id_mm", "dn_mm", "length_m", "roughness_mm", "stages", "feed_stage"}
+_REPLACEMENT_FIELDS = {"cv_rated", "kv_rated", "rangeability", "diameter_m", "id_mm", "dn_mm", "length_m",
+                       "roughness_mm", "stages", "tray_spacing_m", "volume_m3", "area_m2"}
 
 
 def added_equipment(changes):
@@ -200,6 +209,22 @@ def added_equipment(changes):
              "rating_source": c.get("rating_source"), "status": "new equipment, rating to confirm"}
             for c in changes or [] if isinstance(c, dict) and isinstance(c.get("add_unit"), dict) and
             c["add_unit"].get("type") not in ROUTING_UNITS]
+
+
+def replaced_equipment(spec, changes):
+    """Existing physical items replaced by a newly rated item; the rating remains a vendor open point."""
+    units = {u.get("id"): u for u in spec.get("units") or []}
+    limits = spec.get("limits") or {}
+    out = []
+    for c in changes or []:
+        uid = c.get("replace_unit") if isinstance(c, dict) else None
+        if not uid:
+            continue
+        old = {field: units.get(uid, {}).get(field, limits.get(uid, {}).get(field)) for field in (c.get("new_rating") or {})}
+        out.append({"id": uid, "type": units.get(uid, {}).get("type"), "old_rating": old,
+                    "new_rating": copy.deepcopy(c.get("new_rating") or {}), "basis": c.get("basis"),
+                    "status": "verified (new rating, vendor to confirm)"})
+    return out
 
 
 def change_errors(spec, changes, require_evidence=True):
@@ -216,9 +241,9 @@ def change_errors(spec, changes, require_evidence=True):
         if not isinstance(c, dict):
             errors.append(f"change {i + 1} is not an object")
             continue
-        forms = sum(k in c for k in ("path", "add_unit", "reroute", "remove_unit", "bypass"))
+        forms = sum(k in c for k in ("path", "add_unit", "replace_unit", "reroute", "remove_unit", "bypass"))
         if forms != 1:
-            errors.append(f"change {i + 1} must contain exactly one of path, add_unit, reroute, remove_unit or bypass")
+            errors.append(f"change {i + 1} must contain exactly one of path, add_unit, replace_unit, reroute, remove_unit or bypass")
             continue
         if "remove_unit" in c or "bypass" in c:  # taking equipment out is a physical change: it needs a stated reason
             uid = c.get("remove_unit") if "remove_unit" in c else (c["bypass"] or {}).get("unit") if isinstance(c["bypass"], dict) else c["bypass"]
@@ -245,6 +270,26 @@ def change_errors(spec, changes, require_evidence=True):
                                       field.startswith(("max_", "min_", "rated_")) or "curve" in field.casefold()):
                 if not str(c.get("physical_change") or "").strip() or not str(c.get("rating_source") or "").strip():
                     errors.append(f"change {i + 1} {oid}.{field} needs physical_change and rating_source")
+        elif "replace_unit" in c:
+            uid, rating = c.get("replace_unit"), c.get("new_rating")
+            unit = next((u for u in spec.get("units") or [] if u.get("id") == uid), None)
+            limits = (spec.get("limits") or {}).get(uid) or {}
+            if uid not in existing:
+                errors.append(f"change {i + 1} replaces unknown unit {uid}")
+            elif not isinstance(rating, dict) or not rating:
+                errors.append(f"change {i + 1} replace_unit {uid} needs new_rating")
+            else:
+                for field, value in rating.items():
+                    allowed = (field in _REPLACEMENT_FIELDS or field.startswith(("max_", "min_", "rated_"))) and \
+                              (field in unit or field in limits)
+                    if not allowed:
+                        errors.append(f"change {i + 1} {uid}.{field} is not an existing rating or geometry field")
+                    elif not _finite(value) or isinstance(value, bool) or float(value) <= 0:
+                        errors.append(f"change {i + 1} {uid}.{field} replacement rating must be a positive finite number")
+            if require_evidence and not str(c.get("basis") or "").strip():
+                errors.append(f"change {i + 1} replace_unit {uid} needs basis")
+            if require_evidence and c.get("vendor_confirm") is not True:
+                errors.append(f"change {i + 1} replace_unit {uid} needs vendor_confirm: true")
         elif "add_unit" in c:
             u = c["add_unit"]
             if not isinstance(u, dict) or not isinstance(u.get("id"), str) or not u["id"] or not isinstance(u.get("type"), str) or not u["type"]:
@@ -574,7 +619,7 @@ def _compact_stream(sid, raw):
 def _blank_calculation(proposal, target, simulator, errors):
     return {"target_scale": target, "capacity_multiple_before": None, "capacity_multiple_after": None,
             "limited_by_before": None, "limited_by_after": None, "checks": [], "units": {}, "streams": [],
-            "new_equipment": [], "assumptions": _assumptions(proposal), "simulator": simulator,
+            "new_equipment": [], "replaced_equipment": [], "assumptions": _assumptions(proposal), "simulator": simulator,
             "errors": list(errors or []), "warnings": _fraction_warnings(proposal)}
 
 
@@ -597,6 +642,8 @@ def _direct_units(proposal):
             parts = str(change["path"]).split(".", 2)
             if len(parts) >= 2 and parts[0] == "units":
                 direct.add(parts[1])
+        elif change.get("replace_unit"):
+            direct.add(change["replace_unit"])
         elif isinstance(change.get("add_unit"), dict) and change["add_unit"].get("id"):
             direct.add(change["add_unit"]["id"])
         elif isinstance(change.get("reroute"), dict) and change["reroute"].get("unit"):
@@ -604,7 +651,7 @@ def _direct_units(proposal):
     return direct
 
 
-def _calculation(proposal, target, before_cap, after_cap, before_map, solved, spec, new, simulator):
+def _calculation(proposal, target, before_cap, after_cap, before_map, solved, spec, new, replaced, simulator):
     """Compact record of the solve that verify() actually ran. Capacity fields stay None when the solver omitted them."""
     downstream = _downstream_units(spec, _direct_units(proposal))
     units_res = solved.get("units") or {}
@@ -646,6 +693,7 @@ def _calculation(proposal, target, before_cap, after_cap, before_map, solved, sp
                                "operating_point": _operating_point(spec, units_res, streams_res, item.get("id")),
                                "limits": item.get("limits") or {}, "rating_source": item.get("rating_source"),
                                "status": item.get("status")} for item in new],
+            "replaced_equipment": copy.deepcopy(replaced),
             "assumptions": _assumptions(proposal), "simulator": simulator,
             "errors": list(solved.get("errors") or []), "warnings": _fraction_warnings(proposal)}
 
@@ -922,6 +970,10 @@ def describe_change(spec, c, names=None, aliases=None):
     """'H1007 cooling water flow: 20 → 27 m³/h' for a change path; the raw path stays available for traceability.
     `aliases` (case.json model_aliases, P&ID tag → model unit): a heating-side field of a model unit is named by its P&ID tag."""
     names = names or display_names(spec)
+    if c.get("replace_unit"):
+        rating = ", ".join(f"{field.replace('_', ' ')} {value:g}" if isinstance(value, (int, float)) else
+                           f"{field.replace('_', ' ')} {value}" for field, value in (c.get("new_rating") or {}).items())
+        return f"Replaces {names.get(c['replace_unit'], c['replace_unit'])}: {rating} ({c.get('basis') or 'basis not stated'}; vendor to confirm)"
     if c.get("add_unit"):
         u, limits = c["add_unit"], c.get("limits") or {}
         if u.get("type") in ROUTING_UNITS:
@@ -975,6 +1027,8 @@ def compare_answers(a, b):
             for c in p.get("changes") or []:
                 if c.get("path"):
                     out[c["path"]] = c.get("value")
+                elif c.get("replace_unit"):
+                    out[f"replace_unit.{c['replace_unit']}"] = json.dumps(c.get("new_rating") or {}, sort_keys=True)
                 elif c.get("add_unit"):
                     out[f"add_unit.{c['add_unit'].get('id')}"] = json.dumps(
                         {"unit": c["add_unit"], "limits": c.get("limits") or {}, "rating_source": c.get("rating_source")}, sort_keys=True)
@@ -1042,7 +1096,7 @@ def read_corrections(orig, conf):
 
 
 def patch(spec, changes):
-    """Apply operating changes, added units and connection reroutes to a copy of the process spec."""
+    """Apply operating, replacement, addition and connection changes to a copy of the process spec."""
     # Proposal evidence is checked by verify(); internal sensitivity and rendering patches use the same mechanics.
     changes = overlays.split(changes)[0]  # electrical.* / transient.* changes are not process-model changes
     if ro_changes.is_ro(spec):  # WaterTAP RO spec: paths into its blocks, added trains
@@ -1083,6 +1137,14 @@ def patch(spec, changes):
             if c.get("limits"):
                 s.setdefault("limits", {})[u["id"]] = copy.deepcopy(c["limits"])
             continue
+        if c.get("replace_unit"):
+            uid = c["replace_unit"]
+            for field, value in c["new_rating"].items():
+                if field in units[uid]:
+                    units[uid][field] = value
+                if field in (s.get("limits") or {}).get(uid, {}):
+                    s["limits"][uid][field] = value
+            continue
         if c.get("reroute"):
             r = c["reroute"]
             units[r["unit"]][r["field"]] = copy.deepcopy(r["value"])
@@ -1101,48 +1163,96 @@ def patch(spec, changes):
     return s
 
 
-def coverage(pid_ov, spec):
-    """Which P&ID equipment-to-equipment connections the model reproduces, and which equipment it leaves out."""
+def coverage(pid_ov, spec, aliases=None):
+    """P&ID lines reproduced by model topology. Routing units and intentional recycle tears do not hide a connection."""
     tags = {e["tag"] for e in pid_ov["equipment"] if e["tag"]}
     units = {u["id"]: u for u in spec.get("units", [])}
-    outs, ins = {}, {}
-    for u in units.values():
-        for k, d in (("in", ins), ("out", outs), ("cold", None), ("hot", None)):
-            v = u.get(k)
-            if k in ("cold", "hot") and v:
-                ins.setdefault(v[0], []).append(u["id"]); outs.setdefault(v[1], []).append(u["id"])
-            elif v and d is not None:
-                for name in (v if isinstance(v, list) else [v]):
-                    d.setdefault(name, []).append(u["id"])
-    nxt = {}
-    for st, srcs in outs.items():
-        for a in srcs:
-            nxt.setdefault(a, set()).update(ins.get(st, []))
-    for u in units.values():  # a recycle hands its stream on to whoever reads the tear stream
-        if u["type"] == "recycle":
-            nxt.setdefault(u["id"], set()).update(ins.get(u["out"], []))
+    aliases = aliases or {}
+    ins, outs = {}, {}
+    for unit in units.values():
+        incoming, outgoing = _inlets_outlets(unit)
+        for stream in incoming:
+            ins.setdefault(stream, []).append(unit["id"])
+        for stream in outgoing:
+            outs.setdefault(stream, []).append(unit["id"])
+    nxt = {uid: set() for uid in units}
+    for stream, sources in outs.items():
+        for source in sources:
+            nxt[source].update(ins.get(stream, ()))
+    transparent = ROUTING_UNITS | {"valve"}
+
+    def model_id(tag):
+        return tag if tag in units else aliases.get(tag) if aliases.get(tag) in units else None
 
     def reaches(a, b):
-        seen, todo = set(), [a]
+        seen, todo = {a}, [a]
         while todo:
-            x = todo.pop()
-            for y in nxt.get(x, ()):
-                if y == b:
+            for uid in nxt.get(todo.pop(), ()):
+                if uid == b:
                     return True
-                if y not in seen and y not in tags:  # pass through valves, mixers, splitters, recycles only
-                    seen.add(y); todo.append(y)
+                if uid not in seen and units[uid].get("type") in transparent:
+                    seen.add(uid); todo.append(uid)
         return False
 
-    tag_of = lambda s: s.split("(")[0]  # noqa: E731
+    def externally_supplied(uid, seen=None):
+        seen = set(seen or ())
+        if uid in seen:
+            return False
+        seen.add(uid)
+        incoming, _ = _inlets_outlets(units[uid])
+        for stream in incoming:
+            if stream in (spec.get("feeds") or {}):
+                return True
+            if any(units[src].get("type") in transparent and externally_supplied(src, seen) for src in outs.get(stream, ())):
+                return True
+        return False
+
+    def has_boundary_out(uid):
+        return any(not ins.get(stream) for stream in _inlets_outlets(units[uid])[1])
+
+    line_data = {str(row.get("line")): row for row in pid_ov.get("lines") or []}
+    # shortcut: unknown fluid codes stay process-relevant; add case metadata for site-specific utility codes.
+    auxiliary_codes = {"CD", "COND", "CONDENSATE", "CW", "CWS", "CWR", "IA", "N2", "STB", "STC"}
+    tag_of = lambda value: str(value or "").split("(")[0]  # noqa: E731
     rows = []
-    for c in pid_ov["connections"]:
-        a, b = tag_of(c["from"]), tag_of(c["to"])
-        if a in tags and b in tags and a != b:
-            relief = any("SafetyValve" in v for v in c["inline"])  # a relief path carries no normal flow
-            rows.append({"from": a, "to": b, "lines": c["lines"], "relief_path": relief,
-                         "modelled": a in units and b in units and reaches(a, b)})
-    return {"connections": rows, "missing_connections": [r for r in rows if not r["modelled"] and not r["relief_path"]],
-            "missing_equipment": sorted(tags - set(units))}
+    for connection in pid_ov.get("connections") or []:
+        a, b = tag_of(connection.get("from")), tag_of(connection.get("to"))
+        lines = [str(line) for line in connection.get("lines") or []]
+        relief = any("SafetyValve" in item or "ReliefValve" in item for item in connection.get("inline") or [])
+        fluids = {str((line_data.get(line) or {}).get("fluid_code") or "").upper() for line in lines}
+        auxiliary = relief or bool(fluids) and all(code in auxiliary_codes for code in fluids)
+        reason = "relief/vent path" if relief else "utility or condensate service" if auxiliary else "normal process path"
+        ma, mb = model_id(a), model_id(b)
+        modelled, match = False, None
+        if not auxiliary:
+            if a.startswith("open-in:") and mb:
+                modelled, match = externally_supplied(mb), "model boundary feed"
+            elif b.startswith("open-out:") and ma:
+                modelled, match = has_boundary_out(ma), "model boundary product"
+            elif ma and mb and ma == mb and a != b:
+                modelled, match = True, "grouped inside one model unit"
+            elif ma and mb and reaches(ma, mb):
+                modelled, match = True, "equipment topology"
+            elif ma and mb and has_boundary_out(ma) and externally_supplied(mb):
+                modelled, match = True, "intentional recycle tear"
+            elif not ma or not mb:
+                missing = [tag for tag, mapped in ((a, ma), (b, mb)) if tag in tags and not mapped]
+                match = "equipment not in model: " + ", ".join(missing)
+            else:
+                match = "no model path between the equipment"
+        rows.append({"from": a, "to": b, "lines": lines, "relief_path": relief,
+                     "category": "auxiliary" if auxiliary else "capacity_relevant", "reason": reason,
+                     "modelled": bool(modelled), "match": match})
+    relevant = [row for row in rows if row["category"] == "capacity_relevant"]
+    auxiliary = [row for row in rows if row["category"] == "auxiliary"]
+    missing_relevant = [row for row in relevant if not row["modelled"]]
+    missing_auxiliary = [row for row in auxiliary if not row["modelled"]]
+    represented = {tag for tag in tags if model_id(tag)}
+    return {"connections": rows, "capacity_relevant": relevant, "auxiliary": auxiliary,
+            "capacity_relevant_simulated": len(relevant) - len(missing_relevant),
+            "capacity_relevant_total": len(relevant), "auxiliary_not_modelled": missing_auxiliary,
+            "auxiliary_total": len(auxiliary), "missing_capacity_relevant": missing_relevant,
+            "missing_connections": missing_relevant, "missing_equipment": sorted(tags - represented)}
 
 
 def _ro_block_items(spec):
@@ -2197,7 +2307,7 @@ class PlantWorkspace(Study):
                 return ro_coverage(self.pid, r["spec"], (self.built or {}).get("mapping") if self.built else None)
             if not self.pid:
                 return {"note": "no drawing to compare with"}
-            return coverage(self.pid, r["spec"])
+            return coverage(self.pid, r["spec"], self.cfg.get("model_aliases"))
         if name == "bubble_pressure":
             return process.bubble(a["compounds"], a["x"], a["T_C"])
         if name == "brine_bpe":
@@ -2343,7 +2453,7 @@ class PlantWorkspace(Study):
             return None
         if _is_watertap(self.cfg):
             return ro_coverage(self.pid, spec, mapping)
-        return coverage(self.pid, spec) if self.pid else None
+        return coverage(self.pid, spec, self.cfg.get("model_aliases")) if self.pid else None
 
     def sweep(self, label, path, values, scale=1.0, title=None):
         """Re-solve one logged run over values of one input; log each solve as a run and save a chart artifact."""
@@ -2502,7 +2612,7 @@ class PlantWorkspace(Study):
         run = getattr(self, "runs", {}).get(label) if label else None
         if not run or not getattr(self, "pid", None) or _is_watertap(self.cfg) or _is_trapped(self.cfg) or _is_grid(self.cfg):
             return []
-        cov = coverage(self.pid, run["spec"])
+        cov = coverage(self.pid, run["spec"], self.cfg.get("model_aliases"))
         tags = [e["tag"] for e in self.pid["equipment"] if e.get("tag")]
         missing = [t for t in cov["missing_equipment"] if t not in (self.cfg.get("model_aliases") or {})
                    and not any(t in (g.get("what") or "") for g in self.gaps)]
@@ -2611,6 +2721,7 @@ class PlantWorkspace(Study):
                 return _reject_proposal(p, target, "; ".join(bad), [], simulator, bad)
         is_ro = ro_changes.is_ro(self.spec)
         new = ro_changes.added_trains(changes, self.spec) if is_ro else added_equipment(changes)
+        replaced = [] if is_ro else replaced_equipment(self.spec, changes)
         if norm_errors:
             return _reject_proposal(p, target, "; ".join(norm_errors), new, simulator, norm_errors)
         loosened = limit_changes(p)
@@ -2633,6 +2744,8 @@ class PlantWorkspace(Study):
                 affected.add(ch["path"].split(".", 2)[1])
             elif ch.get("add_unit"):
                 affected.add(ch["add_unit"]["id"])
+            elif ch.get("replace_unit"):
+                affected.add(ch["replace_unit"])
             elif ch.get("reroute"):
                 affected.add(ch["reroute"]["unit"])
         if is_ro:  # RO paths are block.field / stages.<id>.field: map them to the ids their checks carry
@@ -2640,7 +2753,7 @@ class PlantWorkspace(Study):
             affected |= {i for i in ro_changes.ids(self.spec) if tag and i.startswith(tag)}  # tag RO-201 covers RO-201-stage2
         own = [c for c in over if c["id"] in affected]
         broke = [c for c in over if before.get((c["id"], c["check"]), 0) <= 1.0]
-        calculation = _calculation(p, target, before_cap, cap, before, at, spec, new, simulator)
+        calculation = _calculation(p, target, before_cap, cap, before, at, spec, new, replaced, simulator)
         after_checks = {(c["id"], c["check"]): c["utilisation"] for c in at.get("checks") or [] if "utilisation" in c}
         removed = ro_changes.removed(self.spec, changes) if is_ro else set()  # e.g. a second pass switched off
         if _is_grid(self.cfg):
@@ -2661,11 +2774,17 @@ class PlantWorkspace(Study):
         if model_label:
             calculation["model_label"] = model_label
         after = cap.get("capacity_multiple") if isinstance(cap, dict) else None
-        verified = {"verified": not invalid_reason and not at["errors"] and not own and not broke, "fixes": tag,
+        ok = not invalid_reason and not at["errors"] and not own and not broke
+        open_checks = [{"check": f"vendor confirmation of {item['id']} new rating", "engine": "vendor",
+                        "status": "open", "title": f"{item['id']} new rating: {item['basis']}; vendor to confirm",
+                        "numbers": item["new_rating"], "source": "replacement sizing basis"} for item in replaced] if ok else []
+        verified = {"verified": ok, "fixes": tag,
                 "still_over": own, "breaks": broke, "disappeared_checks": disappeared,
                 "capacity_multiple": after, "limited_by": cap.get("limited_by") if isinstance(cap, dict) else None,
                 "reaches_target": not invalid_reason and not over and not at["errors"], "over_limits_at_target": over,
-                "target_scale": target, "new_equipment": new, "calculation": calculation,
+                "target_scale": target, "new_equipment": new, "replaced_equipment": replaced,
+                "verification_status": "verified (new rating, vendor to confirm)" if ok and replaced else "verified" if ok else "not verified",
+                "open_checks": open_checks, "calculation": calculation,
                 **({"unverified_reason": invalid_reason} if invalid_reason else {})}
         if extra:
             verified["overlays"] = overlays.describe(extra)

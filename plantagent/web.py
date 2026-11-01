@@ -400,6 +400,7 @@ def plant_project(case):
             "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid or {"equipment": [], "connections": [], "valves": [], "control": []}, "basis": w.basis, "model": w.model,
             "has_compressor_curve": has_compressor_curve,
             "built": {**{k: v for k, v in w.built.items() if k != "result"},
+                      "coverage": w._coverage(w.spec, w.built.get("mapping")),
                       # the calibration table checked against the solve (inputs vs reproduced outputs), not the agent's prose
                       "calibration_check": _calibration(w)} if w.built else None,
             "names": w.names() if w.built else {},
