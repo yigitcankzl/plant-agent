@@ -23,8 +23,19 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   console.log(saltStartup && chemStartup ? 'ok  ' : 'FAIL', 'compressor start-up action only appears with a compressor curve');
   bad += saltStartup && chemStartup ? 0 : 1;
   await p.setViewportSize({ width: 1920, height: 1080 });
-  await p.goto(`${BASE}/plant.html?case=salt_mvr&worklog=sample`);
+  await p.goto(`${BASE}/plant.html?case=salt_mvr&worklog=sample&replay=sample`);
   await p.waitForSelector('#worklogPanel:not([hidden])', { timeout: 30000 }).catch(() => {});
+  await p.waitForFunction(() => document.querySelector('#replayProgress')?.textContent !== '0 / 0', null, { timeout: 10000 }).catch(() => {});
+  const replayOk = await p.evaluate(async () => {
+    replayPause(); await replayShow(0);
+    const full = document.querySelector('#replayStage').textContent.includes('Clean E-201; add parallel compressor K-202; trim purge steam') &&
+      document.querySelector('#replayStage').textContent.includes('Yes, with cleaning and extra compression');
+    const bridge = REPLAY.events.findIndex(e => e.kind === 'round'); await replayShow(bridge);
+    const between = /Round 1: \d+ checks? failed → back to Muse/.test(document.querySelector('#replayStage').textContent);
+    const before = REPLAY.index; replayPlay(); await new Promise(resolve => setTimeout(resolve, 1700)); const advanced = REPLAY.index > before;
+    replayPause();
+    return full && between && advanced && ['replayToggle', 'replayBack', 'replayNext', 'replaySpeed'].every(id => document.getElementById(id));
+  });
   await p.click('#workRunOpen');
   const workConfirmOk = await p.evaluate(() => !document.querySelector('#workConfirm').hidden && document.querySelector('#workGoal').value === P.question && /\$5.?10/.test(document.querySelector('.work-runner .estimate').textContent));
   await p.click('#workCancel');
@@ -35,11 +46,31 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
       !!document.querySelector('[data-work-result]') && !!document.querySelector('.worklog-sample') && /ILLUSTRATIVE SAMPLE/.test(document.querySelector('.worklog-sample').textContent);
   });
   await p.screenshot({ path: `${OUT}/salt_mvr_worklog_sample_1920x1080.png` });
+  await p.screenshot({ path: `${OUT}/salt_mvr_replay_1920x1080.png` });
   await p.locator('[data-work-result]').scrollIntoViewIfNeeded();
   await p.screenshot({ path: `${OUT}/salt_mvr_worklog_result_1920x1080.png` });
   const worklogErrors = errs.splice(0);
-  console.log(workConfirmOk && worklogOk && !worklogErrors.length ? 'ok  ' : 'FAIL', 'engineering run sample: confirmation, rounds, actors and result', worklogErrors.join(' | '));
-  bad += workConfirmOk && worklogOk && !worklogErrors.length ? 0 : 1;
+  console.log(workConfirmOk && worklogOk && replayOk && !worklogErrors.length ? 'ok  ' : 'FAIL', 'engineering run sample: confirmation, replay, rounds, actors and result', worklogErrors.join(' | '));
+  bad += workConfirmOk && worklogOk && replayOk && !worklogErrors.length ? 0 : 1;
+  await p.goto(`${BASE}/plant.html?case=ucte_2006`); await p.waitForSelector('[data-open-weights]', { timeout: 30000 }).catch(() => {});
+  await p.evaluate(() => { openDetails(true); setWorkspaceView('engineering'); });
+  const comparisonOk = await p.evaluate(() => {
+    const card = document.querySelector('[data-open-weights]'), rows = card?.querySelectorAll('[data-open-model]') || [];
+    return rows.length === 2 && /Muse Wonder/.test(card.textContent) && /Muse Spark Open/.test(card.textContent) &&
+      /content-policy filtered/i.test(card.textContent) && /not a model-quality result/i.test(card.textContent) && !!card.querySelector('a[href*="replay=20261101-164315"]');
+  });
+  await p.locator('[data-open-weights]').scrollIntoViewIfNeeded();
+  await p.screenshot({ path: `${OUT}/ucte_open_weights_1920x1080.png` });
+  console.log(comparisonOk ? 'ok  ' : 'FAIL', 'UCTE open-weights comparison: two honest model rows and replay link');
+  bad += comparisonOk ? 0 : 1;
+  await p.goto(`${BASE}/plant.html?case=nrel_ethanol_a300`); await p.waitForSelector('[data-nrel-parity] img', { timeout: 30000 }).catch(() => {});
+  const parityOk = await p.evaluate(() => { const card = document.querySelector('[data-nrel-parity]'), img = card?.querySelector('img');
+    return !!card && /33 of 35 checks within 5%/.test(card.textContent) && img?.naturalWidth > 0 && !/Not answered yet/.test(document.querySelector('#qaA').textContent); });
+  await p.click('#qaBadges [data-act="showParity"]');
+  await p.locator('[data-nrel-parity]').scrollIntoViewIfNeeded();
+  await p.screenshot({ path: `${OUT}/nrel_a300_parity_1920x1080.png` });
+  console.log(parityOk ? 'ok  ' : 'FAIL', 'NREL A300 parity chart and calibration result replace the empty answer');
+  bad += parityOk ? 0 : 1;
   await p.setViewportSize({ width: 1440, height: 900 });
   await p.goto(`${BASE}/home.html`); await p.waitForTimeout(2000);
   const homeOk = await p.evaluate(() => !document.body.innerHTML.includes('bt_column_debottleneck') &&

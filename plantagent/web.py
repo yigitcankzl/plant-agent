@@ -784,6 +784,29 @@ class Handler(SimpleHTTPRequestHandler):
         if method == "GET" and parts == ["api", "worklog-sample"]:
             f = _safe_file(ROOT / "tests" / "fixtures", "worklog_sample.json")
             return self._send(f.read_bytes(), "application/json") if f else self._send({"error": "not found"}, code=404)
+        if method == "GET" and parts == ["api", "evidence", "open-weights"]:
+            f = _safe_file(ROOT / "evidence" / "open-weights-engineering", "results.json")
+            return self._send(f.read_bytes(), "application/json") if f else self._send({"error": "not found"}, code=404)
+        if method == "GET" and parts[:3] == ["api", "evidence", "nrel"] and len(parts) in (4, 5):
+            figures = {"nrel_ethanol": "nrel_parity.svg", "nrel_ethanol_a300": "nrel_parity_a300.svg",
+                       "nrel_ethanol_a500": "nrel_parity_a500.svg"}
+            case = parts[3]
+            if case not in figures:
+                return self._send({"error": "not found"}, code=404)
+            if len(parts) == 5:
+                f = _safe_file(ROOT / "docs" / "img", figures[case]) if parts[4] == "figure" else None
+                return self._send(f.read_bytes(), "image/svg+xml") if f else self._send({"error": "not found"}, code=404)
+            areas = ("nrel_ethanol_a300", "nrel_ethanol_a500") if case == "nrel_ethanol" else (case,)
+            summaries = []
+            for area in areas:
+                f = _safe_file(RUNS / "ws" / area, "comparison.json")
+                if f:
+                    summaries.append(json.loads(f.read_text())["summary"])
+            if not summaries:
+                return self._send({"error": "not found"}, code=404)
+            return self._send({"case": case, "within_5": sum(s["within_5"] for s in summaries),
+                               "checks": sum(s["checks"] for s in summaries), "areas": summaries,
+                               "figure": f"/api/evidence/nrel/{case}/figure"})
         if parts[:2] == ["api", "job"] and len(parts) == 3:
             j = JOBS.get(parts[2])
             if not j:
