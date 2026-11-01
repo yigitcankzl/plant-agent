@@ -1,0 +1,230 @@
+{
+ "note": "Server re-verification of Muse's answer 4 (no model call) after the fix that applies feed-composition paths (feeds.FEED.x.<compound>). Muse's recorded answer is unchanged in session/answers.json. A = the proposal as Muse wrote it. B = the same numbers with the tray rating sent as replace_unit (vendor to confirm): our translation, because a rated limit only changes through replace_unit.",
+ "at": "2026-11-02T02:39:29+0300",
+ "answer_index": 4,
+ "as_written": {
+  "proposal": {
+   "title": "Re-tray PV-1767 with high-capacity/high-efficiency trays for +25% polymer-grade ethylene",
+   "changes": [
+    {
+     "path": "feeds.FEED.x.Ethylene",
+     "value": 0.7052,
+     "from": null
+    },
+    {
+     "path": "feeds.FEED.x.Ethane",
+     "value": 0.29124,
+     "from": null
+    },
+    {
+     "path": "units.PV-1767.efficiency",
+     "value": 0.88,
+     "physical_change": "Re-tray 154 trays + condenser/reboiler with high-efficiency high-capacity trays in same 16 ft shell",
+     "rating_source": "Vendor performance guarantee (Sulzer/Koch-Glitsch) to confirm 0.88 overall efficiency - CET 69 (2018) revamp",
+     "from": 0.78
+    },
+    {
+     "path": "units.PV-1767.tray_capacity_factor",
+     "value": 1.85,
+     "physical_change": "Re-tray 154 trays + condenser/reboiler with high-efficiency high-capacity trays in same 16 ft shell",
+     "rating_source": "Vendor hydraulic rating to confirm 1.85\u00d7 vs conventional 4-pass at 0.508 m spacing - CET 69 Fig 2",
+     "from": 1.3
+    },
+    {
+     "path": "units.PV-1767.reflux_ratio",
+     "value": 5.2,
+     "from": 6.08
+    },
+    {
+     "path": "units.PV-1767.vapor_mol_s",
+     "value": 48.5,
+     "from": 38.8
+    },
+    {
+     "path": "units.PV-1767.bottoms_mol_s",
+     "value": 347,
+     "from": 324.4
+    }
+   ]
+  },
+  "verify": {
+   "verified": false,
+   "verification_status": null,
+   "unverified_reason": "change 4 PV-1767.tray_capacity_factor is a rated limit: use replace_unit {\"replace_unit\": \"PV-1767\", \"new_rating\": {\"tray_capacity_factor\": 1.85}, \"basis\": \"...\", \"vendor_confirm\": true}",
+   "capacity_multiple": null,
+   "reaches_target": false,
+   "limited_by": null,
+   "target_scale": 1.25,
+   "replaced_equipment": null,
+   "open_checks": null
+  },
+  "over_limits_at_target": [],
+  "checks": []
+ },
+ "tray_rating_as_replace_unit": {
+  "proposal": {
+   "title": "Re-tray PV-1767 with high-capacity/high-efficiency trays for +25% polymer-grade ethylene [tray rating as replace_unit: server translation, not Muse's wording]",
+   "changes": [
+    {
+     "path": "feeds.FEED.x.Ethylene",
+     "value": 0.7052,
+     "from": null
+    },
+    {
+     "path": "feeds.FEED.x.Ethane",
+     "value": 0.29124,
+     "from": null
+    },
+    {
+     "path": "units.PV-1767.efficiency",
+     "value": 0.88,
+     "physical_change": "Re-tray 154 trays + condenser/reboiler with high-efficiency high-capacity trays in same 16 ft shell",
+     "rating_source": "Vendor performance guarantee (Sulzer/Koch-Glitsch) to confirm 0.88 overall efficiency - CET 69 (2018) revamp",
+     "from": 0.78
+    },
+    {
+     "path": "units.PV-1767.reflux_ratio",
+     "value": 5.2,
+     "from": 6.08
+    },
+    {
+     "path": "units.PV-1767.vapor_mol_s",
+     "value": 48.5,
+     "from": 38.8
+    },
+    {
+     "path": "units.PV-1767.bottoms_mol_s",
+     "value": 347,
+     "from": 324.4
+    },
+    {
+     "replace_unit": "PV-1767",
+     "new_rating": {
+      "tray_capacity_factor": 1.85
+     },
+     "vendor_confirm": true,
+     "basis": "Vendor hydraulic rating to confirm 1.85\u00d7 vs conventional 4-pass at 0.508 m spacing - CET 69 Fig 2"
+    }
+   ]
+  },
+  "verify": {
+   "verified": true,
+   "verification_status": "verified (new rating, vendor to confirm)",
+   "unverified_reason": null,
+   "capacity_multiple": null,
+   "reaches_target": true,
+   "limited_by": null,
+   "target_scale": 1.25,
+   "replaced_equipment": [
+    {
+     "id": "PV-1767",
+     "type": "distillation",
+     "old_rating": {
+      "tray_capacity_factor": 1.3
+     },
+     "new_rating": {
+      "tray_capacity_factor": 1.85
+     },
+     "basis": "Vendor hydraulic rating to confirm 1.85\u00d7 vs conventional 4-pass at 0.508 m spacing - CET 69 Fig 2",
+     "status": "verified (new rating, vendor to confirm)"
+    }
+   ],
+   "open_checks": [
+    {
+     "check": "vendor confirmation of PV-1767 new rating",
+     "engine": "vendor",
+     "status": "open",
+     "title": "PV-1767 new rating: Vendor hydraulic rating to confirm 1.85\u00d7 vs conventional 4-pass at 0.508 m spacing - CET 69 Fig 2; vendor to confirm",
+     "numbers": {
+      "tray_capacity_factor": 1.85
+     },
+     "source": "replacement sizing basis"
+    }
+   ]
+  },
+  "over_limits_at_target": [],
+  "checks": [
+   {
+    "check": "vendor confirmation of PV-1767 new rating",
+    "engine": "vendor",
+    "status": "open",
+    "title": "PV-1767 new rating: Vendor hydraulic rating to confirm 1.85\u00d7 vs conventional 4-pass at 0.508 m spacing - CET 69 Fig 2; vendor to confirm",
+    "numbers": {
+     "tray_capacity_factor": 1.85
+    },
+    "source": "replacement sizing basis"
+   },
+   {
+    "check": "process",
+    "engine": "DWSIM",
+    "title": "design reaches 125 % (maximum not found: the capacity search did not solve away from the target, re-solved now)",
+    "status": "pass",
+    "numbers": {},
+    "source": "DWSIM re-solve of the combined design on the current model"
+   },
+   {
+    "check": "robustness",
+    "engine": "DWSIM",
+    "title": "draft (assumed values): operating envelope 1/2 scenarios pass (fails: Target, feed +10 %)",
+    "status": "fail",
+    "numbers": {},
+    "source": "DWSIM solves of the pre-FEED operating envelope"
+   },
+   {
+    "check": "piping_utilities",
+    "engine": "none",
+    "title": "no calculation adapter: tie-ins, line sizing, supports and utility headers (supply change on FEED: header capacity to confirm) remain open",
+    "status": "open",
+    "numbers": {},
+    "source": "proposal topology (no engine for this discipline)"
+   },
+   {
+    "check": "separation.PV-1767.flooding",
+    "engine": "Fair/Souders-Brown",
+    "title": "PV-1767: column flooding 69.7 vs 85 %",
+    "status": "pass",
+    "numbers": {
+     "value": 0.697,
+     "limit": 0.85,
+     "unit": "fraction of flood",
+     "utilisation": 0.82
+    },
+    "source": "DWSIM tray traffic with Fair capacity-factor correlation"
+   },
+   {
+    "check": "separation.PV-1767.purity_distillate",
+    "engine": "DWSIM",
+    "status": "pass",
+    "title": "PV-1767 distillate Ethane 0 vs 1000 ppm (mass) maximum",
+    "numbers": {
+     "value": 0.0,
+     "limit": 0.001,
+     "unit": "mass fraction",
+     "utilisation": 0.0
+    },
+    "source": "product spec (cases/<case>/purity.json) on the DWSIM solve"
+   },
+   {
+    "check": "separation.PV-1767.min_reflux",
+    "engine": "DWSIM",
+    "status": "pass",
+    "title": "PV-1767 reflux 5.2 vs 4.40 minimum to hold the purity spec at 125 %",
+    "numbers": {
+     "value": 5.2,
+     "limit": 4.395,
+     "unit": "reflux ratio",
+     "utilisation": 0.845
+    },
+    "source": "DWSIM bisection on reflux, 156 stages as built; product spec (cases/<case>/purity.json)"
+   },
+   {
+    "check": "confidence",
+    "engine": "uncertainty",
+    "title": "all 48 samples failed to solve",
+    "status": "open",
+    "numbers": {},
+    "source": "uncertainty"
+   }
+  ]
+ }
+}

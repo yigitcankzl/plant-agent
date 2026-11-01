@@ -105,6 +105,26 @@ The blind design is re-solved in DWSIM at the feed Muse designed for: its cited 
 - **Missed:** it did not move the feed tray.
 - **Possible training-data exposure:** the paper is public since 2018, and Muse named the tray class in the blind answer.
 
+## Third loop (`work/20261102-015254`) and the server re-check, no model call
+- **In the loop:** Muse kept today's feed rate and sent the feed composition as `feeds.FEED.x.Ethylene` / `x.Ethane`. Its own run converged at 1.25×. The server re-solve failed with "PR EOS: unable to calculate compressibility factor".
+- **First root cause (ours, fixed):** `patch()` wrote `feeds.FEED.x.Ethylene` as a flat key the simulator never reads. The server therefore solved the old 64 wt % ethylene feed. At 1.25× that feed carries about 378 mol/s of ethane, more than the 347 mol/s bottoms Muse specified, so the column was infeasible. Nested paths now set the composition (`plant._set_field`; test `tests/test_patch_nested.py`).
+- **Second gap (fixed as a clearer rejection, not a loosened rule):** Muse raised the tray rating with a path edit, `units.PV-1767.tray_capacity_factor` 1.3 → 1.85. The flood check reads the rating from `limits`, so the server solved the new trays but judged them against the old rating. A rated limit now has to change through `replace_unit` (vendor to confirm), and the rejection says how. Muse's own runs had also raised the limit in their spec, which the server never accepts.
+- **Re-check of Muse's answer 4** (`work/20261102-015254/server_reverify.json`, no model call; Muse's recorded text unchanged):
+  - **As written:** rejected, with the fixable reason above.
+  - **Same numbers, tray rating sent as `replace_unit`** (our translation, labelled so): verified at 125 % (new rating, vendor to confirm).
+
+    | Check | Result | Verdict |
+    |---|---|---|
+    | Flooding | 69.7 vs 85 % | pass |
+    | Ethane in the ethylene product | 0 vs 1,000 ppm (documented spec) | pass |
+    | Reflux | 5.2 vs 4.40 minimum | pass |
+    | Process | reaches 125 % | pass |
+    | Draft envelope at feed +10 % (1.375×) | does not solve | fail |
+    | Uncertainty | all 48 samples fail to solve | open |
+
+  - **Why the last two fail:** Muse's column is specified by a fixed bottoms rate (347 mol/s). At 1.375× the feed carries about 416 mol/s of ethane, so a fixed bottoms rate cannot follow a feed swing; a plant would hold the bottoms on level or ratio control. The capacity search fails for the same reason, so the page shows "maximum not found" instead of a made-up 0 %.
+- **Verdict:** at the target, the design matches what Shell built and measured (re-tray, purity held, flood in the 60s). **It is not a verified-done design:** it is not robust to a feed swing as specified.
+
 ## Files
 - `cases/shell_norco_c2splitter/basis.md`, `case.json`, `outcome.json` (withheld)
 - `runs/ws/shell_norco_c2splitter/`: model, sessions (logs and answers), the loop work log, sweeps, `comparison.json`, `states.json` (precomputed slider states)

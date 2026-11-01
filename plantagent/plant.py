@@ -267,6 +267,13 @@ def change_errors(spec, changes, require_evidence=True):
                 errors.append(f"change {i + 1} names unknown feed {oid}")
             elif kind == "units" and field in _STRUCTURAL_UNIT_FIELDS:
                 errors.append(f"change {i + 1} cannot edit existing unit structure {oid}.{field}; use reroute or add_unit")
+            elif require_evidence and kind == "units" and field in _REPLACEMENT_FIELDS and field != "area_m2" \
+                    and field in ((spec.get("limits") or {}).get(oid) or {}):
+                # the checks read this rating from the unit's limits: a path edit changes the model field only, so the
+                # server would solve the new value but judge it against the old rating (Norco: tray_capacity_factor
+                # 1.3 -> 1.85 left flood at 117 %). A new rating is a replacement with its own vendor confirmation.
+                errors.append(f"change {i + 1} {oid}.{field} is a rated limit: use replace_unit {{\"replace_unit\": \"{oid}\", "
+                              f"\"new_rating\": {{\"{field}\": {c.get('value')!r}}}, \"basis\": \"...\", \"vendor_confirm\": true}}")
             elif require_evidence and kind == "units" and (field in _PHYSICAL_UNIT_FIELDS or
                                       field.startswith(("max_", "min_", "rated_")) or "curve" in field.casefold()):
                 if not str(c.get("physical_change") or "").strip() or not str(c.get("rating_source") or "").strip():
@@ -1096,6 +1103,24 @@ def read_corrections(orig, conf):
     return out
 
 
+def _set_field(obj, field, value):
+    """Set `field` on a feed or unit. A dotted field into an existing dict ('x.Ethylene' = a feed's mole fraction) is set
+    inside it: written flat it became a key the simulator never reads, so the server solved the old composition (Norco)."""
+    head, _, rest = field.partition(".")
+    if rest and isinstance(obj.get(head), dict):
+        _set_field(obj[head], rest, value)
+    else:
+        obj[field] = value
+
+
+def _get_field(obj, field):
+    """The current value of a (possibly dotted) feed or unit field, as _set_field writes it."""
+    head, _, rest = field.partition(".")
+    if rest and isinstance(obj.get(head), dict):
+        return _get_field(obj[head], rest)
+    return obj.get(field)
+
+
 def patch(spec, changes):
     """Apply operating, replacement, addition and connection changes to a copy of the process spec."""
     # Proposal evidence is checked by verify(); internal sensitivity and rendering patches use the same mechanics.
@@ -1152,11 +1177,11 @@ def patch(spec, changes):
             continue
         kind, oid, field = c["path"].split(".", 2)
         if kind == "units":
-            units[oid][field] = c["value"]
+            _set_field(units[oid], field, c["value"])
             if field == "area_m2" and oid in (s.get("limits") or {}):
                 s["limits"][oid]["area_m2"] = c["value"]
         elif kind == "feeds":
-            s["feeds"][oid][field] = c["value"]
+            _set_field(s["feeds"][oid], field, c["value"])
         elif kind == "limits":
             s.setdefault("limits", {}).setdefault(oid, {})[field] = c["value"]
         else:
@@ -2887,7 +2912,7 @@ class PlantWorkspace(Study):
                         c["from"] = next(u for u in self.spec["units"] if u["id"] == r["unit"]).get(r["field"])
                     elif c.get("path"):
                         k, oid, fld = c["path"].split(".", 2)
-                        c["from"] = _spec_object(self.spec, k, oid).get(fld)
+                        c["from"] = _get_field(_spec_object(self.spec, k, oid), fld)
                 except (KeyError, ValueError, StopIteration):
                     c["from"] = None
             try:
