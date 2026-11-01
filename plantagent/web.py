@@ -821,6 +821,20 @@ class Handler(SimpleHTTPRequestHandler):
             from . import loop
             log = loop.load(plant(parts[2]), parts[4])
             return self._send(log) if log else self._send({"error": "not found"}, code=404)
+        if parts[:2] == ["api", "plant"] and len(parts) == 5 and parts[2] in set(all_cases("process")) and parts[3] == "signoff":
+            from . import signoff  # MOC sign-off: no model call, no solver
+            case, action, body = parts[2], parts[4], (self._json_body() if method == "POST" else {})
+            fn = {"dispose": lambda: signoff.dispose(case, body.get("check"), body.get("kind"), body.get("reason"), body.get("name")),
+                  "review": lambda: signoff.review(case, body.get("name"), body.get("note")),
+                  "approve": lambda: signoff.approve(case, body.get("name"), body.get("note")),
+                  "reject": lambda: signoff.reject(case, body.get("name"), body.get("reason")),
+                  "reopen": lambda: signoff.reopen(case, body.get("name"), body.get("reason"))}.get(action)
+            if method != "POST" or not fn:
+                return self._send({"error": "not found"}, code=404)
+            try:
+                return self._send(_case_call(case, fn))
+            except ValueError as e:
+                return self._send({"error": str(e)}, code=409)
         if parts[:2] == ["api", "plant"] and len(parts) == 5 and parts[2] in set(all_cases("process")) and parts[3] == "approval":
             from . import approval
             case, action = parts[2], parts[4]
@@ -951,6 +965,9 @@ class Handler(SimpleHTTPRequestHandler):
             if what == "approval":
                 from . import approval
                 return self._send(approval.status(w))
+            if what == "signoff":
+                from . import signoff
+                return self._send(signoff.status(case))
             if what == "gates":  # discipline gates of the design answer: DWSIM/pandapower/ht/Cantera, no model call; cached
                 from . import prefeed
                 try:

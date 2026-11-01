@@ -2,48 +2,194 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>PlantAgent · Engineering review</title>
+  <title>PlantAgent · MOC sign-off</title>
   <style>
-    :root{color-scheme:dark;--bg:#10262b;--panel:#19363d;--line:#3f6067;--text:#eef8f5;--muted:#a9c2c2;--mint:#94d6c7;--warn:#f1c36d}
-    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,sans-serif}
-    header{display:flex;gap:16px;align-items:center;padding:18px 24px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:2}
-    h1{font-size:20px;margin:0} select,input,textarea,button{font:inherit;color:inherit;background:#24454d;border:1px solid var(--line);border-radius:7px;padding:9px}
-    button{cursor:pointer;background:var(--mint);color:#113238;font-weight:700} button.secondary{background:#24454d;color:var(--text)}
-    main{max-width:1200px;margin:auto;padding:24px;display:grid;grid-template-columns:1.3fr .7fr;gap:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
-    h2{font-size:17px;margin:0 0 14px} h3{font-size:15px;margin:18px 0 8px}.row{border-top:1px solid var(--line);padding:12px 0}.meta{color:var(--muted);font-size:13px}.bad{color:var(--warn)}
-    form{display:grid;gap:9px;margin-top:12px} textarea{min-height:76px}.wide{grid-column:1/-1}.actions{display:flex;gap:9px;flex-wrap:wrap}.empty{color:var(--muted)}
-    @media(max-width:800px){main{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}}
+    :root {
+      color-scheme: dark;
+      --ink: #121b21; --ink-2: #18242c; --rule: #22323b; --fg: #e4eaed; --fg-2: #9aabb4; --fg-3: #6f828c;
+      --go: #6fbf9a; --stop: #e0735d; --hold: #d4b064; --act: #8fd0c2; --paper: #e9ece6; --paper-ink: #1d2a30;
+      --sans: "Inter", "Segoe UI", system-ui, sans-serif; --mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--ink); color: var(--fg); font: 14px/1.5 var(--sans); }
+    a { color: var(--act); }
+    header { display: flex; gap: 18px; align-items: center; padding: 14px 28px; border-bottom: 1px solid var(--rule); }
+    header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+    header .sp { flex: 1; }
+    select, input, textarea, button { font: inherit; color: var(--fg); background: var(--ink-2); border: 1px solid var(--rule); border-radius: 6px; padding: 7px 9px; }
+    textarea { width: 100%; min-height: 58px; resize: vertical; }
+    button { cursor: pointer; }
+    button.go { background: var(--act); color: var(--ink); border-color: var(--act); font-weight: 600; }
+    button.stop { border-color: var(--stop); color: var(--stop); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    :focus-visible { outline: 2px solid var(--act); outline-offset: 2px; }
+    main { max-width: 1240px; margin: 0 auto; padding: 26px 28px 60px; display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 34px; }
+    h2 { font-size: 15px; font-weight: 600; margin: 30px 0 10px; }
+    h2:first-child { margin-top: 0; }
+    .muted { color: var(--fg-2); } .small { font-size: 12.5px; }
+    .lede { max-width: 72ch; color: var(--fg-2); margin: 0 0 18px; }
+    .lede b { color: var(--fg); font-weight: 500; }
+
+    /* the approval block, drawn like the revision and approval block of a P&ID sheet */
+    .block { background: var(--paper); color: var(--paper-ink); border: 2px solid var(--paper-ink); }
+    .block .title { display: grid; grid-template-columns: 1fr auto; border-bottom: 2px solid var(--paper-ink); }
+    .block .title > div { padding: 10px 14px; }
+    .block .title .doc { font-weight: 600; }
+    .block .title .doc span { display: block; font-weight: 400; font-size: 12px; color: #4a5a61; }
+    .block .stamp { border-left: 2px solid var(--paper-ink); display: flex; align-items: center; justify-content: center; min-width: 170px;
+                    font-weight: 700; font-size: 15px; letter-spacing: .02em; }
+    .stamp.draft { color: #6b5a1f; } .stamp.reviewed { color: #23566b; } .stamp.approved { color: #1f6b47; } .stamp.rejected { color: #9c2f1f; }
+    .block .cells { display: grid; grid-template-columns: repeat(3, 1fr); }
+    .block .cell { padding: 10px 14px 12px; border-right: 1px solid var(--paper-ink); min-height: 132px; display: flex; flex-direction: column; gap: 6px; }
+    .block .cell:last-child { border-right: 0; }
+    .block .role { font-size: 12px; color: #4a5a61; }
+    .block .who { font-weight: 600; font-size: 15px; }
+    .block .when { font-size: 12px; color: #4a5a61; }
+    .block .note { font-size: 12.5px; }
+    .block input, .block textarea { background: #fff; color: var(--paper-ink); border-color: #9aa6a8; }
+    .block button.go { background: var(--paper-ink); color: var(--paper); border-color: var(--paper-ink); }
+    .block button.stop { background: transparent; color: #9c2f1f; border-color: #9c2f1f; }
+    .block .why { font-size: 12px; color: #6b5a1f; }
+    .block .acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; }
+
+    .alert { border-left: 3px solid var(--stop); padding: 8px 12px; background: #2a1d1c; margin: 14px 0 0; }
+    .alert.hold { border-color: var(--hold); background: #2a2618; }
+
+    .check { border-top: 1px solid var(--rule); padding: 14px 0; display: grid; grid-template-columns: 120px 1fr; gap: 6px 16px; }
+    .check .id { font-weight: 600; }
+    .check .id.fail { color: var(--stop); } .check .id.open { color: var(--hold); }
+    .check .sum { color: var(--fg-2); font-size: 13px; }
+    .check form { grid-column: 2; display: grid; grid-template-columns: auto auto 1fr; gap: 8px; align-items: start; }
+    .check form textarea { grid-column: 1 / -1; min-height: 44px; }
+    .check form .row { grid-column: 1 / -1; display: flex; gap: 8px; }
+    .check form .row input { flex: 1; }
+    .disp { grid-column: 2; font-size: 13px; }
+    .disp b.accepted_risk { color: var(--hold); } .disp b.must_fix { color: var(--stop); }
+    .openlist { margin: 0; padding: 0; list-style: none; }
+    .openlist li { border-top: 1px solid var(--rule); padding: 8px 0; display: grid; grid-template-columns: 120px 1fr; gap: 16px; font-size: 13px; }
+    .openlist li b { color: var(--hold); font-weight: 600; }
+
+    aside section { border-top: 1px solid var(--rule); padding-top: 18px; margin-top: 18px; }
+    aside section:first-child { border-top: 0; }
+    .files { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+    .files li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
+    .files li span:last-child { color: var(--fg-3); }
+    .hash { font: 11.5px var(--mono); color: var(--fg-2); word-break: break-all; }
+    .hist { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
+    .hist li { padding: 5px 0; border-top: 1px solid var(--rule); }
+    .hist li .muted { display: block; }
+    .err { color: var(--stop); min-height: 1.2em; font-size: 13px; }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; } .block .cells { grid-template-columns: 1fr; } .block .cell { border-right: 0; border-bottom: 1px solid var(--paper-ink); } }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
   </style>
 </head>
 <body>
-<header><h1>Engineering review</h1><label>Case <select id="case"></select></label><button class="secondary" id="refresh">Refresh</button></header>
+<header>
+  <h1>MOC sign-off</h1>
+  <label class="muted small">Plant <select id="case" aria-label="Plant"></select></label>
+  <span class="sp"></span>
+  <a id="plantLink" class="small" href="plant.html">Back to the plant</a>
+</header>
 <main>
-  <section class="card"><h2>Issued MOC packs</h2><div id="packs"></div><div class="actions"><button id="issue">Issue current design as a new revision</button><a id="hazopLink" hidden>HAZOP JSON</a></div></section>
-  <section class="card"><h2>Required sign-offs</h2><div id="signoffs"></div>
-    <form id="signForm"><select id="role"></select><input id="name" required placeholder="Engineer name"><textarea id="reason" required placeholder="Reason for sign-off"></textarea><button>Sign current pack</button></form>
-  </section>
-  <section class="card wide"><h2>Review comments</h2><div id="comments"></div>
-    <form id="commentForm"><div class="actions"><select id="targetType"><option>proposal</option><option>gate</option><option>document</option></select><input id="targetId" required placeholder="Target id, e.g. Rev B.1 or electrical"></div><textarea id="comment" required placeholder="Review comment"></textarea><button>Add comment</button></form>
-  </section>
-  <section class="card wide"><h2>Audit status</h2><div id="audit" class="meta"></div></section>
+  <div>
+    <p class="lede" id="lede">Loading…</p>
+    <div class="block" id="block" aria-live="polite"></div>
+    <div id="changed"></div>
+    <p class="err" id="err" role="alert"></p>
+
+    <h2>Failed checks: each needs a written disposition</h2>
+    <div id="fails"></div>
+
+    <h2>Open items carried into the record</h2>
+    <ul class="openlist" id="open"></ul>
+  </div>
+  <aside>
+    <section><h2>Package</h2><p class="muted small" id="pack"></p><ul class="files" id="files"></ul></section>
+    <section><h2>Frozen at approval</h2><div id="frozen" class="small muted">Not approved yet. At approval every file above is hashed into a manifest on the audit chain; a later change sends the pack back to draft.</div></section>
+    <section><h2>Record</h2><ul class="hist" id="hist"></ul><p class="small muted" id="audit"></p><p class="small" id="hazop"></p></section>
+  </aside>
 </main>
 <script>
-const q=new URLSearchParams(location.search),sel=document.querySelector('#case'); let state;
-async function api(path,body){const r=await fetch(path,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-User':document.querySelector('#name').value||'review page'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw Error(d.error||r.statusText);return d}
-function el(tag,text,cls){const n=document.createElement(tag);n.textContent=text;if(cls)n.className=cls;return n}
-function rows(host,items,draw){host.replaceChildren();if(!items.length)host.append(el('p','None yet.','empty'));else items.forEach(x=>host.append(draw(x)))}
-async function load(){const c=sel.value;if(!c)return;state=await api(`/api/plant/${encodeURIComponent(c)}/approval`);const hz=await api(`/api/plant/${encodeURIComponent(c)}/hazop`);const link=document.querySelector('#hazopLink');link.hidden=!hz.rows;link.href=`/api/plant/${encodeURIComponent(c)}/hazop`;link.textContent=hz.rows?`HAZOP: ${hz.summary.rows} rows (${hz.summary.computed} computed)`:'HAZOP not generated';
- rows(document.querySelector('#packs'),state.packs,p=>{const d=el('div','', 'row');d.append(el('strong',`${p.id} · ${p.status}`));d.append(el('div',`${p.folder} · integrity ${p.integrity||'not checked'} · issued ${p.issued_at}`,'meta'));return d});
- rows(document.querySelector('#comments'),state.comments,c=>{const d=el('div','', 'row');d.append(el('strong',`${c.target.type}: ${c.target.id}`));d.append(el('div',c.text));d.append(el('div',`${c.name} · pack R${c.pack_revision} · ${c.at}`,'meta'));return d});
- rows(document.querySelector('#signoffs'),state.signoffs,s=>{const d=el('div','', 'row');d.append(el('strong',`${s.role} · ${s.name}${s.active?'':' · invalidated'}`,s.active?'':'bad'));d.append(el('div',s.reason));d.append(el('div',`pack R${s.pack_revision} · ${s.at}`,'meta'));return d});
- document.querySelector('#role').replaceChildren(...state.roles.map(r=>el('option',r))); const a=await api(`/api/plant/${encodeURIComponent(c)}/audit`);document.querySelector('#audit').textContent=`Hash chain ${a.verify.ok?'intact':'BROKEN'} · ${a.verify.entries} entries`;
+const $ = id => document.getElementById(id), q = new URLSearchParams(location.search);
+let S = null;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
+const when = t => { const d = new Date(String(t || '').replace(/([+-]\d\d)(\d\d)$/, '$1:$2')); return isNaN(d) ? (t || '') : d.toLocaleString('en-GB', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'}); };
+const kb = n => n >= 1024 ? `${Math.round(n / 1024)} kB` : `${n} B`;
+async function api(path, body) {
+  const r = await fetch(path, body === undefined ? {} : {method: 'POST', headers: {'Content-Type': 'application/json', 'X-User': body.name || 'review page'}, body: JSON.stringify(body)});
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || r.statusText);
+  return d;
 }
-async function init(){const projects=await api('/api/projects');const process=projects.filter(p=>p.kind==='process'&&p.built);sel.replaceChildren(...process.map(p=>{const o=el('option',p.title);o.value=p.case;return o}));if(q.get('case')&&process.some(p=>p.case===q.get('case')))sel.value=q.get('case');await load()}
-sel.onchange=()=>{history.replaceState(null,'',`?case=${encodeURIComponent(sel.value)}`);load().catch(show)};document.querySelector('#refresh').onclick=()=>load().catch(show);
-document.querySelector('#issue').onclick=async()=>{try{const pack=await api(`/api/plant/${sel.value}/decision`,{});await api(`/api/plant/${sel.value}/approval/issue`,{folder:pack.folder,reason:'Issued for discipline review'});await load()}catch(e){show(e)}};
-document.querySelector('#commentForm').onsubmit=async e=>{e.preventDefault();const type=document.querySelector('#targetType'),id=document.querySelector('#targetId'),text=document.querySelector('#comment');try{await api(`/api/plant/${sel.value}/approval/comment`,{target_type:type.value,target_id:id.value,text:text.value});text.value='';await load()}catch(x){show(x)}};
-document.querySelector('#signForm').onsubmit=async e=>{e.preventDefault();const role=document.querySelector('#role'),name=document.querySelector('#name'),reason=document.querySelector('#reason');try{await api(`/api/plant/${sel.value}/approval/signoff`,{role:role.value,name:name.value,reason:reason.value});reason.value='';await load()}catch(x){show(x)}};
-function show(e){alert(e.message||e)} init().catch(show);
+const C = () => encodeURIComponent($('case').value);
+async function act(action, body) {
+  $('err').textContent = '';
+  try { S = await api(`/api/plant/${C()}/signoff/${action}`, body); render(); } catch (e) { $('err').textContent = e.message; }
+}
+function cell(role, filled, form) {
+  return `<div class="cell"><div class="role">${role}</div>${filled || form || '<div class="when">Waiting for the previous signature</div>'}</div>`;
+}
+function signed(p, label) {
+  return `<div class="who">${esc(p.name)}</div><div class="when">${esc(label)} ${esc(when(p.at))}</div>${p.note ? `<div class="note">${esc(p.note)}</div>` : ''}`;
+}
+function render() {
+  const s = S, fails = s.checks.fail, opens = s.checks.open;
+  $('plantLink').href = `plant.html?case=${C()}`;
+  $('lede').innerHTML = s.pack ? `<b>${esc(s.recommendation || 'Decision pack ' + s.pack)}</b><br>Pack <code>${esc(s.pack)}</code>. ${fails.length} failed check${fails.length === 1 ? '' : 's'} and ${opens.length} open item${opens.length === 1 ? '' : 's'} go into this record.`
+    : 'No decision pack has been issued for this plant yet. Issue the engineering package from the plant page, then sign it here.';
+  const undone = s.undisposed.length, mustFix = s.must_fix.length;
+  const reviewForm = s.state === 'draft' && s.pack ? `<input id="rvName" placeholder="Reviewer name" aria-label="Reviewer name"><textarea id="rvNote" placeholder="Review note (optional)" aria-label="Review note"></textarea>
+     ${undone ? `<div class="why">Write a disposition for ${esc(s.undisposed.join(', '))} first.</div>` : ''}
+     <div class="acts"><button class="go" id="rvBtn" ${undone ? 'disabled' : ''}>Sign as reviewer</button></div>` : '';
+  const approveForm = s.state === 'reviewed' ? `<input id="apName" placeholder="Approver name (not the reviewer)" aria-label="Approver name"><textarea id="apNote" placeholder="Approval note, or the reason for rejecting" aria-label="Approval note or rejection reason"></textarea>
+     ${mustFix ? `<div class="why">${esc(s.must_fix.join(', '))} marked must fix: this pack can be rejected, not approved.</div>` : ''}
+     <div class="acts"><button class="go" id="apBtn" ${mustFix ? 'disabled' : ''}>Approve and freeze</button><button class="stop" id="rjBtn">Reject</button></div>` : '';
+  const approved = s.approver ? signed(s.approver, 'Approved') : s.rejected && s.state === 'rejected'
+    ? `<div class="who">${esc(s.rejected.name)}</div><div class="when">Rejected ${esc(when(s.rejected.at))}</div><div class="note">${esc(s.rejected.reason)}</div>
+       <input id="roName" placeholder="Your name" aria-label="Name"><div class="acts"><button id="roBtn">Reopen as draft</button></div>` : '';
+  $('block').innerHTML = `<div class="title"><div class="doc">Management of change: ${esc(s.case)}<span>${esc(s.pack || 'no pack issued')}</span></div><div class="stamp ${s.state}">${s.state === 'draft' ? 'Draft, not approved' : s.state === 'reviewed' ? 'Reviewed' : s.state === 'approved' ? 'Approved' : 'Rejected'}</div></div>
+    <div class="cells">${cell('Prepared', `<div class="who">${esc(s.preparer)}</div><div class="when">Decision pack ${esc(s.pack || '—')}</div><div class="note">Every number re-solved by the engines; text by Muse.</div>`)}
+    ${cell('Reviewed', s.reviewer ? signed(s.reviewer, 'Signed') : null, reviewForm)}
+    ${cell('Approved', approved || null, approveForm)}</div>`;
+  $('changed').innerHTML = s.changed_since_approval?.length ? `<p class="alert">Package changed since approval: ${esc(s.changed_since_approval.join(', '))}. The approval no longer applies; the pack is a draft again.</p>`
+    : s.state === 'approved' && s.frozen?.open_items?.length ? `<p class="alert hold">Approved with ${s.frozen.open_items.length} open item${s.frozen.open_items.length === 1 ? '' : 's'} recorded below.</p>` : '';
+  const editable = ['draft', 'reviewed'].includes(s.state);
+  $('fails').innerHTML = fails.length ? fails.map(r => {
+    const d = s.dispositions[r.id];
+    return `<div class="check"><div class="id fail">${esc(r.id.replaceAll('_', ' '))}</div><div class="sum">${esc(r.summary)}</div>
+      ${d ? `<div class="disp"><b class="${d.kind}">${esc(s.kinds[d.kind])}</b>: ${esc(d.reason)} <span class="muted">(${esc(d.by)}, ${esc(when(d.at))})</span></div>` : ''}
+      ${editable ? `<form data-check="${esc(r.id)}"><label><input type="radio" name="k-${esc(r.id)}" value="accepted_risk" ${d?.kind === 'accepted_risk' ? 'checked' : ''}> Accepted risk</label>
+        <label><input type="radio" name="k-${esc(r.id)}" value="must_fix" ${d?.kind === 'must_fix' ? 'checked' : ''}> Must fix</label><span></span>
+        <textarea name="reason" placeholder="Reason (required): what makes this acceptable, or what has to change" aria-label="Disposition reason for ${esc(r.id)}"></textarea>
+        <div class="row"><input name="name" placeholder="Your name" aria-label="Name"><button>${d ? 'Change disposition' : 'Record disposition'}</button></div></form>` : ''}</div>`;
+  }).join('') : '<p class="muted">No failed checks in this design.</p>';
+  $('open').innerHTML = opens.map(r => `<li><b>${esc(r.id.replaceAll('_', ' '))}</b><span class="muted">${esc(r.summary)}</span></li>`).join('') || '<li class="muted">None.</li>';
+  $('pack').textContent = s.pack ? `${s.files.length} files frozen at approval` : '';
+  $('files').innerHTML = s.files.map(f => `<li><span>${esc(f.path)}</span><span>${kb(f.bytes)}</span></li>`).join('');
+  $('frozen').innerHTML = s.frozen && s.state === 'approved' ? `<div>Approved by ${esc(s.approver?.name)}, ${esc(when(s.frozen.at))}; ${Object.keys(s.frozen.files).length} files.</div><div class="hash">manifest ${esc(s.frozen.hash)}</div>`
+    : $('frozen').innerHTML;
+  $('hist').innerHTML = (s.history || []).slice().reverse().map(h => `<li>${esc(h.event.replaceAll('_', ' '))}${h.name ? `, ${esc(h.name)}` : ''}${h.reason ? `: ${esc(h.reason)}` : ''}<span class="muted">${esc(when(h.at))}</span></li>`).join('') || '<li class="muted">Nothing signed yet.</li>';
+  document.querySelectorAll('#fails form').forEach(f => f.onsubmit = e => { e.preventDefault();
+    act('dispose', {check: f.dataset.check, kind: f.querySelector('input[type=radio]:checked')?.value, reason: f.elements.namedItem('reason').value, name: f.elements.namedItem('name').value}); });
+  $('rvBtn') && ($('rvBtn').onclick = () => act('review', {name: $('rvName').value, note: $('rvNote').value}));
+  $('apBtn') && ($('apBtn').onclick = () => act('approve', {name: $('apName').value, note: $('apNote').value}));
+  $('rjBtn') && ($('rjBtn').onclick = () => act('reject', {name: $('apName').value, reason: $('apNote').value}));
+  $('roBtn') && ($('roBtn').onclick = () => act('reopen', {name: $('roName').value, reason: 'reopened after rejection'}));
+}
+async function load() {
+  $('err').textContent = '';
+  S = await api(`/api/plant/${C()}/signoff`);
+  render();
+  api(`/api/plant/${C()}/audit`).then(a => { $('audit').textContent = `Audit chain ${a.verify?.ok ? 'intact' : 'BROKEN'}, ${a.verify?.entries ?? 0} entries.`; }).catch(() => {});
+  api(`/api/plant/${C()}/hazop`).then(h => { $('hazop').innerHTML = h.rows ? `<a href="/api/plant/${C()}/hazop">Change-focused HAZOP draft: ${h.summary.rows} rows</a>` : ''; }).catch(() => {});
+}
+(async () => {
+  const ps = (await api('/api/projects')).filter(p => p.kind === 'process' && p.built);
+  $('case').innerHTML = ps.map(p => `<option value="${esc(p.case)}">${esc(p.title.replace(/\s*\([^)]*\)/g, ''))}</option>`).join('');
+  $('case').value = ps.some(p => p.case === q.get('case')) ? q.get('case') : (ps.find(p => p.case === 'salt_mvr') ? 'salt_mvr' : ps[0]?.case);
+  $('case').onchange = () => { history.replaceState(null, '', `?case=${C()}`); load().catch(e => { $('err').textContent = e.message; }); };
+  await load();
+})().catch(e => { $('lede').textContent = 'The sign-off record could not be loaded. Start the PlantAgent server and reload.'; $('err').textContent = e.message; });
 </script>
 </body>
 </html>
