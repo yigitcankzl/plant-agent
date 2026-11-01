@@ -94,7 +94,7 @@ def _workspace(tmp, answer, spec=None):
     w.model_file = model
     w.name = "salt_mvr"
     w.cfg = {"title": "Salt fixture", "question": "Can a parallel compressor be screened?", "target_scale": 1.2,
-             "svg": "pid.svg", "pid": "drawn/salt_mvr_pid.xml"}
+             "svg": "pid.svg", "pid": "cases/salt_mvr/pid.xml"}
     w.revisions = []
     w.answers = [answer]
     w.built = json.loads(model.read_text())

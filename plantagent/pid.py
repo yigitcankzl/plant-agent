@@ -272,11 +272,11 @@ def lint(eq):
 
 if __name__ == "__main__":
     import sys as _s
-    o = overview(_s.argv[1] if len(_s.argv) > 1 else str(__import__("pathlib").Path(__file__).resolve().parents[2] /
-                 "case-data/realcad/dexpi/C01V04-VER.EX01.xml"))
+    o = overview(_s.argv[1] if len(_s.argv) > 1 else str(__import__("pathlib").Path(__file__).resolve().parents[1] /
+                 "cases/chem_c01/C01V04-VER.EX01.xml"))
     print(json.dumps(o, indent=1)[:3000])
     assert {e["tag"] for e in o["equipment"]} >= {"P4711", "H1007", "T4750"} and o["connections"]
     print("ok", len(o["equipment"]), "equipment,", len(o["connections"]), "connections")
-    for r in relief_scan(_s.argv[1] if len(_s.argv) > 1 else str(__import__("pathlib").Path(__file__).resolve().parents[2] /
-                         "case-data/realcad/dexpi/C01V04-VER.EX01.xml")):
+    for r in relief_scan(_s.argv[1] if len(_s.argv) > 1 else str(__import__("pathlib").Path(__file__).resolve().parents[1] /
+                         "cases/chem_c01/C01V04-VER.EX01.xml")):
         print(f"  {r['tag']:6s} {','.join(r['side_fluids']):10s} {r['status']:24s} {'THERMAL ' if r['thermal_expansion_risk'] else ''}{r['detail']}")

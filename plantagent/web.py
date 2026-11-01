@@ -26,7 +26,7 @@ import pymupdf
 
 from . import eps, profile
 from .deliver import _anchor
-from .docs import DATA as DATA_ROOT, Case, all_cases
+from .docs import DATA as DATA_ROOT, Case, all_cases, data_path
 
 ROOT = Path(__file__).resolve().parent.parent
 RUNS = ROOT / "runs"
@@ -927,7 +927,7 @@ class Handler(SimpleHTTPRequestHandler):
                     return self._send({"error": str(e)}, code=409)
             if what == "relief":
                 from . import pid as _pid
-                return self._send(_pid.relief_scan(DATA_ROOT / w.cfg["pid"]))
+                return self._send(_pid.relief_scan(data_path(w.cfg["pid"])))
             if what == "audit":
                 from . import audit
                 return self._send({"verify": audit.verify(case), "entries": audit.entries(case)})

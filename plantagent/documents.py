@@ -10,7 +10,7 @@ import copy
 import re
 
 from . import artifacts, pid, process, ro
-from .docs import DATA
+from .docs import DATA, data_path
 from .plant import ROUTING_UNITS, _is_watertap, added_equipment, describe_change, model_only_change, patch
 from .proposed import ports
 
@@ -282,7 +282,7 @@ def _checks(res, uid):
 def _relief(w, tag):
     if not w.cfg.get("pid"):
         return []
-    return [x for x in pid.relief_scan(DATA / w.cfg["pid"]) if x["tag"] == tag]
+    return [x for x in pid.relief_scan(data_path(w.cfg["pid"])) if x["tag"] == tag]
 
 
 def _connections(w, tag):

@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 from . import artifacts, pid
-from .docs import DATA
+from .docs import DATA, data_path
 from .proposed import datasheet_markdown, present_calculation
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -847,7 +847,7 @@ def make(w, answer=None, scenarios=None, dynamics=None, economics=None, commissi
             if any(c.get("add_unit") and c["add_unit"].get("type") not in ROUTING for c in proposal.get("changes") or []):
                 proposal = {**proposal, "calculation": calculations[0]}
     equipment = equipment_screen(changes, calculations)
-    relief = pid.relief_scan(DATA / w.cfg["pid"]) if w.cfg.get("pid") else []
+    relief = pid.relief_scan(data_path(w.cfg["pid"])) if w.cfg.get("pid") else []
     dynamic = dynamic_screen(dynamics)
     hazards = hazard_screen(spec, changes, relief, w.cfg.get("model_aliases"))
     construction = constructability(changes, equipment, [p.get("cost_class") or "not stated" for p in proposals], economics)

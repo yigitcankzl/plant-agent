@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 
 from . import llm, pid
-from .docs import DATA
+from .docs import DATA, data_path
 from .plant import display_names, patch
 from .revb import design_answer
 
@@ -75,7 +75,7 @@ def nodes(w, answer=None):
     pid_tags = set()
     pid_classes = {}
     if w.cfg.get("pid"):
-        drawing = pid.overview(DATA / w.cfg["pid"])
+        drawing = pid.overview(data_path(w.cfg["pid"]))
         pid_classes = {e["tag"]: e.get("class") or "P&ID equipment" for e in drawing.get("equipment") or []}
         changed_tags = {tag for tag in changed if tag in pid_classes} | {tag for tag, uid in aliases.items() if uid in model_changed}
         for connection in drawing.get("connections") or []:
@@ -165,7 +165,7 @@ def _calculations(w, spec, node_rows, target):
 
 
 def _relief(w, node_rows):
-    rows = pid.relief_scan(DATA / w.cfg["pid"]) if w.cfg.get("pid") else []
+    rows = pid.relief_scan(data_path(w.cfg["pid"])) if w.cfg.get("pid") else []
     aliases = w.cfg.get("model_aliases") or {}
     out = {}
     for node in node_rows:

@@ -8,9 +8,14 @@ from functools import lru_cache
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-_DATA_CANDIDATES = (ROOT.parent / "case-data", Path.home() / "Desktop" / "hackathon" / "case-data")
-DATA = Path(os.getenv("PLANTAGENT_DATA_ROOT") or next((path for path in _DATA_CANDIDATES if path.exists()),
-                                                      _DATA_CANDIDATES[0])).expanduser().resolve()
+# Source documents (PDFs, raw data) are not redistributed: set PLANTAGENT_DATA_ROOT, else ../case-data next to the repo.
+DATA = Path(os.getenv("PLANTAGENT_DATA_ROOT") or ROOT.parent / "case-data").expanduser().resolve()
+
+
+def data_path(rel):
+    """A case file: in the repo when shipped with it (cases/<case>/...), else under the data root."""
+    p = ROOT / rel
+    return p if p.exists() else DATA / rel
 
 # Clauses that state a recommendation or a conclusion about a required change.
 # Applied per clause (split on , ; :) so facts sharing a sentence with a conclusion survive.
@@ -28,7 +33,13 @@ CONCLUSION = re.compile(
 def _pages(pdf):
     if str(pdf).endswith(".txt"):  # plain-text source (e.g. a dataset README): one page
         return [Path(pdf).read_text()]
-    out = subprocess.run(["pdftotext", "-layout", str(pdf), "-"], capture_output=True, text=True, check=True).stdout
+    if not Path(pdf).exists():  # source PDFs are not redistributed: say which file and where it is expected
+        raise FileNotFoundError(f"source document not found: {pdf}. Public PDFs are not redistributed; download it from "
+                                "the URL in cases/<case>/case.json and set PLANTAGENT_DATA_ROOT (default ../case-data).")
+    try:
+        out = subprocess.run(["pdftotext", "-layout", str(pdf), "-"], capture_output=True, text=True, check=True).stdout
+    except FileNotFoundError as e:
+        raise FileNotFoundError("pdftotext not found: install poppler-utils to read source PDFs") from e
     return out.split("\f")
 
 
