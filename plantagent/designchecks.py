@@ -94,6 +94,11 @@ def separation_checks(spec, solved):
     return rows
 
 
+def _spec_ok(c, f):
+    """A product spec holds: a key component at or above min_mass_frac, or an impurity at or below max_mass_frac."""
+    return f <= c["max_mass_frac"] if "max_mass_frac" in c else f >= c["min_mass_frac"]
+
+
 def purity_checks(w, spec, solved, scale, purity_cfg):
     """Product purity of each column against its spec (cases/<case>/purity.json or the draft), and the lowest reflux that
     still holds the spec at this throughput (DWSIM bisection on the column as built: its stages, feed stage, reboiler spec)."""
@@ -118,7 +123,7 @@ def purity_checks(w, spec, solved, scale, purity_cfg):
             got = {p: next((v / sum((sol["streams"][s].get("components_kg_h") or {}).values())
                             for c_, v in (sol["streams"][s].get("components_kg_h") or {}).items() if c_ == cs[p]["component"]), 0.0)
                    for p, (s, _, _) in k.items() if p in cs}
-            return all(got[p] >= cs[p]["min_mass_frac"] for p in got), got
+            return all(_spec_ok(cs[p], got[p]) for p in got), got
 
         ok, got = meets(solved)
         if ok is None:
@@ -126,10 +131,15 @@ def purity_checks(w, spec, solved, scale, purity_cfg):
             continue
         for p, f in got.items():
             c = cs[p]
-            rows.append({"check": f"separation.{uid}.purity_{p}", "engine": "DWSIM", "status": "pass" if f >= c["min_mass_frac"] else "fail",
-                         "title": f"{pre}{uid} {p} {c['component']} {f * 100:.1f} vs {c['min_mass_frac'] * 100:.1f} mass-% minimum",
-                         "numbers": {"value": round(f, 4), "limit": c["min_mass_frac"], "unit": "mass fraction",
-                                     "utilisation": round(c["min_mass_frac"] / f, 3) if f else 9.99}, "source": f"{src} on the DWSIM solve"})
+            if "max_mass_frac" in c:  # an impurity limit, e.g. ethane in polymer-grade ethylene
+                title = f"{pre}{uid} {p} {c['component']} {f * 1e6:.0f} vs {c['max_mass_frac'] * 1e6:.0f} ppm (mass) maximum"
+                lim, use = c["max_mass_frac"], round(f / c["max_mass_frac"], 3)
+            else:
+                title = f"{pre}{uid} {p} {c['component']} {f * 100:.1f} vs {c['min_mass_frac'] * 100:.1f} mass-% minimum"
+                lim, use = c["min_mass_frac"], round(c["min_mass_frac"] / f, 3) if f else 9.99
+            rows.append({"check": f"separation.{uid}.purity_{p}", "engine": "DWSIM", "status": "pass" if _spec_ok(c, f) else "fail",
+                         "title": title, "numbers": {"value": round(f, 6), "limit": lim, "unit": "mass fraction", "utilisation": use},
+                         "source": f"{src} on the DWSIM solve"})
         r = u.get("reflux_ratio")
         if not isinstance(r, (int, float)):
             continue
@@ -142,7 +152,9 @@ def purity_checks(w, spec, solved, scale, purity_cfg):
         lo, hi = (0.05, float(r)) if ok else (float(r), max(5.0, 4 * float(r)))
         if not ok and not ok_at(hi):
             rows.append(_open(f"separation.{uid}.min_reflux", "DWSIM", f"{uid}: the purity spec is not met at any reflux up to "
-                                                                       f"{hi:g} on {u.get('stages')} stages: needs more stages or a different spec"))
+                                                                       f"{hi:g} on {u.get('stages')} stages: check the product rates first (a bottoms "
+                                                                       "or distillate rate that does not match the feed's key components forces "
+                                                                       "them into the wrong product at any reflux), then stages or the spec"))
             continue
         if ok and ok_at(lo):
             hi = lo

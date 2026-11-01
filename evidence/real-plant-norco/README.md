@@ -34,12 +34,52 @@
 
    It also asked for the refrigeration and reboiler headers to be confirmed at 30.7 / 21.3 MW.
    - Naming the tray brand may reflect training data on this published case; we cannot rule that out.
-3. **Engineering loop** ($4.97, 2 rounds, `work/20261102-001014`): stopped at its $5 cap with no newly verified design. Its round-2 re-tray (factor 1.85, efficiency 0.88, reflux kept at 6.08) was not verified; the loop recorded no reason. The page's design is the blind answer's re-tray.
+3. **First engineering loop** ($4.97, 2 rounds, `work/20261102-001014`): stopped at its $5 cap with no newly verified design. Its re-tray proposals were rejected as "not verified" with no reason. That was a bug, explained below; the checks, including purity, never ran.
+4. **Second engineering loop, with the documented purity spec** ($5.88, `work/20261102-005617`, session in `work/20261102-005617/session`): one round, then the $6 cap.
+   - Muse's design: re-tray the same shell (capacity factor 1.85, efficiency 0.88, vendor to confirm), reflux ratio 5.0, bottoms 310 mol/s, at Shell's Feb 2017 feed of 103,960 kg/h at 69 wt % ethylene.
+   - The server refused it: "DWSIM re-solve failed at 1.25×: PR EOS: unable to calculate compressibility factor". Muse had set the feed rate itself, and the server then scaled it by 1.25 again (about 130,000 kg/h against a 310 mol/s bottoms rate).
+   - The verifier now names that mistake to Muse. The budget was spent before a second round could use it.
 
-**Total spend:** $10.88 on Baseten (88 ledger lines tagged `plant:shell_norco_c2splitter`).
+**Total spend:** $16.76 on Baseten ($10.88 first pass, $5.88 second loop). No Meta-hosted model was called.
 
-## Scorecard (`tools/norco_compare.py`, no LLM)
-The agent's design is re-solved in DWSIM at the feed Muse designed for: its cited run `PV1767-proven-36R-28B`, 115,000 kg/h at 68 wt % ethylene. Its operating specs do not converge on Shell's exact Feb 2017 feed (103,896 kg/h at 69.3 wt % at our scale).
+## Purity: what was wrong, and what the check now does
+- **Why the first loop said nothing:** when the DWSIM re-solve itself failed, the server marked the proposal "not verified" without a reason. The real error was a Peng–Robinson flash failure: Muse had changed only the tray rating and left the bottoms and vent rates at today's values, which is infeasible at 1.25× feed. The reason now reaches the worklog and Muse (`plantagent/plant.py` verify, `tests/test_verify_reason.py`).
+- **The spec is documented,** not drafted (`cases/shell_norco_c2splitter/purity.json`): polymer-grade ethylene, read as ethane in the product at most 0.1 wt % (1,000 ppm). It rests on Table 1 (product ethane 486.7 ppm at AI-5417A, 99.942 wt % ethylene) and the premise "at polymer-grade purity".
+  - It limits ethane, the key the tower separates, rather than "ethylene ≥ 99.9 wt %". The model's product impurity is methane and nitrogen from the vent split, about 0.11 wt %. The real tower removes those in its pasteurisation trays, which the model lumps; on an ethylene-wt % spec the model's own today would fail (99.887 %).
+- **Deterministic check, no model call:**
+
+| Design | Ethane in product | Flood vs limit | Purity spec |
+|---|---|---|---|
+| Today, 1.0× | 0 ppm | 99.6 % | pass, reflux 6.08 vs 4.86 minimum |
+| Blind answer (factor 1.65, reflux 3.6, bottoms 280 mol/s), 1.25× | 152,137 ppm | 91.6 % | **fail at any reflux**: the bottoms rate is below the feed's ethane, so ethane goes overhead |
+| Same trays, bottoms scaled to 405.5 mol/s, reflux 5.54, 1.25× | 0 ppm | 88.5 % | pass, minimum reflux 4.94 |
+| Second loop's design at its own feed (103,960 kg/h, 69 wt %), 1.0× | 1 ppm | 73.5 % | pass, reflux 5.0 vs 4.30 minimum |
+
+  Muse's first design failed through its product rates, not its trays.
+
+## Scorecard of the second loop's design (`tools/norco_compare.py <session>`, no LLM; on the page)
+Re-solved in DWSIM at the feed Muse chose, Shell's Feb 2017 slate (run `PV1767-PROVEN-104K-R53-B310`, 103,960 kg/h at 69.0 wt % ethylene). The server did not verify this design at 1.25× (above); this is the agent's design checked here, not a loop that ended done.
+
+**10 match, 1 partial, 1 miss, 1 not predicted.**
+
+| Item | Agent (loop, purity spec in force) | Shell, measured | Verdict |
+|---|---|---|---|
+| Bottleneck section today | above feed, 85 % flood | above feed, 87 % (in the before data) | match |
+| Change to the internals | high-capacity trays (factor 1.85), higher efficiency, same shell | all 154 trays replaced with HiFi Plus | match |
+| Feed the design was solved for | 103,960 kg/h at 69.0 wt % | 103,896 kg/h at 69.3 wt % | match |
+| **Ethylene product purity** | **99.89 wt %, ethane 1 ppm** | **99.944 wt %; spec ethane ≤ 1,000 ppm** | **match** |
+| Jet flood above feed after | 62 % | 64.7 % | match |
+| Ethylene product rate | +26 % | +25 % | match |
+| Reflux (mass) | +5 % | +14 % | match (within 10 points) |
+| Reboiler duty per kg ethylene | −17 % | −6 % (plant) to −15 % (paper) | match |
+| Condenser duty | +6 % | not addressed; now limits | match |
+| Flags condenser / refrigeration | yes | left unaddressed, now the limit | match |
+| Tray efficiency of the new trays | 88 % (assumed) | 82.6 % | partial |
+| Feed tray | not moved | moved up, 37 → above 45 | miss |
+| Column pressure drop | not predicted | 170 → 99 kPa | not predicted |
+
+## Scorecard of the blind answer (first pass, before the purity spec)
+The blind design is re-solved in DWSIM at the feed Muse designed for: its cited run `PV1767-proven-36R-28B`, 115,000 kg/h at 68 wt % ethylene. Its operating specs do not converge on Shell's exact Feb 2017 feed (103,896 kg/h at 69.3 wt % at our scale).
 
 | Item | Agent (blind) | Shell, measured | Verdict |
 |---|---|---|---|
@@ -60,8 +100,10 @@ The agent's design is re-solved in DWSIM at the feed Muse designed for: its cite
 **Reading:**
 - **Muse found the right problem and the right kind of fix:** re-tray the existing shell with high-capacity trays. Its predicted flood (61 %) and tray efficiency (85 %) land close to what Shell measured. It also flagged refrigeration, the limit Shell chose not to address.
 - **Its operating point is wrong.** To relieve flooding it cut reflux, and polymer-grade purity was lost: 92.5 wt % ethylene, the extra product is mostly ethane. Shell raised reflux by 14 %, and the new trays carried that load.
-- **The ask step does not run the purity check.** The blind answer's design is "verified" for capacity only. The loop, which does run the checks, did not reach a verified variant within its $5 cap. The page's what-if says "runs at 125 %"; that is a capacity statement, not a product-quality one.
+- **The ask step does not run the purity check.** The blind answer's design is "verified" for capacity only. The page's what-if says "runs at 125 %"; that is a capacity statement, not a product-quality one.
+- **With the documented purity spec,** the second loop's design holds polymer grade, keeping reflux up (mass +5 %) and the bottoms rate matched to the feed. It lands within a few points of Shell's measured flood, ethylene rate and reboiler duty. It is still not a verified-done design: the server refused it for setting the feed rate, and the $6 cap ended the loop before a second round.
 - **Missed:** it did not move the feed tray.
+- **Possible training-data exposure:** the paper is public since 2018, and Muse named the tray class in the blind answer.
 
 ## Files
 - `cases/shell_norco_c2splitter/basis.md`, `case.json`, `outcome.json` (withheld)

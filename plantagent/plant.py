@@ -2725,6 +2725,15 @@ class PlantWorkspace(Study):
         replaced = [] if is_ro else replaced_equipment(self.spec, changes)
         if norm_errors:
             return _reject_proposal(p, target, "; ".join(norm_errors), new, simulator, norm_errors)
+        # the server solves at target × today's process feed: a proposal that also sets that feed's rate is scaled twice
+        # (Norco: 103,960 kg/h × 1.25 → an infeasible column, reported only as an EOS failure). Say so, so Muse can fix it.
+        rerated = [c["path"] for c in changes if re.fullmatch(r"feeds\.[^.]+\.(kg_h|m3_h)", str(c.get("path", "")))
+                   and not ((self.spec.get("feeds") or {}).get(c["path"].split(".")[1]) or {}).get("utility")]
+        if rerated and abs(target - 1.0) > 1e-9:
+            return _reject_proposal(p, target, f"sets the process feed rate ({', '.join(rerated)}): the server already solves at "
+                                    f"{target:g}× today's feed, so a new rate would be scaled twice. Keep today's feed rate; change "
+                                    "only the feed composition, the equipment and the operating specs (scale product and bottoms "
+                                    "rates with the target)", new, simulator)
         loosened = limit_changes(p)
         invalid = change_errors(self.spec, changes)
         if loosened or invalid:  # a documented rating does not move without a physical change behind it
@@ -2771,6 +2780,9 @@ class PlantWorkspace(Study):
             invalid_reason = "proposal adds or changes equipment with no engineering limit check: " + ", ".join(c["id"] for c in unchecked)
         if invalid_reason:
             calculation.setdefault("errors", []).append(invalid_reason)
+        # a failed re-solve must say why: otherwise the worklog and Muse only see "not verified" and nothing can be fixed
+        solve_reason = None if invalid_reason or not at.get("errors") else \
+            f"{simulator} re-solve failed at {target:g}×: " + "; ".join(str(e) for e in at["errors"])[:400]
         model_label = self.built.get("label") if isinstance(getattr(self, "built", None), dict) else None
         if model_label:
             calculation["model_label"] = model_label
@@ -2786,7 +2798,7 @@ class PlantWorkspace(Study):
                 "target_scale": target, "new_equipment": new, "replaced_equipment": replaced,
                 "verification_status": "verified (new rating, vendor to confirm)" if ok and replaced else "verified" if ok else "not verified",
                 "open_checks": open_checks, "calculation": calculation,
-                **({"unverified_reason": invalid_reason} if invalid_reason else {})}
+                **({"unverified_reason": invalid_reason or solve_reason} if invalid_reason or solve_reason else {})}
         if extra:
             verified["overlays"] = overlays.describe(extra)
             calculation.setdefault("warnings", []).append("checked by its own engine in the discipline gates: " + ", ".join(verified["overlays"]))
