@@ -195,7 +195,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.evaluate(() => openDetails(false));
   await p.keyboard.press('/');  // the ask box lives in the details drawer
   await p.waitForFunction(() => document.activeElement === document.querySelector('#q'), null, { timeout: 5000 }).catch(() => {});
-  const askOpen = await p.evaluate(() => document.body.classList.contains('dd-open') && document.activeElement === document.querySelector('#q'));
+  const askOpen = await p.evaluate(() => document.body.classList.contains('dd-open') &&
+    (P.allow_runs ? document.activeElement === document.querySelector('#q') : document.querySelector('#q').disabled && document.querySelector('#askBtn').textContent === 'Replay only'));
   await p.click('#ddClose');
   const whatIfFloats = await p.evaluate(() => !document.body.classList.contains('dd-open') && !document.querySelector('#scenario').hidden &&
     getComputedStyle(document.querySelector('#workbench')).position === 'absolute');
@@ -295,5 +296,41 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     console.log(shown ? 'ok  ' : 'FAIL', 'Brownsville compares the agent with the recorded decision');
     bad += shown ? 0 : 1;
   }
+  // No paid call: stub the existing ask/job protocol and prove the strip streams steps, focuses the drawing and carries follow-up context.
+  const askBodies = [], jobs = {};
+  await p.route('**/api/plant/chem_c01/ask', async route => {
+    const body = JSON.parse(route.request().postData() || '{}'), id = `chat-stub-${askBodies.length + 1}`;
+    askBodies.push(body); jobs[id] = {poll: 0, request: body.text};
+    await route.fulfill({json: {job: id}});
+  });
+  await p.route('**/api/job/chat-stub-*', async route => {
+    const id = new URL(route.request().url()).pathname.split('/').pop(), job = jobs[id], poll = job.poll++;
+    const answer = {request: job.request, headline: 'Cooling fix verified at the target', summary: 'DWSIM found and verified the cooling limit.',
+      model: 'muse-spark-1.3-contributor', cost_usd: .009, seconds: 3,
+      highlights: [{tag: 'H1007', severity: 'fail', text: 'H1007 reaches 104% at 120% throughput.'}],
+      cards: [{title: 'Cooling duty', result: 'H1007 104% at 120%'}],
+      proposals: [{title: 'Restore cooling-water flow', tag: 'H1007', fixes: 'H1007', verified: true, changes: [{path: 'units.H1007.duty_kW', value: 1}]}]};
+    if (id.endsWith('-1') && poll === 0) return route.fulfill({json: {done: false, offset: 1, model: answer.model, seconds: 1, cost_usd: .003,
+      events: [{kind: 'tool', name: 'read_pid', summary: '11 equipment items', tags: ['H1007'], status: 'info'}]}});
+    if (id.endsWith('-1') && poll === 1) return route.fulfill({json: {done: false, offset: 2, model: answer.model, seconds: 2, cost_usd: .006,
+      events: [{kind: 'tool', name: 'run_process', label: 'scale 1.2', summary: 'H1007 104% ✕', tags: ['H1007'], status: 'fail'}]}});
+    await route.fulfill({json: {done: true, offset: id.endsWith('-1') ? 2 : 0, model: answer.model, seconds: 3, cost_usd: .009, events: [], answer}});
+  });
+  await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
+  await p.evaluate(() => { P.allow_runs = true; document.querySelector('#q').disabled = false; document.querySelector('#askBtn').disabled = false; document.querySelector('#askBtn').textContent = 'Ask'; });
+  await p.fill('#q', 'Check H1007 at 120%'); await p.click('#askBtn');
+  await p.waitForSelector('#chatThread .chat-turn:last-child .chat-answer', {state: 'visible', timeout: 15000});
+  const liveChat = await p.evaluate(() => {
+    const turn = document.querySelector('#chatThread .chat-turn:last-child'), actors = [...turn.querySelectorAll('.chat-actor')].map(x => x.textContent);
+    return actors.includes('Muse') && actors.includes('DWSIM') && document.querySelector('#sheet [data-tag="H1007"]').classList.contains('chat-fail') &&
+      /Muse Spark.*\$0\.009.*3s/.test(turn.querySelector('.chat-meta').textContent) && /Cooling fix verified/.test(turn.querySelector('.chat-answer').textContent);
+  });
+  await p.screenshot({path: `${OUT}/engineering_chat_stub_1920x1080.png`});
+  await p.getByRole('button', {name: 'Ask a follow-up'}).last().click(); await p.fill('#q', 'What field reading would change that?'); await p.click('#askBtn');
+  await p.waitForTimeout(1200);
+  const followContext = askBodies.length === 2 && Number.isInteger(askBodies[1].context?.answer) && askBodies[1].context?.headline === 'Cooling fix verified at the target';
+  console.log(liveChat && followContext ? 'ok  ' : 'FAIL', 'engineering chat: streamed actors, drawing focus, answer provenance and follow-up context');
+  bad += liveChat && followContext ? 0 : 1;
+  await p.unroute('**/api/plant/chem_c01/ask'); await p.unroute('**/api/job/chat-stub-*');
   await b.close(); process.exit(bad || errs.length ? 1 : 0);
 })();

@@ -649,6 +649,41 @@
   #rightScroll > #qaSugg { display: flex; flex-direction: column; gap: 4px; padding: 0 18px 12px; }
   #rightScroll > #qaSugg > * { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; font-size: 12px; padding: 4px 8px; }
 
+  /* The strip is an engineering notebook: the question, who did each check, then the decision. */
+  .engineering-chat { border-top: 1px solid var(--rule); }
+  .chat-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 18px 7px; }
+  .chat-head h3 { margin: 0; font-size: 13px; }
+  .chat-mode { color: var(--fg-3); font: 11px var(--mono); }
+  .chat-mode.live { color: var(--ok); }
+  .chat-empty { padding: 4px 18px 16px; color: var(--fg-3); font-size: 12px; }
+  .chat-turn { border-top: 1px solid var(--rule); }
+  .chat-turn > summary { padding: 10px 18px; color: var(--fg); font-size: 13px; line-height: 1.35; list-style-position: inside; }
+  .chat-turn:not([open]) > summary { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .chat-turn[open] > summary { background: #17252b; }
+  .chat-engineer { margin: 0; padding: 10px 18px; border-left: 3px solid #7f959c; color: var(--fg); background: #142229; }
+  .chat-engineer b { display: block; margin-bottom: 2px; color: #aebdc1; font-size: 11px; }
+  .chat-steps { padding: 7px 12px 7px 18px; }
+  .chat-step { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 7px; width: 100%; padding: 5px 0; border: 0; border-bottom: 1px solid #26373e;
+    color: var(--fg-2); background: transparent; text-align: left; font: 12px/1.35 var(--sans); cursor: pointer; }
+  .chat-step:hover, .chat-step:focus-visible { color: var(--fg); outline: 0; background: #1a2b31; }
+  .chat-step:last-of-type { border-bottom: 0; }
+  .chat-actor { min-width: 58px; color: #78d6c6; font: 700 10.5px var(--mono); }
+  .chat-actor.engine { color: #8dbce8; } .chat-actor.server { color: #8fc89f; }
+  .chat-step.fail .chat-line { color: #ff9a90; } .chat-step.pass .chat-line { color: #b5ddbf; }
+  .chat-raw { margin: 0 0 5px 65px; } .chat-raw summary { font-size: 10.5px; }
+  .chat-raw pre { max-height: 130px; margin: 4px 0; overflow: auto; white-space: pre-wrap; color: var(--fg-3); font: 10.5px/1.35 var(--mono); }
+  .chat-live { display: flex; align-items: center; gap: 7px; margin: 7px 18px 10px; color: #8fc89f; font: 11.5px var(--mono); }
+  .chat-live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: blink .8s infinite alternate; }
+  .chat-answer { margin: 4px 12px 12px 18px; padding: 11px 12px; border: 1px solid #38515a; border-left: 3px solid #78d6c6; background: #18272d; }
+  .chat-answer h4 { margin: 0 0 7px; color: var(--fg); font-size: 14px; }
+  .chat-numbers { display: grid; gap: 3px; margin-bottom: 8px; color: var(--fg-2); font-size: 12px; }
+  .chat-proposal { display: flex; gap: 7px; padding: 4px 0; border-top: 1px solid #2b3d44; font-size: 12px; }
+  .chat-proposal .pass { color: var(--ok); } .chat-proposal .fail { color: var(--fail); }
+  .chat-meta { margin-top: 7px; color: var(--fg-3); font: 10.5px var(--mono); }
+  .chat-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+  .chat-actions .btn { padding: 4px 7px; font-size: 11px; }
+  #sheet [data-tag].chat-fail * { stroke: var(--fail) !important; stroke-width: 2px !important; }
+
   /* Recording-only view: the ordinary workspace is unchanged unless ?present=1 is present. */
   .present-caption, .openweights-story { display: none; }
   body.present-mode { overflow: hidden; }
@@ -678,6 +713,13 @@
   body.present-mode #worklogPanel .replay-stage .replay-text { font-size: 19px; }
   body.present-mode #worklogPanel .replay-controls { grid-template-columns: auto auto auto auto; }
   body.present-mode #worklogPanel .replay-progress { grid-column: 1 / -1; justify-self: start; }
+  body.present-mode .chat-head h3, body.present-mode .chat-turn > summary, body.present-mode .chat-engineer,
+  body.present-mode .chat-step, body.present-mode .chat-answer { font-size: 18px; }
+  body.present-mode .chat-actor, body.present-mode .chat-meta, body.present-mode .chat-live { font-size: 16px; }
+  body.present-mode .chat-actor { min-width: 92px; }
+  body.present-mode .chat-step { padding: 10px 0; }
+  body.present-mode .chat-actions .btn { font-size: 16px; }
+  body.present-mode .chat-turn > summary { white-space: normal; }
   body.present-mode .present-caption { display: grid; position: fixed; z-index: 80; left: 0; right: 0; bottom: 0; min-height: 132px;
     grid-template-columns: 260px minmax(0, 1fr); align-items: center; gap: 24px; padding: 22px 42px; color: #f2f4ef;
     background: rgba(10, 24, 28, .96); border-top: 3px solid #78d6c6; box-shadow: 0 -18px 42px rgba(0,0,0,.32); }
@@ -777,6 +819,7 @@
           <button class="btn go" onclick="reliefScan()">Run safety scan</button><div id="relief" style="margin-top:10px"></div>
         </section>
       </div>
+      <section class="engineering-chat" id="chatThread" aria-label="Engineering conversation" aria-live="polite" hidden></section>
       <details class="analysis-log" id="analysisLog" hidden><summary><span id="progressSummary">Analysis log</span></summary><div class="progress" id="progress"></div></details>
       <section class="worklog" id="worklogPanel" aria-label="Engineering run" hidden></section>
       <details class="side-details" id="historyDetails"><summary>Model revisions and audit</summary><div id="revs"></div></details>
@@ -840,6 +883,7 @@ const act = (name, ...args) => `data-act="${name}" data-args="${esc(JSON.stringi
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   const fn = el && {select, whatIf, troubleshoot, ask, undo, accept, workFocus: (tags, view) => workFocus(tags, view, el),
+    chatFocus, chatShow, chatApply, chatWork, chatFollow,
     showParity: () => { openDetails(true); setWorkspaceView('engineering'); requestAnimationFrame(() => document.querySelector('[data-nrel-parity]')?.scrollIntoView({block: 'start'})); },
     askAbout: tag => { $('q').value = `Why is ${tag} limiting, and what is the cheapest fix?`; $('q').focus(); }}[el.dataset.act];
   if (fn) fn(...JSON.parse(el.dataset.args || '[]'));
@@ -1188,10 +1232,15 @@ async function load() {
   syncViewToggle();
   await loadGateAssessment();
   await loadDemoEvidence();
-  model(); answers(); revs();
+  model(); answers(); revs(); renderEngineeringChat();
   if (P.built) render(await stateForView(P.target_scale)); else noModel();
-  $('q').disabled = false;
-  $('askBtn').disabled = false;
+  $('q').disabled = !P.allow_runs;
+  $('askBtn').disabled = !P.allow_runs;
+  $('askBtn').textContent = P.allow_runs ? 'Ask' : 'Replay only';
+  $('askBtn').title = P.allow_runs ? 'Ask Muse about this plant' : 'Live calls are disabled; stored engineering conversations remain available.';
+  if (!P.allow_runs) $('q').placeholder = 'Replay only — start the server with WEB_ALLOW_RUNS=1 for live calls';
+  $('workRunOpen').disabled = false; $('workRunOpen').title = P.allow_runs ? '' : 'Review the goal; live execution is disabled';
+  $('workStart').disabled = !P.allow_runs; $('workStart').textContent = P.allow_runs ? 'Confirm and run' : 'Replay only';
   $('toTarget').disabled = !P.built;  // no reliable model yet: nothing to analyse
   $('toTarget').style.display = P.built ? '' : 'none'; document.querySelector('.flowctl').style.visibility = P.built ? '' : 'hidden';
   $('toTarget').textContent = (P.answers || []).length ? 'Show saved analysis' : 'Analyze target';
@@ -1979,24 +2028,152 @@ function chip(e) {
   return `<span class="chip ${kind}">${esc(label)}${arg ? ' · ' + esc(arg) : ''}</span>`;
 }
 
-async function follow(job, title) {
+let ASK_CONTEXT = null;
+const CHAT_ENGINES = {run_process: 'DWSIM', process_capacity: 'DWSIM', run_ro: 'WaterTAP', ro_capacity: 'WaterTAP',
+  sweep: 'DWSIM', run_hydraulics: 'EPANET', run_grid: 'pandapower'};
+function chatNamedTags(values) {
+  const text = values.filter(Boolean).join(' '), known = [...new Set([...(P?.pid?.equipment || []).map(e => e.tag), ...Object.keys(P?.names || {})].filter(Boolean))];
+  return known.filter(tag => text.includes(tag)).slice(0, 8);
+}
+function chatEvent(event) {
+  const name = event.name || '', engine = CHAT_ENGINES[name], label = event.label || (String(event.args || '').match(/"label": ?"([^"]+)"/) || [])[1];
+  let actor = 'Muse', actorClass = 'muse', icon = '📄', action = name ? name.replaceAll('_', ' ') : (event.text || 'worked');
+  if (engine) {
+    actor = engine;
+    actorClass = 'engine'; icon = '⚙️';
+    action = /capacity|sweep/.test(name) ? `${engine} sweep${label ? ` '${label}'` : ''}` : `${engine} run${label ? ` '${label}'` : ''}`;
+  } else if (name === 'read_pid') action = 'Muse read P&ID';
+  else if (name === 'read_data_sheet') action = 'Muse read operating data';
+  else if (name === 'search_documents') { action = 'Muse searched documents'; icon = '🔎'; }
+  else if (name === 'read_document_page') { action = 'Muse read a document page'; icon = '🔎'; }
+  else if (name === 'get_spec') action = 'Muse loaded the model';
+  else if (name === 'server_verify') { actor = 'Server'; actorClass = 'server'; icon = event.status === 'fail' ? '✕' : '✓'; action = 'server re-solve'; }
+  const result = event.summary || (name === 'server_verify' ? event.text : '') || (event.kind === 'error' ? 'step failed' : 'complete');
+  const status = event.status || (event.kind === 'error' ? 'fail' : 'info');
+  const tags = [...new Set([...(event.tags || []), ...chatNamedTags([action, result, event.args, event.result])])];
+  return {actor, actorClass, icon, line: `${action}${result ? ` → ${result}` : ''}`, status, tags};
+}
+function chatStepHtml(event) {
+  const step = chatEvent(event), raw = [event.args, event.result].filter(Boolean).join('\n');
+  return `<div class="chat-step-wrap"><button type="button" class="chat-step ${esc(step.status)}" ${act('chatFocus', step.tags, step.status)}>
+    <span class="chat-actor ${step.actorClass}">${esc(step.actor)}</span><span class="chat-line">${step.icon} ${esc(step.line)}</span></button>
+    ${raw ? `<details class="chat-raw"><summary>Details</summary><pre>${esc(raw)}</pre></details>` : ''}</div>`;
+}
+function chatVerifySteps(answer) {
+  return (answer.proposals || []).map(proposal => chatStepHtml({kind: 'tool', name: 'server_verify', status: proposal.verified ? 'pass' : 'fail',
+    tags: [proposal.tag, proposal.fixes].filter(Boolean), text: `${proposal.title || 'proposal'} ${proposal.verified ? `verified at ${Math.round(P.target_scale * 100)}%` : proposal.unverified_reason || 'not verified'}`})).join('');
+}
+function chatKeyNumbers(answer) {
+  const values = [];
+  if (answer.combined?.capacity_multiple != null) values.push(`Maximum throughput ${Math.round(answer.combined.capacity_multiple * 100)}%`);
+  for (const h of answer.highlights || []) if (/\d/.test(h.text || '')) values.push(`${h.tag ? h.tag + ' · ' : ''}${plain(h.text)}`);
+  for (const c of answer.cards || []) if (/\d/.test(String(c.result || ''))) values.push(`${c.title ? c.title + ' · ' : ''}${plain(c.result)}`);
+  values.push(`Target ${Math.round(P.target_scale * 100)}%`);
+  return [...new Set(values)].slice(0, 3);
+}
+function chatAnswerTags(answer) {
+  return [...new Set([...(answer.highlights || []).map(h => h.tag), ...(answer.proposals || []).flatMap(p => [p.tag, p.fixes])].filter(Boolean))];
+}
+function chatAnswerCard(answer, index) {
+  const numbers = chatKeyNumbers(answer), proposals = answer.proposals || [], apply = proposals.findIndex(p => p.verified && !p.accepted), tags = chatAnswerTags(answer);
+  const cost = Number(answer.cost_usd || 0), meta = `${museName(answer.model || P.model)} · $${cost.toFixed(cost < .1 ? 3 : 2)} · ${Math.round(answer.seconds || 0)}s`;
+  return `<section class="chat-answer"><h4>${esc(plain(answer.headline) || 'Engineering answer')}</h4>
+    <div class="chat-numbers">${numbers.map(n => `<span>${esc(n)}</span>`).join('')}</div>
+    ${proposals.map(p => `<div class="chat-proposal"><span class="${p.verified ? 'pass' : 'fail'}">${p.verified ? '✓' : '✕'}</span><span>${esc(p.title || 'Proposal')} · ${p.verified ? 'verified' : 'not verified'}</span></div>`).join('')}
+    <div class="chat-meta">${esc(meta)}</div><div class="chat-actions">
+      ${tags.length ? `<button class="btn" type="button" ${act('chatShow', index)}>Show on drawing</button>` : ''}
+      ${apply >= 0 ? `<button class="btn" type="button" ${act('chatApply', index)}>Apply as draft revision</button>` : ''}
+      <button class="btn" type="button" ${act('chatWork', index)} ${P.allow_runs ? '' : 'disabled'}>Run full engineering from here</button>
+      <button class="btn" type="button" ${act('chatFollow', index)} ${P.allow_runs ? '' : 'disabled'}>Ask a follow-up</button>
+    </div></section>`;
+}
+function chatTurnHtml(answer, index, open) {
+  const request = plain(answer.request || answer.question || 'Engineering question');
+  return `<details class="chat-turn" data-chat-answer="${index}" ${open ? 'open' : ''}><summary>${esc(request)}</summary>
+    <p class="chat-engineer"><b>Engineer</b>${esc(request)}</p><div class="chat-steps">${(answer.chat_steps || []).map(chatStepHtml).join('')}${chatVerifySteps(answer)}</div>
+    ${chatAnswerCard(answer, index)}</details>`;
+}
+function renderEngineeringChat() {
+  const box = $('chatThread'), answers = P?.answers || [];
+  $('qaSugg').hidden = answers.length > 0;
+  box.hidden = false;
+  box.innerHTML = `<div class="chat-head"><h3>Engineering conversation</h3><span class="chat-mode ${P.allow_runs ? 'live' : ''}">${P.allow_runs ? 'Live calls enabled' : 'Replay only · live disabled'}</span></div>` +
+    (answers.length ? answers.map((answer, index) => chatTurnHtml(answer, index, index === answers.length - 1)).join('') : '<div class="chat-empty">Ask a question to see Muse read the plant, then watch each simulator check.</div>');
+}
+function chatScrollTo(element) {
+  const box = $('rightScroll'); if (!element || !box) return;
+  const item = element.getBoundingClientRect(), frame = box.getBoundingClientRect();
+  if (item.bottom > frame.bottom) box.scrollTo({top: box.scrollTop + item.bottom - frame.bottom + 12, behavior: 'auto'});
+  else if (item.top < frame.top) box.scrollTo({top: box.scrollTop - (frame.top - item.top) - 12, behavior: 'auto'});
+}
+function chatBegin(text) {
+  const box = $('chatThread');
+  if (box.hidden || !box.querySelector('.chat-head')) renderEngineeringChat();
+  box.querySelectorAll('.chat-turn').forEach(turn => turn.open = false);
+  box.insertAdjacentHTML('beforeend', `<details class="chat-turn" data-chat-live open><summary>${esc(text)}</summary><p class="chat-engineer"><b>Engineer</b>${esc(text)}</p><div class="chat-steps"></div><div class="chat-live">${esc(museName(P.model))} · thinking… 0s · $0.000</div></details>`);
+  const turn = box.querySelector('[data-chat-live]');
+  chatScrollTo(turn);
+  return turn;
+}
+function chatAppend(turn, event) {
+  if (!turn || event.kind !== 'tool') return;
+  turn.querySelector('.chat-steps').insertAdjacentHTML('beforeend', chatStepHtml(event));
+  chatScrollTo(turn.querySelector('.chat-step-wrap:last-child'));
+  const step = chatEvent(event); chatFocus(step.tags, step.status);
+}
+function chatLive(turn, job, done = false) {
+  const el = turn?.querySelector('.chat-live');
+  if (!el) return;
+  const cost = Number(job.cost_usd || 0), seconds = Number(job.seconds || 0);
+  el.textContent = `${museName(job.model || P.model)} · ${done ? 'complete' : 'thinking…'} ${Math.round(seconds)}s · $${cost.toFixed(cost < .1 ? 3 : 2)}`;
+  if (done) el.classList.remove('chat-live');
+}
+function chatFocus(tags, status) {
+  tags = (tags || []).filter(Boolean);
+  if (!tags.length) return;
+  selectOnDrawing(tags[0]); focusDrawingTags(tags);
+  if (status === 'fail') tags.forEach(tag => $('sheet').querySelector(`[data-tag="${CSS.escape(tag)}"]`)?.classList.add('chat-fail'));
+}
+async function chatShow(index) {
+  const answer = P.answers[index], tags = chatAnswerTags(answer);
+  showMode('capacity'); openDetails(false); await setView('proposed'); notes(answer); chatFocus(tags, 'info');
+}
+function chatApply(index) {
+  const proposal = (P.answers[index]?.proposals || []).findIndex(p => p.verified && !p.accepted);
+  if (proposal >= 0) accept(index, proposal, '');
+}
+function chatWork(index) {
+  if (!P.allow_runs) return;
+  const answer = P.answers[index]; $('workGoal').value = `Continue from ${answer.headline || 'this answer'}: ${answer.request || P.question}`;
+  showWorkConfirm(true); $('workRunOpen').scrollIntoView({block: 'center', behavior: 'smooth'});
+}
+function chatFollow(index) {
+  if (!P.allow_runs) return;
+  const answer = P.answers[index];
+  ASK_CONTEXT = {answer: index, headline: answer.headline, summary: answer.summary};
+  $('q').value = ''; $('q').placeholder = `Follow up on: ${plain(answer.headline || answer.request)}`; $('q').focus(); $('askDock').scrollIntoView({block: 'nearest'});
+}
+async function follow(job, title, chatTurn = null) {
   busy = true;
   document.querySelectorAll('header .btn, #toTarget, #askBtn, #workRunOpen, #workStart').forEach(b => b.disabled = true);
   $('analysisLog').hidden = false; $('analysisLog').open = false; $('progress').innerHTML = '';
   $('progressSummary').textContent = title + '…';
-  let off = 0, t0 = Date.now(), steps = 0;
+  let off = 0, t0 = Date.now(), steps = 0, streamed = [];
   while (true) {
     const j = await fetch(`/api/job/${job}?offset=${off}`).then(r => r.json());
     off = j.offset;
     for (const e of j.events) if (e.kind === 'tool') {
       steps += 1; $('progress').insertAdjacentHTML('beforeend', chip(e));
+      streamed.push(e); chatAppend(chatTurn, e);
       $('progressSummary').textContent = `Analyzing… ${steps} step${steps === 1 ? '' : 's'} complete`;
     }
+    chatLive(chatTurn, j, j.done);
     if (j.done) {
       const seconds = Math.round((Date.now() - t0) / 1000);
       busy = false; document.querySelectorAll('header .btn, #toTarget, #askBtn, #workRunOpen, #workStart').forEach(b => b.disabled = false);
       $('progressSummary').textContent = j.error ? 'Analysis stopped — open log' : `Analysis complete · ${steps} steps · ${seconds}s`;
       $('progress').insertAdjacentHTML('beforeend', j.error ? `<span class="chip err">${esc(j.error)}</span>` : `<span class="chip done">Complete in ${seconds}s</span>`);
+      j.chat_steps = streamed;
       return j;
     }
     await new Promise(r => setTimeout(r, 700));
@@ -2329,10 +2506,21 @@ async function build() {
 async function ask(text, context) {
   if (busy || !text.trim()) return;
   showMode('capacity');
-  const {job} = await api('ask', {text, context, second_opinion: $('so').checked});
-  const j = await follow(job, text);
-  if (j.answer) { P.answers.push(j.answer); answers(); }
-  else if (j.error) $('answers').insertAdjacentHTML('afterbegin', `<div class="ans"><div class="hl" style="color:var(--fail)">Analysis could not finish</div><div class="sm">${esc(j.error)}</div></div>`);
+  const turn = chatBegin(text);
+  try {
+    const {job} = await api('ask', {text, context, second_opinion: $('so').checked});
+    const j = await follow(job, text, turn);
+    if (j.answer) {
+      if (!j.answer.chat_steps?.length) j.answer.chat_steps = j.chat_steps;
+      P.answers.push(j.answer); answers(); renderEngineeringChat();
+      requestAnimationFrame(() => chatScrollTo($('chatThread').querySelector('.chat-turn:last-child .chat-answer')));
+    } else if (j.error) {
+      turn.insertAdjacentHTML('beforeend', `<div class="chat-answer"><h4>Analysis could not finish</h4><div class="chat-numbers">${esc(j.error)}</div></div>`);
+      $('answers').insertAdjacentHTML('afterbegin', `<div class="ans"><div class="hl" style="color:var(--fail)">Analysis could not finish</div><div class="sm">${esc(j.error)}</div></div>`);
+    }
+  } catch (error) {
+    turn.insertAdjacentHTML('beforeend', `<div class="chat-answer"><h4>Live analysis is unavailable</h4><div class="chat-numbers">${esc(error.message)}</div></div>`);
+  }
 }
 
 function notes(a) {
@@ -2734,7 +2922,7 @@ async function reload() {
   const keep = P.answers;
   P = await api('project'); P.answers = keep;
   syncViewToggle();
-  model(); answers(); revs(); renderTroubleshootMode();
+  model(); answers(); revs(); renderEngineeringChat(); renderTroubleshootMode();
   if (AS_BUILT && P.drawing === 'svg') await showSheet();
   render(await stateForView($('scale').value / 100));
   showMode(ACTIVE_MODE);
@@ -2855,8 +3043,13 @@ async function reliefScan() {
   }
 }
 
-$('q').onkeydown = e => { if (e.key === 'Enter') { ask($('q').value); $('q').value = ''; } };
-$('askBtn').onclick = () => { ask($('q').value); $('q').value = ''; };
+function submitAsk() {
+  const text = $('q').value, context = ASK_CONTEXT;
+  ASK_CONTEXT = null; $('q').placeholder = 'Ask anything about this plant…'; $('q').value = '';
+  ask(text, context);
+}
+$('q').onkeydown = e => { if (e.key === 'Enter') submitAsk(); };
+$('askBtn').onclick = submitAsk;
 $('workRunOpen').onclick = () => showWorkConfirm($('workConfirm').hidden);
 $('workCancel').onclick = () => showWorkConfirm(false);
 $('workStart').onclick = startEngineeringWork;
