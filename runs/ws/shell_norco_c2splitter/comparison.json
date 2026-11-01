@@ -1,0 +1,129 @@
+{
+ "case": "shell_norco_c2splitter",
+ "design_answer": "C2 splitter floods at +11%; re-tray gives +25%",
+ "design_run": "PV1767-proven-36R-28B",
+ "changes": [
+  {
+   "replace_unit": "PV-1767",
+   "new_rating": {
+    "tray_capacity_factor": 1.65,
+    "efficiency": 0.85
+   },
+   "basis": "Replace 154 \u00d7 4-pass conventional trays in existing 4.877 m ID \u00d7 0.508 m spacing shell with high-capacity trays (Shell HiFi Plus / Sulzer UFM Plus class) \u2014 vendor correlation +27% flood capacity vs existing 1.3 factor, +7 pts efficiency (CET 69 real revamp achieved this)",
+   "vendor_confirm": true
+  },
+  {
+   "path": "units.PV-1767.reflux_ratio",
+   "value": 3.6,
+   "from": 6.08
+  },
+  {
+   "path": "units.PV-1767.bottoms_mol_s",
+   "value": 280,
+   "from": 324.4
+  },
+  {
+   "path": "units.PV-1767.vapor_mol_s",
+   "value": 48.5,
+   "from": 38.8
+  },
+  {
+   "path": "units.PV-1767.reflux_ratio",
+   "value": 3.6,
+   "from": 6.08
+  },
+  {
+   "path": "units.PV-1767.bottoms_mol_s",
+   "value": 280,
+   "from": 324.4
+  }
+ ],
+ "source": "Summers, de Villiers and Green, Chemical Engineering Transactions 69 (2018) 703-708, sections 3-5, Table 1 (after column), Tables 4 and 5",
+ "scale_assumed": 92,
+ "scorecard": [
+  {
+   "item": "Bottleneck section today",
+   "agent": "above feed (flood 85 % at tray ~66)",
+   "recorded": "above feed, jet flood 87 % (Table 3; given to the agent as before-data)",
+   "verdict": "match"
+  },
+  {
+   "item": "Change to the tower internals",
+   "agent": "higher-capacity trays (capacity factor 1.65); higher tray efficiency",
+   "recorded": "all 154 trays replaced tray-for-tray with high-capacity HiFi Plus trays",
+   "verdict": "match"
+  },
+  {
+   "item": "Feed tray",
+   "agent": "not moved",
+   "recorded": "moved up, 37 to above 45",
+   "verdict": "miss"
+  },
+  {
+   "item": "Feed the design was solved for",
+   "agent": "115,000 kg/h at 68.1 wt % ethylene (run PV1767-proven-36R-28B)",
+   "recorded": "103,896 kg/h at 69.3 wt % (Feb 2017, at the assumed scale)",
+   "verdict": "partial"
+  },
+  {
+   "item": "Ethylene product purity after the change",
+   "agent": "92.47 wt %",
+   "recorded": "99.944 wt % (polymer grade held)",
+   "verdict": "miss"
+  },
+  {
+   "item": "Jet flood above feed after the change",
+   "agent": "61 % (Fair screen with the new tray rating)",
+   "recorded": "64.7 % (Shell hydraulics, Feb 2017)",
+   "verdict": "match"
+  },
+  {
+   "item": "Ethylene product rate",
+   "agent": "+37 %",
+   "recorded": "+25 % (576 to 722 normalised kg/h)",
+   "verdict": "miss"
+  },
+  {
+   "item": "Reflux (mass)",
+   "agent": "-13 %",
+   "recorded": "+14 % (3,503 to 4,003 normalised kg/h)",
+   "verdict": "miss"
+  },
+  {
+   "item": "Tray efficiency of the new trays",
+   "agent": "85 % (assumed)",
+   "recorded": "82.6 % (fitted to the Feb 2017 data)",
+   "verdict": "match"
+  },
+  {
+   "item": "Reboiler duty per kg ethylene",
+   "agent": "-36 %",
+   "recorded": "-6 % (plant, per kg product) to -15 % (paper's balances)",
+   "verdict": "partial"
+  },
+  {
+   "item": "Condenser duty (refrigeration load)",
+   "agent": "-4 %",
+   "recorded": "not addressed by the project; condenser and refrigeration now limit",
+   "verdict": "partial"
+  },
+  {
+   "item": "Column pressure drop",
+   "agent": "not predicted: DWSIM takes column dP as an input",
+   "recorded": "170.3 to 99.3 kPa",
+   "verdict": "not predicted"
+  },
+  {
+   "item": "Flags the condenser / refrigeration limit",
+   "agent": "yes, mentioned",
+   "recorded": "Shell left it unaddressed; it now limits the extra capacity",
+   "verdict": "match"
+  }
+ ],
+ "summary": {
+  "match": 5,
+  "partial": 3,
+  "miss": 4,
+  "not predicted": 1
+ }
+}
