@@ -106,6 +106,12 @@ The MOC pack carries the failed gates as risks and its decision reads "Do not ap
 | A300 hydrolysis and fermentation | 11 units, one build | 26 / 33 of 35 | beer ethanol 21,229 vs 21,941 kg/h (−3.2 %) | $4.30 |
 | A500 distillation, molecular sieve, filter | 18 units, all 10 P&ID tags; 2 calibration revisions | 24 / 28 of 64 | ethanol product 21,741 vs 21,673 kg/h (+0.3 %); D-502 overhead +2.2 % | $2.90 (accepted run) + $5.84 (calibration) |
 
+![NREL plant map: nine areas by status](docs/img/nrel_plant_map.svg)
+
+![Parity of the Muse-built A300 and A500 models against the NREL stream tables](docs/img/nrel_parity.svg)
+
+Each point is one flow check (total, ethanol, water or solids, kg/h); the shaded band is ±5 %. Temperatures are counted in the caption but not plotted. `tools/nrel_figures.py` regenerates both figures from `runs/ws/*/comparison.json` and `runs/ws/nrel_ethanol/STATUS.md`, without an LLM.
+
 Limits:
 - The NREL numbers are themselves an Aspen Plus simulation, not plant measurements. The claim is "Muse rebuilt NREL's model in DWSIM".
 - DWSIM's sugars and solids stall its column solver, so mass-equivalent ChemSep stand-ins are used. The basis says so.
