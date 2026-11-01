@@ -75,6 +75,13 @@ def motor_changes(cfg, changes, overrides=None):
     return out
 
 
+def affected(cfg, changes):
+    """True when the changes add or re-rate a motor, or carry an electrical.* overlay (plantagent/overlays.py)."""
+    from . import overlays
+    return bool(motor_changes(cfg, changes)) or any(str(c.get("path") or "").startswith("electrical.")
+                                                     for c in changes or [] if overlays.is_overlay(c))
+
+
 def _supply(cfg, bus):
     """Rated MVA of the transformer feeding a bus (0 when fed directly by the grid)."""
     return sum(t["sn_mva"] for t in cfg["transformers"] if t["lv"] == bus)
@@ -92,6 +99,8 @@ def network(cfg, solved, changes=None, overrides=None):
         if old:
             old.update({"kw": ch["kw"], "changed": True, "rating_source": ch["source"]},
                        **{k: ch[k] for k in ("start", "bus") if ch.get(k)})
+            if ch.get("cable"):
+                old["cable"] = {**old["cable"], "type": ch["cable"]}
             continue
         mv = ch["kw"] >= nm.get("mv_from_kw", 250)
         boards = [b["id"] for b in cfg["buses"] if (b["vn_kv"] >= 1.0) == mv and _supply(cfg, b["id"])] or \
@@ -101,6 +110,8 @@ def network(cfg, solved, changes=None, overrides=None):
                        "pf": nm.get("pf", 0.88), "start": ch.get("start") or nm.get("start", "DOL"), "lrc": nm.get("lrc", 6.0),
                        "cable": copy.deepcopy(nm.get("cable_mv" if mv else "cable_lv")), "new": True, "changed": False,
                        "rating_source": ch["source"], "source": nm.get("source")})
+        if ch.get("cable"):
+            motors[-1]["cable"]["type"] = ch["cable"]
     for m in motors:
         shaft = (units.get(m["unit"]) or {}).get("kW")
         m["shaft_kW"] = float(shaft) if shaft is not None else float(m["kw"])
@@ -124,7 +135,12 @@ def _run(net, start=None):
 
 
 def check(cfg, solved, changes=None, overrides=None, scale=1.0):
-    """Load flow + motor-start screen. Returns {checks, buses, transformers, cables, start, net} (checks like process checks)."""
+    """Load flow + motor-start screen. Returns {checks, buses, transformers, cables, start, net} (checks like process checks).
+    electrical.* changes (plantagent/overlays.py) are applied to a copy of the one-line diagram first."""
+    from . import overlays
+    cfg, ov, upgrades = overlays.electrical(cfg, changes)
+    drives = {m["unit"] for m in cfg["motors"]} | set(motor_changes(cfg, changes))
+    overrides = list(overrides or []) + [o for o in ov if o["unit"] in drives]
     net = network(cfg, solved, changes, overrides)
     base = _run(net)
     checks = []
@@ -171,7 +187,7 @@ def check(cfg, solved, changes=None, overrides=None, scale=1.0):
             if not bid.endswith("-term"):
                 add(bid, f"{where(bid)}: dip during {m['id']} start ({m['start']})", max(0.0, d), "dip_other")
     checks.sort(key=lambda c: -c["utilisation"])
-    return {"scale": scale, "checks": checks, **base, "start": start, "net": net}
+    return {"scale": scale, "checks": checks, **base, "start": start, "net": net, "upgrades": upgrades}
 
 
 def one_line_svg(title, res):
@@ -235,7 +251,8 @@ def summary(res, before=None):
     return (f"{tr['id']} {'%.0f → ' % b['loading_percent'] if b else ''}{tr['loading_percent']:.0f} % loaded"
             + (f"; {s['motor']} {s['method']} start dip {s['terminal_dip_percent']:.1f} % at its terminal" if s else "")
             + (f"; OVER: {', '.join(c['id'] + ' ' + c['check'] for c in over[:3])}" + (f" (+{len(over) - 3} more)" if len(over) > 3 else "")
-               if over else "; all electrical checks within limits"))
+               if over else "; all electrical checks within limits")
+            + (f"; {'; '.join(res['upgrades'])}" if res.get("upgrades") else ""))
 
 
 def for_workspace(w, changes=None, scale=None, overrides=None, title=None, save=True, spec=None):

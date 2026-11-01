@@ -125,22 +125,33 @@ def run(curve_201, curve_202, G0_kg_h, G1_kg_h, **params):
             "mass_balance_rel_error": balance_err, "series": rows}
 
 
-def k202_startup(w, save=True):
+def k202_startup(w, save=True, answer=None):
     """The salt case's K-202 start-up: boil-up from K-201's documented rated suction to the combined design's compressor
     suction at the target (from curves.evaluate, DWSIM). Saved as an analysis artifact with a chart."""
     import json
     from . import artifacts, charts, curves
-    ev = curves.evaluate(w)
+    from . import overlays
+    from .plant import patch
+    ev = curves.evaluate(w, answer=answer)
     if ev.get("error"):
         return ev
     ov = curves.overlay(w.name)["units"]
     if not {"K-201", "K-202"} <= set(ov):
         return {"error": "the start-up screen needs curves for K-201 and K-202 (salt_mvr)"}
+    # the design's own K-202 rating (curve and motor) and its start-up changes (transient.* paths) apply here
+    changes = curves.design_changes(w, answer)
+    spec = patch(w.spec, changes)
+    ov = {u: curves.scaled(c, spec, u) for u, c in ov.items()}
+    params = overlays.transient_params(changes)
+    kw = ((spec.get("limits") or {}).get("K-202") or {}).get("max_kW")
+    if kw:
+        params.setdefault("motor_kW", float(kw))
     tgt = ev["scales"][f"{ev['target_scale']:.2f}"]
     G1 = sum(c["value"] for c in tgt["checks"] if c["id"] == "K-201" and "capacity" in c["check"])  # group volumetric total
     G1_kg_h = G1 * DEFAULTS["rho_ref"]
     G0_kg_h = 226800.0  # K-201 rated suction, US 5,366,514 Table I
-    r = run(ov["K-201"], ov["K-202"], G0_kg_h, G1_kg_h)
+    r = run(ov["K-201"], ov["K-202"], G0_kg_h, G1_kg_h, **params)
+    r["design_changes"] = overlays.describe(changes)
     r["boilup_source"] = ("start: K-201 documented rated suction 226.8 t/h (Table I); end: combined design's compressor "
                           "suction at the target, DWSIM (curves.evaluate)")
     if not save:

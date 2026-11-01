@@ -480,7 +480,7 @@ def discipline_gates(w, answer=None, refresh=False):
         from . import electrical
         cfg = electrical.config(w.name)
         if cfg and electrical.available():
-            if electrical.motor_changes(cfg, changes):
+            if electrical.affected(cfg, changes):
                 e = electrical.for_workspace(w, changes, target, save=False)
                 src = "pandapower load flow on the case one-line diagram" + (" (ILLUSTRATIVE network)" if "ILLUSTRATIVE" in str(cfg.get("note")) else "")
                 g = _gate("electrical", e["checks"], src, e["summary"], source_file=f"cases/{w.name}/electrical.json")

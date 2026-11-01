@@ -10,7 +10,7 @@ import re
 import time
 from pathlib import Path
 
-from . import audit, brine, grid, llm, pid, process, ro, ro_changes, trapped
+from . import audit, brine, grid, llm, overlays, pid, process, ro, ro_changes, trapped
 from .docs import DATA
 from .study import ARR, Study, compact, submit, text_tool_calls, unstring
 
@@ -42,9 +42,14 @@ CHANGE_HELP = ("One change is either {path, value} for an existing operating/mod
                "A unit IN SERIES on a line (e.g. a booster pump or preheater on stream S1): add_unit with in=S1 and a new "
                "out stream, then reroute the unit that consumed S1 to the new stream. Taking equipment out: "
                "{remove_unit: id, physical_change} (then reroute what used its streams) or {bypass: {unit: id}, physical_change} "
-               "for a one-in/one-out unit whose flow then skips it.")
+               "for a one-in/one-out unit whose flow then skips it. Fixes outside the process model use their own paths, re-checked "
+               "by their engine: electrical.<transformer id>.sn_mva (a larger replacement transformer, MVA) or .tap_percent (-10..10), "
+               "electrical.<motor unit or id>.start (DOL|SOFT|VFD) or .cable (a cable type of the one-line diagram), and "
+               "transient.startup.<anti_surge_capacity_frac|Kp|Ki|start_s|boilup_ramp_start_s|boilup_ramp_end_s|min_speed_frac|speed_ramp_pct_s> "
+               "for the compressor start-up screen; transformer, starter/VFD, cable and anti-surge valve changes need physical_change.")
 
-CHANGE = {"path": {"type": "string", "description": "feeds.<stream>.<field> | units.<id>.<field>; never limits.* for existing equipment"},
+CHANGE = {"path": {"type": "string", "description": "feeds.<stream>.<field> | units.<id>.<field> | electrical.<element>.<field> | "
+                                                   "transient.startup.<param>; never limits.* for existing equipment"},
           "value": {"description": "new value for path"},
           "physical_change": {"type": "string", "description": "physical work that changes an existing performance field"},
           "rating_source": {"type": "string", "description": "source for a changed performance value or a new unit rating"},
@@ -1028,6 +1033,7 @@ def read_corrections(orig, conf):
 def patch(spec, changes):
     """Apply operating changes, added units and connection reroutes to a copy of the process spec."""
     # Proposal evidence is checked by verify(); internal sensitivity and rendering patches use the same mechanics.
+    changes = overlays.split(changes)[0]  # electrical.* / transient.* changes are not process-model changes
     if ro_changes.is_ro(spec):  # WaterTAP RO spec: paths into its blocks, added trains
         return ro_changes.patch(spec, changes)
     if grid.is_grid(spec):  # transmission grid: switching and dispatch paths into its elements
@@ -2584,7 +2590,14 @@ class PlantWorkspace(Study):
         target = float(self.cfg.get("target_scale", 1.0))
         simulator = _simulator_name(self.cfg)
         norm_errors = normalize_proposal(p, self.spec, getattr(self, "runs", None) or {})
-        changes = p.get("changes") or []
+        changes, extra = overlays.split(p.get("changes") or [])
+        if extra:  # electrical / start-up changes: checked against their case files, applied by their engines
+            known = {u["id"] for u in self.spec.get("units") or [] if u.get("type") in ("pump", "compressor")}
+            known |= {c["add_unit"]["id"] for a in self.answers for q in a.get("proposals") or [] if q.get("verified")
+                      for c in q.get("changes") or [] if isinstance(c.get("add_unit"), dict)}
+            bad = overlays.errors(self.name, extra, p.get("changes"), known_units=known)
+            if bad:
+                return _reject_proposal(p, target, "; ".join(bad), [], simulator, bad)
         is_ro = ro_changes.is_ro(self.spec)
         new = ro_changes.added_trains(changes, self.spec) if is_ro else added_equipment(changes)
         if norm_errors:
@@ -2641,6 +2654,9 @@ class PlantWorkspace(Study):
                 "reaches_target": not invalid_reason and not over and not at["errors"], "over_limits_at_target": over,
                 "target_scale": target, "new_equipment": new, "calculation": calculation,
                 **({"unverified_reason": invalid_reason} if invalid_reason else {})}
+        if extra:
+            verified["overlays"] = overlays.describe(extra)
+            calculation.setdefault("warnings", []).append("checked by its own engine in the discipline gates: " + ", ".join(verified["overlays"]))
         if _is_trapped(self.cfg) and at.get("relief_basis"):
             verified.update(relief_basis=at["relief_basis"], verified_scope=at["relief_basis"],
                             discipline_status={**(p.get("discipline_status") or {}), "process_safety": "open"})
