@@ -51,23 +51,143 @@ def _dir(case, root=None):
     return (root or ROOT) / "runs" / "ws" / case / "drafts"
 
 
+def _resolved(case, root=None):
+    return (root or ROOT) / "runs" / "ws" / case / "inputs" / "resolved"
+
+
 def file_text(case, name, root=None):
-    """Raw text of the engineer's cases/<case>/<name> if present, else of the stored draft, else None. root: the caller
-    module's ROOT (so a test that moves one module's ROOT moves its files too)."""
-    for f in ((root or ROOT) / "cases" / case / name, _dir(case, root) / name):
+    """Raw text of the discipline file, in order of authority: the engineer's uploads merged into it
+    (runs/ws/<case>/inputs/resolved/<name>, see resolve_uploads), the case file cases/<case>/<name>, the stored draft;
+    else None. root: the caller module's ROOT (so a test that moves one module's ROOT moves its files too)."""
+    for f in (_resolved(case, root) / name, (root or ROOT) / "cases" / case / name, _dir(case, root) / name):
         if f.exists():
             return f.read_text()
     return None
 
 
 def case_file(case, name, root=None):
-    """The engineer's cases/<case>/<name> if present, else the stored draft, else None."""
+    """The discipline file (uploads merged > case file > draft, see file_text), parsed; None without one."""
     t = file_text(case, name, root)
     return json.loads(t) if t is not None else None
 
 
 def is_draft(cfg):
     return bool(isinstance(cfg, dict) and cfg.get("draft"))
+
+
+VENDOR = "vendor data (uploaded)"
+
+
+def uploaded(cfg):
+    return list(cfg.get("uploaded") or []) if isinstance(cfg, dict) else []
+
+
+def label(cfg, unit=None):
+    """Title prefix for a check row built on cfg: the engineer's uploaded data, a draft, or nothing (case file).
+    With unit, only that unit's source counts; without, the file's mix is named."""
+    up = uploaded(cfg)
+    vendor = VENDOR[:-1] + ", ILLUSTRATIVE)" if "illustrative" in str(cfg.get("uploaded_note", "")).lower() else VENDOR
+    if unit is not None:
+        return f"{vendor}: " if unit in up else f"{DRAFT}: " if is_draft(cfg) else ""
+    if up:
+        return f"{vendor} for {', '.join(up)}" + (f"; other units {DRAFT}" if is_draft(cfg) else "") + ": "
+    return f"{DRAFT}: " if is_draft(cfg) else ""
+
+
+# ---------- engineer uploads -> discipline files ---------------------------------------------------------------------
+def _base(case, name, root=None):
+    """The discipline file below the uploads: case file, else draft, else None."""
+    for f in ((root or ROOT) / "cases" / case / name, _dir(case, root) / name):
+        if f.exists():
+            return json.loads(f.read_text())
+    return None
+
+
+def _pr_from_head(head_kJ, T_in_C, k=1.3, M=18.015):
+    """Inverse of curves.head_kJ_kg: the pressure ratio an ideal-gas head implies at the suction temperature."""
+    e = (k - 1) / k
+    return (1 + head_kJ * 1000 / (k / (k - 1) * 8314.462618 / M * (T_in_C + 273.15))) ** (1 / e)
+
+
+def vendor_curve(pts, base=None, note=""):
+    """An uploaded curve (rows of flow_m3h, head_m, efficiency_pct; flow rising) in the curves.py form. The design point
+    is the best-efficiency row (the middle row without efficiencies); the lowest-flow row is the surge line (compressor)
+    or the minimum continuous flow (pump), as the upload template says. A compressor keeps the case's suction state
+    (T_in_C, k, M) and gets the pressure ratio its vendor head implies."""
+    base = base or {}
+    pts = sorted(pts, key=lambda r: r["flow_m3h"])
+    effs = [r.get("efficiency_pct") for r in pts]
+    i = max(range(len(pts)), key=lambda j: effs[j]) if all(effs) else len(pts) // 2
+    q_d, h_d = pts[i]["flow_m3h"], pts[i]["head_m"]
+    e_d = effs[i] or (base.get("design") or {}).get("eff_pct") or 75
+    kind = base.get("kind") or "pump"
+    c = {"kind": kind, "basis": f"{VENDOR}: {note}" if note else VENDOR, "source": "vendor",
+         "points": [[round(r["flow_m3h"] / q_d, 4), round(r["head_m"] / h_d, 4), round((effs[j] or e_d) / e_d, 4)]
+                    for j, r in enumerate(pts)]}
+    for k_ in ("speed_pct", "variable_speed", "max_speed_pct", "k", "M"):
+        if k_ in base:
+            c[k_] = base[k_]
+    if kind == "compressor":
+        T = float((base.get("design") or {}).get("T_in_C", 100.0))
+        pr = _pr_from_head(h_d * 9.80665 / 1000, T, float(base.get("k", 1.3)), float(base.get("M", 18.015)))
+        c["design"] = {"q_m3_h": q_d, "pr": round(pr, 4), "T_in_C": T, "eff_pct": e_d}
+        c["surge_q"], c["stonewall_q"] = c["points"][0][0], c["points"][-1][0]
+    else:
+        c["design"] = {"q_m3_h": q_d, "head_m": h_d, "eff_pct": e_d}
+        c["min_flow_q"] = c["points"][0][0]
+    return c
+
+
+def _merge_motors(cfg, rows):
+    """Uploaded motor rows (tag, kw, voltage_kv, start, cable_m) into an electrical one-line: the unit's existing motor
+    is updated; a new one goes on the bus whose voltage is closest."""
+    motors, done = cfg.setdefault("motors", []), []
+    for r in rows:
+        tag = r["id"]
+        m = next((m for m in motors if tag in (m.get("unit"), m.get("id"))), None)
+        if m is None:
+            buses = cfg.get("buses") or []
+            if not buses:
+                continue
+            bus = min(buses, key=lambda b: abs(float(b.get("vn_kv", 0)) - float(r.get("voltage_kv") or b.get("vn_kv", 0))))
+            twin = next((x for x in motors if x.get("bus") == bus["id"] and isinstance(x.get("cable"), dict)), None)
+            cable = dict(twin["cable"]) if twin else {"type": next(iter(cfg.get("cable_types") or {"": 0})), "length_km": 0.1}
+            m = {"id": f"M-{tag}", "unit": tag, "bus": bus["id"], "eff": 0.95, "pf": 0.87, "lrc": 6.0, "cable": cable}
+            motors.append(m)
+        m["kw"] = r["kw"]
+        if r.get("start"):
+            m["start"] = r["start"].upper()
+        if r.get("cable_m") and isinstance(m.get("cable"), dict):
+            m["cable"]["length_km"] = r["cable_m"] / 1000
+        m["source"] = f"{VENDOR}: motor list"
+        done.append(m.get("unit") or tag)
+    return done
+
+
+def resolve_uploads(case, root=None):
+    """Merge the engineer's uploads (runs/ws/<case>/inputs/curves.json, motors.json) over the case file or draft into
+    inputs/resolved/curves.json and electrical.json, which file_text reads first. Returns {name: [tags]}."""
+    ins, res, out = (root or ROOT) / "runs" / "ws" / case / "inputs", _resolved(case, root), {}
+    if (ins / "curves.json").exists():
+        doc = json.loads((ins / "curves.json").read_text())
+        cfg = _base(case, "curves.json", root) or {"basis": "", "units": {}}
+        units = cfg.setdefault("units", {})
+        tags = [c["id"] for c in doc.get("curves") or []]
+        for c in doc.get("curves") or []:
+            units[c["id"]] = vendor_curve(c["points"], units.get(c["id"]), doc.get("note", ""))
+        cfg["uploaded"], cfg["uploaded_note"] = sorted(set(uploaded(cfg)) | set(tags)), doc.get("note", "")
+        res.mkdir(parents=True, exist_ok=True)
+        (res / "curves.json").write_text(json.dumps(cfg, indent=1))
+        out["curves.json"] = tags
+    base = _base(case, "electrical.json", root)
+    if (ins / "motors.json").exists() and base:  # ponytail: no one-line yet -> the motors wait for a draft or case file
+        doc = json.loads((ins / "motors.json").read_text())
+        tags = _merge_motors(base, doc.get("motors") or [])
+        base["uploaded"], base["uploaded_note"] = sorted(set(uploaded(base)) | set(tags)), doc.get("note", "")
+        res.mkdir(parents=True, exist_ok=True)
+        (res / "electrical.json").write_text(json.dumps(base, indent=1))
+        out["electrical.json"] = tags
+    return out
 
 
 def _next(xs, v):

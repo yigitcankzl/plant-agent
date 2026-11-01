@@ -193,10 +193,12 @@ def upload(case, kind, data, filename=None):
         (d / "datasheets").mkdir(exist_ok=True)
         (d / "datasheets" / name).write_bytes(data)
         return {"kind": kind, "file": f"inputs/datasheets/{name}", "source": "documented", "bytes": len(data)}
-    rows = _rows(data, kind)
-    (d / f"{kind}.csv").write_bytes(data)
+    # leading "# ..." lines are the file's own note (e.g. "ILLUSTRATIVE vendor curve"); it travels with every value
+    text = data.decode("utf-8-sig")
+    note = " ".join(ln.lstrip("#").strip() for ln in text.splitlines() if ln.startswith("#"))
+    rows = _rows("\n".join(ln for ln in text.splitlines() if not ln.startswith("#")).encode(), kind)
     if kind == "motors":
-        doc = {"source": "datasheet", "note": "motor list uploaded by the engineer", "motors": rows}
+        doc = {"source": "datasheet", "note": note or "motor list uploaded by the engineer", "motors": rows}
     else:
         curves = {}
         for r in rows:
@@ -206,10 +208,14 @@ def upload(case, kind, data, filename=None):
                 raise ValueError(f"{tag}: a curve needs at least three points")
             if any(b["flow_m3h"] <= a["flow_m3h"] for a, b in zip(pts, pts[1:])):
                 raise ValueError(f"{tag}: flow must rise from row to row")
-        doc = {"source": "datasheet", "note": "vendor curves uploaded by the engineer",
+        doc = {"source": "datasheet", "note": note or "vendor curves uploaded by the engineer",
                "curves": [{"id": tag, "points": pts} for tag, pts in curves.items()]}
+    (d / f"{kind}.csv").write_bytes(data)  # the raw file, kept as uploaded
     (d / f"{kind}.json").write_text(json.dumps(doc, indent=2))
-    return {"kind": kind, "file": f"inputs/{kind}.json", "source": "datasheet", "rows": len(rows)}
+    from . import drafts
+    used = drafts.resolve_uploads(case, ROOT)  # into the discipline files the checks read (inputs > case > draft)
+    return {"kind": kind, "file": f"inputs/{kind}.json", "source": "datasheet", "rows": len(rows),
+            "applied_to": {k: v for k, v in used.items() if v}}
 
 
 def inputs(case):

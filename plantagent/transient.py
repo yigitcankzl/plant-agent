@@ -103,7 +103,7 @@ def startup_checks(w, spec, solved):
         if not motor:
             out += [_open(uid, "voltage", "motor list"), _open(uid, "acceleration", "motor list")]
         else:
-            pre = f"{drafts.DRAFT}: " if drafts.is_draft(cfg) else ""
+            pre = drafts.label(cfg, uid)
             try:
                 e = electrical.check(cfg, solved, overrides=[{"unit": uid, "kw": motor["kw"], "start": motor.get("start", "DOL"),
                                                               "source": motor.get("source") or "motor list"}])
@@ -122,16 +122,16 @@ def startup_checks(w, spec, solved):
             if not a:
                 out.append(_open(uid, "acceleration", "motor list"))
             else:
-                assumed = drafts.is_draft(cfg) or a["assumed"]
+                pre = drafts.label(cfg, uid) or (f"{drafts.DRAFT}: " if a["assumed"] else "")
                 out.append({"check": f"startup.{uid}.acceleration", "engine": "transient", "status": "pass" if a["pass"] else "fail",
-                            "title": f"{drafts.DRAFT + ': ' if assumed else ''}{uid}: acceleration to 95 % speed {a['seconds']:.2f} s vs {a['limit_s']:g} s",
+                            "title": f"{pre}{uid}: acceleration to 95 % speed {a['seconds']:.2f} s vs {a['limit_s']:g} s",
                             "numbers": {"value": a["seconds"], "limit": a["limit_s"], "unit": "s"}, "source": a["basis"]})
         if unit["type"] == "compressor":
             c = curve_units.get(uid)
             if not isinstance(c, dict):
                 out.append(_open(uid, "surge", "curve"))
                 continue
-            pre = f"{drafts.DRAFT}: " if drafts.is_draft(overlay) else ""
+            pre = drafts.label(overlay, uid)
             r = _compressor_ramp(curves.scaled(c, spec, uid), unit, solved)
             if not r:
                 out.append(_open(uid, "surge", "solved suction/discharge state"))
