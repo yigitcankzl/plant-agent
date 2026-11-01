@@ -49,9 +49,12 @@ def _labels(page):
     return out
 
 
-def render(pdf, page=0, dpi=170):
+def render(pdf, page=0, dpi=170, rotate=0):
     doc = pymupdf.open(str(pdf))
-    return doc[page].get_pixmap(dpi=dpi).tobytes("png")
+    pg = doc[page]
+    if rotate:
+        pg.set_rotation(rotate)
+    return pg.get_pixmap(dpi=dpi).tobytes("png")
 
 
 def read(pdf, page=0, model="muse-spark-1.3-contributor", rotate=0):

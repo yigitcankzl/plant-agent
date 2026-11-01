@@ -52,8 +52,26 @@
   @media (max-width: 760px) { .newproj form { grid-template-columns: 1fr; } .newproj .wide { grid-column: 1; } }
 </style>
 <link rel="stylesheet" href="design.css">
+<style>
+  body.presentation-home { overflow: hidden; font-size: 18px; }
+  body.presentation-home .wrap { max-width: none; height: 100vh; padding: 32px 54px; }
+  body.presentation-home .site-top nav, body.presentation-home .method, body.presentation-home .stats,
+  body.presentation-home #cases, body.presentation-home #new, body.presentation-home .foot { display: none; }
+  body.presentation-home .site-top { min-height: 58px; }
+  body.presentation-home .logo { font-size: 22px; }
+  body.presentation-home .hero { min-height: calc(100vh - 108px); align-items: center; }
+  body.presentation-home .hero-copy { max-width: 850px; }
+  body.presentation-home .kicker, body.presentation-home .hero-note, body.presentation-home .hero-actions a { font-size: 18px; }
+  body.presentation-home h1 { max-width: 850px; font-size: clamp(54px, 5vw, 82px); line-height: 1.02; }
+  body.presentation-home .lead { max-width: 900px; font-size: 22px; line-height: 1.5; }
+  body.presentation-home .case-board { min-height: 590px; padding: 34px; }
+  body.presentation-home .case-board h2 { font-size: 34px; }
+  body.presentation-home .case-question, body.presentation-home .case-path, body.presentation-home .case-board-top,
+  body.presentation-home .case-board-foot { font-size: 18px; }
+</style>
 </head>
 <body class="landing">
+<script>if (new URLSearchParams(location.search).get('present') === '1') document.body.classList.add('presentation-home');</script>
 <div class="wrap">
   <header class="site-top">
     <a class="logo" href="home.html">Plant<span>Agent</span></a>
