@@ -276,7 +276,7 @@ def draft_economics(w):
     return {"draft": True, "note": f"{DRAFT}: prices are typical values, not the site's. Product price must come from the engineer.",
             "currency": "USD",
             "throughput": {"name": "Process feed", "base": round(base, 2), "unit": unit,
-                           "source": "sum of the non-utility feeds of the built model", "provenance": "documented"},
+                           "source": "sum of the non-utility feeds of the built model", "provenance": "muse_default"},  # ponytail: the built model's feed is Muse's unless the engineer confirms it
             "product": {"price": {"value": None, "unit": f"USD per {unit[:-2]}", "source": "engineer to supply", "provenance": "open"},
                         "variable_cost": {"value": 0, "unit": f"USD per {unit[:-2]}", "source": "muse_default"}},
             "drivers": [{"name": "Electric drives", "units": driven,
