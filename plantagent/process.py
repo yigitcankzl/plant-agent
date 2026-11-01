@@ -65,7 +65,16 @@ SPEC_HELP = {
              "pfr needs volume_m3, or length_m and diameter_m (volume is then pi*d^2/4*L, m). Optional dP_bar. "
              "Results: conversion_pct of each base compound, duty_kW (DWSIM DeltaQ, kW, negative = heat removed), cooling_kW, T_out_C. "
              "distillation: rigorous column. in, distillate, bottoms, optional vapor (partial condenser), stages, feed_stage "
-             "(1 = condenser), condenser total|partial|full_reflux, P_bar, dP_bar, subcool_K. One condenser spec and one reboiler spec: "
+             "(1 = condenser; several feeds: in and feed_stage as equal-length lists), optional efficiency (Murphree, 0-1, "
+             "applied to every tray), optional side draws: out [streams] with side_draws [{stage, phase vapor|liquid, mol_s}] "
+             "in the same order, condenser total|partial|full_reflux (partial needs vapor and vapor_mol_s, the vapour product rate; "
+             "the condenser spec then sets the liquid distillate, and reflux_ratio is reflux over LIQUID distillate), P_bar, dP_bar, "
+             "subcool_K, method bubble_point (default)|modified_bubble_point|simultaneous_correction|sum_rates (absorbers), "
+             "max_iterations, tolerance (loop tolerance, default 1e-4). Bubble-point solvers stall on non-condensable gases (CO2, N2, O2) and on liquid-liquid splits: take "
+             "non-condensables off upstream (flash or component_separator) and state it as an assumption. A large vapour side draw "
+             "(more vapour leaving at the draw than above it) rarely converges: model the column from the draw tray down, with a "
+             "partial condenser whose vapour product (vapor_mol_s) is the draw and a small reflux_ratio, and say so. With a partial "
+             "condenser the liquid distillate must stay above zero (fix bottoms a little below feed minus vapour). One condenser spec and one reboiler spec: "
              "reflux_ratio, boilup_ratio, distillate_mol_s, bottoms_mol_s, or condenser_spec/reboiler_spec {type, value, units, compound}. "
              "Spec types: Reflux Ratio, Boilup Ratio, Product Molar Flow Rate (units mol/s), Product Mass Flow Rate, Heat Duty, "
              "Component Molar Flow Rate, Component Mass Flow Rate, Component Fraction, Component Recovery, Stream Ratio, Temperature, Feed Recovery. "
@@ -432,6 +441,11 @@ class _Sheet:
         if mode is not None and "NRTL" in (spec.get("package") or "NRTL"):
             # default Lee-Kesler liquid enthalpy gives cp(water) ~5.3 kJ/kgK; use liquid Cp data instead
             pp.EnthalpyEntropyCpCvCalculationMode = type(mode).LiqCp_Excess
+        if getattr(pp, "AutoEstimateMissingNRTLUNIQUACParameters", None):
+            # DWSIM fits missing NRTL/UNIQUAC pairs from UNIFAC with IPOPT, which this build does not ship (the worker
+            # crashes); a pair without data is treated as ideal instead
+            pp.AutoEstimateMissingNRTLUNIQUACParameters = False
+            pp.ActivityCoefficientModels_IgnoreMissingInteractionParameters = True
         self.streams, self.units, self.scale = {}, {}, scale
         for name, f in spec.get("feeds", {}).items():
             self._feed(self.stream(name), f, 1.0 if f.get("utility") else scale)
@@ -815,16 +829,34 @@ class _Sheet:
                 obj.OutletTemperature = 273.15 + float(u["T_out_C"])
             return obj
         if t == "distillation":
-            stages, feed_stage = int(u["stages"]), int(u["feed_stage"])
-            if not 1 <= feed_stage <= stages:
-                raise ValueError(f"{uid}: feed_stage must be from 1 (condenser) to {stages}")
+            stages = int(u["stages"])
+            # several feeds: in and feed_stage as equal-length lists (e.g. a vapour feed low and a recycle higher up)
+            feeds = u["in"] if isinstance(u["in"], list) else [u["in"]]
+            feed_stages = [int(v) for v in (u["feed_stage"] if isinstance(u["feed_stage"], list) else [u["feed_stage"]])]
+            if len(feeds) != len(feed_stages):
+                raise ValueError(f"{uid}: in and feed_stage must have the same length ({len(feeds)} feeds, {len(feed_stages)} stages)")
+            for feed_stage in feed_stages:
+                if not 1 <= feed_stage <= stages:
+                    raise ValueError(f"{uid}: feed_stage must be from 1 (condenser) to {stages}")
+            draws = u.get("side_draws") or []
+            outs = u.get("out") or []
+            outs = [outs] if isinstance(outs, str) else list(outs)
+            if len(outs) != len(draws):
+                raise ValueError(f"{uid}: each side draw needs an out stream and a side_draws entry {{stage, phase vapor|liquid, mol_s}}")
+            for d in draws:
+                if not 2 <= int(d["stage"]) <= stages - 1 or d.get("phase") not in ("vapor", "liquid") or float(d["mol_s"]) <= 0:
+                    raise ValueError(f"{uid}: side draw stage must be 2..{stages - 1}, phase vapor|liquid, mol_s > 0")
+            eff = u.get("efficiency")
+            if eff is not None and not 0 < float(eff) <= 1:
+                raise ValueError(f"{uid}: efficiency is a Murphree stage efficiency, 0 < efficiency <= 1")
             condenser = {"total": "Total_Condenser", "partial": "Partial_Condenser", "full_reflux": "Full_Reflux"}
             if u.get("condenser", "total") not in condenser:
                 raise ValueError(f"{uid}: condenser must be total, partial or full_reflux")
             cspec, rspec = self._column_spec(u, "condenser"), self._column_spec(u, "reboiler")
             col = self._add("DistillationColumn", uid)
             col.SetNumberOfStages(stages)
-            col.ConnectFeed(self.stream(u["in"]), feed_stage - 1)
+            for feed, feed_stage in zip(feeds, feed_stages):
+                col.ConnectFeed(self.stream(feed), feed_stage - 1)
             col.ConnectDistillate(self.stream(u["distillate"]))
             col.ConnectBottoms(self.stream(u["bottoms"]))
             if u.get("vapor"):
@@ -838,6 +870,37 @@ class _Sheet:
             col.CondenserType = getattr(type(col.CondenserType), condenser[u.get("condenser", "total")])
             if u.get("subcool_K") is not None:
                 col.TotalCondenserSubcoolingDeltaT = float(u["subcool_K"])
+            methods = {"bubble_point": "Wang-Henke (Bubble Point)", "modified_bubble_point": "Modified Wang-Henke (Bubble Point)",
+                       "simultaneous_correction": "Napthali-Sandholm (Simultaneous Correction)", "sum_rates": "Burningham-Otto (Sum Rates)"}
+            if u.get("method"):
+                if u["method"] not in methods:
+                    raise ValueError(f"{uid}: method must be one of {', '.join(methods)}")
+                col.SolvingMethodName = methods[u["method"]]
+            if u.get("max_iterations"):
+                col.MaxIterations = int(u["max_iterations"])
+            # DWSIM's default 1e-5 loop tolerance also sets a 1e-4 relative mass-balance check after convergence, which a
+            # converged 30-stage beer column misses by 0.01 % and then reports as an error that stops every unit downstream
+            col.InternalLoopTolerance = col.ExternalLoopTolerance = float(u.get("tolerance") or 1e-4)
+            if u.get("vapor_mol_s") is not None:  # partial condenser: the vapour product rate is a fixed input in DWSIM
+                col.VaporFlowRate = float(u["vapor_mol_s"]) * self.scale
+            if eff is not None:  # condenser and reboiler stay equilibrium stages
+                for i in range(1, stages - 1):
+                    col.Stages[i].Efficiency = float(eff)
+            if draws:
+                info = col.MaterialStreams[list(col.MaterialStreams.Keys)[0]]
+                Info, Behavior, Phase = info.GetType(), type(info.StreamBehavior), type(info.StreamPhase)
+                for name, d in zip(outs, draws):
+                    # DWSIM has no automation call for a side draw: register the stream with the column, then wire the port
+                    s = self.stream(name)
+                    si = self.S.Activator.CreateInstance(Info)
+                    si.ID = si.StreamID = s.Name
+                    si.StreamBehavior = Behavior.Sidedraw
+                    si.StreamPhase = Phase.V if d["phase"] == "vapor" else Phase.L
+                    si.AssociatedStage = col.Stages[int(d["stage"]) - 1].Name
+                    si.FlowRate.Value = float(d["mol_s"]) * self.scale
+                    col.MaterialStreams.Add(si.ID, si)
+                    port = next(i for i, c in enumerate(col.GraphicObject.OutputConnectors) if not c.IsAttached)
+                    self._link(col, s, port, -1)
             return col
         raise ValueError(f"unknown unit type {t}")
 
@@ -908,6 +971,12 @@ class _Sheet:
             errs = [str(e.Message)[:200] for e in e2] if e2 is not None else []
         return errs
 
+    def _components(self, s):
+        comp = {c: s.GetCompoundMassFlow(c) * 3600 for c in self.comps}
+        if not any(comp.values()) and s.GetMassFlow() > 0:  # column products: DWSIM leaves compound flows empty, the mass composition is set
+            comp = {c: s.GetMassFlow() * 3600 * float(w) for c, w in zip(self.comps, s.GetOverallMassComposition())}
+        return {c: _r(v, 2) for c, v in comp.items()}
+
     def results(self):
         st = {}
         for n, s in self.streams.items():
@@ -915,7 +984,7 @@ class _Sheet:
                 st[n] = {"T_C": _r(s.GetTemperature() - 273.15, 2), "P_bar": _r(s.GetPressure() / 1e5, 3),
                          "kg_h": _r(s.GetMassFlow() * 3600, 1), "m3_h": _r(s.GetVolumetricFlow() * 3600, 2),
                          "vapour_frac": _r(float(s.Phases[2].Properties.molarfraction or 0.0), 4),
-                         "components_kg_h": {c: _r(s.GetCompoundMassFlow(c) * 3600, 2) for c in self.comps}}
+                         "components_kg_h": self._components(s)}
             except Exception as ex:  # noqa: BLE001 - an unsolved stream reports why
                 st[n] = {"error": str(ex)[:120]}
         un = {}
@@ -1289,6 +1358,40 @@ def _capacity_search(worst, max_scale=5.0):
             "note": "multiple of the current feed flows at which the first stated limit reaches 100 %"}
 
 
+TRACE_X = 1e-6
+
+
+def _strip_traces(sh, spec, errs):
+    """DWSIM's bubble-point column solver fails when a feed carries traces (mole fraction < 1e-6) of a non-volatile
+    compound, e.g. glycol carried over in a column's vapour product. For each column that failed, strip those traces off
+    its feeds in a component_separator (reported, with the kg/h removed) and solve again. Returns (spec or None, notes)."""
+    failed = [u for u in spec["units"] if u["type"] == "distillation" and any(e.startswith(f"{u['id']}:") for e in errs)]
+    if not failed:
+        return None, []
+    import copy
+    new, notes = copy.deepcopy(spec), []
+    for u in failed:
+        feeds = u["in"] if isinstance(u["in"], list) else [u["in"]]
+        renamed = []
+        for f in feeds:
+            s = sh.streams.get(f)
+            x = [float(v) for v in s.GetOverallComposition()] if s is not None else []
+            trace = [c for c, v in zip(sh.comps, x) if 0 < v < TRACE_X]
+            if not trace:
+                renamed.append(f)
+                continue
+            kg = sum(float(w) for c, w in zip(sh.comps, s.GetOverallMassComposition()) if c in trace) * s.GetMassFlow() * 3600
+            uid = f"{u['id']}-traces-{f}"
+            new["units"].insert(next(i for i, v in enumerate(new["units"]) if v["id"] == u["id"]),
+                                {"id": uid, "type": "component_separator", "in": f, "product": f + "~", "reject": f + "~traces",
+                                 "recover_pct": {c: 0.0 for c in trace}})
+            renamed.append(f + "~")
+            notes.append(f"{u['id']}: stripped traces of {', '.join(trace)} ({kg:.3g} kg/h) from feed {f} so the column solver converges")
+        target = next(v for v in new["units"] if v["id"] == u["id"])
+        target["in"] = renamed if isinstance(u["in"], list) else renamed[0]
+    return (new, notes) if notes else (None, [])
+
+
 def _worker(a):
     global _MGR
     mgr = _MGR = _MGR or _dwsim()
@@ -1296,8 +1399,15 @@ def _worker(a):
     if op == "run":
         sh = _Sheet(mgr, spec, float(a.get("scale", 1.0)))
         errs = sh.solve()
+        retry, notes = _strip_traces(sh, spec, errs)
+        if retry:
+            sh = _Sheet(mgr, retry, float(a.get("scale", 1.0)))
+            errs = sh.solve()
         res = sh.results()
-        return {"scale": a.get("scale", 1.0), "errors": errs, **res, "checks": _checks(sh, res)}
+        out = {"scale": a.get("scale", 1.0), "errors": errs, **res, "checks": _checks(sh, res)}
+        if retry:
+            out["notes"] = notes + ([] if not errs else ["the columns still did not converge with the traces removed"])
+        return out
     if op == "capacity":
         # throughput multiple at which the first stated limit reaches 100 % (bisection on all feed flows)
         def worst(scale):

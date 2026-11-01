@@ -777,6 +777,49 @@ KIND = {"pipe_segment": "blocked-in line", "pump": "pump", "hx": "heat exchanger
         "compressor": "compressor", "mixer": "junction", "splitter": "branch", "recycle": "loop closure", "column": "column"}
 
 
+def stitch_areas(specs):
+    """Join area models (in process order) into one plant flowsheet. A feed of a later area that an earlier area's unit
+    produces is joined to that unit's outlet; a feed produced by a later area (a recycle back upstream) stays a feed at its
+    documented value, i.e. the loop is torn there. specs: [(area, spec)]. Returns (spec, interfaces)."""
+    out = {"compounds": [], "package": None, "feeds": {}, "units": [], "limits": {}}
+    produced, made_by, interfaces = set(), {}, []
+    for area, s in specs:
+        for _, outs in (_ports(u) for u in s.get("units") or []):
+            made_by.update({n: area for n in outs})
+    seen_ids = set()
+    for area, s in specs:
+        torn = [n for n in s.get("feeds") or {} if n not in produced and n in made_by and made_by[n] != area]
+        if torn:  # the torn feed and the producing unit's outlet must be two streams
+            text = json.dumps(s)
+            for n in torn:
+                text = text.replace(json.dumps(n), json.dumps(n + "-torn"))
+            s = json.loads(text)
+        pkg = s.get("package") or "NRTL"
+        if out["package"] and pkg != out["package"]:
+            raise ValueError(f"{area}: property package {pkg} differs from {out['package']}; areas must share one package")
+        out["package"] = pkg
+        out["compounds"] += [c for c in s.get("compounds") or [] if c not in out["compounds"]]
+        for name, f in (s.get("feeds") or {}).items():
+            if name in produced:
+                interfaces.append({"stream": name, "from": made_by[name], "to": area, "kind": "joined"})
+            elif name.endswith("-torn"):
+                interfaces.append({"stream": name[:-5], "from": made_by[name[:-5]], "to": area,
+                                   "kind": "torn (recycle held at its documented value)"})
+                out["feeds"][name] = f
+            elif name in out["feeds"]:
+                raise ValueError(f"{area}: feed {name} is already a feed of another area")
+            else:
+                out["feeds"][name] = f
+        for u in s.get("units") or []:
+            if u["id"] in seen_ids:
+                raise ValueError(f"{area}: unit id {u['id']} is used by another area")
+            seen_ids.add(u["id"])
+            out["units"].append(u)
+            produced.update(_ports(u)[1])
+        out["limits"].update(s.get("limits") or {})
+    return out, interfaces
+
+
 def display_names(spec):
     """Readable names for every unit and stream id, from the flowsheet topology (no model call): a unit keeps its P&ID tag
     with its kind; a stream is named by what produces and consumes it, e.g. 'Utility supply to H1007', 'H1007 to T4750'."""
@@ -2325,8 +2368,35 @@ class PlantWorkspace(Study):
             return grid.run(spec, scale)
         return ro.run(spec, scale) if _is_watertap(self.cfg) else process.run(spec, scale)
 
+    def join_areas(self):
+        """A plant case listing `areas` (cases built one by one by the agent) is the deterministic join of their current
+        models: no LLM. Forward interfaces are connected; recycles back upstream are torn at their documented values."""
+        parts = []
+        for area in self.cfg["areas"]:
+            w = PlantWorkspace(area)
+            if not w.built:
+                raise ValueError(f"area {area} has no model yet; build it first")
+            parts.append((w.cfg.get("area") or area, json.loads(json.dumps(w.built["spec"]))))
+        spec, interfaces = stitch_areas(parts)
+        t0 = time.time()
+        result = process.run(spec)
+        self.built = {"label": "areas joined", "spec": spec, "result": result, "model": "areas joined (no LLM)",
+                      "engine": _simulator_name(self.cfg), "areas": [p[0] for p in parts], "interfaces": interfaces,
+                      "seconds": round(time.time() - t0), "cost_usd": 0.0, "at": time.strftime("%Y-%m-%d %H:%M"),
+                      "review": review_model(spec, result, None, self.basis), "gaps": []}
+        self.built["review_status"] = self.built["review"]["status"]
+        self.model_file.write_text(json.dumps(self.built, indent=1))
+        self.revisions = []
+        self.rev_file.write_text("[]")
+        audit.append(self.name, "build", None, "plant model joined from its area models",
+                     {"areas": self.built["areas"], "interfaces": interfaces, "errors": result.get("errors", [])[:5]})
+        self._state = {}
+        return self.built
+
     def build(self):
         """The agent reads the P&ID and data sheet and builds + calibrates the process model itself."""
+        if getattr(self, "cfg", {}).get("areas"):
+            return self.join_areas()
         if getattr(self, "revisions", []):
             raise ValueError("cannot rebuild while revisions exist; archive or explicitly reset the revision history first")
         if self.pid is None and self.cfg.get("pid_pdf"):
@@ -2338,6 +2408,27 @@ class PlantWorkspace(Study):
         self._phase = "build"
         system, user, submit_tool = self._build_prompt()
         sub = self.loop("build", system, user, self.tools() + [submit_tool], "submit_model", 30)
+        return self._finish_build(sub, round(time.time() - t0), round(llm.spent() - usd0, 4))
+
+    def accept_submission(self, run_dir, seconds=None, cost_usd=None):
+        """Replay the agent's last submit_model from a build log (no LLM) through today's engine, review and coverage gate.
+        For a build whose submission was blocked by an engine defect that has since been fixed; the record says so."""
+        log = [json.loads(line) for line in (Path(run_dir) / "log.jsonl").read_text().splitlines()]
+        subs = [r.get("submit") or r.get("args") for r in log if r.get("submit") or r.get("tool") == "submit_model"]
+        if not subs:
+            raise ValueError("no submit_model in that build log")
+        sub = subs[-1]
+        spec = next(r["args"]["spec"] for r in reversed(log) if r.get("tool") == "run_process" and r["args"].get("label") == sub["label"])
+        self.runs[sub["label"]] = {"spec": spec, "purpose": "replayed submission", "scale": 1.0, "result": self._solve(spec)}
+        blocks = [f for f in self._review_run(sub["label"])["findings"] if f["severity"] == "block"] + self._coverage_block(sub["label"])
+        if blocks:
+            raise RuntimeError("replayed submission still blocked: " + "; ".join(f["check"] for f in blocks))
+        built = self._finish_build(sub, seconds, cost_usd)
+        built["accepted"] = {"how": "agent's last submit_model replayed without an LLM after an engine fix", "log": str(run_dir)}
+        self.model_file.write_text(json.dumps(built, indent=1))
+        return built
+
+    def _finish_build(self, sub, seconds, cost_usd):
         run = self.runs.get(sub["label"]) or list(self.runs.values())[-1]
         reviewed = self._review(run["spec"], run.get("result"), sub.get("mapping"), sub.get("assumptions"))
         if reviewed["blocking"]:
@@ -2348,8 +2439,8 @@ class PlantWorkspace(Study):
                       "result": run["result"], "mapping": sub.get("mapping"), "calibration": sub.get("calibration"),
                       "assumptions": sub.get("assumptions"), "model": self.model, "engine": _simulator_name(self.cfg),
                       "coverage": cov,
-                      "read_corrections": len((self.pid or {}).get("corrections") or []), "seconds": round(time.time() - t0),
-                      "cost_usd": round(llm.spent() - usd0, 4), "at": time.strftime("%Y-%m-%d %H:%M"),
+                      "read_corrections": len((self.pid or {}).get("corrections") or []), "seconds": seconds,
+                      "cost_usd": cost_usd, "at": time.strftime("%Y-%m-%d %H:%M"),
                       "review": reviewed, "review_status": reviewed["status"], "gaps": self.gaps}
         self.model_file.write_text(json.dumps(self.built, indent=1))
         self.revisions = []
@@ -2387,6 +2478,22 @@ class PlantWorkspace(Study):
             return self._review(empty, None)
         return self._review(run["spec"], run.get("result"), (self.built or {}).get("mapping") if self.built else None,
                             (self.built or {}).get("assumptions") if self.built else None)
+
+    def _coverage_block(self, label):
+        """A submitted model that leaves out most of the P&ID's equipment is not the plant: block it unless each missing
+        item is named in a reported gap (an alias in case.json counts as modelled)."""
+        run = getattr(self, "runs", {}).get(label) if label else None
+        if not run or not getattr(self, "pid", None) or _is_watertap(self.cfg) or _is_trapped(self.cfg) or _is_grid(self.cfg):
+            return []
+        cov = coverage(self.pid, run["spec"])
+        tags = [e["tag"] for e in self.pid["equipment"] if e.get("tag")]
+        missing = [t for t in cov["missing_equipment"] if t not in (self.cfg.get("model_aliases") or {})
+                   and not any(t in (g.get("what") or "") for g in self.gaps)]
+        if len(missing) * 2 <= len(tags):
+            return []
+        return [_finding("block", "model leaves out most of the P&ID equipment",
+                         f"{len(missing)} of {len(tags)} P&ID equipment items are not units in the model and are not reported gaps",
+                         missing)]
 
     def loop(self, phase, system, user, tools, submit_name, max_steps):
         self._phase = phase
@@ -2432,6 +2539,7 @@ class PlantWorkspace(Study):
                 else:
                     if t["name"] == submit_name:
                         blocks = [f for f in self._review_run(args.get("label"))["findings"] if f["severity"] == "block"]
+                        blocks += self._coverage_block(args.get("label"))
                         if blocks:
                             if not fixing:
                                 limit = step + 1 + 8
