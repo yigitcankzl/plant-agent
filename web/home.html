@@ -112,7 +112,8 @@
 // [case, pitch, task label]: salt_mvr is the flagship demo
 const FEATURED = [["salt_mvr", "+20 % on a patent salt evaporator: Muse finds the compressor limit, proposes cleaning and a parallel compressor; DWSIM verifies 120 %, then load flow, exchanger and boiler checks show what else the change needs.", "Design change · chemical process", "100 % → 120 %", "DWSIM re-solves three changes; the transformer gate still fails"],
   ["ucte_2006", "4 November 2006: dispatchers coupled two busbars at Landesbergen to relieve a line. Muse rebuilt the grid from the UCTE report and, blind to the outcome, predicted the coupling would load the line more, not less.", "Incident reconstruction · power grid", "1,779 → 1,831 A", "pandapower: coupling adds current; the grid is not N-1 secure"],
-  ["freeport_lng_2022", "June 2022: PHMSA recorded a partially filled 18-inch LNG line rising from 37 to 1,313 psig after it was blocked in with its relief isolated. The model brackets a days-scale rupture under ILLUSTRATIVE fill and heat-leak assumptions; restoring relief holds pressure only at an ideal relief boundary, with relieving capacity unchecked.", "Incident reconstruction · LNG terminal", "37 → 1,313 psig · PHMSA recorded", "DWSIM isochore: illustrative scenarios bracket days-scale rupture"]];
+  ["freeport_lng_2022", "June 2022: PHMSA recorded a partially filled 18-inch LNG line rising from 37 to 1,313 psig after it was blocked in with its relief isolated. The model brackets a days-scale rupture under ILLUSTRATIVE fill and heat-leak assumptions; restoring relief holds pressure only at an ideal relief boundary, with relieving capacity unchecked.", "Incident reconstruction · LNG terminal", "37 → 1,313 psig · PHMSA recorded", "DWSIM isochore: illustrative scenarios bracket days-scale rupture"],
+  ["basf_process_column_k_2750_dexpi_c02_uns", "Unseen DEXPI, no hand-written files: the official BASF process-column example (DEXPI C02) was uploaded as is. The drawing was rendered from the file, the open-weight Muse Spark Open built a DWSIM column from it, assuming the duty the drawing does not state, and the drafted discipline files carry every assumption.", "Unseen drawing · open-weight model", "floods at +13 % → 120 % at reflux 0.8", "DWSIM: column at 79 % of flood; product purity not checked"]];
 const SECTORS = [
   ["Water and wastewater", "💧", ["roseburg", "stpete_swwrf", "west_norriton", "pinole_tm15", "goochland_egps", "edgebrook", "stanislaus_surge", "glwa_120in_break", "ltown"]],
   ["Biorefinery: NREL 2011 cellulosic ethanol, rebuilt area by area", "🌾", ["nrel_ethanol_a300", "nrel_ethanol_a500"]],
@@ -156,7 +157,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
     more += list.length;
     return list.length ? `<h2><i>${icon}</i>${name}</h2><div class="grid">${list.join("")}</div>` : "";
   }).join("");
-  document.getElementById("groups").innerHTML = `<h2><i>★</i>Build, switch, block: three changes, engineered before they happen</h2><div class="grid featured">${featured}</div>
+  document.getElementById("groups").innerHTML = `<h2><i>★</i>Build, switch, block, and one drawing it had never seen</h2><div class="grid featured">${featured}</div>
     <details class="library"><summary>▸ Show ${more} more plants · evidence library with ${graded.length} blind studies on real engineering reports</summary>${library}</details>`;
 })().catch(() => { document.getElementById("groups").innerHTML = '<p class="foot">Cases could not be loaded. Start the PlantAgent server and reload this page.</p>'; });
 document.getElementById("newForm").onsubmit = async e => {

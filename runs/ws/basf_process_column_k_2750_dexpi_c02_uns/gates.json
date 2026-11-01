@@ -1,0 +1,91 @@
+{
+ "key": {
+  "headline": "1.2\u00d7 feasible with reflux cut or new shell",
+  "request": "Engineering loop, next round. Goal: +20 % feed: what limits it first and what does it cost? Make the design pass every engineering check that has data.\nThe current design (verified changes: No capex: cut reflux to 0.8 to stay below flood at 1.2\u00d7) was re-solved and checked by the engines. These checks FAIL:\n- proposal rejected: New 600 mm ID shell for 1.2\u00d7 at design reflux (replace K 2750) - corrected physical replacement: change 2 cannot raise existing limit K 2750.diameter_m\nPropose physical changes that fix each failed check (equipment, ratings with a real item behind them, operating settings within documented limits), cheapest first. Return the FULL design as proposals: every earlier verified change you keep plus the new ones, so the design answer stands on its own. Do not edit a limit to pass a check. If a failure cannot be fixed with the information available, start the headline with 'UNSOLVABLE:' and say why and what data would settle it.",
+  "titles": [
+   "No capex: cut reflux to 0.8 to stay below flood at 1.2\u00d7"
+  ],
+  "revisions": 0,
+  "content": "fcf5df3a905c454b9a23c1a12f93307752f9d99c"
+ },
+ "made": "2026-11-01T20:43:24+0300",
+ "disciplines": [
+  {
+   "id": "process",
+   "status": "pass",
+   "summary": "design reaches 120 % (max 142 %, re-solved now)",
+   "source": "DWSIM re-solve of the combined design on the current model",
+   "checks": [
+    {
+     "id": "plant",
+     "check": "maximum throughput with all verified changes vs target",
+     "value": "141.6",
+     "limit": "120",
+     "unit": "%",
+     "kind": "max",
+     "status": "ok",
+     "result": "85 %",
+     "source": "DWSIM re-solve of all 1 verified change(s) together on the current model"
+    }
+   ]
+  },
+  {
+   "id": "robustness",
+   "status": "pass",
+   "summary": "draft (assumed values): operating envelope 2/2 scenarios pass",
+   "source": "DWSIM solves of the pre-FEED operating envelope",
+   "checks": [
+    {
+     "id": "K 2750",
+     "check": "scenario 'Target, feed +10 %': Fair flood fraction vs limit",
+     "value": "0.726",
+     "limit": "0.8",
+     "unit": "fraction of flood",
+     "kind": "max",
+     "status": "ok",
+     "result": "91 %",
+     "source": "DWSIM solve; scenario basis: draft (assumed values): feed swing above the target"
+    },
+    {
+     "id": "K 2750",
+     "check": "scenario 'Target, feed -10 %': Fair flood fraction vs limit",
+     "value": "0.54",
+     "limit": "0.8",
+     "unit": "fraction of flood",
+     "kind": "max",
+     "status": "ok",
+     "result": "68 %",
+     "source": "DWSIM solve; scenario basis: draft (assumed values): turndown below the target (minimum flows)"
+    }
+   ]
+  },
+  {
+   "id": "piping_utilities",
+   "status": "not affected",
+   "summary": "no physical or routing change",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "controls",
+   "status": "not affected",
+   "summary": "no physical or routing change",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "process_safety",
+   "status": "not affected",
+   "summary": "no physical or routing change",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "civil_structural",
+   "status": "not affected",
+   "summary": "no physical or routing change",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  }
+ ]
+}
