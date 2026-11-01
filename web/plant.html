@@ -2069,7 +2069,7 @@ function renderWorklog(log) {
   const rounds = Array.isArray(log.rounds) ? log.rounds : [];
   const openN = (log.result?.open || []).length;
   const status = ({done: openN ? [`Done · ${openN} check${openN === 1 ? '' : 's'} open`, 'open'] : ['Done ✓', 'pass'], unsolved: ['Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
-    budget: ['Stopped at budget limit', 'open'], error: ['Stopped with error', 'fail']})[log.status] || ['Running…', 'open'];
+    budget: ['Stopped at budget limit', 'open'], error: [/no answer after \d+ steps/.test(log.error || '') ? `Stopped: Muse hit its step limit in round ${rounds.length + 1}` : 'Stopped with error', 'fail']})[log.status] || ['Running…', 'open'];
   const sample = SAMPLE_WORKLOG || /illustrative/i.test(log.label || '');
   const posthoc = /post-hoc engineering run/i.test(log.label || '');
   const reason = log.reason || log.error || log.result?.reason;
