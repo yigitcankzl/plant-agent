@@ -3,7 +3,7 @@
 python tools/make_nrel_case.py <stream_tables.json>   (from tools/nrel_tables.py)
 
 Writes, per modelled area, cases/nrel_ethanol_<area>/ (case.json, basis.md, pid.svg) and a DEXPI-style P&ID subset in
-case-data/drawn/, and the plant case cases/nrel_ethanol/ (case.json, outcome.json with the report's stream tables).
+cases/<area>/pid.xml, and the plant case cases/nrel_ethanol/ (case.json, outcome.json with the report's stream tables).
 The basis gives the design basis and the area's INPUT streams only; every output stream of the report's tables is
 withheld in outcome.json, which the agent never reads.
 
@@ -300,12 +300,12 @@ def main(tables):
         name = f"nrel_ethanol_{key}"
         d = ROOT / "cases" / name
         d.mkdir(parents=True, exist_ok=True)
-        (DATA / "drawn").mkdir(parents=True, exist_ok=True)
-        (DATA / "drawn" / f"{name}_pid.xml").write_text(dexpi(a))
+        (ROOT / "cases" / name).mkdir(parents=True, exist_ok=True)
+        (ROOT / "cases" / name / "pid.xml").write_text(dexpi(a))
         (d / "pid.svg").write_text(svg(key, a, a["title"]))
         (d / "basis.md").write_text(basis_md(key, a, t))
         cfg = {"kind": "process", "title": a["title"], "source": f"{REPORT}; {a['pfd']}; P&ID drawn by PlantAgent from the report's PFDs",
-               "url": "https://docs.nlr.gov/docs/fy11osti/47764.pdf", "pid": f"drawn/{name}_pid.xml", "svg": "pid.svg", "basis": "basis.md",
+               "url": "https://docs.nlr.gov/docs/fy11osti/47764.pdf", "pid": f"cases/{name}/pid.xml", "svg": "pid.svg", "basis": "basis.md",
                "task_type": "model reconstruction", "area": a["area"], "plant": "nrel_ethanol",
                "question": f"Rebuild {a['area']} from the design basis and check it against the report's stream tables: does the model reproduce the flows, temperatures and duties?",
                "target_scale": 1.0, "throughput": {"name": f"Feed S{next(iter(a['inputs']))} ({next(iter(a['inputs'].values())).split(' (')[0].lower()})", "base": round(t[next(iter(a["inputs"]))]["Total Flow"] / 1000, 1), "unit": "t/h"},

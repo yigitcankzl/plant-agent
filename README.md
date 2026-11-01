@@ -264,12 +264,16 @@ cp .env.example .env && chmod 600 .env          # then add keys
 .venv/bin/python -m plantagent.grade                   # grade the latest runs against the engineers
 ```
 
-**From a clean clone, with no API key and no DWSIM**
-- `home.html`, the blind-study replays and the committed process answers can be browsed.
-- The throughput slider replays precomputed solutions.
-- Asking, building and applying changes need the API key and DWSIM 9 with .NET 8.
+**From a clean clone, with no API key and no engines** (tested on a fresh clone with an empty `$HOME`)
+- Works from the stored results: `home.html`; `plant.html?case=salt_mvr` and its guided tour (`&tour=1`); `ucte_2006`; `freeport_lng_2022`; `nrel_ethanol_a300` and `nrel_ethanol_a500`; `chem_c01`; `swro_brownsville`; `swro_monterey`; `dairy_refrig`; and the `index.html` blind-study replays. The throughput slider replays precomputed solutions.
+- The project-drawn P&IDs ship in `cases/<case>/pid.xml`. The DEXPI reference P&ID C01 ships under CC BY 4.0 (`cases/chem_c01/DEXPI-NOTICE.md`).
+- Public source PDFs are not redistributed; their URLs are in `cases/*/case.json`. Cases that read them (roseburg, stpete_swwrf, edgebrook, dc_iitk) need `PLANTAGENT_DATA_ROOT` pointing at the downloaded files (default `../case-data` next to the repo) and `poppler-utils` (`pdftotext`, `pdftoppm`).
+
+**Engines, for asking, building and applying changes** (plus a Muse key in `.env`)
+- DWSIM 9 under `~/opt/dwsim/usr/local/lib/dwsim` and .NET 8 under `~/opt/dotnet` (paths in `plantagent/process.py`).
+- pandapower in its own venv: `uv venv .venv-electrical --python 3.12 && uv pip install --python .venv-electrical -r requirements-electrical.txt`.
+- WaterTAP in its own venv: `python3 -m venv .venv-watertap && .venv-watertap/bin/pip install -r requirements-watertap.txt`.
 - Optional: ODA File Converter (DWG), LibreCAD, and `.venv-surge` with TSNet.
-- Public PDFs are not redistributed; their URLs are in `cases/*/case.json`.
 
 **Money and access**
 - Muse spend is capped by `MUSE_BUDGET_USD` and logged in `runs/usage.jsonl`.

@@ -269,14 +269,12 @@ BROWNSVILLE_PORTS = {
 
 
 def write_pair(name, eq, lines, names, fluids, ports, routes, labels, valves, title, subtitle, origin, xml_name):
-    drawn = DATA / "drawn"
-    drawn.mkdir(parents=True, exist_ok=True)
-    case = ROOT / "cases" / name
+    case = ROOT / "cases" / name  # the drawn P&ID ships with the repo (cases/<name>/pid.xml)
     case.mkdir(parents=True, exist_ok=True)
-    (drawn / xml_name).write_text(xml_for(eq, lines, origin))
+    (case / "pid.xml").write_text(xml_for(eq, lines, origin))
     (case / "pid.svg").write_text(svg_for(eq, lines, names, fluids, ports, routes, labels, valves, title, subtitle,
                                           (720, 280, -5, -260)))
-    return drawn / xml_name
+    return case / "pid.xml"
 
 
 def main():

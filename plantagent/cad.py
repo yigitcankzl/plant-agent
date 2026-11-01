@@ -256,8 +256,9 @@ def redline(dxf_in, dxf_out, changes, rev, extents, labels=()):
 
 
 # --- demo --------------------------------------------------------------------------------------
-PAHALA = Path("/home/kizil/Desktop/hackathon/case-data/realcad/pahala/pahala-wwtp-drawings.pdf")
-NCSD = Path("/home/kizil/Desktop/hackathon/case-data/realcad/ncsd")
+from .docs import DATA as _DATA  # noqa: E402 - only the self-check below uses the source drawings
+PAHALA = _DATA / "realcad/pahala/pahala-wwtp-drawings.pdf"
+NCSD = _DATA / "realcad/ncsd"
 
 
 def demo(out=Path("runs/cad")):

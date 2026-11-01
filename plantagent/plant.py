@@ -11,7 +11,7 @@ import time
 from pathlib import Path
 
 from . import audit, brine, grid, llm, overlays, pid, process, ro, ro_changes, trapped
-from .docs import DATA
+from .docs import DATA, data_path
 from .study import ARR, Study, compact, submit, text_tool_calls, unstring
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -1779,7 +1779,7 @@ class PlantWorkspace(Study):
         self.pid_file = ROOT / "runs" / "ws" / case_name / "pid_read.json"
         self.confirmed_file = self.pid_file.with_name("pid_confirmed.json")
         if self.cfg.get("pid"):
-            self.pid = pid.overview(DATA / self.cfg["pid"])
+            self.pid = pid.overview(data_path(self.cfg["pid"]))
         elif self.confirmed_file.exists():  # a PDF schematic: the engineer-confirmed read is the one models are built on
             self.pid = json.loads(self.confirmed_file.read_text())
         elif self.pid_file.exists():  # read by Muse vision, not yet confirmed by the engineer
@@ -2177,7 +2177,7 @@ class PlantWorkspace(Study):
         if name == "relief_scan":
             if not self.cfg.get("pid"):
                 return {"error": "the relief scan needs a smart (DEXPI) P&ID; this drawing is a PDF read by vision"}
-            return pid.relief_scan(DATA / self.cfg["pid"])
+            return pid.relief_scan(data_path(self.cfg["pid"]))
         if name == "check_coverage":
             r = self.runs.get(a["label"])
             if not r:

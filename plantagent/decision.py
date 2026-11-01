@@ -18,7 +18,7 @@ import zipfile
 from pathlib import Path
 
 from . import audit, pid, process
-from .docs import DATA
+from .docs import DATA, data_path
 from .plant import FIELD, KIND, PlantWorkspace, added_equipment, describe_change, display_names, model_only_change
 from .proposed import ports, topology
 from .revb import _num, qty, value_text
@@ -503,7 +503,7 @@ def make(w, answer=None):
         for c in r["changes"]:
             owners.setdefault(_owner(proposed, c), r["rev"])
     new_equipment = [e for r in revs for e in (r.get("new_equipment") or added_equipment(r["changes"]))]
-    relief = pid.relief_scan(DATA / w.cfg["pid"]) if w.cfg.get("pid") else []
+    relief = pid.relief_scan(data_path(w.cfg["pid"])) if w.cfg.get("pid") else []
     # changed P&ID items: the model units, the P&ID heaters they stand for, and the items the proposals name
     changed_tags = set(owners) | {t for t, m in aliases.items() if m in owners} | \
         {t for p in props.values() for t in (p.get("fixes"), p.get("tag")) if t}

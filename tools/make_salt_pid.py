@@ -2,7 +2,7 @@
 
 The topology and operating points follow US Patent 5,366,514 (Texas Brine, 1994) FIG. I and Table I; tags, line numbers,
 valves and relief set pressures are ours (the patent shows no instrumentation). No public P&ID of such a plant exists.
-python tools/make_salt_pid.py   ->   case-data/drawn/salt_mvr_pid.xml and cases/salt_mvr/pid.svg
+python tools/make_salt_pid.py   ->   cases/salt_mvr/pid.xml and cases/salt_mvr/pid.svg
 """
 from pathlib import Path
 from xml.sax.saxutils import escape
@@ -215,15 +215,15 @@ def svg():
 if __name__ == "__main__":
     out = DATA / "drawn"
     out.mkdir(parents=True, exist_ok=True)
-    (out / "salt_mvr_pid.xml").write_text(xml())
+    (ROOT / "cases" / "salt_mvr" / "pid.xml").write_text(xml())
     (ROOT / "cases" / "salt_mvr").mkdir(parents=True, exist_ok=True)
     (ROOT / "cases" / "salt_mvr" / "pid.svg").write_text(svg())
     import sys
     sys.path.insert(0, str(ROOT))
     from plantagent import pid
-    ov = pid.overview(out / "salt_mvr_pid.xml")
+    ov = pid.overview(ROOT / "cases" / "salt_mvr" / "pid.xml")
     print(len(ov["equipment"]), "equipment,", len(ov["connections"]), "connections,", len(ov["valves"]), "valves")
     assert len(ov["equipment"]) == len(EQ) and len(ov["connections"]) >= 15
-    for r in pid.relief_scan(out / "salt_mvr_pid.xml"):
+    for r in pid.relief_scan(ROOT / "cases" / "salt_mvr" / "pid.xml"):
         print(f"  {r['tag']:6s} {','.join(r['side_fluids']):6s} {r['status']:24s} {r['detail'][:90]}")
     print("ok")

@@ -13,6 +13,7 @@ Free space is found on an occupancy grid built from the drawing's own geometry (
 placed on top of existing linework or text when there is room. The case SVG file is only read.
 """
 import json
+from pathlib import Path
 import math
 import re
 import time
@@ -1165,9 +1166,22 @@ def design_solve(w, ans, scale=None):
     changes = [c for p in props for c in p.get("changes") or []]
     key = (w.name, json.dumps(changes, sort_keys=True, default=str), json.dumps(w.spec, sort_keys=True, default=str), round(scale, 4))
     if key not in _DESIGN:
+        import hashlib
         from . import process, ro
-        spec = patch(copy.deepcopy(w.spec), changes)
-        _DESIGN[key] = ro.run(spec, scale) if _is_watertap(w.cfg) else process.run(spec, scale)
+        if w.cfg.get("engine") in ("pandapower", "trapped"):
+            return None
+        # solved once and stored beside the model, so a clone without the simulator replays the same combined design
+        store = Path(w.model_file).with_name("design_solve.json")
+        disk = json.loads(store.read_text()) if store.exists() else {}
+        h = hashlib.sha1(json.dumps(key, default=str).encode()).hexdigest()
+        if h in disk:
+            _DESIGN[key] = disk[h]
+        elif not (ro.available() if _is_watertap(w.cfg) else process.available()):
+            return None  # no engine and nothing stored: the per-proposal calculations stand; nothing solves on page load
+        else:
+            spec = patch(copy.deepcopy(w.spec), changes)
+            _DESIGN[key] = ro.run(spec, scale) if _is_watertap(w.cfg) else process.run(spec, scale)
+            store.write_text(json.dumps({**disk, h: _DESIGN[key]}, default=str))
     sim = "WaterTAP" if _is_watertap(w.cfg) else "DWSIM"
     return _DESIGN[key], scale, f"combined design at {scale * 100:.0f} % ({len(props)} verified changes applied together, {sim})"
 
