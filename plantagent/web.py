@@ -396,7 +396,7 @@ def plant_project(case):
     historian_map = ROOT / "cases" / case / "historian_map.json"
     historian_cfg = json.loads(historian_map.read_text()) if historian_map.exists() else {}
     return {"case": case, "kind": "process", "engine": w.cfg.get("engine", "dwsim"), "title": w.cfg["title"], "source": w.cfg["source"], "question": w.cfg["question"], "task_type": w.cfg.get("task_type"), "suggested_questions": w.cfg.get("suggested_questions"), "drawing_note": w.cfg.get("drawing_note"),
-            "data_note": w.cfg.get("data_note"), "throughput": w.cfg.get("throughput"), "drawing": "svg" if w.cfg.get("svg") else "pdf" if w.cfg.get("pid_pdf") else "none", "dexpi": bool(w.cfg.get("pid")),
+            "data_note": w.cfg.get("data_note"), "featured_work": w.cfg.get("featured_work"), "throughput": w.cfg.get("throughput"), "drawing": "svg" if w.cfg.get("svg") else "pdf" if w.cfg.get("pid_pdf") else "none", "dexpi": bool(w.cfg.get("pid")),
             "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid or {"equipment": [], "connections": [], "valves": [], "control": []}, "basis": w.basis, "model": w.model,
             "has_compressor_curve": has_compressor_curve,
             "built": {**{k: v for k, v in w.built.items() if k != "result"},

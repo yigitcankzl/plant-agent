@@ -2072,7 +2072,7 @@ function renderWorklog(log) {
   const rounds = Array.isArray(log.rounds) ? log.rounds : [];
   const openN = (log.result?.open || []).length;
   const status = ({done: openN ? [`Done · ${openN} check${openN === 1 ? '' : 's'} open`, 'open'] : ['Done ✓', 'pass'], unsolved: ['Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
-    budget: ['Stopped at budget limit', 'open'], error: [/no answer after \d+ steps/.test(log.error || '') ? `Stopped: Muse hit its step limit in round ${rounds.length + 1}` : 'Stopped with error', 'fail']})[log.status] || ['Running…', 'open'];
+    budget: ['Stopped at budget limit', 'open'], error: [/no answer after \d+ steps/.test(log.error || '') ? `Step limit, round ${rounds.length + 1}` : 'Stopped with error', 'fail']})[log.status] || ['Running…', 'open'];
   const sample = SAMPLE_WORKLOG || /illustrative/i.test(log.label || '');
   const posthoc = /post-hoc engineering run/i.test(log.label || '');
   const reason = log.reason || log.error || log.result?.reason;
@@ -2104,7 +2104,8 @@ async function loadWorklog() {
     } else {
       const runs = await api('work');
       if (!Array.isArray(runs) || !runs.length) return renderWorklog(null);
-      log = await api(`work/${encodeURIComponent(runs[0].id)}`);
+      const pick = runs.find(r => r.id === P?.featured_work) || runs[0];  // the case can pin the run that tells its story; the rest stay in the list
+      log = await api(`work/${encodeURIComponent(pick.id)}`);
     }
     renderWorklog(log);
     if (REPLAY_ID) replayPlay();
