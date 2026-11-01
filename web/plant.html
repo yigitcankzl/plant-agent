@@ -671,8 +671,8 @@
   <aside class="right workspace-decision" id="resultPane">
     <div class="rhead"><span id="inspectorTitle">Result</span><div class="workspace-tabs" role="group" aria-label="Result detail"><button type="button" id="decisionView" aria-pressed="true">Decision</button><button type="button" id="engineeringView" aria-pressed="false">Engineering</button></div><span id="spend"></span></div>
     <section id="qa" aria-label="Question and answer">
-      <div><span class="qa-k">Question</span><div id="qaQ">–</div></div>
-      <div><span class="qa-k">Answer</span><div id="qaA">–</div><div id="qaBadges"></div></div>
+      <div><span class="qa-k">Question</span><div id="qaQ"></div></div>
+      <div><span class="qa-k">Answer</span><div id="qaA">Loading the plant…</div><div id="qaBadges"></div></div>
         <div class="work-runner">
           <button class="btn go" id="workRunOpen" type="button" aria-expanded="false" aria-controls="workConfirm">Run full engineering</button>
           <div class="estimate">Estimated Muse cost ~$5–10 · simulator runs are local</div>
@@ -2085,7 +2085,7 @@ function qaBar(lead) {
   $('qaSugg').innerHTML = suggestions().map(x => `<button class="btn" ${act('ask', x)}>${esc(x)}</button>`).join('');
 }
 function answers() {
-  if (!P.built) return;
+  if (!P.built) { $('qaA').textContent = 'No model yet. Ask a question or run full engineering: Muse builds the model first.'; return; }
   GATE_VIEWS = [];
   const all = P.answers || [], last = all.at(-1), d = designAnswer();
   // the verified design leads; a later follow-up that does not reach the target is shown under it, not instead of it
@@ -2581,6 +2581,7 @@ load().then(() => { if (new URLSearchParams(location.search).get('tour') && P?.b
   $('sheet').innerHTML = '<div class="sheet-error">The source drawing could not be displayed. Check the case server and reload.</div>';
   $('answers').innerHTML = '<div class="empty">Check that the project data and simulation server are available, then reload.</div>';
   $('verdict').textContent = 'Case unavailable';
+  $('qaA').textContent = 'This plant could not be loaded. Check the case files and reload.';
 });
 </script>
 <script src="assumptions.js"></script>
