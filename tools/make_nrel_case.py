@@ -113,6 +113,14 @@ AREAS = {
 - Vent scrubber T-512: the beer column overhead and the seed and production fermentor vents are scrubbed with water; it recovers 99 % of the vented ethanol; the effluent (about 1.8 wt % ethanol) returns to the beer well.
 - Molecular sieve M-503: the saturated D-502 overhead vapour is superheated and fed to one of two adsorption columns, which removes 95 % of the water and a small amount of ethanol; the 99.5 % ethanol vapour is cooled against the regeneration condensate and finally condensed with cooling water and pumped to storage. Regeneration: a slipstream of pure ethanol vapour strips the water off under vacuum; the mixture (about 70-72 wt % ethanol) is condensed and returned to D-502.
 - Pressure filter S-505: operated without a wash; the cake is dried with air to 35 % moisture; the drying air goes to the combustor and the pressed stillage water to wastewater treatment.
+
+### Modelling notes (solver limits found by PlantAgent's engine tests on this case, not from the report)
+
+- DWSIM's rigorous column does not converge with CO2 or O2 in it: take the dissolved CO2 off the preheated beer ahead of D-501 (flash or component_separator) and send it with the D-501 vent to T-512.
+- D-501's vapour side draw carries more vapour than leaves the top, which the column solver does not converge: model D-501 from the side-draw tray down, with a partial condenser whose vapour product (vapor_mol_s) is the side draw S510, and a small reflux ratio.
+- D-502 with a partial condenser and almost no liquid distillate does not converge: use a total condenser and let H-503 vaporise and superheat the overhead before the sieve; report the condenser duty with that caveat.
+- T-512 (absorber with CO2) and M-503 (adsorption) are fixed-split separations here (component_separator) at the documented recoveries.
+- Every equipment item on the P&ID must appear as a unit with its tag.
 """,
     },
     "a300": {

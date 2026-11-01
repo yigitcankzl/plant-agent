@@ -2458,6 +2458,22 @@ class PlantWorkspace(Study):
         return self._review(run["spec"], run.get("result"), (self.built or {}).get("mapping") if self.built else None,
                             (self.built or {}).get("assumptions") if self.built else None)
 
+    def _coverage_block(self, label):
+        """A submitted model that leaves out most of the P&ID's equipment is not the plant: block it unless each missing
+        item is named in a reported gap (an alias in case.json counts as modelled)."""
+        run = self.runs.get(label) if label else None
+        if not run or not self.pid or _is_watertap(self.cfg) or _is_trapped(self.cfg) or _is_grid(self.cfg):
+            return []
+        cov = coverage(self.pid, run["spec"])
+        tags = [e["tag"] for e in self.pid["equipment"] if e.get("tag")]
+        missing = [t for t in cov["missing_equipment"] if t not in (self.cfg.get("model_aliases") or {})
+                   and not any(t in (g.get("what") or "") for g in self.gaps)]
+        if len(missing) * 2 <= len(tags):
+            return []
+        return [_finding("block", "model leaves out most of the P&ID equipment",
+                         f"{len(missing)} of {len(tags)} P&ID equipment items are not units in the model and are not reported gaps",
+                         missing)]
+
     def loop(self, phase, system, user, tools, submit_name, max_steps):
         self._phase = phase
         if phase != "build" or submit_name != "submit_model":
@@ -2502,6 +2518,7 @@ class PlantWorkspace(Study):
                 else:
                     if t["name"] == submit_name:
                         blocks = [f for f in self._review_run(args.get("label"))["findings"] if f["severity"] == "block"]
+                        blocks += self._coverage_block(args.get("label"))
                         if blocks:
                             if not fixing:
                                 limit = step + 1 + 8
