@@ -620,6 +620,10 @@
   .step-card .work-step-detail, .step-card .work-numbers, .step-card .work-step-meta, .step-card .work-step-tags { color: var(--fg-2); margin-top: 6px; }
   .step-card .work-fixes { margin-top: 8px; border-left: 2px solid var(--act); padding-left: 10px; color: var(--fg-2); }
   .process.focused .stage { position: relative; }
+  #rightScroll > #askDock { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; padding: 12px 18px 6px; }
+  #rightScroll > #askDock .cmd { max-width: none; min-width: 0; } #rightScroll > #askDock input { min-width: 0; width: 100%; font-size: 13px; }
+  #rightScroll > #qaSugg { display: flex; flex-direction: column; gap: 4px; padding: 0 18px 12px; }
+  #rightScroll > #qaSugg > * { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; font-size: 12px; padding: 4px 8px; }
 </style>
 </head>
 <body class="process focused">
@@ -2551,7 +2555,8 @@ function openDetails(on) {
 }
 (() => {
   const body = $('ddBody');
-  [$('askDock'), $('qaSugg'), $('modePanel'), $('analysisLog'), $('historyDetails'), $('answers')].forEach(n => n && body.appendChild(n));
+  [$('modePanel'), $('analysisLog'), $('historyDetails'), $('answers')].forEach(n => n && body.appendChild(n));
+  $('rightScroll').prepend($('askDock'), $('qaSugg')); $('q').placeholder = 'Ask anything about this plant…';  // the question box is the main entry: always on the strip
   const head = document.querySelector('#detailDrawer .dd-head'), rh = document.querySelector('#resultPane .rhead');
   head.querySelector('b').replaceWith(rh);  // inspector title, Decision/Engineering and AI cost head the drawer
   $('rightScroll').insertAdjacentHTML('beforeend', '<button class="btn dd-open-btn" id="ddOpen" type="button">Decision, package and details</button>');
