@@ -494,6 +494,69 @@
     .ask-panel .qa-ask { grid-template-columns: 1fr auto; }
     .evidence-panel { align-items: stretch; flex-direction: column; gap: 10px; }
   }
+
+  /* Drafting-room pass: the session column is the engineer's calculation pad (ink), the canvas is the drawing (paper).
+     One memorable device: each round of the engineering loop is marked like a drawing revision (the triangle the Rev B
+     sheet uses). Everything else is quiet: dots instead of pills, plain labels instead of boxes, space instead of rules. */
+  .process.focused {
+    --ink: #121b21; --ink-2: #18242c; --rule: #22323b; --fg: #e4eaed; --fg-2: #9aabb4; --fg-3: #6f828c;
+    --go: #6fbf9a; --stop: #e0735d; --hold: #d4b064; --act: #8fd0c2; --paper: #e9ece6;
+  }
+  .process.focused aside.right { background: var(--ink); border-right: 1px solid var(--rule); }
+  .process.focused .rhead { background: var(--ink); border-bottom: 1px solid var(--rule); }
+  .process.focused #inspectorTitle { font-size: 13px; font-weight: 650; color: var(--fg); letter-spacing: 0; }
+  .process.focused main { background: var(--paper); }
+  .process.focused .pid-viewport { background-color: var(--paper);
+    background-image: linear-gradient(#d6dbd3 1px, transparent 1px), linear-gradient(90deg, #d6dbd3 1px, transparent 1px);
+    background-size: 24px 24px; border: 0; box-shadow: none; }
+
+  #qa { background: var(--ink); border-bottom: 0; padding: 22px 22px 6px; }
+  #qa .qa-k { display: none; }
+  #qaQ { color: var(--fg-2); font-size: 13px; line-height: 1.5; max-width: 60ch; }
+  #qaA { margin-top: 10px; color: var(--fg); font-size: 21px; font-weight: 650; line-height: 1.25; letter-spacing: -.01em; max-width: 30ch; }
+  #qaBadges { gap: 4px 14px; margin-top: 12px; }
+  #qaBadges .qa-badge { border: 0; padding: 0; background: none; font: 500 12px var(--sans); color: var(--fg-2); display: inline-flex; align-items: center; gap: 6px; }
+  #qaBadges .qa-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--fg-3); }
+  #qaBadges .qa-badge.ok::before { background: var(--go); } #qaBadges .qa-badge.fail::before { background: var(--stop); } #qaBadges .qa-badge.open::before { background: var(--hold); }
+  #qaBadges .qa-badge.fail { color: #f0b3a6; }
+  .work-runner { border-top: 0; margin-top: 18px; padding-top: 0; }
+  .work-runner > button { background: var(--act); border: 0; color: #0f2a26; font-weight: 650; min-height: 40px; border-radius: 6px; }
+  .work-runner > button:hover { background: #a6ddd1; }
+  .work-runner .estimate { text-align: left; color: var(--fg-3); }
+
+  .worklog { background: var(--ink); border-bottom: 0; padding: 26px 22px 22px; }
+  .worklog-head h3 { font-size: 15px; font-weight: 650; color: var(--fg); }
+  .worklog-goal { color: var(--fg-3); font-size: 12px; }
+  .work-status { border: 0; padding: 0; font-size: 12px; font-weight: 600; }
+  .work-rounds { margin-left: 10px; padding-left: 22px; border-left: 1px solid var(--rule); }
+  .work-round { border-bottom: 0; }
+  .work-round::before { content: ""; left: -32px; top: 12px; width: 19px; height: 17px; border: 0; border-radius: 0;
+    background: #c4533f; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .work-round::after { content: attr(data-n); position: absolute; left: -32px; top: 19px; width: 19px; text-align: center;
+    font: 700 9.5px/1 var(--sans); color: #fff; pointer-events: none; }
+  #worklogPanel .work-step:focus:not(:focus-visible) { outline: none; }
+  .process.focused .rhead { flex-wrap: nowrap; gap: 10px; }
+  .process.focused #inspectorTitle { white-space: nowrap; }
+  .process.focused .rhead .workspace-tabs { flex: 0 0 auto; margin-left: auto; }
+  .process.focused #spend { flex: 1 1 0; text-align: right; font-size: 10.5px; color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .work-round > summary { min-height: 40px; font-size: 13px; font-weight: 600; color: var(--fg); }
+  .work-round > summary::after { color: var(--fg-3); }
+  .work-round-state { color: var(--fg-3); font-size: 12px; }
+  .work-step { grid-template-columns: 64px 14px minmax(0, 1fr); gap: 10px; padding: 9px 0; }
+  .work-actor { border: 0; padding: 0; background: none; text-align: left; color: var(--fg-3); font: 600 11px var(--sans); }
+  .work-actor.muse { background: none; color: var(--act); }
+  .work-step-title { color: var(--fg); font-size: 13px; line-height: 1.45; }
+  .work-step-detail { color: var(--fg-2); font-size: 12px; }
+  .work-step-meta, .work-step-tags, .work-numbers { color: var(--fg-3); }
+  .work-fixes { background: none; border-left: 2px solid var(--act); color: var(--fg-2); padding: 2px 0 2px 10px; margin-top: 2px; }
+  #worklogPanel .work-step[data-act]:hover, #worklogPanel .work-step.on { background: var(--ink-2); }
+  #worklogPanel .work-step.on { box-shadow: inset 2px 0 var(--act); }
+  .work-mark.pass { color: var(--go); } .work-mark.fail { color: var(--stop); } .work-mark.open { color: var(--hold); } .work-mark.info { color: var(--fg-3); }
+  .work-result { border-top: 1px solid var(--rule); }
+  .work-result-row { border-top: 0; }
+  .process.focused .workbench, .process.focused .workbench footer, .process.focused .workbench-tabs { background: var(--ink); }
+  .process.focused .workbench { border-top: 1px solid var(--rule); box-shadow: none; }
+  .process.focused .workbench-tabs { border-bottom: 1px solid var(--rule); }
 </style>
 </head>
 <body class="process focused">
@@ -1817,7 +1880,7 @@ function renderWorklog(log) {
     <p class="worklog-goal">${esc(log.goal || '')}${reason ? `<br><b>Reason:</b> ${esc(reason)}` : ''}</p>
     <div class="work-rounds">${rounds.map((round, index) => {
       const previousIssues = index ? (rounds[index - 1].open_issues || []).map(issue => issue.check).filter(Boolean) : [];
-      return `<details class="work-round"${index === rounds.length - 1 ? ' open' : ''}><summary><span>Round ${esc(round.n ?? index + 1)}</span><span class="work-round-state">${esc(workRoundState(round))}</span></summary>
+      return `<details class="work-round" data-n="${esc(round.n ?? index + 1)}"${index === rounds.length - 1 ? ' open' : ''}><summary><span>Round ${esc(round.n ?? index + 1)}</span><span class="work-round-state">${esc(workRoundState(round))}</span></summary>
         <div class="work-steps">${(round.steps || []).map(step => workStep(step, previousIssues)).join('')}</div></details>`;
     }).join('')}</div>${log.result || ['done', 'unsolved', 'max_rounds', 'budget', 'error'].includes(log.status) ? workResult(log) : ''}`;
   panel.hidden = false;
