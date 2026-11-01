@@ -57,7 +57,7 @@ The Baseten ledger went from $18.147 to $19.692.
 ## Limits (read these before quoting the result)
 - **The whole duty is a Muse assumption.** The drawing does not say what the column separates. The +13 % flood limit is a property of the assumed water/ethanol duty on the documented 500 mm shell, not of BASF's real service.
 - **Cutting reflux to 0.8 lowers separation, and product purity was not checked.** No purity target is on the drawing, and no check exists for it. An engineer must set the purity specification before this proposal means anything.
-- **One provenance tag is wrong.** `economics.throughput.base` (24 t/d) is tagged *documented*, but it comes from Muse's assumed 1,000 kg/h.
+- **Fixed after the run:** `economics.throughput.base` (24 t/d) was tagged *documented* but comes from Muse's assumed 1,000 kg/h; drafts now tag a built model's feed as assumed.
 - **The loop cannot verify a shell replacement**, so the capex option went to the engineer unverified.
 - **One renderer fix was needed.** This exporter writes coordinates in metres. `tools/render_pid.py` now scales padding to the sheet and converts metre sheets to millimetres; before that, the drawing came out about 10 units wide.
 

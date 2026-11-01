@@ -9,6 +9,8 @@
 - The same loop works outside process plants. Two real incidents, rebuilt by Muse from the investigation reports with the conclusions withheld:
   - **UCTE 2006 European blackout** (pandapower): coupling the Landesbergen busbars raises the tripping line 1,779 → 1,831 A; the reduced grid remains insecure under three other single outages.
   - **Freeport LNG 2022** (DWSIM, trapped liquid): a blocked-in LNG line with its relief isolated bursts in days; restoring PSV-101 is screened at an ideal relief boundary, with capacity unchecked.
+- **Not only our demos.** An official DEXPI drawing we had never used (BASF column C02) went through the upload path with no hand-written case file: Muse built the DWSIM column, the discipline files were drafted, an engineer confirmed three assumptions, and the loop verified a no-capex +20 % for $1.54 on open weights. The column's duty is Muse's assumption, and the page says so.
+- **Open weights in the loop.** Muse Spark Open on Baseten ran the same engineering loop: on UCTE and Freeport it reached the same strategy as Muse Wonder; on the salt plant neither model finished, and the page says so.
 - Blind benchmark: on 13 real projects with the engineers' conclusions withheld, Muse reaches **64 %** of them on average (range 33–100 %).
 
 | Muse does | The deterministic engines do |
@@ -23,6 +25,8 @@
 ## Try it in three minutes
 
 Open `web/home.html` and press **Start the 3-minute demo**. It opens the salt crystalliser (`plant.html?case=salt_mvr&tour=1`) and walks through it in six steps: the source P&ID and the model Muse built from it; the +20 % question; what limits it; the fixes, each re-solved in DWSIM; before and after; the evidence.
+
+Then open the BASF column card (`plant.html?case=basf_process_column_k_2750_dexpi_c02_uns`): a drawing the tool had never seen, with no hand-written case file.
 
 Then open the two incident rows on the home page, `plant.html?case=ucte_2006` and `plant.html?case=freeport_lng_2022`. Drag the slider: grid transit for UCTE, hours blocked in for Freeport. Then open **Compare with the recorded decision**.
 
@@ -118,6 +122,42 @@ Limits:
 - DWSIM's sugars and solids stall its column solver, so mass-equivalent ChemSep stand-ins are used. The basis says so.
 - A500 took five builds; the failed ones cost $14.6. The accepted model is Muse's last submission, replayed after column-solver fixes. Its basis carries modelling notes from our engine tests, labelled as such. A Muse calibration session against the design-basis text (not the stream tables) fixed the sieve split; its D-502 purity specs did not converge, so an engineer correction sets D-502's boilup to the lowest value that converges (89.7 wt % overhead against the documented 92.5 wt %). Water in the sieve loop is still +47 %, and no heat duty is within 10 % (D-502 reboiler 9.5 vs 6.6 MW).
 - The joined A300 → A500 plant (`nrel_ethanol`) does not converge yet: on A300's beer the rectifier fails its ethanol mass balance.
+
+## An unseen drawing, no hand-written files
+
+The flagship cases above were prepared by us. To show the tool is not tied to them, we took the official DEXPI example **C02 Process Column (BASF)** (`C02V03-VER.EX02.xml`, [DEXPI TrainingTestCases](https://gitlab.com/dexpi/TrainingTestCases)), unmodified, and ran it through the same path as an upload (`tools/onboard_unseen.py`). Details: [`evidence/generality-c02/`](evidence/generality-c02/README.md). Page: `plant.html?case=basf_process_column_k_2750_dexpi_c02_uns`.
+
+| Step | Done by |
+|---|---|
+| Data sheet from what the DEXPI file states; P&ID drawn from the file | deterministic (`web.new_project`, `tools/render_pid.py`) |
+| DWSIM column model (NRTL, 15 stages) in 25 tool steps | Muse Spark Open |
+| Economics, uncertainty and operating-envelope files | deterministic drafts (`plantagent/drafts.py`), every value tagged with its source |
+| Three assumptions confirmed (vent design 150 °C, 330 days, 10 % discount) | engineer step, logged (`assumptions_log.jsonl`) |
+| "+20 % feed: what limits it first?" then the loop, 3 rounds | Muse proposes, DWSIM and the checks decide |
+
+- **Answer:** the column floods first, at +13 % (Fair flood fraction 0.876 against 0.80 at reflux 1.5).
+- **Verified:** cut reflux to 0.8. DWSIM reaches 120 % at 79 % of the flood limit, no capex. Envelope (2 of 2) and uncertainty (100 % of 48 re-solves) pass on drafted values.
+- **Rejected every round:** a new 600 mm shell. Replacing equipment is a change the loop cannot verify yet, so the run ends at the round limit rather than "done".
+- **Cost:** $1.54 on Baseten (build $0.77, question $0.23, loop $0.55).
+- **Limits:** the drawing does not say what the column separates, so the duty (water/ethanol, 1,000 kg/h, 85 °C, 3 bar) is Muse's assumption, and the result holds for that duty, not BASF's. Cutting reflux lowers separation and product purity is not checked. Disciplines without data (mechanical, electrical, piping…) are shown as open with what they need.
+
+**What makes this work for any plant**
+- **Drafts** (`plantagent/drafts.py`): a plant without electrical, curve, economics, uncertainty or envelope files gets deterministic drafts: IEC motor sizes and a transformer from the motor list, pump/compressor curves scaled from the rated point, Towler & Sinnott factored costs with CEPCI and a Lang factor, ±10 % on every assumed input. Check rows built on them start with "draft (assumed values)". An engineer's file always wins over a draft.
+- **Assumptions panel** (`plantagent/assumptions.py`): every input carries its source (documented, datasheet, assumed, engineer-confirmed); the engineer confirms or edits values, and each confirmation is logged and hash-chained.
+- **Inputs upload**: motor list, vendor curve and data sheet, each with a template, validated before it is stored.
+- **Start-up and limits on every plant**: motor start dip and acceleration for every pump and compressor, surge margin on ramp-up, Souders–Brown and residence time for separators, flooding for columns. Missing data shows as "open: needs …", never as a silent gap.
+
+## The engineering loop on open weights
+
+The same loop ran with **Muse Spark Open** on Baseten ([`evidence/open-weights-engineering/`](evidence/open-weights-engineering/README.md)). The engines decide pass/fail in both cases.
+
+| Case | Muse Wonder | Muse Spark Open |
+|---|---|---|
+| UCTE 2006 | four attempts rejected by the Meta endpoint's content policy (not a quality result) | redispatch + open the BIO-SPX 220 kV tie: line limits pass, N-1 with 0 violations, in two independent runs ($1.73 for the paid one) |
+| Freeport LNG | restore relief: limits and worst case pass, relief capacity open ($0.68) | same conclusion in two runs ($0.15 each) |
+| Salt MVR | unsolved after 2 rounds: process, robustness and uncertainty pass; electrical, compressor curve and start-up fail ($5.56) | stopped at its budget after 3 rounds: 120 % and 4/4 envelope reached, VFD start dip 0.5 %; cable ampacity, K-202 surge and start-up recycle still fail ($4.93) |
+
+This is loop evidence, not a controlled benchmark: prompt wording and cache state were not held fixed.
 
 ## Second opinion: two models, one simulator
 
@@ -252,6 +292,7 @@ It makes no paid model call.
 - **Surge is a pre-screen.** TSNet has no pump inertia or column separation.
 - **The gravity profile has no open-channel step method.**
 - **Costs are AACE Class 5, with no contingency.**
+- **Drafted discipline files are screening values.** Their check rows say "draft (assumed values)"; the start-up check uses typical inertia and load curves until vendor data is uploaded.
 - **No vendor curves, no rigorous dynamics, no multidisciplinary HAZOP, no relief sizing.** Everything PlantAgent produces is a draft for a licensed engineer.
 
 ## Run it
@@ -265,7 +306,7 @@ cp .env.example .env && chmod 600 .env          # then add keys
 ```
 
 **From a clean clone, with no API key and no engines** (tested on a fresh clone with an empty `$HOME`)
-- Works from the stored results: `home.html`; `plant.html?case=salt_mvr` and its guided tour (`&tour=1`); `ucte_2006`; `freeport_lng_2022`; `nrel_ethanol_a300` and `nrel_ethanol_a500`; `chem_c01`; `swro_brownsville`; `swro_monterey`; `dairy_refrig`; and the `index.html` blind-study replays. The throughput slider replays precomputed solutions.
+- Works from the stored results: `home.html`; `plant.html?case=salt_mvr` and its guided tour (`&tour=1`); `ucte_2006`; `freeport_lng_2022`; `nrel_ethanol_a300` and `nrel_ethanol_a500`; `basf_process_column_k_2750_dexpi_c02_uns`; `chem_c01`; `swro_brownsville`; `swro_monterey`; `dairy_refrig`; and the `index.html` blind-study replays. The throughput slider replays precomputed solutions.
 - The project-drawn P&IDs ship in `cases/<case>/pid.xml`. The DEXPI reference P&ID C01 ships under CC BY 4.0 (`cases/chem_c01/DEXPI-NOTICE.md`).
 - Public source PDFs are not redistributed; their URLs are in `cases/*/case.json`. Cases that read them (roseburg, stpete_swwrf, edgebrook, dc_iitk) need `PLANTAGENT_DATA_ROOT` pointing at the downloaded files (default `../case-data` next to the repo) and `poppler-utils` (`pdftotext`, `pdftoppm`).
 
