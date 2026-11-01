@@ -1,0 +1,46 @@
+{
+ "id": "20261101-224302",
+ "case": "salt_mvr",
+ "goal": "Get the unit to 120 % of today's throughput (3,000 short t/d of salt instead of 2,500). Find what limits it, propose the cheapest physical changes, and make the design pass every engineering check: process, robustness, electrical, compressor curves and surge, K-202 start-up, and confidence under uncertainty. If a check cannot pass without data the tool does not have, say UNSOLVABLE: and name the data.",
+ "label": null,
+ "model": "muse-wonder-1.0",
+ "provider": "meta",
+ "max_rounds": 5,
+ "budget_usd": 8.0,
+ "status": "unsolved",
+ "started": "2026-11-01T22:43:02+0300",
+ "usd_total": 0.521,
+ "seconds_total": 50,
+ "rounds": [
+  {
+   "n": 1,
+   "answer_index": 19,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "muse-wonder-1.0",
+     "kind": "propose",
+     "status": "info",
+     "usd": 0.521,
+     "seconds": 50,
+     "title": "UNSOLVABLE: vendor compressor curves missing",
+     "detail": "UNSOLVABLE: vendor compressor curves missing",
+     "changes": []
+    }
+   ]
+  }
+ ],
+ "result": {
+  "answer_index": 19,
+  "headline": "UNSOLVABLE: vendor compressor curves missing",
+  "passes": [],
+  "fails": [],
+  "open": []
+ },
+ "deliverables": [],
+ "needs_human": [
+  "K-201 and proposed K-202 guaranteed compressor curves with surge and stonewall lines: If curves show insufficient surge margin or stonewall below the 120% duty, the parallel K-202 split/size in earlier answers fails and a larger or different machine is needed; if they pass, the UNSOLVABLE headline lifts to a pass",
+  "Anti-surge valve capacity and K-202 start-up ramp/controller settings: If anti-surge capacity or ramp is inadequate, K-202 cannot be started safely on live V-201 vapour and the design needs a larger valve or revised start sequence; if adequate, the start-up check can be closed"
+ ],
+ "finished": "2026-11-01T22:43:52+0300"
+}

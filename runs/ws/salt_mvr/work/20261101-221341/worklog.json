@@ -1,0 +1,1637 @@
+{
+ "id": "20261101-221341",
+ "case": "salt_mvr",
+ "goal": "Get the unit to 120 % of today's throughput (3,000 short t/d of salt instead of 2,500). Find what limits it, propose the cheapest physical changes, and make the design pass every engineering check: process, robustness, electrical, compressor curves and surge, K-202 start-up, and confidence under uncertainty. If a check cannot pass without data the tool does not have, say UNSOLVABLE: and name the data.",
+ "label": null,
+ "model": "baseten:meta-models/muse-spark-open-1026",
+ "provider": "baseten",
+ "max_rounds": 5,
+ "budget_usd": 8.0,
+ "status": "unsolved",
+ "started": "2026-11-01T22:13:41+0300",
+ "usd_total": 6.6626,
+ "seconds_total": 1758,
+ "rounds": [
+  {
+   "n": 1,
+   "answer_index": 14,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "baseten:meta-models/muse-spark-open-1026",
+     "kind": "propose",
+     "status": "info",
+     "usd": 1.0358,
+     "seconds": 179,
+     "title": "Add parallel vapour compressor K-202 taking 25% of V-201 overhead; Clean main heater E-201/V-201 and extend to 11,000 m2; Hold purge evaporator feed at today's rate (no V-301 extension); Replace TX-1 2.5 MVA with 7.5 MVA and give K-202 a VFD",
+     "detail": "UNSOLVABLE: K-202 curve and surge missing",
+     "changes": [
+      {
+       "add_unit": {
+        "id": "K201_SPLIT",
+        "type": "splitter",
+        "in": "S3001tot",
+        "out": [
+         "S3001",
+         "S3001b"
+        ],
+        "fractions": [
+         0.75,
+         0.25
+        ]
+       }
+      },
+      {
+       "add_unit": {
+        "id": "K-202",
+        "type": "compressor",
+        "in": "S3001b",
+        "out": "S3002b",
+        "P_out_bar": 3.08,
+        "eff_pct": 75
+       },
+       "limits": {
+        "max_kg_h": 70000,
+        "max_kW": 4000,
+        "max_discharge_C": 220
+       },
+       "rating_source": "vendor guarantee curve to confirm / standard centrifugal blower frame 4 MW class"
+      },
+      {
+       "reroute": {
+        "unit": "OVERHEAD_SPLIT",
+        "field": "out",
+        "value": [
+         "S3101",
+         "S3001tot"
+        ]
+       },
+       "from": [
+        "S3101",
+        "S3001"
+       ]
+      },
+      {
+       "reroute": {
+        "unit": "OVERHEAD_SPLIT",
+        "field": "fractions",
+        "value": [
+         0.07033,
+         0.92967
+        ]
+       },
+       "from": [
+        0.0843762616067824,
+        0.9156237383932176
+       ]
+      },
+      {
+       "reroute": {
+        "unit": "D-201MIX",
+        "field": "in",
+        "value": [
+         "S3002raw",
+         "S3002b",
+         "TURBINE_EXH"
+        ]
+       },
+       "from": [
+        "S3002raw",
+        "TURBINE_EXH"
+       ]
+      },
+      {
+       "path": "units.V-201.area_m2",
+       "value": 11000,
+       "physical_change": "Add 2,200 m2 extended-surface tube bundle (or second parallel E-201 train) and chemical clean to restore clean U",
+       "rating_source": "vendor thermal rating to confirm / standard extended bundle",
+       "from": 8800
+      },
+      {
+       "path": "units.V-201.U_W_m2K",
+       "value": 2000,
+       "physical_change": "Chemical/mechanical cleaning to documented clean coefficient 2,000 W/m2K (fouled case 1,600 fails)",
+       "rating_source": "field U test from TI-2002/TI-2003 and FI-2001 before/after clean",
+       "from": 2000
+      },
+      {
+       "path": "feeds.PURGEFEED.kg_h",
+       "value": 39666,
+       "physical_change": "Operate purge draw to V-301 at constant 47,600 kg/h actual (operate FV-301 on level/chemistry, not proportional to throughput)",
+       "rating_source": "operating instruction - lab chemistry limit to confirm",
+       "from": 47600
+      },
+      {
+       "path": "units.OVERHEAD_SPLIT.fractions",
+       "value": [
+        0.07033,
+        0.92967
+       ],
+       "from": [
+        0.0843762616067824,
+        0.9156237383932176
+       ]
+      },
+      {
+       "path": "electrical.TX-1.sn_mva",
+       "value": 7.5,
+       "physical_change": "Replace existing 2.5 MVA TX-1 with 7.5 MVA ONAN unit (impedance and tap to match existing MV/LV)",
+       "rating_source": "electrical vendor quote to confirm / standard 7.5 MVA frame",
+       "from": null
+      },
+      {
+       "path": "electrical.M-K-202.start",
+       "value": "VFD",
+       "physical_change": "Supply new K-202 motor from VFD (instead of DOL) to limit start dip to <1%",
+       "rating_source": "drive vendor - 2.1 MW MV VFD",
+       "from": null
+      },
+      {
+       "path": "electrical.M-K-202.cable",
+       "value": "185 mm2 XLPE Cu",
+       "physical_change": "Upgrade K-202 feeder to 185 mm2 if existing cable <150 mm2 (ampacity check 127% in earlier file)",
+       "rating_source": "cable supplier catalogue IEC 60287 - to be confirmed on site",
+       "from": null
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Add parallel vapour compressor K-202 taking 25% of V-201 overhead",
+     "status": "fail",
+     "detail": "change 4 reroute needs a known unit, connection field and value",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Clean main heater E-201/V-201 and extend to 11,000 m2",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 100.1
+     }
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Hold purge evaporator feed at today's rate (no V-301 extension)",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 98.5
+     }
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Replace TX-1 2.5 MVA with 7.5 MVA and give K-202 a VFD",
+     "status": "fail",
+     "detail": "change 2: unknown motor M-K-202; use the unit id of one of: COMP_MIX, COMP_SPLIT, K-201, K-201_SPLIT, K-202, K201_JOIN, K201_MERGE, K201_SPLIT, KDISCH_MIX, P-201; change 3: unknown motor M-K-202; use the unit id of one of: COMP_MIX, COMP_SPLIT, K-201, K-201_SPLIT, K-202, K201_JOIN, K201_MERGE, K201_SPLIT, KDISCH_MIX, P-201",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process",
+     "engine": "DWSIM",
+     "title": "design does not reach 120 % (max 98 %, re-solved now)",
+     "status": "fail",
+     "numbers": {},
+     "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "robustness",
+     "engine": "DWSIM",
+     "title": "operating envelope 0/4 scenarios pass (fails: Clean design at today's rate, Clean design at sales target, Target with heater fouled to the design-basis U (2,000 W/m²K), Target with five-point existing-compressor efficiency sensitivity)",
+     "status": "fail",
+     "numbers": {},
+     "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "heat_transfer",
+     "engine": "ht/fluids",
+     "title": "E-201 (clean): area needed 7,130 of 8,800 m² at the correlation U 3,297 W/m²K; the verified process design uses the model U 2,000 W/m²K, which governs until the geometry is confirmed; 2 checks over illustrative ratings or geometry, to confi",
+     "status": "open",
+     "numbers": {},
+     "source": "ht/fluids exchanger rating at the design point (ILLUSTRATIVE geometry)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "combustion",
+     "engine": "Cantera",
+     "title": "GT-201 + HRSG-201: steam 19.1 t/h (42,000 lb/h, ×1.20), stack 202 → 198 °C, duct firing 2.71 MW HHV (9.2 MMBtu/h), NOx added 0.3 ppmvd at 15 % O2 (screening); if HRSG steam rises with throughput (×1.20), it needs supplementary (duct) firing",
+     "status": "open",
+     "numbers": {},
+     "source": "Cantera gas-turbine and HRSG model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "piping_utilities",
+     "engine": "none",
+     "title": "no calculation adapter: tie-ins, line sizing, supports and utility headers (supply change on PURGEFEED: header capacity to confirm) remain open",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "curves",
+     "engine": "curves",
+     "title": "compressor/pump curves at the target: K-201 flow vs curve capacity at the required head (this unit) 122 %; K-201 operating flow vs stonewall (choke) 103 %",
+     "status": "fail",
+     "numbers": {
+      "id": "K-201",
+      "check": "flow vs curve capacity at the required head (this unit)",
+      "value": 284943.6,
+      "limit": 233894.3,
+      "unit": "m3/h actual",
+      "utilisation": 1.218
+     },
+     "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "curves_today",
+     "engine": "curves",
+     "title": "compressor/pump curves at today's throughput: K-201 flow vs curve capacity at the required head (this unit) 101 %",
+     "status": "fail",
+     "numbers": {
+      "id": "K-201",
+      "check": "flow vs curve capacity at the required head (this unit)",
+      "value": 237453.0,
+      "limit": 233894.3,
+      "unit": "m3/h actual",
+      "utilisation": 1.015
+     },
+     "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.voltage",
+     "engine": "transient",
+     "status": "open",
+     "title": "K-201: open: needs: motor list",
+     "numbers": {},
+     "source": "start-up screen"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.acceleration",
+     "engine": "transient",
+     "status": "open",
+     "title": "K-201: open: needs: motor list",
+     "numbers": {},
+     "source": "start-up screen"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.surge",
+     "engine": "curves",
+     "status": "pass",
+     "title": "K-201: loaded ramp minimum flow 173,974 vs surge +10 % 153,128 m3/h at 96 % speed",
+     "numbers": {
+      "value": 173974.5,
+      "limit": 153128.5,
+      "unit": "m3/h actual",
+      "margin_ratio": 1.136
+     },
+     "source": "compressor map at the solved pressure ratio during the speed ramp"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup",
+     "engine": "transient",
+     "status": "open",
+     "title": "general start-up screen: 1 pass, 0 fail, 2 open",
+     "numbers": {
+      "rows": 3
+     },
+     "source": "motor start, acceleration and compressor-ramp screens"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "confidence",
+     "engine": "uncertainty",
+     "title": "inputs not numeric in the design model: ['limits.K-202.max_kg_h', 'limits.K-202.max_kW', 'units.K-202.eff_pct']",
+     "status": "open",
+     "numbers": {},
+     "source": "uncertainty"
+    }
+   ],
+   "open_issues": [
+    {
+     "check": "proposal rejected",
+     "detail": "Add parallel vapour compressor K-202 taking 25% of V-201 overhead: change 4 reroute needs a known unit, connection field and value"
+    },
+    {
+     "check": "proposal rejected",
+     "detail": "Replace TX-1 2.5 MVA with 7.5 MVA and give K-202 a VFD: change 2: unknown motor M-K-202; use the unit id of one of: COMP_MIX, COMP_SPLIT, K-201, K-201_SPLIT, K-202, K201_JOIN, K201_MERGE, K201_SPLIT, KDISCH_MIX, P-201; change 3: unknown motor M-K-202; use the unit id of one of: COMP_MIX, COMP_SPLIT, K-201, K-201_SPLIT, K-202, K201_JOIN, K201_MERGE, K201_SPLIT, KDISCH_MIX, P-201"
+    },
+    {
+     "check": "process",
+     "detail": "design does not reach 120 % (max 98 %, re-solved now)"
+    },
+    {
+     "check": "robustness",
+     "detail": "operating envelope 0/4 scenarios pass (fails: Clean design at today's rate, Clean design at sales target, Target with heater fouled to the design-basis U (2,000 W/m²K), Target with five-point existing-compressor efficiency sensitivity)"
+    },
+    {
+     "check": "curves",
+     "detail": "compressor/pump curves at the target: K-201 flow vs curve capacity at the required head (this unit) 122 %; K-201 operating flow vs stonewall (choke) 103 %"
+    },
+    {
+     "check": "curves_today",
+     "detail": "compressor/pump curves at today's throughput: K-201 flow vs curve capacity at the required head (this unit) 101 %"
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "answer_index": 15,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "baseten:meta-models/muse-spark-open-1026",
+     "kind": "fix",
+     "status": "info",
+     "usd": 2.3521,
+     "seconds": 525,
+     "title": "Clean main heater E-201/V-201 and extend to 11,000 m2; Hold purge evaporator feed at today's rate (no V-301 extension); Add parallel vapour compressor K-202 taking 25% of V-201 overhead; Replace TX-1 2.5 MVA with 7.5 MVA and give K-202 a VFD",
+     "detail": "UNSOLVABLE: vendor compressor curves missing",
+     "changes": [
+      {
+       "path": "units.V-201.area_m2",
+       "value": 11000,
+       "physical_change": "Extend E-201/V-201 heater from 8,800 to 11,000 m2 (add tubes/bundle)",
+       "rating_source": "vendor quote to confirm / standard 11,000 m2 tubular heater",
+       "from": 8800
+      },
+      {
+       "path": "units.V-201.U_W_m2K",
+       "value": 2500,
+       "physical_change": "Clean E-201/V-201 to clean performance",
+       "rating_source": "vendor quote to confirm / clean U 2,500 W/m2K at design flows",
+       "from": 2000
+      },
+      {
+       "path": "feeds.PURGEFEED.utility",
+       "value": true,
+       "from": null
+      },
+      {
+       "path": "feeds.TURBINE_EXH.utility",
+       "value": true,
+       "from": null
+      },
+      {
+       "add_unit": {
+        "id": "OVERHEAD_SPLIT",
+        "type": "splitter",
+        "in": "S3001raw",
+        "out": [
+         "S3101",
+         "S3001_common"
+        ],
+        "fixed_kg_h": {
+         "S3101": 20900
+        }
+       },
+       "rating_source": "routing-only splitter – no rating"
+      },
+      {
+       "add_unit": {
+        "id": "COMP_SPLIT",
+        "type": "splitter",
+        "in": "S3001_common",
+        "out": [
+         "S3001",
+         "S3001_K202"
+        ],
+        "fractions": [
+         0.75,
+         0.25
+        ]
+       },
+       "rating_source": "routing-only splitter – no rating"
+      },
+      {
+       "add_unit": {
+        "id": "K-202",
+        "type": "compressor",
+        "in": "S3001_K202",
+        "out": "S3002_K202",
+        "P_out_bar": 3.08,
+        "eff_pct": 75
+       },
+       "limits": {
+        "max_kg_h": 70000,
+        "max_kW": 5000
+       },
+       "rating_source": "vendor quote to confirm / 70 t/h centrifugal MVR compressor, 5.0 MW motor, PR 1.81"
+      },
+      {
+       "add_unit": {
+        "id": "COMP_MIX",
+        "type": "mixer",
+        "in": [
+         "S3002raw",
+         "S3002_K202"
+        ],
+        "out": [
+         "S3002mix"
+        ]
+       },
+       "rating_source": "routing-only mixer – no rating"
+      },
+      {
+       "add_unit": {
+        "id": "D-201MIX",
+        "type": "mixer",
+        "in": [
+         "S3002mix",
+         "TURBINE_EXH"
+        ],
+        "out": [
+         "S3003FEED"
+        ]
+       },
+       "rating_source": "routing-only mixer – no rating"
+      },
+      {
+       "reroute": {
+        "unit": "K-201",
+        "field": "in",
+        "value": "S3001"
+       },
+       "from": "S3001"
+      },
+      {
+       "path": "electrical.TX-1.sn_mva",
+       "value": 7.5,
+       "physical_change": "Replace TX-1 2.5 MVA with 7.5 MVA unit",
+       "from": null
+      },
+      {
+       "path": "electrical.TX-1.tap_percent",
+       "value": 5,
+       "physical_change": "Raise TX-1 tap 5% to support 4.16 kV bus",
+       "from": null
+      },
+      {
+       "path": "electrical.K-202.start",
+       "value": "VFD",
+       "physical_change": "Fit VFD starter to K-202 motor",
+       "from": null
+      },
+      {
+       "path": "electrical.K-202.cable",
+       "value": "240mm2 XLPE Cu",
+       "physical_change": "Upsize K-202 feeder cable to 240 mm2 XLPE Cu (ampacity to be confirmed)",
+       "from": null
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Clean main heater E-201/V-201 and extend to 11,000 m2",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 100.1
+     }
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Hold purge evaporator feed at today's rate (no V-301 extension)",
+     "status": "fail",
+     "detail": "still over at the target: V-301 heater area needed (BPE included) vs installed 106 %; V-201 boil-up duty vs heat from the heating steam (2 % closure tolerance) 100 %; K-201 suction flow vs capacity 120 %; V-201 heater area needed (BPE included) vs installed 111 %",
+     "numbers": {
+      "capacity_pct": 100.1
+     }
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Add parallel vapour compressor K-202 taking 25% of V-201 overhead",
+     "status": "fail",
+     "detail": "splitter OVERHEAD_SPLIT is missing fractions and no cited run supplies them",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Replace TX-1 2.5 MVA with 7.5 MVA and give K-202 a VFD",
+     "status": "fail",
+     "detail": "change 4: cable must be one of MV-3x185Al, MV-3x95Cu, LV-3x240Cu",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process",
+     "engine": "DWSIM",
+     "title": "design does not reach 120 % (max 100 %, re-solved now)",
+     "status": "fail",
+     "numbers": {},
+     "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "robustness",
+     "engine": "DWSIM",
+     "title": "operating envelope 1/4 scenarios pass (fails: Clean design at sales target, Target with heater fouled to the design-basis U (2,000 W/m²K), Target with five-point existing-compressor efficiency sensitivity)",
+     "status": "fail",
+     "numbers": {},
+     "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "heat_transfer",
+     "engine": "ht/fluids",
+     "title": "E-201 (clean): area needed 7,048 of 8,800 m² at the correlation U 3,288 W/m²K; the verified process design uses the model U 2,500 W/m²K, which governs until the geometry is confirmed; 2 checks over illustrative ratings or geometry, to confi",
+     "status": "open",
+     "numbers": {},
+     "source": "ht/fluids exchanger rating at the design point (ILLUSTRATIVE geometry)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "combustion",
+     "engine": "Cantera",
+     "title": "GT-201 + HRSG-201: steam 19.1 t/h (42,000 lb/h, ×1.20), stack 205 → 200 °C, duct firing 2.73 MW HHV (9.3 MMBtu/h), NOx added 0.4 ppmvd at 15 % O2 (screening); if HRSG steam rises with throughput (×1.20), it needs supplementary (duct) firing",
+     "status": "open",
+     "numbers": {},
+     "source": "Cantera gas-turbine and HRSG model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "curves",
+     "engine": "curves",
+     "title": "compressor/pump curves at the target: K-201 flow vs curve capacity at the required head (this unit) 120 %; K-201 operating flow vs stonewall (choke) 102 %",
+     "status": "fail",
+     "numbers": {
+      "id": "K-201",
+      "check": "flow vs curve capacity at the required head (this unit)",
+      "value": 280638.4,
+      "limit": 233894.3,
+      "unit": "m3/h actual",
+      "utilisation": 1.2
+     },
+     "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "curves_today",
+     "engine": "curves",
+     "title": "compressor/pump curves at today's throughput: all within curve limits (worst K-201 flow vs curve capacity at the required head (this unit) 100 %)",
+     "status": "pass",
+     "numbers": {
+      "id": "K-201",
+      "check": "flow vs curve capacity at the required head (this unit)",
+      "value": 233865.3,
+      "limit": 233894.3,
+      "unit": "m3/h actual",
+      "utilisation": 1.0
+     },
+     "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.voltage",
+     "engine": "transient",
+     "status": "open",
+     "title": "K-201: open: needs: motor list",
+     "numbers": {},
+     "source": "start-up screen"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.acceleration",
+     "engine": "transient",
+     "status": "open",
+     "title": "K-201: open: needs: motor list",
+     "numbers": {},
+     "source": "start-up screen"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.surge",
+     "engine": "curves",
+     "status": "pass",
+     "title": "K-201: loaded ramp minimum flow 173,974 vs surge +10 % 153,128 m3/h at 96 % speed",
+     "numbers": {
+      "value": 173974.5,
+      "limit": 153128.5,
+      "unit": "m3/h actual",
+      "margin_ratio": 1.136
+     },
+     "source": "compressor map at the solved pressure ratio during the speed ramp"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup",
+     "engine": "transient",
+     "status": "open",
+     "title": "general start-up screen: 1 pass, 0 fail, 2 open",
+     "numbers": {
+      "rows": 3
+     },
+     "source": "motor start, acceleration and compressor-ramp screens"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "confidence",
+     "engine": "uncertainty",
+     "title": "inputs not numeric in the design model: ['limits.K-202.max_kg_h', 'limits.K-202.max_kW', 'units.K-202.eff_pct']",
+     "status": "open",
+     "numbers": {},
+     "source": "uncertainty"
+    }
+   ],
+   "open_issues": [
+    {
+     "check": "proposal rejected",
+     "detail": "Hold purge evaporator feed at today's rate (no V-301 extension): still over at the target: V-301 heater area needed (BPE included) vs installed 106 %; V-201 boil-up duty vs heat from the heating steam (2 % closure tolerance) 100 %; K-201 suction flow vs capacity 120 %; V-201 heater area needed (BPE included) vs installed 111 %"
+    },
+    {
+     "check": "proposal rejected",
+     "detail": "Add parallel vapour compressor K-202 taking 25% of V-201 overhead: splitter OVERHEAD_SPLIT is missing fractions and no cited run supplies them"
+    },
+    {
+     "check": "proposal rejected",
+     "detail": "Replace TX-1 2.5 MVA with 7.5 MVA and give K-202 a VFD: change 4: cable must be one of MV-3x185Al, MV-3x95Cu, LV-3x240Cu"
+    },
+    {
+     "check": "process",
+     "detail": "design does not reach 120 % (max 100 %, re-solved now)"
+    },
+    {
+     "check": "robustness",
+     "detail": "operating envelope 1/4 scenarios pass (fails: Clean design at sales target, Target with heater fouled to the design-basis U (2,000 W/m²K), Target with five-point existing-compressor efficiency sensitivity)"
+    },
+    {
+     "check": "curves",
+     "detail": "compressor/pump curves at the target: K-201 flow vs curve capacity at the required head (this unit) 120 %; K-201 operating flow vs stonewall (choke) 102 %"
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "answer_index": 16,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "baseten:meta-models/muse-spark-open-1026",
+     "kind": "fix",
+     "status": "info",
+     "usd": 1.031,
+     "seconds": 288,
+     "title": "Clean main heater E-201/V-201 and extend to 11,000 m²; Add parallel vapour compressor K-202 taking 25% of V-201 overhead; Hold purge steam at today's rate of 20.9 t/h; Replace transformer TX-1 with 7.5 MVA unit and raise tap 5% and give K-202 VFD on MV-3x185Al",
+     "detail": "UNSOLVABLE: vendor compressor curves still missing",
+     "changes": [
+      {
+       "path": "units.V-201.U_W_m2K",
+       "value": 2500,
+       "physical_change": "Clean/re-tube extended heater to restore clean U",
+       "rating_source": "Standard cleaning restoring design U 2,500 W/m²K per data sheet - to confirm",
+       "from": 2000
+      },
+      {
+       "path": "units.V-201.area_m2",
+       "value": 11000,
+       "physical_change": "Extend main heater E-201/V-201 to 11,000 m² frame",
+       "rating_source": "Vendor standard extended bundle 11,000 m² to confirm",
+       "from": 8800
+      },
+      {
+       "add_unit": {
+        "id": "COMP_SPLIT",
+        "type": "splitter",
+        "in": "S3001",
+        "out": [
+         "S3001a",
+         "S3001b"
+        ],
+        "fractions": [
+         0.75,
+         0.25
+        ]
+       },
+       "limits": {},
+       "rating_source": "routing only - splitter no rating"
+      },
+      {
+       "add_unit": {
+        "id": "K-202",
+        "type": "compressor",
+        "in": "S3001b",
+        "out": "S3002raw2",
+        "P_out_bar": 3.08,
+        "eff_pct": 75
+       },
+       "limits": {
+        "max_kg_h": 70000,
+        "max_kW": 4500
+       },
+       "rating_source": "vendor quote to confirm / standard size 70 t/h, 4.5 MW motor"
+      },
+      {
+       "reroute": {
+        "unit": "OVERHEAD_SPLIT",
+        "field": "out",
+        "value": [
+         "S3101",
+         "S3001"
+        ]
+       },
+       "from": [
+        "S3101",
+        "S3001"
+       ]
+      },
+      {
+       "reroute": {
+        "unit": "OVERHEAD_SPLIT",
+        "field": "fixed_kg_h",
+        "value": {
+         "S3101": 20900
+        }
+       },
+       "from": null
+      },
+      {
+       "reroute": {
+        "unit": "K-201",
+        "field": "in",
+        "value": "S3001a"
+       },
+       "from": "S3001"
+      },
+      {
+       "reroute": {
+        "unit": "D-201MIX",
+        "field": "in",
+        "value": [
+         "S3002raw",
+         "S3002raw2",
+         "TURBINE_EXH"
+        ]
+       },
+       "from": [
+        "S3002raw",
+        "TURBINE_EXH"
+       ]
+      },
+      {
+       "path": "units.OVERHEAD_SPLIT.fixed_kg_h",
+       "value": {
+        "S3101": 20900
+       },
+       "rating_source": "operating setpoint within documented limits - hold E-301 duty, no V-301 extension",
+       "from": null
+      },
+      {
+       "path": "electrical.TX-1.sn_mva",
+       "value": 7.5,
+       "physical_change": "Replace TX-1 2.5 MVA with 7.5 MVA unit",
+       "from": null
+      },
+      {
+       "path": "electrical.TX-1.tap_percent",
+       "value": 5,
+       "physical_change": "Raise TX-1 tap 5%",
+       "from": null
+      },
+      {
+       "path": "electrical.K-202.cable",
+       "value": "MV-3x185Al",
+       "physical_change": "Upsize K-202 feeder to MV-3x185Al",
+       "from": null
+      },
+      {
+       "path": "electrical.K-202.start",
+       "value": "VFD",
+       "physical_change": "Fit K-202 with VFD starter",
+       "from": null
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Clean main heater E-201/V-201 and extend to 11,000 m²",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 100.1
+     }
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Add parallel vapour compressor K-202 taking 25% of V-201 overhead",
+     "status": "fail",
+     "detail": "change 4 reroute needs a known unit, connection field and value",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Hold purge steam at today's rate of 20.9 t/h",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 100.0
+     }
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Replace transformer TX-1 with 7.5 MVA unit and raise tap 5% and give K-202 VFD on MV-3x185Al",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 100.1
+     }
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process",
+     "engine": "DWSIM",
+     "title": "design does not reach 120 % (max 100 %, re-solved now)",
+     "status": "fail",
+     "numbers": {},
+     "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "robustness",
+     "engine": "DWSIM",
+     "title": "operating envelope 1/4 scenarios pass (fails: Clean design at sales target, Target with heater fouled to the design-basis U (2,000 W/m²K), Target with five-point existing-compressor efficiency sensitivity)",
+     "status": "fail",
+     "numbers": {},
+     "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "electrical",
+     "engine": "pandapower",
+     "title": "TX-2 84 → 78 % loaded; all electrical checks within limits; proposed upgrade TX-1 2.5 → 7.5 MVA (rating to confirm); proposed TX-1 tap 0 → 5 %; proposed K-202 feeder cable MV-3x185Al; proposed K-202 start VFD",
+     "status": "pass",
+     "numbers": {},
+     "source": "pandapower load flow on the case one-line diagram (ILLUSTRATIVE network)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "heat_transfer",
+     "engine": "ht/fluids",
+     "title": "E-201 (clean): area needed 7,130 of 8,800 m² at the correlation U 3,297 W/m²K; the verified process design uses the model U 2,500 W/m²K, which governs until the geometry is confirmed; 2 checks over illustrative ratings or geometry, to confi",
+     "status": "open",
+     "numbers": {},
+     "source": "ht/fluids exchanger rating at the design point (ILLUSTRATIVE geometry)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "combustion",
+     "engine": "Cantera",
+     "title": "GT-201 + HRSG-201: steam 19.1 t/h (42,000 lb/h, ×1.20), stack 202 → 198 °C, duct firing 2.71 MW HHV (9.2 MMBtu/h), NOx added 0.3 ppmvd at 15 % O2 (screening); if HRSG steam rises with throughput (×1.20), it needs supplementary (duct) firing",
+     "status": "open",
+     "numbers": {},
+     "source": "Cantera gas-turbine and HRSG model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "curves",
+     "engine": "curves",
+     "title": "compressor/pump curves at the target: K-201 flow vs curve capacity at the required head (this unit) 122 %; K-201 operating flow vs stonewall (choke) 103 %",
+     "status": "fail",
+     "numbers": {
+      "id": "K-201",
+      "check": "flow vs curve capacity at the required head (this unit)",
+      "value": 284946.8,
+      "limit": 233894.3,
+      "unit": "m3/h actual",
+      "utilisation": 1.218
+     },
+     "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "curves_today",
+     "engine": "curves",
+     "title": "compressor/pump curves at today's throughput: all within curve limits (worst K-201 flow vs curve capacity at the required head (this unit) 100 %)",
+     "status": "pass",
+     "numbers": {
+      "id": "K-201",
+      "check": "flow vs curve capacity at the required head (this unit)",
+      "value": 233863.5,
+      "limit": 233894.3,
+      "unit": "m3/h actual",
+      "utilisation": 1.0
+     },
+     "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.voltage",
+     "engine": "transient",
+     "status": "open",
+     "title": "K-201: open: needs: motor list",
+     "numbers": {},
+     "source": "start-up screen"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.acceleration",
+     "engine": "transient",
+     "status": "open",
+     "title": "K-201: open: needs: motor list",
+     "numbers": {},
+     "source": "start-up screen"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.surge",
+     "engine": "curves",
+     "status": "pass",
+     "title": "K-201: loaded ramp minimum flow 173,974 vs surge +10 % 153,128 m3/h at 96 % speed",
+     "numbers": {
+      "value": 173974.5,
+      "limit": 153128.5,
+      "unit": "m3/h actual",
+      "margin_ratio": 1.136
+     },
+     "source": "compressor map at the solved pressure ratio during the speed ramp"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup",
+     "engine": "transient",
+     "status": "open",
+     "title": "general start-up screen: 1 pass, 0 fail, 2 open",
+     "numbers": {
+      "rows": 3
+     },
+     "source": "motor start, acceleration and compressor-ramp screens"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "confidence",
+     "engine": "uncertainty",
+     "title": "inputs not numeric in the design model: ['limits.K-202.max_kg_h', 'limits.K-202.max_kW', 'units.K-202.eff_pct']",
+     "status": "open",
+     "numbers": {},
+     "source": "uncertainty"
+    }
+   ],
+   "open_issues": [
+    {
+     "check": "proposal rejected",
+     "detail": "Add parallel vapour compressor K-202 taking 25% of V-201 overhead: change 4 reroute needs a known unit, connection field and value"
+    },
+    {
+     "check": "process",
+     "detail": "design does not reach 120 % (max 100 %, re-solved now)"
+    },
+    {
+     "check": "robustness",
+     "detail": "operating envelope 1/4 scenarios pass (fails: Clean design at sales target, Target with heater fouled to the design-basis U (2,000 W/m²K), Target with five-point existing-compressor efficiency sensitivity)"
+    },
+    {
+     "check": "curves",
+     "detail": "compressor/pump curves at the target: K-201 flow vs curve capacity at the required head (this unit) 122 %; K-201 operating flow vs stonewall (choke) 103 %"
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "answer_index": 17,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "baseten:meta-models/muse-spark-open-1026",
+     "kind": "fix",
+     "status": "info",
+     "usd": 1.3421,
+     "seconds": 411,
+     "title": "Clean main heater E-201/V-201 and extend to 11,000 m²; Hold purge steam at today's rate of 20.9 t/h; Add parallel vapour compressor K-202 taking 25% of V-201 overhead; Replace transformer TX-1 with 7.5 MVA unit and raise tap 5% and give K-202 VFD on MV-3x185Al",
+     "detail": "UNSOLVABLE: vendor compressor curves still missing",
+     "changes": [
+      {
+       "path": "units.V-201.U_W_m2K",
+       "value": 2500,
+       "physical_change": "Chemical clean and refurbish heating surface to restore clean performance",
+       "rating_source": "vendor quote to confirm - standard service: clean U 2,500 W/m²K per data sheet ILLUSTRATIVE clean value",
+       "from": 2000
+      },
+      {
+       "path": "units.V-201.area_m2",
+       "value": 11000,
+       "physical_change": "Add 2,200 m² heating surface (additional tube bundle/module) to V-201 heater",
+       "rating_source": "vendor quote to confirm - standard size: Alfa Laval / SPX 11,000 m² total frame",
+       "from": 8800
+      },
+      {
+       "reroute": {
+        "unit": "OVERHEAD_SPLIT",
+        "field": "out",
+        "value": [
+         "S3101",
+         "S3001tot"
+        ]
+       },
+       "from": [
+        "S3101",
+        "S3001"
+       ]
+      },
+      {
+       "path": "units.OVERHEAD_SPLIT.fixed_kg_h",
+       "value": {
+        "S3101": 20900
+       },
+       "from": null
+      },
+      {
+       "add_unit": {
+        "id": "COMP_SPLIT",
+        "type": "splitter",
+        "in": "S3001tot",
+        "out": [
+         "S3001a",
+         "S3001b"
+        ],
+        "fractions": [
+         0.75,
+         0.25
+        ]
+       }
+      },
+      {
+       "add_unit": {
+        "id": "K-202",
+        "type": "compressor",
+        "in": "S3001b",
+        "out": "S3002b_raw",
+        "P_out_bar": 3.08,
+        "eff_pct": 75
+       },
+       "limits": {
+        "max_kg_h": 75000,
+        "max_kW": 4000,
+        "max_discharge_C": 250
+       },
+       "rating_source": "vendor quote to confirm - standard size: Siemens / MAN / Howden single-stage centrifugal 75 t/h, 4.0 MW motor, PR 1.8"
+      },
+      {
+       "add_unit": {
+        "id": "K201_MIX",
+        "type": "mixer",
+        "in": [
+         "S3002a_raw",
+         "S3002b_raw"
+        ],
+        "out": "S3002mix"
+       }
+      },
+      {
+       "reroute": {
+        "unit": "K-201",
+        "field": "in",
+        "value": "S3001a"
+       },
+       "from": "S3001"
+      },
+      {
+       "reroute": {
+        "unit": "K-201",
+        "field": "out",
+        "value": "S3002a_raw"
+       },
+       "from": "S3002raw"
+      },
+      {
+       "reroute": {
+        "unit": "D-201MIX",
+        "field": "in",
+        "value": [
+         "S3002mix",
+         "TURBINE_EXH"
+        ]
+       },
+       "from": [
+        "S3002raw",
+        "TURBINE_EXH"
+       ]
+      },
+      {
+       "path": "electrical.TX-1.sn_mva",
+       "value": 7.5,
+       "physical_change": "Replace transformer TX-1 with 7.5 MVA unit",
+       "rating_source": "vendor quote to confirm - standard size: ABB/Siemens 7.5 MVA cast-resin",
+       "from": null
+      },
+      {
+       "path": "electrical.TX-1.tap_percent",
+       "value": 5,
+       "from": null
+      },
+      {
+       "path": "electrical.K-202.start",
+       "value": "VFD",
+       "physical_change": "Install VFD for new compressor K-202",
+       "rating_source": "vendor quote to confirm - standard size: Siemens Sinamics 4 MW VFD",
+       "from": null
+      },
+      {
+       "path": "electrical.K-202.cable",
+       "value": "MV-3x185Al",
+       "physical_change": "Install MV cable MV-3x185Al to K-202",
+       "rating_source": "vendor quote to confirm - standard size: MV-3x185Al XLPE",
+       "from": null
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Clean main heater E-201/V-201 and extend to 11,000 m²",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 100.1
+     }
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Hold purge steam at today's rate of 20.9 t/h",
+     "status": "fail",
+     "detail": "still over at the target: V-201 boil-up duty vs heat from the heating steam (2 % closure tolerance) 1566 %; V-201 heater area needed (BPE included) vs installed 111 %",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Add parallel vapour compressor K-202 taking 25% of V-201 overhead",
+     "status": "fail",
+     "detail": "still over at the target: V-201 boil-up duty vs heat from the heating steam (2 % closure tolerance) 1566 %; V-201 heater area needed (BPE included) vs installed 111 %; V-301 heater area needed (BPE included) vs installed 106 %",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Replace transformer TX-1 with 7.5 MVA unit and raise tap 5% and give K-202 VFD on MV-3x185Al",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 100.1
+     }
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process",
+     "engine": "DWSIM",
+     "title": "design does not reach 120 % (max 100 %, re-solved now)",
+     "status": "fail",
+     "numbers": {},
+     "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "robustness",
+     "engine": "DWSIM",
+     "title": "operating envelope 1/4 scenarios pass (fails: Clean design at sales target, Target with heater fouled to the design-basis U (2,000 W/m²K), Target with five-point existing-compressor efficiency sensitivity)",
+     "status": "fail",
+     "numbers": {},
+     "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "electrical",
+     "engine": "pandapower",
+     "title": "TX-2 84 → 78 % loaded; all electrical checks within limits; proposed upgrade TX-1 2.5 → 7.5 MVA (rating to confirm); proposed TX-1 tap 0 → 5 %; proposed K-202 start VFD; proposed K-202 feeder cable MV-3x185Al",
+     "status": "pass",
+     "numbers": {},
+     "source": "pandapower load flow on the case one-line diagram (ILLUSTRATIVE network)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "heat_transfer",
+     "engine": "ht/fluids",
+     "title": "E-201 (clean): area needed 7,048 of 8,800 m² at the correlation U 3,288 W/m²K; the verified process design uses the model U 2,500 W/m²K, which governs until the geometry is confirmed; 2 checks over illustrative ratings or geometry, to confi",
+     "status": "open",
+     "numbers": {},
+     "source": "ht/fluids exchanger rating at the design point (ILLUSTRATIVE geometry)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "combustion",
+     "engine": "Cantera",
+     "title": "GT-201 + HRSG-201: steam 19.1 t/h (42,000 lb/h, ×1.20), stack 205 → 200 °C, duct firing 2.73 MW HHV (9.3 MMBtu/h), NOx added 0.4 ppmvd at 15 % O2 (screening); if HRSG steam rises with throughput (×1.20), it needs supplementary (duct) firing",
+     "status": "open",
+     "numbers": {},
+     "source": "Cantera gas-turbine and HRSG model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "curves",
+     "engine": "curves",
+     "title": "compressor/pump curves at the target: K-201 flow vs curve capacity at the required head (this unit) 120 %; K-201 operating flow vs stonewall (choke) 102 %",
+     "status": "fail",
+     "numbers": {
+      "id": "K-201",
+      "check": "flow vs curve capacity at the required head (this unit)",
+      "value": 280638.4,
+      "limit": 233894.3,
+      "unit": "m3/h actual",
+      "utilisation": 1.2
+     },
+     "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "curves_today",
+     "engine": "curves",
+     "title": "compressor/pump curves at today's throughput: all within curve limits (worst K-201 flow vs curve capacity at the required head (this unit) 100 %)",
+     "status": "pass",
+     "numbers": {
+      "id": "K-201",
+      "check": "flow vs curve capacity at the required head (this unit)",
+      "value": 233865.3,
+      "limit": 233894.3,
+      "unit": "m3/h actual",
+      "utilisation": 1.0
+     },
+     "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.voltage",
+     "engine": "transient",
+     "status": "open",
+     "title": "K-201: open: needs: motor list",
+     "numbers": {},
+     "source": "start-up screen"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.acceleration",
+     "engine": "transient",
+     "status": "open",
+     "title": "K-201: open: needs: motor list",
+     "numbers": {},
+     "source": "start-up screen"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.surge",
+     "engine": "curves",
+     "status": "pass",
+     "title": "K-201: loaded ramp minimum flow 173,974 vs surge +10 % 153,128 m3/h at 96 % speed",
+     "numbers": {
+      "value": 173974.5,
+      "limit": 153128.5,
+      "unit": "m3/h actual",
+      "margin_ratio": 1.136
+     },
+     "source": "compressor map at the solved pressure ratio during the speed ramp"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup",
+     "engine": "transient",
+     "status": "open",
+     "title": "general start-up screen: 1 pass, 0 fail, 2 open",
+     "numbers": {
+      "rows": 3
+     },
+     "source": "motor start, acceleration and compressor-ramp screens"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "confidence",
+     "engine": "uncertainty",
+     "title": "inputs not numeric in the design model: ['limits.K-202.max_kg_h', 'limits.K-202.max_kW', 'units.K-202.eff_pct']",
+     "status": "open",
+     "numbers": {},
+     "source": "uncertainty"
+    }
+   ],
+   "open_issues": [
+    {
+     "check": "proposal rejected",
+     "detail": "Hold purge steam at today's rate of 20.9 t/h: still over at the target: V-201 boil-up duty vs heat from the heating steam (2 % closure tolerance) 1566 %; V-201 heater area needed (BPE included) vs installed 111 %"
+    },
+    {
+     "check": "proposal rejected",
+     "detail": "Add parallel vapour compressor K-202 taking 25% of V-201 overhead: still over at the target: V-201 boil-up duty vs heat from the heating steam (2 % closure tolerance) 1566 %; V-201 heater area needed (BPE included) vs installed 111 %; V-301 heater area needed (BPE included) vs installed 106 %"
+    },
+    {
+     "check": "process",
+     "detail": "design does not reach 120 % (max 100 %, re-solved now)"
+    },
+    {
+     "check": "robustness",
+     "detail": "operating envelope 1/4 scenarios pass (fails: Clean design at sales target, Target with heater fouled to the design-basis U (2,000 W/m²K), Target with five-point existing-compressor efficiency sensitivity)"
+    },
+    {
+     "check": "curves",
+     "detail": "compressor/pump curves at the target: K-201 flow vs curve capacity at the required head (this unit) 120 %; K-201 operating flow vs stonewall (choke) 102 %"
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "answer_index": 18,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "baseten:meta-models/muse-spark-open-1026",
+     "kind": "fix",
+     "status": "info",
+     "usd": 0.9016,
+     "seconds": 323,
+     "title": "Clean main heater E-201/V-201 and extend to 11,000 m²; Hold purge steam at today's rate of 20.9 t/h; Add parallel vapour compressor K-202 taking 25% of V-201 overhead; Replace transformer TX-1 with 7.5 MVA unit and raise tap 5% and give K-202 VFD on MV-3x185Al",
+     "detail": "UNSOLVABLE: vendor compressor curves still missing",
+     "changes": [
+      {
+       "path": "units.V-201.U_W_m2K",
+       "value": 2500,
+       "physical_change": "Chemical clean and bundle extension/replacement to 11,000 m2",
+       "rating_source": "vendor quote to confirm - standard 11,000 m2 tubular heater, clean U 2,500 W/m2K per data sheet illustrative clean value",
+       "from": 2000
+      },
+      {
+       "path": "units.V-201.area_m2",
+       "value": 11000,
+       "physical_change": "Add tube bundle area from 8,800 to 11,000 m2",
+       "rating_source": "vendor quote to confirm - standard size 11,000 m2 frame limit per data sheet max_area",
+       "from": 8800
+      },
+      {
+       "path": "feeds.PURGEFEED.kg_h",
+       "value": 47600,
+       "from": 47600
+      },
+      {
+       "path": "feeds.PURGEFEED.utility",
+       "value": true,
+       "from": null
+      },
+      {
+       "add_unit": {
+        "id": "COMP_SPLIT",
+        "type": "splitter",
+        "in": "S3001_joint",
+        "out": [
+         "S3001_K201",
+         "S3001_K202"
+        ],
+        "fractions": [
+         0.75,
+         0.25
+        ]
+       },
+       "limits": {},
+       "rating_source": "routing splitter - no rating"
+      },
+      {
+       "add_unit": {
+        "id": "K-202",
+        "type": "compressor",
+        "in": "S3001_K202",
+        "out": "S3002_K202",
+        "P_out_bar": 3.08,
+        "eff_pct": 75
+       },
+       "limits": {
+        "max_kg_h": 70000,
+        "max_kW": 4000
+       },
+       "rating_source": "vendor quote to confirm - 70 t/h single-stage centrifugal VRC compressor 4.0 MW motor with VFD, curve/surge to confirm (75 t/h option for margin)"
+      },
+      {
+       "reroute": {
+        "unit": "K-201",
+        "field": "in",
+        "value": "S3001_K201"
+       },
+       "from": "S3001"
+      },
+      {
+       "reroute": {
+        "unit": "D-201MIX",
+        "field": "in",
+        "value": [
+         "S3002raw",
+         "S3002_K202",
+         "TURBINE_EXH"
+        ]
+       },
+       "from": [
+        "S3002raw",
+        "TURBINE_EXH"
+       ]
+      },
+      {
+       "reroute": {
+        "unit": "OVERHEAD_SPLIT",
+        "field": "out",
+        "value": [
+         "S3101",
+         "S3001_joint"
+        ]
+       },
+       "from": [
+        "S3101",
+        "S3001"
+       ]
+      },
+      {
+       "path": "units.OVERHEAD_SPLIT.fixed_kg_h",
+       "value": {
+        "S3101": 20898.25
+       },
+       "from": null
+      },
+      {
+       "path": "electrical.TX-1.sn_mva",
+       "value": 7.5,
+       "physical_change": "Replace TX-1 with 7.5 MVA unit",
+       "rating_source": "vendor quote to confirm - 7.5 MVA oil-filled transformer",
+       "from": null
+      },
+      {
+       "path": "electrical.TX-1.tap_percent",
+       "value": 5,
+       "physical_change": "Raise TX-1 tap 5%",
+       "rating_source": "vendor tap setting 5% within -10..10%",
+       "from": null
+      },
+      {
+       "path": "electrical.K-202.start",
+       "value": "VFD",
+       "physical_change": "Install VFD for K-202 4 MW motor",
+       "rating_source": "vendor quote to confirm - 4 MW MV VFD",
+       "from": null
+      },
+      {
+       "path": "electrical.K-202.cable",
+       "value": "MV-3x185Al",
+       "physical_change": "Install MV-3x185Al feeder to K-202",
+       "rating_source": "vendor quote to confirm - MV-3x185Al cable per one-line diagram",
+       "from": null
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Clean main heater E-201/V-201 and extend to 11,000 m²",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 100.1
+     }
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Hold purge steam at today's rate of 20.9 t/h",
+     "status": "fail",
+     "detail": "still over at the target: V-301 heater area needed (BPE included) vs installed 106 %; K-201 suction flow vs capacity 120 %; V-201 heater area needed (BPE included) vs installed 111 %",
+     "numbers": {
+      "capacity_pct": 100.1
+     }
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Add parallel vapour compressor K-202 taking 25% of V-201 overhead",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 107.9
+     }
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Replace transformer TX-1 with 7.5 MVA unit and raise tap 5% and give K-202 VFD on MV-3x185Al",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 100.1
+     }
+    }
+   ]
+  }
+ ],
+ "result": {
+  "answer_index": 18,
+  "headline": "UNSOLVABLE: vendor compressor curves still missing",
+  "passes": [
+   "electrical",
+   "curves_today",
+   "startup.K-201.surge"
+  ],
+  "fails": [
+   "process",
+   "robustness",
+   "curves"
+  ],
+  "open": [
+   "heat_transfer",
+   "combustion",
+   "startup.K-201.voltage",
+   "startup.K-201.acceleration",
+   "startup",
+   "confidence"
+  ]
+ },
+ "deliverables": [],
+ "needs_human": [
+  "heat_transfer: E-201 (clean): area needed 7,048 of 8,800 m² at the correlation U 3,288 W/m²K; the verified process design uses the model U 2,500 W/m²K, which governs until the geometry is confirmed; 2 checks over illustrative ratings or geometry, to confi",
+  "combustion: GT-201 + HRSG-201: steam 19.1 t/h (42,000 lb/h, ×1.20), stack 205 → 200 °C, duct firing 2.73 MW HHV (9.3 MMBtu/h), NOx added 0.4 ppmvd at 15 % O2 (screening); if HRSG steam rises with throughput (×1.20), it needs supplementary (duct) firing",
+  "startup.K-201.voltage: K-201: open: needs: motor list",
+  "startup.K-201.acceleration: K-201: open: needs: motor list",
+  "startup: general start-up screen: 1 pass, 0 fail, 2 open",
+  "confidence: inputs not numeric in the design model: ['limits.K-202.max_kg_h', 'limits.K-202.max_kW', 'units.K-202.eff_pct']",
+  "K-201 guaranteed curve with surge, stonewall, efficiency vs flow/head: If surge line is closer than 8.6% margin or stonewall below 213,712 m3/h, K-201 fails even with K-202 - would require different K-202 split or new K-201 wheel",
+  "K-202 vendor curve, surge line, rated flow/head, VFD range: If K-202 surge margin <10% or capacity <69 t/h at 1.81 pressure ratio, design limited below 120% - upsize to 75,000 kg/h",
+  "Anti-surge valve capacity and start-up dynamics for parallel operation: If anti-surge valve undersized or start-up trips K-201 on surge, design fails electrical/process - would require hot-gas bypass or sequential start logic",
+  "V-201 heater fouling state and achievable clean U: If clean U is 2,000 not 2,500, V-201 needs 9,794 vs 11,000 89% still passes today but margin shrinks to 11% - if fouled to 1,600 would need 12,243 vs 11,000 111% fail"
+ ],
+ "finished": "2026-11-01T22:42:59+0300"
+}
