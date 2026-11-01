@@ -167,13 +167,23 @@ def _append_usage(row):
         os.fsync(handle.fileno())
 
 
+def _tool_names(message, params):
+    """Accept provider-qualified names only when their final segment is an advertised tool."""
+    valid = {t.get("function", {}).get("name") for t in params.get("tools") or []}
+    for call in message.get("tool_calls") or []:
+        leaf = str(call.get("name", "")).rsplit(".", 1)[-1]
+        if call.get("name") not in valid and leaf in valid:
+            call["name"] = leaf
+    return message
+
+
 def complete(model, messages, **params):
     """Returns the assistant message as a dict {content, tool_calls}. Cached; raises once the budget is used up."""
     key = hashlib.sha256(json.dumps([model, messages, params], sort_keys=True).encode()).hexdigest()
     hit = CACHE / f"{key}.json"
     with _billing_lock():
         if hit.exists():
-            return json.loads(hit.read_text())["message"]
+            return _tool_names(json.loads(hit.read_text())["message"], params)
         reserve = _reserve(model, messages, params)
         run_cap = getattr(_SPEND_CAP, "value", None)
         if run_cap and spent() - run_cap[0] + reserve > run_cap[1]:
@@ -193,7 +203,7 @@ def complete(model, messages, **params):
         provider = _host(model) or "meta"
         _append_usage({"model": model, "provider": provider, "tag": current_tag() or provider, "in": r.usage.prompt_tokens,
                        "out": r.usage.completion_tokens, "usd": round(usd, 5)})
-        return msg
+        return _tool_names(msg, params)
 
 
 def transcribe(wav: bytes):

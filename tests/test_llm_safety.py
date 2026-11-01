@@ -82,6 +82,12 @@ class LlmSafetyTests(unittest.TestCase):
         self.assertEqual((row["provider"], row["tag"]), ("baseten", "plant:salt_mvr"))
         self.assertGreater(llm.spent("baseten"), 0)
 
+    def test_provider_qualified_tool_name_is_recovered_only_for_an_advertised_tool(self):
+        params = {"tools": [{"function": {"name": "answer"}}]}
+        msg = {"content": "", "tool_calls": [{"name": "answer.answer"}, {"name": "bad.unknown"}]}
+        fixed = llm._tool_names(msg, params)
+        self.assertEqual([c["name"] for c in fixed["tool_calls"]], ["answer", "bad.unknown"])
+
     def test_spend_tag_can_be_inherited_by_worker_threads(self):
         llm.set_tag("sheet:one")
         with ThreadPoolExecutor(1) as pool:
