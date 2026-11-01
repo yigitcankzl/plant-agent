@@ -211,7 +211,7 @@ def electrical_section(w, changes, built, target, solved=None):
     checks over their limit (they hold the decision back). Returns (markdown lines, over-limit checks)."""
     from . import electrical
     cfg = electrical.config(w.name)
-    if not (cfg and electrical.available() and electrical.motor_changes(cfg, changes)):
+    if not (cfg and electrical.available() and electrical.affected(cfg, changes)):
         return [], []
     try:
         e = electrical.for_workspace(w, changes, target, spec=built, title="Electrical check for the decision pack")

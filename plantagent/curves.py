@@ -207,26 +207,44 @@ def overlay(case):
     return json.loads(f.read_text()) if f.exists() else None
 
 
+def scaled(curve, spec, uid):
+    """A curve anchored at a rated mass flow (anchor_kg_h) follows the unit's rating in the spec: a proposal that sizes the
+    machine larger (limits.<id>.max_kg_h) moves the whole map with it by flow (same head, same normalised shape)."""
+    rated = ((spec.get("limits") or {}).get(uid) or {}).get("max_kg_h")
+    anchor = curve.get("anchor_kg_h")
+    if not rated or not anchor or abs(float(rated) / float(anchor) - 1) < 1e-9:
+        return curve
+    c = copy.deepcopy(curve)
+    c["design"]["q_m3_h"] = float(c["design"]["q_m3_h"]) * float(rated) / float(anchor)
+    c["basis"] = f"{c.get('basis', '')}; flow scaled to the proposed rating {float(rated):,.0f} kg/h (anchor {float(anchor):,.0f})"
+    return c
+
+
 def apply(spec, ov):
     """A copy of the spec with each overlay curve on its unit (the stored model is not changed)."""
     spec = copy.deepcopy(spec)
     for u in spec.get("units") or []:
         if u["id"] in (ov or {}).get("units", {}):
-            u["curve"] = ov["units"][u["id"]]
+            u["curve"] = scaled(ov["units"][u["id"]], spec, u["id"])
     return spec
 
 
-def evaluate(w, refresh=False):
+def design_changes(w, answer=None):
+    """Changes of the verified proposals of the given answer index, or of the design answer."""
+    from .revb import design_answer
+    ans = w.answers[int(answer)] if answer is not None and -len(w.answers) <= int(answer) < len(w.answers) else design_answer(w.answers)
+    return [c for p in (ans or {}).get("proposals") or [] if p.get("verified") for c in p.get("changes") or []]
+
+
+def evaluate(w, refresh=False, answer=None):
     """The case's curves on the combined design (or the model when there is none) at 100 % and at the target.
     Cached in runs/ws/<case>/curves.json by content hash. No model call."""
     from . import process
     from .plant import patch
-    from .revb import design_answer
     ov = overlay(w.name)
     if not ov:
         return {"error": "no performance curves for this case (cases/<case>/curves.json)"}
-    ans = design_answer(w.answers)
-    changes = [c for p in (ans or {}).get("proposals") or [] if p.get("verified") for c in p.get("changes") or []]
+    changes = design_changes(w, answer)
     spec = apply(patch(copy.deepcopy(w.spec), changes), ov)
     target = float(w.cfg.get("target_scale", 1.0))
     key = hashlib.sha256(json.dumps([spec, target, 1], sort_keys=True, default=str).encode()).hexdigest()[:16]
