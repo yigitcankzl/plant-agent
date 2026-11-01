@@ -202,6 +202,8 @@ class Sheet:
 # ---------------------------------------------------------------- small helpers
 
 def _num(v):
+    if isinstance(v, bool):
+        return "yes" if v else "no"  # no Python booleans on a drawing
     if isinstance(v, (int, float)) and not isinstance(v, bool):
         a = abs(v)
         if a >= 1000:

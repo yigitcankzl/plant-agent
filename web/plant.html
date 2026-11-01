@@ -575,6 +575,7 @@
   #qaQ { font-size: 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   #qaA { font-size: 17px; margin-top: 8px; }
   #qaBadges { flex-direction: column; gap: 4px; }
+  #qaBadges .qa-badge.muse { font-style: italic; color: var(--fg-2); }
   .work-runner { margin-top: 14px; }
   .work-runner .estimate { display: none; }
   .worklog { padding: 18px 18px 10px; }
@@ -645,7 +646,7 @@
     <div class="sec"><h4>Equipment load <span id="atScale"></span></h4><div id="eqlist" aria-live="polite"><div class="empty">Loading case data…</div></div></div>
     <div class="sec"><h4>Model <span id="builtBy"></span></h4><div id="modelBox"></div></div>
     <div class="sec"><h4>Model review</h4><div id="reviewBox"><div class="empty">Runs after the model is built.</div></div></div>
-    <div class="sec"><h4>Capability gaps</h4><div id="gapBox"><div class="empty">None recorded.</div></div></div>
+    <div class="sec"><h4>Open: needs data the tool does not have</h4><div id="gapBox"><div class="empty">None recorded.</div></div></div>
     <div class="sec"><h4>Documents</h4>
       <div class="eq" onclick="showDoc('pid')"><div class="t" id="pidName">Smart P&amp;ID <span>DEXPI XML</span></div><div class="why" id="pidStats"></div></div>
       <div class="eq" onclick="showDoc('basis')"><div class="t">Operating data sheet <span>md</span></div></div>
@@ -1058,7 +1059,7 @@ async function load() {
   if (P.data_note) { $('note').textContent = '⚠ ' + P.data_note; $('note').style.display = 'block'; }
   const hi = Math.max(150, Math.ceil(P.target_scale * 100 / 10) * 10 + 30);
   $('scale').max = hi; $('maxLbl').textContent = hi + '%';
-  if (P.drawing !== 'none' || P.dexpi) $('pidStats').textContent = `${P.pid.equipment.length} equipment · ${P.pid.connections.length} connections · ${P.pid.valves.length} valves · ${P.pid.control.length} signals`;
+  if ((P.drawing !== 'none' || P.dexpi) && P.pid.equipment.length) $('pidStats').textContent = `${P.pid.equipment.length} equipment · ${P.pid.connections.length} connections · ${P.pid.valves.length} valves · ${P.pid.control.length} signals`;
   const feed = Object.entries(P.built?.spec?.feeds || {}).find(([k, f]) => !f.utility);
   base = P.throughput ? {name: P.throughput.name, m3_h: P.throughput.base, unit: P.throughput.unit} :
     feed ? {name: feed[0], m3_h: feed[1].m3_h ?? feed[1].kg_h, unit: feed[1].m3_h != null ? 'm³/h' : 'kg/h'} : null;
@@ -1144,7 +1145,7 @@ function fillReview() {
     $('reviewBox').innerHTML = head + (fs.map(f => `<div style="font-size:11.5px;padding:3px 0"><b style="color:var(--${f.severity === 'block' ? 'fail' : 'warn'})">${esc(f.severity)}</b> ${esc(f.check)}<div style="color:var(--muted)">${esc(f.evidence)}</div></div>`).join('')
       || '') + (rev.energy?.note ? `<div style="color:var(--muted);font-size:11px;margin-top:6px">${esc(rev.energy.note)}</div>` : '');
   }
-  $('gapBox').innerHTML = gaps.length ? gaps.map(g => `<div style="font-size:11.5px;padding:3px 0"><b>${esc(g.what)}</b><div style="color:var(--muted)">${esc(g.why)}</div><div>Needed: ${esc(g.needed)}</div></div>`).join('')
+  $('gapBox').innerHTML = gaps.length ? gaps.map(g => `<div style="font-size:11.5px;padding:3px 0" title="${esc(g.why || '')}"><b>Open:</b> ${esc(g.what)}${g.needed ? `<div style="color:var(--muted)">needs ${esc(g.needed)}</div>` : ''}</div>`).join('')
     : '<div class="empty">None recorded.</div>';
 }
 
@@ -1159,6 +1160,7 @@ function calSummary(b) {
   const k = b?.calibration_check?.counts;
   if (!k) return '';
   const out = (k.reproduced || 0) + (k.differs || 0);
+  if (!out) return `no measured output to compare` + (k.not_in_solve ? `: ${k.not_in_solve} not in the solve` : '') + (k.no_reference ? `: ${k.no_reference} without an exact reference` : '');
   return `${k.reproduced} of ${out} measured output${out === 1 ? '' : 's'} reproduced within 3 %` + (k.input ? `, ${k.input} input${k.input === 1 ? '' : 's'} given to the model` : '') +
     (k.not_in_solve ? `, ${k.not_in_solve} not found in the solve` : '') +
     (k.no_reference ? `, ${k.no_reference} without an exact stream/field reference` : '');
@@ -1207,7 +1209,7 @@ function render(st) {
   const rows = Object.values(w).sort((a, b) => b.utilisation - a.utilisation);
   $('eqlist').innerHTML = rows.map(c => {
     const feeds = P.built.spec.feeds || {};
-    const u = units[c.id], name = u ? NAMES[u.type] || u.type : feeds[c.id]?.utility ? 'Utility supply' : 'Process stream';
+    const u = units[c.id], name = u ? NAMES[u.type] || u.type : feeds[c.id]?.utility ? 'Utility supply' : P.engine === 'pandapower' ? (/loading/.test(c.check) ? 'Transformer' : 'Line') : 'Stream';
     return `<div class="eq" data-id="${esc(c.id)}" ${act('select', c.id)} title="${esc(c.id)}"><div class="t">${esc(u ? c.id : nm(c.id))} <span>${Math.round(c.utilisation * 100)}%</span></div>
       <div class="bar"><i style="width:${Math.min(100, c.utilisation / 1.3 * 100)}%;background:var(--${sev(c.utilisation)})"></i></div>
       <div class="why">${esc(name)} · ${esc(c.check)}: ${fmt(c.value)} of ${fmt(c.limit)} ${esc(c.unit)}</div></div>`;
@@ -1274,7 +1276,7 @@ function render(st) {
 // '2026-10-31T01:51:10+03:00' -> '31 Oct 2026, 01:51' for people; raw stamps stay in the audit details
 const when = t => { const d = new Date(t); return isNaN(d) ? String(t ?? '') : d.toLocaleString('en-GB', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'}); };
 const thru = v => v >= 1000 ? Math.round(v).toLocaleString('en-US') : v.toFixed(1);  // 3013.2 -> 3,013
-const fmt = v => typeof v === 'number' ? (Math.abs(v) >= 100 ? Math.round(v).toLocaleString('en-US') : v.toFixed(1)) : v;
+const fmt = v => typeof v === 'number' ? (Math.abs(v) >= 100 ? Math.round(v).toLocaleString('en-US') : v.toFixed(1)) : v === true ? 'yes' : v === false ? 'no' : v;  // no Python booleans on the page
 const nm = id => { const n = (P?.names || {})[id] || id; return /^[a-z]/.test(n) && !/[-_\d]/.test(n) ? n[0].toUpperCase() + n.slice(1) : n; };  // readable name; the raw id stays in tooltips
 const FIELDS = {m3_h: ['flow', 'm³/h'], kg_h: ['flow', 'kg/h'], T_C: ['temperature', '°C'], P_bar: ['pressure', 'bar(a)'], volume_m3: ['working volume', 'm³'],
   area_m2: ['installed area', 'm²'], U_W_m2K: ['heat-transfer coefficient', 'W/m²K'], P_out_bar: ['discharge pressure', 'bar(a)'], T_out_C: ['outlet temperature', '°C'],
@@ -2071,7 +2073,9 @@ function qaBar(lead) {
     b.push(['ok', `numbers from ${simulator()}, not the language model`]);
     if (v) b.push(['ok', `${plural(v, 'change')} re-solved ✓`]);
     const g = gateRows(dd), f = g.filter(r => gateState(r)[0] === 'fail').length, o = g.filter(r => gateState(r)[0] === 'open').length;
-    if (f) b.push(['fail', `${f} discipline check${f === 1 ? '' : 's'} failed`]);
+    if (f && incident()) b.push(['fail', `${f} discipline check${f === 1 ? '' : 's'} failed`]);
+    // one verdict: a failed discipline check outranks Muse's "yes"; Muse's own words stay, labelled
+    if (f && !incident()) { $('qaA').textContent = `Not approvable yet: ${f} discipline check${f === 1 ? '' : 's'} fail${f === 1 ? 's' : ''}`; b.unshift(['muse', `Muse said: ${plain(lead.headline)}`]); }
     if (o) b.push(['open', `${o} not calculated yet`]);
     if (P.outcome?.engineers) b.push(['ok', 'answered blind · compare with what happened →']);
     const u = dd.uncertainty; if (u?.p_target != null) b.push([u.p_target >= .8 ? 'ok' : u.p_target >= .5 ? 'open' : 'fail', `target met in ${Math.round(u.p_target * 100)}% of uncertainty re-solves`]);
@@ -2104,6 +2108,9 @@ const basisOf = x => x.basis || (/run|dwsim|simulat|solve/i.test(x.source || '')
 const basisChip = b => `<span class="vb" style="border:1px solid ${BASIS[b][1]};color:${BASIS[b][1]}">${BASIS[b][0]}</span>`;
 const GATE_NAMES = {process: 'Process', robustness: 'Robustness', mechanical: 'Mechanical', heat_transfer: 'Heat transfer', electrical: 'Electrical', combustion: 'Combustion', piping_utilities: 'Piping', controls: 'Controls', process_safety: 'Safety', civil_structural: 'Civil'};
 const GATE_ORDER = Object.keys(GATE_NAMES);
+const GATE_NEEDS = {process: 'a solved process model', robustness: 'feed and fouling ranges', mechanical: 'vessel and pipe design data', heat_transfer: 'exchanger geometry',
+  electrical: 'a motor list and single-line data', combustion: 'fuel and burner data', piping_utilities: 'line list and utility capacities', controls: 'control narrative and valve data',
+  process_safety: 'relief valve data and the HAZOP', civil_structural: 'foundation and structural loads'};
 let GATE_VIEWS = [];
 function gateRows(a) {
   let rows = a.disciplines || a.engineering_gates || a.gates || a.assessment?.disciplines || a.prefeed?.disciplines ||
@@ -2112,6 +2119,9 @@ function gateRows(a) {
   rows = [...rows];
   if ((a.proposals || []).some(p => p.relief_basis) && !rows.some(row => row.id === 'process_safety'))
     rows.push({id: 'process_safety', status: 'open', summary: 'Ideal relief boundary only; relieving capacity is not checked.', source: 'blocked-in segment simulator'});
+  // a discipline with no calculation is shown as open with what it needs, never silently left out
+  if (rows.length && !incident()) for (const id of GATE_ORDER) if (!rows.some(r => r.id === id))
+    rows.push({id, status: 'open', summary: `Not checked: needs ${GATE_NEEDS[id]}.`, source: 'no input supplied'});
   return rows.filter(row => row?.id).sort((x, y) => {
     const xi = GATE_ORDER.indexOf(x.id), yi = GATE_ORDER.indexOf(y.id);
     return (xi < 0 ? GATE_ORDER.length : xi) - (yi < 0 ? GATE_ORDER.length : yi);

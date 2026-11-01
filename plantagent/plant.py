@@ -956,7 +956,7 @@ def describe_change(spec, c, names=None, aliases=None):
         label, unit = "split (share of flow per outlet)", ""
         fmt = lambda v: " / ".join(f"{float(x) * 100:.1f} %" for x in v) if isinstance(v, list) else str(v)  # noqa: E731
     else:
-        fmt = lambda v: f"{v:,.4g}" if isinstance(v, (int, float)) else str(v)  # noqa: E731
+        fmt = lambda v: ("yes" if v else "no") if isinstance(v, bool) else f"{v:,.4g}" if isinstance(v, (int, float)) else str(v)  # noqa: E731
     return f"{who} {label}: {fmt(frm) + ' → ' if frm is not None else ''}{fmt(c.get('value'))} {unit}".strip()
 
 

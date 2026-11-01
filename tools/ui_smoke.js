@@ -72,7 +72,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
         changes: [{ path: 'units.H1007.duty_kW', value: 1 }], electrical: { summary: 'TX-47 68 → 70 % loaded; all electrical checks within limits', svg: '/x.svg', over: [] } }], cards: [{ title: 'Duty check', result: 'Within limit', inputs: [] }], checks: [] }];
     answers();
     return !!document.querySelector('.decision-brief') && getComputedStyle(document.querySelector('.engineering-detail')).display === 'none' &&
-      document.querySelectorAll('.discipline-gate').length === 2 && !!document.querySelector('.package-action') &&
+      document.querySelectorAll('.discipline-gate').length === GATE_ORDER.length && document.body.textContent.includes('Not checked: needs') && !!document.querySelector('.package-action') &&
       !!document.querySelector('.field-check') && !document.querySelector('.field-checks table') && !!document.querySelector('.prop-actions') && /TX-47/.test(document.querySelector('.electrical-line')?.textContent || '');
   });
   await p.screenshot({ path: `${OUT}/decision_workspace.png` });
