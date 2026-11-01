@@ -10,6 +10,7 @@ from plantagent import loop
 
 class Stub:
     name = "stub"
+    model = "baseten:meta-models/muse-spark-open-1026"
 
     def __init__(self, answers, d):
         self.queue, self.answers, self.asked = list(answers), [], []
@@ -34,6 +35,8 @@ class LoopTest(unittest.TestCase):
             log = loop.run(w, "reach 120 % and pass every check", max_rounds=3, budget_usd=5)
         saved = json.loads((loop.work_dir(w) / log["id"] / "worklog.json").read_text())
         self.assertEqual(saved["status"], log["status"])
+        self.assertEqual(saved["model"], w.model)
+        self.assertEqual(saved["provider"], "baseten")
         return w, log
 
     def test_fail_then_fix_then_done(self):
