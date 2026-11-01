@@ -75,8 +75,22 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.goto(`${BASE}/home.html`); await p.waitForTimeout(2000);
   const homeOk = await p.evaluate(() => !document.body.innerHTML.includes('bt_column_debottleneck') &&
     /case=salt_mvr&tour=1/.test(document.querySelector('.hero-actions a').getAttribute('href')));
-  console.log(homeOk ? 'ok  ' : 'FAIL', 'home: broken bt_column case gone, demo opens salt_mvr');
-  bad += homeOk ? 0 : 1;
+  const heroEvidence = await p.evaluate(() => { const line = document.querySelector('#openWeightsHero'), links = [...line.querySelectorAll('a')];
+    return /refused the UCTE blackout prompt four times/.test(line.textContent) && /0 violations/.test(line.textContent) &&
+      links.some(a => /case=ucte_2006/.test(a.href)) && links.some(a => /evidence\/open-weights-engineering\/README.md/.test(a.href)); });
+  console.log(homeOk && heroEvidence ? 'ok  ' : 'FAIL', 'home: demo opens salt_mvr and first-screen open-weights evidence is linked');
+  bad += homeOk && heroEvidence ? 0 : 1;
+  await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForSelector('#asOpen', { timeout: 30000 });
+  await p.evaluate(() => document.querySelector('#asOpen').click()); await p.waitForSelector('#asTop10 li', { timeout: 30000 }).catch(() => {});
+  const assumptionsScale = await p.evaluate(() => {
+    const top = document.querySelector('#asTop10'), bulk = document.querySelector('button[data-bulk]');
+    window.__bulkPrompt = ''; window.confirm = text => { window.__bulkPrompt = text; return false; }; bulk?.click();
+    return !!top?.querySelector('li') && !!(top.compareDocumentPosition(document.querySelector('.as-sum')) & Node.DOCUMENT_POSITION_FOLLOWING) &&
+      /maximum throughput|limit \d+/i.test(top.textContent) && /Confirm all \d+ values/.test(window.__bulkPrompt);
+  });
+  await p.screenshot({ path: `${OUT}/salt_assumptions_top10_1440x900.png` });
+  console.log(assumptionsScale ? 'ok  ' : 'FAIL', 'assumptions: sensitivity-ranked inputs first and one counted bulk-confirm dialog');
+  bad += assumptionsScale ? 0 : 1;
   for (const c of ['chem_c01', 'salt_mvr']) {  // the verified design leads the result even after a later follow-up
     await p.goto(`${BASE}/plant.html?case=${c}`); await p.waitForSelector('#answers .decision-brief h2', { timeout: 30000 }).catch(() => {});
     const leads = await p.evaluate(() => { const d = designAnswer(), last = P.answers.at(-1);

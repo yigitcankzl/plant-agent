@@ -16,12 +16,17 @@
   #asDlg header h2 { margin: 0; font-size: 16px; flex: 1; }
   #asDlg .as-tabs button[aria-selected="true"] { border-color: var(--accent, #4da3ff); color: var(--accent, #4da3ff); }
   #asDlg section { padding: 14px 18px 18px; }
+  #asDlg .as-impact { margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--line, #2e3742); border-left: 3px solid var(--accent, #4da3ff); border-radius: 6px; background: var(--bg, #15191f); }
+  #asDlg .as-impact h3 { margin: 0 0 7px; font-size: 14px; } #asDlg .as-impact ol { margin: 0; padding-left: 25px; }
+  #asDlg .as-impact li { padding: 5px 0; border-top: 1px solid var(--line, #2e3742); } #asDlg .as-impact li:first-child { border-top: 0; }
+  #asDlg .as-impact code { color: var(--text, #d9e0e8); overflow-wrap: anywhere; } #asDlg .as-impact b { display: block; color: var(--accent, #4da3ff); font-weight: 600; }
   #asDlg .as-sum { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; color: var(--muted, #8592a3); }
   #asDlg .src { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px; border: 1px solid currentColor; white-space: nowrap; }
   #asDlg .src.documented { color: #8fc1ff; } #asDlg .src.datasheet { color: #7fd1b9; } #asDlg .src.muse_default { color: #c7a6ff; }
   #asDlg .src.assumed { color: var(--warn, #e3a33a); } #asDlg .src.engineer_confirmed { color: var(--ok, #3fb67a); }
   #asDlg details { border-top: 1px solid var(--line, #2e3742); padding: 8px 0; }
   #asDlg summary { cursor: pointer; font-weight: 600; }
+  #asDlg .as-group-actions { display: flex; justify-content: flex-end; margin: 6px 0 2px; }
   #asDlg table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12.5px; }
   #asDlg td { padding: 4px 6px; vertical-align: middle; } #asDlg td.l { width: 42%; word-break: break-word; }
   #asDlg td.n { color: var(--muted, #8592a3); font-size: 11.5px; }
@@ -37,26 +42,44 @@
     <button class="btn" id="asClose" type="button" aria-label="Close">✕</button></header>
     <section id="asA"></section><section id="asI" hidden></section></dialog>`);
   const dlg = document.getElementById('asDlg'), A = document.getElementById('asA'), I = document.getElementById('asI');
-  let showAll = false;
+  let showAll = false, wantSensitivity = false;
 
   async function loadA() {
-    const r = await fetch(api('assumptions')).then(x => x.json());
+    const r = await fetch(api('assumptions') + (wantSensitivity ? '?sensitivity=1' : '')).then(x => x.json());
     if (r.error) { A.innerHTML = `<p class="msg err">${h(r.error)}</p>`; return; }
     const open = r.items.filter(i => i.source !== 'engineer_confirmed' && i.source !== 'documented');
     document.getElementById('asOpen').textContent = `Assumptions and inputs · ${open.length} to confirm`;
     const items = showAll ? r.items : open, files = [...new Set(items.map(i => i.file))];
-    A.innerHTML = `<div class="as-sum">${Object.entries(r.summary).filter(([, n]) => n).map(([s, n]) => `<span><span class="src ${s}">${LABEL[s]}</span> ${n}</span>`).join('')}</div>
+    const ranked = r.sensitivity?.rows || [];
+    A.innerHTML = `${ranked.length ? `<div class="as-impact" id="asTop10"><h3>Top ${ranked.length} that change the answer</h3>
+      <ol>${ranked.map(i => `<li><code>${h(i.path)}</code><b>${h(i.change)}</b>${i.check ? `<span class="n">${h(i.check)}</span>` : ''}</li>`).join('')}</ol>
+      <p class="msg">${h(r.sensitivity.note || r.sensitivity.method || '')}</p></div>` : (wantSensitivity && r.sensitivity?.note ? `<p class="msg">${h(r.sensitivity.note)}</p>` : '')}
+      <div class="as-sum">${Object.entries(r.summary).filter(([, n]) => n).map(([s, n]) => `<span><span class="src ${s}">${LABEL[s]}</span> ${n}</span>`).join('')}</div>
       <p class="msg">Each value the engines use, with where it came from. Confirm what is right, type a new value where it is not; every change is logged.
       <label><input type="checkbox" id="asAll" ${showAll ? 'checked' : ''}> show documented and confirmed values too</label></p>
       ${files.length ? '' : '<p>No values need confirming. Upload a motor list or vendor curve, or show all values.</p>'}
-      ${files.map(f => { const rows = items.filter(i => i.file === f); return `<details ${files.length < 4 ? 'open' : ''}><summary>${h(f)} · ${rows.length}</summary><table>${rows.map(i => `
-        <tr data-id="${h(i.id)}"><td class="l">${h(i.label)}</td><td><input type="number" step="any" value="${h(i.value)}" aria-label="${h(i.label)}"> ${h(i.unit || '')}</td>
+      ${files.map(f => { const rows = items.filter(i => i.file === f), pending = rows.filter(i => i.source !== 'engineer_confirmed' && i.source !== 'documented'); return `<details ${files.length < 4 ? 'open' : ''}><summary>${h(f)} · ${rows.length}</summary>
+        ${pending.length ? `<div class="as-group-actions"><button class="btn" type="button" data-bulk="${h(f)}">Confirm all ${pending.length} in this group</button></div>` : ''}<table>${rows.map(i => `
+        <tr data-id="${h(i.id)}" data-pending="${i.source !== 'engineer_confirmed' && i.source !== 'documented' ? '1' : '0'}"><td class="l">${h(i.label)}</td><td><input type="number" step="any" value="${h(i.value)}" aria-label="${h(i.label)}"> ${h(i.unit || '')}</td>
         <td><span class="src ${i.source}" title="${h(i.note || '')}">${LABEL[i.source]}</span></td>
         <td><button class="btn" type="button" data-act="ok">${i.source === 'engineer_confirmed' ? 'Confirmed' : 'Confirm'}</button></td></tr>
         ${i.note ? `<tr><td class="n" colspan="4">${h(i.note)}</td></tr>` : ''}`).join('')}</table></details>`; }).join('')}`;
     document.getElementById('asAll').onchange = e => { showAll = e.target.checked; loadA(); };
   }
   A.addEventListener('click', async e => {
+    const bulk = e.target.closest('button[data-bulk]');
+    if (bulk) {
+      const box = bulk.closest('details'), rows = [...box.querySelectorAll('tr[data-id][data-pending="1"]')];
+      const invalid = rows.map(tr => tr.querySelector('input')).find(inp => inp.value === '' || !Number.isFinite(Number(inp.value)));
+      if (invalid) { invalid.setCustomValidity('Enter a number'); invalid.reportValidity(); return; }
+      const values = rows.map(tr => ({id: tr.dataset.id, value: Number(tr.querySelector('input').value)}));
+      if (!confirm(`Confirm all ${values.length} values in ${bulk.dataset.bulk} at their current values? Each value will be logged separately.`)) return;
+      bulk.disabled = true;
+      const r = await fetch(api('assumptions'), {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({items: values})})
+        .then(x => x.json()).catch(() => ({error: 'the server did not answer'}));
+      if (r.error) { bulk.disabled = false; bulk.textContent = 'Retry bulk confirmation'; bulk.title = r.error; return; }
+      loadA(); return;
+    }
     const b = e.target.closest('button[data-act]'), tr = e.target.closest('tr[data-id]');
     if (!b || !tr) return;
     const inp = tr.querySelector('input'), v = Number(inp.value);
@@ -97,7 +120,7 @@
     A.hidden = t !== 'a'; I.hidden = t !== 'i';
     if (t === 'i') loadI();
   };
-  document.getElementById('asOpen').onclick = () => { dlg.showModal(); loadA(); };
+  document.getElementById('asOpen').onclick = () => { wantSensitivity = true; dlg.showModal(); loadA(); };
   document.getElementById('asClose').onclick = () => dlg.close();
   loadA().catch(() => {});
 })();

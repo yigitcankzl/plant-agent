@@ -65,6 +65,7 @@
         <p class="kicker">An AI engineer for plant changes, with the working shown</p>
         <h1 id="hero-title">Give it the change. It does the engineering.</h1>
         <p class="lead">PlantAgent is an AI engineer built on Meta's <b>Muse</b>. Tell it what you want to change. Muse reads the plant's drawings and data sheets, builds the simulation model and designs the change; <b>engineering solvers</b> (DWSIM, pandapower, WaterTAP, Cantera) re-solve it and run every check: electrical, heat transfer, compressor curves, start-up, uncertainty. Failed checks go back to Muse with their numbers, round after round. A run ends when every check passes, when Muse says why it cannot, or at its round or budget limit, and the checks still open are listed. You get the drawings, the MOC pack and a HAZOP draft for an engineer to review.</p>
+        <p class="hero-note" id="openWeightsHero">The Meta-hosted endpoint refused the <a href="plant.html?case=ucte_2006">UCTE blackout prompt</a> <span data-attempts>four</span> times (content policy). <a href="https://github.com/yigitcankzl/plant-agent/blob/master/evidence/open-weights-engineering/README.md">Muse Spark Open, the open-weights model on Baseten</a>, ran the same engineering loop: redispatch + open the 220 kV tie, line limits and N-1 pass (<span data-violations>0</span> violations).</p>
         <div class="hero-actions">
           <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Start the 3-minute demo</a>
           <a class="btn" href="#cases">See the grid and LNG incidents</a>
@@ -126,7 +127,10 @@ const SECTORS = [
 ];
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 (async () => {
-  const [cases, projects] = await Promise.all([fetch("/api/cases").then(r => r.json()), fetch("/api/projects").then(r => r.json())]);
+  const [cases, projects, openWeights] = await Promise.all([fetch("/api/cases").then(r => r.json()), fetch("/api/projects").then(r => r.json()), fetch("/api/evidence/open-weights").then(r => r.ok ? r.json() : {}).catch(() => ({}))]);
+  const ucte = openWeights.by_case?.ucte_2006, attempts = Number(ucte?.closed_endpoint_attempts?.count), repeat = (ucte?.open_runs || []).find(r => r.independent_repeat);
+  if (attempts) document.querySelector('#openWeightsHero [data-attempts]').textContent = attempts === 4 ? 'four' : attempts;
+  if (Number.isFinite(repeat?.n_1_violations)) document.querySelector('#openWeightsHero [data-violations]').textContent = repeat.n_1_violations;
   const by = Object.fromEntries(cases.map(c => [c.name, c]));
   const ws = Object.fromEntries(projects.map(p => [p.case, p]));
   const graded = cases.filter(c => c.benchmark && c.score != null);

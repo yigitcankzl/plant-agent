@@ -858,12 +858,18 @@ class Handler(SimpleHTTPRequestHandler):
                 from . import assumptions
                 if method == "POST":
                     from . import audit
-                    e = _case_call(case, lambda: assumptions.confirm(case, str(body.get("id") or ""), body.get("value"),
-                                                                       self.headers.get("X-User"), body.get("note"), bool(w.cfg.get("uploaded"))))
+                    if "items" in body:
+                        entries = _case_call(case, lambda: assumptions.confirm_many(
+                            case, body["items"], self.headers.get("X-User"), body.get("note"), bool(w.cfg.get("uploaded"))))
+                        e = {"confirmed": len(entries), "entries": entries}
+                    else:
+                        e = _case_call(case, lambda: assumptions.confirm(case, str(body.get("id") or ""), body.get("value"),
+                                                                           self.headers.get("X-User"), body.get("note"), bool(w.cfg.get("uploaded"))))
                     audit.append(case, "confirm_assumption", self.headers.get("X-User"), "", e)
                     return self._send(e)
                 items = assumptions.collect(case)
                 return self._send({"summary": assumptions.summary(items), "sources": assumptions.SOURCES,
+                                   "sensitivity": assumptions.sensitivity(w) if q.get("sensitivity") == "1" else None,
                                    "items": [{k: v for k, v in i.items() if k != "loc"} for i in items]})
             if what == "svg" and q.get("view") == "proposed":  # Rev B: the whole sheet re-issued with the verified changes
                 from . import revb

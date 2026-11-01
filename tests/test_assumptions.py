@@ -67,6 +67,49 @@ class AssumptionsTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             A.confirm("p", "drafts/economics:years", float("nan"))
 
+    def test_bulk_confirmation_logs_every_value(self):
+        values = [{"id": "electrical:motors.M-1.eff", "value": 0.91},
+                  {"id": "electrical:motors.M-1.kw", "value": 75}]
+        entries = A.confirm_many("p", values, user="eng")
+        self.assertEqual(len(entries), 2)
+        self.assertEqual([x["id"] for x in A.log("p")], [x["id"] for x in values])
+        before = len(A.log("p"))
+        with self.assertRaisesRegex(ValueError, "one file/group"):
+            A.confirm_many("p", [values[0], {"id": "drafts/economics:years", "value": 10}])
+        self.assertEqual(len(A.log("p")), before)  # the whole bulk request is validated before its first write
+
+    def test_sensitivity_prefers_stored_uncertainty_and_only_ranks_assumptions(self):
+        model = self.root / "runs/ws/p/model.json"
+        (model.parent / "uncertainty.json").write_text(json.dumps({
+            "inputs": [{"path": "units.K.eff_pct", "kind": "assumed", "band_pct": 10, "source": "model assumption"},
+                       {"path": "limits.K.max_kW", "kind": "documented", "band_pct": 3}],
+            "drivers": [{"path": "limits.K.max_kW", "effect": 0.4}, {"path": "units.K.eff_pct", "effect": 0.05}]}))
+        w = type("W", (), {"model_file": model})()
+        ranked = A.sensitivity(w)
+        self.assertEqual(ranked["method"], "stored uncertainty re-solves")
+        self.assertEqual([x["path"] for x in ranked["rows"]], ["units.K.eff_pct"])
+        self.assertIn("+5.0 points", ranked["rows"][0]["change"])
+
+    def test_sensitivity_falls_back_to_deterministic_plus_minus_ten_percent(self):
+        (self.root / "cases/p/uncertainty.json").write_text(json.dumps(
+            {"inputs": [{"path": "units.K.eff_pct", "kind": "assumed"}]}))
+        model = self.root / "runs/ws/p/model.json"
+        spec = {"compounds": ["Water"], "package": "Steam Tables", "feeds": {},
+                "units": [{"id": "K", "type": "compressor", "eff_pct": 75}], "limits": {}}
+
+        class W:
+            name, model_file, cfg = "p", model, {"target_scale": 1.2}
+            def __init__(self):
+                self.spec = spec
+            def _solve(self, changed, scale):
+                eff = changed["units"][0]["eff_pct"]
+                return {"checks": [{"id": "K", "check": "power vs motor", "utilisation": 0.98 * eff / 75}]}
+
+        ranked = A.sensitivity(W())
+        self.assertEqual(ranked["method"], "deterministic ±10 % what-if")
+        self.assertEqual(ranked["rows"][0]["path"], "units.K.eff_pct")
+        self.assertEqual(ranked["rows"][0]["change"], "+10 % → limit 98 → 108 %")
+
     def test_uploads(self):
         r = A.upload("p", "motors", b"tag,kw,start\nP-101,75,dol\nK-201,2400,vfd\n")
         self.assertEqual(r["rows"], 2)
