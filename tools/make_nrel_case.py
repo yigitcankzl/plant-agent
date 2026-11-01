@@ -44,6 +44,7 @@ STANDIN_RULE = ("Every stand-in carries the report component's MASS (1 kg of glu
                 "glucose -> 2 ethanol + 2 CO2 becomes 1 " + GLUCOSE + " -> 2.1562 Ethanol + 2.1562 Carbon dioxide. Missing NRTL pairs are "
                 "treated as ideal.")
 PROPS = ("Total Flow", "Temperature", "Pressure", "Vapor Fraction")
+KEY_OUTPUTS = ("501", "315", "317", "515", "516", "535", "571", "510")
 
 
 def standin(row):
@@ -312,6 +313,14 @@ def main(tables):
                             "Biomass components are represented by DWSIM stand-in compounds (see the basis). The P&ID is drawn by PlantAgent from the report's PFDs.",
                "benchmark": False}
         (d / "case.json").write_text(json.dumps(cfg, indent=2) + "\n")
+        key = [n for n in a["outputs"] if n in KEY_OUTPUTS][:4]
+        (d / "outcome.json").write_text(json.dumps({
+            "engineers": f"NREL's Aspen Plus model of {a['area']}: " + "; ".join(
+                f"S{n} {a['outputs'][n].split(' (')[0].lower()}: {t[n]['Total Flow']:,.0f} kg/h"
+                + (f" with {t[n]['Ethanol']:,.0f} kg/h ethanol" if t[n].get("Ethanol") else "") + f" at {t[n]['Temperature']:g} C"
+                for n in key) + ". Full stream tables withheld from the agent; scored in runs/ws/" + name + "/comparison.json.",
+            "source": f"{REPORT}, Appendix E ({a['pfd']} stream tables)", "file": "outcome.json",
+            "note": "Withheld from the agent: the basis gives the design basis and input streams only."}, indent=1) + "\n")
         plant["areas"].append(name)
         nums = list(a["inputs"]) + list(a["outputs"])
         for n in nums:
