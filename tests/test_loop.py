@@ -6,6 +6,7 @@ from pathlib import Path
 from unittest import mock
 
 from plantagent import loop
+from plantagent.plant import _spec_object
 
 
 class Stub:
@@ -68,6 +69,10 @@ class LoopTest(unittest.TestCase):
                                 [{"check": "process", "title": "120 %", "status": "pass"}]])
         self.assertIn("cable must be one of X", w.asked[1])
         self.assertEqual(log["status"], "done")
+
+    def test_grid_list_path_gets_previous_value(self):
+        spec = {"gens": [{"id": "DOL injection", "p_mw": 1564}]}
+        self.assertEqual(_spec_object(spec, "gens", "DOL injection").get("p_mw"), 1564)
 
 
 if __name__ == "__main__":

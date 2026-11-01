@@ -782,6 +782,11 @@ KIND = {"pipe_segment": "blocked-in line", "pump": "pump", "hx": "heat exchanger
         "compressor": "compressor", "mixer": "junction", "splitter": "branch", "recycle": "loop closure", "column": "column"}
 
 
+def _spec_object(spec, kind, oid):
+    group = spec.get(kind, {})
+    return next((x for x in group if isinstance(x, dict) and x.get("id") == oid), {}) if isinstance(group, list) else group.get(oid, {})
+
+
 def stitch_areas(specs):
     """Join area models (in process order) into one plant flowsheet. A feed of a later area that an earlier area's unit
     produces is joined to that unit's outlet; a feed produced by a later area (a recycle back upstream) stays a feed at its
@@ -2742,8 +2747,7 @@ class PlantWorkspace(Study):
                         c["from"] = next(u for u in self.spec["units"] if u["id"] == r["unit"]).get(r["field"])
                     elif c.get("path"):
                         k, oid, fld = c["path"].split(".", 2)
-                        o = next(u for u in self.spec["units"] if u["id"] == oid) if k == "units" else self.spec.get(k, {}).get(oid, {})
-                        c["from"] = o.get(fld)
+                        c["from"] = _spec_object(self.spec, k, oid).get(fld)
                 except (KeyError, ValueError, StopIteration):
                     c["from"] = None
             try:
