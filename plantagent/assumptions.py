@@ -4,6 +4,7 @@ Inputs live in three places: the case files (cases/<case>/*.json), drafts made f
 and files the engineer uploaded (runs/ws/<case>/inputs/*.json). Each numeric value is one assumption. Confirming or editing
 one appends to runs/ws/<case>/assumptions_log.jsonl; the latest log line wins and marks it engineer_confirmed."""
 import csv
+import hashlib
 import io
 import json
 import math
@@ -129,6 +130,116 @@ def confirm(case, item_id, value=None, user=None, note=None, uploaded=False):
     with f.open("a") as fh:
         fh.write(json.dumps(entry) + "\n")
     return entry
+
+
+def confirm_many(case, values, user=None, note=None, uploaded=False):
+    """Confirm one file/group in one request while retaining one immutable log line per numeric value."""
+    if not isinstance(values, list) or not values or len(values) > 1000:
+        raise ValueError("items must be a non-empty list of at most 1000 values")
+    known = {i["id"]: i for i in collect(case)}
+    ids = [str(x.get("id") or "") if isinstance(x, dict) else "" for x in values]
+    if len(ids) != len(set(ids)):
+        raise ValueError("duplicate assumption id")
+    missing = [x for x in ids if x not in known]
+    if missing:
+        raise ValueError(f"unknown assumption {missing[0]!r}")
+    if len({known[x]["file"] for x in ids}) != 1:
+        raise ValueError("bulk confirmation must contain one file/group")
+    for row in values:  # validate the whole request before writing its first log line
+        value = row.get("value")
+        if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value)):
+            raise ValueError("value must be a finite number")
+    return [confirm(case, row["id"], row.get("value"), user, note, uploaded) for row in values]
+
+
+_UNCERTAIN_KINDS = {"assumed", "illustrative", "provisional rating", "muse_default"}
+
+
+def _limit(result):
+    checks = [c for c in (result or {}).get("checks") or []
+              if isinstance(c.get("utilisation"), (int, float)) and math.isfinite(c["utilisation"])]
+    return max(checks, key=lambda c: c["utilisation"], default=None)
+
+
+def _stored_sensitivity(w):
+    """Rank the non-firm inputs from the saved uncertainty re-solves; no new simulator work."""
+    f = w.model_file.with_name("uncertainty.json")
+    if not f.exists():
+        return None
+    try:
+        data = json.loads(f.read_text())
+    except (OSError, ValueError):
+        return None
+    meta = {i.get("path"): i for i in data.get("inputs") or []}
+    rows = []
+    for d in data.get("drivers") or []:
+        i, effect = meta.get(d.get("path"), {}), d.get("effect")
+        if i.get("kind") not in _UNCERTAIN_KINDS or not isinstance(effect, (int, float)):
+            continue
+        band = i.get("band_pct") or (data.get("bands_pct") or {}).get(i.get("kind")) or 10
+        rows.append({"path": d["path"], "source": i.get("source"), "band_pct": band,
+                     "impact": abs(effect),
+                     "change": f"Higher input within the ±{band:g} % samples → maximum throughput {effect * 100:+.1f} points"})
+    rows.sort(key=lambda x: -x["impact"])
+    return ({"method": "stored uncertainty re-solves", "rows": rows[:10],
+             "note": "Ranked by the saved uncertainty study; no new simulator runs."} if rows else None)
+
+
+def sensitivity(w, limit=10):
+    """Top assumed process inputs by their effect on the binding utilisation, using only deterministic solves."""
+    stored = _stored_sensitivity(w)
+    if stored:
+        return stored
+    from . import drafts
+    from .plant import patch
+
+    cfg = drafts.case_file(w.name, "uncertainty.json", ROOT)
+    paths = [i["path"] for i in (cfg or {}).get("inputs") or [] if i.get("kind") in _UNCERTAIN_KINDS]
+    if not paths:
+        paths = [p for p, v in drafts.provenance(w).items() if v.get("provenance") == "muse_default"]
+    target = float(w.cfg.get("target_scale") or 1.0)
+    key = hashlib.sha1(json.dumps([w.spec, target, paths], sort_keys=True, default=str).encode()).hexdigest()
+    cache = ws_dir(w.name) / "assumptions_sensitivity.json"
+    if cache.exists():
+        try:
+            old = json.loads(cache.read_text())
+            if old.get("key") == key:
+                return {k: v for k, v in old.items() if k != "key"}
+        except (OSError, ValueError):
+            pass
+    try:
+        base = _limit(w._solve(w.spec, target))
+    except Exception as e:  # noqa: BLE001 - a panel must stay usable when a simulator is unavailable
+        return {"method": "unavailable", "rows": [], "note": f"Sensitivity could not be solved: {e}"}
+    if not base:
+        return {"method": "unavailable", "rows": [], "note": "The model reports no utilisation checks to rank."}
+    rows = []
+    for path in paths:
+        try:
+            from .uncertainty import _get
+            value = _get(w.spec, path)
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                continue
+            trials = []
+            for pct in (-10, 10):
+                result = w._solve(patch(w.spec, [{"path": path, "value": value * (1 + pct / 100)}]), target)
+                hit = _limit(result)
+                if hit:
+                    trials.append((pct, hit, abs(hit["utilisation"] - base["utilisation"])))
+            if not trials:
+                continue
+            pct, hit, impact = max(trials, key=lambda x: (round(x[2], 12), x[0]))
+            rows.append({"path": path, "band_pct": 10, "impact": impact,
+                         "change": f"{pct:+d} % → limit {base['utilisation'] * 100:.0f} → {hit['utilisation'] * 100:.0f} %",
+                         "check": f"{hit.get('id')}: {hit.get('check')}"})
+        except (KeyError, TypeError, ValueError, RuntimeError):
+            continue
+    rows.sort(key=lambda x: -x["impact"])
+    out = {"method": "deterministic ±10 % what-if", "rows": rows[:limit],
+           "note": f"Each assumed model input was perturbed ±10 % at {target:.0%} throughput; ranked by binding utilisation."}
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    cache.write_text(json.dumps({"key": key, **out}, indent=1))
+    return out
 
 
 # Uploads: the engineer's own data, with the expected columns shown before upload
