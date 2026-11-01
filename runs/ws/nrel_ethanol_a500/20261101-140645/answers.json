@@ -1,0 +1,1360 @@
+[
+ {
+  "headline": "Only sieve change converged; column still wet",
+  "summary": "Only the molecular sieve and regeneration split calibration converged, in run cal-m503-split, but regeneration return was still only 5,043 kg/h ethanol in 24,633 kg/h total because the rectification overhead remained wet. Every rectification purity specification tried failed to converge, and the beer column, feed interchanger and filter were not yet recalibrated, so the calibration is provisional and incomplete.",
+  "cards": [
+   {
+    "title": "Rectification column does not reach design purity",
+    "status": "fail",
+    "result": "Purity specifications failed to converge; overhead remains far below design",
+    "inputs": [
+     {
+      "name": "Design overhead purity",
+      "value": "92.5 % by weight ethanol",
+      "basis": "documented",
+      "source": "Operating data sheet section 3.5.2 design basis"
+     },
+     {
+      "name": "Design bottoms purity",
+      "value": "0.05 % by weight ethanol",
+      "basis": "documented",
+      "source": "Operating data sheet section 3.5.2 design basis"
+     },
+     {
+      "name": "Design molar reflux ratio",
+      "value": "3.5",
+      "basis": "documented",
+      "source": "Operating data sheet section 3.5.2 design basis"
+     },
+     {
+      "name": "Present reboiler specification",
+      "value": "Boilup ratio 3.0",
+      "basis": "documented",
+      "source": "Model A500-full-v5, unit D-502 reboiler_spec"
+     },
+     {
+      "name": "Tested bottoms ethanol fraction specification",
+      "value": "0.000196 mole fraction, equivalent to the documented 0.05 % by weight",
+      "basis": "computed",
+      "source": "Runs cal-d502-a, cal-d502-b and cal-d502-solo-a to cal-d502-solo-f"
+     },
+     {
+      "name": "Tested overhead ethanol fraction specification",
+      "value": "0.824 mole fraction, equivalent to the documented 92.5 % by weight",
+      "basis": "computed",
+      "source": "Runs cal-d502-c and cal-d502-solo-f"
+     }
+    ],
+    "runs": [
+     "cal-base-v5",
+     "cal-d502-a",
+     "cal-d502-b",
+     "cal-d502-c",
+     "cal-d502-solo-a",
+     "cal-d502-solo-c",
+     "cal-d502-solo-d",
+     "cal-d502-solo-f"
+    ],
+    "assumptions": [
+     "Component Fraction specifications in the simulator are mole based, so the documented weight purities were converted before testing.",
+     "No converged purity specification is proposed."
+    ]
+   },
+   {
+    "title": "Sieve and regeneration split calibration converges, but depends on column fix",
+    "status": "warn",
+    "result": "Converges, but regeneration return remains ethanol-lean while column is wet",
+    "inputs": [
+     {
+      "name": "Water removed by molecular sieve",
+      "value": "95 % of feed water",
+      "basis": "documented",
+      "source": "Operating data sheet section 3.5.2 design basis"
+     },
+     {
+      "name": "Sieve water sent to dry product after change",
+      "value": "5 %",
+      "basis": "computed",
+      "source": "Run cal-m503-split, unit M-503 Water recovery to product"
+     },
+     {
+      "name": "Dry-product split after change",
+      "value": "82 % product, 18 % regeneration slip",
+      "basis": "assumed",
+      "source": "Chosen to aim at the documented regeneration strength once the column reaches design purity; tested in run cal-m503-split"
+     },
+     {
+      "name": "Documented regeneration strength",
+      "value": "About 70 to 72 % by weight ethanol",
+      "basis": "documented",
+      "source": "Operating data sheet section 3.5.2 design basis"
+     },
+     {
+      "name": "Regeneration return after change",
+      "value": "5,043 kg/h ethanol and 19,590 kg/h water in 24,633 kg/h total",
+      "basis": "computed",
+      "source": "Run cal-m503-split, streams S512M and S517"
+     },
+     {
+      "name": "Final product after change",
+      "value": "21,753 kg/h ethanol in 22,590 kg/h total",
+      "basis": "computed",
+      "source": "Run cal-m503-split, stream S515"
+     }
+    ],
+    "runs": [
+     "cal-m503-split"
+    ],
+    "assumptions": [
+     "The 18 % regeneration slip is an assumed calibration value chosen for the design-purity column case; it does not give 70 to 72 % regeneration ethanol while the column overhead is still wet.",
+     "This is a model-only calibration, not a plant equipment change."
+    ]
+   },
+   {
+    "title": "Beer column, interchanger and filter not yet recalibrated",
+    "status": "warn",
+    "result": "No converged proposal yet for beer column, interchanger or filter",
+    "inputs": [
+     {
+      "name": "Beer column vapour side draw",
+      "value": "About 40 % by weight ethanol, carrying more than 99 % of feed ethanol",
+      "basis": "documented",
+      "source": "Operating data sheet section 3.5.2 design basis"
+     },
+     {
+      "name": "Beer column overhead ethanol loss",
+      "value": "About 0.3 % of feed ethanol",
+      "basis": "documented",
+      "source": "Operating data sheet section 3.5.2 design basis"
+     },
+     {
+      "name": "Beer column bottoms ethanol loss",
+      "value": "About 0.8 % of feed ethanol",
+      "basis": "documented",
+      "source": "Operating data sheet section 3.5.2 design basis"
+     },
+     {
+      "name": "Beer column bottoms after interchanger",
+      "value": "47 C design target",
+      "basis": "documented",
+      "source": "Operating data sheet section 3.5.2; model A500-full-v5 limit for H-512 out_T_C 47, side hot"
+     },
+     {
+      "name": "Bottoms stream in converged sieve test",
+      "value": "120.94 C",
+      "basis": "computed",
+      "source": "Run cal-m503-split, stream S508 after H-512"
+     },
+     {
+      "name": "Filter cake moisture target",
+      "value": "35 % moisture",
+      "basis": "documented",
+      "source": "Operating data sheet section 3.5.2 design basis"
+     },
+     {
+      "name": "Filter cake in converged sieve test",
+      "value": "68,736 kg/h water in 97,255 kg/h cake",
+      "basis": "computed",
+      "source": "Run cal-m503-split, stream S571 from S-505"
+     }
+    ],
+    "runs": [
+     "cal-m503-split",
+     "cal-base-v5"
+    ],
+    "assumptions": [
+     "No change is proposed for D-501, H-512 or S-505 because a converged calibration test for those tags was not completed in this session."
+    ]
+   }
+  ],
+  "highlights": [
+   {
+    "tag": "D-502",
+    "severity": "fail",
+    "text": "Overhead and bottoms purity specifications at reflux 3.5 failed to converge in every solver/specification combination tested; do not accept a fixed-rate substitute as design-basis calibration."
+   },
+   {
+    "tag": "M-503",
+    "severity": "warn",
+    "text": "Sieve water to dry product changed from 1% to 5% and regeneration slip to 18% converges in cal-m503-split, but regeneration return is still ethanol-lean until D-502 reaches design purity."
+   },
+   {
+    "tag": "H-512",
+    "severity": "fail",
+    "text": "Bottoms after the interchanger were 120.94 C in cal-m503-split versus the documented 47 C target; not yet recalibrated."
+   },
+   {
+    "tag": "S-505",
+    "severity": "warn",
+    "text": "Cake in cal-m503-split carried 68,736 kg/h water in 97,255 kg/h cake versus the documented 35% moisture target; not yet recalibrated."
+   },
+   {
+    "tag": "D-501",
+    "severity": "warn",
+    "text": "Side-draw purity and ethanol recovery/loss specifications were not yet tested to convergence; no proposal returned for this tag."
+   }
+  ],
+  "proposals": [
+   {
+    "tag": "M-503",
+    "title": "Set sieve water removal to documented 95 percent and regeneration slip to 18 percent",
+    "why": "This is the only calibration change tested that converged, in run cal-m503-split. It expresses the sieve as the documented removal (5% of water remains with the dry product) and sets the pure-ethanol regeneration slip that, at design column purity, is intended to give the documented 70-72% regeneration stream. It remains provisional because D-502 purity did not converge.",
+    "cost_class": "no capex",
+    "changes": [
+     {
+      "path": "units.M-503.recover_pct.Water",
+      "value": 5,
+      "from": null
+     },
+     {
+      "path": "units.SPLIT-514.fractions",
+      "value": [
+       0.82,
+       0.18
+      ],
+      "from": [
+       0.85,
+       0.15
+      ]
+     }
+    ],
+    "normalized_changes": [],
+    "verified": false,
+    "fixes": "M-503",
+    "still_over": [],
+    "breaks": [],
+    "disappeared_checks": [],
+    "capacity_multiple": null,
+    "limited_by": {
+     "id": "D-501",
+     "check": "Fair flood fraction vs limit",
+     "value": 0.557,
+     "limit": 0.8,
+     "unit": "fraction of flood",
+     "utilisation": 0.696
+    },
+    "reaches_target": false,
+    "over_limits_at_target": [
+     {
+      "id": "D-502",
+      "check": "Fair flood fraction vs limit",
+      "value": 1.084,
+      "limit": 0.8,
+      "unit": "fraction of flood",
+      "utilisation": 1.355
+     }
+    ],
+    "target_scale": 1.0,
+    "new_equipment": [],
+    "calculation": {
+     "target_scale": 1.0,
+     "capacity_multiple_before": null,
+     "capacity_multiple_after": null,
+     "limited_by_before": {
+      "id": "D-501",
+      "check": "Fair flood fraction vs limit",
+      "value": 0.557,
+      "limit": 0.8,
+      "unit": "fraction of flood",
+      "utilisation": 0.696
+     },
+     "limited_by_after": {
+      "id": "D-501",
+      "check": "Fair flood fraction vs limit",
+      "value": 0.557,
+      "limit": 0.8,
+      "unit": "fraction of flood",
+      "utilisation": 0.696
+     },
+     "checks": [
+      {
+       "id": "D-502",
+       "check": "Fair flood fraction vs limit",
+       "before": 1.345,
+       "after": 1.355,
+       "value": 1.084,
+       "limit": 0.8,
+       "unit": "fraction of flood"
+      },
+      {
+       "id": "REC-521",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "M-503",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "SPLIT-514",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      },
+      {
+       "id": "MIX-512",
+       "check": "no limit check for this unit type",
+       "before": null,
+       "after": null,
+       "value": null,
+       "limit": null,
+       "unit": null
+      }
+     ],
+     "units": {
+      "D-502": {
+       "type": "distillation",
+       "stages": 45,
+       "feed_stage": [
+        33,
+        14
+       ],
+       "reflux": 3.5,
+       "condenser_kW": 85471.08,
+       "reboiler_kW": 60017.3,
+       "condenser_duty_kW": 85471.08,
+       "reboiler_duty_kW": -60017.3,
+       "dwsim_estimated_diameter_m": 6.682,
+       "profile": [
+        {
+         "stage": 1,
+         "T_C": 93.89,
+         "P_bar": 1.621,
+         "vapour_kg_h": 0.0,
+         "liquid_kg_h": 166795.56,
+         "vapour_mol_s": 0.0,
+         "liquid_mol_s": 1691.17,
+         "rho_v_kg_m3": 1.84,
+         "rho_l_kg_m3": 863.8,
+         "sigma_N_m": 0.04542
+        },
+        {
+         "stage": 2,
+         "T_C": 103.27,
+         "P_bar": 1.621,
+         "vapour_kg_h": 202324.32,
+         "liquid_kg_h": 118354.32,
+         "vapour_mol_s": 2169.28,
+         "liquid_mol_s": 1667.84,
+         "rho_v_kg_m3": 1.34,
+         "rho_l_kg_m3": 935.9,
+         "sigma_N_m": 0.05581,
+         "flood_frac": 1.084
+        },
+        {
+         "stage": 3,
+         "T_C": 110.22,
+         "P_bar": 1.621,
+         "vapour_kg_h": 164118.6,
+         "liquid_kg_h": 110145.6,
+         "vapour_mol_s": 2151.03,
+         "liquid_mol_s": 1660.73,
+         "rho_v_kg_m3": 1.08,
+         "rho_l_kg_m3": 945.7,
+         "sigma_N_m": 0.05646,
+         "flood_frac": 0.974
+        },
+        {
+         "stage": 4,
+         "T_C": 111.27,
+         "P_bar": 1.621,
+         "vapour_kg_h": 157607.64,
+         "liquid_kg_h": 109280.88,
+         "vapour_mol_s": 2143.92,
+         "liquid_mol_s": 1659.69,
+         "rho_v_kg_m3": 1.04,
+         "rho_l_kg_m3": 946.6,
+         "sigma_N_m": 0.05646,
+         "flood_frac": 0.955
+        },
+        {
+         "stage": 5,
+         "T_C": 111.37,
+         "P_bar": 1.621,
+         "vapour_kg_h": 156917.88,
+         "liquid_kg_h": 109196.64,
+         "vapour_mol_s": 2142.88,
+         "liquid_mol_s": 1659.59,
+         "rho_v_kg_m3": 1.03,
+         "rho_l_kg_m3": 946.6,
+         "sigma_N_m": 0.05646,
+         "flood_frac": 0.953
+        },
+        {
+         "stage": 6,
+         "T_C": 111.38,
+         "P_bar": 1.621,
+         "vapour_kg_h": 156850.56,
+         "liquid_kg_h": 109188.36,
+         "vapour_mol_s": 2142.78,
+         "liquid_mol_s": 1659.58,
+         "rho_v_kg_m3": 1.03,
+         "rho_l_kg_m3": 946.6,
+         "sigma_N_m": 0.05646,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 7,
+         "T_C": 111.38,
+         "P_bar": 1.621,
+         "vapour_kg_h": 156844.08,
+         "liquid_kg_h": 109187.64,
+         "vapour_mol_s": 2142.77,
+         "liquid_mol_s": 1659.58,
+         "rho_v_kg_m3": 1.03,
+         "rho_l_kg_m3": 946.6,
+         "sigma_N_m": 0.05646,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 8,
+         "T_C": 111.38,
+         "P_bar": 1.621,
+         "vapour_kg_h": 156843.36,
+         "liquid_kg_h": 109187.64,
+         "vapour_mol_s": 2142.77,
+         "liquid_mol_s": 1659.58,
+         "rho_v_kg_m3": 1.03,
+         "rho_l_kg_m3": 946.6,
+         "sigma_N_m": 0.05646,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 9,
+         "T_C": 111.38,
+         "P_bar": 1.621,
+         "vapour_kg_h": 156843.0,
+         "liquid_kg_h": 109187.64,
+         "vapour_mol_s": 2142.77,
+         "liquid_mol_s": 1659.58,
+         "rho_v_kg_m3": 1.03,
+         "rho_l_kg_m3": 946.6,
+         "sigma_N_m": 0.05646,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 10,
+         "T_C": 111.38,
+         "P_bar": 1.621,
+         "vapour_kg_h": 156841.2,
+         "liquid_kg_h": 109188.0,
+         "vapour_mol_s": 2142.77,
+         "liquid_mol_s": 1659.58,
+         "rho_v_kg_m3": 1.03,
+         "rho_l_kg_m3": 946.6,
+         "sigma_N_m": 0.05646,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 11,
+         "T_C": 111.38,
+         "P_bar": 1.621,
+         "vapour_kg_h": 156834.36,
+         "liquid_kg_h": 109189.08,
+         "vapour_mol_s": 2142.77,
+         "liquid_mol_s": 1659.6,
+         "rho_v_kg_m3": 1.03,
+         "rho_l_kg_m3": 946.6,
+         "sigma_N_m": 0.05646,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 12,
+         "T_C": 111.38,
+         "P_bar": 1.621,
+         "vapour_kg_h": 156805.92,
+         "liquid_kg_h": 109193.04,
+         "vapour_mol_s": 2142.79,
+         "liquid_mol_s": 1659.66,
+         "rho_v_kg_m3": 1.03,
+         "rho_l_kg_m3": 946.6,
+         "sigma_N_m": 0.05646,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 13,
+         "T_C": 111.38,
+         "P_bar": 1.621,
+         "vapour_kg_h": 156687.84,
+         "liquid_kg_h": 109168.2,
+         "vapour_mol_s": 2142.85,
+         "liquid_mol_s": 1659.28,
+         "rho_v_kg_m3": 1.03,
+         "rho_l_kg_m3": 946.6,
+         "sigma_N_m": 0.05646,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 14,
+         "T_C": 111.38,
+         "P_bar": 1.621,
+         "vapour_kg_h": 156149.64,
+         "liquid_kg_h": 132027.48,
+         "vapour_mol_s": 2142.47,
+         "liquid_mol_s": 2006.72,
+         "rho_v_kg_m3": 1.03,
+         "rho_l_kg_m3": 946.6,
+         "sigma_N_m": 0.05646,
+         "flood_frac": 0.959
+        },
+        {
+         "stage": 15,
+         "T_C": 111.75,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153891.0,
+         "liquid_kg_h": 131683.32,
+         "vapour_mol_s": 2140.77,
+         "liquid_mol_s": 2006.29,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.953
+        },
+        {
+         "stage": 16,
+         "T_C": 111.79,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153615.6,
+         "liquid_kg_h": 131644.44,
+         "vapour_mol_s": 2140.34,
+         "liquid_mol_s": 2006.25,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 17,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153584.64,
+         "liquid_kg_h": 131640.12,
+         "vapour_mol_s": 2140.29,
+         "liquid_mol_s": 2006.24,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 18,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153581.04,
+         "liquid_kg_h": 131639.76,
+         "vapour_mol_s": 2140.28,
+         "liquid_mol_s": 2006.24,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 19,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153580.68,
+         "liquid_kg_h": 131639.76,
+         "vapour_mol_s": 2140.28,
+         "liquid_mol_s": 2006.24,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 20,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153580.68,
+         "liquid_kg_h": 131639.76,
+         "vapour_mol_s": 2140.28,
+         "liquid_mol_s": 2006.24,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 21,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153580.68,
+         "liquid_kg_h": 131639.76,
+         "vapour_mol_s": 2140.28,
+         "liquid_mol_s": 2006.24,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 22,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153580.68,
+         "liquid_kg_h": 131639.76,
+         "vapour_mol_s": 2140.28,
+         "liquid_mol_s": 2006.24,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 23,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153580.68,
+         "liquid_kg_h": 131639.76,
+         "vapour_mol_s": 2140.28,
+         "liquid_mol_s": 2006.24,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 24,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153580.68,
+         "liquid_kg_h": 131639.76,
+         "vapour_mol_s": 2140.28,
+         "liquid_mol_s": 2006.24,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 25,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153580.68,
+         "liquid_kg_h": 131639.76,
+         "vapour_mol_s": 2140.28,
+         "liquid_mol_s": 2006.24,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 26,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153580.68,
+         "liquid_kg_h": 131640.12,
+         "vapour_mol_s": 2140.28,
+         "liquid_mol_s": 2006.24,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 27,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153580.68,
+         "liquid_kg_h": 131640.48,
+         "vapour_mol_s": 2140.28,
+         "liquid_mol_s": 2006.24,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 28,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153579.6,
+         "liquid_kg_h": 131641.2,
+         "vapour_mol_s": 2140.29,
+         "liquid_mol_s": 2006.25,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 29,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153574.92,
+         "liquid_kg_h": 131643.36,
+         "vapour_mol_s": 2140.29,
+         "liquid_mol_s": 2006.26,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 30,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153552.6,
+         "liquid_kg_h": 131649.12,
+         "vapour_mol_s": 2140.31,
+         "liquid_mol_s": 2006.32,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.952
+        },
+        {
+         "stage": 31,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153456.12,
+         "liquid_kg_h": 131672.16,
+         "vapour_mol_s": 2140.36,
+         "liquid_mol_s": 2006.62,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.951
+        },
+        {
+         "stage": 32,
+         "T_C": 111.8,
+         "P_bar": 1.621,
+         "vapour_kg_h": 153053.28,
+         "liquid_kg_h": 121662.0,
+         "vapour_mol_s": 2140.66,
+         "liquid_mol_s": 1853.98,
+         "rho_v_kg_m3": 1.01,
+         "rho_l_kg_m3": 946.9,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.946
+        },
+        {
+         "stage": 33,
+         "T_C": 111.66,
+         "P_bar": 1.621,
+         "vapour_kg_h": 140493.96,
+         "liquid_kg_h": 131506.92,
+         "vapour_mol_s": 1988.02,
+         "liquid_mol_s": 2002.07,
+         "rho_v_kg_m3": 0.99,
+         "rho_l_kg_m3": 946.8,
+         "sigma_N_m": 0.05645,
+         "flood_frac": 0.881
+        },
+        {
+         "stage": 34,
+         "T_C": 113.42,
+         "P_bar": 1.621,
+         "vapour_kg_h": 98716.32,
+         "liquid_kg_h": 129966.12,
+         "vapour_mol_s": 1502.12,
+         "liquid_mol_s": 2000.12,
+         "rho_v_kg_m3": 0.92,
+         "rho_l_kg_m3": 947.9,
+         "sigma_N_m": 0.0564,
+         "flood_frac": 0.656
+        },
+        {
+         "stage": 35,
+         "T_C": 113.68,
+         "P_bar": 1.621,
+         "vapour_kg_h": 97478.28,
+         "liquid_kg_h": 129755.88,
+         "vapour_mol_s": 1500.16,
+         "liquid_mol_s": 1999.84,
+         "rho_v_kg_m3": 0.91,
+         "rho_l_kg_m3": 948.0,
+         "sigma_N_m": 0.05639,
+         "flood_frac": 0.652
+        },
+        {
+         "stage": 36,
+         "T_C": 113.71,
+         "P_bar": 1.621,
+         "vapour_kg_h": 97309.44,
+         "liquid_kg_h": 129727.8,
+         "vapour_mol_s": 1499.89,
+         "liquid_mol_s": 1999.81,
+         "rho_v_kg_m3": 0.91,
+         "rho_l_kg_m3": 948.0,
+         "sigma_N_m": 0.05638,
+         "flood_frac": 0.652
+        },
+        {
+         "stage": 37,
+         "T_C": 113.72,
+         "P_bar": 1.621,
+         "vapour_kg_h": 97286.76,
+         "liquid_kg_h": 129723.84,
+         "vapour_mol_s": 1499.85,
+         "liquid_mol_s": 1999.8,
+         "rho_v_kg_m3": 0.91,
+         "rho_l_kg_m3": 948.0,
+         "sigma_N_m": 0.05638,
+         "flood_frac": 0.652
+        },
+        {
+         "stage": 38,
+         "T_C": 113.72,
+         "P_bar": 1.621,
+         "vapour_kg_h": 97283.88,
+         "liquid_kg_h": 129723.48,
+         "vapour_mol_s": 1499.85,
+         "liquid_mol_s": 1999.8,
+         "rho_v_kg_m3": 0.91,
+         "rho_l_kg_m3": 948.0,
+         "sigma_N_m": 0.05638,
+         "flood_frac": 0.651
+        },
+        {
+         "stage": 39,
+         "T_C": 113.72,
+         "P_bar": 1.621,
+         "vapour_kg_h": 97283.52,
+         "liquid_kg_h": 129723.48,
+         "vapour_mol_s": 1499.85,
+         "liquid_mol_s": 1999.8,
+         "rho_v_kg_m3": 0.91,
+         "rho_l_kg_m3": 948.0,
+         "sigma_N_m": 0.05638,
+         "flood_frac": 0.651
+        },
+        {
+         "stage": 40,
+         "T_C": 113.72,
+         "P_bar": 1.621,
+         "vapour_kg_h": 97283.52,
+         "liquid_kg_h": 129723.84,
+         "vapour_mol_s": 1499.85,
+         "liquid_mol_s": 1999.8,
+         "rho_v_kg_m3": 0.91,
+         "rho_l_kg_m3": 948.0,
+         "sigma_N_m": 0.05638,
+         "flood_frac": 0.651
+        },
+        {
+         "stage": 41,
+         "T_C": 113.72,
+         "P_bar": 1.621,
+         "vapour_kg_h": 97284.24,
+         "liquid_kg_h": 129724.56,
+         "vapour_mol_s": 1499.85,
+         "liquid_mol_s": 1999.8,
+         "rho_v_kg_m3": 0.91,
+         "rho_l_kg_m3": 948.0,
+         "sigma_N_m": 0.05638,
+         "flood_frac": 0.651
+        },
+        {
+         "stage": 42,
+         "T_C": 113.72,
+         "P_bar": 1.621,
+         "vapour_kg_h": 97285.32,
+         "liquid_kg_h": 129726.36,
+         "vapour_mol_s": 1499.85,
+         "liquid_mol_s": 1999.81,
+         "rho_v_kg_m3": 0.91,
+         "rho_l_kg_m3": 948.0,
+         "sigma_N_m": 0.05638,
+         "flood_frac": 0.652
+        },
+        {
+         "stage": 43,
+         "T_C": 113.72,
+         "P_bar": 1.621,
+         "vapour_kg_h": 97287.48,
+         "liquid_kg_h": 129730.32,
+         "vapour_mol_s": 1499.85,
+         "liquid_mol_s": 1999.82,
+         "rho_v_kg_m3": 0.91,
+         "rho_l_kg_m3": 948.0,
+         "sigma_N_m": 0.05638,
+         "flood_frac": 0.652
+        },
+        {
+         "stage": 44,
+         "T_C": 113.72,
+         "P_bar": 1.621,
+         "vapour_kg_h": 97292.52,
+         "liquid_kg_h": 129739.68,
+         "vapour_mol_s": 1499.86,
+         "liquid_mol_s": 1999.83,
+         "rho_v_kg_m3": 0.91,
+         "rho_l_kg_m3": 948.0,
+         "sigma_N_m": 0.05638,
+         "flood_frac": 0.652
+        },
+        {
+         "stage": 45,
+         "T_C": 113.72,
+         "P_bar": 1.621,
+         "vapour_kg_h": 97299.36,
+         "liquid_kg_h": 32440.07,
+         "vapour_mol_s": 1499.87,
+         "liquid_mol_s": 499.956,
+         "rho_v_kg_m3": 0.91,
+         "rho_l_kg_m3": 948.0,
+         "sigma_N_m": 0.05638,
+         "flood_frac": 0.612
+        }
+       ],
+       "flood_frac": 1.084,
+       "flood_error": null,
+       "tray_spacing_m": 0.61
+      },
+      "H-503": {
+       "type": "heater",
+       "duty_kW": 19464.95
+      },
+      "H-506": {
+       "type": "hx",
+       "duty_kW": 1655.5,
+       "lmtd_C": 33.11,
+       "U_W_m2K": 500.0,
+       "area_m2": 100.0,
+       "dP_hot_bar": 0.0,
+       "dP_cold_bar": 0.0
+      },
+      "H-507": {
+       "type": "cooler",
+       "duty_kW": 15712.42
+      },
+      "H-509": {
+       "type": "cooler",
+       "duty_kW": 4698.94
+      },
+      "M-503": {
+       "type": "component_separator"
+      },
+      "MIX-512": {
+       "type": "mixer"
+      },
+      "REC-521": {
+       "type": "recycle"
+      },
+      "SPLIT-514": {
+       "type": "splitter"
+      }
+     },
+     "streams": [
+      {
+       "id": "S521C",
+       "T_C": 100.07,
+       "P_bar": 1.621,
+       "kg_h": 25730.3,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Acetic acid": 0.0,
+        "Ammonia": 0.0,
+        "Carbon dioxide": 0.0,
+        "Ethanol": 5043.37,
+        "Glycerol": 0.0,
+        "HexaEthylene Glycol": 0.0,
+        "HexaPropylene Glycol": 0.0,
+        "Nitrogen": 0.0,
+        "Oxygen": 0.0,
+        "PentaEthylene Glycol": 0.0,
+        "TetraPropylene Glycol": 0.0,
+        "Tetraethylene glycol": 0.0,
+        "Triethylene glycol": 0.0,
+        "Water": 20686.92
+       }
+      },
+      {
+       "id": "S521",
+       "T_C": 100.07,
+       "P_bar": 1.621,
+       "kg_h": 25730.3,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Acetic acid": 0.0,
+        "Ammonia": 0.0,
+        "Carbon dioxide": 0.0,
+        "Ethanol": 5043.37,
+        "Glycerol": 0.0,
+        "HexaEthylene Glycol": 0.0,
+        "HexaPropylene Glycol": 0.0,
+        "Nitrogen": 0.0,
+        "Oxygen": 0.0,
+        "PentaEthylene Glycol": 0.0,
+        "TetraPropylene Glycol": 0.0,
+        "Tetraethylene glycol": 0.0,
+        "Triethylene glycol": 0.0,
+        "Water": 20686.92
+       }
+      },
+      {
+       "id": "S510",
+       "T_C": 114.31,
+       "P_bar": 2.026,
+       "kg_h": 54381.1,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Acetic acid": 21.97,
+        "Ammonia": 0.0,
+        "Carbon dioxide": 0.0,
+        "Ethanol": 21754.94,
+        "Glycerol": 0.0,
+        "HexaEthylene Glycol": 0.01,
+        "HexaPropylene Glycol": 0.01,
+        "Nitrogen": 0.0,
+        "Oxygen": 0.0,
+        "PentaEthylene Glycol": 0.01,
+        "TetraPropylene Glycol": 0.0,
+        "Tetraethylene glycol": 0.0,
+        "Triethylene glycol": 0.0,
+        "Water": 32604.11
+       }
+      },
+      {
+       "id": "S511L",
+       "T_C": 93.89,
+       "P_bar": 1.621,
+       "kg_h": 47655.9,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Acetic acid": 0.0,
+        "Ammonia": 0.0,
+        "Carbon dioxide": 0.0,
+        "Ethanol": 26797.9,
+        "Glycerol": 0.0,
+        "HexaEthylene Glycol": 0.0,
+        "HexaPropylene Glycol": 0.0,
+        "Nitrogen": 0.0,
+        "Oxygen": 0.0,
+        "PentaEthylene Glycol": 0.0,
+        "TetraPropylene Glycol": 0.0,
+        "Tetraethylene glycol": 0.0,
+        "Triethylene glycol": 0.0,
+        "Water": 20857.96
+       }
+      },
+      {
+       "id": "S516",
+       "T_C": 113.72,
+       "P_bar": 1.621,
+       "kg_h": 32440.1,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Acetic acid": 21.97,
+        "Ammonia": 0.0,
+        "Carbon dioxide": 0.0,
+        "Ethanol": 0.0,
+        "Glycerol": 0.0,
+        "HexaEthylene Glycol": 0.0,
+        "HexaPropylene Glycol": 0.0,
+        "Nitrogen": 0.0,
+        "Oxygen": 0.0,
+        "PentaEthylene Glycol": 0.0,
+        "TetraPropylene Glycol": 0.0,
+        "Tetraethylene glycol": 0.0,
+        "Triethylene glycol": 0.0,
+        "Water": 32418.09
+       }
+      },
+      {
+       "id": "S511",
+       "T_C": 120.0,
+       "P_bar": 1.621,
+       "kg_h": 47655.9,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Acetic acid": 0.0,
+        "Ammonia": 0.0,
+        "Carbon dioxide": 0.0,
+        "Ethanol": 26797.9,
+        "Glycerol": 0.0,
+        "HexaEthylene Glycol": 0.0,
+        "HexaPropylene Glycol": 0.0,
+        "Nitrogen": 0.0,
+        "Oxygen": 0.0,
+        "PentaEthylene Glycol": 0.0,
+        "TetraPropylene Glycol": 0.0,
+        "Tetraethylene glycol": 0.0,
+        "Triethylene glycol": 0.0,
+        "Water": 20857.96
+       }
+      },
+      {
+       "id": "S514DRY",
+       "T_C": 120.0,
+       "P_bar": 1.621,
+       "kg_h": 26738.5,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Acetic acid": 0.0,
+        "Ammonia": 0.0,
+        "Carbon dioxide": 0.0,
+        "Ethanol": 26529.93,
+        "Glycerol": 0.0,
+        "HexaEthylene Glycol": 0.0,
+        "HexaPropylene Glycol": 0.0,
+        "Nitrogen": 0.0,
+        "Oxygen": 0.0,
+        "PentaEthylene Glycol": 0.0,
+        "TetraPropylene Glycol": 0.0,
+        "Tetraethylene glycol": 0.0,
+        "Triethylene glycol": 0.0,
+        "Water": 208.58
+       }
+      },
+      {
+       "id": "S512",
+       "T_C": 120.0,
+       "P_bar": 1.621,
+       "kg_h": 20917.4,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Acetic acid": 0.0,
+        "Ammonia": 0.0,
+        "Carbon dioxide": 0.0,
+        "Ethanol": 267.98,
+        "Glycerol": 0.0,
+        "HexaEthylene Glycol": 0.0,
+        "HexaPropylene Glycol": 0.0,
+        "Nitrogen": 0.0,
+        "Oxygen": 0.0,
+        "PentaEthylene Glycol": 0.0,
+        "TetraPropylene Glycol": 0.0,
+        "Tetraethylene glycol": 0.0,
+        "Triethylene glycol": 0.0,
+        "Water": 20649.38
+       }
+      },
+      {
+       "id": "S514",
+       "T_C": 120.0,
+       "P_bar": 1.621,
+       "kg_h": 21925.6,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Acetic acid": 0.0,
+        "Ammonia": 0.0,
+        "Carbon dioxide": 0.0,
+        "Ethanol": 21754.54,
+        "Glycerol": 0.0,
+        "HexaEthylene Glycol": 0.0,
+        "HexaPropylene Glycol": 0.0,
+        "Nitrogen": 0.0,
+        "Oxygen": 0.0,
+        "PentaEthylene Glycol": 0.0,
+        "TetraPropylene Glycol": 0.0,
+        "Tetraethylene glycol": 0.0,
+        "Triethylene glycol": 0.0,
+        "Water": 171.04
+       }
+      },
+      {
+       "id": "S512RAW",
+       "T_C": 120.0,
+       "P_bar": 1.621,
+       "kg_h": 4812.9,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Acetic acid": 0.0,
+        "Ammonia": 0.0,
+        "Carbon dioxide": 0.0,
+        "Ethanol": 4775.39,
+        "Glycerol": 0.0,
+        "HexaEthylene Glycol": 0.0,
+        "HexaPropylene Glycol": 0.0,
+        "Nitrogen": 0.0,
+        "Oxygen": 0.0,
+        "PentaEthylene Glycol": 0.0,
+        "TetraPropylene Glycol": 0.0,
+        "Tetraethylene glycol": 0.0,
+        "Triethylene glycol": 0.0,
+        "Water": 37.54
+       }
+      },
+      {
+       "id": "S512M",
+       "T_C": 119.93,
+       "P_bar": 1.621,
+       "kg_h": 25730.3,
+       "vapour_frac": 1.0,
+       "components_kg_h": {
+        "Acetic acid": 0.0,
+        "Ammonia": 0.0,
+        "Carbon dioxide": 0.0,
+        "Ethanol": 5043.37,
+        "Glycerol": 0.0,
+        "HexaEthylene Glycol": 0.0,
+        "HexaPropylene Glycol": 0.0,
+        "Nitrogen": 0.0,
+        "Oxygen": 0.0,
+        "PentaEthylene Glycol": 0.0,
+        "TetraPropylene Glycol": 0.0,
+        "Tetraethylene glycol": 0.0,
+        "Triethylene glycol": 0.0,
+        "Water": 20686.92
+       }
+      },
+      {
+       "id": "S517",
+       "T_C": 40.0,
+       "P_bar": 1.621,
+       "kg_h": 25730.3,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Acetic acid": 0.0,
+        "Ammonia": 0.0,
+        "Carbon dioxide": 0.0,
+        "Ethanol": 5043.37,
+        "Glycerol": 0.0,
+        "HexaEthylene Glycol": 0.0,
+        "HexaPropylene Glycol": 0.0,
+        "Nitrogen": 0.0,
+        "Oxygen": 0.0,
+        "PentaEthylene Glycol": 0.0,
+        "TetraPropylene Glycol": 0.0,
+        "Tetraethylene glycol": 0.0,
+        "Triethylene glycol": 0.0,
+        "Water": 20686.92
+       }
+      },
+      {
+       "id": "S519",
+       "T_C": 91.11,
+       "P_bar": 1.621,
+       "kg_h": 21925.6,
+       "vapour_frac": 0.7321,
+       "components_kg_h": {
+        "Acetic acid": 0.0,
+        "Ammonia": 0.0,
+        "Carbon dioxide": 0.0,
+        "Ethanol": 21754.54,
+        "Glycerol": 0.0,
+        "HexaEthylene Glycol": 0.0,
+        "HexaPropylene Glycol": 0.0,
+        "Nitrogen": 0.0,
+        "Oxygen": 0.0,
+        "PentaEthylene Glycol": 0.0,
+        "TetraPropylene Glycol": 0.0,
+        "Tetraethylene glycol": 0.0,
+        "Triethylene glycol": 0.0,
+        "Water": 171.04
+       }
+      },
+      {
+       "id": "S515",
+       "T_C": 35.0,
+       "P_bar": 1.621,
+       "kg_h": 21925.6,
+       "vapour_frac": 0.0,
+       "components_kg_h": {
+        "Acetic acid": 0.0,
+        "Ammonia": 0.0,
+        "Carbon dioxide": 0.0,
+        "Ethanol": 21754.54,
+        "Glycerol": 0.0,
+        "HexaEthylene Glycol": 0.0,
+        "HexaPropylene Glycol": 0.0,
+        "Nitrogen": 0.0,
+        "Oxygen": 0.0,
+        "PentaEthylene Glycol": 0.0,
+        "TetraPropylene Glycol": 0.0,
+        "Tetraethylene glycol": 0.0,
+        "Triethylene glycol": 0.0,
+        "Water": 171.04
+       }
+      }
+     ],
+     "new_equipment": [],
+     "assumptions": [],
+     "simulator": "dwsim",
+     "errors": [
+      "proposal adds or changes equipment with no engineering limit check: M-503"
+     ],
+     "warnings": [],
+     "model_label": "A500-full-v5"
+    },
+    "unverified_reason": "proposal adds or changes equipment with no engineering limit check: M-503"
+   }
+  ],
+  "field_checks": [
+   {
+    "item": "Why the rectification purity specifications fail: tray efficiency, stage count and feed-stage locations",
+    "where": "Confirm D-502 tray count, efficiency basis and feed nozzles for streams 510 and 521 from the column data sheet and P&ID tag D-502",
+    "changes": "If the documented efficiency or feed stages differ from model A500-full-v5, the purity specification may converge; if they match, the column separation basis itself must be revisited"
+   },
+   {
+    "item": "Regeneration slip fraction of 18 percent",
+    "where": "Confirm the design regeneration slip flow around M-503, streams 514, 512 and 521, from the operating data sheet stream table",
+    "changes": "A different documented slip flow would change the regeneration ethanol strength and would replace the assumed 82/18 split"
+   },
+   {
+    "item": "Beer column side-draw, interchanger outlet and filter cake design values in full stream tables",
+    "where": "Confirm streams 506 to 510, 508, 535 and 571 in the operating data sheet against section 3.5.2",
+    "changes": "These values decide the D-501, H-512 and S-505 calibrations, for which no converged proposal is yet returned"
+   }
+  ],
+  "artifacts": [],
+  "checks": [
+   {
+    "item": "run cal-base-v5",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run cal-d502-a",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run cal-d502-b",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run cal-d502-c",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run cal-d502-solo-a",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run cal-d502-solo-c",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run cal-d502-solo-d",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run cal-d502-solo-f",
+    "ok": true,
+    "why": ""
+   },
+   {
+    "item": "run cal-m503-split",
+    "ok": true,
+    "why": ""
+   }
+  ],
+  "seconds": 777,
+  "cost_usd": 5.8428,
+  "request": "Calibration session. The as-built A500 model reproduces the ethanol product but misses the design basis elsewhere. Recalibrate it to the DESIGN BASIS in the data sheet (section 3.5.2), using only the values stated there: D-502 overhead 92.5 % w/w ethanol and bottoms 0.05 % w/w ethanol at molar reflux 3.5 (today the model fixes a boilup ratio instead and its overhead is far too wet); D-501 vapour side draw at about 40 wt % ethanol carrying more than 99 % of the feed ethanol, about 0.3 % of the feed ethanol overhead and about 0.8 % lost in the bottoms; the molecular sieve removes 95 % of the water, and its regeneration stream (pure-ethanol slipstream plus the stripped water) is about 70-72 wt % ethanol; beer column bottoms cooled to 47 C in H-512; pressure-filter cake at 35 % moisture. Re-express the column specifications as purities, recoveries or ratios (Component Fraction, Component Recovery, Reflux Ratio) rather than fixed molar rates, so the model also holds when the beer feed changes. Fix the sieve and regeneration split and the filter split to the documented values. Test each change with run_process on the calibrated model, keep only changes that converge, and return them as proposals (paths into the spec), one per equipment tag, with the run label that shows the result. This is a model calibration, not a plant change: do not add equipment.",
+  "model": "muse-wonder-1.0"
+ }
+]
