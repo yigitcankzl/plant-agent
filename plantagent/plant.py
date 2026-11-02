@@ -3111,8 +3111,8 @@ class PlantWorkspace(Study):
         # Existing = the corrected model before the first design change; model corrections are not plant changes
         first = next((r for r in self.revisions if r.get("kind") != "correction"), None)
         if not first:
-            return self.state(scale)
-        return {"scale": scale, **self._solve(first["spec_before"], scale)}
+            return {**self.state(scale), "state_source": "existing plant"}
+        return {"scale": scale, **self._solve(first["spec_before"], scale), "state_source": "existing plant"}
 
     def reproduce(self, label):
         """A cited run counts only if it exists and re-solves to the same result now."""
@@ -3220,26 +3220,28 @@ class PlantWorkspace(Study):
         if key not in self._state:
             demo = self._demo()
             hit = demo and demo["spec"] == self.spec and min(abs(st["scale"] - scale) for st in demo["states"]) < 0.006
-            simulator_available = (grid.available() if _is_grid(self.cfg) else ro.available() if _is_watertap(self.cfg)
-                                   else process.available())
+            simulator_available = self.simulator_available()
             if hit or (demo and demo["spec"] == self.spec and not simulator_available):
                 # stored simulator solutions of this exact model: instant first load and clean-clone replay
                 near = min(demo["states"], key=lambda st: abs(st["scale"] - scale))
-                self._state[key] = {**near, "replayed": True}
+                self._state[key] = {**near, "replayed": True, "state_source": "current model"}
             elif _is_watertap(self.cfg):
-                self._state[key] = {"scale": scale, **ro.run(self.spec, scale)}
+                self._state[key] = {"scale": scale, **ro.run(self.spec, scale), "state_source": "current model"}
             elif _is_trapped(self.cfg):
-                self._state[key] = {"scale": scale, **trapped.run(_trapped_spec(self.cfg, self.spec), scale)}
+                self._state[key] = {"scale": scale, **trapped.run(_trapped_spec(self.cfg, self.spec), scale), "state_source": "current model"}
             elif _is_grid(self.cfg):
-                self._state[key] = {"scale": scale, **grid.run(self.spec, scale)}
+                self._state[key] = {"scale": scale, **grid.run(self.spec, scale), "state_source": "current model"}
             elif process.available():
-                self._state[key] = {"scale": scale, **process.run(self.spec, scale)}
+                self._state[key] = {"scale": scale, **process.run(self.spec, scale), "state_source": "current model"}
             else:
                 raise RuntimeError("DWSIM is not installed and there are no precomputed solutions for this model")
         return self._state[key]
 
-    def _demo(self):
-        f = self.model_file.with_name("states.json")
+    def simulator_available(self):
+        return grid.available() if _is_grid(self.cfg) else ro.available() if _is_watertap(self.cfg) else process.available()
+
+    def _demo(self, name="states.json"):
+        f = self.model_file.with_name(name)
         return json.loads(f.read_text()) if f.exists() else None
 
     def precompute(self):
@@ -3247,6 +3249,44 @@ class PlantWorkspace(Study):
         states = [{"scale": round(x / 100, 2), **self._solve(self.spec, x / 100)} for x in range(80, 151)]
         self.model_file.with_name("states.json").write_text(json.dumps({"spec": self.spec, "capacity": self._capacity_of(self.spec),
                                                                         "engine": _simulator_name(self.cfg), "states": states}))
+        return len(states)
+
+    def _proposed_spec(self):
+        from .revb import design_answer
+        answer = design_answer(self.answers)
+        proposals = [p for p in (answer or {}).get("proposals") or [] if p.get("verified")]
+        if not proposals:
+            return None
+        return patch(self.spec, [c for p in proposals for c in p.get("changes") or []])
+
+    def proposed_state(self, scale=1.0):
+        """Featured verified design, replayed from its own cache when the simulator is absent."""
+        spec = self._proposed_spec()
+        if spec is None:
+            return self.state(scale)
+        key = "proposed:" + hashlib.sha1(json.dumps([spec, round(scale, 3)], sort_keys=True).encode()).hexdigest()
+        if key not in self._state:
+            demo = self._demo("proposed_states.json")
+            matching = demo and demo.get("spec") == spec and demo.get("states")
+            hit = matching and min(abs(st["scale"] - scale) for st in demo["states"]) < 0.006
+            if hit or (matching and not self.simulator_available()):
+                near = min(demo["states"], key=lambda st: abs(st["scale"] - scale))
+                self._state[key] = {**near, "replayed": True, "state_source": "proposed design",
+                                    "state_capacity": demo.get("capacity")}
+            elif self.simulator_available():
+                self._state[key] = {"scale": scale, **self._solve(spec, scale), "state_source": "proposed design"}
+            else:
+                raise RuntimeError("DWSIM is not installed and there are no precomputed proposed-design solutions for this model")
+        return self._state[key]
+
+    def precompute_proposed(self):
+        """Store the featured verified design on the same 80–150 % grid as states.json."""
+        spec = self._proposed_spec()
+        if spec is None:
+            raise ValueError("no featured verified design")
+        states = [{"scale": round(x / 100, 2), **self._solve(spec, x / 100)} for x in range(80, 151)]
+        data = {"spec": spec, "capacity": self._capacity_of(spec), "engine": _simulator_name(self.cfg), "states": states}
+        self.model_file.with_name("proposed_states.json").write_text(json.dumps(data, separators=(",", ":")))
         return len(states)
 
     def capacity(self):
@@ -3273,6 +3313,8 @@ if __name__ == "__main__" and len(__import__("sys").argv) > 2:
         print("capacity", c.get("capacity_multiple"), c.get("limited_by"), c.get("errors"))
     elif op == "--precompute":
         print(w.precompute(), "stored solutions")
+    elif op == "--precompute-proposed":
+        print(w.precompute_proposed(), "stored proposed-design solutions")
     sys.exit()
 
 if __name__ == "__main__":

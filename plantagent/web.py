@@ -485,6 +485,7 @@ def _answer_chat_steps(w, answers):
 def plant_project(case):
     w = plant(case)
     st = w.state(float(w.cfg.get("target_scale", 1.0))) if w.built else None
+    simulator_available = w.simulator_available()
     from . import curves
     curved = set(((curves.overlay(case) or {}).get("units") or {}))
     has_compressor_curve = any(u.get("type") == "compressor" and u.get("id") in curved for u in (w.spec or {}).get("units") or [])
@@ -498,6 +499,8 @@ def plant_project(case):
             "data_note": data_note, "featured_work": w.cfg.get("featured_work"), "throughput": w.cfg.get("throughput"), "drawing": "svg" if w.cfg.get("svg") else "pdf" if w.cfg.get("pid_pdf") else "none", "dexpi": bool(w.cfg.get("pid")),
             "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid or {"equipment": [], "connections": [], "valves": [], "control": []}, "basis": w.basis, "model": w.model,
             "has_compressor_curve": has_compressor_curve, "allow_runs": os.getenv("WEB_ALLOW_RUNS") == "1",
+            "simulator_available": simulator_available,
+            "simulator_unavailable_reason": None if simulator_available else "The simulator is not installed on this server; stored states remain available for replay.",
             "built": {**{k: v for k, v in w.built.items() if k != "result"},
                       "coverage": w._coverage(w.spec, w.built.get("mapping")),
                       # the calibration table checked against the solve (inputs vs reproduced outputs), not the agent's prose
@@ -1123,7 +1126,8 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(plant_job(case, lambda w: w.ask(body["text"], body.get("context"), bool(body.get("second_opinion")))))
             if what == "state":
                 sc = float(q.get("scale", 1.0))
-                return self._send(w.existing_state(sc) if q.get("view") == "existing" else w.state(sc))
+                return self._send(w.existing_state(sc) if q.get("view") == "existing" else
+                                  w.proposed_state(sc) if q.get("view") == "proposed" else w.state(sc))
             if what == "whatif" and method == "POST":
                 try:
                     return self._send(whatif_preview(w, body.get("changes") or [], body.get("scale")))

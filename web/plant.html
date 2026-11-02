@@ -129,6 +129,8 @@
   .viewtog { position: absolute; top: 8px; right: 12px; z-index: 6; display: flex; gap: 0; }
   .viewtog button { border-radius: 0; } .viewtog button:first-child { border-radius: 5px 0 0 5px; } .viewtog button:last-child { border-radius: 0 5px 5px 0; }
   .viewtog .on { background: #1d4f86; border-color: #2b6cb3; }
+  .state-source { position: absolute; z-index: 6; top: 12px; left: 30px; padding: 4px 8px; border: 1px solid #95a9a6; border-radius: 4px; background: rgba(18,46,52,.94); color: #dbe8e6; font: 600 10.5px var(--mono); }
+  .engine-unavailable { padding: 5px 10px; border-top: 1px solid #6b5a2e; background: #302917; color: #f0c46c; font-size: 11.5px; }
   .draft-note { position: absolute; transform: translate(6px, 0) scale(var(--inverse-zoom, 1)); transform-origin: left top; max-width: 230px; font: 600 11px/1.35 var(--sans); color: #083044; background: rgba(232,248,252,.96); border: 1px solid #0b7ea8; border-radius: 4px; padding: 4px 6px; pointer-events: none; }
   .calc-sheet { margin: 8px 10px; }
   .calc-sheet table { width: 100%; border-collapse: collapse; font-size: 11px; }
@@ -796,7 +798,7 @@
 
   <main>
     <div id="note" style="display:none;margin:8px 18px 0;padding:6px 10px;border:1px solid #8a6a2e;border-radius:5px;background:#2b2414;color:#f6d28b;font-size:12px"></div>
-    <div class="stage" style="position:relative"><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Proposed</button></div><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing controls"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" class="word" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button><button type="button" class="word" id="toggleLabels" aria-label="Show or hide PlantAgent labels" aria-pressed="true" title="Show or hide PlantAgent load and finding labels">Labels</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
+    <div class="stage" style="position:relative"><div class="state-source" id="stateSource" aria-live="polite">State source</div><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Proposed</button></div><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing controls"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" class="word" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button><button type="button" class="word" id="toggleLabels" aria-label="Show or hide PlantAgent labels" aria-pressed="true" title="Show or hide PlantAgent load and finding labels">Labels</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
   </main>
 
   <aside class="right workspace-decision" id="resultPane">
@@ -805,12 +807,12 @@
       <div><span class="qa-k">Question</span><div id="qaQ"></div></div>
       <div><span class="qa-k">Answer</span><div id="qaA">Loading the plant…</div><div id="qaBadges"></div></div>
         <div class="work-runner">
-          <button class="btn go" id="workRunOpen" type="button" aria-expanded="false" aria-controls="workConfirm">Run full engineering</button>
+          <button class="btn go" id="workRunOpen" type="button" aria-expanded="false" aria-controls="workConfirm" data-needs-simulator>Run full engineering</button>
           <div class="estimate">Estimated Muse cost ~$5–10 · simulator runs are local</div>
           <div class="work-confirm" id="workConfirm" hidden>
             <label for="workGoal">Engineering goal</label>
             <textarea id="workGoal"></textarea>
-            <div class="actions"><button class="btn" id="workCancel" type="button">Cancel</button><button class="btn go" id="workStart" type="button">Confirm and run</button></div>
+            <div class="actions"><button class="btn" id="workCancel" type="button">Cancel</button><button class="btn go" id="workStart" type="button" data-needs-simulator>Confirm and run</button></div>
             <div class="work-run-error" id="workRunError" role="alert"></div>
           </div>
         </div>
@@ -838,6 +840,7 @@
       <button type="button" class="dock-toggle" id="dockToggle" aria-expanded="true">Hide</button>
     </div>
     <div class="workbench-body" id="workbenchBody">
+      <div class="engine-unavailable" id="engineUnavailable" hidden></div>
       <footer class="dock-panel" id="scenario" role="tabpanel" aria-labelledby="dockWhatIf">
         <div class="flowctl">
           <label class="flow-label" for="scale">What-if · throughput</label>
@@ -902,6 +905,15 @@ let P = null, ST = null, busy = false, base = null, PENDING_CARD = null, OPEN_WE
 const NAMES = {pump: 'Pump', hx: 'Heat exchanger', tank: 'Tank', valve: 'Valve', heater: 'Heater / heat load', cooler: 'Cooler', compressor: 'Compressor', mixer: 'Mixer', splitter: 'Splitter', recycle: 'Loop closure'};
 const sev = u => u > 1.0 ? 'fail' : u > 0.9 ? 'warn' : 'ok';
 const simulator = () => ({watertap: 'WaterTAP', pandapower: 'pandapower'})[P?.built?.engine || P?.engine] || 'DWSIM';
+const engineReady = () => P?.simulator_available !== false;
+function applyEngineAvailability(root = document) {
+  const reason = P?.simulator_unavailable_reason || 'The simulator is not installed on this server. Stored results are replay only.';
+  $('engineUnavailable').hidden = engineReady();
+  $('engineUnavailable').textContent = engineReady() ? '' : reason;
+  root.querySelectorAll('[data-needs-simulator]').forEach(button => {
+    if (!engineReady()) { button.disabled = true; button.title = reason; }
+  });
+}
 const modelBlocked = () => Number(P?.built?.review?.blocking || 0) > 0;
 let ACTIVE_MODE = 'capacity';
 let WORKSPACE_VIEW = 'decision';
@@ -964,7 +976,7 @@ function renderTroubleshootMode() {
   $('troublePanel').innerHTML = `<h3>Morning troubleshooting</h3><p>Start with the historian signal, then inspect the affected equipment and fit likely causes in ${simulator()}.</p>
     ${forecastCard()}
     ${today.length ? `<div class="card warn"><div class="tt">What needs attention</div>${today.map((x, i) => `<div style="margin:7px 0"><b>${i + 1}.</b> ${esc(x.text)}</div>`).join('')}</div>` : '<div class="card"><div class="res">No historian alert is available for this case.</div></div>'}
-    ${P.has_historian && !P.health ? `<div class="card warn"><div class="tt">Historian available</div><div style="margin:6px 0">${esc(P.historian_note || 'Run the deterministic morning check.')}</div><button class="btn go" onclick="refreshHealth()">Run morning check</button></div>` : ''}
+    ${P.has_historian && !P.health ? `<div class="card warn"><div class="tt">Historian available</div><div style="margin:6px 0">${esc(P.historian_note || 'Run the deterministic morning check.')}</div><button class="btn go" onclick="refreshHealth()" data-needs-simulator>Run morning check</button></div>` : ''}
     <div class="mode-list">${units.map(tag => `<button class="btn" ${act('select', tag)}><b>${esc(nm(tag))}</b><br><span style="color:var(--muted)">Inspect readings and test likely causes</span></button>`).join('') || '<span style="color:var(--muted)">No equipment has a configured troubleshooting model.</span>'}</div>`;
 }
 
@@ -1252,14 +1264,15 @@ async function load() {
   $('askBtn').textContent = P.allow_runs ? 'Ask' : 'Replay only';
   $('askBtn').title = P.allow_runs ? 'Ask Muse about this plant' : 'Live calls are disabled; stored engineering conversations remain available.';
   if (!P.allow_runs) $('q').placeholder = 'Replay only — start the server with WEB_ALLOW_RUNS=1 for live calls';
-  $('workRunOpen').disabled = false; $('workRunOpen').title = P.allow_runs ? '' : 'Review the goal; live execution is disabled';
-  $('workStart').disabled = !P.allow_runs; $('workStart').textContent = P.allow_runs ? 'Confirm and run' : 'Replay only';
+  $('workRunOpen').disabled = !engineReady(); $('workRunOpen').title = engineReady() ? (P.allow_runs ? '' : 'Review the goal; live execution is disabled') : P.simulator_unavailable_reason;
+  $('workStart').disabled = !P.allow_runs || !engineReady(); $('workStart').textContent = P.allow_runs && engineReady() ? 'Confirm and run' : 'Replay only';
   $('toTarget').disabled = !P.built;  // no reliable model yet: nothing to analyse
   $('toTarget').style.display = P.built ? '' : 'none'; document.querySelector('.flowctl').style.visibility = P.built ? '' : 'hidden';
   $('toTarget').textContent = (P.answers || []).length ? 'Show saved analysis' : 'Analyze target';
   $('model').value = P.model;
   $('model').onchange = async e => { await api('model', {model: e.target.value}); P.model = e.target.value; };
   $('workGoal').value = P.question || '';
+  applyEngineAvailability();
   showMode(ACTIVE_MODE);
   await loadWorklog();
 }
@@ -1292,7 +1305,7 @@ async function reviewRead() {
     <div class="card" style="overflow:auto">${readTable('loops', r.loops || [])}${readTable('equipment', (r.equipment || []).map(e => ({...e, loops: e.loops})))}${readTable('connections', r.connections || [])}</div>
     <input id="readReason" placeholder="Reason, e.g. checked against the drawing and the tender datasheets" style="width:100%;margin:6px 0;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:5px;padding:7px">
     <button class="btn go" onclick="confirmRead()">Confirm read</button> <span id="readMsg"></span>
-    <div style="margin-top:10px"><button class="btn" id="buildBtn" onclick="build()" ${P.read_confirmed ? '' : 'disabled title="Confirm the read first"'}>Build the model from the confirmed read</button></div></div>`;
+    <div style="margin-top:10px"><button class="btn" id="buildBtn" onclick="build()" data-needs-simulator ${P.read_confirmed ? '' : 'disabled title="Confirm the read first"'}>Build the model from the confirmed read</button></div></div>`;
   READ.originalByTag = orig;
 }
 async function confirmRead() {
@@ -1306,9 +1319,11 @@ async function confirmRead() {
 }
 
 function noModel() {
+  queueMicrotask(() => applyEngineAvailability($('answers')));
+  $('stateSource').hidden = true;
   $('eqlist').innerHTML = `<div class="empty">No simulation model yet.<br>The agent reads the <b>P&amp;ID</b> and the <b>operating data sheet</b> and builds a calibrated ${simulator()} model itself.</div>`;
   if (P.drawing === 'pdf') reviewRead();
-  else $('answers').innerHTML = `<div class="empty"><button class="btn go" onclick="build()">Build the model from the P&amp;ID</button></div>`;
+  else $('answers').innerHTML = `<div class="empty"><button class="btn go" onclick="build()" data-needs-simulator>Build the model from the P&amp;ID</button></div>`;
   $('verdict').textContent = 'No model yet';
 }
 
@@ -1354,6 +1369,7 @@ function calibrationBlock(b) {
     rows.map(c => `<div class="kv"><span>${esc(c.item || c.source || 'Calibration point')}</span>${esc(String(c.simulated).split(' (')[0])} <span>vs ${esc(String(c.measured).split(' (')[0])}</span>${c.check ? ` <b style="color:var(--${CAL[c.check]?.[1] || 'muted'});white-space:nowrap">${esc(CAL[c.check]?.[0] || c.check)}${c.deviation_pct != null ? ` ${c.deviation_pct > 0 ? '+' : ''}${c.deviation_pct}%` : ''}</b>` : ''}</div>`).join('') + `</details>`;
 }
 function model() {
+  queueMicrotask(() => applyEngineAvailability($('modelBox')));
   const b = P.built;
   fillReview();
   if (!b) { $('modelBox').innerHTML = ''; return; }
@@ -1375,7 +1391,7 @@ function model() {
     ((P.pid.data_quality || []).length ? `<details style="margin-top:6px"><summary style="color:var(--warn)">⚠ ${P.pid.data_quality.length} P&amp;ID data problems</summary>${P.pid.data_quality.map(a => `<div style="font-size:11.5px;color:var(--muted);padding:2px 0">• ${esc(a)}</div>`).join('')}</details>` : '') +
     `<details style="margin-top:6px"><summary>${(b.assumptions || []).length} assumptions</summary>${(b.assumptions || []).map(a => `<div style="font-size:11.5px;color:var(--muted);padding:2px 0">• ${esc(a)}</div>`).join('')}</details>` +
     (P.has_revisions ? '<div style="margin-top:8px;color:var(--warn);font-size:11px">Rebuild is locked while revision history exists.</div>' :
-      `<div style="margin-top:8px"><button class="btn" onclick="build()">Rebuild model</button></div>`);
+      `<div style="margin-top:8px"><button class="btn" onclick="build()" data-needs-simulator>Rebuild model</button></div>`);
 }
 
 function worstBy(checks) {
@@ -1386,6 +1402,8 @@ function worstBy(checks) {
 
 function render(st) {
   ST = st;
+  $('stateSource').hidden = false;
+  $('stateSource').textContent = `${st.replayed ? 'Stored' : 'Live'} ${simulator()} · ${st.state_source || (VIEW === 'proposed' ? 'proposed design' : 'existing plant')}`;
   if (PENDING_CARD) { const t = PENDING_CARD; PENDING_CARD = null; setTimeout(() => equipmentCard(t), 0); }  // a click that came before the first solve
   const w = worstBy(st.checks), units = Object.fromEntries((P.built.spec.units || []).map(u => [u.id, u]));
   const s = st.scale;
@@ -1439,11 +1457,11 @@ function render(st) {
     placedBadges.push(b.getBoundingClientRect());
   }
   placeDraftNotes();
-  const top = rows[0], cap = P.capacity;
+  const top = rows[0], cap = st.state_capacity || P.capacity;
   const over = rows.filter(c => c.utilisation > 1);
   const blocks = (P.built?.review?.findings || []).filter(f => f.severity === 'block');
   const capLine = cap?.capacity_multiple != null && incident() ? `As documented: the first limit is reached at <b>${Math.round(cap.capacity_multiple * 100)}%</b> of the documented ${esc((P.throughput?.name || 'scenario').toLowerCase())}, at <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? `Recorded ${simulator()} solution.` : `Solved live in ${simulator()}.`}`
-    : cap?.capacity_multiple != null ? `Today's plant: maximum <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? `Recorded ${simulator()} solution.` : `Solved live in ${simulator()}.`}` : '';
+    : cap?.capacity_multiple != null ? `${st.state_source === 'proposed design' ? 'Proposed design' : "Today's plant"}: maximum <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? `Recorded ${simulator()} solution.` : `Solved live in ${simulator()}.`}` : '';
   if (blocks.length) {
     const more = blocks.length > 1 ? ` · ${blocks.length - 1} more blocking finding${blocks.length > 2 ? 's' : ''}.` : '';
     $('verdict').innerHTML = `<span style="color:var(--fail)">Model needs review</span>`;
@@ -1904,6 +1922,7 @@ const UNIT_WORDS = {Kilowatt: 'kW', Megawatt: 'MW', Watt: 'W', MetreSquared: 'm�
 const humanVal = v => String(v).replace(/-?\d+(\.\d+)?/g, m => Number(m).toLocaleString('en-US', {maximumFractionDigits: 3}))
   .replace(/\b([A-Z][A-Za-z]+)\b/g, w => UNIT_WORDS[w] || w);
 function equipmentCard(tag) {  // design data, operating values, every limit with its margin, and a what-if
+  queueMicrotask(() => applyEngineAvailability($('answers')));
   const added = newEquipmentRecord(tag);
   const onSheet = $('sheet').querySelector(`[data-tag="${CSS.escape(tag)}"]`)?.dataset.new === 'true';
   if (added && onSheet) {
@@ -1953,11 +1972,11 @@ function equipmentCard(tag) {  // design data, operating values, every limit wit
     ${editable.length ? `<div class="tt" style="margin-top:10px">What if… (a preview in ${simulator()}, not a revision)</div>
       <select id="wiField">${editable.map(([k, v]) => `<option value="${k}" data-v="${v}">${esc(FIELDS[k][0])} (${esc(fmt(v))} ${esc(FIELDS[k][1])})</option>`).join('')}</select>
       <input id="wiValue" type="number" step="any" style="width:110px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:4px" value="${editable[0][1]}">
-      <button class="btn" ${act('whatIf', tag)}>Re-solve</button><div id="wiOut" style="margin-top:8px"></div>` : ''}
+      <button class="btn" ${act('whatIf', tag)} data-needs-simulator>Re-solve</button><div id="wiOut" style="margin-top:8px"></div>` : ''}
     ${healthOf(tag)}
     ${(P.troubleshootable || []).includes(tag) ? `<div class="tt" style="margin-top:10px">Troubleshoot (deterministic: each cause fitted in ${simulator()}, checked against the other historian readings)</div>
       <span style="font-size:12px">Product out of ${esc(tag)} reads</span> <input id="tsVal" type="number" step="0.1" style="width:80px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:4px" placeholder="last day">
-      <span style="font-size:12px">°C</span> <button class="btn" ${act('troubleshoot', tag)}>Find the cause</button><div id="tsOut" style="margin-top:8px"></div>` : ''}
+      <span style="font-size:12px">°C</span> <button class="btn" ${act('troubleshoot', tag)} data-needs-simulator>Find the cause</button><div id="tsOut" style="margin-top:8px"></div>` : ''}
     <div style="margin-top:12px"><button class="btn" ${act('askAbout', tag)}>Ask about ${esc(tag)}</button></div></div>`;
   $('wiField') && ($('wiField').onchange = () => { $('wiValue').value = $('wiField').selectedOptions[0].dataset.v; });
   WI = {tag, path};
@@ -1991,7 +2010,7 @@ async function whatIf(tag) {
   const moved = r.checks.filter(c => c.before == null || Math.abs(c.after - c.before) > 0.005).sort((a, b) => b.after - a.after);
   $('wiOut').innerHTML = `<div style="font-size:12px;margin-bottom:4px">${describe(changes[0])} at ${Math.round(r.scale * 100)}%</div>
     <table class="ecard">${moved.map(c => `<tr><td>${esc(nm(c.id))}: ${esc(c.check)}</td><td class="v">${c.before == null ? '—' : Math.round(c.before * 100) + '%'} → <b style="color:var(--${sev(c.after)})">${Math.round(c.after * 100)}%</b></td></tr>`).join('') || '<tr><td>No limit moved</td></tr>'}</table>
-    <button class="btn go" style="margin-top:8px" onclick="applyWhatIf()">Apply as draft model revision</button>`;
+    <button class="btn go" style="margin-top:8px" onclick="applyWhatIf()" data-needs-simulator>Apply as draft model revision</button>`;
   WI.changes = changes;
 }
 async function applyWhatIf() {
@@ -2014,10 +2033,7 @@ async function stateForView(scale) {
   if (VIEW === 'proposed') {
     const changes = latestProposedChanges();
     if (changes.length) {
-      const preview = await api('whatif', {changes, scale}).catch(() => null);  // a failed preview falls back to the recorded state
-      if (preview && !preview.errors?.length && preview.state_after) return {scale, ...preview.state_after};
-      // no simulator to re-solve the proposal (e.g. a clean clone): show today's plant and say so, never as 'proposed'
-      return {...await api(`state?scale=${scale}`), proposed_unavailable: true};
+      return api(`state?scale=${scale}&view=proposed`).catch(async () => ({...await api(`state?scale=${scale}`), proposed_unavailable: true}));
     }
   }
   return api(`state?scale=${scale}${VIEW === 'existing' ? '&view=existing' : ''}`);
@@ -2097,8 +2113,8 @@ function chatAnswerCard(answer, index) {
     ${proposals.map(p => `<div class="chat-proposal"><span class="${p.verified ? 'pass' : 'fail'}">${p.verified ? '✓' : '✕'}</span><span>${esc(p.title || 'Proposal')} · ${p.verified ? 'verified' : 'not verified'}</span></div>`).join('')}
     <div class="chat-meta">${esc(meta)}</div><div class="chat-actions">
       ${tags.length ? `<button class="btn" type="button" ${act('chatShow', index)}>Show on drawing</button>` : ''}
-      ${apply >= 0 ? `<button class="btn" type="button" ${act('chatApply', index)}>Apply as draft revision</button>` : ''}
-      <button class="btn" type="button" ${act('chatWork', index)} ${P.allow_runs ? '' : 'disabled'}>Run full engineering from here</button>
+      ${apply >= 0 ? `<button class="btn" type="button" ${act('chatApply', index)} data-needs-simulator>Apply as draft revision</button>` : ''}
+      <button class="btn" type="button" ${act('chatWork', index)} ${P.allow_runs && engineReady() ? '' : 'disabled'} data-needs-simulator>Run full engineering from here</button>
       <button class="btn" type="button" ${act('chatFollow', index)} ${P.allow_runs ? '' : 'disabled'}>Ask a follow-up</button>
     </div></section>`;
 }
@@ -2109,6 +2125,7 @@ function chatTurnHtml(answer, index, open) {
     ${chatAnswerCard(answer, index)}</details>`;
 }
 function renderEngineeringChat() {
+  queueMicrotask(() => applyEngineAvailability($('chatThread')));
   const box = $('chatThread'), answers = P?.answers || [];
   $('qaSugg').hidden = answers.length > 0;
   box.hidden = false;
@@ -2669,6 +2686,7 @@ function qaBar(lead) {
   $('qaSugg').innerHTML = suggestions().map(x => `<button class="btn" ${act('ask', x)}>${esc(x)}</button>`).join('');
 }
 function answers() {
+  queueMicrotask(() => applyEngineAvailability($('answers')));
   if (!P.built) { $('qaA').textContent = 'No model yet. Ask a question or run full engineering: Muse builds the model first.'; return; }
   GATE_VIEWS = [];
   const all = P.answers || [], last = all.at(-1), d = designAnswer();
@@ -2774,7 +2792,7 @@ function decisionBrief(a, idx) {
     if (runs.length && !bad.length) { status = `All ${runs.length} ${simulator()} runs the answer cites re-solve to the same result${verified.length ? '; the proposed fix was re-solved too' : ''}`; statusClass = 'pass'; }
     else if (bad.length) { status = `${bad.length} of ${runs.length} cited ${simulator()} runs re-solve to a different result: check before relying on the numbers`; statusClass = 'fail'; }
   }
-  const issue = (idx === P.answers.length - 1 || a === designAnswer()) && !modelBlocked() && verified.length ? `<div class="package-action"><button class="btn go" type="button" onclick="issueEngineeringPackage(this)">Issue engineering package</button><small>DRAFT — generates the decision pack and current pre-FEED gates; not approved for construction.</small></div>` : '';
+  const issue = (idx === P.answers.length - 1 || a === designAnswer()) && !modelBlocked() && verified.length ? `<div class="package-action"><button class="btn go" type="button" onclick="issueEngineeringPackage(this)" data-needs-simulator>Issue engineering package</button><small>DRAFT — generates the decision pack and current pre-FEED gates; not approved for construction.</small></div>` : '';
   return `<section class="decision-brief"><h2>${esc(plain(a.headline) || 'Engineering decision')}</h2><p class="design-source">${designSource(a)}</p>${reviewNote(a)}<dl class="decision-facts">
     <div class="decision-fact"><dt>① ${incident() ? 'What the engine shows' : 'What limits it'}</dt><dd>${first ? `<b>${esc(first.tag)}</b> · ${esc(plain(first.text))}` : 'No limiting item reported'}</dd></div>
     <div class="decision-fact"><dt>② ${incident() ? 'What would have prevented it' : 'What Muse proposes'}</dt><dd>${esc(plain(recommendation))}</dd></div>
@@ -2793,7 +2811,7 @@ function costConfidence(d) {
   const econ = e ? `<div class="decision-fact"><dt>Cost</dt><dd><b>${M(e.capex?.total_usd)}</b> capex (class 5: ${M(e.capex?.range_usd?.[0])}–${M(e.capex?.range_usd?.[1])}) · <b>${M(e.annual?.margin_usd)}/yr</b> margin · payback <b>${pay(e.payback_years)}</b> <span class="vb" style="border:1px solid var(--warn);color:var(--warn)">prices illustrative</span></dd></div>` : '';
   const pt = u?.p_target, c = u?.capacity;
   const unc = u ? `<div class="decision-fact status-${pt >= .8 ? 'pass' : pt >= .5 ? 'open' : 'fail'}"><dt>Confidence</dt><dd>Target met in <b>${Math.round(pt * 100)}%</b> of ${u.solved || u.n} re-solves with the uncertain inputs varied · max throughput P10/P50/P90 <b>${[c?.p10, c?.p50, c?.p90].map(x => x == null ? '—' : Math.round(x * 100) + '%').join(' / ')}</b>${u.limiting?.[0] ? ` · most often limited by ${esc(u.limiting[0].item)}` : ''}</dd></div>` : '';
-  return `<section class="decision-brief cost-conf"><h3>⑤ Cost and confidence</h3><dl class="decision-facts">${econ}${unc}${P.has_compressor_curve ? '<div class="decision-fact"><dt>Machines</dt><dd id="machines"><button class="btn" type="button" onclick="loadMachines()">Check compressor curves and K-202 start-up</button></dd></div>' : ''}
+  return `<section class="decision-brief cost-conf"><h3>⑤ Cost and confidence</h3><dl class="decision-facts">${econ}${unc}${P.has_compressor_curve ? '<div class="decision-fact"><dt>Machines</dt><dd id="machines"><button class="btn" type="button" onclick="loadMachines()" data-needs-simulator>Check compressor curves and K-202 start-up</button></dd></div>' : ''}
     <div class="decision-fact"><dt>Review</dt><dd><a href="review.html?case=${encodeURIComponent(CASE)}" target="_blank">Comments, sign-offs and HAZOP draft →</a></dd></div></dl></section>`;
 }
 async function loadMachines() {
@@ -2937,7 +2955,7 @@ function prop(p, i, j, src) {
   return `<div class="prop ${p.accepted ? 'done' : ''}"><div class="ph"><b>${esc(p.title)}</b>${p.cost_class ? `<span class="vb" style="color:var(--muted)" title="Cost class written by the agent for screening; not a priced estimate">${esc(p.cost_class)} · agent estimate</span>` : ''}</div>
     <div class="diff">${diff}</div>${added ? `<div class="diff">${added}</div>` : ''}${p.why ? `<div class="diff" style="color:var(--muted);font-family:var(--sans)">${esc(p.why)}</div>` : ''}
     ${calcSheet(p)}${electricalLine(p)}
-    <div class="pf">${v}${scope}${p.verified && !modelBlocked() ? `<div class="prop-actions"><button class="btn go" ${act('accept', i, j, src || '')} title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature.">Apply as draft model revision</button><button class="btn" onclick="this.closest('.prop').remove()">Dismiss</button></div>` : ''}${p.accepted ? '<span class="vb y">applied as draft revision</span>' : ''}</div></div>`;
+    <div class="pf">${v}${scope}${p.verified && !modelBlocked() ? `<div class="prop-actions"><button class="btn go" ${act('accept', i, j, src || '')} title="Applies the change to the working model as a draft revision. It is not an engineering approval or signature." data-needs-simulator>Apply as draft model revision</button><button class="btn" onclick="this.closest('.prop').remove()">Dismiss</button></div>` : ''}${p.accepted ? '<span class="vb y">applied as draft revision</span>' : ''}</div></div>`;
 }
 
 async function accept(i, j, src) {
@@ -3026,11 +3044,12 @@ function forecastCard() {  // fouling forecast: historian trend + simulator limi
 }
 
 function revs() {
+  queueMicrotask(() => applyEngineAvailability($('revs')));
   const a = P.audit;
   $('revs').innerHTML = morning() + (P.revisions || []).map(r => `<div class="rev"><div><b>Rev ${r.rev}</b> ${esc(r.title)}<div style="color:var(--muted);font:11px var(--mono)">${r.changes.map(describe).join(', ')}${r.capacity_multiple ? ' · max ' + Math.round(r.capacity_multiple * 100) + '%' : ''}</div>
-      <div style="color:var(--muted);font-size:11px">${esc(when(r.at))} · ${esc(r.user || 'engineer')} · “${esc(r.reason || '')}”</div></div>${r.kind === 'change' ? `<button class="btn" ${act('undo', r.rev)}>Undo</button>` : ''}</div>`).join('') +
+      <div style="color:var(--muted);font-size:11px">${esc(when(r.at))} · ${esc(r.user || 'engineer')} · “${esc(r.reason || '')}”</div></div>${r.kind === 'change' ? `<button class="btn" ${act('undo', r.rev)} data-needs-simulator>Undo</button>` : ''}</div>`).join('') +
     (!modelBlocked() && ((P.revisions || []).some(r => r.kind === 'change') || (P.answers || []).some(x => (x.proposals || []).some(p => p.verified)))
-      ? `<div class="rev" style="border-left-color:var(--accent);display:block"><button class="btn go" onclick="issueEngineeringPackage(this)" title="Generate the MOC decision file, proposed drawing, operating envelope, discipline gates, RFQ and commissioning plan">Issue engineering package</button><div id="decOut"></div><div id="prefeedOut"></div></div>` : '') +
+      ? `<div class="rev" style="border-left-color:var(--accent);display:block"><button class="btn go" onclick="issueEngineeringPackage(this)" title="Generate the MOC decision file, proposed drawing, operating envelope, discipline gates, RFQ and commissioning plan" data-needs-simulator>Issue engineering package</button><div id="decOut"></div><div id="prefeedOut"></div></div>` : '') +
     (a ? `<div class="rev" style="border-left-color:${a.verify.ok ? 'var(--ok)' : 'var(--fail)'}"><div>Audit trail: ${a.verify.entries} entries · hash chain ${a.verify.ok ? 'intact ✓' : 'BROKEN at ' + a.verify.broken_at}</div><button class="btn" onclick="showAudit()">View</button></div>` : '');
 }
 async function undo(rev) {

@@ -1,5 +1,33 @@
 # Clean-clone browser proof
 
+## Proposed-design replay follow-up (2026-11-03)
+
+Commit `9b7f0cd` adds a separate `proposed_states.json` replay for Salt MVR, chem C01 and BASF C02. Each file contains the featured verified design solved by DWSIM on the same 71-point, 0.80–1.50 throughput grid as `states.json`. The files are 412, 380 and 346 KiB respectively. They do not replace or alter the existing-plant replay.
+
+The follow-up was checked in a fresh clone inside the same `python:3.12-slim` image described below, with an empty home, no `.env`, no external case-data directory, no .NET and `process.available() == False`. The server ran with `WEB_ALLOW_RUNS=0`. The complete browser audit remained **29 pass, 0 warnings, 0 failures**. A focused 1920×1080 check produced this before/after result at 120% throughput:
+
+| Case | Before: Proposed geometry with existing loads | After: stored proposed design | Stored proposed capacity |
+|---|---:|---:|---:|
+| `salt_mvr` | K-201 120% | K-201 100% | 120.1% |
+| `chem_c01` | H1007 106% | cooling-water supply 100% | 124.2% |
+| `basf_process_column_k_2750_dexpi_c02_uns` | K-2750 flood 110% | K-2750 flood 69% | 175.0% |
+
+The canvas now names the source as `Stored DWSIM · proposed design`; the result summary uses the proposed capacity rather than today's capacity. When no simulator is installed, engine-dependent controls are disabled and explain that stored results remain replay-only. `redline.html` now uses the plant workspace's dark palette, and its deterministic design-check button is disabled with the same simulator explanation.
+
+Reproduction commands for the new stores and browser proof:
+
+```sh
+.venv/bin/python -m plantagent.plant --precompute-proposed salt_mvr
+.venv/bin/python -m plantagent.plant --precompute-proposed chem_c01
+.venv/bin/python -m plantagent.plant --precompute-proposed basf_process_column_k_2750_dexpi_c02_uns
+
+node tools/clean_clone_audit.js http://127.0.0.1:8783 \
+  /tmp/proposed-clean-clone.json /tmp/proposed-clean-clone
+node tools/ui_smoke.js http://127.0.0.1:8784 /tmp/proposed-cache-ui-smoke
+```
+
+Focused screenshots are in `/tmp/proposed-cache-before/` and `/tmp/proposed-cache-after/`; the updated redline smoke screenshot is `/tmp/proposed-cache-ui-smoke/engineer_redline_stub.png`. Full tests: **318 tests, OK (21 skipped)**. The UI smoke passed every check.
+
 Test date: 2026-11-02. Baseline commit: `fad11b20c2140ed1f147fa184fb53eb87370f083`.
 Fixes tested at `42f1082` on `codex/clean-clone-proof`.
 
@@ -112,8 +140,8 @@ No existing-state DWSIM store was missing or regenerated. The four inspected pro
 
 For future refreshes, the existing producer is `.venv/bin/python -m plantagent.plant --precompute <case>` on a host with DWSIM. Do not run it in this environment.
 
-The missing artefact for a full proposed slider replay is a **proposed-design state series** for salt, chem C01 and BASF C02. There is currently no persisted proposed-state filename or reader in the application: `/whatif` patches the current model and calls `_solve` on demand. Simply generating another file will not enable replay. The follow-up implementation must save the exact verified combined changes, model hash, scale and resulting checks/units, then have the preview route read that cache. `PlantWorkspace.precompute()` currently covers only the active model, so overwriting `states.json` with a proposal would corrupt the existing-plant replay basis. No such store was generated here.
+The proposed slider replay gap described in the original audit is closed by the 2026-11-03 follow-up above. The stores retain the exact verified combined specification and are rejected when that specification changes.
 
 Missing source drawings require downloading the URLs in `cases/salt_mvr_vision/case.json`, `cases/roseburg/case.json` and `cases/stpete_swwrf/case.json` into their configured `PLANTAGENT_DATA_ROOT` paths. They do not require DWSIM. No PDF was added.
 
-Remaining UI issue, owned by the parallel `web/plant.html` work: the Proposed button can remain selected with proposed geometry while today's loads are shown underneath; the verdict labels the fallback, but the mixed view can still confuse a judge. Some deterministic actions (apply revision, what-if, issue package) remain clickable before they discover the engine is unavailable. Live Ask is disabled and says Replay only. These controls need a simulator-capability flag in the UI; no engine-dependent action was executed during this audit.
+The mixed proposed-geometry/existing-load view and clickable no-engine actions described in the original audit are also closed by the follow-up. Stored Ask history remains readable, while new simulator-dependent actions stay disabled.
