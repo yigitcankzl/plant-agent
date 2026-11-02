@@ -104,6 +104,8 @@ def _why(p):
     """Why the server did not verify a proposal, with numbers: the stated reason, else the limits still over at the target."""
     if p.get("unverified_reason"):
         return p["unverified_reason"]
+    if p.get("error"):  # the re-solve raised (e.g. DWSIM refused a connection): give Muse the message, not a bare "not verified"
+        return "the server could not build or solve it: " + str(p["error"]).strip().splitlines()[0][:300]
     over = (p.get("still_over") or []) + (p.get("breaks") or []) + (p.get("over_limits_at_target") or [])
     if over:
         return "still over at the target: " + "; ".join(dict.fromkeys(

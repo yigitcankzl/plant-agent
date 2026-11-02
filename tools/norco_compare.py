@@ -77,12 +77,14 @@ def main(session=None):
     # The agent's prediction is the run its design answer cites last (its own feed slate and operating specs), re-solved here
     # in DWSIM. Its specs do not converge on Shell's exact Feb 2017 feed, so that run is the comparison point; the feed it
     # assumed is reported next to Shell's.
+    target = float(json.loads((ROOT / "cases" / CASE / "case.json").read_text()).get("target_scale") or 1.0)
     design_run, design_spec, design_scale = None, None, 1.0
     for label in reversed((design or {}).get("runs") or []):
         for f in logs:
             for line in f.read_text().splitlines():
                 d = json.loads(line)
-                if d.get("tool") == "run_process" and (d.get("args") or {}).get("label") == label and not (d.get("result") or {}).get("errors"):
+                if d.get("tool") == "run_process" and (d.get("args") or {}).get("label") == label and not (d.get("result") or {}).get("errors") \
+                        and abs(float(d["args"].get("scale") or 1.0) - target) <= 0.02:  # the design at the target, not an envelope case
                     design_run, design_spec, design_scale = label, d["args"]["spec"], float(d["args"].get("scale") or 1.0)
         if design_spec:
             break

@@ -1,0 +1,329 @@
+{
+ "id": "20261103-011807",
+ "case": "salt_mvr",
+ "goal": "Make 3,000 short tons of salt per day instead of 2,500 (+20 %). Find what limits it and propose the most economical design that passes every engineering check: process, operating envelope, electrical, compressor curves and start-up, uncertainty. Where a check needs data the case does not have (a vendor curve), name it instead of guessing.",
+ "label": null,
+ "model": "baseten:meta-models/muse-spark-open-1026",
+ "provider": "baseten",
+ "max_rounds": 3,
+ "budget_usd": 6.0,
+ "status": "error",
+ "approval_status": "not_reached",
+ "started": "2026-11-03T01:18:07+0300",
+ "usd_total": 2.9008,
+ "seconds_total": 2183,
+ "rounds": [
+  {
+   "n": 1,
+   "answer_index": 8,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "baseten:meta-models/muse-spark-open-1026",
+     "kind": "propose",
+     "status": "info",
+     "usd": 2.5596,
+     "seconds": 1585,
+     "title": "Add parallel vapour compressor K-202 (50 t/h class); Clean main heater V-201 (E-201) to restore performance; Cap purge evaporator feed at today's rate - throttle 5001/FV-301",
+     "detail": "Cannot reach 20% without new compressor",
+     "changes": [
+      {
+       "add_unit": {
+        "id": "OVERHEAD_SPLIT3",
+        "type": "splitter",
+        "in": "S3001raw",
+        "out": [
+         "S3101",
+         "S3001_K201",
+         "S3001_K202"
+        ],
+        "fractions": [
+         0.07031,
+         0.76306,
+         0.16663
+        ]
+       },
+       "limits": {},
+       "rating_source": "routing - no rating"
+      },
+      {
+       "add_unit": {
+        "id": "K-202",
+        "type": "compressor",
+        "in": "S3001_K202",
+        "out": "S3002raw_K202",
+        "P_out_bar": 3.08,
+        "eff_pct": 75
+       },
+       "limits": {
+        "max_kg_h": 60000,
+        "max_kW": 3500
+       },
+       "rating_source": "vendor quote to confirm / standard size ~50 t/h vapour at 1.7→3.08 bar, ~2.1 MW shaft"
+      },
+      {
+       "add_unit": {
+        "id": "K_MIX",
+        "type": "mixer",
+        "in": [
+         "S3002raw_K201",
+         "S3002raw_K202"
+        ],
+        "out": "S3002raw_merged"
+       },
+       "limits": {},
+       "rating_source": "routing - no rating"
+      },
+      {
+       "reroute": {
+        "unit": "K-201",
+        "field": "in",
+        "value": "S3001_K201"
+       },
+       "from": "S3001"
+      },
+      {
+       "reroute": {
+        "unit": "K-201",
+        "field": "out",
+        "value": "S3002raw_K201"
+       },
+       "from": "S3002raw"
+      },
+      {
+       "path": "feeds.TURBINE_EXH.utility",
+       "value": true,
+       "from": null
+      },
+      {
+       "path": "units.V-201.U_W_m2K",
+       "value": 2500,
+       "physical_change": "chemical/mechanical clean of circulating heater to restore clean coefficient",
+       "rating_source": "estimated clean value from data sheet conflict 6,500→8,800 m2 basis - vendor/measured to confirm",
+       "from": 2000
+      },
+      {
+       "path": "feeds.PURGEFEED.utility",
+       "value": true,
+       "from": null
+      },
+      {
+       "path": "units.5001/FV-301.P_out_bar",
+       "value": 1.01,
+       "from": 1.01
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Add parallel vapour compressor K-202 (50 t/h class)",
+     "status": "fail",
+     "detail": "not verified",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Clean main heater V-201 (E-201) to restore performance",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 100.1
+     }
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Cap purge evaporator feed at today's rate - throttle 5001/FV-301",
+     "status": "fail",
+     "detail": "still over at the target: V-301 heater area needed (BPE included) vs installed 106 %; K-201 suction flow vs capacity 120 %; V-201 heater area needed (BPE included) vs installed 111 %",
+     "numbers": {
+      "capacity_pct": 100.1
+     }
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process",
+     "engine": "DWSIM",
+     "title": "design does not reach 120 % (max 100 %, re-solved now)",
+     "status": "fail",
+     "numbers": {},
+     "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "robustness",
+     "engine": "DWSIM",
+     "title": "operating envelope 1/4 scenarios pass (fails: Clean design at sales target, Target with heater fouled to the design-basis U (2,000 W/m²K), Target with five-point existing-compressor efficiency sensitivity)",
+     "status": "fail",
+     "numbers": {},
+     "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "heat_transfer",
+     "engine": "ht/fluids",
+     "title": "E-201 (clean): area needed 7,048 of 8,800 m² at the correlation U 3,288 W/m²K; the verified process design uses the model U 2,500 W/m²K, which governs until the geometry is confirmed; 2 checks over illustrative ratings or geometry, to confi",
+     "status": "open",
+     "numbers": {},
+     "source": "ht/fluids exchanger rating at the design point (ILLUSTRATIVE geometry)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "combustion",
+     "engine": "Cantera",
+     "title": "GT-201 + HRSG-201: steam 19.1 t/h (42,000 lb/h, ×1.20), stack 205 → 200 °C, duct firing 2.73 MW HHV (9.3 MMBtu/h), NOx added 0.4 ppmvd at 15 % O2 (screening); if HRSG steam rises with throughput (×1.20), it needs supplementary (duct) firing",
+     "status": "open",
+     "numbers": {},
+     "source": "Cantera gas-turbine and HRSG model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "curves",
+     "engine": "curves",
+     "title": "compressor/pump curves at the target: K-201 flow vs curve capacity at the required head (this unit) 120 %; K-201 operating flow vs stonewall (choke) 102 %",
+     "status": "fail",
+     "numbers": {
+      "id": "K-201",
+      "check": "flow vs curve capacity at the required head (this unit)",
+      "value": 280638.4,
+      "limit": 233894.3,
+      "unit": "m3/h actual",
+      "utilisation": 1.2
+     },
+     "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "curves_today",
+     "engine": "curves",
+     "title": "compressor/pump curves at today's throughput: all within curve limits (worst K-201 flow vs curve capacity at the required head (this unit) 100 %)",
+     "status": "pass",
+     "numbers": {
+      "id": "K-201",
+      "check": "flow vs curve capacity at the required head (this unit)",
+      "value": 233865.3,
+      "limit": 233894.3,
+      "unit": "m3/h actual",
+      "utilisation": 1.0
+     },
+     "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.voltage",
+     "engine": "transient",
+     "status": "open",
+     "title": "K-201: open: needs: motor list",
+     "numbers": {},
+     "source": "start-up screen"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.acceleration",
+     "engine": "transient",
+     "status": "open",
+     "title": "K-201: open: needs: motor list",
+     "numbers": {},
+     "source": "start-up screen"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup.K-201.surge",
+     "engine": "curves",
+     "status": "pass",
+     "title": "K-201: loaded ramp minimum flow 173,974 vs surge +10 % 153,128 m3/h at 96 % speed",
+     "numbers": {
+      "value": 173974.5,
+      "limit": 153128.5,
+      "unit": "m3/h actual",
+      "margin_ratio": 1.136
+     },
+     "source": "compressor map at the solved pressure ratio during the speed ramp"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "startup",
+     "engine": "transient",
+     "status": "open",
+     "title": "general start-up screen: 1 pass, 0 fail, 2 open",
+     "numbers": {
+      "rows": 3
+     },
+     "source": "motor start, acceleration and compressor-ramp screens"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "confidence",
+     "engine": "uncertainty",
+     "title": "inputs not numeric in the design model: ['limits.K-202.max_kg_h', 'limits.K-202.max_kW', 'units.K-202.eff_pct']",
+     "status": "open",
+     "numbers": {},
+     "source": "uncertainty"
+    }
+   ],
+   "open_issues": [
+    {
+     "check": "proposal rejected",
+     "detail": "Add parallel vapour compressor K-202 (50 t/h class): not verified"
+    },
+    {
+     "check": "proposal rejected",
+     "detail": "Cap purge evaporator feed at today's rate - throttle 5001/FV-301: still over at the target: V-301 heater area needed (BPE included) vs installed 106 %; K-201 suction flow vs capacity 120 %; V-201 heater area needed (BPE included) vs installed 111 %"
+    },
+    {
+     "check": "process",
+     "detail": "design does not reach 120 % (max 100 %, re-solved now)"
+    },
+    {
+     "check": "robustness",
+     "detail": "operating envelope 1/4 scenarios pass (fails: Clean design at sales target, Target with heater fouled to the design-basis U (2,000 W/m²K), Target with five-point existing-compressor efficiency sensitivity)"
+    },
+    {
+     "check": "curves",
+     "detail": "compressor/pump curves at the target: K-201 flow vs curve capacity at the required head (this unit) 120 %; K-201 operating flow vs stonewall (choke) 102 %"
+    }
+   ]
+  }
+ ],
+ "result": {
+  "answer_index": 8,
+  "headline": "Cannot reach 20% without new compressor",
+  "passes": [
+   "curves_today",
+   "startup.K-201.surge"
+  ],
+  "fails": [
+   "process",
+   "robustness",
+   "curves"
+  ],
+  "open": [
+   "heat_transfer",
+   "combustion",
+   "startup.K-201.voltage",
+   "startup.K-201.acceleration",
+   "startup",
+   "confidence"
+  ]
+ },
+ "deliverables": [],
+ "needs_human": [],
+ "error": "APIConnectionError: Connection error.",
+ "finished": "2026-11-03T01:54:29+0300"
+}

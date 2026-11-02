@@ -1,60 +1,23 @@
 {
  "case": "shell_norco_c2splitter",
- "design_answer": "Re-tray PV-1767 delivers +25% polymer-grade ethylene",
- "design_run": "PV1767-PROVEN-104K-R53-B310",
+ "design_answer": "Retray to high-capacity trays 1.85\u00d7 passes envelope",
+ "design_run": "PV1767-newfeed-69pct-1.80-plus10",
  "changes": [
   {
    "replace_unit": "PV-1767",
    "new_rating": {
-    "diameter_m": 4.877,
-    "tray_spacing_m": 0.508,
-    "tray_capacity_factor": 1.85,
-    "efficiency": 0.88
+    "tray_capacity_factor": 1.85
    },
-   "basis": "High-capacity/high-efficiency tray revamp in same 16 ft shell \u2013 vendor capacity 1.85\u00d7 sieve, efficiency 0.88, proven in CET69 Fig2 for 70M lb/yr uplift and flood screen 0.625/0.85",
+   "basis": "Hydraulic rating to pass 1.375\u00d7 envelope worst case flood 0.818 <0.85; 1.80\u00d7 is minimum 0.841, 1.85\u00d7 adds margin for assumed 0.78 efficiency \u2013 vendor high-capacity 4-pass tray (e.g. Sulzer ULTRA-FLO / Koch-Glitsch SuperFrac) rated 1.8-1.9\u00d7 conventional",
    "vendor_confirm": true
-  },
-  {
-   "path": "units.PV-1767.reflux_ratio",
-   "value": 5.0,
-   "from": 6.08
-  },
-  {
-   "path": "units.PV-1767.bottoms_mol_s",
-   "value": 310.0,
-   "from": 324.4
-  },
-  {
-   "path": "feeds.FEED.kg_h",
-   "value": 103960.0,
-   "from": 92000
-  },
-  {
-   "path": "feeds.FEED.x",
-   "value": {
-    "Nitrogen": 0.000464,
-    "Methane": 0.000891,
-    "Ethylene": 0.7052,
-    "Ethane": 0.2913,
-    "Propylene": 0.001452,
-    "Isobutane": 0.000701
-   },
-   "from": {
-    "Nitrogen": 0.000465,
-    "Methane": 0.000897,
-    "Ethylene": 0.641,
-    "Ethane": 0.35544,
-    "Propylene": 0.001459,
-    "Isobutane": 0.000703
-   }
   }
  ],
- "session": "runs/ws/shell_norco_c2splitter/work/20261102-005617/session",
+ "session": "runs/ws/shell_norco_c2splitter/work/20261103-004958/session",
  "server_verification": [
   {
-   "title": "Re-tray PV-1767 with high-capacity/high-efficiency trays for +25% ethylene at 69 wt% feed",
-   "verified": false,
-   "reason": "dwsim re-solve failed at 1.25\u00d7: PV-1767: PR EOS: Unable to calculate compressility factor at given conditions."
+   "title": "Retray PV-1767 with high-capacity trays (full design)",
+   "verified": true,
+   "reason": null
   }
  ],
  "source": "Summers, de Villiers and Green, Chemical Engineering Transactions 69 (2018) 703-708, sections 3-5, Table 1 (after column), Tables 4 and 5",
@@ -68,7 +31,7 @@
   },
   {
    "item": "Change to the tower internals",
-   "agent": "higher-capacity trays (capacity factor 1.85); higher tray efficiency",
+   "agent": "higher-capacity trays (capacity factor 1.85)",
    "recorded": "all 154 trays replaced tray-for-tray with high-capacity HiFi Plus trays",
    "verdict": "match"
   },
@@ -80,49 +43,43 @@
   },
   {
    "item": "Feed the design was solved for",
-   "agent": "103,960 kg/h at 69.0 wt % ethylene (run PV1767-PROVEN-104K-R53-B310)",
+   "agent": "114,356 kg/h at 69.0 wt % ethylene (run PV1767-newfeed-69pct-1.80-plus10)",
    "recorded": "103,896 kg/h at 69.3 wt % (Feb 2017, at the assumed scale)",
-   "verdict": "match"
+   "verdict": "partial"
   },
   {
    "item": "Ethylene product purity after the change",
-   "agent": "99.89 wt % ethylene, ethane 1 ppm",
+   "agent": "99.89 wt % ethylene, ethane 0 ppm",
    "recorded": "99.944 wt % (polymer grade held); spec: ethane at most 1,000 ppm",
    "verdict": "match"
   },
   {
    "item": "Jet flood above feed after the change",
-   "agent": "62 % (Fair screen with the new tray rating)",
+   "agent": "77 % (Fair screen with the new tray rating)",
    "recorded": "64.7 % (Shell hydraulics, Feb 2017)",
-   "verdict": "match"
+   "verdict": "partial"
   },
   {
    "item": "Ethylene product rate",
-   "agent": "+26 %",
+   "agent": "+25 %",
    "recorded": "+25 % (576 to 722 normalised kg/h)",
    "verdict": "match"
   },
   {
    "item": "Reflux (mass)",
-   "agent": "+5 %",
+   "agent": "+25 %",
    "recorded": "+14 % (3,503 to 4,003 normalised kg/h)",
-   "verdict": "match"
-  },
-  {
-   "item": "Tray efficiency of the new trays",
-   "agent": "88 % (assumed)",
-   "recorded": "82.6 % (fitted to the Feb 2017 data)",
    "verdict": "partial"
   },
   {
    "item": "Reboiler duty per kg ethylene",
-   "agent": "-17 %",
+   "agent": "-0 %",
    "recorded": "-6 % (plant, per kg product) to -15 % (paper's balances)",
    "verdict": "match"
   },
   {
    "item": "Condenser duty (refrigeration load)",
-   "agent": "+6 %",
+   "agent": "+25 %",
    "recorded": "not addressed by the project; condenser and refrigeration now limit",
    "verdict": "match"
   },
@@ -140,8 +97,8 @@
   }
  ],
  "summary": {
-  "match": 10,
-  "partial": 1,
+  "match": 7,
+  "partial": 3,
   "miss": 1,
   "not predicted": 1
  }

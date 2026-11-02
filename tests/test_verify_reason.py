@@ -42,3 +42,11 @@ class VerifyReasonTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ExceptionReason(unittest.TestCase):
+    def test_a_raised_resolve_reaches_muse(self):
+        from plantagent import loop
+        r = loop._why({"verified": False, "error": "RuntimeError: Exception: The requested connection between the given objects cannot be done.\n   at DWSIM"})
+        self.assertIn("requested connection", r)
+        self.assertNotIn("at DWSIM", r)

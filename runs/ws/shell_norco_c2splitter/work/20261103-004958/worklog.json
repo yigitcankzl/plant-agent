@@ -1,0 +1,436 @@
+{
+ "id": "20261103-004958",
+ "case": "shell_norco_c2splitter",
+ "goal": "The feed will shift to about 69 wt % ethylene and the unit needs about 25 % more ethylene product from this tower at polymer-grade purity. Find what limits it and propose the change; make the design pass every engineering check. If existing internals limit, replace them with replace_unit and a new rating (vendor to confirm). Column flow amounts are written at today's throughput; the solver scales them.",
+ "label": null,
+ "model": "fireworks:accounts/fireworks/models/muse-spark-open",
+ "provider": "fireworks",
+ "max_rounds": 3,
+ "budget_usd": 6.0,
+ "status": "done",
+ "approval_status": "open",
+ "started": "2026-11-03T00:49:58+0300",
+ "usd_total": 4.2954,
+ "seconds_total": 3680,
+ "rounds": [
+  {
+   "n": 1,
+   "answer_index": 0,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "fireworks:accounts/fireworks/models/muse-spark-open",
+     "kind": "propose",
+     "status": "info",
+     "usd": 0.764,
+     "seconds": 764,
+     "title": "Retray PV-1767 with high-capacity trays",
+     "detail": "Tower floods at +25% - needs high-capacity trays",
+     "changes": [
+      {
+       "replace_unit": "PV-1767",
+       "new_rating": {
+        "tray_capacity_factor": 1.65
+       },
+       "basis": "Fair flood screening at 0.85: conventional 4-pass trays factor 1.30 flood at 1.059 at 1.25×; high-capacity 4-pass trays factor 1.65 (+27%) rated for 1.25× vapour/liquid traffic per DWSIM PV1767-proposal-1.65 (flood 0.834)",
+       "vendor_confirm": true
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Retray PV-1767 with high-capacity trays",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 127.5
+     }
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "vendor confirmation of PV-1767 new rating",
+     "engine": "vendor",
+     "status": "open",
+     "title": "PV-1767 new rating: Fair flood screening at 0.85: conventional 4-pass trays factor 1.30 flood at 1.059 at 1.25×; high-capacity 4-pass trays factor 1.65 (+27%) rated for 1.25× vapour/liquid traffic per DWSIM PV1767-proposal-1.65 (flood 0.834); vendor to confirm",
+     "numbers": {
+      "tray_capacity_factor": 1.65
+     },
+     "source": "replacement sizing basis"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process",
+     "engine": "DWSIM",
+     "title": "design reaches 125 % (max 127 %, re-solved now)",
+     "status": "pass",
+     "numbers": {},
+     "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "robustness",
+     "engine": "DWSIM",
+     "title": "draft (assumed values): operating envelope 1/2 scenarios pass (fails: Target, feed +10 %)",
+     "status": "fail",
+     "numbers": {},
+     "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "piping_utilities",
+     "engine": "none",
+     "title": "no calculation adapter: tie-ins, line sizing, supports and utility headers remain open for PV-1767",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "controls",
+     "engine": "none",
+     "title": "no calculation adapter: control narrative, split/load-sharing control, cause & effect and permissives remain open for PV-1767",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process_safety",
+     "engine": "none",
+     "title": "no calculation adapter: change-focused HAZOP, relief case and isolation for the changed equipment remain open for PV-1767",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "civil_structural",
+     "engine": "none",
+     "title": "no calculation adapter: plot, access, lifting and foundations remain open for PV-1767",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.PV-1767.flooding",
+     "engine": "Fair/Souders-Brown",
+     "title": "PV-1767: column flooding 83.4 % of flood vs 85 % allowed (98 % of the limit)",
+     "status": "pass",
+     "numbers": {
+      "value": 0.834,
+      "limit": 0.85,
+      "unit": "fraction of flood",
+      "utilisation": 0.981
+     },
+     "source": "DWSIM tray traffic with Fair capacity-factor correlation"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "product",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "ETHYLENE Ethylene 66,057 kg/h = 1.25x today (52,846); target 1.25x",
+     "numbers": {
+      "ratio": 1.25,
+      "need": 1.25
+     },
+     "source": "DWSIM solve at the target (case.json product)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.PV-1767.purity_distillate",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "PV-1767 distillate Ethane 0 vs 1000 ppm (mass) maximum",
+     "numbers": {
+      "value": 0.0,
+      "limit": 0.001,
+      "unit": "mass fraction",
+      "utilisation": 0.0
+     },
+     "source": "product spec (cases/<case>/purity.json) on the DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.PV-1767.min_reflux",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "PV-1767 reflux 6.08 vs 4.86 minimum to hold the purity spec at 125 %",
+     "numbers": {
+      "value": 6.08,
+      "limit": 4.855,
+      "unit": "reflux ratio",
+      "utilisation": 0.799
+     },
+     "source": "DWSIM bisection on reflux, 156 stages as built; product spec (cases/<case>/purity.json)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "confidence",
+     "engine": "uncertainty",
+     "title": "draft (assumed values): target met in 44 of 48 samples with uncertain inputs varied (92 %); most often limited by PV-1767: Fair flood fraction vs limit",
+     "status": "pass",
+     "numbers": {
+      "p_target": 0.9170000000000001,
+      "p10": 1.2654,
+      "p50": 1.274,
+      "p90": 1.2773,
+      "n": 48,
+      "solved": 48
+     },
+     "source": "Latin hypercube, 48 samples (seed 20261101), uniform ± band per input kind; each sample re-solved (dwsim): capacity bisection plus the solve at the target (pass at P(target) ≥ 80%)"
+    }
+   ],
+   "open_issues": [
+    {
+     "check": "robustness",
+     "detail": "draft (assumed values): operating envelope 1/2 scenarios pass (fails: Target, feed +10 %)"
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "answer_index": 1,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "fireworks:accounts/fireworks/models/muse-spark-open",
+     "kind": "fix",
+     "status": "info",
+     "usd": 2.2711,
+     "seconds": 1679,
+     "title": "Retray PV-1767 with high-capacity trays (full design)",
+     "detail": "Retray to high-capacity trays 1.85× passes envelope",
+     "changes": [
+      {
+       "replace_unit": "PV-1767",
+       "new_rating": {
+        "tray_capacity_factor": 1.85
+       },
+       "basis": "Hydraulic rating to pass 1.375× envelope worst case flood 0.818 <0.85; 1.80× is minimum 0.841, 1.85× adds margin for assumed 0.78 efficiency – vendor high-capacity 4-pass tray (e.g. Sulzer ULTRA-FLO / Koch-Glitsch SuperFrac) rated 1.8-1.9× conventional",
+       "vendor_confirm": true
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Retray PV-1767 with high-capacity trays (full design)",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 142.9
+     }
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "vendor confirmation of PV-1767 new rating",
+     "engine": "vendor",
+     "status": "open",
+     "title": "PV-1767 new rating: Hydraulic rating to pass 1.375× envelope worst case flood 0.818 <0.85; 1.80× is minimum 0.841, 1.85× adds margin for assumed 0.78 efficiency – vendor high-capacity 4-pass tray (e.g. Sulzer ULTRA-FLO / Koch-Glitsch SuperFrac) rated 1.8-1.9× conventional; vendor to confirm",
+     "numbers": {
+      "tray_capacity_factor": 1.85
+     },
+     "source": "replacement sizing basis"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process",
+     "engine": "DWSIM",
+     "title": "design reaches 125 % (max 143 %, re-solved now)",
+     "status": "pass",
+     "numbers": {},
+     "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "robustness",
+     "engine": "DWSIM",
+     "title": "draft (assumed values): operating envelope 2/2 scenarios pass",
+     "status": "pass",
+     "numbers": {},
+     "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "piping_utilities",
+     "engine": "none",
+     "title": "no calculation adapter: tie-ins, line sizing, supports and utility headers remain open for PV-1767",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "controls",
+     "engine": "none",
+     "title": "no calculation adapter: control narrative, split/load-sharing control, cause & effect and permissives remain open for PV-1767",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process_safety",
+     "engine": "none",
+     "title": "no calculation adapter: change-focused HAZOP, relief case and isolation for the changed equipment remain open for PV-1767",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "civil_structural",
+     "engine": "none",
+     "title": "no calculation adapter: plot, access, lifting and foundations remain open for PV-1767",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.PV-1767.flooding",
+     "engine": "Fair/Souders-Brown",
+     "title": "PV-1767: column flooding 74.4 % of flood vs 85 % allowed (88 % of the limit)",
+     "status": "pass",
+     "numbers": {
+      "value": 0.744,
+      "limit": 0.85,
+      "unit": "fraction of flood",
+      "utilisation": 0.875
+     },
+     "source": "DWSIM tray traffic with Fair capacity-factor correlation"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "product",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "ETHYLENE Ethylene 66,057 kg/h = 1.25x today (52,846); target 1.25x",
+     "numbers": {
+      "ratio": 1.25,
+      "need": 1.25
+     },
+     "source": "DWSIM solve at the target (case.json product)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.PV-1767.purity_distillate",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "PV-1767 distillate Ethane 0 vs 1000 ppm (mass) maximum",
+     "numbers": {
+      "value": 0.0,
+      "limit": 0.001,
+      "unit": "mass fraction",
+      "utilisation": 0.0
+     },
+     "source": "product spec (cases/<case>/purity.json) on the DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.PV-1767.min_reflux",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "PV-1767 reflux 6.08 vs 4.86 minimum to hold the purity spec at 125 %",
+     "numbers": {
+      "value": 6.08,
+      "limit": 4.855,
+      "unit": "reflux ratio",
+      "utilisation": 0.799
+     },
+     "source": "DWSIM bisection on reflux, 156 stages as built; product spec (cases/<case>/purity.json)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "confidence",
+     "engine": "uncertainty",
+     "title": "draft (assumed values): target met in 48 of 48 samples with uncertain inputs varied (100 %); most often limited by PV-1767: Fair flood fraction vs limit",
+     "status": "pass",
+     "numbers": {
+      "p_target": 1.0,
+      "p10": 1.4191,
+      "p50": 1.429,
+      "p90": 1.432,
+      "n": 48,
+      "solved": 48
+     },
+     "source": "Latin hypercube, 48 samples (seed 20261101), uniform ± band per input kind; each sample re-solved (dwsim): capacity bisection plus the solve at the target (pass at P(target) ≥ 80%)"
+    }
+   ],
+   "open_issues": []
+  }
+ ],
+ "result": {
+  "answer_index": 1,
+  "headline": "Retray to high-capacity trays 1.85× passes envelope",
+  "passes": [
+   "process",
+   "robustness",
+   "separation.PV-1767.flooding",
+   "product",
+   "separation.PV-1767.purity_distillate",
+   "separation.PV-1767.min_reflux",
+   "confidence"
+  ],
+  "fails": [],
+  "open": [
+   "vendor confirmation of PV-1767 new rating",
+   "piping_utilities",
+   "controls",
+   "process_safety",
+   "civil_structural"
+  ]
+ },
+ "deliverables": [
+  {
+   "kind": "moc",
+   "title": "MOC decision pack (draft)",
+   "folder": "decision-20261103-015118"
+  },
+  {
+   "kind": "analysis",
+   "title": "Pre-FEED design gate",
+   "artifact": "20261103-011437-pre-feed-design-gate"
+  }
+ ],
+ "needs_human": [
+  "vendor confirmation of PV-1767 new rating: PV-1767 new rating: Hydraulic rating to pass 1.375× envelope worst case flood 0.818 <0.85; 1.80× is minimum 0.841, 1.85× adds margin for assumed 0.78 efficiency – vendor high-capacity 4-pass tray (e.g. Sulzer ULTRA-FLO / Koch-Glitsch SuperFrac) rated 1.8-1.9× conventional; vendor to confirm",
+  "piping_utilities: no calculation adapter: tie-ins, line sizing, supports and utility headers remain open for PV-1767",
+  "controls: no calculation adapter: control narrative, split/load-sharing control, cause & effect and permissives remain open for PV-1767",
+  "process_safety: no calculation adapter: change-focused HAZOP, relief case and isolation for the changed equipment remain open for PV-1767",
+  "civil_structural: no calculation adapter: plot, access, lifting and foundations remain open for PV-1767",
+  "Actual tray efficiency at high rate and flood margin: If efficiency <0.75 or flood limit <0.80, even 1.85× would be tight – would need 1.90×",
+  "Real high-capacity tray rated C-factor vs 1.85×: Rating <1.80× would fail envelope – need larger tray or parallel spacing change",
+  "Condenser/reboiler headroom at 33.5 MW / 43.7 MW: If duties limit below those values, hydraulics pass but heat system limits"
+ ],
+ "finished": "2026-11-03T01:51:18+0300"
+}

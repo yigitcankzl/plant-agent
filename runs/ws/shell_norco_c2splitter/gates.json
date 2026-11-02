@@ -1,32 +1,31 @@
 {
  "key": {
-  "headline": "C2 splitter floods at +11%; re-tray gives +25%",
-  "request": "The feed will shift to about 69 wt % ethylene and the unit needs about 25 % more ethylene from this tower at polymer-grade purity. What limits the C2 splitter, and what is the change?",
+  "headline": "Retray to high-capacity trays 1.85\u00d7 passes envelope",
+  "request": "Engineering loop, next round. Goal: The feed will shift to about 69 wt % ethylene and the unit needs about 25 % more ethylene product from this tower at polymer-grade purity. Find what limits it and propose the change; make the design pass every engineering check. If existing internals limit, replace them with replace_unit and a new rating (vendor to confirm). Column flow amounts are written at today's throughput; the solver scales them.\nThe current design (verified changes: Retray PV-1767 with high-capacity trays) was re-solved and checked by the engines. These checks FAIL:\n- robustness: draft (assumed values): operating envelope 1/2 scenarios pass (fails: Target, feed +10 %)\nPropose physical changes that fix each failed check (equipment, ratings with a real item behind them, operating settings within documented limits), cheapest first. Return the FULL design as proposals: every earlier verified change you keep plus the new ones, so the design answer stands on its own. Do not edit a limit to pass a check. If a failure cannot be fixed with the information available, start the headline with 'UNSOLVABLE:' and say why and what data would settle it.",
   "titles": [
-   "Re-tray PV-1767 with high-capacity/high-efficiency trays for +25% ethylene",
-   "Confirm refrigeration and reboiler headers support 30.7/21.3 MW at 1.25\u00d7 (no new exchanger in model)"
+   "Retray PV-1767 with high-capacity trays (full design)"
   ],
   "revisions": 0,
-  "content": "f9d0aa6342c28c75a59b25b0a7505f291b152a00"
+  "content": "48d370f116e8dc8e644be10e48bc45e91c94dd20"
  },
- "made": "2026-11-03T00:24:22+0300",
+ "made": "2026-11-03T01:59:50+0300",
  "disciplines": [
   {
    "id": "process",
    "status": "pass",
-   "summary": "design reaches 125 % (max 191 %, re-solved now)",
+   "summary": "design reaches 125 % (max 143 %, re-solved now)",
    "source": "DWSIM re-solve of the combined design on the current model",
    "checks": [
     {
      "id": "plant",
      "check": "maximum throughput with all verified changes vs target",
-     "value": "191.1",
+     "value": "142.9",
      "limit": "125",
      "unit": "%",
      "kind": "max",
      "status": "ok",
-     "result": "65 %",
-     "source": "DWSIM re-solve of all 2 verified change(s) together on the current model"
+     "result": "87 %",
+     "source": "DWSIM re-solve of all 1 verified change(s) together on the current model"
     }
    ]
   },
@@ -39,23 +38,23 @@
     {
      "id": "PV-1767",
      "check": "scenario 'Target, feed +10 %': Fair flood fraction vs limit",
-     "value": "0.612",
+     "value": "0.818",
      "limit": "0.85",
      "unit": "fraction of flood",
      "kind": "max",
      "status": "ok",
-     "result": "72 %",
+     "result": "96 %",
      "source": "DWSIM solve; scenario basis: draft (assumed values): feed swing above the target"
     },
     {
      "id": "PV-1767",
      "check": "scenario 'Target, feed -10 %': Fair flood fraction vs limit",
-     "value": "0.501",
+     "value": "0.67",
      "limit": "0.85",
      "unit": "fraction of flood",
      "kind": "max",
      "status": "ok",
-     "result": "59 %",
+     "result": "79 %",
      "source": "DWSIM solve; scenario basis: draft (assumed values): turndown below the target (minimum flows)"
     }
    ]
