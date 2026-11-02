@@ -501,6 +501,9 @@ def discipline_gates(w, answer=None, refresh=False):
             else:
                 rows.append({"id": "electrical", "status": "not affected", "summary": "no new or re-rated motor on the one-line diagram",
                              "source": "motor list of the case one-line diagram", "source_file": f"cases/{w.name}/electrical.json", "checks": []})
+        elif cfg:  # the case has a one-line diagram but pandapower is not installed here: open, never silently absent
+            rows.append({"id": "electrical", "status": "open", "summary": "electrical check not run: pandapower is not installed on this server",
+                         "source": "pandapower adapter", "source_file": f"cases/{w.name}/electrical.json", "checks": []})
     except Exception as ex:  # noqa: BLE001 - a broken adapter leaves the gate open, never green
         rows.append({"id": "electrical", "status": "open", "summary": f"electrical check could not run: {type(ex).__name__}: {ex}"[:200],
                      "source": "pandapower adapter", "checks": []})

@@ -1,0 +1,629 @@
+{
+ "key": "7c163aa1600a8e11ffd34483396d21112ee734e8",
+ "made": "2026-11-02T19:08:13+0300",
+ "case": "shell_norco_c2splitter",
+ "answer_headline": "Existing 4-pass trays flood at +25% \u2014 re-tray fixes it",
+ "method": "Latin hypercube, 48 samples (seed 20261101), uniform \u00b1 band per input kind; each sample re-solved (dwsim): capacity bisection plus the solve at the target",
+ "n": 48,
+ "solved": 39,
+ "failed": 9,
+ "workers": 1,
+ "seconds": 572.8,
+ "target": 1.25,
+ "bands_pct": {
+  "documented": 3,
+  "measured": 5,
+  "provisional rating": 10,
+  "assumed": 10,
+  "illustrative": 15
+ },
+ "inputs": [
+  {
+   "path": "units.PV-1767.dP_bar",
+   "kind": "assumed",
+   "band_pct": 10,
+   "base": 1.703,
+   "source": "not found next to its tag in the plant documents: assumed while building"
+  },
+  {
+   "path": "feeds.FEED.P_bar",
+   "kind": "assumed",
+   "band_pct": 10,
+   "base": 25.5,
+   "source": "not found next to its tag in the plant documents: assumed while building"
+  },
+  {
+   "path": "feeds.FEED.T_C",
+   "kind": "assumed",
+   "band_pct": 10,
+   "base": -9.5,
+   "source": "not found next to its tag in the plant documents: assumed while building"
+  }
+ ],
+ "capacity": {
+  "p10": 1.415,
+  "p50": 1.417,
+  "p90": 1.421
+ },
+ "capacity_basis": "39 feasible samples",
+ "p_target": 1.0,
+ "infeasible_share": 0.0,
+ "limiting": [
+  {
+   "item": "PV-1767: Fair flood fraction vs limit",
+   "share": 1.0
+  }
+ ],
+ "limiting_load_at_target": {
+  "item": "PV-1767: Fair flood fraction vs limit",
+  "p10": 0.88,
+  "p50": 0.882,
+  "p90": 0.884
+ },
+ "drivers": [
+  {
+   "path": "units.PV-1767.dP_bar",
+   "kind": "assumed",
+   "effect": -0.0037
+  },
+  {
+   "path": "feeds.FEED.T_C",
+   "kind": "assumed",
+   "effect": 0.0005
+  },
+  {
+   "path": "feeds.FEED.P_bar",
+   "kind": "assumed",
+   "effect": -0.0002
+  }
+ ],
+ "summary": "Target 125% met in 100% of 39 samples; max throughput P10/P50/P90 142% / 142% / 142%; most often limited by PV-1767: Fair flood fraction vs limit (100%); biggest driver units.PV-1767.dP_bar (assumed).",
+ "samples": [
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0358,
+    "feeds.FEED.P_bar": 0.9166,
+    "feeds.FEED.T_C": 0.9146
+   },
+   "capacity": 1.416,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.884
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0313,
+    "feeds.FEED.P_bar": 0.9401,
+    "feeds.FEED.T_C": 0.9726
+   },
+   "capacity": 1.416,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.884
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0641,
+    "feeds.FEED.P_bar": 1.027,
+    "feeds.FEED.T_C": 1.0279
+   },
+   "capacity": 1.415,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.884
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0142,
+    "feeds.FEED.P_bar": 1.0148,
+    "feeds.FEED.T_C": 0.9244
+   },
+   "capacity": 1.417,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.882
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9584,
+    "feeds.FEED.P_bar": 1.0633,
+    "feeds.FEED.T_C": 0.9696
+   },
+   "capacity": 1.419,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.881
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9169,
+    "feeds.FEED.P_bar": 0.9437,
+    "feeds.FEED.T_C": 1.0327
+   },
+   "capacity": 1.421,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.88
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9966,
+    "feeds.FEED.P_bar": 0.9875,
+    "feeds.FEED.T_C": 1.02
+   },
+   "capacity": 1.417,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.882
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0181,
+    "feeds.FEED.P_bar": 0.9105,
+    "feeds.FEED.T_C": 1.0346
+   },
+   "capacity": 1.417,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.882
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9747,
+    "feeds.FEED.P_bar": 1.02,
+    "feeds.FEED.T_C": 0.9023
+   },
+   "capacity": 1.418,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.882
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0959,
+    "feeds.FEED.P_bar": 0.9672,
+    "feeds.FEED.T_C": 0.9934
+   },
+   "capacity": 1.414,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.885
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9889,
+    "feeds.FEED.P_bar": 0.9859,
+    "feeds.FEED.T_C": 0.9332
+   },
+   "capacity": 1.418,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.882
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9538,
+    "feeds.FEED.P_bar": 0.978,
+    "feeds.FEED.T_C": 1.0221
+   },
+   "capacity": 1.419,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.881
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9828,
+    "feeds.FEED.P_bar": 1.0369,
+    "feeds.FEED.T_C": 0.9866
+   },
+   "capacity": 1.418,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.882
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9031,
+    "feeds.FEED.P_bar": 0.9583,
+    "feeds.FEED.T_C": 1.062
+   },
+   "capacity": 1.421,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.88
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0946,
+    "feeds.FEED.P_bar": 0.9337,
+    "feeds.FEED.T_C": 1.0438
+   },
+   "capacity": 1.414,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.885
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9374,
+    "feeds.FEED.P_bar": 1.0063,
+    "feeds.FEED.T_C": 0.9601
+   },
+   "capacity": 1.42,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.881
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9217,
+    "feeds.FEED.P_bar": 1.0117,
+    "feeds.FEED.T_C": 0.9169
+   },
+   "capacity": 1.42,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.88
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9154,
+    "feeds.FEED.P_bar": 0.921,
+    "feeds.FEED.T_C": 1.0632
+   },
+   "capacity": 1.421,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.88
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9046,
+    "feeds.FEED.P_bar": 1.0394,
+    "feeds.FEED.T_C": 0.9524
+   },
+   "capacity": 1.421,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.88
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0485,
+    "feeds.FEED.P_bar": 0.9527,
+    "feeds.FEED.T_C": 1.0035
+   },
+   "capacity": 1.415,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.884
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9838,
+    "feeds.FEED.P_bar": 0.9636,
+    "feeds.FEED.T_C": 0.9481
+   },
+   "capacity": 1.418,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.882
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0014,
+    "feeds.FEED.P_bar": 1.0228,
+    "feeds.FEED.T_C": 1.0084
+   },
+   "capacity": 1.417,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.882
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0602,
+    "feeds.FEED.P_bar": 0.9971,
+    "feeds.FEED.T_C": 0.9067
+   },
+   "capacity": 1.415,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.884
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0533,
+    "feeds.FEED.P_bar": 1.0503,
+    "feeds.FEED.T_C": 0.9964
+   },
+   "capacity": 1.415,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.884
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9952,
+    "feeds.FEED.P_bar": 0.9047,
+    "feeds.FEED.T_C": 1.0725
+   },
+   "capacity": 1.418,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.882
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9687,
+    "feeds.FEED.P_bar": 0.9272,
+    "feeds.FEED.T_C": 1.0888
+   },
+   "capacity": 1.419,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.881
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0043,
+    "feeds.FEED.P_bar": 0.948,
+    "feeds.FEED.T_C": 1.0164
+   },
+   "capacity": 1.417,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.882
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9778,
+    "feeds.FEED.P_bar": 0.904,
+    "feeds.FEED.T_C": 0.9825
+   },
+   "capacity": 1.418,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.882
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9452,
+    "feeds.FEED.P_bar": 1.0303,
+    "feeds.FEED.T_C": 1.0072
+   },
+   "capacity": 1.419,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.881
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.91,
+    "feeds.FEED.P_bar": 0.9816,
+    "feeds.FEED.T_C": 1.0576
+   },
+   "capacity": 1.421,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.88
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0394,
+    "feeds.FEED.P_bar": 1.0543,
+    "feeds.FEED.T_C": 0.9433
+   },
+   "capacity": 1.416,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.884
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0673,
+    "feeds.FEED.P_bar": 0.9198,
+    "feeds.FEED.T_C": 0.9911
+   },
+   "capacity": 1.415,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.884
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9462,
+    "feeds.FEED.P_bar": 0.9596,
+    "feeds.FEED.T_C": 1.079
+   },
+   "capacity": 1.419,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.881
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0227,
+    "feeds.FEED.P_bar": 1.0002,
+    "feeds.FEED.T_C": 1.0382
+   },
+   "capacity": 1.416,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.884
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0286,
+    "feeds.FEED.P_bar": 0.9331,
+    "feeds.FEED.T_C": 0.9789
+   },
+   "capacity": 1.416,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.884
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0562,
+    "feeds.FEED.P_bar": 0.9749,
+    "feeds.FEED.T_C": 1.0866
+   },
+   "capacity": 1.415,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.884
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0423,
+    "feeds.FEED.P_bar": 1.0437,
+    "feeds.FEED.T_C": 1.0526
+   },
+   "capacity": 1.415,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.884
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 1.0812,
+    "feeds.FEED.P_bar": 1.0668,
+    "feeds.FEED.T_C": 0.9393
+   },
+   "capacity": 1.414,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.885
+   }
+  },
+  {
+   "factors": {
+    "units.PV-1767.dP_bar": 0.9298,
+    "feeds.FEED.P_bar": 0.9949,
+    "feeds.FEED.T_C": 0.9658
+   },
+   "capacity": 1.42,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "PV-1767: Fair flood fraction vs limit",
+   "at_target": {
+    "PV-1767: Fair flood fraction vs limit": 0.881
+   }
+  }
+ ]
+}
