@@ -166,7 +166,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.waitForFunction(() => document.querySelector('#stateSource')?.textContent.includes('proposed design'), null, {timeout: 30000});
   const norcoOk = await p.evaluate(() => {
     const d = designAnswer(), text = decisionBrief(d, P.answers.indexOf(d));
-    return ST.replayed && ST.scale === 1.25 && ST.checks.some(c => c.id === 'PV-1767' && Math.abs(c.value - .744) < .001) &&
+    return ST.state_source === 'proposed design' && ST.scale === 1.25 && ST.checks.some(c => c.id === 'PV-1767' && Math.abs(c.value - .744) < .001) &&
       /PV-1767/.test(document.querySelector('#verdict').textContent) && !/No limits/.test(document.querySelector('#eqlist').textContent) &&
       !/combined target not yet cleared/.test(text);
   });
@@ -396,7 +396,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
         });
       });
     }
-    const chips = await p.evaluate(() => !tourGateRow.hidden && /Process ✓/.test(tourGateRow.textContent) && /Electrical ✕ TX-1 133 %/.test(tourGateRow.textContent));
+    const chips = await p.evaluate(() => !tourGateRow.hidden && /Process ✓/.test(tourGateRow.textContent) && /Electrical ✕ TX-1 133 %/.test(tourGateRow.textContent) &&
+      tourGateRow.getBoundingClientRect().top >= document.querySelector('#viewTog').getBoundingClientRect().bottom + 8);
     await p.screenshot({path: `${OUT}/cold_judge_tour_${viewport.width}x${viewport.height}.png`});
     console.log(targetsVisible && chips ? 'ok  ' : 'FAIL', `guided tour targets and discipline chips at ${viewport.width}x${viewport.height}`);
     bad += targetsVisible && chips ? 0 : 1;

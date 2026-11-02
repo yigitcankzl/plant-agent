@@ -278,6 +278,7 @@
   .redteam-attack-head a { flex: 0 0 70px; text-align: right; white-space: nowrap; font: 700 11px var(--mono); color: inherit; }
   .redteam-rationale { display: block; margin: 3px 0 7px; color: #aebfc0; font-size: 10.5px; overflow-wrap: anywhere; }
   .redteam-missing { padding: 10px; border-left: 3px solid var(--fail); color: var(--fg-2); font-size: 12px; line-height: 1.5; }
+  .redteam-missing a, .redteam-model a { color: var(--act); }
   .redteam-bar { position: relative; height: 8px; overflow: hidden; border-radius: 5px; background: #0f292e; }
   .redteam-bar::after { content: ""; position: absolute; top: 0; bottom: 0; left: 80%; width: 1px; background: #f2f7f6; opacity: .75; }
   .redteam-fill { display: block; height: 100%; background: var(--ok); }
@@ -788,6 +789,10 @@
   body.present-mode .pid-viewport { height: 100% !important; min-height: 0; }
   body.present-mode main, body.present-mode .stage { min-height: 0; height: 100%; }
   body.present-mode .discipline-gate { font-size: 15px; padding: 9px 12px; }
+  body.present-mode .discipline-rail { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+  body.present-mode .discipline-name { font-size: 12.5px; overflow-wrap: normal; }
+  body.present-mode .discipline-mark { width: 39px; height: 39px; font-size: 19px; }
+  body.present-mode .discipline-gate::before { top: 28px; }
   body.present-mode .discipline-impact-head h3, body.present-mode .redteam-head h3 { font-size: 19px; }
   body.present-mode .redteam-head { flex-wrap: wrap; }
   body.present-mode .redteam-model, body.present-mode .redteam-tabs button { font-size: 13px; }
@@ -2934,6 +2939,10 @@ function disciplineImpact(a) {
 function redteamSet(index) {
   REDTEAM_SELECTED = Math.max(0, Math.min(Number(index) || 0, (REDTEAM?.sets?.length || 1) - 1));
   const panel = $('redteamPanel'); if (panel) panel.outerHTML = redteamCard();
+  if (PRESENT) {
+    const set = REDTEAM?.sets?.[REDTEAM_SELECTED], s = set?.summary;
+    if (s) showPresentCaption('DWSIM checked:', `${set.label}: ${s.broke ? s.broke + ' / ' + s.total + ' attacks broke it' : s.held + ' / ' + s.total + ' attacks held'}${Number.isFinite(s.worst_utilisation) ? ' · worst ' + Math.round(s.worst_utilisation * 100) + '% of limit' : ''}`, s.broke ? 'fail' : 'pass');
+  }
 }
 function redteamCard() {
   const sets = REDTEAM?.sets || [];
@@ -2992,14 +3001,15 @@ function decisionBrief(a, idx) {
   const limits = (d.highlights || []).filter(h => ['fail', 'warn'].includes(h.severity));
   const first = limits[0], verified = (d.proposals || []).filter(p => p.verified), gates = gateRows(d);
   const failed = gates.filter(row => gateState(row)[0] === 'fail'), open = gates.filter(row => gateState(row)[0] === 'open');
+  const targetHolds = d.combined?.reaches_target ?? gates.some(g => g.id === 'process' && gateState(g)[0] === 'pass');
   const recommendation = (verified.length ? verified : d.proposals || []).map(p => p.title).filter(Boolean).join(' + ') ||
     (incident() ? 'No change proposed: the question was whether the planned action helps, and the answer is above' : 'No verified change yet');
   let status = 'Analysis needs engineering checks', statusClass = 'open';
   if (modelBlocked()) { status = 'Model review blocked — correct the model before issuing a design'; statusClass = 'fail'; }
   else if (failed.length) { status = `${failed.length} discipline gate${failed.length === 1 ? '' : 's'} failed`; statusClass = 'fail'; }
-  else if (open.length) { status = `${simulator()} screening complete · ${open.length} discipline gate${open.length === 1 ? '' : 's'} open`; }
+  else if (open.length) { status = `${simulator()} ${targetHolds ? 'target verified' : 'screening complete'} · ${open.length} discipline gate${open.length === 1 ? '' : 's'} open`; }
   else if (d.combined?.reaches_target && !gates.length) status = `${simulator()} verified · discipline gates not run yet`;
-  else if (d.combined?.reaches_target || (!d.combined && gates.some(g => g.id === 'process' && gateState(g)[0] === 'pass'))) { status = `${simulator()} and all supplied discipline gates pass`; statusClass = 'pass'; }
+  else if (targetHolds) { status = `${simulator()} and all supplied discipline gates pass`; statusClass = 'pass'; }
   else if (verified.length) status = `${verified.length} change${verified.length === 1 ? '' : 's'} simulated · combined target not yet cleared`;
   if (incident() && !failed.length) {  // the replay of the runs the answer cites decides what may be claimed
     const runs = (d.checks || []).filter(c => /^run /.test(c.item || '')), bad = runs.filter(c => !c.ok);
@@ -3364,6 +3374,7 @@ function showTourGates() {
     return `<button class="tour-gate-chip ${state}" type="button" ${act('showTourGate', row.id)}>${esc(name)} ${marks[state]}${esc(detail)}</button>`;
   }).join('');
   box.hidden = !rows.length;
+  box.style.top = Math.max(80, $('viewTog').getBoundingClientRect().bottom + 12) + 'px';
 }
 function showTourGate(id) {
   const row = gateRows(designAnswer() || {}).find(item => item.id === id); if (!row) return;
