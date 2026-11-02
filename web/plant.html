@@ -147,9 +147,9 @@
   .outcome-compare > summary { color: var(--text); font-size: 13px; font-weight: 700; } .outcome-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; font-size: 12.5px; }
   .outcome-cols small { display: block; color: var(--muted); margin-top: 4px; }
   .tour-on { outline: 3px solid #4da3ff !important; outline-offset: 2px; border-radius: 6px; }
-  #tour { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 60; background: #0f2e45; color: #fff; border: 1px solid #4da3ff;
-          border-radius: 10px; padding: 12px 16px; width: min(720px, 92vw); box-shadow: 0 10px 40px rgba(0,0,0,.5); display: none; }
-  @media (max-height: 820px) { #tour { left: 12px; bottom: 12px; transform: none; width: min(460px, 40vw); padding: 9px 12px; } #tour .tx { font-size: 12.5px; } }
+  #tour { position: fixed; z-index: 60; background: #0f2e45; color: #fff; border: 1px solid #4da3ff;
+          border-radius: 10px; padding: 12px 16px; width: min(560px, calc(100vw - 24px)); max-height: min(360px, calc(100vh - 24px)); overflow: auto;
+          box-shadow: 0 10px 40px rgba(0,0,0,.5); display: none; }
   #tour .st { font: 600 11px var(--mono); color: #9fd0ff; letter-spacing: .5px; }
   #tour .tx { margin: 4px 0 10px; font-size: 14px; line-height: 1.45; }
   #tour .row { display: flex; gap: 8px; justify-content: flex-end; }
@@ -719,6 +719,33 @@
   .chat-actions .btn { padding: 4px 7px; font-size: 11px; }
   #sheet [data-tag].chat-fail * { stroke: var(--fail) !important; stroke-width: 2px !important; }
 
+  /* The strip tells the engineering story first. Tool traffic remains one click away. */
+  .run-story { margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--rule); }
+  .run-story-line { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 8px; padding: 4px 0; color: var(--fg-2); font-size: 12.5px; line-height: 1.4; }
+  .run-story-line b { color: var(--fg); font-weight: 700; }
+  .run-story-line.fail b, .run-story-line.fail span { color: #ff9a90; }
+  .norco-compare { margin-top: 12px; padding: 9px 10px; border: 1px solid #3a555b; background: #14272d; }
+  .norco-compare > summary { color: var(--fg); font-size: 12.5px; font-weight: 700; }
+  .norco-score { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 7px; color: var(--fg-2); font-size: 11.5px; }
+  .norco-score b { color: var(--fg); }
+  .agent-log-toggle { width: calc(100% - 36px); margin: 4px 18px 12px; text-align: left; background: transparent; color: var(--fg-2); border-color: var(--rule); }
+  .engineering-chat:not(.show-log) > .chat-earlier,
+  .engineering-chat:not(.show-log) > .chat-turn { display: none; }
+  body.story-first #worklogPanel .work-rounds { display: none; }
+  body.story-first #worklogPanel .work-result { display: none; }
+  .worklog-head { display: block; }
+  .worklog-head .work-status { display: inline-block; max-width: 100%; margin-top: 5px; white-space: normal; line-height: 1.4; }
+  .ask-replay-only .cmd, .ask-replay-only #askBtn { display: none !important; }
+  .ask-replay-only { display: block !important; }
+  .ask-replay-only #redlineLink { display: block; text-align: center; }
+
+  .tour-gate-row { position: fixed; z-index: 59; top: 62px; left: 324px; right: 18px; display: flex; flex-wrap: wrap; gap: 7px;
+    padding: 9px 12px; border: 1px solid #4da3ff; border-radius: 8px; background: rgba(15,46,69,.97); box-shadow: 0 8px 28px rgba(0,0,0,.35); }
+  .tour-gate-chip { min-height: 34px; padding: 5px 10px; border: 1px solid #5c7883; border-radius: 17px; background: #183a46; color: #eaf4f5; font: 700 12px var(--sans); cursor: pointer; }
+  .tour-gate-chip.pass { border-color: var(--ok); } .tour-gate-chip.fail { border-color: var(--fail); color: #ffb0a8; }
+  .tour-gate-chip.open { border-color: var(--warn); color: #f2d18c; }
+  @media (max-width: 820px) { .tour-gate-row { left: 12px; right: 12px; } }
+
   /* Recording-only view: the ordinary workspace is unchanged unless ?present=1 is present. */
   .present-caption, .openweights-story { display: none; }
   body.present-mode { overflow: hidden; }
@@ -835,7 +862,7 @@
     <div class="rhead"><span id="inspectorTitle">Result</span><div class="workspace-tabs" role="group" aria-label="Result detail"><button type="button" id="decisionView" aria-pressed="true">Decision</button><button type="button" id="engineeringView" aria-pressed="false">Engineering</button></div><span id="spend"></span></div>
     <section id="qa" aria-label="Question and answer">
       <div><span class="qa-k">Question</span><div id="qaQ"></div></div>
-      <div><span class="qa-k">Answer</span><div id="qaA">Loading the plant…</div><div id="qaBadges"></div></div>
+      <div><span class="qa-k">Answer</span><div id="qaA">Loading the plant…</div><div id="qaBadges"></div><div class="run-story" id="runStory" aria-label="Featured run summary"></div></div>
         <div class="work-runner">
           <button class="btn go" id="workRunOpen" type="button" aria-expanded="false" aria-controls="workConfirm" data-needs-simulator>Run full engineering</button>
           <div class="estimate">Estimated Muse cost ~$5–10 · simulator runs are local</div>
@@ -899,6 +926,7 @@
 </div>
 <div class="present-caption" id="presentCaption" aria-live="polite" hidden><div class="present-actor" id="presentActor"></div><div class="present-text" id="presentText"></div></div>
 <aside class="detail-drawer workspace-decision" id="detailDrawer" aria-label="Decision, package and details"><div class="dd-head"><b>Decision and details</b><button class="btn" id="ddClose" type="button" aria-label="Close details">✕</button></div><div id="ddBody"></div></aside>
+<div class="tour-gate-row" id="tourGateRow" aria-label="Discipline checks" hidden></div>
 <div id="tour" role="dialog" aria-live="polite"><div class="st" id="tourStep"></div><div class="tx" id="tourText"></div>
   <div class="row"><button class="btn" onclick="tourEnd()">Close</button><button class="btn go" id="tourNext" onclick="tourGo(TOUR_I + 1)">Next</button></div></div>
 <div class="modal" id="modal" onclick="if(event.target===this)this.classList.remove('on')"><div class="box"><button class="modal-x" type="button" aria-label="Close" onclick="$('modal').classList.remove('on')">✕</button><div id="modalBox"></div></div></div>
@@ -914,6 +942,7 @@ const STORY = PARAMS.get('story');
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 document.body.classList.toggle('present-mode', PRESENT);
+document.body.classList.toggle('story-first', !PRESENT && !SAMPLE_WORKLOG && !REPLAY_ID);
 if (PRESENT) $('presentCaption').hidden = false;
 // data-driven buttons: values travel as JSON in data-args and reach the handler as arguments, never as inline JavaScript
 // (an HTML-escaped apostrophe in an onclick attribute is decoded before the script runs, so escaping cannot make it safe)
@@ -921,7 +950,7 @@ const act = (name, ...args) => `data-act="${name}" data-args="${esc(JSON.stringi
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   const fn = el && {select, whatIf, troubleshoot, ask, undo, accept, workFocus: (tags, view) => workFocus(tags, view, el),
-    chatFocus, chatShow, chatApply, chatWork, chatFollow, redteamSet,
+    chatFocus, chatShow, chatApply, chatWork, chatFollow, redteamSet, showTourGate,
     showParity: () => { openDetails(true); setWorkspaceView('engineering'); requestAnimationFrame(() => document.querySelector('[data-nrel-parity]')?.scrollIntoView({block: 'start'})); },
     askAbout: tag => { $('q').value = `Why is ${tag} limiting, and what is the cheapest fix?`; $('q').focus(); }}[el.dataset.act];
   if (fn) fn(...JSON.parse(el.dataset.args || '[]'));
@@ -1131,9 +1160,16 @@ function localPoint(el) {
   const r = el.getBoundingClientRect(), b = sheet.getBoundingClientRect();
   return {x: (r.left + r.width / 2 - b.left) / V.scale, y: (r.top - b.top) / V.scale};
 }
-function focusDrawing(tag) {
+function focusDrawing(tag, whole = false) {
   const g = sheet.querySelector(`[data-tag="${CSS.escape(tag)}"]`);
   if (!g) return;
+  if (whole) {
+    const r = g.getBoundingClientRect(), sr = sheet.getBoundingClientRect(), old = V.scale;
+    const x = (r.left + r.width / 2 - sr.left) / old, y = (r.top + r.height / 2 - sr.top) / old;
+    V.scale = old * Math.min((view.clientWidth - 140) / r.width, (view.clientHeight - 140) / r.height, 3);
+    V.x = view.clientWidth / 2 - x * V.scale; V.y = view.clientHeight / 2 - y * V.scale;
+    moveDrawing(); return;
+  }
   const symbol = g.querySelector('rect,circle,ellipse,path,polygon') || g;
   const p = localPoint(symbol), r = symbol.getBoundingClientRect(), oldScale = V.scale;
   V.scale = Math.max(V.scale, V.fit * 2);
@@ -1163,6 +1199,7 @@ function focusDrawingTags(tags) {
 function selectOnDrawing(tag) {
   sheet.querySelectorAll('.focus-active,.u-sel').forEach(g => g.classList.remove('focus-active', 'u-sel'));
   sheet.querySelector('.pdf-guides')?.remove();
+  if (!tag) { sheet.classList.remove('has-selection'); return; }
   const g = sheet.querySelector(`[data-tag="${CSS.escape(tag)}"]`);
   sheet.classList.toggle('has-selection', !!g);
   if (!g) return;
@@ -1234,12 +1271,48 @@ async function loadGateAssessment() {
   if (assessment?.case === CASE && (!assessment.design_answer || !design?.headline || assessment.design_answer === design.headline)) P.gateAssessment = assessment;
 }
 
+function norcoColumnDrawing() {
+  // Sections, tray numbers and before-data are from this case's basis.md; this is a schematic, not the source P&ID.
+  const line = (id, d, from, to) => `<g data-line="${id}" data-from="${from}" data-to="${to}"><path d="${d}" fill="none" stroke="#51656b" stroke-width="3" marker-end="url(#norco-arrow)"/></g>`;
+  return `<svg class="norco-column" viewBox="0 0 1200 760" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Shell Norco C2 splitter sections and connections">
+    <defs><marker id="norco-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#51656b"/></marker></defs>
+    <rect width="1200" height="760" fill="#f8faf8"/><text x="48" y="50" fill="#21353b" font-size="25" font-weight="700">Shell Norco C2 splitter · section schematic</text>
+    <text x="48" y="78" fill="#607177" font-size="15">154 trays · 4.877 m shell · April 2015 operating data</text>
+    <g data-tag="PV-1767" data-name="C2 splitter PV-1767">
+      <rect x="455" y="92" width="290" height="570" rx="142" fill="#fff" stroke="#1f5965" stroke-width="5"/>
+      <rect x="468" y="108" width="264" height="48" rx="22" fill="#f5e6b3"/><text x="600" y="137" text-anchor="middle" fill="#644f16" font-size="18" font-weight="700">Pasteurization · trays 145–154</text>
+      <rect x="468" y="158" width="264" height="387" fill="#e6f1ef"/><text x="600" y="350" text-anchor="middle" fill="#31565c" font-size="20" font-weight="700">Above-feed section</text>
+      <rect x="468" y="548" width="264" height="27" fill="#dce8f2"/><text x="600" y="568" text-anchor="middle" fill="#38586d" font-size="13" font-weight="700">Side-reboiler section</text>
+      <rect x="468" y="578" width="264" height="68" fill="#d8e2f2"/><text x="600" y="616" text-anchor="middle" fill="#38506d" font-size="16" font-weight="700">Bottom section · trays 1–32</text>
+      <path d="M468 156H732M468 545H732M468 576H732" stroke="#1f5965" stroke-width="2"/>
+      <text x="600" y="390" text-anchor="middle" fill="#6a7b80" font-size="15">highest pre-project load: 87 % jet flood</text>
+    </g>
+    ${line('feed-PV1767','M80 525H455','FEED','PV-1767')}<text x="82" y="503" fill="#21353b" font-size="18" font-weight="700">Feed · above tray 37</text><text x="82" y="548" fill="#607177" font-size="15">Before: 97.1 t/h · 62.4 wt % ethylene</text>
+    ${line('PV1767-product','M745 158H1085','PV-1767','ETHYLENE')}<text x="790" y="129" fill="#21353b" font-size="18" font-weight="700">Ethylene product draw · tray 145</text><text x="790" y="151" fill="#607177" font-size="15">polymer grade</text>
+    <g data-tag="CONDENSER" data-name="Partial condenser"><rect x="875" y="248" width="165" height="70" rx="8" fill="#fff" stroke="#1f5965" stroke-width="3"/><path d="M895 283H1020M930 262V304M985 262V304" stroke="#1f5965" stroke-width="3"/><text x="958" y="341" text-anchor="middle" fill="#21353b" font-size="17" font-weight="700">Partial condenser + vent</text></g>
+    ${line('PV1767-condenser','M700 110C790 110 800 283 875 283','PV-1767','CONDENSER')}${line('condenser-reflux','M875 300C820 300 820 190 745 190','CONDENSER','PV-1767')}
+    <g data-tag="SIDE-REBOILER" data-name="Side reboiler"><rect x="875" y="495" width="165" height="76" rx="8" fill="#fff" stroke="#1f5965" stroke-width="3"/><path d="M895 533H1020M930 510V555M985 510V555" stroke="#1f5965" stroke-width="3"/><text x="958" y="595" text-anchor="middle" fill="#21353b" font-size="17" font-weight="700">Side reboiler · tray 32</text><text x="958" y="616" text-anchor="middle" fill="#607177" font-size="15">6.1 MW</text></g>
+    ${line('PV1767-side-reboiler','M745 560H875','PV-1767','SIDE-REBOILER')}${line('side-reboiler-PV1767','M875 520H790V535H745','SIDE-REBOILER','PV-1767')}
+    ${line('PV1767-bottoms','M600 662V714','PV-1767','BOTTOMS')}<text x="620" y="704" fill="#21353b" font-size="17" font-weight="700">Ethane bottoms</text>
+    <g transform="translate(48 650)"><rect width="340" height="62" rx="6" fill="#163a43"/><text x="18" y="26" fill="#b9ddd7" font-size="14" font-weight="700">Project premise</text><text x="18" y="48" fill="#fff" font-size="16">+25 % ethylene at polymer-grade purity</text></g>
+  </svg>`;
+}
+
+function renderCaseNote() {
+  if (!P.data_note) return;
+  if (CASE === 'shell_norco_c2splitter') $('note').innerHTML = `<b>Real Shell Norco operating data; the revamp outcome was withheld from Muse.</b><details><summary>Details and assumptions</summary>${esc(P.data_note)}</details>`;
+  else $('note').textContent = '⚠ ' + P.data_note;
+  $('note').style.display = 'block';
+}
+
 async function load() {
   P = await api('project');
   if (P.error) throw new Error(P.error);
   document.title = 'PlantAgent · ' + P.title;
   document.querySelector('[data-mode="capacity"]').textContent = incident() ? 'Incident' : 'Capacity';
-  if (P.drawing === 'none') {  // no drawing: draw the agent's own flowsheet, one box per unit in flow order
+  if (P.drawing === 'none' && CASE === 'shell_norco_c2splitter') {
+    $('sheet').innerHTML = norcoColumnDrawing();
+  } else if (P.drawing === 'none') {  // no drawing: draw the agent's own flowsheet, one box per unit in flow order
     // no model yet: lay out the P&ID's own equipment and connections; after Build, the model's units
     const fromPid = !P.built?.spec?.units && (P.pid?.equipment || []).length;
     const us = fromPid ? P.pid.equipment.map(e => ({id: e.tag || e.id, type: e.class, in: P.pid.connections.filter(c => c.to.split('(')[0] === (e.tag || e.id)).map(c => c.from + '>' + c.to),
@@ -1274,7 +1347,7 @@ async function load() {
   if (P.drawing === 'none' && !P.dexpi) $('pidStats').textContent = 'equipment and connections from the data sheet';
   if (P.drawing === 'none') $('pidName').innerHTML = P.dexpi ? 'Smart P&amp;ID <span>DEXPI XML · flowsheet drawn from the model</span>' : 'No drawing <span>flowsheet drawn from the model</span>';
   if (P.drawing === 'pdf') $('pidName').innerHTML = `Schematic (PDF) <span>read by ${esc((P.pid.model || 'Muse').replace('muse-', ''))}</span>`;
-  if (P.data_note) { $('note').textContent = '⚠ ' + P.data_note; $('note').style.display = 'block'; }
+  renderCaseNote();
   const hi = Math.max(150, Math.ceil(P.target_scale * 100 / 10) * 10 + 30);
   $('scale').max = hi; $('maxLbl').textContent = hi + '%';
   if ((P.drawing !== 'none' || P.dexpi) && P.pid.equipment.length) $('pidStats').textContent = `${P.pid.equipment.length} equipment · ${P.pid.connections.length} connections · ${P.pid.valves.length} valves · ${P.pid.control.length} signals`;
@@ -1294,8 +1367,12 @@ async function load() {
   $('askBtn').disabled = !P.allow_runs;
   $('askBtn').textContent = P.allow_runs ? 'Ask' : 'Replay only';
   $('askBtn').title = P.allow_runs ? 'Ask Muse about this plant' : 'Live calls are disabled; stored engineering conversations remain available.';
-  if (!P.allow_runs) $('q').placeholder = 'Replay only — start the server with WEB_ALLOW_RUNS=1 for live calls';
-  $('workRunOpen').disabled = !engineReady(); $('workRunOpen').title = engineReady() ? (P.allow_runs ? '' : 'Review the goal; live execution is disabled') : P.simulator_unavailable_reason;
+  $('askDock').classList.toggle('ask-replay-only', !P.allow_runs);
+  if (!P.allow_runs) $('q').placeholder = 'Saved engineering run';
+  $('workRunOpen').disabled = P.allow_runs && !engineReady();
+  $('workRunOpen').textContent = P.allow_runs ? 'Run full engineering' : 'Replay saved engineering run';
+  $('workRunOpen').title = P.allow_runs && !engineReady() ? P.simulator_unavailable_reason : '';
+  if (!P.allow_runs) $('workRunOpen').removeAttribute('data-needs-simulator');
   $('workStart').disabled = !P.allow_runs || !engineReady(); $('workStart').textContent = P.allow_runs && engineReady() ? 'Confirm and run' : 'Replay only';
   $('toTarget').disabled = !P.built;  // no reliable model yet: nothing to analyse
   $('toTarget').style.display = P.built ? '' : 'none'; document.querySelector('.flowctl').style.visibility = P.built ? '' : 'hidden';
@@ -1306,6 +1383,10 @@ async function load() {
   applyEngineAvailability();
   showMode(ACTIVE_MODE);
   await loadWorklog();
+  if (CASE === 'basf_process_column_k_2750_dexpi_c02_uns') {
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    focusDrawing('K 2750', true);
+  }
 }
 
 // ---- engineer confirms Muse's read of a PDF schematic before any model is built ----
@@ -2160,8 +2241,13 @@ function renderEngineeringChat() {
   const box = $('chatThread'), answers = P?.answers || [];
   $('qaSugg').hidden = answers.length > 0;
   box.hidden = false;
-  box.innerHTML = `<div class="chat-head"><h3>Engineering conversation</h3><span class="chat-mode ${P.allow_runs ? 'live' : ''}">${P.allow_runs ? 'Live calls enabled' : 'Replay only · live disabled'}</span></div>` +
+  const showing = box.classList.contains('show-log');
+  box.innerHTML = `<div class="chat-head"><h3>Agent log</h3><span class="chat-mode ${P.allow_runs ? 'live' : ''}">${P.allow_runs ? 'Live calls enabled' : 'Saved run'}</span></div><button class="btn agent-log-toggle" type="button" aria-expanded="${showing}">${showing ? 'Hide' : 'Show'} agent log</button>` +
     (answers.length ? chatEarlier(answers) + chatTurnHtml(answers.at(-1), answers.length - 1, true) : '<div class="chat-empty">Ask a question to see Muse read the plant, then watch each simulator check.</div>');
+  box.querySelector('.agent-log-toggle').onclick = e => {
+    const open = box.classList.toggle('show-log'); e.currentTarget.textContent = open ? 'Hide agent log' : 'Show agent log'; e.currentTarget.setAttribute('aria-expanded', String(open));
+    document.body.classList.toggle('story-first', !open);
+  };
 }
 function chatEarlier(answers) {
   // older turns fold into one line; a question asked several times shows once (its latest answer)
@@ -2179,6 +2265,7 @@ function chatScrollTo(element) {
 function chatBegin(text) {
   const box = $('chatThread');
   if (box.hidden || !box.querySelector('.chat-head')) renderEngineeringChat();
+  box.classList.add('show-log'); const toggle = box.querySelector('.agent-log-toggle'); if (toggle) { toggle.textContent = 'Hide agent log'; toggle.setAttribute('aria-expanded', 'true'); }
   box.querySelectorAll('.chat-turn').forEach(turn => turn.open = false);
   box.insertAdjacentHTML('beforeend', `<details class="chat-turn" data-chat-live open><summary>${esc(text)}</summary><p class="chat-engineer"><b>Engineer</b>${esc(text)}</p><div class="chat-steps"></div><div class="chat-live">${esc(museName(P.model))} · thinking… 0s · $0.000</div></details>`);
   const turn = box.querySelector('[data-chat-live]');
@@ -2403,6 +2490,7 @@ async function replayShow(index) {
 }
 function replayPlay() {
   if (!REPLAY.events.length) return;
+  document.body.classList.remove('story-first');
   if (REPLAY.index >= REPLAY.events.length - 1) REPLAY.index = -1;
   REPLAY.playing = true; $('replayToggle').textContent = '❚❚ Pause'; $('replayToggle').setAttribute('aria-label', 'Pause replay');
   replayShow(REPLAY.index + 1).then(replaySchedule);
@@ -2496,6 +2584,7 @@ async function initOpenWeightsStory() {
 }
 function renderWorklog(log) {
   LAST_WORK = log;
+  if (log) renderRunStory(designAnswer() || P.answers?.at(-1), log);
   // one confidence number on the strip: when the engineering run measured it, the saved answer's older number goes
   const runConf = (log?.rounds?.at(-1)?.steps || []).find(st => st.check === 'confidence' && st.numbers?.p_target != null);
   if (runConf) document.querySelectorAll('#qaBadges .qa-badge').forEach(b => { if (/uncertainty re-solves/.test(b.textContent)) b.remove(); });
@@ -2695,7 +2784,7 @@ function suggestions() {  // from this case's own equipment, so a desalination p
 }
 // the top bar: the question this page answers, the answer in one line, and how far it is checked
 function qaBar(lead) {
-  const d = designAnswer(), q = lead && lead === d && P.question ? P.question : lead ? (lead.request || lead.question) : P.question;
+  const d = designAnswer(), q = P.question || lead?.request || lead?.question;
   $('qaQ').textContent = plain(q || '') || 'Ask a question below.';
   $('qaA').textContent = lead ? plain(lead.headline) || 'Answered' : NREL_EVIDENCE
     ? `${NREL_EVIDENCE.within_5} of ${NREL_EVIDENCE.checks} withheld checks reproduced within 5%` : 'Not answered yet';
@@ -2714,7 +2803,45 @@ function qaBar(lead) {
   } else if (NREL_EVIDENCE) b.push(['ok', 'blind calibration · view parity chart →']);
   $('qaBadges').innerHTML = b.map(([k, t]) => `<span class="qa-badge ${k}"${/parity/.test(t) ? ` ${act('showParity')} role="button" tabindex="0" style="cursor:pointer"`
     : /compare/.test(t) ? ' role="button" tabindex="0" style="cursor:pointer" onclick="const o=document.querySelector(\'.outcome-compare\');if(o){o.open=true;o.scrollIntoView({behavior:\'smooth\'})}"' : ''}>${esc(t)}</span>`).join('');
+  renderRunStory(lead);
   $('qaSugg').innerHTML = suggestions().map(x => `<button class="btn" ${act('ask', x)}>${esc(x)}</button>`).join('');
+}
+function openOutcomeComparison() {
+  openDetails(true); setWorkspaceView('decision');
+  requestAnimationFrame(() => { const card = document.querySelector('.outcome-compare'); if (card) { card.open = true; card.scrollIntoView({block: 'start'}); } });
+}
+function storyGate(row) {
+  const text = plain(row?.summary || '');
+  const loaded = text.match(/([A-Z][A-Z0-9-]+)\s+\d+\s*→\s*(\d+)\s*%\s*loaded/i);
+  if (loaded) return `${loaded[1]} would be overloaded at ${loaded[2]}%.`;
+  const envelope = text.match(/(\d+)\/(\d+) scenarios pass/i);
+  if (envelope) return `${Number(envelope[2]) - Number(envelope[1])} of ${envelope[2]} operating scenarios fails and needs review.`;
+  return text.replace(/;.*$/, '') || `${GATE_NAMES[row?.id] || row?.id || 'A check'} still needs a decision.`;
+}
+function renderRunStory(lead, log = null) {
+  const box = $('runStory'); if (!box) return;
+  if (!lead) { box.innerHTML = '<div class="run-story-line"><b>Next</b><span>Ask a plant-change question or replay a saved engineering run.</span></div>'; return; }
+  const d = (lead.proposals || []).length ? lead : (designAnswer() || lead);
+  const first = (d.highlights || []).find(h => ['fail', 'warn'].includes(h.severity));
+  const verified = (d.proposals || []).filter(p => p.verified);
+  const gates = gateRows(d), failed = gates.filter(r => gateState(r)[0] === 'fail'), open = gates.filter(r => gateState(r)[0] === 'open');
+  const limit = first ? `${first.tag ? first.tag + ': ' : ''}${plain(first.text).split(/;|\.\s/)[0]}.` : plain(d.summary || 'The simulator did not report a binding plant limit.');
+  const proposed = log?.rounds?.at(-1)?.steps?.find(step => step.actor === 'muse' && step.kind === 'propose');
+  const fix = proposed && !/^UNSOLVABLE:/i.test(proposed.title || '') ? plain(proposed.title) : verified.length ? verified.map(p => plain(p.title)).join(' + ') : 'No verified physical change is on record yet.';
+  let left = failed.length ? `${storyGate(failed.find(r => r.id === 'electrical') || failed[0])}${failed.length > 1 ? ` ${failed.length - 1} more check${failed.length === 2 ? ' fails' : 's fail'}.` : ''}`
+    : open.length ? `${open.length} engineering input${open.length === 1 ? ' is' : 's are'} still open for human review.` : 'No supplied engineering gate still fails.';
+  let remainsFailed = failed.length > 0;
+  if (log?.status === 'unsolved') { left = plain(log.result?.headline || log.reason || 'Engineering review is still needed.').replace(/^UNSOLVABLE:\s*/i, '') + '.'; remainsFailed = true; }
+  else if (log?.result) {
+    const failures = log.result.fails || [], humans = log.needs_human || log.result.open || [];
+    remainsFailed = failures.length > 0;
+    left = failures.length ? `${failures.length} checks still fail: ${failures.join(', ')}.` : humans.length ? `${humans.length} human decisions remain; first: ${plain(String(humans[0])).split(':')[0]}.` : 'All supplied engineering checks pass.';
+  }
+  const score = CASE === 'shell_norco_c2splitter' && P.outcome?.scorecard ? (() => {
+    const counts = P.outcome.scorecard.reduce((m, row) => (m[row.verdict] = (m[row.verdict] || 0) + 1, m), {});
+    return `<div class="norco-compare"><b>Agent vs engineers</b><div class="norco-score"><span><b>${counts.match || 0}</b> match</span><span><b>${counts.partial || 0}</b> partial</span><span><b>${counts.miss || 0}</b> miss</span><span><b>${counts['not predicted'] || 0}</b> not predicted</span></div><button class="btn" type="button" onclick="openOutcomeComparison()">Open blind comparison</button></div>`;
+  })() : '';
+  box.innerHTML = `<div class="run-story-line"><b>Limit</b><span>${esc(limit)}</span></div><div class="run-story-line"><b>Fix</b><span>${esc(fix)}</span></div><div class="run-story-line ${remainsFailed ? 'fail' : ''}"><b>${remainsFailed ? 'Still fails' : 'Still open'}</b><span>${esc(left)}</span></div>${score}`;
 }
 function answers() {
   queueMicrotask(() => applyEngineAvailability($('answers')));
@@ -3163,7 +3290,14 @@ function submitAsk() {
 }
 $('q').onkeydown = e => { if (e.key === 'Enter') submitAsk(); };
 $('askBtn').onclick = submitAsk;
-$('workRunOpen').onclick = () => showWorkConfirm($('workConfirm').hidden);
+$('workRunOpen').onclick = () => {
+  if (!P.allow_runs) {
+    $('worklogPanel').scrollIntoView({block: 'start'});
+    if ($('replayToggle') && !REPLAY.playing) replayPlay();
+    return;
+  }
+  showWorkConfirm($('workConfirm').hidden);
+};
 $('workCancel').onclick = () => showWorkConfirm(false);
 $('workStart').onclick = startEngineeringWork;
 $('toTarget').onclick = () => {
@@ -3195,18 +3329,47 @@ function tourGates() {
   return 'The same change, checked beyond the process: ' + g.filter(r => r.status !== 'not affected').map(r => `${GATE_NAMES[r.id] || r.id} ${mark[r.status] || '—'}`).join(' · ') +
     '. ✕ comes from a calculation (load flow, exchanger correlations, operating envelope); ○ means the input to decide it is still missing. Click a gate to see its checks.';
 }
+function showTourGates() {
+  const rows = gateRows(designAnswer() || {}), box = $('tourGateRow'), marks = {pass: '✓', fail: '✕', open: '○', na: '—'};
+  box.innerHTML = rows.filter(row => gateState(row)[0] !== 'na').map(row => {
+    const [state] = gateState(row), name = GATE_NAMES[row.id] || row.id, summary = plain(row.summary || '');
+    const loaded = summary.match(/([A-Z][A-Z0-9-]+)\s+\d+\s*→\s*(\d+)\s*%\s*loaded/i);
+    const detail = loaded ? ` ${loaded[1]} ${loaded[2]} %` : '';
+    return `<button class="tour-gate-chip ${state}" type="button" ${act('showTourGate', row.id)}>${esc(name)} ${marks[state]}${esc(detail)}</button>`;
+  }).join('');
+  box.hidden = !rows.length;
+}
+function showTourGate(id) {
+  const row = gateRows(designAnswer() || {}).find(item => item.id === id); if (!row) return;
+  const index = GATE_VIEWS.push(row) - 1; showGate(index);
+}
+function placeTour(ids) {
+  const targets = ids.map(id => $(id)).filter(el => el && !el.hidden && el.getClientRects().length);
+  if (!targets.length) return;
+  const rects = targets.map(el => el.getBoundingClientRect());
+  const target = {left: Math.min(...rects.map(r => r.left)), right: Math.max(...rects.map(r => r.right)), top: Math.min(...rects.map(r => r.top)), bottom: Math.max(...rects.map(r => r.bottom))};
+  const box = $('tour'), pad = 14; box.style.left = pad + 'px'; box.style.top = pad + 'px'; box.style.bottom = 'auto'; box.style.transform = 'none';
+  const w = box.offsetWidth, h = box.offsetHeight; let left, top;
+  if (innerWidth - target.right >= w + pad) { left = target.right + pad; top = target.top; }
+  else if (target.left >= w + pad) { left = target.left - w - pad; top = target.top; }
+  else if (innerHeight - target.bottom >= h + pad) { left = (target.left + target.right - w) / 2; top = target.bottom + pad; }
+  else if (target.top >= h + pad) { left = (target.left + target.right - w) / 2; top = target.top - h - pad; }
+  else { left = (innerWidth - w) / 2; top = innerHeight - h - pad; }
+  box.style.left = Math.max(pad, Math.min(innerWidth - w - pad, left)) + 'px';
+  box.style.top = Math.max(pad, Math.min(innerHeight - h - pad, top)) + 'px';
+}
 function tourSteps() {
   const b = P.built || {}, so = designAnswer()?.second_opinion;
   return [
     ['The source', () => `This is the case P&ID (the banner above says where it comes from). ${/muse/i.test(b.model || '') ? `${museName(b.model)} read it with the data sheets and built this ${simulator()} model itself` : `The ${simulator()} model here is a ${b.model || 'template'} built without a language model`} (${(b.spec?.units || b.spec?.stages || []).length} units, ${b.seconds || '?'} s).${(k => k ? ` Checked against the plant's measurements: ${k.reproduced} of ${k.reproduced + k.differs} match within 3 %.` : '')(b.calibration_check?.counts)}`,
-      () => ['sheet'], async () => { await setView('existing'); setScale(100); }],
+      () => [$('note').style.display === 'none' ? 'stateSource' : 'note'], async () => { await setView('existing'); setScale(100); }],
     ['The question', () => `The engineer asks for +${Math.round((P.target_scale - 1) * 100)} % throughput. At ${Math.round(P.target_scale * 100)} % every item on the P&ID is re-solved in ${simulator()} and coloured by how close it runs to its limit.`,
       () => ['scale', 'verdict'], async () => { await setView('existing'); setScale(Math.round(P.target_scale * 100)); }],
-    ['What limits it today', tourOver, () => ['sheet', 'eqlist'], null],
-    ['Muse\'s fix, re-solved', tourResult, () => ['sheet', 'answers'], async () => { showMode('capacity'); setWorkspaceView('decision'); await setView('proposed'); $('rightScroll').scrollTo({top: 0}); }],
-    ['Beyond the process', tourGates, () => ['answers'], () => document.querySelector('.discipline-impact')?.scrollIntoView({block: 'center'})],
+    ['What limits it today', tourOver, () => ['eqlist'], () => { toggleDrawer(true); $('infoDrawer').scrollTop = 0; }],
+    ['Muse\'s fix, re-solved', tourResult, () => ['detailDrawer'], async () => { showMode('capacity'); setWorkspaceView('decision'); await setView('proposed'); openDetails(true); $('ddBody').scrollTop = 0; }],
+    ['Beyond the process', tourGates, () => ['tourGateRow'], () => { openDetails(false); showTourGates(); }],
     ...(so ? [['Second opinion', () => `${so.model ? museName(so.model) : 'An open-weights model'} answered the same question independently; both answers were re-solved in ${simulator()} and compared without picking a winner.`,
-      () => ['answers'], () => { setWorkspaceView('engineering'); document.querySelector('.second-opinion')?.scrollIntoView({block: 'center'}); }]] : []),
+      () => ['detailDrawer'], () => { openDetails(true); setWorkspaceView('engineering'); document.querySelector('.second-opinion')?.scrollIntoView({block: 'center'}); }]] : []),
     ['The evidence', () => 'Every input is labelled as from a document, measured, computed or assumed; every cited run re-solves to the same result; revisions and a hash-chained audit trail are kept. Nothing here is approved for construction: it is a draft for a licensed engineer.',
       () => ['infoDrawer'], () => toggleDrawer(true)],
   ];
@@ -3215,10 +3378,12 @@ let TOUR = [];
 function setScale(v) { $('scale').value = v; $('scale').oninput(); }
 async function tourGo(i) {
   document.querySelectorAll('.tour-on').forEach(e => e.classList.remove('tour-on'));
+  $('tourGateRow').hidden = true;
   if (!i) TOUR = tourSteps();
   if (i >= TOUR.length) return tourEnd();
   TOUR_I = i;
   toggleDrawer(false);
+  openDetails(false);
   const [t, x, on, act] = TOUR[i];
   $('tour').style.display = 'block';
   $('tourStep').textContent = `Step ${i + 1} of ${TOUR.length} · ${t}`;
@@ -3228,9 +3393,13 @@ async function tourGo(i) {
   await new Promise(r => setTimeout(r, 400));  // the slider re-solve settles before the text reads the state
   if (TOUR_I !== i || $('tour').style.display === 'none') return;  // the user moved on while this step was solving
   $('tourText').textContent = x();
-  on().forEach(id => $(id)?.classList.add('tour-on'));
+  const ids = on();
+  ids.forEach(id => $(id)?.scrollIntoView({block: 'center', inline: 'nearest'}));
+  await new Promise(r => requestAnimationFrame(r));
+  ids.forEach(id => $(id)?.classList.add('tour-on'));
+  placeTour(ids);
 }
-function tourEnd() { $('tour').style.display = 'none'; toggleDrawer(false); document.querySelectorAll('.tour-on').forEach(e => e.classList.remove('tour-on')); }
+function tourEnd() { $('tour').style.display = 'none'; $('tourGateRow').hidden = true; toggleDrawer(false); openDetails(false); document.querySelectorAll('.tour-on').forEach(e => e.classList.remove('tour-on')); }
 
 $('model').onchange = e => api('model', {model: e.target.value});
 window.onresize = () => { fitDrawing(); if (ST) render(ST); };

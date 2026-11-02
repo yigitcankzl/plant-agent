@@ -74,6 +74,8 @@
     .files { list-style: none; margin: 0; padding: 0; font-size: 13px; }
     .files li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
     .files li span:last-child { color: var(--fg-3); }
+    .file-list > summary { cursor: pointer; color: var(--act); font-size: 12.5px; }
+    .technical { margin-top: 5px; } .technical > summary { cursor: pointer; color: var(--fg-3); font-size: 11.5px; }
     .hash { font: 11.5px var(--mono); color: var(--fg-2); word-break: break-all; }
     .hist { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
     .hist li { padding: 5px 0; border-top: 1px solid var(--rule); }
@@ -104,8 +106,8 @@
     <ul class="openlist" id="open"></ul>
   </div>
   <aside>
-    <section><h2>Package</h2><p class="muted small" id="pack"></p><ul class="files" id="files"></ul></section>
-    <section><h2>Frozen at approval</h2><div id="frozen" class="small muted">Not approved yet. At approval every file above is hashed into a manifest on the audit chain; a later change sends the pack back to draft.</div></section>
+    <section><h2>Package</h2><p class="muted small" id="pack"></p><details class="file-list"><summary id="fileSummary">Show package files</summary><ul class="files" id="files"></ul></details></section>
+    <section><h2>Approval freeze</h2><div id="frozen" class="small muted">Not approved yet. Approval hashes the reviewed files into the audit chain; a later change sends the pack back to draft.</div></section>
     <section><h2>Record</h2><ul class="hist" id="hist"></ul><p class="small muted" id="audit"></p><p class="small" id="hazop"></p></section>
   </aside>
 </main>
@@ -132,6 +134,14 @@ function cell(role, filled, form) {
 function signed(p, label) {
   return `<div class="who">${esc(p.name)}</div><div class="when">${esc(label)} ${esc(when(p.at))}</div>${p.note ? `<div class="note">${esc(p.note)}</div>` : ''}`;
 }
+function plainFailure(row) {
+  const text = String(row.summary || 'This check failed.');
+  const transformer = text.match(/([A-Z][A-Z0-9-]+)\s+\d+\s*→\s*(\d+)\s*%\s*loaded/i);
+  if (transformer) return `The transformer would be overloaded: ${transformer[2]} %.`;
+  const envelope = text.match(/(\d+)\/(\d+) scenarios pass/i);
+  if (envelope) return `The design fails ${Number(envelope[2]) - Number(envelope[1])} of ${envelope[2]} operating scenarios and needs review.`;
+  return text.split(';')[0].replace(/^[a-z]/, c => c.toUpperCase()).replace(/[.:]?$/, '.');
+}
 function render() {
   const s = S, fails = s.checks.fail, opens = s.checks.open;
   $('plantLink').href = `plant.html?case=${C()}`;
@@ -156,7 +166,7 @@ function render() {
   const editable = ['draft', 'reviewed'].includes(s.state);
   $('fails').innerHTML = fails.length ? fails.map(r => {
     const d = s.dispositions[r.id];
-    return `<div class="check"><div class="id fail">${esc(r.id.replaceAll('_', ' '))}</div><div class="sum">${esc(r.summary)}</div>
+    return `<div class="check"><div class="id fail">${esc(r.id.replaceAll('_', ' '))}</div><div class="sum">${esc(plainFailure(r))}<details class="technical"><summary>Technical result</summary>${esc(r.summary)}</details></div>
       ${d ? `<div class="disp"><b class="${d.kind}">${esc(s.kinds[d.kind])}</b>: ${esc(d.reason)} <span class="muted">(${esc(d.by)}, ${esc(when(d.at))})</span></div>` : ''}
       ${editable ? `<form data-check="${esc(r.id)}"><label><input type="radio" name="k-${esc(r.id)}" value="accepted_risk" ${d?.kind === 'accepted_risk' ? 'checked' : ''}> Accepted risk</label>
         <label><input type="radio" name="k-${esc(r.id)}" value="must_fix" ${d?.kind === 'must_fix' ? 'checked' : ''}> Must fix</label><span></span>
@@ -164,8 +174,9 @@ function render() {
         <div class="row"><input name="name" placeholder="Your name" aria-label="Name"><button>${d ? 'Change disposition' : 'Record disposition'}</button></div></form>` : ''}</div>`;
   }).join('') : '<p class="muted">No failed checks in this design.</p>';
   $('open').innerHTML = opens.map(r => `<li><b>${esc(r.id.replaceAll('_', ' '))}</b><span class="muted">${esc(r.summary)}</span></li>`).join('') || '<li class="muted">None.</li>';
-  $('pack').innerHTML = s.pack ? `${s.files.length} files frozen at approval · <a href="/wsfiles/${C()}/${encodeURIComponent(s.pack)}/decision.pdf" target="_blank" rel="noopener">PDF</a> · <a href="/wsfiles/${C()}/${encodeURIComponent(s.pack)}/decision.zip" target="_blank" rel="noopener">ZIP</a>` : '';
+  $('pack').innerHTML = s.pack ? `${s.files.length} files frozen for review · <a href="/wsfiles/${C()}/${encodeURIComponent(s.pack)}/decision.pdf" target="_blank" rel="noopener">PDF</a> · <a href="/wsfiles/${C()}/${encodeURIComponent(s.pack)}/decision.zip" target="_blank" rel="noopener">ZIP</a>` : '';
   $('files').innerHTML = s.files.map(f => `<li><a href="/wsfiles/${C()}/${f.path.split('/').map(encodeURIComponent).join('/')}" target="_blank" rel="noopener">${esc(f.path)}</a><span>${kb(f.bytes)}</span></li>`).join('');
+  $('fileSummary').textContent = `Show ${s.files.length} package files`;
   $('frozen').innerHTML = s.frozen && s.state === 'approved' ? `<div>Approved by ${esc(s.approver?.name)}, ${esc(when(s.frozen.at))}; ${Object.keys(s.frozen.files).length} files.</div><div class="hash">manifest ${esc(s.frozen.hash)}</div>`
     : $('frozen').innerHTML;
   $('hist').innerHTML = (s.history || []).slice().reverse().map(h => `<li>${esc(h.event.replaceAll('_', ' '))}${h.name ? `, ${esc(h.name)}` : ''}${h.reason ? `: ${esc(h.reason)}` : ''}<span class="muted">${esc(when(h.at))}</span></li>`).join('') || '<li class="muted">Nothing signed yet.</li>';

@@ -183,6 +183,18 @@ class RedlineTests(unittest.TestCase):
             self.assertEqual(response.status, 200)
             self.assertEqual(json.loads(response.read())["confirmed"]["changes"][0]["value"], 2500)
             conn.close()
+            (redline._folder(self.w, result["id"]) / "comparison.json").write_text(json.dumps({"engineer": [], "muse": []}))
+            with mock.patch.object(redline, "check", side_effect=AssertionError("replay must not solve")), \
+                    mock.patch.object(redline, "_muse", side_effect=AssertionError("replay must not call Muse")):
+                conn = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
+                conn.request("GET", "/api/plant/salt_mvr/redline")
+                response = conn.getresponse()
+                saved = json.loads(response.read())
+                self.assertEqual(response.status, 200)
+                self.assertEqual(saved["id"], result["id"])
+                self.assertEqual(saved["comparison"], {"engineer": [], "muse": []})
+                self.assertEqual(saved["confirmed"]["changes"][0]["value"], 2500)
+                conn.close()
         with mock.patch.object(web, "all_cases", return_value=["salt_mvr"]), \
                 mock.patch.object(web, "plant_job", return_value={"job": "fake-job"}) as job, \
                 mock.patch.dict(os.environ, {"WEB_ALLOW_RUNS": "1", "WEB_AUTH_TOKEN": ""}):

@@ -1020,6 +1020,17 @@ class Handler(SimpleHTTPRequestHandler):
             from . import redline
             case = parts[2]
             if len(parts) == 4:
+                if method == "GET":  # replay the newest saved read without invoking vision or an engine
+                    root = plant(case).model_file.parent / "redline"
+                    saved = sorted(root.glob("*/read.json"), key=lambda path: path.stat().st_mtime, reverse=True) if root.exists() else []
+                    if not saved:
+                        return self._send({"error": "no saved redline"}, code=404)
+                    folder = saved[0].parent
+                    reading = json.loads(saved[0].read_text())
+                    confirmed, comparison = folder / "confirmed.json", folder / "comparison.json"
+                    return self._send({**reading,
+                                       "confirmed": json.loads(confirmed.read_text()) if confirmed.exists() else None,
+                                       "comparison": json.loads(comparison.read_text()) if comparison.exists() else None})
                 if method != "POST":
                     return self._send({"error": "upload a redline image"}, code=405)
                 _require_runs()
@@ -1039,8 +1050,10 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send({"error": "redline not found"}, code=404)
             if len(parts) == 5 and method == "GET":
                 reading = json.loads((folder / "read.json").read_text())
-                confirmed = folder / "confirmed.json"
-                return self._send({**reading, "confirmed": json.loads(confirmed.read_text()) if confirmed.exists() else None})
+                confirmed, comparison = folder / "confirmed.json", folder / "comparison.json"
+                return self._send({**reading,
+                                   "confirmed": json.loads(confirmed.read_text()) if confirmed.exists() else None,
+                                   "comparison": json.loads(comparison.read_text()) if comparison.exists() else None})
             if len(parts) == 6 and parts[5] == "image.png" and method == "GET":
                 return self._send((folder / "image.png").read_bytes(), "image/png")
             if len(parts) == 6 and parts[5] == "confirm" and method == "POST":
