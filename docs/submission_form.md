@@ -27,7 +27,7 @@ https://github.com/yigitcankzl/plant-agent
 
 ## Use of Meta products
 - **Muse Wonder (Meta Model API):** vision and reasoning. It reads scanned P&IDs, patent figures and equipment datasheets, and builds the first simulator model from them.
-- **Muse Spark 1.3 (Meta Model API):** the tool-calling engineer agent. It runs the simulators, answers engineering questions on the page, and proposes changes. It also acts as the cross-model grader in the blind benchmark.
+- **Muse Spark 1.3 (Meta Model API):** the tool-calling engineer agent. It runs the simulators, answers engineering questions on the page, and proposes changes. In the blind benchmark it re-grades every run as a cross-check of the primary grader, Muse Wonder (88 % item agreement).
 - **Muse Spark Open (open weights, served on Baseten):** runs the same closed engineering loop with the same tools. It solved the UCTE grid case after the hosted endpoint refused it, and it ran the BASF loop that ended with every check passing. An optional "second model" check compares its answer with the hosted model's.
 
 All calls go through one OpenAI-compatible client with a hard budget cap. Every answer in the UI shows its model, cost and time.
