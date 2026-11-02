@@ -36,7 +36,7 @@ The only manual step was choosing this file and starting the script.
 - **Muse's answer:** "K 2750 floods first: the limit is +13 %, not +20 %."
   - At design reflux 1.5 and 1.2× feed, the Fair flood fraction is 0.876 against the 0.80 limit (110 %). Reboiler duty rises from 427 to 570 kW.
 - **Verified proposal:** cut reflux to 0.8. DWSIM re-solved it: 120 % is reached (maximum 142 %) and the column runs at 79 % of the flood limit. No capex.
-- **Rejected proposal:** a new 600 mm shell. The server's guardrail rejected it every round, because replacing the shell removes, or tries to raise, the existing K 2750 diameter and flood limit. The guardrail is working as designed; replacing equipment is a change the loop cannot verify yet.
+- **Initially rejected proposal:** a new 600 mm shell. At the time, the guardrail correctly refused a plain limit edit but had no explicit replacement change. `replace_unit` now re-solves the new geometry while keeping vendor confirmation open; the later loop below verifies the 600 mm shell.
 - **Engineering loop, first run** (`work/20261101-203737`, before the purity check existed):
   - Process, robustness (2 of 2 envelope scenarios, draft) and confidence (100 % of 48 uncertainty re-solves, draft) passed.
   - Nothing failed.
@@ -65,6 +65,8 @@ So the reflux cut buys throughput by spoiling the overhead product. A direct DWS
 - Round 3 ended with an **error**: Muse used its 26 tool steps on its own solves without returning an answer.
 - Outcome: **no verified design**. Cost $2.38 (Baseten).
 
+**Replacement loop** (`work/20261101-232245`, Muse Spark Open, $0.58): Muse used `replace_unit` for a 600 mm shell. DWSIM re-solved 120 % and the +10 % envelope; flooding, both purity checks, minimum reflux and 48/48 uncertainty re-solves pass. The terminal state means **simulation checks passed, approval open**: vendor confirmation of the new rating remains mandatory. A draft MOC pack with the replacement cloud, calculation and PSSR was regenerated after the decision-pack path was fixed.
+
 - **Disciplines not calculated** (shown as open on the page): mechanical, heat transfer, electrical, combustion, piping, controls, safety and civil. This file carries no data for them.
 
 ## Cost
@@ -76,6 +78,7 @@ So the reflux cut buys throughput by spoiling the overhead product. A direct DWS
 | Loop (3 rounds) | 0.5474 |
 | **Total, first run** | **1.5442** |
 | Second loop with the purity check | 2.3774 |
+| Replacement loop | 0.5791 |
 
 The Baseten ledger went from $18.147 to $19.692.
 
@@ -83,7 +86,8 @@ The Baseten ledger went from $18.147 to $19.692.
 - **The whole duty is a Muse assumption.** The drawing does not say what the column separates. The +13 % flood limit is a property of the assumed water/ethanol duty on the documented 500 mm shell, not of BASF's real service.
 - **The purity spec is a draft.** No purity target is on the drawing; the check holds today's purity within 0.5 points until an engineer sets the real one. Against that draft, reflux 0.8 fails (see above).
 - **Fixed after the run:** `economics.throughput.base` (24 t/d) was tagged *documented* but comes from Muse's assumed 1,000 kg/h; drafts now tag a built model's feed as assumed.
-- **The loop cannot verify a shell replacement**, so the capex option went to the engineer unverified.
+- **The replacement is simulator-screened, not mechanically approved.** `replace_unit` verifies the process consequences; the shell, internals, materials, nozzles and relief basis still require vendor and engineer confirmation.
+- **Two diameter screens differ.** DWSIM's column object reports a 0.638 m estimated diameter at the envelope, while PlantAgent's Fair screen gives 60.4 % flood in a 0.600 m shell against the assumed 80 % limit (a 0.525 m shell is 78.9 %). Muse's stored phrase “Fair requires 0.638 m” conflates them; the decision is therefore a provisional 600 mm selection, not a vendor sizing claim.
 - **One renderer fix was needed.** This exporter writes coordinates in metres. `tools/render_pid.py` now scales padding to the sheet and converts metre sheets to millimetres; before that, the drawing came out about 10 units wide.
 
 ## Files

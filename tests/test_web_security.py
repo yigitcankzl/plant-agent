@@ -5,6 +5,7 @@ import json
 import os
 import tempfile
 import threading
+import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from http.server import ThreadingHTTPServer
@@ -112,6 +113,28 @@ class WebSecurityTests(unittest.TestCase):
         self.assertEqual(web._case_call("sample", lambda: "ok"), "ok")
         second = web._new_job("sample")
         web._finish_job("sample", second)
+
+    def test_legacy_start_holds_the_case_job_until_the_study_exits(self):
+        released = threading.Event()
+
+        class Process:
+            def wait(self):
+                released.wait(2)
+                return 0
+
+        with mock.patch.object(web, "_runs", side_effect=[[], ["run-1"]]), \
+                mock.patch.object(web.subprocess, "Popen", return_value=Process()), \
+                mock.patch.dict(os.environ, {"WEB_ALLOW_RUNS": "1"}):
+            result = web.start_run("legacy")
+            self.assertEqual(result["run"], "run-1")
+            with self.assertRaises(web.BusyError):
+                web._new_job("legacy")
+            released.set()
+            for _ in range(100):
+                if web.JOBS[result["job"]]["done"]:
+                    break
+                time.sleep(0.01)
+            self.assertTrue(web.JOBS[result["job"]]["done"])
 
     def test_cross_site_and_form_posts_cannot_start_paid_work(self):
         own = f"http://127.0.0.1:{self.server.server_port}"

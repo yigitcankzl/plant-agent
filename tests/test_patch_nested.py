@@ -36,6 +36,17 @@ class PatchNestedTest(unittest.TestCase):
         self.assertEqual(_get_field(SPEC["feeds"]["FEED"], "x.Ethane"), 0.359)
         self.assertEqual(_get_field(SPEC["feeds"]["FEED"], "kg_h"), 92000)
 
+    def test_unknown_or_invalid_composition_is_rejected(self):
+        for field, value in (("x.Typo", 0.1), ("y.Ethylene", 0.1), ("x.Ethylene", -0.1), ("x.Ethylene", float("nan"))):
+            with self.subTest(field=field, value=value):
+                errors = change_errors(SPEC, [{"path": f"feeds.FEED.{field}", "value": value}])
+                self.assertTrue(errors)
+
+    def test_known_compound_can_be_added_to_existing_composition(self):
+        spec = {**SPEC, "compounds": [*SPEC["compounds"], "Methane"]}
+        changed = patch(spec, [{"path": "feeds.FEED.x.Methane", "value": 0.01}])
+        self.assertEqual(changed["feeds"]["FEED"]["x"]["Methane"], 0.01)
+
 
 if __name__ == "__main__":
     unittest.main()

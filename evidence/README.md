@@ -1,6 +1,6 @@
 # Benchmark evidence
 
-Each folder holds the agent's deliverables and the independent judge's grade for one blind run.
+Each folder holds the agent's deliverables and a cross-model judge's grade for one blind run. This is not a human engineering review.
 The engineers' conclusion pages were withheld from the agent; see cases/<case>/case.json and answer_key.json.
 
 | Case | Task | Runs | Scores | Judge | Agent model |

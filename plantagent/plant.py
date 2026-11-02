@@ -248,6 +248,14 @@ def sandbox_notes(base, trial):
     return notes
 
 
+def _nested_field_exists(obj, field):
+    for part in field.split("."):
+        if not isinstance(obj, dict) or part not in obj:
+            return False
+        obj = obj[part]
+    return True
+
+
 def change_errors(spec, changes, require_evidence=True):
     """Validate the structural proposal boundary before it reaches the simulator."""
     if ro_changes.is_ro(spec):
@@ -285,6 +293,15 @@ def change_errors(spec, changes, require_evidence=True):
                 errors.append(f"change {i + 1} names unknown unit {oid}")
             elif kind == "feeds" and oid not in (spec.get("feeds") or {}):
                 errors.append(f"change {i + 1} names unknown feed {oid}")
+            elif "." in field and not (_nested_field_exists(
+                    next((u for u in spec.get("units") or [] if u.get("id") == oid), {}) if kind == "units" else
+                    (spec.get("feeds") or {}).get(oid, {}) if kind == "feeds" else
+                    (spec.get("limits") or {}).get(oid, {}), field) or
+                    (kind == "feeds" and field.startswith("x.") and field[2:] in (spec.get("compounds") or []))):
+                errors.append(f"change {i + 1} names unknown nested field {oid}.{field}")
+            elif kind == "feeds" and field.startswith("x.") and (
+                    not _finite(c.get("value")) or isinstance(c.get("value"), bool) or float(c["value"]) < 0):
+                errors.append(f"change {i + 1} feed composition {oid}.{field} must be a non-negative finite number")
             elif kind == "units" and field in _STRUCTURAL_UNIT_FIELDS:
                 errors.append(f"change {i + 1} cannot edit existing unit structure {oid}.{field}; use reroute or add_unit")
             elif require_evidence and kind == "units" and field in _REPLACEMENT_FIELDS and field != "area_m2" \
@@ -1127,10 +1144,12 @@ def _set_field(obj, field, value):
     """Set `field` on a feed or unit. A dotted field into an existing dict ('x.Ethylene' = a feed's mole fraction) is set
     inside it: written flat it became a key the simulator never reads, so the server solved the old composition (Norco)."""
     head, _, rest = field.partition(".")
-    if rest and isinstance(obj.get(head), dict):
+    if rest:
+        if not isinstance(obj.get(head), dict):
+            raise ValueError(f"unknown nested field {field}")
         _set_field(obj[head], rest, value)
     else:
-        obj[field] = value
+        obj[head] = value
 
 
 def _get_field(obj, field):

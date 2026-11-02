@@ -17,6 +17,7 @@ Stored at `runs/ws/<case>/work/<id>/worklog.json`.
   "goal": "Get the unit to 120 % of today's throughput ...",
   "label": "post-hoc engineering run" ,
   "status": "done | unsolved | max_rounds | budget | error",
+  "approval_status": "open | ready_for_review | not_reached",
   "started": "2026-11-02T10:15:00+0300", "finished": "...",
   "usd_total": 6.12, "seconds_total": 1830,
   "rounds": [
@@ -48,6 +49,7 @@ Stored at `runs/ws/<case>/work/<id>/worklog.json`.
 Fields:
 - `actor`: `muse` (language model), `engine` (deterministic solver or check) or `engineer` (a recorded human correction). The UI must show who did each step.
 - `status`: `pass`, `fail`, `open` (not calculable) or `info`.
+- Top-level `status: done` means the deterministic checks have no failures. `approval_status` stays `open` while vendor or human items remain; it is never an engineering approval.
 - `label`: `post-hoc engineering run` when the case is a blind incident whose outcome is already known to us. The blind answer stays separate and unchanged.
 
 `tests/fixtures/worklog_sample.json` is an ILLUSTRATIVE sample for UI work. Its numbers are not results.

@@ -2372,7 +2372,7 @@ async function initOpenWeightsStory() {
   const warning = String(log.goal || '').match(/([\d,]+)\s*A warning/i)?.[1];
   const panel = $('openWeightsStory'); panel.hidden = false;
   panel.innerHTML = `<div class="ow-refusal-kicker">Meta-hosted endpoint</div><div class="ow-refusal-count">refused ×${esc(refusal.count ?? '—')}</div>
-    <div class="ow-refusal-copy">${esc(refusal.status || 'request refused')}. The stored prompt and outcome remain visible; this is not a model-quality result.<br><br><a href="/api/evidence/open-weights" target="_blank" rel="noopener">Open raw evidence JSON ↗</a></div>
+    <div class="ow-refusal-copy">${esc(refusal.status || 'request refused')}. Four stored error records support this summary; this is not a model-quality result.<br><br><a href="/api/evidence/open-weights" target="_blank" rel="noopener">Open evidence summary JSON ↗</a></div>
     <div class="ow-incident-slider"><label for="storyScale">Stored grid state <output id="storyScaleOut">100%</output></label><input id="storyScale" type="range" min="100" max="${incidentPct}" value="100" disabled></div>`;
   document.querySelector('.stage').insertAdjacentHTML('beforeend', '<div class="story-readout" id="storyReadout"></div><div class="story-n1" id="storyN1"></div>');
   const readout = $('storyReadout'), stamp = $('storyN1');

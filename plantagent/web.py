@@ -760,14 +760,34 @@ def drawing_png(case):
 
 
 def start_run(case):
+    """Start the legacy blind study under the same per-case and global limits as other paid jobs."""
     _require_runs()
+    job = _new_job(case, task="blind study")
     before = set(_runs(case))
     log = open(RUNS / f"web_{case}.log", "w")
-    subprocess.Popen([sys.executable, "-u", "-m", "plantagent.study", "--case", case], cwd=ROOT, stdout=log, stderr=log)
+    try:
+        proc = subprocess.Popen([sys.executable, "-u", "-m", "plantagent.study", "--case", case], cwd=ROOT, stdout=log, stderr=log)
+    except Exception:
+        log.close()
+        _finish_job(case, job)
+        raise
+
+    def finish():
+        try:
+            code = proc.wait()
+            if code:
+                JOBS[job]["error"] = f"study exited with status {code}"
+        finally:
+            log.close()
+            _finish_job(case, job)
+
+    threading.Thread(target=finish, daemon=True).start()
     for _ in range(100):  # the study creates its run dir immediately
         new = set(_runs(case)) - before
         if new:
-            return {"run": new.pop()}
+            return {"run": new.pop(), "job": job}
+        if JOBS[job]["done"]:
+            break
         time.sleep(0.1)
     raise RuntimeError("study did not start; see " + log.name)
 

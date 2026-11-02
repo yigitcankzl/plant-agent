@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PlantAgent — an AI engineer for any plant</title>
+<title>PlantAgent — checked plant-change engineering</title>
 <style>
   :root { --bg: #15191f; --panel: #1c2129; --panel2: #232a33; --line: #2e3742; --text: #d9e0e8; --muted: #8592a3;
           --accent: #4da3ff; --ok: #3fb67a; --warn: #e3a33a; --fail: #ef5a4f;
@@ -80,9 +80,9 @@
   <main>
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="kicker">An AI engineer for plant changes, with the working shown</p>
-        <h1 id="hero-title">Give it the change. It does the engineering.</h1>
-        <p class="lead">PlantAgent is an AI engineer built on Meta's <b>Muse</b>. Tell it what you want to change. Muse reads the plant's drawings and data sheets, builds the simulation model and designs the change; <b>engineering solvers</b> (DWSIM, pandapower, WaterTAP, Cantera) re-solve it and run every check: electrical, heat transfer, compressor curves, start-up, uncertainty. Failed checks go back to Muse with their numbers, round after round. A run ends when every check passes, when Muse says why it cannot, or at its round or budget limit, and the checks still open are listed. You get the drawings, the MOC pack and a change-focused HAZOP draft (P&amp;ID tags only) for an engineer to review.</p>
+        <p class="kicker">Plant-change engineering with the working shown</p>
+        <h1 id="hero-title">Muse proposes. Physics checks. Engineers approve.</h1>
+        <p class="lead">PlantAgent is an engineering copilot built on Meta's <b>Muse</b>. Tell it what you want to change. Muse reads the plant's drawings and data sheets, builds the simulation model and proposes the change; <b>engineering solvers</b> (DWSIM, pandapower, WaterTAP, Cantera) re-solve it and run every check: electrical, heat transfer, compressor curves, start-up, uncertainty. Failed checks go back to Muse with their numbers, round after round. A run ends when every check passes, when Muse says why it cannot, or at its round or budget limit, and the checks still open are listed. You get the drawings, the MOC pack and a change-focused HAZOP draft (P&amp;ID tags only) for an engineer to review and approve.</p>
         <p class="hero-note" id="openWeightsHero">The Meta-hosted endpoint refused the <a href="plant.html?case=ucte_2006">UCTE blackout prompt</a> <span data-attempts>four</span> times (content policy). <a href="https://github.com/yigitcankzl/plant-agent/blob/master/evidence/open-weights-engineering/README.md">Muse Spark Open, the open-weights model on Baseten</a>, ran the same engineering loop: redispatch + open the 220 kV tie, line limits and N-1 pass (<span data-violations>0</span> violations).</p>
         <div class="hero-actions">
           <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Start the 3-minute demo</a>
@@ -132,7 +132,7 @@
 const FEATURED = [["salt_mvr", "+20 % on a patent salt evaporator: Muse finds the compressor limit; with cleaning and a parallel compressor (the engineer's idea, sized by Muse) DWSIM verifies 120 %, then load flow, exchanger and boiler checks show what else the change needs.", "Design change · chemical process", "100 % → 120 %", "DWSIM re-solves three changes; the transformer gate still fails"],
   ["ucte_2006", "4 November 2006: dispatchers coupled two busbars at Landesbergen to relieve a line. Muse rebuilt the grid from the UCTE report and, blind to the outcome, predicted the coupling would load the line more, not less.", "Incident reconstruction · power grid", "1,779 → 1,831 A", "pandapower: coupling adds current; the grid is not N-1 secure"],
   ["freeport_lng_2022", "June 2022: PHMSA recorded a partially filled 18-inch LNG line rising from 37 to 1,313 psig after it was blocked in with its relief isolated. The model brackets a days-scale rupture under ILLUSTRATIVE fill and heat-leak assumptions; restoring relief holds pressure only at an ideal relief boundary, with relieving capacity unchecked.", "Incident reconstruction · LNG terminal", "37 → 1,313 psig · PHMSA recorded", "DWSIM isochore: illustrative scenarios bracket days-scale rupture"],
-  ["basf_process_column_k_2750_dexpi_c02_uns", "Unseen DEXPI, no hand-written files: the official BASF process-column example (DEXPI C02) was uploaded as is. The drawing was rendered from the file, the open-weight Muse Spark Open built a DWSIM column from it, assuming the duty the drawing does not state, and the drafted discipline files carry every assumption.", "Unseen drawing · open-weight model", "floods first at +13 % → loop done", "600 mm shell: flooding 61 %, purity and +10 % envelope pass; vendor to confirm"],
+  ["basf_process_column_k_2750_dexpi_c02_uns", "Unseen DEXPI, no hand-written files: the official BASF process-column example (DEXPI C02) was uploaded as is. The drawing was rendered from the file, the open-weight Muse Spark Open built a DWSIM column from it, assuming the duty the drawing does not state, and the drafted discipline files carry every assumption.", "Unseen drawing · open-weight model", "floods first at +13 % → checks passed", "600 mm shell: flooding 61 %, purity and +10 % envelope pass; vendor approval open"],
   ["shell_norco_c2splitter", "A real plant, blind: Shell's Norco C2 splitter before its 2015 revamp, from the published operating data. Muse Spark Open found the above-feed flooding and proposed re-traying the same shell with high-capacity trays, as Shell did; its predicted flood (61 %) and tray efficiency (85 %) land near Shell's measured 64.7 % and 82.6 %. It missed the feed-tray move, and its reflux cut loses polymer-grade purity, which the scorecard shows.", "Real plant · blind vs the recorded revamp", "5 of 12 findings match", "same fix as Shell; purity miss shown"]];
 const SECTORS = [
   ["Water and wastewater", "💧", ["roseburg", "stpete_swwrf", "west_norriton", "pinole_tm15", "goochland_egps", "edgebrook", "stanislaus_surge", "glwa_120in_break", "ltown"]],

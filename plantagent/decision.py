@@ -19,7 +19,8 @@ from pathlib import Path
 
 from . import audit, pid, process
 from .docs import DATA, data_path
-from .plant import FIELD, KIND, PlantWorkspace, added_equipment, describe_change, display_names, model_only_change
+from .plant import (FIELD, KIND, PlantWorkspace, added_equipment, describe_change, display_names,
+                    model_only_change, replaced_equipment)
 from .proposed import ports, topology
 from .revb import _num, qty, value_text
 
@@ -122,8 +123,14 @@ def _owner(spec, change):
     """The equipment a change acts on: the unit itself, or the unit a utility feed serves."""
     if change.get("add_unit"):
         return change["add_unit"]["id"]
+    if change.get("replace_unit"):
+        return change["replace_unit"]
     if change.get("reroute"):
         return change["reroute"]["unit"]
+    if change.get("remove_unit") is not None:
+        return change["remove_unit"]
+    if change.get("bypass") is not None:
+        return change["bypass"].get("unit") if isinstance(change["bypass"], dict) else change["bypass"]
     path = change["path"]
     kind, oid, _ = path.split(".", 2)
     if kind == "units":
@@ -163,6 +170,13 @@ def pssr(spec, changes, names, at, aliases=None):
             if not model_only_change(spec, c, changes):  # a reroute of a model junction is bookkeeping, not field work
                 items.append(f"Walk down the new tie-in at the {'inlet' if r['field'] == 'in' else 'outlet'} of {r['unit']}; confirm valves, drains, "
                              "vents and flow direction match the Rev B drawing.")
+            continue
+        if c.get("replace_unit"):
+            uid = c["replace_unit"]
+            rating = ", ".join(f"{field} = {_num(value)}" for field, value in (c.get("new_rating") or {}).items())
+            items.append(f"Replacement of {names.get(uid, uid)}: confirm the installed rating ({rating}) against the vendor data sheet before start-up.")
+            items.append(f"Mechanical and process safety review for replacement {uid}: confirm materials, nozzles, supports, alarms, trips and relief basis are suitable for the new rating.")
+            items.append(f"Commissioning of replacement {uid}: update the equipment data sheet and procedures, then record the first operating point against the model.")
             continue
         if c.get("remove_unit") is not None or c.get("bypass") is not None:
             uid = c.get("remove_unit") or (c["bypass"].get("unit") if isinstance(c["bypass"], dict) else c["bypass"])
@@ -472,6 +486,7 @@ def make(w, answer=None):
         built = change_revs[0]["spec_before"]
         revs = [{"rev": i + 1, "title": r.get("title"), "changes": r["changes"], "reason": r.get("reason"), "user": r.get("user"),
                  "at": r.get("at"), "proposed_by": r.get("proposed_by"), "new_equipment": r.get("new_equipment") or added_equipment(r["changes"]),
+                 "replaced_equipment": r.get("replaced_equipment") or replaced_equipment(r.get("spec_before") or built, r["changes"]),
                  "calculation": r.get("calculation"), "capacity_multiple": r.get("capacity_multiple")} for i, r in enumerate(change_revs)]
         proposed = w.spec
     elif ans and any(p.get("verified") for p in ans.get("proposals") or []):
@@ -479,6 +494,7 @@ def make(w, answer=None):
         verified = [p for p in ans["proposals"] if p.get("verified")]
         revs = [{"rev": i + 1, "title": p.get("title"), "changes": p["changes"], "reason": p.get("why"), "user": None, "at": None,
                  "proposed_by": ans.get("model"), "new_equipment": p.get("new_equipment") or added_equipment(p["changes"]),
+                 "replaced_equipment": p.get("replaced_equipment") or replaced_equipment(built, p["changes"]),
                  "calculation": p.get("calculation"), "capacity_multiple": p.get("capacity_multiple")} for i, p in enumerate(verified)]
         props = {r["rev"]: p for r, p in zip(revs, verified)}
         proposed = patch(built, [c for r in revs for c in r["changes"]])
@@ -503,6 +519,7 @@ def make(w, answer=None):
         for c in r["changes"]:
             owners.setdefault(_owner(proposed, c), r["rev"])
     new_equipment = [e for r in revs for e in (r.get("new_equipment") or added_equipment(r["changes"]))]
+    replacements = [e for r in revs for e in (r.get("replaced_equipment") or replaced_equipment(built, r["changes"]))]
     relief = pid.relief_scan(data_path(w.cfg["pid"])) if w.cfg.get("pid") else []
     # changed P&ID items: the model units, the P&ID heaters they stand for, and the items the proposals name
     changed_tags = set(owners) | {t for t, m in aliases.items() if m in owners} | \
@@ -576,6 +593,8 @@ def make(w, answer=None):
             bits.append("purchase of new equipment (vendor quote to confirm)")
         if any(c.get("add_unit") or c.get("reroute") for c in r["changes"]):
             bits.append("piping tie-ins (outage)")
+        if r.get("replaced_equipment"):
+            bits.append("replacement rating (vendor confirmation open)")
         approvals.append(f"({r['rev']}) {r['title']}: " + ", ".join(bits))
     approvals.append(f"Pre-startup safety review: {len(checklist)} items (section 6.2).")
 
@@ -639,9 +658,12 @@ def make(w, answer=None):
         if drawn.get(r["rev"]):
             md += [f"- On the drawing: {'; '.join(drawn[r['rev']])}."]
         md += ["", f"**Why.** {no_runs(r.get('reason')) or 'not stated'}", ""]
-        rated = [c for c in r["changes"] if c.get("rating_source")]
+        rated = [c for c in r["changes"] if c.get("rating_source") or c.get("replace_unit")]
         md += ["**Rating and rating source.**", ""]
-        md += [f"- {c['add_unit']['id'] if c.get('add_unit') else nm(c['path'].split('.')[1])}: {c['rating_source']}" for c in rated] or \
+        md += [f"- {c['replace_unit']}: agent-proposed sizing basis (not independently validated): "
+               f"{c.get('basis') or 'not stated'}; vendor confirmation open"
+               if c.get("replace_unit") else
+               f"- {c['add_unit']['id'] if c.get('add_unit') else nm(c['path'].split('.')[1])}: {c['rating_source']}" for c in rated] or \
               ["- Existing equipment; no rating is changed."]
         calc = r.get("calculation")
         md += ["", "**Before / Proposed calculation** (this change alone, DWSIM at the target).", ""]
@@ -798,6 +820,7 @@ def make(w, answer=None):
             files.append("rev_b.png")
         drawings.append(("5.2 P&ID Rev B - proposed (DRAFT - NOT APPROVED)", rev_b["svg"]))
     data = {"case": w.name, "made": stamp, "target_scale": target, "revisions": revs, "new_equipment": new_equipment,
+            "replaced_equipment": replacements,
             "topology": topology(built, changes), "calculation": calculations, "capacity": {"before": cap_before, "after": cap_after},
             "limits": rows, "pssr": checklist, "drawing": {k: v for k, v in (rev_b or {}).items() if k != "svg"},
             "relief": relief_hit, "second_opinion": so.get("comparison"), "audit_head": head, "code": _git_head(),
