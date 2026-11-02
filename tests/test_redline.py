@@ -119,7 +119,10 @@ class RedlineTests(unittest.TestCase):
             compared = redline.check(self.w, result["id"])
             self.assertEqual(engine.call_count, 2)
         self.assertTrue(compared["answer"]["proposals"][0]["verified"])
-        self.assertEqual(compared["engineer"][1]["numbers"]["U_W_m2K"], 2500)
+        process_row = next(row for row in compared["engineer"] if row["check"] == "process")
+        self.assertEqual(process_row["numbers"]["U_W_m2K"], 2500)
+        heater_row = next(row for row in compared["engineer"] if row["check"] == "V-201: heater area")
+        self.assertEqual(heater_row["numbers"]["value"], 80)
         self.assertEqual(compared["muse"][0]["numbers"]["U_W_m2K"], 2400)
         self.assertEqual(self.w.answers, original)
         with mock.patch.object(redline, "check", return_value=compared), \

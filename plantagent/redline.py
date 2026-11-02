@@ -205,7 +205,12 @@ def check(w, redline_id):
         proposal.update(verified=False, unverified_reason=str(error))
         verification = {"check": "verification", "status": "open", "title": f"Verification could not run: {error}", "numbers": {}, "engine": w.cfg.get("engine", "dwsim")}
     engineer.answers = [answer]
-    engineer_rows = [verification] + (_rows(engineer, answer) if proposal.get("verified") else [])
+    computed = [{"check": f"{row['id']}: {row['check']}", "engine": w.cfg.get("engine", "dwsim"),
+                 "status": "open" if row.get("after") is None else "pass" if row["after"] <= 1 else "fail",
+                 "title": "Server verification at the target", "source": "server verify target solve",
+                 "numbers": {"value": row.get("value"), "limit": row.get("limit"), "unit": row.get("unit"), "utilisation": row.get("after")}}
+                for row in (proposal.get("calculation") or {}).get("checks") or []]
+    engineer_rows = [verification] + computed + (_rows(engineer, answer) if proposal.get("verified") else [])
     muse = _workspace(w, folder / "muse", [featured] if featured else [])
     muse_rows = _rows(muse, muse.answers[0]) if featured else [
         {"check": "design", "status": "open", "title": "No verified Muse design is saved", "numbers": {}, "engine": "engineering checks"}]
