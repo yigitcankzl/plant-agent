@@ -1,0 +1,1407 @@
+{
+ "key": "ee6ee87e638cd247dfeaee263ef1a4c618ad53dc",
+ "made": "2026-11-02T21:23:32+0300",
+ "case": "salt_mvr",
+ "answer_headline": "Yes, with cleaning and extra compression",
+ "method": "Latin hypercube, 48 samples (seed 20261101), uniform \u00b1 band per input kind; each sample re-solved (DWSIM): capacity bisection plus the solve at the target",
+ "n": 48,
+ "solved": 48,
+ "failed": 0,
+ "workers": 4,
+ "seconds": 28.2,
+ "target": 1.2,
+ "bands_pct": {
+  "documented": 3,
+  "measured": 5,
+  "provisional rating": 10,
+  "assumed": 10,
+  "illustrative": 15
+ },
+ "inputs": [
+  {
+   "path": "units.V-201.U_W_m2K",
+   "kind": "illustrative",
+   "band_pct": 15,
+   "base": 2500,
+   "source": "basis.md: E-201 clean U 2,500 W/m2K (ILLUSTRATIVE)"
+  },
+  {
+   "path": "units.V-201.area_m2",
+   "kind": "illustrative",
+   "band_pct": 15,
+   "base": 8800,
+   "source": "basis.md: E-201 8,800 m2 (ILLUSTRATIVE)"
+  },
+  {
+   "path": "units.V-301.U_W_m2K",
+   "kind": "illustrative",
+   "band_pct": 15,
+   "base": 1500,
+   "source": "basis.md: E-301 U 1,500 W/m2K (ILLUSTRATIVE)"
+  },
+  {
+   "path": "limits.K-201.max_kg_h",
+   "kind": "documented",
+   "band_pct": 3,
+   "base": 226800,
+   "source": "basis.md: K-201 suction capacity 226.8 t/h (patent Table I operating point)"
+  },
+  {
+   "path": "limits.K-202.max_kg_h",
+   "kind": "provisional rating",
+   "band_pct": 10,
+   "base": 55000,
+   "source": "proposal: provisional 55 t/h suction, vendor curve to confirm"
+  },
+  {
+   "path": "limits.K-202.max_kW",
+   "kind": "provisional rating",
+   "band_pct": 10,
+   "base": 2400,
+   "source": "proposal: provisional 2,400 kW driver, vendor to confirm"
+  },
+  {
+   "path": "units.K-201.eff_pct",
+   "kind": "assumed",
+   "band_pct": 10,
+   "base": 75,
+   "source": "model: 75 % isentropic efficiency, not in the patent"
+  },
+  {
+   "path": "units.K-202.eff_pct",
+   "kind": "assumed",
+   "band_pct": 10,
+   "base": 75,
+   "source": "proposal: 75 % isentropic efficiency, vendor to confirm"
+  }
+ ],
+ "capacity": {
+  "p10": 1.1417,
+  "p50": 1.186,
+  "p90": 1.2175
+ },
+ "capacity_basis": "48 feasible samples",
+ "p_target": 0.292,
+ "infeasible_share": 0.0,
+ "limiting": [
+  {
+   "item": "K-201: suction flow vs capacity",
+   "share": 0.667
+  },
+  {
+   "item": "V-201: heater area needed (BPE included) vs installed",
+   "share": 0.188
+  },
+  {
+   "item": "V-301: heater area needed (BPE included) vs installed",
+   "share": 0.104
+  },
+  {
+   "item": "K-202: shaft power vs motor",
+   "share": 0.021
+  },
+  {
+   "item": "K-202: suction flow vs capacity",
+   "share": 0.021
+  }
+ ],
+ "limiting_load_at_target": {
+  "item": "K-201: suction flow vs capacity",
+  "p10": 0.977,
+  "p50": 1.0,
+  "p90": 1.024
+ },
+ "drivers": [
+  {
+   "path": "units.V-201.U_W_m2K",
+   "kind": "illustrative",
+   "effect": 0.0326
+  },
+  {
+   "path": "units.V-201.area_m2",
+   "kind": "illustrative",
+   "effect": 0.0279
+  },
+  {
+   "path": "units.K-201.eff_pct",
+   "kind": "assumed",
+   "effect": 0.0169
+  },
+  {
+   "path": "units.V-301.U_W_m2K",
+   "kind": "illustrative",
+   "effect": -0.0164
+  },
+  {
+   "path": "limits.K-201.max_kg_h",
+   "kind": "documented",
+   "effect": 0.0143
+  },
+  {
+   "path": "units.K-202.eff_pct",
+   "kind": "assumed",
+   "effect": -0.0114
+  },
+  {
+   "path": "limits.K-202.max_kg_h",
+   "kind": "provisional rating",
+   "effect": -0.0093
+  },
+  {
+   "path": "limits.K-202.max_kW",
+   "kind": "provisional rating",
+   "effect": 0.0037
+  }
+ ],
+ "summary": "Target 120% met in 29% of 48 samples; max throughput P10/P50/P90 114% / 119% / 122%; most often limited by K-201: suction flow vs capacity (67%); biggest driver units.V-201.U_W_m2K (illustrative).",
+ "samples": [
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.0538,
+    "units.V-201.area_m2": 0.8749,
+    "units.V-301.U_W_m2K": 0.8719,
+    "limits.K-201.max_kg_h": 1.0246,
+    "limits.K-202.max_kg_h": 1.0965,
+    "limits.K-202.max_kW": 0.9121,
+    "units.K-201.eff_pct": 1.0719,
+    "units.K-202.eff_pct": 1.0996
+   },
+   "capacity": 1.184,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "V-301: heater area needed (BPE included) vs installed",
+   "at_target": {
+    "V-301: heater area needed (BPE included) vs installed": 1.013,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.985,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-201: suction flow vs capacity": 0.976,
+    "V-201: heater area needed (BPE included) vs installed": 0.966,
+    "K-202: shaft power vs motor": 0.852,
+    "K-202: suction flow vs capacity": 0.821,
+    "K-201: shaft power vs motor": 0.626
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.047,
+    "units.V-201.area_m2": 0.9102,
+    "units.V-301.U_W_m2K": 0.9589,
+    "limits.K-201.max_kg_h": 1.0042,
+    "limits.K-202.max_kg_h": 0.9619,
+    "limits.K-202.max_kW": 1.0131,
+    "units.K-201.eff_pct": 1.0538,
+    "units.K-202.eff_pct": 0.9692
+   },
+   "capacity": 1.206,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 0.996,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.982,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-202: suction flow vs capacity": 0.936,
+    "V-201: heater area needed (BPE included) vs installed": 0.934,
+    "V-301: heater area needed (BPE included) vs installed": 0.921,
+    "K-202: shaft power vs motor": 0.871,
+    "K-201: shaft power vs motor": 0.637
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.0961,
+    "units.V-201.area_m2": 1.0405,
+    "units.V-301.U_W_m2K": 1.0419,
+    "limits.K-201.max_kg_h": 0.9979,
+    "limits.K-202.max_kg_h": 0.9251,
+    "limits.K-202.max_kW": 0.9303,
+    "units.K-201.eff_pct": 1.0912,
+    "units.K-202.eff_pct": 1.0691
+   },
+   "capacity": 1.198,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.002,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.985,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-202: suction flow vs capacity": 0.973,
+    "K-202: shaft power vs motor": 0.859,
+    "V-301: heater area needed (BPE included) vs installed": 0.848,
+    "V-201: heater area needed (BPE included) vs installed": 0.781,
+    "K-201: shaft power vs motor": 0.615
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.0213,
+    "units.V-201.area_m2": 1.0222,
+    "units.V-301.U_W_m2K": 0.8866,
+    "limits.K-201.max_kg_h": 0.9847,
+    "limits.K-202.max_kg_h": 1.045,
+    "limits.K-202.max_kW": 1.0007,
+    "units.K-201.eff_pct": 0.9625,
+    "units.K-202.eff_pct": 1.0122
+   },
+   "capacity": 1.182,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.016,
+    "V-301: heater area needed (BPE included) vs installed": 0.997,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.978,
+    "K-202: suction flow vs capacity": 0.861,
+    "V-201: heater area needed (BPE included) vs installed": 0.853,
+    "K-202: shaft power vs motor": 0.844,
+    "K-201: shaft power vs motor": 0.698
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.9377,
+    "units.V-201.area_m2": 1.095,
+    "units.V-301.U_W_m2K": 0.9544,
+    "limits.K-201.max_kg_h": 0.9794,
+    "limits.K-202.max_kg_h": 1.0613,
+    "limits.K-202.max_kW": 1.0554,
+    "units.K-201.eff_pct": 0.9125,
+    "units.K-202.eff_pct": 0.9502
+   },
+   "capacity": 1.176,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.021,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.975,
+    "V-301: heater area needed (BPE included) vs installed": 0.926,
+    "V-201: heater area needed (BPE included) vs installed": 0.867,
+    "K-202: shaft power vs motor": 0.852,
+    "K-202: suction flow vs capacity": 0.848,
+    "K-201: shaft power vs motor": 0.736
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.8753,
+    "units.V-201.area_m2": 0.9155,
+    "units.V-301.U_W_m2K": 1.0491,
+    "limits.K-201.max_kg_h": 1.0147,
+    "limits.K-202.max_kg_h": 1.0142,
+    "limits.K-202.max_kW": 0.9367,
+    "units.K-201.eff_pct": 0.9494,
+    "units.K-202.eff_pct": 1.0456
+   },
+   "capacity": 1.081,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "V-201: heater area needed (BPE included) vs installed",
+   "at_target": {
+    "V-201: heater area needed (BPE included) vs installed": 1.111,
+    "K-201: suction flow vs capacity": 0.986,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.978,
+    "K-202: suction flow vs capacity": 0.887,
+    "K-202: shaft power vs motor": 0.873,
+    "V-301: heater area needed (BPE included) vs installed": 0.843,
+    "K-201: shaft power vs motor": 0.707
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.9949,
+    "units.V-201.area_m2": 0.9813,
+    "units.V-301.U_W_m2K": 1.0299,
+    "limits.K-201.max_kg_h": 0.9768,
+    "limits.K-202.max_kg_h": 1.0557,
+    "limits.K-202.max_kW": 0.9583,
+    "units.K-201.eff_pct": 0.9517,
+    "units.K-202.eff_pct": 0.9132
+   },
+   "capacity": 1.173,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.024,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.977,
+    "K-202: shaft power vs motor": 0.977,
+    "V-201: heater area needed (BPE included) vs installed": 0.912,
+    "V-301: heater area needed (BPE included) vs installed": 0.858,
+    "K-202: suction flow vs capacity": 0.853,
+    "K-201: shaft power vs motor": 0.706
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.0271,
+    "units.V-201.area_m2": 0.8657,
+    "units.V-301.U_W_m2K": 1.052,
+    "limits.K-201.max_kg_h": 0.9852,
+    "limits.K-202.max_kg_h": 0.9666,
+    "limits.K-202.max_kW": 1.0359,
+    "units.K-201.eff_pct": 0.9902,
+    "units.K-202.eff_pct": 0.9961
+   },
+   "capacity": 1.183,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.015,
+    "V-201: heater area needed (BPE included) vs installed": 1.001,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-202: suction flow vs capacity": 0.931,
+    "V-301: heater area needed (BPE included) vs installed": 0.84,
+    "K-202: shaft power vs motor": 0.828,
+    "K-201: shaft power vs motor": 0.678
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.9462,
+    "units.V-201.area_m2": 1.0697,
+    "units.V-301.U_W_m2K": 1.1459,
+    "limits.K-201.max_kg_h": 0.9969,
+    "limits.K-202.max_kg_h": 0.9577,
+    "limits.K-202.max_kW": 1.0692,
+    "units.K-201.eff_pct": 1.0861,
+    "units.K-202.eff_pct": 1.0295
+   },
+   "capacity": 1.197,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.003,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.984,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-202: suction flow vs capacity": 0.94,
+    "V-201: heater area needed (BPE included) vs installed": 0.88,
+    "K-202: shaft power vs motor": 0.777,
+    "V-301: heater area needed (BPE included) vs installed": 0.771,
+    "K-201: shaft power vs motor": 0.618
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.962,
+    "units.V-201.area_m2": 1.03,
+    "units.V-301.U_W_m2K": 0.8534,
+    "limits.K-201.max_kg_h": 0.9832,
+    "limits.K-202.max_kg_h": 0.9139,
+    "limits.K-202.max_kW": 0.9019,
+    "units.K-201.eff_pct": 1.0787,
+    "units.K-202.eff_pct": 1.0733
+   },
+   "capacity": 1.159,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "V-301: heater area needed (BPE included) vs installed",
+   "at_target": {
+    "V-301: heater area needed (BPE included) vs installed": 1.035,
+    "K-201: suction flow vs capacity": 1.017,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.985,
+    "K-202: suction flow vs capacity": 0.985,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: heater area needed (BPE included) vs installed": 0.899,
+    "K-202: shaft power vs motor": 0.883,
+    "K-201: shaft power vs motor": 0.622
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.129,
+    "units.V-201.area_m2": 1.1471,
+    "units.V-301.U_W_m2K": 1.0743,
+    "limits.K-201.max_kg_h": 0.9812,
+    "limits.K-202.max_kg_h": 0.9226,
+    "limits.K-202.max_kW": 0.9741,
+    "units.K-201.eff_pct": 1.0635,
+    "units.K-202.eff_pct": 1.0188
+   },
+   "capacity": 1.178,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.019,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.983,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-202: suction flow vs capacity": 0.976,
+    "K-202: shaft power vs motor": 0.861,
+    "V-301: heater area needed (BPE included) vs installed": 0.823,
+    "V-201: heater area needed (BPE included) vs installed": 0.688,
+    "K-201: shaft power vs motor": 0.631
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.8896,
+    "units.V-201.area_m2": 1.1158,
+    "units.V-301.U_W_m2K": 0.9029,
+    "limits.K-201.max_kg_h": 0.9871,
+    "limits.K-202.max_kg_h": 0.9444,
+    "limits.K-202.max_kW": 1.0619,
+    "units.K-201.eff_pct": 1.0547,
+    "units.K-202.eff_pct": 1.0851
+   },
+   "capacity": 1.185,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.013,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.984,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-301: heater area needed (BPE included) vs installed": 0.979,
+    "K-202: suction flow vs capacity": 0.953,
+    "V-201: heater area needed (BPE included) vs installed": 0.897,
+    "K-202: shaft power vs motor": 0.742,
+    "K-201: shaft power vs motor": 0.637
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.1438,
+    "units.V-201.area_m2": 0.9508,
+    "units.V-301.U_W_m2K": 0.9901,
+    "limits.K-201.max_kg_h": 1.007,
+    "limits.K-202.max_kg_h": 0.9064,
+    "limits.K-202.max_kW": 1.0512,
+    "units.K-201.eff_pct": 0.9736,
+    "units.K-202.eff_pct": 0.986
+   },
+   "capacity": 1.209,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 0.993,
+    "K-202: suction flow vs capacity": 0.993,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.979,
+    "V-301: heater area needed (BPE included) vs installed": 0.893,
+    "K-202: shaft power vs motor": 0.825,
+    "V-201: heater area needed (BPE included) vs installed": 0.819,
+    "K-201: shaft power vs motor": 0.69
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.9833,
+    "units.V-201.area_m2": 0.9788,
+    "units.V-301.U_W_m2K": 0.8997,
+    "limits.K-201.max_kg_h": 0.9946,
+    "limits.K-202.max_kg_h": 1.0927,
+    "limits.K-202.max_kW": 1.0275,
+    "units.K-201.eff_pct": 1.036,
+    "units.K-202.eff_pct": 0.9781
+   },
+   "capacity": 1.194,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.006,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.982,
+    "V-301: heater area needed (BPE included) vs installed": 0.982,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: heater area needed (BPE included) vs installed": 0.925,
+    "K-202: shaft power vs motor": 0.851,
+    "K-202: suction flow vs capacity": 0.824,
+    "K-201: shaft power vs motor": 0.648
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.9307,
+    "units.V-201.area_m2": 0.967,
+    "units.V-301.U_W_m2K": 1.0332,
+    "limits.K-201.max_kg_h": 0.9704,
+    "limits.K-202.max_kg_h": 0.978,
+    "limits.K-202.max_kW": 0.9593,
+    "units.K-201.eff_pct": 0.9704,
+    "units.K-202.eff_pct": 0.9116
+   },
+   "capacity": 1.165,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.031,
+    "V-201: heater area needed (BPE included) vs installed": 0.989,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.978,
+    "K-202: shaft power vs motor": 0.978,
+    "K-202: suction flow vs capacity": 0.92,
+    "V-301: heater area needed (BPE included) vs installed": 0.855,
+    "K-201: shaft power vs motor": 0.692
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.1175,
+    "units.V-201.area_m2": 1.1426,
+    "units.V-301.U_W_m2K": 0.8893,
+    "limits.K-201.max_kg_h": 1.0199,
+    "limits.K-202.max_kg_h": 1.0851,
+    "limits.K-202.max_kW": 0.9265,
+    "units.K-201.eff_pct": 0.9623,
+    "units.K-202.eff_pct": 0.9195
+   },
+   "capacity": 1.196,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-202: shaft power vs motor",
+   "at_target": {
+    "K-202: shaft power vs motor": 1.003,
+    "V-301: heater area needed (BPE included) vs installed": 0.994,
+    "K-201: suction flow vs capacity": 0.981,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.977,
+    "K-202: suction flow vs capacity": 0.829,
+    "K-201: shaft power vs motor": 0.698,
+    "V-201: heater area needed (BPE included) vs installed": 0.697
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.9742,
+    "units.V-201.area_m2": 1.0554,
+    "units.V-301.U_W_m2K": 0.9799,
+    "limits.K-201.max_kg_h": 0.9742,
+    "limits.K-202.max_kg_h": 1.0713,
+    "limits.K-202.max_kW": 1.0328,
+    "units.K-201.eff_pct": 0.9372,
+    "units.K-202.eff_pct": 0.921
+   },
+   "capacity": 1.169,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.027,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.976,
+    "V-301: heater area needed (BPE included) vs installed": 0.902,
+    "K-202: shaft power vs motor": 0.899,
+    "V-201: heater area needed (BPE included) vs installed": 0.866,
+    "K-202: suction flow vs capacity": 0.84,
+    "K-201: shaft power vs motor": 0.716
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.8546,
+    "units.V-201.area_m2": 0.9375,
+    "units.V-301.U_W_m2K": 1.093,
+    "limits.K-201.max_kg_h": 0.9883,
+    "limits.K-202.max_kg_h": 1.0231,
+    "limits.K-202.max_kW": 1.0952,
+    "units.K-201.eff_pct": 0.906,
+    "units.K-202.eff_pct": 1.058
+   },
+   "capacity": 1.08,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "V-201: heater area needed (BPE included) vs installed",
+   "at_target": {
+    "V-201: heater area needed (BPE included) vs installed": 1.111,
+    "K-201: suction flow vs capacity": 1.012,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.976,
+    "K-202: suction flow vs capacity": 0.88,
+    "V-301: heater area needed (BPE included) vs installed": 0.809,
+    "K-201: shaft power vs motor": 0.741,
+    "K-202: shaft power vs motor": 0.738
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.0173,
+    "units.V-201.area_m2": 1.0929,
+    "units.V-301.U_W_m2K": 1.1434,
+    "limits.K-201.max_kg_h": 1.0297,
+    "limits.K-202.max_kg_h": 0.9005,
+    "limits.K-202.max_kW": 0.9834,
+    "units.K-201.eff_pct": 0.958,
+    "units.K-202.eff_pct": 1.0533
+   },
+   "capacity": 1.201,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "K-202: suction flow vs capacity",
+   "at_target": {
+    "K-202: suction flow vs capacity": 0.999,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.979,
+    "K-201: suction flow vs capacity": 0.971,
+    "K-202: shaft power vs motor": 0.825,
+    "V-201: heater area needed (BPE included) vs installed": 0.801,
+    "V-301: heater area needed (BPE included) vs installed": 0.773,
+    "K-201: shaft power vs motor": 0.701
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.1419,
+    "units.V-201.area_m2": 0.9005,
+    "units.V-301.U_W_m2K": 1.0658,
+    "limits.K-201.max_kg_h": 0.9724,
+    "limits.K-202.max_kg_h": 1.0374,
+    "limits.K-202.max_kW": 1.0738,
+    "units.K-201.eff_pct": 1.0323,
+    "units.K-202.eff_pct": 0.9035
+   },
+   "capacity": 1.167,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.028,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.981,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-202: shaft power vs motor": 0.881,
+    "K-202: suction flow vs capacity": 0.868,
+    "V-201: heater area needed (BPE included) vs installed": 0.866,
+    "V-301: heater area needed (BPE included) vs installed": 0.829,
+    "K-201: shaft power vs motor": 0.65
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.906,
+    "units.V-201.area_m2": 1.0095,
+    "units.V-301.U_W_m2K": 0.9401,
+    "limits.K-201.max_kg_h": 1.0204,
+    "limits.K-202.max_kg_h": 1.0905,
+    "limits.K-202.max_kW": 0.9881,
+    "units.K-201.eff_pct": 1.0031,
+    "units.K-202.eff_pct": 0.9917
+   },
+   "capacity": 1.225,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: heater area needed (BPE included) vs installed": 0.974,
+    "V-301: heater area needed (BPE included) vs installed": 0.94,
+    "K-202: shaft power vs motor": 0.872,
+    "K-202: suction flow vs capacity": 0.825,
+    "K-201: shaft power vs motor": 0.669
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.8826,
+    "units.V-201.area_m2": 1.0176,
+    "units.V-301.U_W_m2K": 0.8754,
+    "limits.K-201.max_kg_h": 0.9999,
+    "limits.K-202.max_kg_h": 1.032,
+    "limits.K-202.max_kW": 0.9198,
+    "units.K-201.eff_pct": 1.0461,
+    "units.K-202.eff_pct": 0.9574
+   },
+   "capacity": 1.189,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "V-301: heater area needed (BPE included) vs installed",
+   "at_target": {
+    "V-301: heater area needed (BPE included) vs installed": 1.009,
+    "K-201: suction flow vs capacity": 1.0,
+    "V-201: heater area needed (BPE included) vs installed": 0.991,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.982,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-202: shaft power vs motor": 0.971,
+    "K-202: suction flow vs capacity": 0.872,
+    "K-201: shaft power vs motor": 0.642
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.8731,
+    "units.V-201.area_m2": 0.8815,
+    "units.V-301.U_W_m2K": 1.0947,
+    "limits.K-201.max_kg_h": 1.0218,
+    "limits.K-202.max_kg_h": 0.9493,
+    "limits.K-202.max_kW": 1.0402,
+    "units.K-201.eff_pct": 0.938,
+    "units.K-202.eff_pct": 1.0135
+   },
+   "capacity": 1.038,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "V-201: heater area needed (BPE included) vs installed",
+   "at_target": {
+    "V-201: heater area needed (BPE included) vs installed": 1.157,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-201: suction flow vs capacity": 0.979,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.977,
+    "K-202: suction flow vs capacity": 0.948,
+    "K-202: shaft power vs motor": 0.811,
+    "V-301: heater area needed (BPE included) vs installed": 0.807,
+    "K-201: shaft power vs motor": 0.716
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.857,
+    "units.V-201.area_m2": 1.0591,
+    "units.V-301.U_W_m2K": 0.9286,
+    "limits.K-201.max_kg_h": 1.0133,
+    "limits.K-202.max_kg_h": 0.9961,
+    "limits.K-202.max_kW": 1.021,
+    "units.K-201.eff_pct": 1.0439,
+    "units.K-202.eff_pct": 1.089
+   },
+   "capacity": 1.216,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 0.987,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.983,
+    "V-201: heater area needed (BPE included) vs installed": 0.981,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-301: heater area needed (BPE included) vs installed": 0.952,
+    "K-202: suction flow vs capacity": 0.904,
+    "K-202: shaft power vs motor": 0.769,
+    "K-201: shaft power vs motor": 0.643
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.0728,
+    "units.V-201.area_m2": 0.929,
+    "units.V-301.U_W_m2K": 1.0052,
+    "limits.K-201.max_kg_h": 1.0227,
+    "limits.K-202.max_kg_h": 0.9813,
+    "limits.K-202.max_kW": 1.0845,
+    "units.K-201.eff_pct": 0.9761,
+    "units.K-202.eff_pct": 1.0254
+   },
+   "capacity": 1.228,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.979,
+    "K-201: suction flow vs capacity": 0.978,
+    "K-202: suction flow vs capacity": 0.917,
+    "V-201: heater area needed (BPE included) vs installed": 0.893,
+    "V-301: heater area needed (BPE included) vs installed": 0.879,
+    "K-202: shaft power vs motor": 0.769,
+    "K-201: shaft power vs motor": 0.688
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.9757,
+    "units.V-201.area_m2": 0.9455,
+    "units.V-301.U_W_m2K": 0.9222,
+    "limits.K-201.max_kg_h": 0.9736,
+    "limits.K-202.max_kg_h": 0.9092,
+    "limits.K-202.max_kW": 0.9212,
+    "units.K-201.eff_pct": 0.9936,
+    "units.K-202.eff_pct": 0.9489
+   },
+   "capacity": 1.169,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.027,
+    "K-202: suction flow vs capacity": 0.99,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.979,
+    "K-202: shaft power vs motor": 0.978,
+    "V-201: heater area needed (BPE included) vs installed": 0.965,
+    "V-301: heater area needed (BPE included) vs installed": 0.958,
+    "K-201: shaft power vs motor": 0.676
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.002,
+    "units.V-201.area_m2": 1.0341,
+    "units.V-301.U_W_m2K": 1.0126,
+    "limits.K-201.max_kg_h": 1.0084,
+    "limits.K-202.max_kg_h": 1.0663,
+    "limits.K-202.max_kW": 1.0429,
+    "units.K-201.eff_pct": 0.9284,
+    "units.K-202.eff_pct": 0.9596
+   },
+   "capacity": 1.211,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 0.992,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.976,
+    "V-301: heater area needed (BPE included) vs installed": 0.873,
+    "V-201: heater area needed (BPE included) vs installed": 0.859,
+    "K-202: shaft power vs motor": 0.854,
+    "K-202: suction flow vs capacity": 0.844,
+    "K-201: shaft power vs motor": 0.723
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.0904,
+    "units.V-201.area_m2": 0.9957,
+    "units.V-301.U_W_m2K": 0.86,
+    "limits.K-201.max_kg_h": 1.0118,
+    "limits.K-202.max_kg_h": 1.0121,
+    "limits.K-202.max_kW": 1.0785,
+    "units.K-201.eff_pct": 1.0251,
+    "units.K-202.eff_pct": 0.9072
+   },
+   "capacity": 1.168,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "V-301: heater area needed (BPE included) vs installed",
+   "at_target": {
+    "V-301: heater area needed (BPE included) vs installed": 1.027,
+    "K-201: suction flow vs capacity": 0.988,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-202: suction flow vs capacity": 0.889,
+    "K-202: shaft power vs motor": 0.874,
+    "V-201: heater area needed (BPE included) vs installed": 0.82,
+    "K-201: shaft power vs motor": 0.655
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.08,
+    "units.V-201.area_m2": 1.0754,
+    "units.V-301.U_W_m2K": 0.9945,
+    "limits.K-201.max_kg_h": 0.9915,
+    "limits.K-202.max_kg_h": 0.9934,
+    "limits.K-202.max_kW": 0.9968,
+    "units.K-201.eff_pct": 1.0601,
+    "units.K-202.eff_pct": 1.0826
+   },
+   "capacity": 1.19,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.009,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.984,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-202: suction flow vs capacity": 0.906,
+    "V-301: heater area needed (BPE included) vs installed": 0.889,
+    "K-202: shaft power vs motor": 0.792,
+    "V-201: heater area needed (BPE included) vs installed": 0.767,
+    "K-201: shaft power vs motor": 0.633
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.9929,
+    "units.V-201.area_m2": 0.857,
+    "units.V-301.U_W_m2K": 1.1087,
+    "limits.K-201.max_kg_h": 1.0265,
+    "limits.K-202.max_kg_h": 0.9191,
+    "limits.K-202.max_kW": 0.9132,
+    "units.K-201.eff_pct": 0.9011,
+    "units.K-202.eff_pct": 1.0383
+   },
+   "capacity": 1.147,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "V-201: heater area needed (BPE included) vs installed",
+   "at_target": {
+    "V-201: heater area needed (BPE included) vs installed": 1.046,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-202: suction flow vs capacity": 0.979,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.975,
+    "K-201: suction flow vs capacity": 0.974,
+    "K-202: shaft power vs motor": 0.902,
+    "V-301: heater area needed (BPE included) vs installed": 0.797,
+    "K-201: shaft power vs motor": 0.745
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.9531,
+    "units.V-201.area_m2": 0.8908,
+    "units.V-301.U_W_m2K": 1.1332,
+    "limits.K-201.max_kg_h": 0.9934,
+    "limits.K-202.max_kg_h": 0.991,
+    "limits.K-202.max_kW": 0.9918,
+    "units.K-201.eff_pct": 0.9298,
+    "units.K-202.eff_pct": 1.0063
+   },
+   "capacity": 1.145,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "V-201: heater area needed (BPE included) vs installed",
+   "at_target": {
+    "V-201: heater area needed (BPE included) vs installed": 1.049,
+    "K-201: suction flow vs capacity": 1.007,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.977,
+    "K-202: suction flow vs capacity": 0.908,
+    "K-202: shaft power vs motor": 0.857,
+    "V-301: heater area needed (BPE included) vs installed": 0.78,
+    "K-201: shaft power vs motor": 0.722
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.0064,
+    "units.V-201.area_m2": 0.922,
+    "units.V-301.U_W_m2K": 1.0246,
+    "limits.K-201.max_kg_h": 1.0025,
+    "limits.K-202.max_kg_h": 1.005,
+    "limits.K-202.max_kW": 1.018,
+    "units.K-201.eff_pct": 1.0123,
+    "units.K-202.eff_pct": 1.0922
+   },
+   "capacity": 1.203,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 0.998,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.982,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: heater area needed (BPE included) vs installed": 0.96,
+    "K-202: suction flow vs capacity": 0.896,
+    "V-301: heater area needed (BPE included) vs installed": 0.863,
+    "K-202: shaft power vs motor": 0.769,
+    "K-201: shaft power vs motor": 0.663
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.9668,
+    "units.V-201.area_m2": 0.856,
+    "units.V-301.U_W_m2K": 0.9737,
+    "limits.K-201.max_kg_h": 0.9753,
+    "limits.K-202.max_kg_h": 1.0523,
+    "limits.K-202.max_kW": 0.9476,
+    "units.K-201.eff_pct": 1.0989,
+    "units.K-202.eff_pct": 1.0764
+   },
+   "capacity": 1.116,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "V-201: heater area needed (BPE included) vs installed",
+   "at_target": {
+    "V-201: heater area needed (BPE included) vs installed": 1.076,
+    "K-201: suction flow vs capacity": 1.025,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.985,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-301: heater area needed (BPE included) vs installed": 0.907,
+    "K-202: suction flow vs capacity": 0.855,
+    "K-202: shaft power vs motor": 0.838,
+    "K-201: shaft power vs motor": 0.611
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.9177,
+    "units.V-201.area_m2": 1.0454,
+    "units.V-301.U_W_m2K": 1.0107,
+    "limits.K-201.max_kg_h": 0.9778,
+    "limits.K-202.max_kg_h": 1.0481,
+    "limits.K-202.max_kW": 0.9687,
+    "units.K-201.eff_pct": 1.0402,
+    "units.K-202.eff_pct": 0.9806
+   },
+   "capacity": 1.174,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.023,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.982,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: heater area needed (BPE included) vs installed": 0.928,
+    "K-202: shaft power vs motor": 0.9,
+    "V-301: heater area needed (BPE included) vs installed": 0.875,
+    "K-202: suction flow vs capacity": 0.859,
+    "K-201: shaft power vs motor": 0.646
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.865,
+    "units.V-201.area_m2": 0.9724,
+    "units.V-301.U_W_m2K": 1.0864,
+    "limits.K-201.max_kg_h": 1.0155,
+    "limits.K-202.max_kg_h": 1.0001,
+    "limits.K-202.max_kW": 1.0627,
+    "units.K-201.eff_pct": 1.0191,
+    "units.K-202.eff_pct": 0.9345
+   },
+   "capacity": 1.134,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "V-201: heater area needed (BPE included) vs installed",
+   "at_target": {
+    "V-201: heater area needed (BPE included) vs installed": 1.059,
+    "K-201: suction flow vs capacity": 0.985,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-202: suction flow vs capacity": 0.9,
+    "K-202: shaft power vs motor": 0.861,
+    "V-301: heater area needed (BPE included) vs installed": 0.813,
+    "K-201: shaft power vs motor": 0.659
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.059,
+    "units.V-201.area_m2": 1.0815,
+    "units.V-301.U_W_m2K": 0.9149,
+    "limits.K-201.max_kg_h": 0.9959,
+    "limits.K-202.max_kg_h": 1.0765,
+    "limits.K-202.max_kW": 0.9418,
+    "units.K-201.eff_pct": 0.9121,
+    "units.K-202.eff_pct": 0.9319
+   },
+   "capacity": 1.195,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.004,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.975,
+    "K-202: shaft power vs motor": 0.974,
+    "V-301: heater area needed (BPE included) vs installed": 0.966,
+    "K-202: suction flow vs capacity": 0.836,
+    "V-201: heater area needed (BPE included) vs installed": 0.777,
+    "K-201: shaft power vs motor": 0.736
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.1009,
+    "units.V-201.area_m2": 0.8796,
+    "units.V-301.U_W_m2K": 0.9867,
+    "limits.K-201.max_kg_h": 0.9816,
+    "limits.K-202.max_kg_h": 0.9742,
+    "limits.K-202.max_kW": 0.9758,
+    "units.K-201.eff_pct": 1.0941,
+    "units.K-202.eff_pct": 0.9261
+   },
+   "capacity": 1.178,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.019,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.984,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-202: shaft power vs motor": 0.946,
+    "K-202: suction flow vs capacity": 0.924,
+    "V-201: heater area needed (BPE included) vs installed": 0.919,
+    "V-301: heater area needed (BPE included) vs installed": 0.896,
+    "K-201: shaft power vs motor": 0.614
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.9193,
+    "units.V-201.area_m2": 0.9393,
+    "units.V-301.U_W_m2K": 1.1184,
+    "limits.K-201.max_kg_h": 1.0278,
+    "limits.K-202.max_kg_h": 0.9413,
+    "limits.K-202.max_kW": 1.0466,
+    "units.K-201.eff_pct": 0.9825,
+    "units.K-202.eff_pct": 0.9649
+   },
+   "capacity": 1.164,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "V-201: heater area needed (BPE included) vs installed",
+   "at_target": {
+    "V-201: heater area needed (BPE included) vs installed": 1.031,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.979,
+    "K-201: suction flow vs capacity": 0.973,
+    "K-202: suction flow vs capacity": 0.956,
+    "K-202: shaft power vs motor": 0.846,
+    "V-301: heater area needed (BPE included) vs installed": 0.79,
+    "K-201: shaft power vs motor": 0.683
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.0341,
+    "units.V-201.area_m2": 1.0003,
+    "units.V-301.U_W_m2K": 1.0573,
+    "limits.K-201.max_kg_h": 0.9905,
+    "limits.K-202.max_kg_h": 1.0833,
+    "limits.K-202.max_kW": 0.9082,
+    "units.K-201.eff_pct": 0.9186,
+    "units.K-202.eff_pct": 0.9379
+   },
+   "capacity": 1.189,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.01,
+    "K-202: shaft power vs motor": 1.004,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.975,
+    "V-201: heater area needed (BPE included) vs installed": 0.861,
+    "V-301: heater area needed (BPE included) vs installed": 0.836,
+    "K-202: suction flow vs capacity": 0.831,
+    "K-201: shaft power vs motor": 0.731
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.1097,
+    "units.V-201.area_m2": 1.1238,
+    "units.V-301.U_W_m2K": 0.8684,
+    "limits.K-201.max_kg_h": 1.0051,
+    "limits.K-202.max_kg_h": 1.0183,
+    "limits.K-202.max_kW": 0.9532,
+    "units.K-201.eff_pct": 0.9218,
+    "units.K-202.eff_pct": 1.0481
+   },
+   "capacity": 1.18,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "V-301: heater area needed (BPE included) vs installed",
+   "at_target": {
+    "V-301: heater area needed (BPE included) vs installed": 1.017,
+    "K-201: suction flow vs capacity": 0.995,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.977,
+    "K-202: suction flow vs capacity": 0.884,
+    "K-202: shaft power vs motor": 0.856,
+    "K-201: shaft power vs motor": 0.728,
+    "V-201: heater area needed (BPE included) vs installed": 0.714
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.9313,
+    "units.V-201.area_m2": 1.1279,
+    "units.V-301.U_W_m2K": 0.9351,
+    "limits.K-201.max_kg_h": 1.0183,
+    "limits.K-202.max_kg_h": 0.9525,
+    "limits.K-202.max_kW": 0.9657,
+    "units.K-201.eff_pct": 0.9987,
+    "units.K-202.eff_pct": 0.9453
+   },
+   "capacity": 1.222,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 0.982,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-301: heater area needed (BPE included) vs installed": 0.945,
+    "K-202: suction flow vs capacity": 0.945,
+    "K-202: shaft power vs motor": 0.937,
+    "V-201: heater area needed (BPE included) vs installed": 0.848,
+    "K-201: shaft power vs motor": 0.672
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.0429,
+    "units.V-201.area_m2": 0.8996,
+    "units.V-301.U_W_m2K": 0.9683,
+    "limits.K-201.max_kg_h": 1.0109,
+    "limits.K-202.max_kg_h": 1.0288,
+    "limits.K-202.max_kW": 0.9381,
+    "units.K-201.eff_pct": 1.0247,
+    "units.K-202.eff_pct": 1.0338
+   },
+   "capacity": 1.214,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 0.989,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.982,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: heater area needed (BPE included) vs installed": 0.949,
+    "V-301: heater area needed (BPE included) vs installed": 0.913,
+    "K-202: shaft power vs motor": 0.882,
+    "K-202: suction flow vs capacity": 0.875,
+    "K-201: shaft power vs motor": 0.655
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.0844,
+    "units.V-201.area_m2": 0.9623,
+    "units.V-301.U_W_m2K": 1.1299,
+    "limits.K-201.max_kg_h": 1.0261,
+    "limits.K-202.max_kg_h": 0.9335,
+    "limits.K-202.max_kW": 1.0889,
+    "units.K-201.eff_pct": 1.0061,
+    "units.K-202.eff_pct": 1.0015
+   },
+   "capacity": 1.232,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.981,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-201: suction flow vs capacity": 0.975,
+    "K-202: suction flow vs capacity": 0.964,
+    "V-201: heater area needed (BPE included) vs installed": 0.853,
+    "K-202: shaft power vs motor": 0.784,
+    "V-301: heater area needed (BPE included) vs installed": 0.782,
+    "K-201: shaft power vs motor": 0.667
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.1368,
+    "units.V-201.area_m2": 1.1322,
+    "units.V-301.U_W_m2K": 1.101,
+    "limits.K-201.max_kg_h": 1.0169,
+    "limits.K-202.max_kg_h": 0.9865,
+    "limits.K-202.max_kW": 1.0962,
+    "units.K-201.eff_pct": 1.0695,
+    "units.K-202.eff_pct": 1.0648
+   },
+   "capacity": 1.221,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.984,
+    "K-201: suction flow vs capacity": 0.983,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-202: suction flow vs capacity": 0.912,
+    "V-301: heater area needed (BPE included) vs installed": 0.803,
+    "K-202: shaft power vs motor": 0.732,
+    "V-201: heater area needed (BPE included) vs installed": 0.692,
+    "K-201: shaft power vs motor": 0.628
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.0635,
+    "units.V-201.area_m2": 1.0656,
+    "units.V-301.U_W_m2K": 1.0789,
+    "limits.K-201.max_kg_h": 1.0,
+    "limits.K-202.max_kg_h": 1.0393,
+    "limits.K-202.max_kW": 1.0088,
+    "units.K-201.eff_pct": 0.9836,
+    "units.K-202.eff_pct": 1.0232
+   },
+   "capacity": 1.201,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.0,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "K-202: suction flow vs capacity": 0.866,
+    "K-202: shaft power vs motor": 0.828,
+    "V-301: heater area needed (BPE included) vs installed": 0.819,
+    "V-201: heater area needed (BPE included) vs installed": 0.786,
+    "K-201: shaft power vs motor": 0.683
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.9115,
+    "units.V-201.area_m2": 1.1065,
+    "units.V-301.U_W_m2K": 1.1209,
+    "limits.K-201.max_kg_h": 1.0021,
+    "limits.K-202.max_kg_h": 0.9323,
+    "limits.K-202.max_kW": 1.0802,
+    "units.K-201.eff_pct": 0.9434,
+    "units.K-202.eff_pct": 0.9912
+   },
+   "capacity": 1.203,
+   "met_target": true,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 0.998,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.977,
+    "K-202: suction flow vs capacity": 0.965,
+    "V-201: heater area needed (BPE included) vs installed": 0.883,
+    "K-202: shaft power vs motor": 0.798,
+    "V-301: heater area needed (BPE included) vs installed": 0.789,
+    "K-201: shaft power vs motor": 0.712
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 1.1218,
+    "units.V-201.area_m2": 1.1002,
+    "units.V-301.U_W_m2K": 0.909,
+    "limits.K-201.max_kg_h": 0.9888,
+    "limits.K-202.max_kg_h": 0.9705,
+    "limits.K-202.max_kW": 1.0064,
+    "units.K-201.eff_pct": 1.0149,
+    "units.K-202.eff_pct": 0.9716
+   },
+   "capacity": 1.187,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "K-201: suction flow vs capacity",
+   "at_target": {
+    "K-201: suction flow vs capacity": 1.011,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.981,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-301: heater area needed (BPE included) vs installed": 0.972,
+    "K-202: suction flow vs capacity": 0.927,
+    "K-202: shaft power vs motor": 0.874,
+    "V-201: heater area needed (BPE included) vs installed": 0.721,
+    "K-201: shaft power vs motor": 0.662
+   }
+  },
+  {
+   "factors": {
+    "units.V-201.U_W_m2K": 0.8946,
+    "units.V-201.area_m2": 0.9923,
+    "units.V-301.U_W_m2K": 0.9488,
+    "limits.K-201.max_kg_h": 1.0091,
+    "limits.K-202.max_kg_h": 1.0667,
+    "limits.K-202.max_kW": 0.9803,
+    "units.K-201.eff_pct": 1.0832,
+    "units.K-202.eff_pct": 1.0612
+   },
+   "capacity": 1.197,
+   "met_target": false,
+   "infeasible": false,
+   "limited_by": "V-201: heater area needed (BPE included) vs installed",
+   "at_target": {
+    "V-201: heater area needed (BPE included) vs installed": 1.003,
+    "K-201: suction flow vs capacity": 0.991,
+    "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.985,
+    "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)": 0.98,
+    "V-301: heater area needed (BPE included) vs installed": 0.931,
+    "K-202: suction flow vs capacity": 0.844,
+    "K-202: shaft power vs motor": 0.822,
+    "K-201: shaft power vs motor": 0.62
+   }
+  }
+ ]
+}

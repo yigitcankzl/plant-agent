@@ -1,0 +1,144 @@
+{
+ "key": "339f3c4a6b7e67c0",
+ "basis": "ILLUSTRATIVE performance curves. Shape: a typical fixed-speed single-stage centrifugal MVR compressor map (pressure rise falls about 10 % from the surge line to the design point, then steeply towards choke; efficiency peaks near design), normalised. Anchors: K-201 at its documented rated suction (US 5,366,514 Table I, 226.8 t/h) and K-202 at its provisional rating (55 t/h at pressure ratio 1.8, vendor to confirm), both at the model's suction state (1.70 bar, 115.15 C, 0.9697 kg/m3 from DWSIM) and discharge 3.08 bar, efficiency 75 % as in the model. Replace with vendor curves before any decision.",
+ "applied_to": "combined design",
+ "target_scale": 1.2,
+ "scales": {
+  "1.00": {
+   "scale": 1.0,
+   "checks": [
+    {
+     "id": "K-201",
+     "check": "flow vs curve capacity at the required head (this unit)",
+     "value": 233865.3,
+     "limit": 233894.3,
+     "unit": "m3/h actual",
+     "utilisation": 1.0,
+     "source": "performance curve (curves.py)",
+     "operating_point": {
+      "q_m3_h": 233865.3,
+      "q_model_m3_h": 233865.3,
+      "head": 114.16,
+      "head_unit": "kJ/kg",
+      "q_over_design": 1.0,
+      "speed_needed_pct": null,
+      "speed_pct": 100.0,
+      "drive": "fixed speed",
+      "eff_pct": 75.0,
+      "kg_h": 226781.0,
+      "basis": "ILLUSTRATIVE shape anchored at the documented rated suction (Table I)",
+      "shaft_kW": 9588.0,
+      "surge_margin_pct": 38.0,
+      "stonewall_margin_pct": 15.3
+     }
+    },
+    {
+     "id": "K-201",
+     "check": "surge flow (+10 % margin) vs operating flow; above 100 % the machine needs recycle",
+     "value": 159508.9,
+     "limit": 233865.3,
+     "unit": "m3/h actual",
+     "utilisation": 0.682,
+     "source": "performance curve (curves.py)"
+    },
+    {
+     "id": "K-201",
+     "check": "operating flow vs stonewall (choke)",
+     "value": 233865.3,
+     "limit": 275983.1,
+     "unit": "m3/h actual",
+     "utilisation": 0.847,
+     "source": "performance curve (curves.py)"
+    }
+   ],
+   "operating_points": {
+    "K-201": {
+     "q_m3_h": 233865.3,
+     "q_model_m3_h": 233865.3,
+     "head": 114.16,
+     "head_unit": "kJ/kg",
+     "q_over_design": 1.0,
+     "speed_needed_pct": null,
+     "speed_pct": 100.0,
+     "drive": "fixed speed",
+     "eff_pct": 75.0,
+     "kg_h": 226781.0,
+     "basis": "ILLUSTRATIVE shape anchored at the documented rated suction (Table I)",
+     "shaft_kW": 9588.0,
+     "surge_margin_pct": 38.0,
+     "stonewall_margin_pct": 15.3
+    }
+   },
+   "worst": 1.0
+  },
+  "1.20": {
+   "scale": 1.2,
+   "checks": [
+    {
+     "id": "K-201",
+     "check": "flow vs curve capacity at the required head (this unit)",
+     "value": 280638.4,
+     "limit": 233894.3,
+     "unit": "m3/h actual",
+     "utilisation": 1.2,
+     "source": "performance curve (curves.py)",
+     "operating_point": {
+      "q_m3_h": 280638.4,
+      "q_model_m3_h": 280638.4,
+      "head": 114.16,
+      "head_unit": "kJ/kg",
+      "q_over_design": 1.2,
+      "speed_needed_pct": null,
+      "speed_pct": 100.0,
+      "drive": "fixed speed",
+      "eff_pct": 66.0,
+      "kg_h": 272137.0,
+      "basis": "ILLUSTRATIVE shape anchored at the documented rated suction (Table I)",
+      "shaft_kW": 13075.0,
+      "surge_margin_pct": 48.3,
+      "stonewall_margin_pct": -1.7
+     }
+    },
+    {
+     "id": "K-201",
+     "check": "surge flow (+10 % margin) vs operating flow; above 100 % the machine needs recycle",
+     "value": 159508.9,
+     "limit": 280638.4,
+     "unit": "m3/h actual",
+     "utilisation": 0.568,
+     "source": "performance curve (curves.py)"
+    },
+    {
+     "id": "K-201",
+     "check": "operating flow vs stonewall (choke)",
+     "value": 280638.4,
+     "limit": 275983.1,
+     "unit": "m3/h actual",
+     "utilisation": 1.017,
+     "source": "performance curve (curves.py)"
+    }
+   ],
+   "operating_points": {
+    "K-201": {
+     "q_m3_h": 280638.4,
+     "q_model_m3_h": 280638.4,
+     "head": 114.16,
+     "head_unit": "kJ/kg",
+     "q_over_design": 1.2,
+     "speed_needed_pct": null,
+     "speed_pct": 100.0,
+     "drive": "fixed speed",
+     "eff_pct": 66.0,
+     "kg_h": 272137.0,
+     "basis": "ILLUSTRATIVE shape anchored at the documented rated suction (Table I)",
+     "shaft_kW": 13075.0,
+     "surge_margin_pct": 48.3,
+     "stonewall_margin_pct": -1.7
+    }
+   },
+   "worst": 1.2
+  }
+ },
+ "target_holds_on_curves": false,
+ "note": "Curves are ILLUSTRATIVE unless a vendor curve is supplied; the stored model is unchanged."
+}

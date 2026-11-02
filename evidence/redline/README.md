@@ -55,3 +55,19 @@ All POSTs use the existing JSON-only, same-origin and access controls. The uploa
 Results: **317 Python tests passed, 21 skipped** (`unittest discover -s tests -q`); the **7 focused redline tests passed**. Full `tools/ui_smoke.js http://127.0.0.1:8781 /tmp/redline-smoke` passed with exit 0, including the new stubbed redline flow. The browser flow was also rerun at 1920×1080. Engine-dependent suites emitted existing subprocess ResourceWarnings, but no test failed. The smoke's existing optional cost/start-up and discipline-layout assertions now use fixed browser fixtures, so a missing or stale saved assessment does not turn a layout assertion into a data-cache test. Browser/server checks ran in a separate temporary clone with paid actions disabled; the test server was stopped afterward.
 
 Limits: handwriting accuracy is unmeasured until a live read is reviewed. Missing ratings, split/join topology and vendor evidence must be supplied by the engineer; the reader is prompted not to invent them. JSON editing is intentionally the smallest complete editor for all four change forms. Confirmation records intent; it does not grant MOC approval or apply the design.
+
+## First live read (2026-11-02, salt_mvr)
+- **Input:** `salt_redline.png`, the salt plant's Rev A with three red notes drawn on it by a script (typed red text and circles, not handwriting): "CLEAN E-201, U back to 2,500 W/m2K"; "ADD K-202 parallel to K-201, ~55 t/h, 2.4 MW"; "FV-301: purge 7.0 %".
+- **Muse Wonder read** (`runs/ws/salt_mvr/redline/386b1891…/read.json`): all three notes transcribed verbatim.
+  - E-201 was mapped to the right model field (`units.V-201.U_W_m2K = 2500`; the model carries E-201 as V-201's heater, confidence 0.9). Validation refused it because the ink gives no `physical_change` or `rating_source`.
+  - K-202 (0.75) and FV-301 (0.45) were left unmapped: the ink names no split/join connections or model setpoint. That is the prompt's "never invent a size or topology" rule working.
+- **Engineer confirmation:** the E-201 change, with its physical change and source filled in; K-202 and FV-301 rejected for missing detail. Hash-chained in the audit log.
+- **Side-by-side check** (no model call):
+
+| | Engineer's design (clean E-201 only) | Muse's saved design (clean + K-202 + purge trim) |
+|---|---|---|
+| Process, 120 % target | fail: max 100 %, K-201 suction flow limits | pass: 120 % |
+| Robustness envelope | fail: 1/4 scenarios | fail: 3/4 (heater fouled to design U) |
+| Electrical | not affected | fail: TX-1 133 % loaded |
+
+- **Reading:** cleaning alone does not move the bottleneck, which is the compressor. Muse's design reaches the target but fails the electrical and fouled-heater checks. The engineer sees both, with the same checks.

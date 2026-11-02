@@ -1,0 +1,790 @@
+{
+  "id": "386b1891d344f14f2bb8b897f6a4cd2759e8e7d88da5af1386cd9e4ce69fd675",
+  "key": "6403b89cf5fbdc8e3b57f00c29580402a0844626ea7dc7b210156ad829fc05cd",
+  "confirmation_hash": "9587b13198fbf9c0c489abf5b7497d7785004f85dc10b12304a41b055fd3b19d",
+  "engineer": [
+    {
+      "check": "verification",
+      "status": "pass",
+      "title": "Server re-solve verified",
+      "numbers": {
+        "capacity_multiple": 1.001
+      },
+      "engine": "dwsim"
+    },
+    {
+      "check": "K-201: suction flow vs capacity",
+      "engine": "dwsim",
+      "status": "fail",
+      "title": "Server verification at the target",
+      "source": "server verify target solve",
+      "numbers": {
+        "value": 272137.2,
+        "limit": 226800,
+        "unit": "kg/h",
+        "utilisation": 1.2
+      }
+    },
+    {
+      "check": "V-301: heater area needed (BPE included) vs installed",
+      "engine": "dwsim",
+      "status": "fail",
+      "title": "Server verification at the target",
+      "source": "server verify target solve",
+      "numbers": {
+        "value": 1591.0,
+        "limit": 1500,
+        "unit": "m2",
+        "utilisation": 1.061
+      }
+    },
+    {
+      "check": "V-201: boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+      "engine": "dwsim",
+      "status": "pass",
+      "title": "Server verification at the target",
+      "source": "server verify target solve",
+      "numbers": {
+        "value": 187369.4,
+        "limit": 188444.69400000002,
+        "unit": "kW",
+        "utilisation": 0.994
+      }
+    },
+    {
+      "check": "V-301: boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+      "engine": "dwsim",
+      "status": "pass",
+      "title": "Server verification at the target",
+      "source": "server verify target solve",
+      "numbers": {
+        "value": 15434.3,
+        "limit": 15742.884000000002,
+        "unit": "kW",
+        "utilisation": 0.98
+      }
+    },
+    {
+      "check": "V-201: heater area needed (BPE included) vs installed",
+      "engine": "dwsim",
+      "status": "pass",
+      "title": "Server verification at the target",
+      "source": "server verify target solve",
+      "numbers": {
+        "value": 7836.0,
+        "limit": 8800,
+        "unit": "m2",
+        "utilisation": 0.89
+      }
+    },
+    {
+      "check": "K-201: shaft power vs motor",
+      "engine": "dwsim",
+      "status": "pass",
+      "title": "Server verification at the target",
+      "source": "server verify target solve",
+      "numbers": {
+        "value": 11279.24,
+        "limit": 14000,
+        "unit": "kW",
+        "utilisation": 0.806
+      }
+    },
+    {
+      "check": "OVERHEAD_SPLIT: no limit check for this unit type",
+      "engine": "dwsim",
+      "status": "open",
+      "title": "Server verification at the target",
+      "source": "server verify target solve",
+      "numbers": {
+        "value": null,
+        "limit": null,
+        "unit": null,
+        "utilisation": null
+      }
+    },
+    {
+      "check": "D-201MIX: no limit check for this unit type",
+      "engine": "dwsim",
+      "status": "open",
+      "title": "Server verification at the target",
+      "source": "server verify target solve",
+      "numbers": {
+        "value": null,
+        "limit": null,
+        "unit": null,
+        "utilisation": null
+      }
+    },
+    {
+      "check": "process",
+      "engine": "DWSIM",
+      "title": "design does not reach 120 % (max 100 %, re-solved now)",
+      "status": "fail",
+      "numbers": {},
+      "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+      "check": "robustness",
+      "engine": "DWSIM",
+      "title": "operating envelope 1/4 scenarios pass (fails: Clean design at sales target, Target with heater fouled to the design-basis U (2,000 W/m\u00b2K), Target with five-point existing-compressor efficiency sensitivity)",
+      "status": "fail",
+      "numbers": {},
+      "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+      "check": "heat_transfer",
+      "engine": "ht/fluids",
+      "title": "E-201 (clean): area needed 7,048 of 8,800 m\u00b2 at the correlation U 3,288 W/m\u00b2K; the verified process design uses the model U 2,500 W/m\u00b2K, which governs until the geometry is confirmed; 2 checks over illustrative ratings or geometry, to confi",
+      "status": "open",
+      "numbers": {},
+      "source": "ht/fluids exchanger rating at the design point (ILLUSTRATIVE geometry)"
+    },
+    {
+      "check": "combustion",
+      "engine": "Cantera",
+      "title": "GT-201 + HRSG-201: steam 19.1 t/h (42,000 lb/h, \u00d71.20), stack 205 \u2192 200 \u00b0C, duct firing 2.73 MW HHV (9.3 MMBtu/h), NOx added 0.4 ppmvd at 15 % O2 (screening); if HRSG steam rises with throughput (\u00d71.20), it needs supplementary (duct) firing",
+      "status": "open",
+      "numbers": {},
+      "source": "Cantera gas-turbine and HRSG model"
+    },
+    {
+      "check": "curves",
+      "engine": "curves",
+      "title": "compressor/pump curves at the target: K-201 flow vs curve capacity at the required head (this unit) 120 %; K-201 operating flow vs stonewall (choke) 102 %",
+      "status": "fail",
+      "numbers": {
+        "id": "K-201",
+        "check": "flow vs curve capacity at the required head (this unit)",
+        "value": 280638.4,
+        "limit": 233894.3,
+        "unit": "m3/h actual",
+        "utilisation": 1.2
+      },
+      "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"
+    },
+    {
+      "check": "curves_today",
+      "engine": "curves",
+      "title": "compressor/pump curves at today's throughput: all within curve limits (worst K-201 flow vs curve capacity at the required head (this unit) 100 %)",
+      "status": "pass",
+      "numbers": {
+        "id": "K-201",
+        "check": "flow vs curve capacity at the required head (this unit)",
+        "value": 233865.3,
+        "limit": 233894.3,
+        "unit": "m3/h actual",
+        "utilisation": 1.0
+      },
+      "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"
+    },
+    {
+      "check": "startup.K-201.voltage",
+      "engine": "transient",
+      "status": "open",
+      "title": "K-201: open: needs: motor list",
+      "numbers": {},
+      "source": "start-up screen"
+    },
+    {
+      "check": "startup.K-201.acceleration",
+      "engine": "transient",
+      "status": "open",
+      "title": "K-201: open: needs: motor list",
+      "numbers": {},
+      "source": "start-up screen"
+    },
+    {
+      "check": "startup.K-201.surge",
+      "engine": "curves",
+      "status": "pass",
+      "title": "K-201: loaded ramp minimum flow 173,974 vs surge +10 % 153,128 m3/h at 96 % speed",
+      "numbers": {
+        "value": 173974.5,
+        "limit": 153128.5,
+        "unit": "m3/h actual",
+        "margin_ratio": 1.136
+      },
+      "source": "compressor map at the solved pressure ratio during the speed ramp"
+    },
+    {
+      "check": "startup",
+      "engine": "transient",
+      "status": "open",
+      "title": "general start-up screen: 1 pass, 0 fail, 2 open",
+      "numbers": {
+        "rows": 3
+      },
+      "source": "motor start, acceleration and compressor-ramp screens"
+    },
+    {
+      "check": "confidence",
+      "engine": "uncertainty",
+      "title": "inputs not numeric in the design model: ['limits.K-202.max_kg_h', 'limits.K-202.max_kW', 'units.K-202.eff_pct']",
+      "status": "open",
+      "numbers": {},
+      "source": "uncertainty"
+    }
+  ],
+  "muse": [
+    {
+      "check": "process",
+      "engine": "DWSIM",
+      "title": "design reaches 120 % (max 120 %, re-solved now)",
+      "status": "pass",
+      "numbers": {},
+      "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+      "check": "robustness",
+      "engine": "DWSIM",
+      "title": "operating envelope 3/4 scenarios pass (fails: Target with heater fouled to the design-basis U (2,000 W/m\u00b2K))",
+      "status": "fail",
+      "numbers": {},
+      "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+      "check": "mechanical",
+      "engine": "rating screen",
+      "title": "1 new machine(s) within provisional ratings; guaranteed vendor curve, materials and mechanical design still needed",
+      "status": "open",
+      "numbers": {},
+      "source": "proposal calculation vs provisional rating"
+    },
+    {
+      "check": "electrical",
+      "engine": "pandapower",
+      "title": "TX-1 45 \u2192 133 % loaded; M-K-202 DOL start dip 29.0 % at its terminal; OVER: MV 4.16 kV switchgear: dip during M-K-202 start (DOL), LV 480 V MCC: dip during M-K-202 start (DOL), M-K-202-term start dip at M-K-202 terminal (DOL) (+5 more)",
+      "status": "fail",
+      "numbers": {},
+      "source": "pandapower load flow on the case one-line diagram (ILLUSTRATIVE network)"
+    },
+    {
+      "check": "heat_transfer",
+      "engine": "ht/fluids",
+      "title": "E-201 (clean): area needed 7,130 of 8,800 m\u00b2 at the correlation U 3,297 W/m\u00b2K; the verified process design uses the model U 2,500 W/m\u00b2K, which governs until the geometry is confirmed; 2 checks over illustrative ratings or geometry, to confi",
+      "status": "open",
+      "numbers": {},
+      "source": "ht/fluids exchanger rating at the design point (ILLUSTRATIVE geometry)"
+    },
+    {
+      "check": "combustion",
+      "engine": "Cantera",
+      "title": "GT-201 + HRSG-201: steam 19.1 t/h (42,000 lb/h, \u00d71.20), stack 228 \u2192 229 \u00b0C, duct firing 2.97 MW HHV (10.1 MMBtu/h), NOx added 0.7 ppmvd at 15 % O2 (screening); if HRSG steam rises with throughput (\u00d71.20), it needs supplementary (duct) firin",
+      "status": "open",
+      "numbers": {},
+      "source": "Cantera gas-turbine and HRSG model"
+    },
+    {
+      "check": "piping_utilities",
+      "engine": "none",
+      "title": "no calculation adapter: tie-ins, line sizing, supports and utility headers remain open for K-202",
+      "status": "open",
+      "numbers": {},
+      "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+      "check": "controls",
+      "engine": "none",
+      "title": "no calculation adapter: control narrative, split/load-sharing control, cause & effect and permissives remain open for K-202",
+      "status": "open",
+      "numbers": {},
+      "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+      "check": "process_safety",
+      "engine": "none",
+      "title": "no calculation adapter: change-focused HAZOP, relief case and isolation for the changed equipment remain open for K-202",
+      "status": "open",
+      "numbers": {},
+      "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+      "check": "civil_structural",
+      "engine": "none",
+      "title": "no calculation adapter: plot, access, lifting and foundations remain open for K-202",
+      "status": "open",
+      "numbers": {},
+      "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+      "check": "curves",
+      "engine": "curves",
+      "title": "compressor/pump curves at the target: all within curve limits (worst K-201 flow vs curve capacity at the required head (parallel group K-201+K-202) 98 %)",
+      "status": "pass",
+      "numbers": {
+        "id": "K-201",
+        "check": "flow vs curve capacity at the required head (parallel group K-201+K-202)",
+        "value": 284947.9,
+        "limit": 290613.7,
+        "unit": "m3/h actual",
+        "utilisation": 0.981
+      },
+      "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"
+    },
+    {
+      "check": "curves_today",
+      "engine": "curves",
+      "title": "compressor/pump curves at today's throughput: K-202 surge flow (+10 % margin) vs operating flow; above 100 % the machine needs recycle 1035 %",
+      "status": "fail",
+      "numbers": {
+        "id": "K-202",
+        "check": "surge flow (+10 % margin) vs operating flow; above 100 % the machine needs recycle",
+        "value": 36880.2,
+        "limit": 3562.3,
+        "unit": "m3/h actual",
+        "utilisation": 10.353
+      },
+      "source": "performance curves (cases/<case>/curves.json, ILLUSTRATIVE unless vendor) on a DWSIM solve"
+    },
+    {
+      "check": "startup.K-201.voltage",
+      "engine": "transient",
+      "status": "open",
+      "title": "K-201: open: needs: motor list",
+      "numbers": {},
+      "source": "start-up screen"
+    },
+    {
+      "check": "startup.K-201.acceleration",
+      "engine": "transient",
+      "status": "open",
+      "title": "K-201: open: needs: motor list",
+      "numbers": {},
+      "source": "start-up screen"
+    },
+    {
+      "check": "startup.K-201.surge",
+      "engine": "curves",
+      "status": "pass",
+      "title": "K-201: loaded ramp minimum flow 173,974 vs surge +10 % 153,128 m3/h at 96 % speed",
+      "numbers": {
+        "value": 173974.5,
+        "limit": 153128.5,
+        "unit": "m3/h actual",
+        "margin_ratio": 1.136
+      },
+      "source": "compressor map at the solved pressure ratio during the speed ramp"
+    },
+    {
+      "check": "startup.K-202.voltage",
+      "engine": "pandapower",
+      "status": "fail",
+      "title": "K-202: motor start voltage dip 29.0 % vs 15 % limit",
+      "numbers": {
+        "value": 28.98,
+        "limit": 15.0,
+        "unit": "%"
+      },
+      "source": "electrical one-line motor-start load flow"
+    },
+    {
+      "check": "startup.K-202.acceleration",
+      "engine": "transient",
+      "status": "pass",
+      "title": "draft (assumed values): K-202: acceleration to 95 % speed 11.35 s vs 20 s",
+      "numbers": {
+        "value": 11.35,
+        "limit": 20.0,
+        "unit": "s"
+      },
+      "source": "typical centrifugal load torque proportional to speed squared; motor/load inertia and limit are screening assumptions when not supplied"
+    },
+    {
+      "check": "startup.K-202.surge",
+      "engine": "curves",
+      "status": "pass",
+      "title": "K-202: loaded ramp minimum flow 42,189 vs surge +10 % 37,134 m3/h at 96 % speed",
+      "numbers": {
+        "value": 42188.9,
+        "limit": 37133.8,
+        "unit": "m3/h actual",
+        "margin_ratio": 1.136
+      },
+      "source": "compressor map at the solved pressure ratio during the speed ramp"
+    },
+    {
+      "check": "startup",
+      "engine": "transient",
+      "status": "fail",
+      "title": "general start-up screen: 3 pass, 1 fail, 2 open",
+      "numbers": {
+        "rows": 6
+      },
+      "source": "motor start, acceleration and compressor-ramp screens"
+    },
+    {
+      "check": "confidence",
+      "engine": "uncertainty",
+      "title": "target met in 29 % of 48 re-solves with uncertain inputs varied; most often limited by K-201: suction flow vs capacity",
+      "status": "fail",
+      "numbers": {
+        "p_target": 0.292,
+        "p10": 1.1417,
+        "p50": 1.186,
+        "p90": 1.2175,
+        "n": 48
+      },
+      "source": "Latin hypercube, 48 samples (seed 20261101), uniform \u00b1 band per input kind; each sample re-solved (DWSIM): capacity bisection plus the solve at the target (pass at P(target) \u2265 80%)"
+    }
+  ],
+  "answer": {
+    "headline": "Engineer's confirmed redline",
+    "proposals": [
+      {
+        "title": "Engineer's redline",
+        "changes": [
+          {
+            "path": "units.V-201.U_W_m2K",
+            "value": 2500,
+            "physical_change": "clean the E-201 circulating-heater tubes (engineer redline)",
+            "rating_source": "engineer redline: clean U 2,500 W/m2K"
+          }
+        ],
+        "_by": "engineer redline",
+        "verified": true,
+        "fixes": null,
+        "still_over": [],
+        "breaks": [],
+        "disappeared_checks": [],
+        "capacity_multiple": 1.001,
+        "limited_by": {
+          "id": "K-201",
+          "check": "suction flow vs capacity",
+          "value": 226905.6,
+          "limit": 226800,
+          "unit": "kg/h",
+          "utilisation": 1.0
+        },
+        "reaches_target": false,
+        "over_limits_at_target": [
+          {
+            "id": "K-201",
+            "check": "suction flow vs capacity",
+            "value": 272137.2,
+            "limit": 226800,
+            "unit": "kg/h",
+            "utilisation": 1.2
+          },
+          {
+            "id": "V-301",
+            "check": "heater area needed (BPE included) vs installed",
+            "value": 1591.0,
+            "limit": 1500,
+            "unit": "m2",
+            "utilisation": 1.061
+          }
+        ],
+        "target_scale": 1.2,
+        "new_equipment": [],
+        "replaced_equipment": [],
+        "verification_status": "verified",
+        "open_checks": [],
+        "calculation": {
+          "target_scale": 1.2,
+          "capacity_multiple_before": 1.001,
+          "capacity_multiple_after": 1.001,
+          "limited_by_before": {
+            "id": "K-201",
+            "check": "suction flow vs capacity",
+            "value": 226905.6,
+            "limit": 226800,
+            "unit": "kg/h",
+            "utilisation": 1.0
+          },
+          "limited_by_after": {
+            "id": "K-201",
+            "check": "suction flow vs capacity",
+            "value": 226905.6,
+            "limit": 226800,
+            "unit": "kg/h",
+            "utilisation": 1.0
+          },
+          "checks": [
+            {
+              "id": "K-201",
+              "check": "suction flow vs capacity",
+              "before": 1.2,
+              "after": 1.2,
+              "value": 272137.2,
+              "limit": 226800,
+              "unit": "kg/h"
+            },
+            {
+              "id": "V-301",
+              "check": "heater area needed (BPE included) vs installed",
+              "before": 1.061,
+              "after": 1.061,
+              "value": 1591.0,
+              "limit": 1500,
+              "unit": "m2"
+            },
+            {
+              "id": "V-201",
+              "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+              "before": 0.994,
+              "after": 0.994,
+              "value": 187369.4,
+              "limit": 188444.69400000002,
+              "unit": "kW"
+            },
+            {
+              "id": "V-301",
+              "check": "boil-up duty vs heat from the heating steam (2 % closure tolerance)",
+              "before": 0.98,
+              "after": 0.98,
+              "value": 15434.3,
+              "limit": 15742.884000000002,
+              "unit": "kW"
+            },
+            {
+              "id": "V-201",
+              "check": "heater area needed (BPE included) vs installed",
+              "before": 1.113,
+              "after": 0.89,
+              "value": 7836.0,
+              "limit": 8800,
+              "unit": "m2"
+            },
+            {
+              "id": "K-201",
+              "check": "shaft power vs motor",
+              "before": 0.806,
+              "after": 0.806,
+              "value": 11279.24,
+              "limit": 14000,
+              "unit": "kW"
+            },
+            {
+              "id": "OVERHEAD_SPLIT",
+              "check": "no limit check for this unit type",
+              "before": null,
+              "after": null,
+              "value": null,
+              "limit": null,
+              "unit": null
+            },
+            {
+              "id": "D-201MIX",
+              "check": "no limit check for this unit type",
+              "before": null,
+              "after": null,
+              "value": null,
+              "limit": null,
+              "unit": null
+            }
+          ],
+          "units": {
+            "D-201MIX": {
+              "type": "mixer"
+            },
+            "K-201": {
+              "type": "compressor",
+              "duty_kW": 11279.24,
+              "kW": 11279.24,
+              "discharge_C": 191.5
+            },
+            "OVERHEAD_SPLIT": {
+              "type": "splitter"
+            },
+            "V-201": {
+              "type": "evaporator",
+              "boil_kW": 187369.4,
+              "sensible_correction_kW": 794.1,
+              "brine_sensible_kW": 6660.7,
+              "water_sensible_kW": 3670.5,
+              "vapor_superheat_kW": 1664.0,
+              "crystallisation_kW": 2152.5,
+              "crystal_cooling_kW": 1707.6,
+              "vapour_kg_h": 297215.0,
+              "brine_T_C": 124.86,
+              "bpe_K": 9.69,
+              "body_x_NaCl": 0.2875,
+              "salt_in_kg_h": 122902.0,
+              "salt_kg_h": 116702.0,
+              "crystallising": true,
+              "liquid_out_brine_kg_h": 21563.0,
+              "water_evaporated_per_t_salt": 2.55,
+              "heating_kW": 184749.7,
+              "condensing_C": 134.43,
+              "driving_dT_K": 9.57,
+              "heat_balance_kW": -2619.7,
+              "area_needed_m2": 7836.0,
+              "area_m2": 8800,
+              "U_W_m2K": 2500
+            },
+            "V-301": {
+              "type": "evaporator",
+              "boil_kW": 15434.3,
+              "sensible_correction_kW": 383.1,
+              "brine_sensible_kW": 455.1,
+              "water_sensible_kW": 5.1,
+              "vapor_superheat_kW": 134.9,
+              "crystallisation_kW": 201.8,
+              "crystal_cooling_kW": 0.0,
+              "vapour_kg_h": 26769.0,
+              "brine_T_C": 108.68,
+              "bpe_K": 8.72,
+              "body_x_NaCl": 0.2824,
+              "salt_in_kg_h": 16422.0,
+              "salt_kg_h": 10941.0,
+              "crystallising": true,
+              "liquid_out_brine_kg_h": 19410.0,
+              "water_evaporated_per_t_salt": 2.45,
+              "heating_kW": 15434.2,
+              "condensing_C": 115.15,
+              "driving_dT_K": 6.47,
+              "heat_balance_kW": -0.1,
+              "area_needed_m2": 1591.0,
+              "area_m2": 1500,
+              "U_W_m2K": 1500
+            }
+          },
+          "streams": [
+            {
+              "id": "S1004mix",
+              "T_C": 108.0,
+              "P_bar": 2.4,
+              "kg_h": 435480.0,
+              "vapour_frac": 0.0,
+              "components_kg_h": {
+                "Water": 435480.0
+              }
+            },
+            {
+              "id": "S3002",
+              "T_C": 192.05,
+              "P_bar": 3.08,
+              "kg_h": 291217.2,
+              "vapour_frac": 1.0,
+              "components_kg_h": {
+                "Water": 291217.2
+              }
+            },
+            {
+              "id": "S3001raw",
+              "T_C": 115.15,
+              "P_bar": 1.7,
+              "kg_h": 297215.1,
+              "vapour_frac": 1.0,
+              "components_kg_h": {
+                "Water": 297215.1
+              }
+            },
+            {
+              "id": "S2001slurry",
+              "T_C": 115.15,
+              "P_bar": 1.7,
+              "kg_h": 138264.9,
+              "vapour_frac": 0.0,
+              "components_kg_h": {
+                "Water": 138264.9
+              }
+            },
+            {
+              "id": "S4001",
+              "T_C": 134.43,
+              "P_bar": 3.08,
+              "kg_h": 291217.2,
+              "vapour_frac": 0.0,
+              "components_kg_h": {
+                "Water": 291217.2
+              }
+            },
+            {
+              "id": "S3101",
+              "T_C": 115.15,
+              "P_bar": 1.7,
+              "kg_h": 25077.9,
+              "vapour_frac": 1.0,
+              "components_kg_h": {
+                "Water": 25077.9
+              }
+            },
+            {
+              "id": "S3001",
+              "T_C": 115.15,
+              "P_bar": 1.7,
+              "kg_h": 272137.2,
+              "vapour_frac": 1.0,
+              "components_kg_h": {
+                "Water": 272137.2
+              }
+            },
+            {
+              "id": "S3002raw",
+              "T_C": 191.49,
+              "P_bar": 3.08,
+              "kg_h": 272137.2,
+              "vapour_frac": 1.0,
+              "components_kg_h": {
+                "Water": 272137.2
+              }
+            },
+            {
+              "id": "TURBINE_EXH",
+              "T_C": 200.0,
+              "P_bar": 3.08,
+              "kg_h": 19080.0,
+              "vapour_frac": 1.0,
+              "components_kg_h": {
+                "Water": 19080.0
+              }
+            },
+            {
+              "id": "S5001",
+              "T_C": 99.88,
+              "P_bar": 1.01,
+              "kg_h": 57120.0,
+              "vapour_frac": 0.0483,
+              "components_kg_h": {
+                "Water": 57120.0
+              }
+            },
+            {
+              "id": "S3201raw",
+              "T_C": 99.88,
+              "P_bar": 1.01,
+              "kg_h": 26769.2,
+              "vapour_frac": 1.0,
+              "components_kg_h": {
+                "Water": 26769.16
+              }
+            },
+            {
+              "id": "S5101",
+              "T_C": 99.88,
+              "P_bar": 1.01,
+              "kg_h": 30350.8,
+              "vapour_frac": 0.0,
+              "components_kg_h": {
+                "Water": 30350.84
+              }
+            },
+            {
+              "id": "S4101",
+              "T_C": 115.15,
+              "P_bar": 1.7,
+              "kg_h": 25077.9,
+              "vapour_frac": 0.0,
+              "components_kg_h": {
+                "Water": 25077.9
+              }
+            }
+          ],
+          "new_equipment": [],
+          "replaced_equipment": [],
+          "assumptions": [],
+          "simulator": "dwsim",
+          "errors": [],
+          "warnings": [],
+          "model_label": "vrc_cal_v2_desup_hx"
+        }
+      }
+    ],
+    "source": "engineer_confirmed",
+    "redline_id": "386b1891d344f14f2bb8b897f6a4cd2759e8e7d88da5af1386cd9e4ce69fd675"
+  },
+  "muse_headline": "Yes, with cleaning and extra compression",
+  "drawing_url": "/api/plant/salt_mvr/redline/386b1891d344f14f2bb8b897f6a4cd2759e8e7d88da5af1386cd9e4ce69fd675/drawing.svg"
+}

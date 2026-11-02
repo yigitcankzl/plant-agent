@@ -1,0 +1,315 @@
+{
+ "key": {
+  "headline": "Engineer's confirmed redline",
+  "request": null,
+  "titles": [
+   "Engineer's redline"
+  ],
+  "revisions": 0,
+  "content": "6efb4de39dad88c0f67142441874ea2980e2e6b5"
+ },
+ "made": "2026-11-02T21:22:39+0300",
+ "disciplines": [
+  {
+   "id": "process",
+   "status": "fail",
+   "summary": "design does not reach 120 % (max 100 %, re-solved now)",
+   "source": "DWSIM re-solve of the combined design on the current model",
+   "checks": [
+    {
+     "id": "plant",
+     "check": "maximum throughput with all verified changes vs target",
+     "value": "100.1",
+     "limit": "120",
+     "unit": "%",
+     "kind": "max",
+     "status": "over",
+     "result": "120 %",
+     "source": "DWSIM re-solve of all 1 verified change(s) together on the current model"
+    },
+    {
+     "id": "K-201",
+     "check": "suction flow vs capacity",
+     "value": "272,137",
+     "limit": "226,800",
+     "unit": "kg/h",
+     "kind": "max",
+     "status": "over",
+     "result": "120 %",
+     "source": "DWSIM limit check"
+    },
+    {
+     "id": "V-301",
+     "check": "heater area needed (BPE included) vs installed",
+     "value": "1,591",
+     "limit": "1,500",
+     "unit": "m2",
+     "kind": "max",
+     "status": "over",
+     "result": "106 %",
+     "source": "DWSIM limit check"
+    }
+   ]
+  },
+  {
+   "id": "robustness",
+   "status": "fail",
+   "summary": "operating envelope 1/4 scenarios pass (fails: Clean design at sales target, Target with heater fouled to the design-basis U (2,000 W/m\u00b2K), Target with five-point existing-compressor efficiency sensitivity)",
+   "source": "DWSIM solves of the pre-FEED operating envelope",
+   "checks": [
+    {
+     "id": "K-201",
+     "check": "scenario 'Clean design at today's rate': suction flow vs capacity",
+     "value": "226,781",
+     "limit": "226,800",
+     "unit": "kg/h",
+     "kind": "max",
+     "status": "ok",
+     "result": "100 %",
+     "source": "DWSIM solve; scenario basis: US 5,366,514 Table I operating point; E-201 clean U is the illustrative post-clean value in basis.md"
+    },
+    {
+     "id": "K-201",
+     "check": "scenario 'Clean design at sales target': suction flow vs capacity",
+     "value": "272,137",
+     "limit": "226,800",
+     "unit": "kg/h",
+     "kind": "max",
+     "status": "over",
+     "result": "120 %",
+     "source": "DWSIM solve; scenario basis: basis.md request: 3,000 short t/d (+20%)"
+    },
+    {
+     "id": "K-201",
+     "check": "scenario 'Target with heater fouled to the design-basis U (2,000 W/m\u00b2K)': suction flow vs capacity",
+     "value": "272,137",
+     "limit": "226,800",
+     "unit": "kg/h",
+     "kind": "max",
+     "status": "over",
+     "result": "120 %",
+     "source": "DWSIM solve; scenario basis: basis.md equipment ratings: E-201 U 2,000 W/m\u00b2K in service; the fouling forecast puts today's U lower (about 1,716 W/m\u00b2K from the synthetic historian), so this scenario is not the worst case"
+    },
+    {
+     "id": "K-201",
+     "check": "scenario 'Target with five-point existing-compressor efficiency sensitivity': suction flow vs capacity",
+     "value": "272,137",
+     "limit": "226,800",
+     "unit": "kg/h",
+     "kind": "max",
+     "status": "over",
+     "result": "120 %",
+     "source": "DWSIM solve; scenario basis: engineering sensitivity around the provisional 75% efficiency; vendor curve required"
+    }
+   ]
+  },
+  {
+   "id": "electrical",
+   "status": "not affected",
+   "summary": "no new or re-rated motor on the one-line diagram",
+   "source": "motor list of the case one-line diagram",
+   "source_file": "cases/salt_mvr/electrical.json",
+   "checks": []
+  },
+  {
+   "id": "heat_transfer",
+   "status": "open",
+   "summary": "E-201 (clean): area needed 7,048 of 8,800 m\u00b2 at the correlation U 3,288 W/m\u00b2K; the verified process design uses the model U 2,500 W/m\u00b2K, which governs until the geometry is confirmed; 2 checks over illustrative ratings or geometry, to confirm before this gate can pass or fail: E-201 brine circulation needed for the rise limit vs pump rating 390 %, E-201 shell-side pressure drop vs allowable 146 %; model-consistency note: model U 2,500 vs correlation U 3,288 W/m\u00b2K (clean) are 24 % apart",
+   "source": "ht/fluids exchanger rating at the design point (ILLUSTRATIVE geometry)",
+   "checks": [
+    {
+     "id": "E-201",
+     "check": "tube velocity vs minimum",
+     "value": "2.791",
+     "limit": "1.5",
+     "unit": "m/s",
+     "kind": "min",
+     "status": "ok",
+     "result": "1.291 m/s above the minimum",
+     "source": "typical practice for forced-circulation crystalliser heaters (1.5-3 m/s): below it the slurry settles and the tubes scale (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "E-201",
+     "check": "tube velocity vs maximum",
+     "value": "2.791",
+     "limit": "3",
+     "unit": "m/s",
+     "kind": "max",
+     "status": "ok",
+     "result": "93 %",
+     "source": "typical practice (erosion by salt crystals) (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "E-201",
+     "check": "area required (clean correlation U) vs installed",
+     "value": "7,048",
+     "limit": "8,800",
+     "unit": "m\u00b2",
+     "kind": "max",
+     "status": "ok",
+     "result": "80 %",
+     "source": "Q / (U F LMTD), U from the correlations (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "E-201",
+     "check": "tube-side pressure drop vs allowable",
+     "value": "0.3545",
+     "limit": "0.8",
+     "unit": "bar",
+     "kind": "max",
+     "status": "ok",
+     "result": "44 %",
+     "source": "ILLUSTRATIVE: part of the P-201 differential 1.33 bar (model) available to the heater (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "E-201",
+     "check": "shell-side pressure drop vs allowable",
+     "value": "0.1461",
+     "limit": "0.1",
+     "unit": "bar",
+     "kind": "max",
+     "status": "over (illustrative rating)",
+     "result": "146 %",
+     "source": "typical practice for a condensing-steam shell at 3 bar(a): a few % of the absolute pressure (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "E-201",
+     "check": "brine circulation needed for the rise limit vs pump rating",
+     "value": "58,514",
+     "limit": "15,000",
+     "unit": "m\u00b3/h",
+     "kind": "max",
+     "status": "over (illustrative rating)",
+     "result": "390 %",
+     "source": "data sheet Equipment ratings: P-201 forced-circulation pump 15,000 m3/h rated (ILLUSTRATIVE) (ILLUSTRATIVE geometry)"
+    },
+    {
+     "id": "E-201",
+     "check": "model U 2,500 vs correlation U 3,288 W/m\u00b2K (clean)",
+     "value": "23.97",
+     "limit": "20",
+     "unit": "% difference",
+     "kind": "max",
+     "status": "note",
+     "result": "24 % apart (flagged above 20 %)",
+     "source": "model-consistency note: flagged when the model's U and the correlation differ by more than 20 % (re-check the model U; not a design limit) (ILLUSTRATIVE geometry)"
+    }
+   ],
+   "source_file": "cases/salt_mvr/hx_geometry.json"
+  },
+  {
+   "id": "combustion",
+   "status": "open",
+   "summary": "GT-201 + HRSG-201: steam 19.1 t/h (42,000 lb/h, \u00d71.20), stack 205 \u2192 200 \u00b0C, duct firing 2.73 MW HHV (9.3 MMBtu/h), NOx added 0.4 ppmvd at 15 % O2 (screening); if HRSG steam rises with throughput (\u00d71.20), it needs supplementary (duct) firing the unfired HRSG does not have: a modification to decide",
+   "source": "Cantera gas-turbine and HRSG model",
+   "checks": [
+    {
+     "id": "HRSG-201",
+     "check": "evaporator pinch vs minimum",
+     "value": "24.43",
+     "limit": "8",
+     "unit": "K",
+     "kind": "min",
+     "status": "ok",
+     "result": "16.43 K above the minimum",
+     "source": "typical practice: evaporator pinch not below about 8 K"
+    },
+    {
+     "id": "HRSG-201",
+     "check": "economiser approach to saturation vs minimum (steaming)",
+     "value": "18.2",
+     "limit": "5",
+     "unit": "K",
+     "kind": "min",
+     "status": "ok",
+     "result": "13.2 K above the minimum",
+     "source": "typical practice: economiser approach at least about 5 K to avoid steaming"
+    },
+    {
+     "id": "HRSG-201",
+     "check": "stack temperature vs water dew point 41 C + 20 K",
+     "value": "200.5",
+     "limit": "61.27",
+     "unit": "C",
+     "kind": "min",
+     "status": "ok",
+     "result": "139.2 K above the minimum",
+     "source": "typical practice: keep a non-condensing stack above the water dew point with a margin"
+    },
+    {
+     "id": "HRSG-201",
+     "check": "gas temperature into the superheater vs unfired design inlet",
+     "value": "533.8",
+     "limit": "485",
+     "unit": "C",
+     "kind": "max",
+     "status": "over",
+     "result": "48.82 K over the limit",
+     "source": "the documented HRSG is unfired: above that inlet the superheater sees hotter gas than its design point (tube metal and attemperation to confirm with the HRSG vendor)"
+    },
+    {
+     "id": "duct burner",
+     "check": "supplementary firing needed (9.3 MMBtu/h), no duct burner on record",
+     "value": "2.732",
+     "limit": "0",
+     "unit": "MW HHV",
+     "kind": "max",
+     "status": "info",
+     "result": "information",
+     "source": "US 5,366,514 describes an unfired HRSG (no supplementary firing)"
+    },
+    {
+     "id": "duct burner",
+     "check": "O2 after duct firing vs minimum for stable firing",
+     "value": "14.03",
+     "limit": "11",
+     "unit": "% wet",
+     "kind": "min",
+     "status": "ok",
+     "result": "3.027 % wet above the minimum",
+     "source": "typical practice: duct burners need roughly 11 % O2 or more in the turbine exhaust for stable firing"
+    },
+    {
+     "id": "duct burner",
+     "check": "local flame temperature vs thermal-NOx onset (screening)",
+     "value": "2,064",
+     "limit": "1,800",
+     "unit": "K",
+     "kind": "max",
+     "status": "over",
+     "result": "263.5 K over the limit",
+     "source": "thermal (Zeldovich) NO formation becomes significant above about 1,800 K (e.g. Turns, An Introduction to Combustion, ch. 5)"
+    }
+   ],
+   "source_file": "cases/salt_mvr/combustion.json"
+  },
+  {
+   "id": "piping_utilities",
+   "status": "not affected",
+   "summary": "no physical or routing change",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "controls",
+   "status": "not affected",
+   "summary": "no physical or routing change",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "process_safety",
+   "status": "not affected",
+   "summary": "no physical or routing change",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "civil_structural",
+   "status": "not affected",
+   "summary": "no physical or routing change",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  }
+ ]
+}
