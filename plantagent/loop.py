@@ -107,6 +107,18 @@ def _why(p):
     return "not verified"
 
 
+def _result(last, rows, status, verified_last, answer_index):
+    """Final record: a stopped run with no verified proposal must not inherit Muse's optimistic headline."""
+    stopped = {"budget": "budget limit", "max_rounds": "round limit", "error": "an error"}
+    if last is not None and not verified_last and status in stopped:
+        return {"answer_index": answer_index, "headline": f"No verified design before {stopped[status]}",
+                "passes": [], "fails": ["proposal verification"], "open": []}
+    return {"answer_index": answer_index, "headline": (last or {}).get("headline"),
+            "passes": [r["check"] for r in rows if r.get("status") == "pass"],
+            "fails": [r["check"] for r in rows if r.get("status") == "fail"],
+            "open": [r["check"] for r in rows if r.get("status") == "open"]}
+
+
 def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
     rid = time.strftime("%Y%m%d-%H%M%S")
     out = work_dir(w) / rid
@@ -114,11 +126,11 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
     model = getattr(w, "model", "unknown")
     log = {"id": rid, "case": w.name, "goal": goal, "label": label, "model": model,
            "provider": llm._host(model) or "meta", "max_rounds": max_rounds, "budget_usd": budget_usd,
-           "status": "running", "started": _now(),
+           "status": "running", "approval_status": None, "started": _now(),
            "usd_total": 0.0, "seconds_total": 0, "rounds": [], "result": None, "deliverables": [], "needs_human": []}
     save = lambda: (out / "worklog.json").write_text(json.dumps(log, indent=1, ensure_ascii=False))  # noqa: E731
     t0, usd0 = time.time(), llm.spent()
-    issues, last, rows = [], None, []
+    issues, last, rows, verified_last = [], None, [], False
     try:
         with llm.spend_cap(budget_usd):
             for n in range(1, max_rounds + 1):
@@ -134,6 +146,7 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
                                          "detail": _why(p) if not p.get("verified") else "",
                                          "numbers": {"capacity_pct": round(p["capacity_multiple"] * 100, 1)} if p.get("capacity_multiple") else None})
                 last = ans
+                verified_last = any(p.get("verified") for p in ans.get("proposals") or [])
                 save()
                 # UNSOLVABLE is accepted only once every proposal re-solved: a proposal refused for a fixable reason
                 # (wrong path or unit id) goes back to Muse first, or "unsolvable" may just mean "mis-typed"
@@ -141,7 +154,7 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
                 if str(ans.get("headline", "")).startswith(UNSOLVABLE) and (not fixable or n == max_rounds):
                     log["status"] = "unsolved"
                     break
-                if not any(p.get("verified") for p in ans.get("proposals") or []):
+                if not verified_last:
                     reasons = "; ".join(f"{p.get('title', '')}: {_why(p)}" for p in ans.get("proposals") or [])[:400]
                     issues = [{"check": "process", "title": "no proposal verified on the server: " + (reasons or "no proposal made")}]
                     rows = []  # a round that verifies nothing must not inherit the last round's checks
@@ -166,12 +179,11 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
             else:
                 log["status"] = "max_rounds"
         final = log["rounds"][-1]["answer_index"] if log["rounds"] else None
-        log["result"] = {"answer_index": final, "headline": (last or {}).get("headline"),
-                         "passes": [r["check"] for r in rows if r.get("status") == "pass"],
-                         "fails": [r["check"] for r in rows if r.get("status") == "fail"],
-                         "open": [r["check"] for r in rows if r.get("status") == "open"]}
+        log["result"] = _result(last, rows, log["status"], verified_last, final)
         log["needs_human"] = [f"{r['check']}: {r.get('title', '')}" for r in rows if r.get("status") == "open"] + \
             [f"{c.get('item')}: {c.get('changes', '')}".strip(": ") for c in (last or {}).get("field_checks") or []]
+        log["approval_status"] = ("open" if log["result"]["open"] or log["needs_human"] else "ready_for_review") \
+            if log["status"] == "done" else "not_reached"
         if log["status"] == "done" and final is not None:
             try:  # the deliverable pack of the passing design (DWSIM re-solve, no model call)
                 from . import decision
@@ -186,10 +198,8 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
         log["error"] = f"{type(e).__name__}: {e}"[:500]
         if last is not None:  # keep the last completed round when later work fails
             final = log["rounds"][-1]["answer_index"]
-            log["result"] = {"answer_index": final, "headline": last.get("headline"),
-                             "passes": [r["check"] for r in rows if r.get("status") == "pass"],
-                             "fails": [r["check"] for r in rows if r.get("status") == "fail"],
-                             "open": [r["check"] for r in rows if r.get("status") == "open"]}
+            log["result"] = _result(last, rows, log["status"], verified_last, final)
+        log["approval_status"] = "not_reached"
     log["finished"] = _now()
     log["usd_total"] = round(llm.spent() - usd0, 4)
     log["seconds_total"] = round(time.time() - t0)

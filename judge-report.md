@@ -1,4 +1,6 @@
-# Judge report — 2026-11-01
+# Judge report — 2026-11-01 (historical snapshot)
+
+> This report records the state on 2026-11-01. Since then the LICENSE, clean-clone states, proposed-view fallback, closed-loop demo and two replay wow moments were added. The current README and UI are authoritative; unresolved items below should not be read as current claims.
 
 Four read-only reviewers:
 - **Rubric judges:** one per criterion, about 5 minutes each.
@@ -30,7 +32,7 @@ The grep for mock/fake/dummy/stub/TODO/placeholder found nothing hidden. Most nu
 
 | Claim / location | Reality | Fix or remove |
 |---|---|---|
-| README clean-clone list: BASF "works from stored results" | Fresh clone: "could not be loaded"; no `states.json` (`plant.py:3134`). `salt_mvr_vision` is the same | Precompute and commit `states.json` for both, or remove them from the list |
+| README clean-clone list: BASF "works from stored results" | At audit time there was no `states.json`; resolved after this report for BASF and `salt_mvr_vision` | Historical finding; stored states are now committed |
 | Salt "verified at 120.1 %" | On a fresh clone the Proposed view shows "✗ Not at 120 %". `plant.html:1868` falls back to the existing-plant replay when `whatif` 500s (no DWSIM) and still labels it "proposed" | Store the proposed-design states, or label the fallback honestly |
 | Roadmap 2 / BASF: "replace-equipment… loop cannot verify yet" | Stale: `replace_unit` exists (`plant.py`, `tests/test_replace_unit.py`) | Update; it is a feature now |
 | Roadmap 4: "reviewer/approver missing" | Stale: `plantagent/signoff.py`, `web/review.html` | Move to features |
@@ -47,12 +49,12 @@ The grep for mock/fake/dummy/stub/TODO/placeholder found nothing hidden. Most nu
 
 **Disqualification risks**
 - **Repo is private.** The rules say repositories must be public. Make it public before submission.
-- **No LICENSE file.**
+- **At audit time there was no LICENSE file. Resolved after this report.**
 - **The README never names the theme.** Add one line: "Push the Frontier — manufacturing/energy".
 - **First commit timing.** It is about 22 h after kickoff with 1,304 lines. The Timeline section explains it; fine as long as only event work is shown.
 
 ## Wow moment
-**Today: none that lands on video.**
+**At audit time: none that landed on video. Resolved after this report with the scan-to-simulator and refused-then-solved replay modes.**
 - The closest is the UCTE slider turning lines red. It is a pandapower result, not Muse.
 - The Meta surprise (hosted refused, open weights solved) is only spoken in the script, never shown.
 - The salt replay is small sidebar text, and the drawing barely changes.

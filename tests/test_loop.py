@@ -50,6 +50,7 @@ class LoopTest(unittest.TestCase):
         self.assertEqual(len(log["rounds"]), 2)
         self.assertIn("TX-1 133 %", w.asked[1])  # the failed check went back to Muse with its numbers
         self.assertEqual(log["result"]["passes"], ["electrical"])
+        self.assertEqual(log["approval_status"], "ready_for_review")
         self.assertEqual({s["actor"] for s in log["rounds"][0]["steps"]}, {"muse", "engine"})
 
     def test_unsolvable_stops(self):
@@ -90,6 +91,22 @@ class LoopTest(unittest.TestCase):
         self.assertEqual(log["status"], "budget")
         self.assertEqual(log["result"]["headline"], "first result")
         self.assertEqual(log["result"]["fails"], ["startup"])
+        self.assertEqual(log["approval_status"], "not_reached")
+
+    def test_budget_after_rejected_proposal_is_not_reported_as_a_design(self):
+        rejected = prop("bigger trays", ok=False) | {"unverified_reason": "rating needs replace_unit"}
+        _, log = self.run_loop([{"headline": "Quarter more product", "proposals": [rejected]},
+                                loop.llm.BudgetExceeded("run budget reached")], [])
+        self.assertEqual(log["status"], "budget")
+        self.assertEqual(log["result"]["headline"], "No verified design before budget limit")
+        self.assertEqual(log["result"]["fails"], ["proposal verification"])
+
+    def test_open_check_stops_loop_but_keeps_approval_open(self):
+        _, log = self.run_loop([{"headline": "screening passes", "proposals": [prop("K-202")]}],
+                               [[{"check": "vendor confirmation", "title": "curve needed", "status": "open"}]])
+        self.assertEqual(log["status"], "done")
+        self.assertEqual(log["approval_status"], "open")
+        self.assertEqual(log["result"]["open"], ["vendor confirmation"])
 
 
     def test_unverified_without_reason_sends_the_limit_back(self):

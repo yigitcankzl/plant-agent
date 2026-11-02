@@ -40,7 +40,7 @@
    - The server refused it: "DWSIM re-solve failed at 1.25×: PR EOS: unable to calculate compressibility factor". Muse had set the feed rate itself, and the server then scaled it by 1.25 again (about 130,000 kg/h against a 310 mol/s bottoms rate).
    - The verifier now names that mistake to Muse. The budget was spent before a second round could use it.
 
-**Total spend:** $16.76 on Baseten ($10.88 first pass, $5.88 second loop). No Meta-hosted model was called.
+**Total recorded spend:** $37.88: $29.30 on Baseten (build, blind answer and four Spark Open loops) and $8.58 on the Meta-hosted Muse Wonder comparison. No run below is presented as a completed approved design.
 
 ## Purity: what was wrong, and what the check now does
 - **Why the first loop said nothing:** when the DWSIM re-solve itself failed, the server marked the proposal "not verified" without a reason. The real error was a Peng–Robinson flash failure: Muse had changed only the tray rating and left the bottoms and vent rates at today's values, which is infeasible at 1.25× feed. The reason now reaches the worklog and Muse (`plantagent/plant.py` verify, `tests/test_verify_reason.py`).
@@ -60,7 +60,9 @@
 ## Scorecard of the second loop's design (`tools/norco_compare.py <session>`, no LLM; on the page)
 Re-solved in DWSIM at the feed Muse chose, Shell's Feb 2017 slate (run `PV1767-PROVEN-104K-R53-B310`, 103,960 kg/h at 69.0 wt % ethylene). The server did not verify this design at 1.25× (above); this is the agent's design checked here, not a loop that ended done.
 
-**10 match, 1 partial, 1 miss, 1 not predicted.**
+**Inputs/current state reproduced:** 2. **Withheld or after-revamp outcomes:** 8 match, 1 partial, 1 miss, 1 not predicted.
+
+The current bottleneck and the approximate future feed slate were supplied to the agent, so they are reported separately rather than counted as blind predictions.
 
 | Item | Agent (loop, purity spec in force) | Shell, measured | Verdict |
 |---|---|---|---|
@@ -124,6 +126,10 @@ The blind design is re-solved in DWSIM at the feed Muse designed for: its cited 
 
   - **Why the last two fail:** Muse's column is specified by a fixed bottoms rate (347 mol/s). At 1.375× the feed carries about 416 mol/s of ethane, so a fixed bottoms rate cannot follow a feed swing; a plant would hold the bottoms on level or ratio control. The capacity search fails for the same reason, so the page shows "maximum not found" instead of a made-up 0 %.
 - **Verdict:** at the target, the design matches what Shell built and measured (re-tray, purity held, flood in the 60s). **It is not a verified-done design:** it is not robust to a feed swing as specified.
+
+## Later comparison loops
+- **Spark Open, `work/20261102-025639`** ($5.81, four rounds): stopped at the round limit with no verified proposal. Its stored headline says the re-tray passes, but its result rows are empty and three vendor/utility/feed confirmations remain; this is not a completed design.
+- **Muse Wonder, `work/20261102-105748`** ($8.58, two rounds): stopped at its budget after its proposals were rejected. The stored optimistic headline is model text, not a verified result. New worklogs replace such a headline with “No verified design before budget limit”; the historical record is left unchanged.
 
 ## Files
 - `cases/shell_norco_c2splitter/basis.md`, `case.json`, `outcome.json` (withheld)

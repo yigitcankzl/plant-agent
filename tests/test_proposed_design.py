@@ -199,6 +199,23 @@ class DecisionPackTests(unittest.TestCase):
         self.assertIn("K-201", md)
         self.assertTrue(data["pssr"])
 
+    def test_replacement_pack_carries_rating_and_pssr(self):
+        replacement = proposal(
+            title="Replace K-201 casing",
+            changes=[{"replace_unit": "K-201", "new_rating": {"max_kg_h": 300000},
+                      "basis": "screened for 120 % suction flow", "vendor_confirm": True}],
+            calculation=None,
+            new_equipment=[],
+            replaced_equipment=[{"id": "K-201", "type": "compressor", "old_rating": {"max_kg_h": 250000},
+                                 "new_rating": {"max_kg_h": 300000}, "basis": "screened for 120 % suction flow",
+                                 "status": "verified (new rating, vendor to confirm)"}])
+        _, _, data, md, svg = self._make({"headline": "Replace the compressor", "summary": "Screened.",
+                                           "proposals": [replacement], "field_checks": []})
+        self.assertEqual(data["replaced_equipment"][0]["id"], "K-201")
+        self.assertIn("vendor confirmation open", md)
+        self.assertTrue(any("Replacement of K-201" in item for item in data["pssr"]))
+        self.assertIn('data-replaced="K-201"', svg)
+
 
 if __name__ == "__main__":
     unittest.main()

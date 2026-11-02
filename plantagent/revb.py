@@ -965,7 +965,7 @@ def generate(svg, spec, revisions, names=None, meta=None):
                 unplaced.append(f"replacement of {uid}")
                 continue
             rating = ", ".join(f"{SHORT.get(k, k.replace('_', ' '))} {_num(v)}" for k, v in (c.get("new_rating") or {}).items())
-            lines = [f"{uid} REPLACED", f"New rating: {rating}", f"Basis: {_short(c.get('basis'))}", "Vendor confirmation: OPEN"]
+            lines = [f"{uid} REPLACED", f"New rating: {rating}", f"Agent basis: {_short(c.get('basis'))}", "Vendor confirmation: OPEN"]
             abox, box = _place_callout(sheet, [anchor], lines, taken, cloud_boxes)
             if not box:
                 unplaced.append(f"replacement of {uid}")
