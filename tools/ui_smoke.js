@@ -12,7 +12,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   // The redline flow uses only stubbed responses: never make a paid vision call.
   const redlineId = 'a'.repeat(64), redlineRoot = `**/api/plant/salt_mvr/redline`;
   let redlineConfirmation = null;
-  await p.route('**/api/plant/salt_mvr/project', route => route.fulfill({json: {title: 'Salt MVR redline test', allow_runs: true}}));
+  await p.route('**/api/plant/salt_mvr/project', route => route.fulfill({json: {title: 'Salt MVR redline test', allow_runs: true, simulator_available: true}}));
   await p.route(redlineRoot, route => route.fulfill({json: {job: 'redline-smoke'}}));
   await p.route('**/api/job/redline-smoke', route => route.fulfill({json: {done: true, answer: {id: redlineId, items: [
     {index: 0, tag: 'E-201', ink: 'Clean to U 2,500', confidence: .95, valid: true, errors: [], unreadable: [], change: {path: 'units.V-201.U_W_m2K', value: 2500}},
@@ -34,9 +34,12 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const redlineOk = await p.evaluate(() => document.querySelectorAll('.reading').length === 2 &&
     document.querySelector('#items').textContent.includes('needs its own limits') && document.querySelectorAll('.column-title').length === 2 &&
     document.querySelector('#rows .pass') && document.querySelector('#rows .fail') && document.querySelector('#rows .open') && /Target holds/.test(document.querySelector('#rows').textContent) &&
-    /Vendor curve needed/.test(document.querySelector('#rows').textContent) && document.querySelector('#preview').naturalWidth > 0);
+    /Vendor curve needed/.test(document.querySelector('#rows').textContent) && document.querySelector('#preview').naturalWidth > 0 &&
+    getComputedStyle(document.body).colorScheme === 'dark' && getComputedStyle(document.body).backgroundColor === 'rgb(21, 25, 31)');
   const confirmedEdit = redlineConfirmation?.items?.length === 1 && redlineConfirmation.items[0].change.value === 2600;
+  await p.setViewportSize({width: 1920, height: 1080});
   await p.screenshot({path: `${OUT}/engineer_redline_stub.png`, fullPage: true});
+  await p.setViewportSize({width: 1440, height: 900});
   console.log(redlineOk && confirmedEdit ? 'ok  ' : 'FAIL', 'engineer redline: fake vision read, invalid item, edited confirmation and both design checks');
   bad += redlineOk && confirmedEdit ? 0 : 1;
   await p.unroute('**/api/plant/salt_mvr/project'); await p.unroute(redlineRoot);
@@ -50,9 +53,20 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   }
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
   const saltStartup = await p.evaluate(() => { const card = document.createElement('div'); card.innerHTML = costConfidence({uncertainty: {p_target: 1, solved: 1}}); return P.has_compressor_curve && !!card.querySelector('#machines button'); });
+  const proposedSource = await p.evaluate(() => /Stored DWSIM · proposed design/.test(document.querySelector('#stateSource').textContent));
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForTimeout(5000);
   const chemStartup = await p.evaluate(() => { const card = document.createElement('div'); card.innerHTML = costConfidence({uncertainty: {p_target: 1, solved: 1}}); return !P.has_compressor_curve && !card.querySelector('#machines button'); });
   console.log(saltStartup && chemStartup ? 'ok  ' : 'FAIL', 'compressor start-up action only appears with a compressor curve');
+  console.log(proposedSource ? 'ok  ' : 'FAIL', 'proposed view labels its stored proposed-design DWSIM state');
+  bad += proposedSource ? 0 : 1;
+  const noEngineActions = await p.evaluate(() => {
+    P.simulator_available = false; P.simulator_unavailable_reason = 'Simulator unavailable in smoke fixture';
+    const box = document.createElement('div'); box.innerHTML = '<button data-needs-simulator>Re-solve</button>'; document.body.append(box);
+    applyEngineAvailability();
+    return box.querySelector('button').disabled && !document.querySelector('#engineUnavailable').hidden && /Simulator unavailable/.test(document.querySelector('#engineUnavailable').textContent);
+  });
+  console.log(noEngineActions ? 'ok  ' : 'FAIL', 'engine-dependent actions are disabled with a visible reason when no simulator is installed');
+  bad += noEngineActions ? 0 : 1;
   bad += saltStartup && chemStartup ? 0 : 1;
   await p.setViewportSize({ width: 1920, height: 1080 });
   await p.goto(`${BASE}/plant.html?case=salt_mvr&worklog=sample&replay=sample`);
@@ -179,7 +193,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   }
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
   const startsFocused = await p.evaluate(() => !document.querySelector('#infoDrawer').classList.contains('open') &&
-    document.querySelector('#inspectorTitle').textContent === 'Result' && document.querySelector('#scenario').hidden === false);
+    document.querySelector('#inspectorTitle').textContent === 'Engineering session' && document.querySelector('#scenario').hidden === false);
   await p.click('#infoBtn'); const drawerOpened = await p.locator('#infoDrawer').evaluate(e => e.classList.contains('open'));
   await p.click('#infoDrawer .drawer-head button');
   await p.click('[data-mode="troubleshoot"]');
