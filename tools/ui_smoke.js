@@ -59,6 +59,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   bad += savedRedline ? 0 : 1;
   for (const u of ['home.html', 'plant.html?case=chem_c01', 'plant.html?case=dairy_refrig', 'plant.html?case=salt_mvr', 'plant.html?case=swro_monterey', 'plant.html?case=swro_brownsville', 'plant.html?case=freeport_lng_2022', 'plant.html?case=ucte_2006', 'workspace.html?case=roseburg', 'index.html?case=williams_geismar']) {
     await p.goto(`${BASE}/${u}`); await p.waitForTimeout(u.startsWith('home') ? 2500 : 8000);
+    if (u.startsWith('plant.html')) await p.waitForFunction(() => typeof ST !== 'undefined' && ST && document.querySelector('#qaA')?.textContent !== 'Loading the plant…', null, {timeout: 30000}).catch(() => {});
     const stuck = (await p.content()).includes('Loading case data') || (await p.locator('#verdict').count() && (await p.locator('#verdict').innerText()) === 'Case unavailable');
     await p.screenshot({ path: `${OUT}/${u.replace(/[^a-z0-9]+/gi, '_')}.png` });
     console.log(stuck || errs.length ? 'FAIL' : 'ok  ', u, stuck ? 'stuck loading or case unavailable' : '', errs.splice(0).join(' | '));
@@ -167,7 +168,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const norcoOk = await p.evaluate(() => {
     const d = designAnswer(), text = decisionBrief(d, P.answers.indexOf(d));
     return ST.state_source === 'proposed design' && ST.scale === 1.25 && ST.checks.some(c => c.id === 'PV-1767' && Math.abs(c.value - .744) < .001) &&
-      /PV-1767/.test(document.querySelector('#verdict').textContent) && !/No limits/.test(document.querySelector('#eqlist').textContent) &&
+      /PV-1767/.test(document.querySelector('#verdict').textContent) && /74.4% flood vs 85.0% allowed/.test(document.querySelector('#eqlist').textContent) &&
       !/combined target not yet cleared/.test(text);
   });
   await p.screenshot({path: `${OUT}/norco_proposed_1920x1080.png`});
@@ -255,6 +256,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     bad += leads ? 0 : 1;
   }
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
+  await p.waitForFunction(() => ST && document.querySelector('#inspectorTitle').textContent === 'Engineering session');
   const startsFocused = await p.evaluate(() => !document.querySelector('#infoDrawer').classList.contains('open') &&
     document.querySelector('#inspectorTitle').textContent === 'Engineering session' && document.querySelector('#scenario').hidden === false);
   await p.click('#infoBtn'); const drawerOpened = await p.locator('#infoDrawer').evaluate(e => e.classList.contains('open'));
@@ -403,6 +405,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     bad += targetsVisible && chips ? 0 : 1;
   }
   await p.goto(`${BASE}/plant.html?case=shell_norco_c2splitter`); await p.waitForSelector('.norco-column');
+  await p.waitForFunction(() => ST && document.querySelectorAll('#runStory .run-story-line').length === 3);
   const norcoPlain = await p.evaluate(() => {
     const drawing = document.querySelector('.norco-column');
     return ['Feed', 'Side reboiler', 'Pasteurization', 'product draw', 'condenser'].every(t => drawing.textContent.toLowerCase().includes(t.toLowerCase())) &&

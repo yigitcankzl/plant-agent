@@ -1549,7 +1549,7 @@ function render(st) {
     const u = units[c.id], name = u ? NAMES[u.type] || u.type : feeds[c.id]?.utility ? 'Utility supply' : P.engine === 'pandapower' ? (/loading/.test(c.check) ? 'Transformer' : 'Line') : 'Stream';
     return `<div class="eq" data-id="${esc(c.id)}" ${act('select', c.id)} title="${esc(c.id)}"><div class="t">${esc(u ? c.id : nm(c.id))} <span>${Math.round(c.utilisation * 100)}%</span></div>
       <div class="bar"><i style="width:${Math.min(100, c.utilisation / 1.3 * 100)}%;background:var(--${sev(c.utilisation)})"></i></div>
-      <div class="why">${esc(name)} · ${esc(c.check)}: ${fmt(c.value)} of ${fmt(c.limit)} ${esc(c.unit)}</div></div>`;
+      <div class="why">${esc(name)} · ${esc(c.check)}: ${c.unit === 'fraction of flood' && Number.isFinite(c.value) && Number.isFinite(c.limit) ? `${(c.value * 100).toFixed(1)}% flood vs ${(c.limit * 100).toFixed(1)}% allowed` : `${fmt(c.value)} of ${fmt(c.limit)} ${esc(c.unit)}`}</div></div>`;
   }).join('') || `<div class="empty">${(st.checks || []).some(c => c.error) ? 'Limit calculation unavailable in this stored state.' : 'No numerical limit checks in this state.'}</div>` +
     gateRows(designAnswer() || {}).filter(g => g.id === 'process').map(g => `<div class="eq"><div class="t">Stored design check</div><div class="why">${esc(g.summary)}</div></div>`).join('');
   // colour the P&ID and badge each tagged equipment item
@@ -1605,9 +1605,9 @@ function render(st) {
     // header and subline name which plant they describe, so 'runs at 120 %' (proposed) and 'maximum 100 %' (today) never read as a contradiction
     const which = st.proposed_unavailable ? "Today's plant (the proposed design needs DWSIM to re-solve)" : VIEW === 'proposed' && !modelBlocked() && (P?.has_changes || latestProposedChanges().length) ? (incident() ? 'With the fix' : 'Proposed design') : (incident() ? (P.engine === 'trapped' ? 'Base model (sound insulation, illustrative)' : 'Base model') : "Today's plant");
     $('verdict').innerHTML = `<span class="verdict-which">${which}</span> ` + (incident() ? (over.length ? `<span style="color:var(--fail)">✗ Limit crossed at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
-      : top ? `<span style="color:var(--ok)">✓ Within limits at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top.id))} ${Math.round(top.utilisation * 100)}%`
+      : top ? `<span style="color:var(--ok)">✓ Within limits at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top.id))} ${Math.round(top.utilisation * 100)}% of limit`
       : `<span style="color:var(--warn)">Limit check unavailable at ${Math.round(s * 100)}%</span>`) : over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
-      : top ? `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top.id))} ${Math.round(top.utilisation * 100)}%`
+      : top ? `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top.id))} ${Math.round(top.utilisation * 100)}% of limit`
       : `<span style="color:var(--warn)">Limit check unavailable at ${Math.round(s * 100)}%</span>`);
     $('verdictSub').innerHTML = capLine;
   }

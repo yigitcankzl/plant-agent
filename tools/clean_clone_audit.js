@@ -38,7 +38,7 @@ const safe = value => String(value).replace(/[^a-z0-9-]+/gi, '_');
   const browser = await chromium.launch({ headless: true });
   const results = [];
   for (const [name, url] of [...fixed, ...studies]) {
-    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
     const consoleErrors = [], pageErrors = [], requestFailures = [], apiFailures = [];
     page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
     page.on('pageerror', error => pageErrors.push(error.message));
@@ -52,6 +52,8 @@ const safe = value => String(value).replace(/[^a-z0-9-]+/gi, '_');
       const response = await page.goto(`${BASE}/${url}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
       status = response?.status() || 0;
       await page.waitForTimeout(url.startsWith('plant') || url.startsWith('scan') ? 6500 : 3000);
+      if (url.startsWith('plant')) await page.waitForFunction(() => typeof ST !== 'undefined' && ST &&
+        document.querySelector('#qaA')?.textContent !== 'Loading the plant…', null, {timeout: 30000});
     } catch (error) { navigationError = error.message; }
     const visible = await page.evaluate(() => {
       const text = document.body?.innerText || '';
