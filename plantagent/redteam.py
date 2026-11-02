@@ -22,11 +22,20 @@ DEGRADES = {"efficiency", "eff_pct", "U_W_m2K"}
 ROOT = Path(__file__).resolve().parent.parent
 MAX_SCENARIOS = 8
 BAND = 0.30            # an attack moves an operating input at most +/-30 % from the design value
+DT_C = 15.0           # temperatures move by an absolute band: a percentage of a Celsius value has no physical meaning
 SCALE = (0.80, 1.10)   # throughput of an attack, relative to the target: the envelope band, not a capacity search
 
 
 def _numeric(v):
     return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+
+
+def _allowed(path, base):
+    return DT_C if path.endswith("T_C") else BAND * abs(base)
+
+
+def _band_text(path):
+    return f"+/-{DT_C:g} °C" if path.endswith("T_C") else f"+/-{BAND:.0%}"
 
 
 def attack_surface(spec):
@@ -65,8 +74,8 @@ def validate(spec, raw):
             base = surface.get(path)
             if base is None:
                 why.append(f"{path}: not an operating input of this design")
-            elif not _numeric(value) or abs(value - base) > BAND * abs(base) + 1e-12:
-                why.append(f"{path}: {value} is outside +/-{BAND:.0%} of {base}")
+            elif not _numeric(value) or abs(value - base) > _allowed(path, base) + 1e-12:
+                why.append(f"{path}: {value} is outside {_band_text(path)} of {base}")
             else:
                 changes.append({"path": path, "value": value})
         if changes:
@@ -85,7 +94,7 @@ words (more/less flow, temperature, pressure, composition other than), fouling o
 cleanings, seasonal utility temperatures, upstream feed swings. Each must be physically credible for this plant; say why.
 
 Rules: at most {n} scenarios. "scale" is the throughput relative to the target ({lo}-{hi}). Change only paths from the \
-attack surface below, each within +/-{band:.0%} of its design value. Do not change limits, equipment or connections.
+attack surface below, each within +/-{band:.0%} of its design value (temperatures within +/-{dt:g} °C). Do not change limits, equipment or connections.
 
 Design changes under attack: {changes}
 Limits: {limits}
@@ -110,12 +119,12 @@ def attack(w, idx, model):
     changes = [c for p in ans.get("proposals") or [] if p.get("verified") for c in p.get("changes") or []]
     design = patch(copy.deepcopy(w.spec), changes)
     target = float(w.cfg.get("target_scale") or 1.0)
-    key = hashlib.sha1(json.dumps([gates_key(w, ans)["content"], model, MAX_SCENARIOS, BAND, SCALE]).encode()).hexdigest()
+    key = hashlib.sha1(json.dumps([gates_key(w, ans)["content"], model, MAX_SCENARIOS, BAND, DT_C, SCALE]).encode()).hexdigest()
     cache = w.model_file.with_name("redteam.json")
     if cache.exists() and json.loads(cache.read_text()).get("key") == key:
         return json.loads(cache.read_text())
     surface = attack_surface(design)
-    prompt = PROMPT.format(target=target, n=MAX_SCENARIOS, lo=SCALE[0], hi=SCALE[1], band=BAND,
+    prompt = PROMPT.format(target=target, n=MAX_SCENARIOS, lo=SCALE[0], hi=SCALE[1], band=BAND, dt=DT_C,
                            changes=json.dumps(changes)[:4000], limits=json.dumps(design.get("limits") or {})[:3000],
                            surface=json.dumps(surface)[:6000])
     t0, u0 = time.time(), llm.spent()

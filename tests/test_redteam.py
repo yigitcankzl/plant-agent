@@ -25,6 +25,12 @@ class RedTeam(unittest.TestCase):
         self.assertEqual([k["name"] for k in kept], ["hot feed"])
         self.assertEqual(len(dropped), 3)
 
+    def test_temperature_band_is_absolute(self):
+        kept, _ = validate(SPEC, [  # 40 -> 53 C is +33 % but only 13 K: allowed; 40 -> 60 C is 20 K: refused
+            {"name": "warm", "scale": 1.0, "changes": [{"path": "feeds.F.T_C", "value": 53.0}]},
+            {"name": "very warm", "scale": 1.0, "changes": [{"path": "feeds.F.T_C", "value": 60.0}]}])
+        self.assertEqual([k["name"] for k in kept], ["warm"])
+
     def test_parse_tolerates_prose(self):
         self.assertEqual(len(_parse('Here: {"scenarios": [{"name": "x"}]} done')), 1)
         self.assertEqual(_parse("no json"), [])

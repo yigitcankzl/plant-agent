@@ -89,7 +89,7 @@ def separation_checks(spec, solved):
             else:
                 maximum = float(lim.get("flood_frac_max", 0.8))
                 row(f"separation.{uid}.flooding", "Fair/Souders-Brown",
-                    f"{uid}: column flooding {float(flood) * 100:.1f} vs {maximum * 100:.0f} %",
+                    f"{uid}: column flooding {float(flood) * 100:.1f} % of flood vs {maximum * 100:.0f} % allowed ({float(flood) / maximum * 100:.0f} % of the limit)",
                     float(flood), maximum, "fraction of flood", "DWSIM tray traffic with Fair capacity-factor correlation")
     return rows
 
@@ -273,13 +273,15 @@ def checks_for_design(w, answer_index):
         ans = w.answers[int(answer_index)]
         u = uncertainty.cached(w, ans) or uncertainty.assess(w, answer_index, n=UNCERTAINTY_N, workers=4)
         if u and not u.get("error"):
-            p = u["p_target"]
+            n, solved = int(u.get("n") or u["solved"]), int(u["solved"])
+            p = u["p_target"] * solved / n if n else 0.0  # a sample that does not solve counts as a miss, never drops out
+            unsolved = f"; {n - solved} did not solve and count as misses" if n > solved else ""
             rows.append({"check": "confidence", "engine": "uncertainty",
                          "title": (f"{drafts.DRAFT}: " if drafts.is_draft(drafts.case_file(w.name, "uncertainty.json")) else "") +
-                                  f"target met in {p * 100:.0f} % of {u['solved']} re-solves with uncertain inputs varied"
+                                  f"target met in {round(p * n)} of {n} samples with uncertain inputs varied ({p * 100:.0f} %{unsolved})"
                                   + (f"; most often limited by {u['limiting'][0]['item']}" if u.get("limiting") else ""),
                          "status": "pass" if p >= P_TARGET_PASS else "fail",
-                         "numbers": {"p_target": p, **{k: v for k, v in (u.get("capacity") or {}).items()}, "n": u["solved"]},
+                         "numbers": {"p_target": p, **{k: v for k, v in (u.get("capacity") or {}).items()}, "n": n, "solved": solved},
                          "source": f"{u['method']} (pass at P(target) ≥ {P_TARGET_PASS:.0%})"})
         elif u and "failed to solve" in u["error"]:  # the design does not solve once its inputs move: not robust
             rows.append({"check": "confidence", "engine": "uncertainty", "status": "fail", "title": u["error"],
