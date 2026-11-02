@@ -2,7 +2,7 @@
 
 An engineer can upload a photograph or image of a P&ID with red annotations, review Muse Wonder's interpretation, and send the confirmed design through the same proposal verifier and discipline-check adapter used for Muse's designs.
 
-**No live vision read has been run.** Development and browser tests use fake recorded-shaped responses. Model spend for this task: **USD 0**.
+Development and browser tests use fake recorded-shaped responses. One live Muse Wonder read has been run since; see "First live read" below.
 
 ## Try it
 

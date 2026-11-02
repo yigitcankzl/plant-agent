@@ -11,7 +11,7 @@ flowchart LR
   C -- passes, or Muse names the missing data --> P[Rev B drawing + MOC package for engineer sign-off]
 ```
 
-Hackathon theme: **Push the Frontier** (manufacturing and energy). Built on Muse Wonder and Muse Spark (Meta API) and Muse Spark Open (open weights, on Baseten).
+Hackathon theme: **Push the Frontier** (manufacturing and energy). Built on Muse Wonder and Muse Spark (Meta API) and Muse Spark Open (open weights, on Baseten and Fireworks).
 
 ```bash
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
@@ -22,7 +22,7 @@ python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
 ## What it has done
 - **The engineering loop** (`plantagent/loop.py`): the engines re-solve Muse's design and run every check (process, robustness, electrical, compressor curves and surge, start-up transient, uncertainty; limits and N-1 for grids). Failed checks go back to Muse with their numbers; Muse fixes them; repeat until everything passes or Muse says why it cannot. Every round is logged with who did what.
 - Deterministic engines (DWSIM, WaterTAP, EPANET, pandapower, ht/fluids, Cantera) re-solve every proposal before it can be applied; a change that only edits a limit is refused.
-- Flagship: a vacuum-salt MVR crystalliser reaches **+20 %** with three verified changes (clean E-201, a parallel compressor K-202, a purge-steam trim). The discipline gates then flag what the process answer alone hides: **TX-1 overloaded (~133 %)** and **not robust when E-201 re-fouls**.
+- Flagship: a vacuum-salt MVR crystalliser reaches **+20 %** with three verified changes (clean E-201, a parallel compressor K-202, a purge-steam trim), found in the Ask workspace with the engineer's hint to add K-202. The automatic loop has not closed this case: in 9 runs it either ran out of budget or steps, or stopped and named the missing vendor compressor curve (the featured run). The discipline gates then flag what the process answer alone hides: **TX-1 overloaded (~133 %)** and **not robust when E-201 re-fouls**.
 - The same loop works outside process plants. Two real incidents, rebuilt by Muse from the investigation reports with the conclusions withheld:
   - **UCTE 2006 European blackout** (pandapower): coupling the Landesbergen busbars raises the tripping line 1,779 → 1,831 A; the reduced grid remains insecure under three other single outages.
   - **Freeport LNG 2022** (DWSIM, trapped liquid): a blocked-in LNG line with its relief isolated bursts in days; restoring PSV-101 is screened at an ideal relief boundary, with capacity unchecked.
@@ -31,7 +31,7 @@ python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
 - **A second model attacks the design** (`plantagent/redteam.py`). After a design passes, Muse Spark 1.3 proposes credible operating deviations (hot or cold feed, low pressure, fouled trays compensated with reflux, composition swings) within the +10 % envelope band, and DWSIM re-solves each one. BASF's 600 mm design held **8 of 8** attacks (worst flood 90 % of the limit; $0.13). Attacks pushed to 1.25x the target broke it 8 of 8 (flood 116–118 %); the loop answered with a 700 mm shell and ended done ($1.59). Records: `runs/ws/basf_process_column_k_2750_dexpi_c02_uns/redteam_600mm.json` and `work/20261102-203128/`.
 - **The engineer's red pen** (`web/redline.html`, `plantagent/redline.py`). Upload a marked-up drawing; Muse Wonder reads the red ink into changes, the engineer confirms them, and the same checks run on the engineer's design and Muse's side by side. First live read on the salt drawing (typed red notes, not handwriting): all three notes transcribed; one mapped, two left unmapped because the ink gave no connections or setpoint. Cleaning E-201 alone reaches 100 % (the compressor limits); Muse's design reaches 120 % but overloads TX-1. Details: [`evidence/redline/`](evidence/redline/README.md).
 - **Open weights in the loop.** Muse Spark Open on Baseten ran the same engineering loop: on Freeport it reached the same conclusion as Muse Wonder; on UCTE, where the Meta-hosted endpoint refused the prompt four times (content policy), it found a switching plan that passes line limits and N-1; on the salt plant neither model finished, and the page says so.
-- Blind benchmark: on 13 real projects with the engineers' conclusions withheld, Muse reaches **64 %** of them on average (range 33–100 %).
+- Blind benchmark: on 13 real projects with the engineers' conclusions withheld, Muse reaches **64 %** of the engineers' conclusions on average (range 33–100 %), graded by Muse Wonder against a fixed answer key, not by a person.
 
 | Muse does | The deterministic engines do |
 |---|---|
@@ -231,7 +231,7 @@ On each real project the pages holding the engineers' conclusions are **withheld
   - Pascagoula scored 67 % with the water-network tools, then 92 % and 83 % with the DWSIM process tools; the latest, 83 %, is counted.
   - Williams Geismar scored 67 % in all three Muse Spark runs. One run computed a blocked-in expansion pressure of 6,260 psig, against the CSB's estimate of about 5,000 psig.
 - **Contamination check:** with no documents, Muse says it does not know the Roseburg report's conclusions (`evidence/contamination_check.json`).
-- **Cost:** a full blind study costs $0.04–0.64 on Muse Spark (median $0.10 over 22 runs).
+- **Cost:** a full blind study costs $0.05–0.64 on Muse Spark (median $0.10 over 20 costed runs).
 - **Records:** results, per-run deliverables and grades are in [`evidence/`](evidence/README.md).
 
 **NETL design reproduction** ([`evidence/designcheck/`](evidence/designcheck/README.md)) compares agent-built DWSIM outlet states with withheld published stream tables, using deterministic thresholds:
@@ -330,7 +330,7 @@ What stands between this and use on a real plant, in order:
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
 cp .env.example .env && chmod 600 .env          # then add keys
 .venv/bin/python -m plantagent.web --port 8765  # open http://127.0.0.1:8765/home.html
-.venv/bin/python -m plantagent.study --case roseburg   # a full blind study (about 20 min, $0.04–0.64)
+.venv/bin/python -m plantagent.study --case roseburg   # a full blind study (about 20 min, $0.05–0.64)
 .venv/bin/python -m plantagent.grade                   # grade the latest runs against the engineers
 ```
 
@@ -358,7 +358,7 @@ cp .env.example .env && chmod 600 .env          # then add keys
 
 ## Timeline
 
-Built during the hackathon window. Kickoff was Oct 26, 2026 at 12:00 PM ET. The first stored run is from Oct 27 at 01:53 Istanbul time (`runs/20261027-015311`); the first commit is from Oct 27 at 10:42. The git history shows the order of the work.
+Built during the hackathon window. Kickoff was Oct 26, 2026 at 12:00 PM ET. The first stored run is from Oct 27 at 01:53 Istanbul time (`runs/20261027-015311`); the first commit is from Oct 27 at 10:42. No PlantAgent code existed before the kickoff; the first commits batch the local work started at 01:53 on Oct 27. DWSIM, pandapower, WaterTAP, EPANET/WNTR, ht/fluids and Cantera are external open-source libraries. The git history shows the order of the work.
 
 ## Data and credits
 

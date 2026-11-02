@@ -1,5 +1,7 @@
 # Real plant: Shell Norco C2 splitter, blind against the 2015 revamp
 
+> **Correction, 2026-11-02.** The flood figures of the earlier runs below (62 %, 61 %, 65 % against Shell's 64.7 %) were computed under a column-flow scaling that has since been fixed: fixed column flow amounts were not scaled with the feed. We no longer claim that flood match. Under the corrected scaling and the current checks (which also require the ethylene product, not only the feed, to reach the target), the featured run is Muse Spark Open on Fireworks, `work/20261102-183619`: **done** in one round for $2.81, ethylene 1.26x today, flood **75 %** of the 85 % limit, ethane 0 ppm (idealised simulation), minimum reflux held, the +10 % feed case and 39 of 39 uncertainty samples passing. The envelope and uncertainty rows use drafted (assumed) inputs. The new tray rating is Muse's assumption (vendor to confirm); the feed-tray move was not proposed. The tables below are kept as the record of the earlier runs.
+
 **Question:** given only the operating state before the project, does the agent reach what Shell's and Sulzer's engineers did?
 
 **Source:** Summers D., de Villiers W., Green W., 2018, "C2 splitter revamp surpasses capacity and efficiency of 4-pass trays", *Chemical Engineering Transactions* 69, 703–708, [DOI 10.3303/CET1869118](https://www.aidic.it/cet/18/69/118.pdf). The paper is open access, © AIDIC. It is not redistributed here; only the numbers used are transcribed, with their table references.
@@ -151,7 +153,7 @@ Run after the agent's own trial runs started naming what the verifier refuses (`
 | Piping and utilities | no calculation adapter | open |
 | Uncertainty | all 48 samples failed to solve | open |
 
-- **Reading:** the server verified the change Shell actually made, re-traying the same shell, at the target, with polymer-grade purity and the +10 % feed case. Flood lands at 65 %; Shell measured 64.7 %. This is a screening result, not an approval: the vendor rating, the piping and the uncertainty run stay open. The feed tray is still not moved.
+- **Reading:** the server verified the change Shell actually made, re-traying the same shell, at the target, with polymer-grade purity and the +10 % feed case. Flood landed at 65 % (Shell measured 64.7 %), but under the flow scaling corrected on 2026-11-02; see the correction at the top. This is a screening result, not an approval: the vendor rating, the piping and the uncertainty run stay open. The feed tray is still not moved.
 - The page shows this run (`featured_work` in `case.json`).
 
 ## Files
