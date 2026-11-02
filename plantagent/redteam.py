@@ -22,7 +22,7 @@ DEGRADES = {"efficiency", "eff_pct", "U_W_m2K"}
 ROOT = Path(__file__).resolve().parent.parent
 MAX_SCENARIOS = 8
 BAND = 0.30            # an attack moves an operating input at most +/-30 % from the design value
-SCALE = (0.80, 1.25)   # throughput of an attack, relative to the target
+SCALE = (0.80, 1.10)   # throughput of an attack, relative to the target: the envelope band, not a capacity search
 
 
 def _numeric(v):

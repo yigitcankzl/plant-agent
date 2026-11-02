@@ -241,9 +241,20 @@ def sandbox_notes(base, trial):
                              "not as a path edit")
     for u in (trial or {}).get("units") or []:
         old = units.get(u.get("id")) or {}
-        for k in ("bottoms_mol_s", "distillate_mol_s", "vapor_mol_s"):
-            if k in u and k in old and old[k] and u[k] / old[k] > 1.15:
-                notes.append(f"{u['id']}.{k} {old[k]} -> {u[k]}: column flow amounts are scaled with the throughput by the "
+        flows = {k: u.get(k) for k in ("bottoms_mol_s", "distillate_mol_s", "vapor_mol_s")}
+        for k in ("reboiler_spec", "condenser_spec"):  # a flow-rate spec object is the same amount
+            sp = u.get(k) if isinstance(u.get(k), dict) else {}
+            if "Flow Rate" in str(sp.get("type")):
+                flows[k] = sp.get("value")
+        ref = {k: old.get(k) for k in ("bottoms_mol_s", "distillate_mol_s", "vapor_mol_s")}
+        for k in ("reboiler_spec", "condenser_spec"):
+            sp = old.get(k) if isinstance(old.get(k), dict) else {}
+            ref[k] = sp.get("value") if "Flow Rate" in str(sp.get("type")) else None
+        ref["reboiler_spec"] = ref["reboiler_spec"] or old.get("bottoms_mol_s")
+        ref["condenser_spec"] = ref["condenser_spec"] or old.get("distillate_mol_s")
+        for k, v in flows.items():
+            if isinstance(v, (int, float)) and isinstance(ref.get(k), (int, float)) and ref[k] and v / ref[k] > 1.15:
+                notes.append(f"{u['id']}.{k} {ref[k]} -> {v}: column flow amounts are scaled with the throughput by the "
                              "solver, so write them at today's throughput; a pre-scaled rate is scaled twice at the target")
     for fid, feed in ((trial or {}).get("feeds") or {}).items():
         old = (base.get("feeds") or {}).get(fid) or {}
