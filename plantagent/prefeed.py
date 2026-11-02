@@ -543,6 +543,7 @@ def discipline_gates(w, answer=None, refresh=False):
         rows.append({"id": "combustion", "status": "open", "summary": f"combustion check could not run: {type(ex).__name__}: {ex}"[:200],
                      "source": "Cantera adapter", "checks": []})
     physical = [c["add_unit"]["id"] for c in changes if c.get("add_unit") and c["add_unit"].get("type") not in ROUTING]
+    physical += [c["replace_unit"] for c in changes if c.get("replace_unit")]  # a new rating is new hardware
     routed = physical or any(c.get("reroute") or c.get("bypass") or c.get("remove_unit") for c in changes)
     ideal_relief = any(p.get("relief_basis") for p in proposals)
     supply = [str(c["path"]).split(".")[1] for c in changes if str(c.get("path") or "").startswith("feeds.")]

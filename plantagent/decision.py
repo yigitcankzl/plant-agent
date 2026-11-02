@@ -580,7 +580,10 @@ def make(w, answer=None):
         decision_line = f"No change to the plant is needed: {(ans or {}).get('headline', '')}."
     else:
         gate_fail = [g["id"] for g in gates if g.get("status") == "fail"]
-        verb = "Approve for detailed engineering" if not (over_after or elec_over or gate_fail) else "Do not approve yet"
+        gate_open = [g["id"] for g in gates if g.get("status") == "open"]
+        verb = ("Do not approve yet" if (over_after or elec_over or gate_fail) else
+                "Simulator screening passed; proceed to data and vendor verification (not ready for approval)" if gate_open
+                else "Approve for detailed engineering")
         decision_line = (f"{verb}: {len(revs)} change(s) to reach {target * 100:.0f} % of today's throughput - "
                          + "; ".join(f"({r['rev']}) {r['title']}" for r in revs) + "."
                          + (f" The process changes pass in DWSIM; the electrical screen fails {len(elec_over)} check(s) "

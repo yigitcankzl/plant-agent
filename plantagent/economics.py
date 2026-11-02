@@ -86,6 +86,9 @@ def _change_lines(change, design_units, spec, tag=lambda x: x, corr=None):
                  "size": size, "size_unit": fac["per"], "usd": round(size * fac["usd_per"] * inst, -3), "source": fac["source"]}]
     if change.get("reroute"):
         return []  # the tee or join it connects to carries the tie-in
+    if change.get("replace_unit"):  # new hardware at a new rating: priced by the vendor, never $0
+        return [{"item": f"replace {tag(change['replace_unit'])}", "basis": f"new rating {_short(change.get('new_rating'))}",
+                 "usd": None, "source": "to price (vendor quote)"}]
     path = str(change.get("path") or "")
     if path.endswith(".U_W_m2K") and float(change.get("value") or 0) > float(change.get("from") or _get(spec, path) or 0):
         return [{"item": f"clean {tag(path.split('.')[1])}", "basis": "restore clean U", "usd": f["cleaning"]["usd"], "source": f["cleaning"]["source"]}]
@@ -174,7 +177,7 @@ def assess(w, answer=None, refresh=False):
         utilities.append({"name": u["name"], "stream": u["stream"], "delta": round(after - before, 3), "unit": u["field"].replace("_", "/"),
                           "price": u["price"], "usd_per_year": round((after - before) * 24 * days * float(u["price"]["value"]), -2)})
     margin = product_margin - sum(e["usd_per_year"] for e in energy) - sum(u["usd_per_year"] for u in utilities)
-    physical = any(c.get("add_unit") or c.get("reroute") for c in changes)
+    physical = any(c.get("add_unit") or c.get("reroute") or c.get("replace_unit") for c in changes)
     out_cfg = cfg.get("outage") or {}
     outage_days = float(out_cfg.get("days", 0)) if physical or any(str(c.get("path", "")).endswith(".U_W_m2K") for c in changes) else 0.0
     outage = float(tp["base"]) * outage_days * unit_margin
