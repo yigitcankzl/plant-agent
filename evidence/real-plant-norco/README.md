@@ -40,7 +40,7 @@
    - The server refused it: "DWSIM re-solve failed at 1.25×: PR EOS: unable to calculate compressibility factor". Muse had set the feed rate itself, and the server then scaled it by 1.25 again (about 130,000 kg/h against a 310 mol/s bottoms rate).
    - The verifier now names that mistake to Muse. The budget was spent before a second round could use it.
 
-**Total recorded spend:** $37.88: $29.30 on Baseten (build, blind answer and four Spark Open loops) and $8.58 on the Meta-hosted Muse Wonder comparison. No run below is presented as a completed approved design.
+**Total recorded spend:** $49.11: $29.30 on Baseten (build, blind answer and four Spark Open loops) and $19.81 on Meta-hosted Muse Wonder (two loops). One loop ended done (screening checks pass, approval items open); none is an approved design.
 
 ## Purity: what was wrong, and what the check now does
 - **Why the first loop said nothing:** when the DWSIM re-solve itself failed, the server marked the proposal "not verified" without a reason. The real error was a Peng–Robinson flash failure: Muse had changed only the tray rating and left the bottoms and vent rates at today's values, which is infeasible at 1.25× feed. The reason now reaches the worklog and Muse (`plantagent/plant.py` verify, `tests/test_verify_reason.py`).
@@ -130,6 +130,29 @@ The blind design is re-solved in DWSIM at the feed Muse designed for: its cited 
 ## Later comparison loops
 - **Spark Open, `work/20261102-025639`** ($5.81, four rounds): stopped at the round limit with no verified proposal. Its stored headline says the re-tray passes, but its result rows are empty and three vendor/utility/feed confirmations remain; this is not a completed design.
 - **Muse Wonder, `work/20261102-105748`** ($8.58, two rounds): stopped at its budget after its proposals were rejected. The stored optimistic headline is model text, not a verified result. New worklogs replace such a headline with “No verified design before budget limit”; the historical record is left unchanged.
+
+## The loop that ended done: Muse Wonder, `work/20261102-143533` ($11.23, two rounds)
+Run after the agent's own trial runs started naming what the verifier refuses (`proposal_rules` in `run_process` results, `plantagent/plant.py` `sandbox_notes`). Both earlier models had edited a rated limit by path and re-set the feed rate in their own runs, seen them pass, and been refused at verify. The verifier's rules did not change.
+- **Round 1** ($5.50): rejected. The tray efficiency change had no `physical_change` and `rating_source`.
+- **Round 2** ($5.74): verified. Muse's design:
+  - replace the trays in the same 4,877 mm shell, sent as `replace_unit` (tray capacity factor 1.30 → 1.85, vendor to confirm);
+  - tray efficiency 0.78 → 0.88, with its physical change and rating source;
+  - feed composition 64.1 → 70.5 wt % ethylene, at today's feed rate (the server scales it by 1.25);
+  - reflux ratio 6.08 → 5.2, bottoms 324 → 405.5 mol/s.
+
+| Check (server, no model call) | Result | Verdict |
+|---|---|---|
+| Process | reaches 125 % (the capacity search found no maximum) | pass |
+| Flooding | 65.0 vs 85 % | pass |
+| Ethane in the ethylene product | 0 vs 1,000 ppm (documented spec) | pass |
+| Minimum reflux | 5.2 vs 4.36 to hold the spec at 125 % | pass |
+| Operating envelope, feed +10 % | 2/2 scenarios pass (draft, assumed values) | pass |
+| Vendor rating of the new trays | to confirm | open |
+| Piping and utilities | no calculation adapter | open |
+| Uncertainty | all 48 samples failed to solve | open |
+
+- **Reading:** the server verified the change Shell actually made, re-traying the same shell, at the target, with polymer-grade purity and the +10 % feed case. Flood lands at 65 %; Shell measured 64.7 %. This is a screening result, not an approval: the vendor rating, the piping and the uncertainty run stay open. The feed tray is still not moved.
+- The page shows this run (`featured_work` in `case.json`).
 
 ## Files
 - `cases/shell_norco_c2splitter/basis.md`, `case.json`, `outcome.json` (withheld)
