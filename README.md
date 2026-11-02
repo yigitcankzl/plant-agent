@@ -333,7 +333,7 @@ cp .env.example .env && chmod 600 .env          # then add keys
 
 **From a clean clone, with no API key and no engines** (tested on a fresh clone with an empty `$HOME`)
 - Works from the stored results: `home.html`; `plant.html?case=salt_mvr` and its guided tour (`&tour=1`); `ucte_2006`; `freeport_lng_2022`; `nrel_ethanol_a300` and `nrel_ethanol_a500`; `basf_process_column_k_2750_dexpi_c02_uns`; `chem_c01`; `swro_brownsville`; `swro_monterey`; `dairy_refrig`; and the `index.html` blind-study replays. The throughput slider replays precomputed solutions.
-- The project-drawn P&IDs ship in `cases/<case>/pid.xml`. The DEXPI reference P&ID C01 ships under CC BY 4.0 (`cases/chem_c01/DEXPI-NOTICE.md`).
+- The project-drawn P&IDs ship in `cases/<case>/pid.xml`. The DEXPI examples C01 and C02 ship under CC BY 4.0 (`DEXPI-NOTICE.md` in each case).
 - Public source PDFs are not redistributed; their URLs are in `cases/*/case.json`. Cases that read them (roseburg, stpete_swwrf, edgebrook, dc_iitk) need `PLANTAGENT_DATA_ROOT` pointing at the downloaded files (default `../case-data` next to the repo) and `poppler-utils` (`pdftotext`, `pdftoppm`).
 
 **Engines, for asking, building and applying changes** (plus a Muse key in `.env`)
@@ -366,7 +366,7 @@ The public documents are not redistributed; download them from the URLs in `case
 - GLWA, CSB, Stanislaus RWA and LBNL reports
 - BattLeDIM 2020 (CC BY 4.0)
 - CSB Williams Geismar case study (2016)
-- DEXPI e.V. TrainingTestCases (reference P&ID C01)
+- DEXPI e.V. TrainingTestCases (reference P&ID C01 and C02 Process Column by BASF, CC BY 4.0, shipped unchanged)
 - US Patent 5,366,514 (Texas Brine)
 - Brownsville PUB / TWDB seawater desalination feasibility study (2004) and pilot report (2008)
 - US DOE ITAC/IAC database
@@ -375,3 +375,7 @@ The public documents are not redistributed; download them from the URLs in `case
 Field photos are from Wikimedia Commons (De Laval pump label by Loozrboy, CC BY-SA 2.0; standpipe gauge by Mark Cross, CC BY 4.0; others are listed in `case-data/raw/field_photos/SOURCE.txt`).
 
 Cost curves: TWDB 2024, City of Phoenix 2024, US EPA WBS, EPA-600/2-79-162b. Design rules: Recommended Standards for Water Works (2022) and Wastewater Facilities (2014).
+
+## License
+
+MIT, see [`LICENSE`](LICENSE). Engines, libraries and the cited source documents keep their own licenses.

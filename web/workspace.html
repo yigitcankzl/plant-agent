@@ -897,7 +897,7 @@ async function reveal() {
   const all = (r.scores_all_runs || []).filter(x => x != null);
   $("#ovl").innerHTML = `<div class="q">⚖ Blind study vs. the real engineers — offline run ${esc(r.run || "")}</div>
     <div class="h" style="font-size:40px;color:#9ccbff">${r.score != null ? Math.round(r.score * 100) + "%" : "—"}</div>
-    <div class="sm2">of the engineers' conclusions reached in a separate blind study (${esc(r.agent_model || "")}), with their conclusion pages withheld · judged by ${esc(r.judge || "—")}, a different model from the agent's.
+    <div class="sm2">of the engineers' conclusions reached in a separate blind study (${esc(r.agent_model || "")}), with their conclusion pages withheld · judged by ${esc(r.judge || "—")}, a different model from the agent's (cross-model, not a human review).
       ${all.length > 1 ? `All Roseburg runs: ${all.map(x => Math.round(x * 100) + "%").join(", ")}.` : ""} Not a score of the changes made on screen.</div>
     <div id="rv"></div><div class="hud"><span>${esc((r.source || "").slice(0, 120))}</span></div>`;
   for (const [i, it] of r.items.entries()) {

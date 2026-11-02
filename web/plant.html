@@ -1437,7 +1437,7 @@ function render(st) {
     $('verdictSub').innerHTML = `${esc(blocks[0].check)}: ${esc(String(blocks[0].evidence).slice(0, 220))}${more} ${capLine}`;
   } else {
     // header and subline name which plant they describe, so 'runs at 120 %' (proposed) and 'maximum 100 %' (today) never read as a contradiction
-    const which = VIEW === 'proposed' && !modelBlocked() && (P?.has_changes || latestProposedChanges().length) ? (incident() ? 'With the fix' : 'Proposed design') : (incident() ? (P.engine === 'trapped' ? 'Base model (sound insulation, illustrative)' : 'Base model') : "Today's plant");
+    const which = st.proposed_unavailable ? "Today's plant (the proposed design needs DWSIM to re-solve)" : VIEW === 'proposed' && !modelBlocked() && (P?.has_changes || latestProposedChanges().length) ? (incident() ? 'With the fix' : 'Proposed design') : (incident() ? (P.engine === 'trapped' ? 'Base model (sound insulation, illustrative)' : 'Base model') : "Today's plant");
     $('verdict').innerHTML = `<span class="verdict-which">${which}</span> ` + (incident() ? (over.length ? `<span style="color:var(--fail)">✗ Limit crossed at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
       : `<span style="color:var(--ok)">✓ Within limits at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`) : over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
       : `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`);
@@ -1615,7 +1615,7 @@ function proposedTopology(spec, changes) {
 let LAST_WORK = null;
 function designSource(a) {
   const who = a?.model ? museName(a.model) : 'Muse', when = a?.at || a?.started || '';
-  const run = LAST_WORK && LAST_WORK.rounds?.length ? ` The engineering run on the left is a separate, later run (${LAST_WORK.model ? museName(LAST_WORK.model) : 'Muse'}, ${LAST_WORK.rounds.length} round${LAST_WORK.rounds.length === 1 ? '' : 's'}, ${({done: 'done', unsolved: 'unsolved', max_rounds: 'stopped at the round limit', budget: 'stopped at its budget', error: 'stopped with an error'})[LAST_WORK.status] || LAST_WORK.status}); its checks are the latest word.` : '';
+  const run = LAST_WORK && LAST_WORK.rounds?.length ? ` The engineering run on the left is a separate, later run (${LAST_WORK.model ? museName(LAST_WORK.model) : 'Muse'}, ${LAST_WORK.rounds.length} round${LAST_WORK.rounds.length === 1 ? '' : 's'}, ${({done: 'checks passed, approval items open', unsolved: 'unsolved', max_rounds: 'stopped at the round limit', budget: 'stopped at its budget', error: 'stopped with an error'})[LAST_WORK.status] || LAST_WORK.status}); its checks are the latest word.` : '';
   return esc(`Saved answer by ${who}${when ? `, ${String(when).slice(0, 16).replace('T', ' ')}` : ''}.${run}`);
 }
 function designAnswer() {
@@ -2003,6 +2003,8 @@ async function stateForView(scale) {
     if (changes.length) {
       const preview = await api('whatif', {changes, scale}).catch(() => null);  // a failed preview falls back to the recorded state
       if (preview && !preview.errors?.length && preview.state_after) return {scale, ...preview.state_after};
+      // no simulator to re-solve the proposal (e.g. a clean clone): show today's plant and say so, never as 'proposed'
+      return {...await api(`state?scale=${scale}`), proposed_unavailable: true};
     }
   }
   return api(`state?scale=${scale}${VIEW === 'existing' ? '&view=existing' : ''}`);
@@ -2433,7 +2435,7 @@ function renderWorklog(log) {
   if (!log || typeof log !== 'object') { replayPause(); REPLAY.events = []; panel.hidden = true; panel.innerHTML = ''; return; }
   const rounds = Array.isArray(log.rounds) ? log.rounds : [];
   const openN = (log.result?.open || []).length;
-  const status = ({done: openN ? [`Done · ${openN} check${openN === 1 ? '' : 's'} open`, 'open'] : ['Done ✓', 'pass'], unsolved: ['Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
+  const status = ({done: openN ? [`Simulation checks passed · engineering approval: ${openN} open item${openN === 1 ? '' : 's'}`, 'open'] : ['All checks passed · ready for engineer review', 'pass'], unsolved: ['Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
     budget: ['Stopped at budget limit', 'open'], error: [/no answer after \d+ steps/.test(log.error || '') ? `Step limit, round ${rounds.length + 1}` : 'Stopped with error', 'fail']})[log.status] || ['Running…', 'open'];
   const sample = SAMPLE_WORKLOG || /illustrative/i.test(log.label || '');
   const posthoc = /post-hoc engineering run/i.test(log.label || '');
@@ -2559,7 +2561,7 @@ function worklogSummary(label, ref, log) {
   const fails = Array.isArray(result.fails) ? result.fails.length : checked.filter(step => step.status === 'fail').length;
   const status = log?.status || ref?.status || 'unknown';
   const fallback = status === 'budget' ? 'Stopped at budget limit before a completed design'
-    : status === 'unsolved' ? 'Unsolved' : status === 'done' ? 'Completed' : String(status).replaceAll('_', ' ');
+    : status === 'unsolved' ? 'Unsolved' : status === 'done' ? 'Checks passed · approval open' : String(status).replaceAll('_', ' ');
   return {label, run: ref?.run, outcome: result.headline || fallback, rounds: log?.rounds?.length ?? ref?.rounds ?? 0,
     passes, fails, usd: log?.usd_total ?? ref?.usd};
 }

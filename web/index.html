@@ -335,7 +335,7 @@ function renderCompare() {
   const p = $("#p-compare");
   if (!cur.comparison.length) { p.innerHTML = `<div class="empty">No answer key for this case.</div>`; return; }
   p.innerHTML = `<div class="note" style="margin-bottom:8px">The engineers' conclusions were withheld from the agent (pages hidden, recommendation clauses redacted).
-    Judge: ${esc(cur.judge || "—")}, a different model from the agent's.</div>
+    Judge: ${esc(cur.judge || "—")}, a different model from the agent's (a cross-model check, not a human review).</div>
     <table><tr><th>Unit</th><th>Engineers concluded (withheld)</th><th>Verdict</th><th>Judge note on the agent's finding</th></tr>
     ${cur.comparison.map(c => `<tr><td><b>${esc(c.unit)}</b></td><td>${esc(c.engineers)}</td>
       <td><span class="v ${esc(c.verdict)}">${esc(c.verdict || "—")}</span></td><td>${esc(c.note)}</td></tr>`).join("")}</table>`;
