@@ -1,6 +1,6 @@
 # Management of Change: BASF process column K 2750 (DEXPI C02, unseen)
 
-**DRAFT - NOT APPROVED.** Prepared 2026-11-02 15:28 +03 by PlantAgent from the working model. Nothing in this file is an approval.
+**DRAFT - NOT APPROVED.** Prepared 2026-11-02 16:01 +03 by PlantAgent from the working model. Nothing in this file is an approval.
 
 ## 1. Summary
 
@@ -50,6 +50,7 @@ Cloud 1 on the Rev B drawing. Cost class (agent estimate, unpriced): not stated.
 **Rating and rating source.**
 
 - K 2750: agent-proposed sizing basis (not independently validated): DWSIM Fair flood requires 0.638 m at 1.32× scaled 3.96 mol/s; 600 mm uniform (next standard matching KX 2750 600 mm section) gives 0.604 vs 0.80 =75.5 % at envelope (K2750_1p32_600_verify) and 0.549 =68.6 % at 1.2× (K2750_1p2_600 family); 525 mm gives 0.789 =98.6 % no margin (K2750_1p32_525). Height 14000 mm, 6 bar/150 °C, 1.4571, 15 stages same.; vendor confirmation open
+- Sizing basis cites trial runs with other changes; the server verified the replacement alone.
 
 **Before / Proposed calculation** (this change alone, DWSIM at the target).
 
@@ -133,8 +134,8 @@ No second opinion was requested for this answer.
 
 ## Appendix A. Reproducibility
 
-- Code version (git): 4299e5d; simulator: DWSIM (headless) via plantagent.process.
-- Audit-chain head hash: `a8bcd9bcd14f1fd0eab97d0d269de52ea4f08fea990ad6d441e1aee46714e0bb` (chain intact: True).
+- Code version (git): 5abdc8e; simulator: DWSIM (headless) via plantagent.process.
+- Audit-chain head hash: `3991f13052d3a25cdcdd87a6474d9aaa5638fbf2828d907417dcd9f2e2b52eae` (chain intact: True).
 - Model: K2750_submitted by baseten:meta-models/muse-spark-open-1026 on 2026-11-01 20:35; answer by baseten:meta-models/muse-spark-open-1026.
 - Run labels and calculation records: K2750_submitted.
 - Sections 1, 3 and 6.2 were recomputed when this file was made; re-run `python -m plantagent.decision basf_process_column_k_2750_dexpi_c02_uns` on the same revisions to reproduce them.
