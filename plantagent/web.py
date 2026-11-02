@@ -1003,6 +1003,40 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(_case_call(case, lambda: approval.issue(
                     w, body.get("folder"), user, body.get("reason"))))
             return self._send({"error": "not found"}, code=404)
+        if parts[:2] == ["api", "plant"] and len(parts) in (4, 5, 6) and parts[2] in set(all_cases("process")) and parts[3] == "redline":
+            from . import redline
+            case = parts[2]
+            if len(parts) == 4:
+                if method != "POST":
+                    return self._send({"error": "upload a redline image"}, code=405)
+                _require_runs()
+                body = self._json_body()
+                encoded = body.get("image_b64")
+                if not isinstance(encoded, str) or len(encoded) > 4 * ((MAX_UPLOAD + 2) // 3):
+                    raise ValueError("image_b64 must contain an image of at most 20 MB")
+                try:
+                    data = base64.b64decode(encoded, validate=True)
+                except (ValueError, binascii.Error) as error:
+                    raise ValueError("invalid base64 image") from error
+                data = redline._image(data)  # validate before reserving a paid job
+                return self._send(plant_job(case, lambda w: redline.read(w, data)))
+            w, rid = plant(case), parts[4]
+            folder = redline._folder(w, rid)
+            if not (folder / "read.json").is_file():
+                return self._send({"error": "redline not found"}, code=404)
+            if len(parts) == 5 and method == "GET":
+                return self._send(json.loads((folder / "read.json").read_text()))
+            if len(parts) == 6 and parts[5] == "image.png" and method == "GET":
+                return self._send((folder / "image.png").read_bytes(), "image/png")
+            if len(parts) == 6 and parts[5] == "confirm" and method == "POST":
+                body = self._json_body()
+                return self._send(_case_call(case, lambda: redline.confirm(w, rid, body.get("items"), self.headers.get("X-User"), body.get("reason"))))
+            if len(parts) == 6 and parts[5] == "check" and method == "GET":
+                return self._send(_case_call(case, lambda: redline.check(w, rid)))
+            if len(parts) == 6 and parts[5] == "drawing.svg" and method == "GET":
+                result = _case_call(case, lambda: redline.drawing(w, rid))
+                return self._send(result["svg"].encode(), "image/svg+xml") if result else self._send({"error": "no verified drawing available"}, code=404)
+            return self._send({"error": "not found"}, code=404)
         if parts[:2] == ["api", "plant"] and len(parts) == 4 and parts[2] in set(all_cases("process")) and parts[3] == "inputs":
             from . import assumptions, audit
             if method != "POST":  # templates and what was uploaded; no model call

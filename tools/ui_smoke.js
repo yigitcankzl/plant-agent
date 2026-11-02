@@ -9,6 +9,38 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   let bad = 0;
+  // The redline flow uses only stubbed responses: never make a paid vision call.
+  const redlineId = 'a'.repeat(64), redlineRoot = `**/api/plant/salt_mvr/redline`;
+  let redlineConfirmation = null;
+  await p.route('**/api/plant/salt_mvr/project', route => route.fulfill({json: {title: 'Salt MVR redline test', allow_runs: true}}));
+  await p.route(redlineRoot, route => route.fulfill({json: {job: 'redline-smoke'}}));
+  await p.route('**/api/job/redline-smoke', route => route.fulfill({json: {done: true, answer: {id: redlineId, items: [
+    {index: 0, tag: 'E-201', ink: 'Clean to U 2,500', confidence: .95, valid: true, errors: [], unreadable: [], change: {path: 'units.V-201.U_W_m2K', value: 2500}},
+    {index: 1, tag: 'P-101B', ink: 'Add parallel pump', confidence: .7, valid: false, errors: ['needs its own limits'], unreadable: ['rating not written'], change: {add_unit: {id: 'P-101B', type: 'pump'}}}
+  ], unreadable: ['signature']}}}));
+  await p.route(`${redlineRoot}/${redlineId}/confirm`, route => { redlineConfirmation = route.request().postDataJSON(); return route.fulfill({json: {status: 'confirmed'}}); });
+  await p.route(`${redlineRoot}/${redlineId}/check`, route => route.fulfill({json: {
+    engineer: [{check: 'process', status: 'pass', title: 'Target holds', engine: 'DWSIM', numbers: {capacity_multiple: 1.2}}],
+    muse: [{check: 'process', status: 'fail', title: 'Target short', engine: 'DWSIM', numbers: {capacity_multiple: 1.1}},
+           {check: 'vendor', status: 'open', title: 'Vendor curve needed', numbers: {}}], muse_headline: 'Saved Muse design', drawing_url: null
+  }}));
+  await p.goto(`${BASE}/redline.html?case=salt_mvr`);
+  await p.waitForFunction(() => !document.querySelector('#read').disabled);
+  await p.setInputFiles('#image', {name: 'redline.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6FoAAAAAASUVORK5CYII=', 'base64')});
+  await p.click('#read'); await p.waitForSelector('.reading');
+  await p.locator('.reading textarea').first().fill(JSON.stringify({path: 'units.V-201.U_W_m2K', value: 2600}));
+  await p.click('#confirm'); await p.waitForFunction(() => !document.querySelector('#check').disabled);
+  await p.click('#check'); await p.waitForSelector('#comparison:not([hidden])');
+  const redlineOk = await p.evaluate(() => document.querySelectorAll('.reading').length === 2 &&
+    document.querySelector('#items').textContent.includes('needs its own limits') && document.querySelectorAll('.column-title').length === 2 &&
+    document.querySelector('#rows .pass') && document.querySelector('#rows .fail') && document.querySelector('#rows .open') && /Target holds/.test(document.querySelector('#rows').textContent) &&
+    /Vendor curve needed/.test(document.querySelector('#rows').textContent) && document.querySelector('#preview').naturalWidth > 0);
+  const confirmedEdit = redlineConfirmation?.items?.length === 1 && redlineConfirmation.items[0].change.value === 2600;
+  await p.screenshot({path: `${OUT}/engineer_redline_stub.png`});
+  console.log(redlineOk && confirmedEdit ? 'ok  ' : 'FAIL', 'engineer redline: fake vision read, invalid item, edited confirmation and both design checks');
+  bad += redlineOk && confirmedEdit ? 0 : 1;
+  await p.unroute('**/api/plant/salt_mvr/project'); await p.unroute(redlineRoot);
+  await p.unroute('**/api/job/redline-smoke'); await p.unroute(`${redlineRoot}/${redlineId}/confirm`); await p.unroute(`${redlineRoot}/${redlineId}/check`);
   for (const u of ['home.html', 'plant.html?case=chem_c01', 'plant.html?case=dairy_refrig', 'plant.html?case=salt_mvr', 'plant.html?case=swro_monterey', 'plant.html?case=swro_brownsville', 'plant.html?case=freeport_lng_2022', 'plant.html?case=ucte_2006', 'workspace.html?case=roseburg', 'index.html?case=williams_geismar']) {
     await p.goto(`${BASE}/${u}`); await p.waitForTimeout(u.startsWith('home') ? 2500 : 8000);
     const stuck = (await p.content()).includes('Loading case data') || (await p.locator('#verdict').count() && (await p.locator('#verdict').innerText()) === 'Case unavailable');
