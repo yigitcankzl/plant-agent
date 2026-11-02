@@ -786,7 +786,7 @@ def whatif_preview(w, changes, scale):
         return w.whatif(changes, scale)
     except RuntimeError as error:
         message = str(error)
-        if "not installed" not in message and "no precomputed solutions" not in message:
+        if not any(reason in message for reason in ("not installed", "no precomputed solutions", "Failed to create a .NET runtime")):
             raise
         return {"error": f"Preview unavailable without the simulator: {message}", "unavailable": True}
 

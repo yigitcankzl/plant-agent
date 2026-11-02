@@ -183,6 +183,8 @@ class WebSecurityTests(unittest.TestCase):
         result = web.whatif_preview(workspace, [{"path": "units.P1.eff_pct", "value": 80}], 1.2)
         self.assertEqual(result["unavailable"], True)
         self.assertIn("Preview unavailable without the simulator", result["error"])
+        workspace.whatif.side_effect = RuntimeError("Failed to create a .NET runtime (coreclr)")
+        self.assertTrue(web.whatif_preview(workspace, [], 1.2)["unavailable"])
 
     def test_missing_public_source_has_a_png_fallback(self):
         png = web.missing_source_png("Public drawing", "https://example.test/source")
