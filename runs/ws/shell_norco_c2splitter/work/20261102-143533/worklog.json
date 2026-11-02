@@ -1,0 +1,272 @@
+{
+ "id": "20261102-143533",
+ "case": "shell_norco_c2splitter",
+ "goal": "The feed will shift to about 69 wt % ethylene and the unit needs about 25 % more ethylene from this tower at polymer-grade purity. Find what limits the tower, propose the change, and make the design pass every engineering check, including the documented product purity spec (ethane in the ethylene product at most 0.1 wt %) and the +10 % feed operating envelope.",
+ "label": null,
+ "model": "muse-wonder-1.0",
+ "provider": "meta",
+ "max_rounds": 4,
+ "budget_usd": 12.0,
+ "status": "done",
+ "started": "2026-11-02T14:35:33+0300",
+ "usd_total": 11.2328,
+ "seconds_total": 942,
+ "rounds": [
+  {
+   "n": 1,
+   "answer_index": 3,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "muse-wonder-1.0",
+     "kind": "propose",
+     "status": "info",
+     "usd": 5.4978,
+     "seconds": 264,
+     "title": "Re-tray PV-1767 with high-capacity/high-efficiency trays for +25% ethylene",
+     "detail": "New trays give more ethylene, purity holds",
+     "changes": [
+      {
+       "path": "units.PV-1767.efficiency",
+       "value": 0.88,
+       "from": 0.78
+      },
+      {
+       "path": "units.PV-1767.reflux_ratio",
+       "value": 6.08,
+       "from": 6.08
+      },
+      {
+       "path": "units.PV-1767.vapor_mol_s",
+       "value": 48.5,
+       "from": 38.8
+      },
+      {
+       "path": "units.PV-1767.bottoms_mol_s",
+       "value": 405.5,
+       "from": 324.4
+      },
+      {
+       "replace_unit": "PV-1767",
+       "new_rating": {
+        "tray_capacity_factor": 1.85
+       },
+       "basis": "High-capacity tray rating needed to cut flood from 1.059 (old trays) to 0.744/0.85 at the +25 % design rate in the same 4.877 m shell (runs PV1767-old-115, PV1767-new-125old-feed, PV1767-new-69-envelope110); tray vendor to confirm capacity and efficiency hydraulics",
+       "vendor_confirm": true
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Re-tray PV-1767 with high-capacity/high-efficiency trays for +25% ethylene",
+     "status": "fail",
+     "detail": "change 1 PV-1767.efficiency needs physical_change and rating_source",
+     "numbers": null
+    }
+   ],
+   "open_issues": [
+    {
+     "check": "process",
+     "title": "no proposal verified on the server: Re-tray PV-1767 with high-capacity/high-efficiency trays for +25% ethylene: change 1 PV-1767.efficiency needs physical_change and rating_source"
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "answer_index": 4,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "muse-wonder-1.0",
+     "kind": "fix",
+     "status": "info",
+     "usd": 5.735,
+     "seconds": 516,
+     "title": "Replace trays inside the same tower shell",
+     "detail": "New trays give quarter more ethylene",
+     "changes": [
+      {
+       "replace_unit": "PV-1767",
+       "new_rating": {
+        "tray_capacity_factor": 1.85
+       },
+       "basis": "High-capacity replacement trays in the same 4.877 m shell at 0.508 m spacing; sized so overload is 0.659 vs 0.85 limit at 115,000 kg/h richer feed and 0.768 vs 0.85 at 126,500 kg/h (runs PV1767-round2-115-b405-v38, PV1767-round2-env1265-b405)",
+       "vendor_confirm": true,
+       "physical_change": "Remove the existing conventional 4-pass trays from PV-1767 and install high-capacity trays in the same shell at the existing tray spacing",
+       "rating_source": "vendor quote to confirm / tray vendor rating for high-capacity trays in ethane/ethylene service"
+      },
+      {
+       "path": "units.PV-1767.efficiency",
+       "value": 0.88,
+       "physical_change": "Remove the existing conventional 4-pass trays from PV-1767 and install high-efficiency trays in the same shell at the existing tray spacing (same tray replacement as the capacity change above)",
+       "rating_source": "vendor quote to confirm / tray vendor rating: efficiency 0.88 for the replacement high-efficiency trays at ethane/ethylene conditions",
+       "from": 0.78
+      },
+      {
+       "path": "feeds.FEED.x.Ethylene",
+       "value": 0.7051,
+       "from": 0.641
+      },
+      {
+       "path": "feeds.FEED.x.Ethane",
+       "value": 0.291376,
+       "from": 0.35544
+      },
+      {
+       "path": "units.PV-1767.reflux_ratio",
+       "value": 5.2,
+       "from": 6.08
+      },
+      {
+       "path": "units.PV-1767.bottoms_mol_s",
+       "value": 405.5,
+       "from": 324.4
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Replace trays inside the same tower shell",
+     "status": "pass",
+     "detail": "",
+     "numbers": null
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "vendor confirmation of PV-1767 new rating",
+     "engine": "vendor",
+     "status": "open",
+     "title": "PV-1767 new rating: High-capacity replacement trays in the same 4.877 m shell at 0.508 m spacing; sized so overload is 0.659 vs 0.85 limit at 115,000 kg/h richer feed and 0.768 vs 0.85 at 126,500 kg/h (runs PV1767-round2-115-b405-v38, PV1767-round2-env1265-b405); vendor to confirm",
+     "numbers": {
+      "tray_capacity_factor": 1.85
+     },
+     "source": "replacement sizing basis"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process",
+     "engine": "DWSIM",
+     "title": "design reaches 125 % (maximum not found: the capacity search did not solve away from the target, re-solved now)",
+     "status": "pass",
+     "numbers": {},
+     "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "robustness",
+     "engine": "DWSIM",
+     "title": "draft (assumed values): operating envelope 2/2 scenarios pass",
+     "status": "pass",
+     "numbers": {},
+     "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "piping_utilities",
+     "engine": "none",
+     "title": "no calculation adapter: tie-ins, line sizing, supports and utility headers (supply change on FEED: header capacity to confirm) remain open",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.PV-1767.flooding",
+     "engine": "Fair/Souders-Brown",
+     "title": "PV-1767: column flooding 65.0 vs 85 %",
+     "status": "pass",
+     "numbers": {
+      "value": 0.65,
+      "limit": 0.85,
+      "unit": "fraction of flood",
+      "utilisation": 0.765
+     },
+     "source": "DWSIM tray traffic with Fair capacity-factor correlation"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.PV-1767.purity_distillate",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "PV-1767 distillate Ethane 0 vs 1000 ppm (mass) maximum",
+     "numbers": {
+      "value": 0.0,
+      "limit": 0.001,
+      "unit": "mass fraction",
+      "utilisation": 0.0
+     },
+     "source": "product spec (cases/<case>/purity.json) on the DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.PV-1767.min_reflux",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "PV-1767 reflux 5.2 vs 4.36 minimum to hold the purity spec at 125 %",
+     "numbers": {
+      "value": 5.2,
+      "limit": 4.355,
+      "unit": "reflux ratio",
+      "utilisation": 0.838
+     },
+     "source": "DWSIM bisection on reflux, 156 stages as built; product spec (cases/<case>/purity.json)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "confidence",
+     "engine": "uncertainty",
+     "title": "all 48 samples failed to solve",
+     "status": "open",
+     "numbers": {},
+     "source": "uncertainty"
+    }
+   ],
+   "open_issues": []
+  }
+ ],
+ "result": {
+  "answer_index": 4,
+  "headline": "New trays give quarter more ethylene",
+  "passes": [
+   "process",
+   "robustness",
+   "separation.PV-1767.flooding",
+   "separation.PV-1767.purity_distillate",
+   "separation.PV-1767.min_reflux"
+  ],
+  "fails": [],
+  "open": [
+   "vendor confirmation of PV-1767 new rating",
+   "piping_utilities",
+   "confidence"
+  ]
+ },
+ "deliverables": [
+  {
+   "kind": "moc",
+   "title": "MOC decision pack (draft)",
+   "folder": "decision-20261102-145114"
+  }
+ ],
+ "needs_human": [
+  "vendor confirmation of PV-1767 new rating: PV-1767 new rating: High-capacity replacement trays in the same 4.877 m shell at 0.508 m spacing; sized so overload is 0.659 vs 0.85 limit at 115,000 kg/h richer feed and 0.768 vs 0.85 at 126,500 kg/h (runs PV1767-round2-115-b405-v38, PV1767-round2-env1265-b405); vendor to confirm",
+  "piping_utilities: no calculation adapter: tie-ins, line sizing, supports and utility headers (supply change on FEED: header capacity to confirm) remain open",
+  "confidence: all 48 samples failed to solve",
+  "Tray maker guaranteed capacity and efficiency for the replacement trays: The design uses capacity factor 1.85 and efficiency 0.88 (run PV1767-round2-115-b405-v38). If the maker guarantees less than 1.85 or less than 0.88, the overload and purity results must be re-solved and the +25% and +10% conclusions may fail.",
+  "Actual future feed ethylene content: The check uses about 69 wt% ethylene (mole fraction 0.7051 in run PV1767-round2-115-b405-v38). If the real feed is leaner, 115,000 kg/h may not yield 25% more ethylene and a higher feed rate or different settings would be needed.",
+  "Cooling and heating supply capability for PV-1767: The model needs 35,611 kW of condensing and 26,066 kW of reboiling at 115,000 kg/h (run PV1767-round2-115-b405-v38) and no utility limit is in the model. If either system cannot supply this, the tower cannot hold the proposed reflux and boil-up, and the rate and purity conclusions fail."
+ ],
+ "finished": "2026-11-02T14:51:14+0300"
+}
