@@ -1,0 +1,359 @@
+{
+ "key": "c0b4fa2dbf46011502e89f102ff96bd2972b89a2",
+ "made": "2026-11-02T20:42:43+0300",
+ "model": "muse-spark-1.3",
+ "target": 1.2,
+ "usd": 0.042,
+ "seconds": 48,
+ "dropped": [],
+ "scenarios": [
+  {
+   "name": "Peak overload - high rate over-reflux low pressure hot flashing feed",
+   "basis": "more flow: Credible peak demand: plant pushed to 1.1x target, operator raises reflux to hold purity, feed preheater overshoots. High vapor/liquid traffic in 0.7 m tower drives jet flood.",
+   "scale": 1.1,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "FEED",
+    "check": "temperature vs design",
+    "value": 110.5,
+    "limit": 150,
+    "unit": "C",
+    "utilisation": 0.737
+   },
+   "changes": [
+    {
+     "path": "feeds.FEED.T_C",
+     "value": 110.5
+    },
+    {
+     "path": "feeds.FEED.P_bar",
+     "value": 2.1
+    },
+    {
+     "path": "feeds.FEED.x.Water",
+     "value": 0.21
+    },
+    {
+     "path": "feeds.FEED.x.Ethanol",
+     "value": 0.79
+    },
+    {
+     "path": "units.K 2750.P_bar",
+     "value": 1.05
+    },
+    {
+     "path": "units.K 2750.reflux_ratio",
+     "value": 1.95
+    },
+    {
+     "path": "units.K 2750.dP_bar",
+     "value": 0.039
+    },
+    {
+     "path": "units.K 2750.efficiency",
+     "value": 0.49
+    },
+    {
+     "path": "units.*at N3*/*C2*.dP_bar",
+     "value": 0.3409
+    }
+   ]
+  },
+  {
+   "name": "Low column pressure - PC offset low",
+   "basis": "less pressure: Pressure controller calibration drifts low or operator biases low to save reboiler energy. At 1.05 bar (-30%) vapor volumetric flow ~40% higher than design, raising Souders-Brown flood in reduced 0.7 m diameter.",
+   "scale": 1.1,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "K 2750",
+    "check": "Fair flood fraction vs limit",
+    "value": 0.6,
+    "limit": 0.8,
+    "unit": "fraction of flood",
+    "utilisation": 0.75
+   },
+   "changes": [
+    {
+     "path": "units.K 2750.P_bar",
+     "value": 1.05
+    },
+    {
+     "path": "units.K 2750.reflux_ratio",
+     "value": 1.95
+    },
+    {
+     "path": "feeds.FEED.T_C",
+     "value": 110.5
+    },
+    {
+     "path": "feeds.FEED.P_bar",
+     "value": 2.1
+    },
+    {
+     "path": "units.*at N3*/*C2*.dP_bar",
+     "value": 0.3409
+    }
+   ]
+  },
+  {
+   "name": "Hot feed - summer tank plus preheater overshoot",
+   "basis": "more temperature: Credible summer: outdoor feed tank + preheater steam valve overshoot drives feed to 110.5C (+30%). Hotter feed partially flashes across feed valve at 1.5 bar, adding vapor load to rectifying section.",
+   "scale": 1.1,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "K 2750",
+    "check": "Fair flood fraction vs limit",
+    "value": 0.6,
+    "limit": 0.8,
+    "unit": "fraction of flood",
+    "utilisation": 0.75
+   },
+   "changes": [
+    {
+     "path": "feeds.FEED.T_C",
+     "value": 110.5
+    },
+    {
+     "path": "feeds.FEED.P_bar",
+     "value": 2.1
+    },
+    {
+     "path": "units.K 2750.P_bar",
+     "value": 1.05
+    },
+    {
+     "path": "units.K 2750.reflux_ratio",
+     "value": 1.95
+    },
+    {
+     "path": "units.*at N3*/*C2*.dP_bar",
+     "value": 0.3409
+    }
+   ]
+  },
+  {
+   "name": "Ethanol-rich upstream swing",
+   "basis": "other composition: Upstream batch variation gives ethanol-rich feed 0.79 EtOH / 0.21 water within credible swing. More volatile feed increases overhead vapor traffic for fixed reboiler duty and lowers liquid surface tension favoring entrainment flood.",
+   "scale": 1.1,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "FEED",
+    "check": "temperature vs design",
+    "value": 110.5,
+    "limit": 150,
+    "unit": "C",
+    "utilisation": 0.737
+   },
+   "changes": [
+    {
+     "path": "feeds.FEED.x.Water",
+     "value": 0.21
+    },
+    {
+     "path": "feeds.FEED.x.Ethanol",
+     "value": 0.79
+    },
+    {
+     "path": "feeds.FEED.T_C",
+     "value": 110.5
+    },
+    {
+     "path": "feeds.FEED.P_bar",
+     "value": 2.1
+    },
+    {
+     "path": "units.K 2750.P_bar",
+     "value": 1.05
+    },
+    {
+     "path": "units.K 2750.reflux_ratio",
+     "value": 1.95
+    },
+    {
+     "path": "units.*at N3*/*C2*.dP_bar",
+     "value": 0.3409
+    }
+   ]
+  },
+  {
+   "name": "Water-rich upstream swing - stripping load",
+   "basis": "other composition: Upstream water-rich swing to 0.39 water / 0.61 EtOH from recycle upset. Heavier stripping liquid load plus higher reboiler temperature to boil water raises downcomer backup and stripping-section flood.",
+   "scale": 1.1,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "K 2750",
+    "check": "Fair flood fraction vs limit",
+    "value": 0.665,
+    "limit": 0.8,
+    "unit": "fraction of flood",
+    "utilisation": 0.831
+   },
+   "changes": [
+    {
+     "path": "feeds.FEED.x.Water",
+     "value": 0.39
+    },
+    {
+     "path": "feeds.FEED.x.Ethanol",
+     "value": 0.61
+    },
+    {
+     "path": "feeds.FEED.T_C",
+     "value": 110.5
+    },
+    {
+     "path": "feeds.FEED.P_bar",
+     "value": 2.1
+    },
+    {
+     "path": "units.K 2750.P_bar",
+     "value": 1.05
+    },
+    {
+     "path": "units.K 2750.reflux_ratio",
+     "value": 1.95
+    },
+    {
+     "path": "units.K 2750.dP_bar",
+     "value": 0.039
+    }
+   ]
+  },
+  {
+   "name": "Fouled trays - degraded efficiency high dP between cleanings",
+   "basis": "fouling: Between turnarounds fouling drops Murphree efficiency to 0.49 and raises tray dP to 0.039 bar. Operator compensates with max reflux, downcomers back up and entrainment rises in 0.7 m tower with 0.5 m spacing.",
+   "scale": 1.1,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "K 2750",
+    "check": "Fair flood fraction vs limit",
+    "value": 0.597,
+    "limit": 0.8,
+    "unit": "fraction of flood",
+    "utilisation": 0.746
+   },
+   "changes": [
+    {
+     "path": "units.K 2750.efficiency",
+     "value": 0.49
+    },
+    {
+     "path": "units.K 2750.dP_bar",
+     "value": 0.039
+    },
+    {
+     "path": "units.K 2750.P_bar",
+     "value": 1.05
+    },
+    {
+     "path": "units.K 2750.reflux_ratio",
+     "value": 1.95
+    },
+    {
+     "path": "feeds.FEED.T_C",
+     "value": 110.5
+    },
+    {
+     "path": "units.*at N3*/*C2*.dP_bar",
+     "value": 0.3409
+    }
+   ]
+  },
+  {
+   "name": "Winter seasonal - cold utility low condenser pressure",
+   "basis": "seasonal: Winter cooling water 10-15C colder gives lower condenser pressure; column floats to 1.05 bar before PC picks up. Lower pressure + hot feed tank heating to prevent freezing gives highest vapor velocity winter case.",
+   "scale": 1.1,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "FEED",
+    "check": "temperature vs design",
+    "value": 110.5,
+    "limit": 150,
+    "unit": "C",
+    "utilisation": 0.737
+   },
+   "changes": [
+    {
+     "path": "units.K 2750.P_bar",
+     "value": 1.05
+    },
+    {
+     "path": "units.*at N3*/*C2*.dP_bar",
+     "value": 0.3409
+    },
+    {
+     "path": "feeds.FEED.T_C",
+     "value": 110.5
+    },
+    {
+     "path": "feeds.FEED.P_bar",
+     "value": 2.1
+    },
+    {
+     "path": "units.K 2750.reflux_ratio",
+     "value": 1.95
+    },
+    {
+     "path": "feeds.FEED.x.Water",
+     "value": 0.21
+    },
+    {
+     "path": "feeds.FEED.x.Ethanol",
+     "value": 0.79
+    }
+   ]
+  },
+  {
+   "name": "Upstream pressure sag - feed flash across valve",
+   "basis": "less pressure: Upstream pump strainer partial plug or low feed drum level sags feed pressure to 2.1 bar (-30%) while feed stays hot. Larger letdown to 1.05 bar column flashes more feed, spiking rectifying vapor load.",
+   "scale": 1.1,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "FEED",
+    "check": "temperature vs design",
+    "value": 110.5,
+    "limit": 150,
+    "unit": "C",
+    "utilisation": 0.737
+   },
+   "changes": [
+    {
+     "path": "feeds.FEED.P_bar",
+     "value": 2.1
+    },
+    {
+     "path": "feeds.FEED.T_C",
+     "value": 110.5
+    },
+    {
+     "path": "units.K 2750.P_bar",
+     "value": 1.05
+    },
+    {
+     "path": "units.K 2750.reflux_ratio",
+     "value": 1.95
+    },
+    {
+     "path": "feeds.FEED.x.Water",
+     "value": 0.21
+    },
+    {
+     "path": "feeds.FEED.x.Ethanol",
+     "value": 0.79
+    },
+    {
+     "path": "units.K 2750.efficiency",
+     "value": 0.49
+    }
+   ]
+  }
+ ]
+}

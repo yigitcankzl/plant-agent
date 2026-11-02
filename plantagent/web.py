@@ -1006,6 +1006,16 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(_case_call(case, lambda: approval.issue(
                     w, body.get("folder"), user, body.get("reason"))))
             return self._send({"error": "not found"}, code=404)
+        if parts[:2] == ["api", "plant"] and len(parts) in (4, 5) and parts[2] in set(all_cases("process")) and parts[3] == "redteam":
+            from . import redteam
+            case = parts[2]
+            if len(parts) == 4 and method == "GET":
+                data = redteam.source(plant(case), q["source"]) if q.get("source") else redteam.stored(plant(case))
+                return self._send(data) if data is not None else self._send({"error": "red-team set not found"}, code=404)
+            if len(parts) == 5 and parts[4] == "run" and method == "POST":
+                _require_runs()
+                return self._send(plant_job(case, redteam.run_featured))
+            return self._send({"error": "not found"}, code=404)
         if parts[:2] == ["api", "plant"] and len(parts) in (4, 5, 6) and parts[2] in set(all_cases("process")) and parts[3] == "redline":
             from . import redline
             case = parts[2]

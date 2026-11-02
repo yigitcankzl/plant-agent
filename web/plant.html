@@ -258,6 +258,36 @@
   .discipline-gate:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
   .discipline-empty { padding: 10px 0; color: var(--muted); font-size: 12px; }
 
+  .redteam-panel { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .redteam-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+  .redteam-kicker { color: #ff9a91; font: 700 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+  .redteam-head h3 { margin: 3px 0 0; font-size: 15px; line-height: 1.3; }
+  .redteam-model { flex: 0 0 auto; color: var(--muted); font-size: 10px; }
+  .redteam-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 12px 0; }
+  .redteam-tabs button { min-width: 0; padding: 7px 5px; border: 1px solid #50666b; border-radius: 4px; background: #17363c; color: #b9c8ca; font-size: 10.5px; cursor: pointer; }
+  .redteam-tabs button[aria-pressed="true"] { border-color: #90d2c8; background: #245158; color: #f2f7f6; }
+  .redteam-summary { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; padding: 10px 12px; border-left: 4px solid var(--ok); background: #193c3d; }
+  .redteam-summary.fail { border-left-color: var(--fail); background: #432b2c; }
+  .redteam-summary b { font: 800 17px var(--mono); }
+  .redteam-summary a, .redteam-source { color: #9edbd1; }
+  .redteam-attacks { display: grid; gap: 6px; }
+  .redteam-attack { padding: 9px 10px; border: 1px solid #425a60; border-radius: 5px; background: #18363c; animation: redteam-in .24s ease both; animation-delay: calc(var(--rt-i) * 150ms); }
+  .redteam-attack.fail { border-color: #744b4d; background: #3a292c; }
+  .redteam-attack-head { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; font-weight: 750; }
+  .redteam-attack-head span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .redteam-attack-head a { flex: 0 0 auto; font: 700 11px var(--mono); color: inherit; }
+  .redteam-rationale { display: block; margin: 3px 0 7px; overflow: hidden; color: #aebfc0; font-size: 10.5px; text-overflow: ellipsis; white-space: nowrap; }
+  .redteam-bar { position: relative; height: 8px; overflow: hidden; border-radius: 5px; background: #0f292e; }
+  .redteam-bar::after { content: ""; position: absolute; top: 0; bottom: 0; left: 80%; width: 1px; background: #f2f7f6; opacity: .75; }
+  .redteam-fill { display: block; height: 100%; background: var(--ok); }
+  .redteam-attack.fail .redteam-fill { background: var(--fail); }
+  .redteam-attack.unknown .redteam-bar { opacity: .35; }
+  .redteam-inputs { margin-top: 6px; color: var(--muted); font-size: 10px; }
+  .redteam-inputs summary { cursor: pointer; }
+  .redteam-inputs code { display: block; margin-top: 4px; color: #b8d8d2; white-space: normal; overflow-wrap: anywhere; }
+  .redteam-note { margin: 9px 0 0; color: var(--muted); font-size: 10.5px; line-height: 1.4; }
+  @keyframes redteam-in { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: none; } }
+
   .package-action { margin-top: 16px; padding-top: 15px; border-top: 1px solid var(--line); }
   .package-action .go { width: 100%; min-height: 43px; white-space: normal; }
   .package-action small { display: block; margin-top: 6px; color: var(--muted); }
@@ -757,7 +787,7 @@
   #sheet [data-tag].story-overload * { stroke: #e35b4f !important; stroke-width: 2.2 !important; }
   #sheet [data-tag].story-pass * { stroke: #2f9663 !important; }
   #sheet [data-tag].story-open > polyline { stroke: #e8bd60 !important; stroke-dasharray: 3 2; }
-  @media (prefers-reduced-motion: reduce) { .story-n1.on { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .story-n1.on { transition: none; } .redteam-attack { animation: none; } }
 </style>
 </head>
 <body class="process focused">
@@ -891,7 +921,7 @@ const act = (name, ...args) => `data-act="${name}" data-args="${esc(JSON.stringi
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   const fn = el && {select, whatIf, troubleshoot, ask, undo, accept, workFocus: (tags, view) => workFocus(tags, view, el),
-    chatFocus, chatShow, chatApply, chatWork, chatFollow,
+    chatFocus, chatShow, chatApply, chatWork, chatFollow, redteamSet,
     showParity: () => { openDetails(true); setWorkspaceView('engineering'); requestAnimationFrame(() => document.querySelector('[data-nrel-parity]')?.scrollIntoView({block: 'start'})); },
     askAbout: tag => { $('q').value = `Why is ${tag} limiting, and what is the cheapest fix?`; $('q').focus(); }}[el.dataset.act];
   if (fn) fn(...JSON.parse(el.dataset.args || '[]'));
@@ -901,7 +931,7 @@ const api = async (p, body) => { const r = await fetch(`/api/plant/${CASE}/${p}`
   if (!r.ok) throw new Error(data?.error || `Case data unavailable (${r.status})`);
   if (!data) throw new Error('Invalid response from the case server');
   return data; };
-let P = null, ST = null, busy = false, base = null, PENDING_CARD = null, OPEN_WEIGHTS = null, NREL_EVIDENCE = null;
+let P = null, ST = null, busy = false, base = null, PENDING_CARD = null, OPEN_WEIGHTS = null, NREL_EVIDENCE = null, REDTEAM = null, REDTEAM_SELECTED = 0;
 const NAMES = {pump: 'Pump', hx: 'Heat exchanger', tank: 'Tank', valve: 'Valve', heater: 'Heater / heat load', cooler: 'Cooler', compressor: 'Compressor', mixer: 'Mixer', splitter: 'Splitter', recycle: 'Loop closure'};
 const sev = u => u > 1.0 ? 'fail' : u > 0.9 ? 'warn' : 'ok';
 const simulator = () => ({watertap: 'WaterTAP', pandapower: 'pandapower'})[P?.built?.engine || P?.engine] || 'DWSIM';
@@ -1257,6 +1287,7 @@ async function load() {
   syncViewToggle();
   await loadGateAssessment();
   await loadDemoEvidence();
+  REDTEAM = await api('redteam').catch(() => null);
   model(); answers(); revs(); renderEngineeringChat();
   if (P.built) render(await stateForView(P.target_scale)); else noModel();
   $('q').disabled = !P.allow_runs;
@@ -2749,6 +2780,36 @@ function disciplineImpact(a) {
   const shown = calc.map(gate).join(''), folded = rest.map(gate).join('');
   return `<section class="discipline-impact"><div class="discipline-impact-head"><h3>④ Other disciplines</h3><span>✓ passes · ✕ fails (calculated)</span></div><div class="discipline-rail">${shown}</div>${rest.length ? `<details class="gates-open"><summary>○ ${rest.length} not calculated yet: ${esc(rest.map(r => GATE_NAMES[r.id] || r.id).join(', '))}</summary><div class="discipline-rail">${folded}</div></details>` : ''}</section>`;
 }
+function redteamSet(index) {
+  REDTEAM_SELECTED = Math.max(0, Math.min(Number(index) || 0, (REDTEAM?.sets?.length || 1) - 1));
+  const panel = $('redteamPanel'); if (panel) panel.outerHTML = redteamCard();
+}
+function redteamCard() {
+  const sets = REDTEAM?.sets || [];
+  if (!sets.length) return '';
+  const set = sets[Math.min(REDTEAM_SELECTED, sets.length - 1)], summary = set.summary || {}, src = set.source_url || '#';
+  const failed = summary.broke > 0, worst = summary.worst_utilisation;
+  const tabs = sets.map((item, i) => `<button type="button" ${act('redteamSet', i)} aria-pressed="${i === REDTEAM_SELECTED}">${esc(item.label)}</button>`).join('');
+  const attacks = (set.attacks || []).map((attack, i) => {
+    const u = attack.worst?.utilisation, known = Number.isFinite(u), pct = known ? Math.round(u * 100) : null;
+    const width = known ? Math.max(0, Math.min(100, u / 1.25 * 100)) : 0, source = attack.source_url || src;
+    const changes = [`scale ${attack.scale == null ? 'not stored' : attack.scale + '× target'}`,
+      ...(attack.changed_inputs || []).map(c => `${c.path} = ${JSON.stringify(c.value)}`)].join(' · ');
+    return `<article class="redteam-attack ${attack.pass ? 'pass' : 'fail'} ${known ? '' : 'unknown'}" style="--rt-i:${i}">
+      <div class="redteam-attack-head"><span title="${esc(attack.name)}">${esc(attack.name)}</span><a href="${esc(source)}" target="_blank">${known ? pct + '%' : 'not stored'} ↗</a></div>
+      <a class="redteam-rationale redteam-source" href="${esc(source)}" target="_blank" title="${esc(attack.rationale)}">${esc(attack.rationale)}</a>
+      <div class="redteam-bar" aria-label="${known ? `${pct}% of limit` : 'per-attack utilisation not stored'}"><span class="redteam-fill" style="width:${width}%"></span></div>
+      <details class="redteam-inputs"><summary>Changed inputs</summary><a class="redteam-source" href="${esc(source)}" target="_blank"><code>${esc(changes)}</code></a></details>
+    </article>`;
+  }).join('');
+  const cost = set.cost_usd == null ? '' : ` · <a href="${esc(src)}" target="_blank">$${Number(set.cost_usd).toFixed(3)}</a>`;
+  const worstText = Number.isFinite(worst) ? ` · worst <a href="${esc(src)}" target="_blank">${Math.round(worst * 100)}%</a>` : '';
+  const challenge = set.challenge ? `<p class="redteam-note"><a class="redteam-source" href="${esc(set.challenge.source_url)}" target="_blank">${esc(set.challenge.text)}</a></p>` : '';
+  return `<section class="redteam-panel" id="redteamPanel" data-redteam-set="${esc(set.id)}"><div class="redteam-head"><div><div class="redteam-kicker">Independent adversarial check</div><h3>Muse Spark 1.3 tries to break this design</h3></div><div class="redteam-model">${esc(museName(set.attacker_model || 'muse-spark-1.3'))}${cost}</div></div>
+    <div class="redteam-tabs" role="group" aria-label="Stored red-team sets">${tabs}</div>
+    <div class="redteam-summary ${failed ? 'fail' : 'pass'}"><b><a href="${esc(src)}" target="_blank">${failed ? summary.broke : summary.held} / ${summary.total}</a> ${failed ? 'broke' : 'held'}</b><span>${esc(set.design_label)}${worstText}</span></div>
+    <div class="redteam-attacks">${attacks}</div>${challenge}${set.note ? `<p class="redteam-note">${esc(set.note)}</p>` : ''}</section>`;
+}
 function showGate(index) {
   const row = GATE_VIEWS[index];
   if (!row) return;
@@ -2799,7 +2860,7 @@ function decisionBrief(a, idx) {
     <div class="decision-fact status-${statusClass}"><dt>③ What the engines confirmed</dt><dd>${esc(status)}</dd></div>
     <div class="decision-fact decision-provenance"><dt>Who did what</dt><dd>${whoDidWhat(d, gates)}</dd></div>
     ${secondOpinionLink(d)}
-  </dl></section>${disciplineImpact(d)}${costConfidence(d)}${issue}`;
+  </dl></section>${disciplineImpact(d)}${redteamCard()}${costConfidence(d)}${issue}`;
 }
 // ⑤ money and confidence: factored cost (economics.py) and the Monte Carlo of re-solves (uncertainty.py), both deterministic;
 // curves and the start-up screen load on demand from their own endpoints
