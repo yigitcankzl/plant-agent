@@ -56,7 +56,13 @@ def checks(w, idx):
         return incident_checks(w, idx)
     try:
         from .designchecks import checks_for_design
-        return checks_for_design(w, idx)
+        rows = checks_for_design(w, idx)
+        attacker = getattr(w, "redteam_model", None)
+        if attacker and not any(r.get("status") == "fail" for r in rows):
+            # attack only a design that passes its own checks: a second Muse looks for deviations that break it
+            from . import redteam
+            rows += redteam.check_rows(w, idx, attacker)
+        return rows
     except ImportError:  # ponytail: gates only until designchecks.py lands; it adds curves, start-up and uncertainty
         from . import prefeed
         g = prefeed.discipline_gates(w, idx, refresh=True)
