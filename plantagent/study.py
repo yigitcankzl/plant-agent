@@ -450,7 +450,9 @@ class Study:
             self.steps += 1
             if step == max_steps - 3:
                 messages.append({"role": "user", "content": f"Step limit near. Call {submit_name} now with what you have."})
-            msg = llm.complete(self.model, compact(messages), tools=tools)
+            # the last steps offer only the submit tool: a model that keeps exploring still has to answer
+            final = [t for t in tools if t["function"]["name"] == submit_name] if step >= max_steps - 3 else []
+            msg = llm.complete(self.model, compact(messages), tools=final or tools)
             self.log.write(json.dumps({"phase": phase, "step": step, "assistant": msg}) + "\n")
             if not msg["tool_calls"] and msg.get("content") and "invoke name=" in msg["content"]:
                 msg = {**msg, "tool_calls": text_tool_calls(msg["content"]), "content": ""}
