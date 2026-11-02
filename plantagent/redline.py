@@ -148,6 +148,7 @@ def confirm(w, rid, selections, user=None, reason=None):
     errors = _errors(w.spec, [item["change"] for item in selected])
     if errors:
         raise ValueError("; ".join(errors))
+    selected = [{**item, "errors": [], "valid": True} for item in selected]
     result = {"id": rid, "spec_hash": reading["spec_hash"], "items": selected,
               "changes": [i["change"] for i in selected], "rejected": [i["index"] for i in reading["items"] if i["index"] not in seen],
               "user": user, "reason": str(reason or "engineer confirmed red ink"), "status": "confirmed"}

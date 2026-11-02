@@ -36,7 +36,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     document.querySelector('#rows .pass') && document.querySelector('#rows .fail') && document.querySelector('#rows .open') && /Target holds/.test(document.querySelector('#rows').textContent) &&
     /Vendor curve needed/.test(document.querySelector('#rows').textContent) && document.querySelector('#preview').naturalWidth > 0);
   const confirmedEdit = redlineConfirmation?.items?.length === 1 && redlineConfirmation.items[0].change.value === 2600;
-  await p.screenshot({path: `${OUT}/engineer_redline_stub.png`});
+  await p.screenshot({path: `${OUT}/engineer_redline_stub.png`, fullPage: true});
   console.log(redlineOk && confirmedEdit ? 'ok  ' : 'FAIL', 'engineer redline: fake vision read, invalid item, edited confirmation and both design checks');
   bad += redlineOk && confirmedEdit ? 0 : 1;
   await p.unroute('**/api/plant/salt_mvr/project'); await p.unroute(redlineRoot);
@@ -49,9 +49,9 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     bad += stuck ? 1 : 0;
   }
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
-  const saltStartup = await p.evaluate(() => P.has_compressor_curve && !!document.querySelector('#machines button'));
+  const saltStartup = await p.evaluate(() => { const card = document.createElement('div'); card.innerHTML = costConfidence({uncertainty: {p_target: 1, solved: 1}}); return P.has_compressor_curve && !!card.querySelector('#machines button'); });
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForTimeout(5000);
-  const chemStartup = await p.evaluate(() => !P.has_compressor_curve && !document.querySelector('#machines button'));
+  const chemStartup = await p.evaluate(() => { const card = document.createElement('div'); card.innerHTML = costConfidence({uncertainty: {p_target: 1, solved: 1}}); return !P.has_compressor_curve && !card.querySelector('#machines button'); });
   console.log(saltStartup && chemStartup ? 'ok  ' : 'FAIL', 'compressor start-up action only appears with a compressor curve');
   bad += saltStartup && chemStartup ? 0 : 1;
   await p.setViewportSize({ width: 1920, height: 1080 });
