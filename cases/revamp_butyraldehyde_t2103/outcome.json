@@ -1,0 +1,23 @@
+{
+ "year": "2005-2012",
+ "engineers": "Elekeiroz and Sulzer ultimately combined high-capacity VGPlus/MMVG trays with removal of a separate water phase, exchanger cleaning and a warmer reflux condition. The key diagnosis was incipient second-liquid-phase foaming, not ordinary tray flood. A water boot with interface control was added to the reflux drum; the exchangers were cleaned and reflux was held near 56 C. The paper says the original capacity objective was then achieved.",
+ "source": "Summers, Monaco and Britto, AIChE Spring Meeting paper 112b (2013), pp. 4-5, Figure 6 and Tables 1-3",
+ "file": "outcome.json",
+ "note": "Withheld from the agent. The 10.2 t/h July 2012 test and the November 2011 maximum-loading point are different tests; the paper does not present 11.5 t/h as a simultaneous table row.",
+ "change_categories": [
+  {"id": "high_capacity_trays", "label": "high-capacity tray internals", "required": true, "keywords": ["vgplus", "mmvg", "high-capacity tray", "high capacity tray"]},
+  {"id": "water_phase_removal", "label": "remove the separate water phase", "required": true, "keywords": ["water boot", "interface control", "water phase", "decant"]},
+  {"id": "reflux_temperature", "label": "move reflux away from the foaming condition", "required": true, "keywords": ["reflux temperature", "warmer reflux", "56 c", "52 c"]},
+  {"id": "clean_heat_exchangers", "label": "restore exchanger performance", "required": false, "keywords": ["clean exchanger", "exchanger cleaning", "cleaning"]}
+ ],
+ "after_data": [
+  {"id": "test_feed", "label": "July 2012 feed", "expected": 10.2, "unit": "t/h", "source": "Table 1", "reported_by": ["feed", "throughput"], "withheld": true},
+  {"id": "tray_efficiency", "label": "fitted tray efficiency", "expected": 67.0, "unit": "%", "source": "Figure 7 discussion", "reported_by": ["efficiency"], "rating_field": "efficiency", "agent_scale": 100.0, "withheld": true},
+  {"id": "jet_flood", "label": "jet flood at July 2012 test", "expected": 80.0, "unit": "%", "source": "Table 2", "reported_by": ["flooding", "jet flood"], "agent_scale": 100.0, "withheld": true},
+  {"id": "reflux_flow", "label": "July 2012 reflux", "expected": 32.5, "unit": "t/h", "source": "Table 1", "reported_by": ["reflux"], "withheld": true},
+  {"id": "column_dp", "label": "July 2012 tower pressure drop", "expected": 0.68, "unit": "kg/cm2", "source": "Table 1", "reported_by": ["pressure drop", "column dp"], "withheld": true},
+  {"id": "top_temperature", "label": "July 2012 top temperature", "expected": 64.5, "unit": "C", "source": "Table 1", "reported_by": ["top temperature"], "withheld": true},
+  {"id": "bottom_temperature", "label": "July 2012 bottom temperature", "expected": 89.75, "unit": "C", "source": "Table 1", "reported_by": ["bottom temperature"], "withheld": true}
+ ],
+ "leak_phrases": ["VGPlus", "MMVG", "water boot", "interface controller", "reflux temperature was raised", "heat exchangers cleaned"]
+}

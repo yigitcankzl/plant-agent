@@ -1,0 +1,21 @@
+{
+ "year": "1992-1994",
+ "engineers": "BP and Norton retained the four bottom trays and replaced the sixteen trays above the side reboiler with a 25 ft 10 in bed of No. 50 IMTP random packing. A deck distributor was selected for roughly 50 gpm/ft2. Downcomer bars were removed; the old support rings were retained. Feed preheat was restored to about 100 F average so the reboilers could strip ethane at high feed. The installed tower was rated at 92,000 b/d, held the 208 psig LPG vapour-pressure specification (about 3.5 vol% ethane), and generated about ten theoretical stages over two years of operation.",
+ "source": "Deley and Graf, Oil & Gas Journal, 1 August 1994, project scope, design choices and start-up/operation sections",
+ "file": "outcome.json",
+ "note": "Withheld from the agent. The source describes design capacity and two years of operation, but does not publish one simultaneous 92,000 b/d performance-test table.",
+ "change_categories": [
+  {"id": "random_packing", "label": "random packing above the side reboiler", "required": true, "keywords": ["imtp", "random packing", "packed bed", "packing"]},
+  {"id": "liquid_distributor", "label": "high-rate deck liquid distributor", "required": true, "keywords": ["deck distributor", "liquid distributor"]},
+  {"id": "feed_preheat", "label": "restore feed preheat at high rate", "required": true, "keywords": ["feed preheat", "preheater", "100 f"]},
+  {"id": "retain_bottom_trays", "label": "retain the lightly loaded bottom trays", "required": false, "keywords": ["retain bottom", "four bottom trays", "below the side reboiler"]}
+ ],
+ "after_data": [
+  {"id": "design_capacity", "label": "packed stripper design capacity", "expected": 92000.0, "unit": "b/d", "source": "article abstract and start-up section", "reported_by": ["capacity", "throughput", "process"], "withheld": false},
+  {"id": "lpg_ethane", "label": "ethane in LPG", "expected": 3.5, "unit": "vol%", "source": "start-up/operation section", "reported_by": ["ethane", "purity"], "agent_scale": 100.0, "withheld": false},
+  {"id": "theoretical_stages", "label": "packed-section theoretical stages", "expected": 10.0, "unit": "stages", "source": "operating-data analysis", "reported_by": ["stages", "efficiency"], "withheld": true},
+  {"id": "hetp", "label": "packed-section HETP", "expected": 31.0, "unit": "in", "source": "operating-data analysis", "reported_by": ["hetp"], "withheld": true},
+  {"id": "average_preheat", "label": "average feed preheat", "expected": 100.0, "unit": "F", "source": "start-up/operation section", "reported_by": ["feed temperature", "preheat"], "withheld": true}
+ ],
+ "leak_phrases": ["No. 50 IMTP", "25 ft, 10 in", "deck-type distributor", "packing is generating 10 theoretical stages", "HETP of 31 in"]
+}

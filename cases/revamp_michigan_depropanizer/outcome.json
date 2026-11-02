@@ -1,0 +1,20 @@
+{
+ "year": "2000-2003",
+ "engineers": "The packed stripping section was replaced by 25 tightly spaced high-capacity trays. The first arrangement sustained about 27,500 b/d but flooded above 28,000 b/d; gamma scans located liquid backup in the feed zone above tray 22. The final correction added/reworked seal pans, removed active panels and a false downcomer around tray 14, and rerouted the feed so vapour and liquid entered the appropriate spaces. The tower subsequently operated at 103% of its 30,500 b/d design load. A later composition-limited test at 19,500 b/d improved propane purity from 94.5 to 97.5%.",
+ "source": "Golden and Martin, Oil & Gas Journal, 25 August 2003, revamp, gamma-scan and final operating sections",
+ "file": "outcome.json",
+ "note": "Withheld from the agent. The 27,500 b/d first test, 103% design operation and 19,500 b/d purity comparison are different operating periods.",
+ "change_categories": [
+  {"id": "high_capacity_trays", "label": "replace the stripping packing with high-capacity trays", "required": true, "keywords": ["superfrac", "high-capacity tray", "high capacity tray", "replace packing with trays"]},
+  {"id": "feed_zone", "label": "redesign the feed-zone liquid and vapour paths", "required": true, "keywords": ["feed zone", "feed tray", "false downcomer", "reroute feed"]},
+  {"id": "seal_pans", "label": "correct seal-pan drainage", "required": false, "keywords": ["seal pan", "seal-pan", "liquid seal"]}
+ ],
+ "after_data": [
+  {"id": "first_test_rate", "label": "first-revamp sustained feed", "expected": 27500.0, "unit": "b/d", "source": "first performance-test discussion", "reported_by": ["feed", "throughput", "capacity"], "withheld": true},
+  {"id": "first_flood_rate", "label": "first-revamp flood onset", "expected": 28000.0, "unit": "b/d", "source": "gamma-scan discussion", "reported_by": ["flood", "capacity search"], "withheld": true},
+  {"id": "final_design_load", "label": "final operating load", "expected": 103.0, "unit": "% of 30,500 b/d design", "source": "final operating account", "reported_by": ["capacity", "design load", "throughput"], "agent_scale": 100.0, "withheld": true},
+  {"id": "final_propane_purity", "label": "propane purity in later comparison", "expected": 97.5, "unit": "%", "source": "later operating comparison", "reported_by": ["propane purity", "purity"], "agent_scale": 100.0, "withheld": true},
+  {"id": "tray_count", "label": "new stripping trays", "expected": 25.0, "unit": "trays", "source": "revamp description", "reported_by": ["tray count", "stages"], "rating_field": "stages", "withheld": true}
+ ],
+ "leak_phrases": ["Superfrac", "25 trays", "false downcomer", "103% of design", "97.5%"]
+}
