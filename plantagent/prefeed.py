@@ -389,7 +389,7 @@ def design_calculation(w, ans, calc):
                               for r in calc.get("new_equipment") or []]}
 
 
-GATES_SCHEMA = 3  # bump when the gate rows change shape or meaning, so cached gates.json files are recomputed
+GATES_SCHEMA = 4  # bump when the gate rows change shape or meaning, so cached gates.json files are recomputed
 GATE_INPUTS = ("electrical.json", "hx_geometry.json", "combustion.json", "prefeed.json")
 
 

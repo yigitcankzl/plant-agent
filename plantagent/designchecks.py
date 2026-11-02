@@ -99,6 +99,26 @@ def _spec_ok(c, f):
     return f <= c["max_mass_frac"] if "max_mass_frac" in c else f >= c["min_mass_frac"]
 
 
+def product_checks(w, solved):
+    """The goal is a product, not a feed: case.json "product" {"stream", "component"?} must rise with the target.
+    Norco: the feed reached 125 % while a bottoms spec sent the extra ethylene to the bottoms (+7 % product)."""
+    cfg = w.cfg.get("product")
+    if not cfg:
+        return []
+    target = float(w.cfg.get("target_scale", 1.0))
+    def amount(st):
+        s = (st.get("streams") or {}).get(cfg["stream"]) or {}
+        return (s.get("components_kg_h") or {}).get(cfg["component"]) if cfg.get("component") else s.get("kg_h")
+    today, after = amount(w.state(1.0) or {}), amount(solved)
+    name = f"{cfg['stream']}{' ' + cfg['component'] if cfg.get('component') else ''}"
+    if not today or after is None:
+        return [_open("product", "DWSIM", f"{name}: product rate not solved")]
+    ratio, need = after / today, 1 + (target - 1) * float(cfg.get("share_of_target", 1.0))
+    return [{"check": "product", "engine": "DWSIM", "status": "pass" if ratio >= need - 0.005 else "fail",
+             "title": f"{name} {after:,.0f} kg/h = {ratio:.2f}x today ({today:,.0f}); target {need:.2f}x",
+             "numbers": {"ratio": round(ratio, 4), "need": need}, "source": "DWSIM solve at the target (case.json product)"}]
+
+
 def purity_checks(w, spec, solved, scale, purity_cfg):
     """Product purity of each column against its spec (cases/<case>/purity.json or the draft), and the lowest reflux that
     still holds the spec at this throughput (DWSIM bisection on the column as built: its stages, feed stage, reboiler spec)."""
@@ -232,6 +252,7 @@ def checks_for_design(w, answer_index):
             except Exception:  # each equipment row below remains open instead of disappearing with the failed solve
                 solved = {"streams": {}, "units": {}}
             rows += separation_checks(design_spec, solved)
+            rows += product_checks(w, solved)
             if any(u.get("type") in ("column", "distillation") for u in equipment):
                 try:
                     rows += purity_checks(w, design_spec, solved, float(w.cfg.get("target_scale", 1.0)),
@@ -260,6 +281,9 @@ def checks_for_design(w, answer_index):
                          "status": "pass" if p >= P_TARGET_PASS else "fail",
                          "numbers": {"p_target": p, **{k: v for k, v in (u.get("capacity") or {}).items()}, "n": u["solved"]},
                          "source": f"{u['method']} (pass at P(target) ≥ {P_TARGET_PASS:.0%})"})
+        elif u and "failed to solve" in u["error"]:  # the design does not solve once its inputs move: not robust
+            rows.append({"check": "confidence", "engine": "uncertainty", "status": "fail", "title": u["error"],
+                         "numbers": {"p_target": 0.0}, "source": "re-solves at the target with uncertain inputs varied"})
         elif u and "no uncertainty.json" not in u["error"]:
             rows.append(_open("confidence", "uncertainty", u["error"]))
     except Exception as ex:  # noqa: BLE001

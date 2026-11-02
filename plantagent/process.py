@@ -240,6 +240,10 @@ DWSIM_ALLOW = {
              "Specification": _E(["Length", "OutletPressure", "OutletTemperature"])},
 }
 
+# specs that are amounts, not intensive targets: scaled with throughput like vapor_mol_s and side draws, so a fixed
+# bottoms rate does not starve the column at 1.25x (Norco: 405 mol/s bottoms against 416 mol/s of ethane at 1.375x)
+_EXTENSIVE_SPECS = {"Heat Duty", "Product Molar Flow Rate", "Component Molar Flow Rate", "Product Mass Flow Rate",
+                    "Component Mass Flow Rate"}
 _COLUMN_SPEC_TYPES = (
     "Reflux Ratio", "Boilup Ratio", "Heat Duty", "Product Molar Flow Rate", "Component Molar Flow Rate",
     "Product Mass Flow Rate", "Component Mass Flow Rate", "Component Fraction", "Component Recovery",
@@ -863,8 +867,9 @@ class _Sheet:
                 col.ConnectVaporProduct(self.stream(u["vapor"]))
             col.ConnectCondenserDuty(self._energy(f"QC-{uid}"))
             col.ConnectReboilerDuty(self._energy(f"QR-{uid}"))
-            col.SetCondenserSpec(cspec["type"], float(cspec["value"]), cspec.get("units") or "", cspec.get("compound") or "")
-            col.SetReboilerSpec(rspec["type"], float(rspec["value"]), rspec.get("units") or "", rspec.get("compound") or "")
+            amount = lambda sp: float(sp["value"]) * (self.scale if sp["type"] in _EXTENSIVE_SPECS else 1.0)  # noqa: E731
+            col.SetCondenserSpec(cspec["type"], amount(cspec), cspec.get("units") or "", cspec.get("compound") or "")
+            col.SetReboilerSpec(rspec["type"], amount(rspec), rspec.get("units") or "", rspec.get("compound") or "")
             col.SetTopPressure(float(u.get("P_bar", 1.01325)) * 1e5)
             col.ColumnPressureDrop = float(u.get("dP_bar", 0)) * 1e5
             col.CondenserType = getattr(type(col.CondenserType), condenser[u.get("condenser", "total")])

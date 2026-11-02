@@ -139,29 +139,36 @@ def assess(w, answer=None, n=None, refresh=False, workers=None):
         lim = cap.get("limited_by") or {}
         # no capacity but a named limit: the design is over that limit at every throughput (e.g. a set point above a supply margin)
         infeasible = cap.get("capacity_multiple") is None and bool(lim) and not cap.get("errors")
-        if "worker_error" in cap or "worker_error" in at or (cap.get("capacity_multiple") is None and not infeasible):
+        # P(target) is decided by the solve AT the target; the capacity search can fail far above it (a column that does not
+        # converge at 1.6x) without saying anything about the target. Only a sample whose target solve fails is lost.
+        if "worker_error" in at or at.get("errors"):
             failed += 1
             continue
         checks = [c for c in at.get("checks") or [] if c.get("utilisation") is not None]
-        rows.append({"factors": {p: round(m, 4) for p, m in f.items()}, "capacity": cap.get("capacity_multiple"),
-                     "infeasible": infeasible, "limited_by": f"{lim.get('id')}: {lim.get('check')}",
+        met = all(c["utilisation"] <= 1.0 + 1e-9 for c in checks)
+        capacity = None if "worker_error" in cap else cap.get("capacity_multiple")
+        rows.append({"factors": {p: round(m, 4) for p, m in f.items()}, "capacity": capacity, "met_target": met,
+                     "infeasible": infeasible and not met,
+                     "limited_by": f"{lim.get('id')}: {lim.get('check')}" if lim else
+                                   (max(checks, key=lambda c: c["utilisation"], default={}).get("id", "none") + ": highest load at target"),
                      "at_target": {f"{c['id']}: {c['check']}": c["utilisation"] for c in checks}})
     if not rows:
         return {"error": f"all {n} samples failed to solve"}
     feasible = [r for r in rows if not r["infeasible"]]
-    caps = [r["capacity"] for r in feasible] or [0.0]
+    caps = [r["capacity"] for r in feasible if r["capacity"] is not None] or [0.0]
     share = {}
     for r in rows:
         share[r["limited_by"]] = share.get(r["limited_by"], 0) + 1
     limiting = [{"item": item, "share": round(c / len(rows), 3)} for item, c in sorted(share.items(), key=lambda x: -x[1])]
     top = limiting[0]["item"]
     loads = [r["at_target"].get(top) for r in rows if r["at_target"].get(top) is not None]
-    p_target = sum((r["capacity"] or 0) >= target - 1e-9 for r in rows) / len(rows)
+    p_target = sum(r["met_target"] for r in rows) / len(rows)
     # which input moves capacity most: the mean capacity of each input's high half minus its low half (infeasible = 0)
     drivers = []
     for i in inputs:
-        lo = [r["capacity"] or 0.0 for r in rows if r["factors"][i["path"]] < 1]
-        hi = [r["capacity"] or 0.0 for r in rows if r["factors"][i["path"]] >= 1]
+        cap_of = lambda r: r["capacity"] if r["capacity"] is not None else (target if r["met_target"] else 0.0)  # noqa: E731
+        lo = [cap_of(r) for r in rows if r["factors"][i["path"]] < 1]
+        hi = [cap_of(r) for r in rows if r["factors"][i["path"]] >= 1]
         if lo and hi:
             drivers.append({"path": i["path"], "kind": i["kind"], "effect": round(statistics.fmean(hi) - statistics.fmean(lo), 4)})
     drivers.sort(key=lambda d: -abs(d["effect"]))
