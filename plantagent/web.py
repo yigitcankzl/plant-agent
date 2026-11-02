@@ -176,7 +176,8 @@ def run_detail(case, run):
     d = RUNS / case / run
     study = _json(d / "study.json", {})
     an = study.get("analysis", {})
-    key = Case(case).answer_key or {}
+    source = Case(case)
+    key = source.answer_key or {}
     grade = _json(d / "grade.json")
     verdicts = {i["id"]: i for i in (grade or {}).get("items", [])}
     return {"case": case, "run": run, "question": study.get("question") or Case(case).question,
@@ -188,7 +189,9 @@ def run_detail(case, run):
             "drawing_changes": [{**ch, "bbox": (_anchor(study["drawing"], ch.get("anchor_value") or -1, ch.get("structure", "")) or {}).get("bbox")}
                                 for ch in an.get("drawing_changes") or [] if isinstance(ch, dict)] if study.get("drawing") else [],
             "profiles": [{"label": k, "purpose": v["purpose"], "flows": v["flows"]} for k, v in (study.get("profiles") or {}).items()],
-            "base_profile": an.get("base_profile_run"), "has_drawing": bool(study.get("drawing")),
+            "base_profile": an.get("base_profile_run"),
+            "has_drawing": bool(study.get("drawing")) and source.pdf.exists(),
+            "drawing_note": "Source drawing not shipped; the stored study replay remains available." if study.get("drawing") and not source.pdf.exists() else None,
             "eps_runs": [{"label": k, "tool": v["tool"], "purpose": v["purpose"],
                           "score": v["result"].get("mean_relative_rmse", v["result"].get("after_mean_relative_rmse"))}
                          for k, v in (study.get("eps_runs") or {}).items()],
@@ -487,8 +490,12 @@ def plant_project(case):
     has_compressor_curve = any(u.get("type") == "compressor" and u.get("id") in curved for u in (w.spec or {}).get("units") or [])
     historian_map = ROOT / "cases" / case / "historian_map.json"
     historian_cfg = json.loads(historian_map.read_text()) if historian_map.exists() else {}
+    source_missing = bool(w.cfg.get("pid_pdf")) and not (DATA_ROOT / w.cfg["pid_pdf"]).is_file()
+    data_note = w.cfg.get("data_note") or ""
+    if source_missing:
+        data_note += " The public source drawing is not redistributed and is unavailable on this host; the stored read and model are shown over a labelled placeholder."
     return {"case": case, "kind": "process", "engine": w.cfg.get("engine", "dwsim"), "title": w.cfg["title"], "source": w.cfg["source"], "question": w.cfg["question"], "task_type": w.cfg.get("task_type"), "suggested_questions": w.cfg.get("suggested_questions"), "drawing_note": w.cfg.get("drawing_note"),
-            "data_note": w.cfg.get("data_note"), "featured_work": w.cfg.get("featured_work"), "throughput": w.cfg.get("throughput"), "drawing": "svg" if w.cfg.get("svg") else "pdf" if w.cfg.get("pid_pdf") else "none", "dexpi": bool(w.cfg.get("pid")),
+            "data_note": data_note, "featured_work": w.cfg.get("featured_work"), "throughput": w.cfg.get("throughput"), "drawing": "svg" if w.cfg.get("svg") else "pdf" if w.cfg.get("pid_pdf") else "none", "dexpi": bool(w.cfg.get("pid")),
             "target_scale": w.cfg.get("target_scale", 1.0), "pid": w.pid or {"equipment": [], "connections": [], "valves": [], "control": []}, "basis": w.basis, "model": w.model,
             "has_compressor_curve": has_compressor_curve, "allow_runs": os.getenv("WEB_ALLOW_RUNS") == "1",
             "built": {**{k: v for k, v in w.built.items() if k != "result"},
@@ -757,6 +764,31 @@ def drawing_png(case):
     c = Case(case)
     page = pymupdf.open(c.pdf)[c.cfg["drawing_page"] - 1]
     return page.get_pixmap(matrix=pymupdf.Matrix(1.6, 1.6)).tobytes("png")
+
+
+@lru_cache(maxsize=16)
+def missing_source_png(title, url):
+    """An honest image fallback when a public source sheet is intentionally not redistributed."""
+    doc = pymupdf.open()
+    page = doc.new_page(width=1200, height=760)
+    page.draw_rect(page.rect, color=(0.08, 0.24, 0.25), fill=(0.96, 0.97, 0.95), width=3)
+    page.insert_textbox(pymupdf.Rect(90, 220, 1110, 540),
+                        f"SOURCE DRAWING NOT SHIPPED\n\n{title}\n\nThe stored model and Muse read remain available.\nDownload the public source from:\n{url}",
+                        fontsize=24, fontname="hebo", color=(0.08, 0.24, 0.25), align=pymupdf.TEXT_ALIGN_CENTER)
+    data = page.get_pixmap().tobytes("png")
+    doc.close()
+    return data
+
+
+def whatif_preview(w, changes, scale):
+    """A missing solver is an expected replay limitation, not an HTTP 500."""
+    try:
+        return w.whatif(changes, scale)
+    except RuntimeError as error:
+        message = str(error)
+        if "not installed" not in message and "no precomputed solutions" not in message:
+            raise
+        return {"error": f"Preview unavailable without the simulator: {message}", "unavailable": True}
 
 
 def start_run(case):
@@ -1032,7 +1064,9 @@ class Handler(SimpleHTTPRequestHandler):
             if what == "sheet.png":
                 from . import pidvision
                 rotate = w.cfg.get("pid_rotate", 0) if q.get("rotate") == "1" else 0
-                return self._send(pidvision.render(DATA_ROOT / w.cfg["pid_pdf"], w.cfg.get("pid_page", 1) - 1, rotate=rotate), "image/png")
+                source = DATA_ROOT / w.cfg["pid_pdf"]
+                image = pidvision.render(source, w.cfg.get("pid_page", 1) - 1, rotate=rotate) if source.is_file() else missing_source_png(w.cfg["title"], w.cfg.get("url", "see cases/<case>/case.json"))
+                return self._send(image, "image/png")
             if what == "build" and method == "POST":
                 return self._send(plant_job(case, lambda w: {k: v for k, v in w.build().items() if k != "result"}))
             if what == "work":  # the engineering loop (loop.py): Muse proposes and fixes, the engines check every round
@@ -1056,7 +1090,7 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(w.existing_state(sc) if q.get("view") == "existing" else w.state(sc))
             if what == "whatif" and method == "POST":
                 try:
-                    return self._send(w.whatif(body.get("changes") or [], body.get("scale")))
+                    return self._send(whatif_preview(w, body.get("changes") or [], body.get("scale")))
                 except ValueError as e:
                     return self._send({"error": str(e)}, code=409)
             if what == "capacity":

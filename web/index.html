@@ -220,7 +220,7 @@ async function renderDrawing() {
       <select id="plabel">${cur.profiles.map(x => `<option value="${esc(x.label)}" ${x.label === base ? "selected" : ""}>${esc(x.label)}</option>`).join("")}</select>
     </div>
     <div class="note" id="ppurpose"></div>
-    <div class="sheet" id="sheet" style="margin-top:10px">${cur.has_drawing ? `<img src="/api/drawing/${c}/png" alt="hydraulic profile drawing">` : `<div class="empty">no drawing</div>`}</div>
+    <div class="sheet" id="sheet" style="margin-top:10px">${cur.has_drawing ? `<img src="/api/drawing/${c}/png" alt="hydraulic profile drawing">` : `<div class="empty">${esc(cur.drawing_note || 'no drawing')}</div>`}</div>
     <div class="grid3" style="margin-top:14px">
       <div class="card"><h3>Water surface (true scale)</h3><svg id="chart" viewBox="0 0 520 260" width="100%"></svg></div>
       <div class="card"><h3>Flow at which each limit binds</h3><div id="caps"></div></div>
