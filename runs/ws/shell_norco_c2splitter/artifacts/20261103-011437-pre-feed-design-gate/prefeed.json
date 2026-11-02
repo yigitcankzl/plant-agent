@@ -1,0 +1,396 @@
+{
+  "case": "shell_norco_c2splitter",
+  "made": "2026-11-03T01:14:37+0300",
+  "design_answer": "Tower floods at +25% - needs high-capacity trays",
+  "proposal_titles": [
+    "Retray PV-1767 with high-capacity trays"
+  ],
+  "envelope": {
+    "robust_pass": true,
+    "scenarios": [
+      {
+        "name": "today",
+        "scale": 1.0,
+        "basis": "current throughput",
+        "pass": true,
+        "worst": {
+          "id": "PV-1767",
+          "check": "Fair flood fraction vs limit",
+          "value": 0.667,
+          "limit": 0.85,
+          "unit": "fraction of flood",
+          "utilisation": 0.785
+        },
+        "over": [],
+        "errors": [],
+        "checks": [],
+        "all_checks": [
+          {
+            "id": "PV-1767",
+            "check": "Fair flood fraction vs limit",
+            "value": 0.667,
+            "limit": 0.85,
+            "unit": "fraction of flood",
+            "utilisation": 0.785
+          }
+        ],
+        "balance": {
+          "status": "ok",
+          "feeds": [
+            "FEED"
+          ],
+          "products": [
+            "BOTTOMS",
+            "ETHYLENE",
+            "VENT"
+          ],
+          "mass_in_kg_h": 92000.0,
+          "mass_out_kg_h": 92000.2,
+          "mass_error_pct": 0.0,
+          "component_error_pct": {
+            "Ethane": 0.009,
+            "Ethylene": 0.005,
+            "Isobutane": 0.008,
+            "Methane": 0.0,
+            "Nitrogen": 0.0,
+            "Propylene": 0.01
+          },
+          "energy": "not checked: the solver does not report enthalpy on the boundary streams"
+        }
+      },
+      {
+        "name": "target",
+        "scale": 1.25,
+        "basis": "case target",
+        "pass": true,
+        "worst": {
+          "id": "PV-1767",
+          "check": "Fair flood fraction vs limit",
+          "value": 0.834,
+          "limit": 0.85,
+          "unit": "fraction of flood",
+          "utilisation": 0.981
+        },
+        "over": [],
+        "errors": [],
+        "checks": [
+          {
+            "id": "PV-1767",
+            "check": "Fair flood fraction vs limit",
+            "value": 0.834,
+            "limit": 0.85,
+            "unit": "fraction of flood",
+            "utilisation": 0.981
+          }
+        ],
+        "all_checks": [
+          {
+            "id": "PV-1767",
+            "check": "Fair flood fraction vs limit",
+            "value": 0.834,
+            "limit": 0.85,
+            "unit": "fraction of flood",
+            "utilisation": 0.981
+          }
+        ],
+        "balance": {
+          "status": "ok",
+          "feeds": [
+            "FEED"
+          ],
+          "products": [
+            "BOTTOMS",
+            "ETHYLENE",
+            "VENT"
+          ],
+          "mass_in_kg_h": 115000.0,
+          "mass_out_kg_h": 115000.3,
+          "mass_error_pct": 0.0,
+          "component_error_pct": {
+            "Ethane": 0.009,
+            "Ethylene": 0.005,
+            "Isobutane": 0.006,
+            "Methane": 0.0,
+            "Nitrogen": 0.0,
+            "Propylene": 0.008
+          },
+          "energy": "not checked: the solver does not report enthalpy on the boundary streams"
+        }
+      }
+    ],
+    "governing": {
+      "scenario": "target",
+      "id": "PV-1767",
+      "check": "Fair flood fraction vs limit",
+      "value": 0.834,
+      "limit": 0.85,
+      "unit": "fraction of flood",
+      "utilisation": 0.981
+    }
+  },
+  "equipment": [],
+  "dynamics": {
+    "status": "not run",
+    "reason": "no measured dynamic model",
+    "needed": [
+      "equipment liquid/vapour holdup",
+      "controller action and tuning",
+      "valve/drive response",
+      "step-test time constant and dead time",
+      "trip and permissive logic"
+    ]
+  },
+  "hazards": {
+    "method": "automated change-focused HAZOP/relief screening; team HAZOP and API/ISO sizing remain required",
+    "rows": [],
+    "relief_findings": []
+  },
+  "constructability": {
+    "physical_units": [],
+    "reroutes": 0,
+    "tie_ins": 0,
+    "outage_required": false,
+    "cost_classes": [
+      "not stated"
+    ],
+    "quantified": null,
+    "checks": [],
+    "unpriced": [
+      "installed equipment",
+      "piping/tie-ins",
+      "electrical and controls",
+      "civil/structural",
+      "outage production loss"
+    ]
+  },
+  "disciplines": [
+    {
+      "id": "process",
+      "status": "pass",
+      "summary": "design reaches 125 % (max 127 %, re-solved now)",
+      "source": "DWSIM re-solve of the combined design on the current model",
+      "checks": [
+        {
+          "id": "plant",
+          "check": "maximum throughput with all verified changes vs target",
+          "value": "127.5",
+          "limit": "125",
+          "unit": "%",
+          "kind": "max",
+          "status": "ok",
+          "result": "98 %",
+          "source": "DWSIM re-solve of all 1 verified change(s) together on the current model"
+        }
+      ]
+    },
+    {
+      "id": "mechanical",
+      "status": "not affected",
+      "summary": "no new physical equipment",
+      "source": "proposal calculation and provisional ratings"
+    },
+    {
+      "id": "electrical",
+      "status": "not affected",
+      "summary": "no new driver identified",
+      "source": "constructability gate"
+    },
+    {
+      "id": "piping_utilities",
+      "status": "open",
+      "summary": "no calculation adapter: tie-ins, line sizing, supports and utility headers remain open for PV-1767",
+      "source": "proposal topology (no engine for this discipline)",
+      "checks": []
+    },
+    {
+      "id": "controls",
+      "status": "open",
+      "summary": "no calculation adapter: control narrative, split/load-sharing control, cause & effect and permissives remain open for PV-1767",
+      "source": "proposal topology (no engine for this discipline)",
+      "checks": []
+    },
+    {
+      "id": "process_safety",
+      "status": "open",
+      "summary": "no calculation adapter: change-focused HAZOP, relief case and isolation for the changed equipment remain open for PV-1767",
+      "source": "proposal topology (no engine for this discipline)",
+      "checks": []
+    },
+    {
+      "id": "civil_structural",
+      "status": "open",
+      "summary": "no calculation adapter: plot, access, lifting and foundations remain open for PV-1767",
+      "source": "proposal topology (no engine for this discipline)",
+      "checks": []
+    },
+    {
+      "id": "robustness",
+      "status": "fail",
+      "summary": "draft (assumed values): operating envelope 1/2 scenarios pass (fails: Target, feed +10 %)",
+      "source": "DWSIM solves of the pre-FEED operating envelope",
+      "checks": [
+        {
+          "id": "PV-1767",
+          "check": "scenario 'Target, feed +10 %': Fair flood fraction vs limit",
+          "value": "0.917",
+          "limit": "0.85",
+          "unit": "fraction of flood",
+          "kind": "max",
+          "status": "over",
+          "result": "108 %",
+          "source": "DWSIM solve; scenario basis: draft (assumed values): feed swing above the target"
+        },
+        {
+          "id": "PV-1767",
+          "check": "scenario 'Target, feed -10 %': Fair flood fraction vs limit",
+          "value": "0.751",
+          "limit": "0.85",
+          "unit": "fraction of flood",
+          "kind": "max",
+          "status": "ok",
+          "result": "88 %",
+          "source": "DWSIM solve; scenario basis: draft (assumed values): turndown below the target (minimum flows)"
+        }
+      ]
+    }
+  ],
+  "decision_inputs": [],
+  "options": {
+    "options": [
+      {
+        "title": "Retray PV-1767 with high-capacity trays",
+        "verified": true,
+        "role": "standalone target",
+        "capacity_multiple": 1.275,
+        "cost_class": "not stated",
+        "physical_units": []
+      },
+      {
+        "title": "Combined proposed design",
+        "verified": true,
+        "role": "combined envelope",
+        "capacity_multiple": 1.25,
+        "cost_class": "not stated",
+        "physical_units": []
+      }
+    ],
+    "pareto": "not ranked: sourced numeric cost, outage and energy values are required"
+  },
+  "commissioning": {
+    "status": "open",
+    "scenario": "target",
+    "tests": [],
+    "note": "Open tests are commissioning requirements, not evidence that the installed change passed."
+  },
+  "economics": {
+    "summary": "draft (assumed values): Capex \u2248 $0k (class 5: $0k\u2013$0k) plus unpriced items (replace PV-1767): capex is a lower bound; product price not given: margin, payback and NPV open (energy and utilities $0k/yr). All prices ILLUSTRATIVE.",
+    "capex": {
+      "total_usd": 0.0,
+      "range_usd": [
+        0.0,
+        0.0
+      ],
+      "range_basis": "AACE 18R-97 class 5, -50 % / +100 %",
+      "proposals": [
+        {
+          "title": "Retray PV-1767 with high-capacity trays",
+          "cost_class": null,
+          "capex_usd": 0,
+          "lines": [
+            {
+              "item": "replace PV-1767",
+              "basis": "new rating {'tray_capacity_factor': 1.65}",
+              "usd": null,
+              "source": "to price (vendor quote)"
+            }
+          ],
+          "unpriced": [
+            "replace PV-1767"
+          ],
+          "cost_class_check": null
+        }
+      ]
+    },
+    "annual": {
+      "throughput_name": "Process feed",
+      "unit": "t/d",
+      "base": 2208.0,
+      "sold_multiple": 1.25,
+      "gain_per_day": 552.0,
+      "operating_days": 330.0,
+      "revenue_usd": 0.0,
+      "product_margin_usd": 0.0,
+      "energy": [],
+      "utilities": [],
+      "margin_usd": 0.0,
+      "basis": "solved 1.250 \u00d7 base, capped at the 125% target; energy from dwsim solves (design at 125% vs today at 100 %)"
+    },
+    "outage": {
+      "days": 2.0,
+      "usd": 0.0,
+      "source": "muse_default shutdown for a tie-in or exchanger clean"
+    },
+    "payback_years": null,
+    "npv_usd": 0.0,
+    "npv_range_usd": [
+      0.0,
+      0.0
+    ]
+  },
+  "uncertainty": {
+    "summary": "Target 125% met in 92% of 48 samples; max throughput P10/P50/P90 127% / 127% / 128%; most often limited by PV-1767: Fair flood fraction vs limit (100%); biggest driver feeds.FEED.P_bar (assumed).",
+    "method": "Latin hypercube, 48 samples (seed 20261101), uniform \u00b1 band per input kind; each sample re-solved (dwsim): capacity bisection plus the solve at the target",
+    "capacity": {
+      "p10": 1.2654,
+      "p50": 1.274,
+      "p90": 1.2773
+    },
+    "p_target": 0.917,
+    "limiting": [
+      {
+        "item": "PV-1767: Fair flood fraction vs limit",
+        "share": 1.0
+      }
+    ],
+    "drivers": [
+      {
+        "path": "feeds.FEED.P_bar",
+        "kind": "assumed",
+        "effect": -0.016
+      },
+      {
+        "path": "units.PV-1767.dP_bar",
+        "kind": "assumed",
+        "effect": -0.0135
+      },
+      {
+        "path": "feeds.FEED.T_C",
+        "kind": "assumed",
+        "effect": -0.0135
+      }
+    ],
+    "inputs": [
+      {
+        "path": "units.PV-1767.dP_bar",
+        "kind": "assumed",
+        "band_pct": 10,
+        "base": 1.703,
+        "source": "not found next to its tag in the plant documents: assumed while building"
+      },
+      {
+        "path": "feeds.FEED.P_bar",
+        "kind": "assumed",
+        "band_pct": 10,
+        "base": 25.5,
+        "source": "not found next to its tag in the plant documents: assumed while building"
+      },
+      {
+        "path": "feeds.FEED.T_C",
+        "kind": "assumed",
+        "band_pct": 10,
+        "base": -9.5,
+        "source": "not found next to its tag in the plant documents: assumed while building"
+      }
+    ]
+  }
+}

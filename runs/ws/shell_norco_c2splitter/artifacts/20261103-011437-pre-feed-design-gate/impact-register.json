@@ -1,0 +1,91 @@
+[
+  {
+    "id": "process",
+    "status": "pass",
+    "summary": "design reaches 125 % (max 127 %, re-solved now)",
+    "source": "DWSIM re-solve of the combined design on the current model",
+    "checks": [
+      {
+        "id": "plant",
+        "check": "maximum throughput with all verified changes vs target",
+        "value": "127.5",
+        "limit": "125",
+        "unit": "%",
+        "kind": "max",
+        "status": "ok",
+        "result": "98 %",
+        "source": "DWSIM re-solve of all 1 verified change(s) together on the current model"
+      }
+    ]
+  },
+  {
+    "id": "mechanical",
+    "status": "not affected",
+    "summary": "no new physical equipment",
+    "source": "proposal calculation and provisional ratings"
+  },
+  {
+    "id": "electrical",
+    "status": "not affected",
+    "summary": "no new driver identified",
+    "source": "constructability gate"
+  },
+  {
+    "id": "piping_utilities",
+    "status": "open",
+    "summary": "no calculation adapter: tie-ins, line sizing, supports and utility headers remain open for PV-1767",
+    "source": "proposal topology (no engine for this discipline)",
+    "checks": []
+  },
+  {
+    "id": "controls",
+    "status": "open",
+    "summary": "no calculation adapter: control narrative, split/load-sharing control, cause & effect and permissives remain open for PV-1767",
+    "source": "proposal topology (no engine for this discipline)",
+    "checks": []
+  },
+  {
+    "id": "process_safety",
+    "status": "open",
+    "summary": "no calculation adapter: change-focused HAZOP, relief case and isolation for the changed equipment remain open for PV-1767",
+    "source": "proposal topology (no engine for this discipline)",
+    "checks": []
+  },
+  {
+    "id": "civil_structural",
+    "status": "open",
+    "summary": "no calculation adapter: plot, access, lifting and foundations remain open for PV-1767",
+    "source": "proposal topology (no engine for this discipline)",
+    "checks": []
+  },
+  {
+    "id": "robustness",
+    "status": "fail",
+    "summary": "draft (assumed values): operating envelope 1/2 scenarios pass (fails: Target, feed +10 %)",
+    "source": "DWSIM solves of the pre-FEED operating envelope",
+    "checks": [
+      {
+        "id": "PV-1767",
+        "check": "scenario 'Target, feed +10 %': Fair flood fraction vs limit",
+        "value": "0.917",
+        "limit": "0.85",
+        "unit": "fraction of flood",
+        "kind": "max",
+        "status": "over",
+        "result": "108 %",
+        "source": "DWSIM solve; scenario basis: draft (assumed values): feed swing above the target"
+      },
+      {
+        "id": "PV-1767",
+        "check": "scenario 'Target, feed -10 %': Fair flood fraction vs limit",
+        "value": "0.751",
+        "limit": "0.85",
+        "unit": "fraction of flood",
+        "kind": "max",
+        "status": "ok",
+        "result": "88 %",
+        "source": "DWSIM solve; scenario basis: draft (assumed values): turndown below the target (minimum flows)"
+      }
+    ]
+  }
+]
