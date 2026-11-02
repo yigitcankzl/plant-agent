@@ -228,6 +228,26 @@ def replaced_equipment(spec, changes):
     return out
 
 
+def sandbox_notes(base, trial):
+    """What the server's verify would refuse in a trial spec, said while Muse is still exploring. Norco: Spark Open and
+    Wonder both edited a rated limit and re-set the feed rate in their own runs, saw them pass, and were refused at verify."""
+    notes, units = [], {u.get("id"): u for u in base.get("units") or []}
+    for u in (trial or {}).get("units") or []:
+        old, rated = units.get(u.get("id")) or {}, (base.get("limits") or {}).get(u.get("id")) or {}
+        for f in sorted(_REPLACEMENT_FIELDS & set(rated) - {"area_m2"}):
+            if f in u and f in old and u[f] != old[f]:
+                notes.append(f"{u['id']}.{f} is a rated limit: in a proposal write it as replace_unit {{\"replace_unit\": "
+                             f"\"{u['id']}\", \"new_rating\": {{\"{f}\": {u[f]!r}}}, \"basis\": \"...\", \"vendor_confirm\": true}}, "
+                             "not as a path edit")
+    for fid, feed in ((trial or {}).get("feeds") or {}).items():
+        old = (base.get("feeds") or {}).get(fid) or {}
+        for k in ("kg_h", "m3_h"):
+            if not old.get("utility") and k in feed and k in old and feed[k] != old[k]:
+                notes.append(f"feeds.{fid}.{k} differs from today's feed: the server verifies a proposal at target × today's "
+                             "feed, so keep today's rate in the proposal and use run_process scale= to test the target here")
+    return notes
+
+
 def change_errors(spec, changes, require_evidence=True):
     """Validate the structural proposal boundary before it reaches the simulator."""
     if ro_changes.is_ro(spec):
@@ -2304,7 +2324,8 @@ class PlantWorkspace(Study):
             label = f"{label}-{len(self.runs) + 1}" if label in self.runs else label
             r = process.run(a["spec"], float(a.get("scale") or 1.0))
             self.runs[label] = {"spec": a["spec"], "purpose": a.get("purpose", ""), "scale": a.get("scale") or 1.0, "result": r}
-            return {"label": label, **r}
+            notes = sandbox_notes(self.spec or {}, a["spec"]) if isinstance(a["spec"], dict) else []
+            return {"label": label, **r, **({"proposal_rules": notes} if notes else {})}
         if name == "process_capacity":
             if _is_watertap(self.cfg):
                 return {"error": "process_capacity is for DWSIM cases; this case uses ro_capacity (WaterTAP)"}
