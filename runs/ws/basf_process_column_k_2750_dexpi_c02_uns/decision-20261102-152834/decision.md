@@ -1,12 +1,12 @@
 # Management of Change: BASF process column K 2750 (DEXPI C02, unseen)
 
-**DRAFT - NOT APPROVED.** Prepared 2026-11-02 14:46 +03 by PlantAgent from the working model. Nothing in this file is an approval.
+**DRAFT - NOT APPROVED.** Prepared 2026-11-02 15:28 +03 by PlantAgent from the working model. Nothing in this file is an approval.
 
 ## 1. Summary
 
 | | |
 |---|---|
-| **Decision requested** | Approve for detailed engineering: 1 change to reach 120 % of today's throughput - (1) Replace column with 600 mm ID rated shell (vendor to confirm). |
+| **Decision requested** | Simulator screening passed; proceed to data and vendor verification (not ready for approval): 1 change to reach 120 % of today's throughput - (1) Replace column with 600 mm ID rated shell (vendor to confirm). |
 | **Target** | 120 % of today's throughput |
 | **Result (DWSIM, re-solved for this file)** | At 120 %, existing plant: 1 limit over 100 % (highest K 2750 distillation Fair flood fraction vs limit 110 %); with the changes: all modelled process limits within 100 % (highest K 2750 distillation Fair flood fraction vs limit 76 %). Simulated maximum throughput: 113.1 % → 145.1 % of today. |
 | **Cost class (agent estimate, unpriced)** | (1) not stated |
@@ -73,32 +73,15 @@ Cloud 1 on the Rev B drawing. Cost class (agent estimate, unpriced): not stated.
 
 #### Economics (ILLUSTRATIVE prices; order of magnitude)
 
-- draft (assumed values): Capex ≈ $0k (class 5: $0k–$0k); product price not given: margin, payback and NPV open (energy and utilities $0k/yr). All prices ILLUSTRATIVE.
+- draft (assumed values): Capex ≈ $0k (class 5: $0k–$0k) plus unpriced items (replace K 2750): capex is a lower bound; product price not given: margin, payback and NPV open (energy and utilities $0k/yr). All prices ILLUSTRATIVE.
 
 | Proposal | Stated class | Factored capex | Check |
 |---|---|---|---|
-| Replace column with 600 mm ID rated shell (vendor to confirm) |  | $0 |  |
+| Replace column with 600 mm ID rated shell (vendor to confirm) |  | $0 + to price: replace K 2750 |  |
 
 - Added Process feed: 5 t/d × 330 d; product margin $0/yr (solved 1.451 × base, capped at the 120% target; energy from DWSIM solves (design at 120% vs today at 100 %)).
-- Outage for tie-ins/cleaning: 0 d → $0 (muse_default shutdown for a tie-in or exchanger clean).
+- Outage for tie-ins/cleaning: 2 d → $0 (muse_default shutdown for a tie-in or exchanger clean).
 - Payback None years; NPV $0 (capex band: $0 to $0).
-
-#### Uncertainty of the design (Monte Carlo over assumed and illustrative inputs)
-
-- Target 120% met in 100% of 48 samples; max throughput P10/P50/P90 144% / 145% / 145%; most often limited by K 2750: Fair flood fraction vs limit (100%); biggest driver feeds.FEED.T_C (assumed).
-- Method: Latin hypercube, 48 samples (seed 20261101), uniform ± band per input kind; each sample re-solved (DWSIM): capacity bisection plus the solve at the target; 48 of 48 samples solved.
-
-| Input | Kind | Base | ± band |
-|---|---|---|---|
-| units.*at N3*/*C2*.dP_bar | assumed | 0.487 | 10 % |
-| units.K 2750.dP_bar | assumed | 0.03 | 10 % |
-| feeds.FEED.P_bar | assumed | 3.0 | 10 % |
-| feeds.FEED.T_C | assumed | 85 | 10 % |
-| limits.*at N3*.max_T_C | assumed | 150 | 10 % |
-| limits.FEED.max_T_C | assumed | 150 | 10 % |
-| limits.VENT_INT.max_T_C | assumed | 150 | 10 % |
-
-- K 2750: Fair flood fraction vs limit at the target: load P10/P50/P90 76% / 76% / 77%.
 
 ## 5. Drawings
 
@@ -117,10 +100,10 @@ Pass/fail only from a sourced check; a check over an ILLUSTRATIVE rating leaves 
 | Gate | Status | Summary |
 |---|---|---|
 | robustness | **pass** | draft (assumed values): operating envelope 2/2 scenarios pass |
-| piping utilities | **not affected** | no physical or routing change |
-| controls | **not affected** | no physical or routing change |
-| process safety | **not affected** | no physical or routing change |
-| civil structural | **not affected** | no physical or routing change |
+| piping utilities | **open** | no calculation adapter: tie-ins, line sizing, supports and utility headers remain open for K 2750 |
+| controls | **open** | no calculation adapter: control narrative, split/load-sharing control, cause & effect and permissives remain open for K 2750 |
+| process safety | **open** | no calculation adapter: change-focused HAZOP, relief case and isolation for the changed equipment remain open for K 2750 |
+| civil structural | **open** | no calculation adapter: plot, access, lifting and foundations remain open for K 2750 |
 
 ### 6.2 Pre-startup safety review (PSSR), generated from the changes
 
@@ -150,8 +133,8 @@ No second opinion was requested for this answer.
 
 ## Appendix A. Reproducibility
 
-- Code version (git): c2b7100; simulator: DWSIM (headless) via plantagent.process.
-- Audit-chain head hash: `c5ab20c8b4bd3d70718d6d305703d5a4a18b8f9ef713c3d02877f0ee5987716c` (chain intact: True).
+- Code version (git): 4299e5d; simulator: DWSIM (headless) via plantagent.process.
+- Audit-chain head hash: `a8bcd9bcd14f1fd0eab97d0d269de52ea4f08fea990ad6d441e1aee46714e0bb` (chain intact: True).
 - Model: K2750_submitted by baseten:meta-models/muse-spark-open-1026 on 2026-11-01 20:35; answer by baseten:meta-models/muse-spark-open-1026.
 - Run labels and calculation records: K2750_submitted.
 - Sections 1, 3 and 6.2 were recomputed when this file was made; re-run `python -m plantagent.decision basf_process_column_k_2750_dexpi_c02_uns` on the same revisions to reproduce them.

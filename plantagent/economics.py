@@ -194,7 +194,9 @@ def assess(w, answer=None, refresh=False):
     pb = ("none" if payback is None else f"{payback * 52:.0f} weeks" if payback < 0.25 else
           f"{payback * 12:.0f} months" if payback < 2 else f"{payback:.1f} years")
     summary = ((f"{drafts.DRAFT}: " if drafts.is_draft(cfg) else "") +
-               f"Capex ≈ {money(total)} (class 5: {money(band[0])}–{money(band[1])}); " +
+               f"Capex ≈ {money(total)} (class 5: {money(band[0])}–{money(band[1])})" +
+               (f" plus unpriced items ({', '.join(u for r in rows for u in r['unpriced'])}): capex is a lower bound; "
+                if any(r["unpriced"] for r in rows) else "; ") +
                (f"product price not given: margin, payback and NPV open (energy and utilities {money(margin)}/yr)" if no_price else
                 f"+{gain_day:,.0f} {tp.get('unit', '')} → {money(margin)}/yr margin after energy and utilities; payback {pb}; "
                 f"NPV {years} y @ {rate:.0%} {money(npv(total))}") + ". All prices ILLUSTRATIVE.")
@@ -243,7 +245,7 @@ def markdown(e):
     a = e["annual"]
     md = ["", "### Economics (ILLUSTRATIVE prices; order of magnitude)", "", f"- {e['summary']}", "",
           "| Proposal | Stated class | Factored capex | Check |", "|---|---|---|---|"]
-    md += [f"| {p['title']} | {p['cost_class'] or ''} | ${p['capex_usd']:,.0f} | {p['cost_class_check'] or ''} |" for p in e["capex"]["proposals"]]
+    md += [f"| {p['title']} | {p['cost_class'] or ''} | ${p['capex_usd']:,.0f}{' + to price: ' + ', '.join(p['unpriced']) if p.get('unpriced') else ''} | {p['cost_class_check'] or ''} |" for p in e["capex"]["proposals"]]
     md += ["", f"- Added {a['throughput_name'] or 'throughput'}: {a['gain_per_day']:,.0f} {a['unit'] or ''} × {a['operating_days']:.0f} d; "
                f"product margin ${a['product_margin_usd']:,.0f}/yr ({a['basis']})."]
     md += [f"- {x['name']}: {x['delta_kW']:+,.0f} kW → ${x['usd_per_year']:,.0f}/yr at {x['price']['value']} {x['price']['unit']} ({x['price']['source']})."
