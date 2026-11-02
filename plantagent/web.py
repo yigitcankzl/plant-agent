@@ -1025,7 +1025,9 @@ class Handler(SimpleHTTPRequestHandler):
             if not (folder / "read.json").is_file():
                 return self._send({"error": "redline not found"}, code=404)
             if len(parts) == 5 and method == "GET":
-                return self._send(json.loads((folder / "read.json").read_text()))
+                reading = json.loads((folder / "read.json").read_text())
+                confirmed = folder / "confirmed.json"
+                return self._send({**reading, "confirmed": json.loads(confirmed.read_text()) if confirmed.exists() else None})
             if len(parts) == 6 and parts[5] == "image.png" and method == "GET":
                 return self._send((folder / "image.png").read_bytes(), "image/png")
             if len(parts) == 6 and parts[5] == "confirm" and method == "POST":

@@ -33,7 +33,7 @@ Runtime records are written only when the feature is used; no demo workspace or 
 - `comparison.json`: `{id, key, confirmation_hash, engineer, muse, answer, muse_headline, drawing_url}`;
 - `engineer/` and `muse/`: separate engine-result caches, so comparison gates and uncertainty results do not overwrite the featured design's cache.
 
-The read cache is keyed by image, model, current spec and prompt. Every confirmed item is appended individually to the existing hash-chained audit log, with its original ink, edited change and confirmation hash; a final event records the selected and rejected lists. This uses the audit log rather than pretending design changes are scalar assumptions. A model change after the read or confirmation requires a new read/review.
+The read cache is keyed by image, equipment/stream tags, model, current spec and prompt. Every confirmed item is appended individually to the existing hash-chained audit log, with its original ink, edited change and confirmation hash; a final event records the selected and rejected lists. This uses the audit log rather than pretending design changes are scalar assumptions. A model change after the read or confirmation requires a new read/review. Reopening a saved redline restores the edited confirmation and its selection.
 
 | Request | Payload / response |
 |---|---|

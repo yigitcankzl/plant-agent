@@ -174,6 +174,12 @@ class RedlineTests(unittest.TestCase):
             path = f"/api/plant/salt_mvr/redline/{result['id']}/confirm"
             self.assertEqual(request(path, {"items": [{"index": 0}]}, "https://evil.test")[0], 403)
             self.assertEqual(request(path, {"items": [{"index": 0}]})[0], 200)
+            conn = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
+            conn.request("GET", f"/api/plant/salt_mvr/redline/{result['id']}")
+            response = conn.getresponse()
+            self.assertEqual(response.status, 200)
+            self.assertEqual(json.loads(response.read())["confirmed"]["changes"][0]["value"], 2500)
+            conn.close()
         with mock.patch.object(web, "all_cases", return_value=["salt_mvr"]), \
                 mock.patch.object(web, "plant_job", return_value={"job": "fake-job"}) as job, \
                 mock.patch.dict(os.environ, {"WEB_ALLOW_RUNS": "1", "WEB_AUTH_TOKEN": ""}):

@@ -29,8 +29,8 @@ async function api(url,body){const r=await fetch(url,body===undefined?{}:{method
 function error(e){$('error').textContent=e.message||String(e);$('status').textContent='';}
 function showImage(src){$('preview').src=src;$('preview').hidden=false;$('empty').hidden=true;}
 function renderRead(data){reading=data;$('items').replaceChildren();$('comparison').hidden=true;$('check').disabled=true;
- for(const item of data.items||[]){const row=document.createElement('article');row.className='reading';row.dataset.index=item.index;
-  const label=document.createElement('label'),tick=document.createElement('input');tick.type='checkbox';tick.checked=!!item.valid;tick.dataset.select='true';
+ for(const original of data.items||[]){const saved=(data.confirmed?.items||[]).find(i=>i.index===original.index),item=saved||original;const row=document.createElement('article');row.className='reading';row.dataset.index=item.index;
+  const label=document.createElement('label'),tick=document.createElement('input');tick.type='checkbox';tick.checked=data.confirmed?!!saved:!!item.valid;tick.dataset.select='true';
   label.append(tick,document.createTextNode(`${item.tag||'Unattached note'} / ${item.confidence==null?'confidence unknown':Math.round(item.confidence*100)+'% confidence'}`));
   const ink=document.createElement('blockquote');ink.textContent=item.ink||'No readable ink';
   const detail=document.createElement('textarea');detail.setAttribute('aria-label',`Structured change for ${item.tag||'note '+item.index}`);detail.value=JSON.stringify(item.change,null,2);detail.dataset.change='true';
@@ -38,7 +38,7 @@ function renderRead(data){reading=data;$('items').replaceChildren();$('compariso
   const issues=document.createElement('p');issues.className='error';issues.textContent=(item.errors||[]).join('\n');
   const unclear=document.createElement('p');unclear.className='unreadable';unclear.textContent=(item.unreadable||[]).join('; ');
   row.append(label,ink,detail,issues,unclear);$('items').append(row);
- }$('unreadable').textContent=(data.unreadable||[]).join('; ');$('confirm').disabled=!(data.items||[]).length;$('status').textContent='Read complete. Confirm the changes you intend.';}
+ }$('unreadable').textContent=(data.unreadable||[]).join('; ');$('confirm').disabled=!(data.items||[]).length;$('check').disabled=!data.confirmed;$('status').textContent=data.confirmed?'Saved confirmation loaded. Ready for engineering checks.':'Read complete. Confirm the changes you intend.';}
 $('image').onchange=()=>{if(localImage)URL.revokeObjectURL(localImage);const f=$('image').files[0];if(f){localImage=URL.createObjectURL(f);showImage(localImage);reading=null;$('items').replaceChildren();$('confirm').disabled=true;$('check').disabled=true;$('comparison').hidden=true;}};
 $('upload').onsubmit=async e=>{e.preventDefault();$('error').textContent='';const file=$('image').files[0];if(!file)return;if(file.size>20*1024*1024)return error(new Error('Choose an image smaller than 20 MB.'));
  $('read').disabled=true;$('image').disabled=true;$('status').textContent='Muse Wonder is reading the red ink…';try{const encoded=await new Promise((resolve,reject)=>{const f=new FileReader();f.onload=()=>resolve(f.result.split(',')[1]);f.onerror=reject;f.readAsDataURL(file);});let data=await api(endpoint,{image_b64:encoded});
