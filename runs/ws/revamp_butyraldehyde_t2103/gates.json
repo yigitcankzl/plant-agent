@@ -1,0 +1,91 @@
+{
+ "key": {
+  "headline": "11.5 t/h needs high-capacity T-2103 trays",
+  "request": "Feed +21 % (9.5 -> 11.5 t/h). Keep the isomer separation (product purity checks). Do not explain or sweep: propose a design now. If the existing T-2103 internals flood, replace them with replace_unit and a new rating (vendor to confirm). Column flow amounts are written at today's throughput; the solver scales them. Make the design pass every engineering check.",
+  "titles": [
+   "Replace T-2103 internals with high-capacity trays in same shell"
+  ],
+  "revisions": 0,
+  "content": "5efc9465f59dd703e178b16a393f6af92b3d471f"
+ },
+ "made": "2026-11-02T21:54:02+0300",
+ "disciplines": [
+  {
+   "id": "process",
+   "status": "pass",
+   "summary": "design reaches 121 % (max 154 %, re-solved now)",
+   "source": "DWSIM re-solve of the combined design on the current model",
+   "checks": [
+    {
+     "id": "plant",
+     "check": "maximum throughput with all verified changes vs target",
+     "value": "153.5",
+     "limit": "121.1",
+     "unit": "%",
+     "kind": "max",
+     "status": "ok",
+     "result": "79 %",
+     "source": "DWSIM re-solve of all 1 verified change(s) together on the current model"
+    }
+   ]
+  },
+  {
+   "id": "robustness",
+   "status": "pass",
+   "summary": "draft (assumed values): operating envelope 2/2 scenarios pass",
+   "source": "DWSIM solves of the pre-FEED operating envelope",
+   "checks": [
+    {
+     "id": "B_N",
+     "check": "scenario 'Target, feed +10 %': temperature vs design",
+     "value": "79.37",
+     "limit": "85",
+     "unit": "C",
+     "kind": "max",
+     "status": "ok",
+     "result": "5.63 K below the limit",
+     "source": "DWSIM solve; scenario basis: draft (assumed values): feed swing above the target"
+    },
+    {
+     "id": "B_N",
+     "check": "scenario 'Target, feed -10 %': temperature vs design",
+     "value": "79.37",
+     "limit": "85",
+     "unit": "C",
+     "kind": "max",
+     "status": "ok",
+     "result": "5.63 K below the limit",
+     "source": "DWSIM solve; scenario basis: draft (assumed values): turndown below the target (minimum flows)"
+    }
+   ]
+  },
+  {
+   "id": "piping_utilities",
+   "status": "open",
+   "summary": "no calculation adapter: tie-ins, line sizing, supports and utility headers remain open for T-2103",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "controls",
+   "status": "open",
+   "summary": "no calculation adapter: control narrative, split/load-sharing control, cause & effect and permissives remain open for T-2103",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "process_safety",
+   "status": "open",
+   "summary": "no calculation adapter: change-focused HAZOP, relief case and isolation for the changed equipment remain open for T-2103",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "civil_structural",
+   "status": "open",
+   "summary": "no calculation adapter: plot, access, lifting and foundations remain open for T-2103",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  }
+ ]
+}

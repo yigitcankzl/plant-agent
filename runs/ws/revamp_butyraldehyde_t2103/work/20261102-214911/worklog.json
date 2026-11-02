@@ -1,0 +1,241 @@
+{
+ "id": "20261102-214911",
+ "case": "revamp_butyraldehyde_t2103",
+ "goal": "Feed +21 % (9.5 -> 11.5 t/h). Keep the isomer separation (product purity checks). Do not explain or sweep: propose a design now. If the existing T-2103 internals flood, replace them with replace_unit and a new rating (vendor to confirm). Column flow amounts are written at today's throughput; the solver scales them. Make the design pass every engineering check.",
+ "label": null,
+ "model": "fireworks:accounts/fireworks/models/muse-spark-open",
+ "provider": "fireworks",
+ "max_rounds": 4,
+ "budget_usd": 8.0,
+ "status": "done",
+ "approval_status": "open",
+ "started": "2026-11-02T21:49:11+0300",
+ "usd_total": 0.0881,
+ "seconds_total": 1677,
+ "rounds": [
+  {
+   "n": 1,
+   "answer_index": 0,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "fireworks:accounts/fireworks/models/muse-spark-open",
+     "kind": "propose",
+     "status": "info",
+     "usd": 0.0881,
+     "seconds": 216,
+     "title": "Replace T-2103 internals with high-capacity trays in same shell",
+     "detail": "11.5 t/h needs high-capacity T-2103 trays",
+     "changes": [
+      {
+       "replace_unit": "T-2103",
+       "new_rating": {
+        "tray_capacity_factor": 1.3
+       },
+       "basis": "High-capacity valve trays (e.g. MVG/Superfrac) rated 25-30% above RV-1 within existing 1900 mm dia, 425 mm spacing; retains 90-tray/64-ideal-stage basis per Summers et al 112b",
+       "vendor_confirm": true
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Replace T-2103 internals with high-capacity trays in same shell",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 153.5
+     }
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "vendor confirmation of T-2103 new rating",
+     "engine": "vendor",
+     "status": "open",
+     "title": "T-2103 new rating: High-capacity valve trays (e.g. MVG/Superfrac) rated 25-30% above RV-1 within existing 1900 mm dia, 425 mm spacing; retains 90-tray/64-ideal-stage basis per Summers et al 112b; vendor to confirm",
+     "numbers": {
+      "tray_capacity_factor": 1.3
+     },
+     "source": "replacement sizing basis"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process",
+     "engine": "DWSIM",
+     "title": "design reaches 121 % (max 154 %, re-solved now)",
+     "status": "pass",
+     "numbers": {},
+     "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "robustness",
+     "engine": "DWSIM",
+     "title": "draft (assumed values): operating envelope 2/2 scenarios pass",
+     "status": "pass",
+     "numbers": {},
+     "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "piping_utilities",
+     "engine": "none",
+     "title": "no calculation adapter: tie-ins, line sizing, supports and utility headers remain open for T-2103",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "controls",
+     "engine": "none",
+     "title": "no calculation adapter: control narrative, split/load-sharing control, cause & effect and permissives remain open for T-2103",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process_safety",
+     "engine": "none",
+     "title": "no calculation adapter: change-focused HAZOP, relief case and isolation for the changed equipment remain open for T-2103",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "civil_structural",
+     "engine": "none",
+     "title": "no calculation adapter: plot, access, lifting and foundations remain open for T-2103",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.T-2103.flooding",
+     "engine": "Fair/Souders-Brown",
+     "title": "T-2103: column flooding 63.1 vs 80 %",
+     "status": "pass",
+     "numbers": {
+      "value": 0.631,
+      "limit": 0.8,
+      "unit": "fraction of flood",
+      "utilisation": 0.789
+     },
+     "source": "DWSIM tray traffic with Fair capacity-factor correlation"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.T-2103.purity_distillate",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "draft (assumed values): T-2103 distillate n-Hexane 85.2 vs 84.7 mass-% minimum",
+     "numbers": {
+      "value": 0.852434,
+      "limit": 0.8474,
+      "unit": "mass fraction",
+      "utilisation": 0.994
+     },
+     "source": "drafted purity spec (runs/ws/<case>/drafts/purity.json) on the DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.T-2103.purity_bottoms",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "draft (assumed values): T-2103 bottoms Butanal 59.2 vs 58.7 mass-% minimum",
+     "numbers": {
+      "value": 0.592006,
+      "limit": 0.587,
+      "unit": "mass fraction",
+      "utilisation": 0.992
+     },
+     "source": "drafted purity spec (runs/ws/<case>/drafts/purity.json) on the DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.T-2103.min_reflux",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "draft (assumed values): T-2103 reflux 6 vs 5.86 minimum to hold the purity spec at 121 %",
+     "numbers": {
+      "value": 6.0,
+      "limit": 5.861,
+      "unit": "reflux ratio",
+      "utilisation": 0.977
+     },
+     "source": "DWSIM bisection on reflux, 64 stages as built; drafted purity spec (runs/ws/<case>/drafts/purity.json)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "confidence",
+     "engine": "uncertainty",
+     "title": "draft (assumed values): target met in 81 % of 48 re-solves with uncertain inputs varied; most often limited by T-2103: Fair flood fraction vs limit",
+     "status": "pass",
+     "numbers": {
+      "p_target": 0.812,
+      "p10": 1.5268,
+      "p50": 1.531,
+      "p90": 1.537,
+      "n": 48
+     },
+     "source": "Latin hypercube, 48 samples (seed 20261101), uniform ± band per input kind; each sample re-solved (dwsim): capacity bisection plus the solve at the target (pass at P(target) ≥ 80%)"
+    }
+   ],
+   "open_issues": []
+  }
+ ],
+ "result": {
+  "answer_index": 0,
+  "headline": "11.5 t/h needs high-capacity T-2103 trays",
+  "passes": [
+   "process",
+   "robustness",
+   "separation.T-2103.flooding",
+   "separation.T-2103.purity_distillate",
+   "separation.T-2103.purity_bottoms",
+   "separation.T-2103.min_reflux",
+   "confidence"
+  ],
+  "fails": [],
+  "open": [
+   "vendor confirmation of T-2103 new rating",
+   "piping_utilities",
+   "controls",
+   "process_safety",
+   "civil_structural"
+  ]
+ },
+ "deliverables": [
+  {
+   "kind": "moc",
+   "title": "MOC decision pack (draft)",
+   "folder": "decision-20261102-221709"
+  }
+ ],
+ "needs_human": [
+  "vendor confirmation of T-2103 new rating: T-2103 new rating: High-capacity valve trays (e.g. MVG/Superfrac) rated 25-30% above RV-1 within existing 1900 mm dia, 425 mm spacing; retains 90-tray/64-ideal-stage basis per Summers et al 112b; vendor to confirm",
+  "piping_utilities: no calculation adapter: tie-ins, line sizing, supports and utility headers remain open for T-2103",
+  "controls: no calculation adapter: control narrative, split/load-sharing control, cause & effect and permissives remain open for T-2103",
+  "process_safety: no calculation adapter: change-focused HAZOP, relief case and isolation for the changed equipment remain open for T-2103",
+  "civil_structural: no calculation adapter: plot, access, lifting and foundations remain open for T-2103",
+  "Vendor hydraulic rating of HC trays vs RV-1 at 1.9 m, 425 mm spacing: If CF <1.29, flood exceeds 80% and a larger CF or second tower is needed",
+  "Actual reboiler duty margin at 11.5 t/h: Confirms reboilers not limiting; if margin smaller, add reboiler area"
+ ],
+ "finished": "2026-11-02T22:17:09+0300"
+}

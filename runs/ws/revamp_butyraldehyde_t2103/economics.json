@@ -1,0 +1,132 @@
+{
+ "key": "4b53649fdd5c27514fcdb4d95d8bf409c77751b8",
+ "made": "2026-11-02T22:17:09+0300",
+ "case": "revamp_butyraldehyde_t2103",
+ "answer_headline": "11.5 t/h needs high-capacity T-2103 trays",
+ "currency": "USD",
+ "illustrative": true,
+ "summary": "draft (assumed values): Capex \u2248 $0k (class 5: $0k\u2013$0k) plus unpriced items (replace T-2103): capex is a lower bound; product price not given: margin, payback and NPV open (energy and utilities $0k/yr). All prices ILLUSTRATIVE.",
+ "draft": true,
+ "product_price_open": true,
+ "capex": {
+  "total_usd": 0.0,
+  "range_usd": [
+   0.0,
+   0.0
+  ],
+  "range_basis": "AACE 18R-97 class 5, -50 % / +100 %",
+  "proposals": [
+   {
+    "title": "Replace T-2103 internals with high-capacity trays in same shell",
+    "cost_class": "$100k-$1M",
+    "capex_usd": 0,
+    "lines": [
+     {
+      "item": "replace T-2103",
+      "basis": "new rating {'tray_capacity_factor': 1.3}",
+      "usd": null,
+      "source": "to price (vendor quote)"
+     }
+    ],
+    "unpriced": [
+     "replace T-2103"
+    ],
+    "cost_class_check": "factored $0 is outside the stated class $100k-$1M"
+   }
+  ]
+ },
+ "annual": {
+  "throughput_name": "Process feed",
+  "unit": "t/d",
+  "base": 228.0,
+  "sold_multiple": 1.2105,
+  "gain_per_day": 48.0,
+  "operating_days": 330.0,
+  "revenue_usd": 0.0,
+  "product_margin_usd": 0.0,
+  "energy": [],
+  "utilities": [],
+  "margin_usd": 0.0,
+  "basis": "solved 1.211 \u00d7 base, capped at the 121% target; energy from dwsim solves (design at 121% vs today at 100 %)"
+ },
+ "outage": {
+  "days": 2.0,
+  "usd": 0.0,
+  "source": "muse_default shutdown for a tie-in or exchanger clean"
+ },
+ "payback_years": null,
+ "npv_usd": 0.0,
+ "npv_range_usd": [
+  0.0,
+  0.0
+ ],
+ "discount_rate": 0.1,
+ "years": 10,
+ "prices": {
+  "product": {
+   "value": null,
+   "unit": "USD per t",
+   "source": "engineer to supply",
+   "provenance": "open"
+  },
+  "variable_cost": {
+   "value": 0,
+   "unit": "USD per t",
+   "source": "muse_default"
+  },
+  "operating_days": {
+   "value": 330,
+   "source": "muse_default"
+  },
+  "discount_rate": {
+   "value": 0.1,
+   "source": "muse_default"
+  },
+  "years": {
+   "value": 10,
+   "source": "muse_default"
+  },
+  "factors": {
+   "compressor": {
+    "usd_per": 900,
+    "per": "kW",
+    "size": "driver rating (limits.max_kW), else solved shaft power",
+    "source": "ILLUSTRATIVE order-of-magnitude factor of the kind tabulated in Towler & Sinnott, Chemical Engineering Design (2nd ed., 2012), ch. 7; not a vendor quote"
+   },
+   "pump": {
+    "usd_per": 600,
+    "per": "kW",
+    "size": "motor rating (limits.max_kW), else solved shaft power",
+    "source": "ILLUSTRATIVE order-of-magnitude factor of the kind tabulated in Towler & Sinnott, Chemical Engineering Design (2nd ed., 2012), ch. 7; not a vendor quote"
+   },
+   "hx": {
+    "usd_per": 450,
+    "per": "m2",
+    "size": "installed area",
+    "source": "ILLUSTRATIVE order-of-magnitude factor of the kind tabulated in Towler & Sinnott, Chemical Engineering Design (2nd ed., 2012), ch. 7; not a vendor quote"
+   },
+   "tank": {
+    "usd_per": 1500,
+    "per": "m3",
+    "size": "volume",
+    "source": "ILLUSTRATIVE order-of-magnitude factor of the kind tabulated in Towler & Sinnott, Chemical Engineering Design (2nd ed., 2012), ch. 7; not a vendor quote"
+   },
+   "install_factor": {
+    "value": 2.5,
+    "source": "ILLUSTRATIVE Lang-type installed/bare factor for added fluid-processing equipment (piping, instruments, electrical, civil, erection)"
+   },
+   "tie_in": {
+    "usd": 120000,
+    "source": "ILLUSTRATIVE allowance per new tee/join tied into a live line (hot tap or shutdown tie-in)"
+   },
+   "cleaning": {
+    "usd": 80000,
+    "source": "ILLUSTRATIVE chemical/mechanical clean of one large exchanger incl. waste handling"
+   },
+   "setpoint": {
+    "usd": 15000,
+    "source": "ILLUSTRATIVE instrument, DCS and procedure change for a flow, level or set-point change"
+   }
+  }
+ }
+}
