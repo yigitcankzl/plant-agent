@@ -8,9 +8,9 @@
    "Raise T4750 working level to 22.1 m3"
   ],
   "revisions": 0,
-  "content": "17598abc162ca8f197708502b0c9d76f7ce6a96b"
+  "content": "2345abbbcfd230e2f4915a7c9bfceea4c37c8baa"
  },
- "made": "2026-10-31T19:58:32+0300",
+ "made": "2026-11-02T16:15:08+0300",
  "disciplines": [
   {
    "id": "process",
@@ -28,6 +28,58 @@
      "status": "ok",
      "result": "97 %",
      "source": "DWSIM re-solve of all 3 verified change(s) together on the current model"
+    }
+   ]
+  },
+  {
+   "id": "robustness",
+   "status": "fail",
+   "summary": "draft (assumed values): operating envelope 1/4 scenarios pass (fails: Target, feed +10 %, Target, hot day (utility water +5 C), Target, exchangers fouled (U at 85 %))",
+   "source": "DWSIM solves of the pre-FEED operating envelope",
+   "checks": [
+    {
+     "id": "T4750",
+     "check": "scenario 'Target, feed +10 %': residence time",
+     "value": "56.42",
+     "limit": "60",
+     "unit": "min",
+     "kind": "max",
+     "status": "over",
+     "result": "106 %",
+     "source": "DWSIM solve; scenario basis: draft (assumed values): feed swing above the target"
+    },
+    {
+     "id": "s47130",
+     "check": "scenario 'Target, feed -10 %': flow vs 90 % of available supply",
+     "value": "27",
+     "limit": "27",
+     "unit": "m3/h",
+     "kind": "max",
+     "status": "ok",
+     "result": "100 %",
+     "source": "DWSIM solve; scenario basis: draft (assumed values): turndown below the target (minimum flows)"
+    },
+    {
+     "id": "H1007",
+     "check": "scenario 'Target, hot day (utility water +5 C)': area needed for hot outlet 35 C",
+     "value": "65.41",
+     "limit": "46.8",
+     "unit": "m2",
+     "kind": "max",
+     "status": "over",
+     "result": "140 %",
+     "source": "DWSIM solve; scenario basis: draft (assumed values): summer cooling water"
+    },
+    {
+     "id": "sDispatch",
+     "check": "scenario 'Target, exchangers fouled (U at 85 %)': temperature vs design",
+     "value": "25.09",
+     "limit": "25",
+     "unit": "C",
+     "kind": "max",
+     "status": "over",
+     "result": "0.09 K over the limit",
+     "source": "DWSIM solve; scenario basis: draft (assumed values): fouling allowance"
     }
    ]
   },

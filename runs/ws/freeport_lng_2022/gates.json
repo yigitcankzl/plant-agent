@@ -1,0 +1,61 @@
+{
+ "key": {
+  "headline": "Safe ten days only with relief restored",
+  "request": "VIP-18 must be isolated between XV-101 and XV-102 for several days of maintenance while partially filled with LNG. Design a safe isolation: what must be in place so the blocked-in segment never exceeds its design pressure for up to 10 days at the worst credible heat leak, verify it in the simulator, and list the procedure and alarm requirements.",
+  "titles": [
+   "Put PSV-101 back in service (reopen HV-101) before any block-in of VIP-18"
+  ],
+  "revisions": 0,
+  "content": "bc7297b5626d8128ff074ce76999559c5724ea65"
+ },
+ "made": "2026-11-02T16:15:15+0300",
+ "disciplines": [
+  {
+   "id": "process",
+   "status": "pass",
+   "summary": "design reaches 100 % (maximum not found: the capacity search did not solve away from the target, re-solved now)",
+   "source": "DWSIM re-solve of the combined design on the current model",
+   "checks": [
+    {
+     "id": "plant",
+     "check": "maximum throughput with all verified changes vs target",
+     "value": "100",
+     "limit": "100",
+     "unit": "%",
+     "kind": "max",
+     "status": "ok",
+     "result": "100 %",
+     "source": "DWSIM re-solve of all 1 verified change(s) together on the current model"
+    }
+   ]
+  },
+  {
+   "id": "piping_utilities",
+   "status": "not affected",
+   "summary": "no physical or routing change",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "controls",
+   "status": "not affected",
+   "summary": "no physical or routing change",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "process_safety",
+   "status": "open",
+   "summary": "no calculation adapter: relieving capacity remains unchecked at the ideal relief boundary remain open",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  },
+  {
+   "id": "civil_structural",
+   "status": "not affected",
+   "summary": "no physical or routing change",
+   "source": "proposal topology (no engine for this discipline)",
+   "checks": []
+  }
+ ]
+}
