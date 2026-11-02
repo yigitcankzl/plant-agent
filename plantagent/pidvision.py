@@ -5,8 +5,11 @@ Muse reads the topology from the image; positions come from the PDF's own text l
 live badges on the real sheet. Scanned sheets without a text layer fall back to Muse's approximate boxes.
 """
 import base64
+import hashlib
 import json
+import os
 from collections import defaultdict
+from pathlib import Path
 
 import pymupdf
 
@@ -57,7 +60,7 @@ def render(pdf, page=0, dpi=170, rotate=0):
     return pg.get_pixmap(dpi=dpi).tobytes("png")
 
 
-def read(pdf, page=0, model="muse-spark-1.3-contributor", rotate=0):
+def read(pdf, page=0, model="muse-spark-1.3-contributor", rotate=0, sam_assisted=None, sam_dir=None):
     doc = pymupdf.open(str(pdf))
     pg = doc[page]
     if rotate:  # a sheet drawn sideways (patent figures) is read upright
@@ -71,7 +74,24 @@ def read(pdf, page=0, model="muse-spark-1.3-contributor", rotate=0):
            {"role": "user", "content": [
                {"type": "text", "text": "Printed labels (x, y as fractions of the sheet): " + json.dumps(hint)},
                {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(png).decode()}}]}]
-    m = llm.complete(model, msg, response_format={"type": "json_schema", "json_schema": {"name": "schematic", "schema": SCHEMA, "strict": True}})
+    assisted = os.getenv("PID_SAM") == "1" if sam_assisted is None else sam_assisted
+    manifest = None
+    if assisted:
+        from . import sam
+        folder = Path(sam_dir) if sam_dir else llm.ROOT / "runs" / "pid_sam" / hashlib.sha256(png).hexdigest()
+        segmentation = sam.segment(png, ["pump", "heat exchanger", "vessel", "compressor", "valve", "pipe"])
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "segments.json").write_text(json.dumps(segmentation, indent=2))
+        manifest = sam.assistance(png, segmentation, folder)
+        msg[1]["content"].extend(sam_content(manifest, folder))
+    params = {"response_format": {"type": "json_schema", "json_schema": {"name": "schematic", "schema": SCHEMA, "strict": True}}}
+    if assisted:
+        params["max_tokens"] = 6000
+    m = llm.complete(model, msg, **params)
+    if assisted and not isinstance(m.get("content"), str):
+        (folder / "read_failure.json").write_text(json.dumps({"model": model, "message": m,
+            "error": "Vision model returned no JSON content; no retry made."}, indent=2))
+        raise ValueError("SAM-assisted vision read returned no JSON content; response saved in read_failure.json")
     r = json.loads(m["content"])
     # positions from the PDF text layer: the k-th occurrence of a label, left to right then top to bottom
     by_text = defaultdict(list)
@@ -88,7 +108,24 @@ def read(pdf, page=0, model="muse-spark-1.3-contributor", rotate=0):
         elif len(e.get("box") or []) == 4:
             positions[e["tag"]] = {"box": e["box"], "source": "muse estimate"}
     return {"title": r["title"], "loops": r["loops"], "raw": r, "positions": positions, "model": model, "sheet": [W, H],
+            **({"sam": manifest} if manifest is not None else {}),
             **overview_of(r)}
+
+
+def sam_content(manifest, folder):
+    """SAM supplies geometry hints, never confirmed tags or topology answers."""
+    if not manifest["regions"]:
+        return [{"type": "text", "text": "SAM 3.1 returned zero regions for the requested equipment and pipe concepts. "
+                 "No masks or crops provide spatial hints. Read the original drawing independently."}]
+    text = ("Optional SAM 3.1 segmentation hints follow. The first image is still the original drawing; "
+            "the next is a numbered mask overlay, then a sheet of context crops. "
+            "SAM concepts are unverified guesses, not equipment types or confirmed connections. "
+            "Trace each pipe and arrow on the original; crossings do not imply junctions. "
+            "Coordinates are source-image pixels and fractions; keep output boxes in full-sheet fractions. "
+            "Do not omit equipment or pipes merely because SAM found no region. Regions: " + json.dumps(manifest))
+    return [{"type": "text", "text": text}] + [
+        {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode((Path(folder) / name).read_bytes()).decode()}}
+        for name in ("overlay.jpg", "crops.jpg")]
 
 
 def overview_of(r):
