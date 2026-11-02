@@ -47,6 +47,14 @@ class PatchNestedTest(unittest.TestCase):
         changed = patch(spec, [{"path": "feeds.FEED.x.Methane", "value": 0.01}])
         self.assertEqual(changed["feeds"]["FEED"]["x"]["Methane"], 0.01)
 
+    def test_whole_composition_is_validated(self):
+        good = {"Ethylene": 0.7, "Ethane": 0.3}
+        self.assertEqual(change_errors(SPEC, [{"path": "feeds.FEED.x", "value": good}]), [])
+        for value in ({"Ethylene": 1.1, "Ethane": -0.1}, {"Ethylene": 0.7, "Typo": 0.3},
+                      {"Ethylene": float("nan"), "Ethane": 0.3}, {"Ethylene": 0.7}):
+            with self.subTest(value=value):
+                self.assertTrue(change_errors(SPEC, [{"path": "feeds.FEED.x", "value": value}]))
+
 
 if __name__ == "__main__":
     unittest.main()

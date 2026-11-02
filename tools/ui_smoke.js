@@ -43,7 +43,10 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     const rounds = [...document.querySelectorAll('.work-round')], actors = [...document.querySelectorAll('.work-actor')].map(x => x.textContent.trim());
     return rounds.length === 2 && !rounds[0].open && rounds[1].open && actors.includes('Muse') && actors.includes('DWSIM') && actors.includes('pandapower') &&
       workActor({actor: 'muse'}, 'baseten:meta-models/muse-spark-open-1026') === 'Muse Spark Open' &&
-      !!document.querySelector('[data-work-result]') && !!document.querySelector('.worklog-sample') && /ILLUSTRATIVE SAMPLE/.test(document.querySelector('.worklog-sample').textContent);
+      !!document.querySelector('[data-work-result]') && !!document.querySelector('.worklog-sample') && /ILLUSTRATIVE SAMPLE/.test(document.querySelector('.worklog-sample').textContent) &&
+      /4 items need a human decision/.test(document.querySelector('.work-status').textContent) &&
+      [...document.querySelectorAll('.work-deliverables a')].some(a => /decision\.pdf$/.test(a.href)) &&
+      [...document.querySelectorAll('.work-deliverables a')].some(a => /decision\.zip$/.test(a.href));
   });
   await p.screenshot({ path: `${OUT}/salt_mvr_worklog_sample_1920x1080.png` });
   await p.screenshot({ path: `${OUT}/salt_mvr_replay_1920x1080.png` });
@@ -111,7 +114,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.goto(`${BASE}/review.html?case=salt_mvr`); await p.waitForSelector('#block .stamp', { timeout: 15000 }).catch(() => {});
   const signoffOk = await p.evaluate(() => /Draft|Reviewed|Approved|Rejected/.test(document.querySelector('#block .stamp')?.textContent || '') &&
     document.querySelectorAll('#block .cell').length === 3 && document.querySelectorAll('#fails .check').length >= 1 &&
-    document.querySelectorAll('#files li').length >= 1 && !/None yet/.test(document.body.textContent));
+    document.querySelectorAll('#files li').length >= 1 && !!document.querySelector('#pack a[href$="decision.pdf"]') &&
+    !!document.querySelector('#pack a[href$="decision.zip"]') && !/None yet/.test(document.body.textContent));
   await p.screenshot({ path: `${OUT}/review_signoff.png`, fullPage: true });
   console.log(signoffOk ? 'ok  ' : 'FAIL', 'MOC sign-off page: approval block, failed checks with dispositions, package files');
   bad += signoffOk ? 0 : 1;

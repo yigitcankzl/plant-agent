@@ -164,8 +164,8 @@ function render() {
         <div class="row"><input name="name" placeholder="Your name" aria-label="Name"><button>${d ? 'Change disposition' : 'Record disposition'}</button></div></form>` : ''}</div>`;
   }).join('') : '<p class="muted">No failed checks in this design.</p>';
   $('open').innerHTML = opens.map(r => `<li><b>${esc(r.id.replaceAll('_', ' '))}</b><span class="muted">${esc(r.summary)}</span></li>`).join('') || '<li class="muted">None.</li>';
-  $('pack').textContent = s.pack ? `${s.files.length} files frozen at approval` : '';
-  $('files').innerHTML = s.files.map(f => `<li><span>${esc(f.path)}</span><span>${kb(f.bytes)}</span></li>`).join('');
+  $('pack').innerHTML = s.pack ? `${s.files.length} files frozen at approval · <a href="/wsfiles/${C()}/${encodeURIComponent(s.pack)}/decision.pdf" target="_blank" rel="noopener">PDF</a> · <a href="/wsfiles/${C()}/${encodeURIComponent(s.pack)}/decision.zip" target="_blank" rel="noopener">ZIP</a>` : '';
+  $('files').innerHTML = s.files.map(f => `<li><a href="/wsfiles/${C()}/${f.path.split('/').map(encodeURIComponent).join('/')}" target="_blank" rel="noopener">${esc(f.path)}</a><span>${kb(f.bytes)}</span></li>`).join('');
   $('frozen').innerHTML = s.frozen && s.state === 'approved' ? `<div>Approved by ${esc(s.approver?.name)}, ${esc(when(s.frozen.at))}; ${Object.keys(s.frozen.files).length} files.</div><div class="hash">manifest ${esc(s.frozen.hash)}</div>`
     : $('frozen').innerHTML;
   $('hist').innerHTML = (s.history || []).slice().reverse().map(h => `<li>${esc(h.event.replaceAll('_', ' '))}${h.name ? `, ${esc(h.name)}` : ''}${h.reason ? `: ${esc(h.reason)}` : ''}<span class="muted">${esc(when(h.at))}</span></li>`).join('') || '<li class="muted">Nothing signed yet.</li>';

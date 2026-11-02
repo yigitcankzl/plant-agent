@@ -1,6 +1,7 @@
 import json
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from plantagent import process, revb
 from plantagent.loop import _fix_prompt
@@ -69,6 +70,24 @@ class ReplaceUnitTests(unittest.TestCase):
                                                      "title": "changes a documented limit limits.K 2750.diameter_m"}], {})
         self.assertIn("replace_unit: id", prompt)
         self.assertIn("vendor_confirm: true", prompt)
+
+    def test_accept_records_replacement_and_open_checks_in_revision_and_audit(self):
+        w = object.__new__(PlantWorkspace)
+        w.name, w.model, w.built, w.revisions, w.answers, w.rev_file = "test", "model", {"spec": self.spec}, [], [], None
+        verified = {"verified": True, "capacity_multiple": 1.2, "new_equipment": [],
+                    "replaced_equipment": [{"id": "K 2750", "new_rating": {"diameter_m": 0.6}}],
+                    "open_checks": [{"check": "vendor confirmation of K 2750 new rating", "status": "open"}],
+                    "calculation": None}
+        w.verify = lambda proposal: verified
+        w._commit = lambda revision: w.revisions.append(revision)
+        proposal = {"title": "Replace shell", "changes": [self.change]}
+        with mock.patch("plantagent.plant.audit.append", return_value={"hash": "audit"}) as append:
+            w.accept(proposal, reason="capacity replacement")
+        self.assertEqual(w.revisions[0]["replaced_equipment"], verified["replaced_equipment"])
+        self.assertEqual(w.revisions[0]["open_checks"], verified["open_checks"])
+        details = append.call_args.args[4]
+        self.assertEqual(details["replaced_equipment"], verified["replaced_equipment"])
+        self.assertEqual(details["open_checks"], verified["open_checks"])
 
 
 if __name__ == "__main__":

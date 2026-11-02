@@ -302,6 +302,13 @@ def change_errors(spec, changes, require_evidence=True):
             elif kind == "feeds" and field.startswith("x.") and (
                     not _finite(c.get("value")) or isinstance(c.get("value"), bool) or float(c["value"]) < 0):
                 errors.append(f"change {i + 1} feed composition {oid}.{field} must be a non-negative finite number")
+            elif kind == "feeds" and field == "x":
+                value = c.get("value")
+                unknown = set(value or {}) - set(spec.get("compounds") or []) if isinstance(value, dict) else set()
+                valid = isinstance(value, dict) and value and not unknown and all(
+                    _finite(v) and not isinstance(v, bool) and float(v) >= 0 for v in value.values())
+                if not valid or abs(sum(map(float, value.values())) - 1.0) > 0.001:
+                    errors.append(f"change {i + 1} feed composition {oid}.x must contain known compounds with non-negative finite fractions summing to 1")
             elif kind == "units" and field in _STRUCTURAL_UNIT_FIELDS:
                 errors.append(f"change {i + 1} cannot edit existing unit structure {oid}.{field}; use reroute or add_unit")
             elif require_evidence and kind == "units" and field in _REPLACEMENT_FIELDS and field != "area_m2" \
@@ -3117,13 +3124,15 @@ class PlantWorkspace(Study):
         after = patch(self.built["spec"], p["changes"])
         r = {"rev": len(self.revisions) + 1, "kind": "change", "title": p.get("title"), "changes": p["changes"],
              "spec_before": self.built["spec"], "spec_after": after, "capacity_multiple": v["capacity_multiple"],
-             "new_equipment": v["new_equipment"], "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "user": user,
+             "new_equipment": v["new_equipment"], "replaced_equipment": v.get("replaced_equipment") or [],
+             "open_checks": v.get("open_checks") or [], "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "user": user,
              "reason": reason, "proposed_by": p.get("_by") or self.model}
         if v.get("calculation") is not None:
             r["calculation"] = v["calculation"]
         so = (self.answers[answer].get("second_opinion") or {}) if isinstance(answer, int) and 0 <= answer < len(self.answers) else {}
         details = {"rev": r["rev"], "title": r["title"], "changes": p["changes"],
                    "verified_capacity_multiple": v["capacity_multiple"], "new_equipment": v["new_equipment"],
+                   "replaced_equipment": r["replaced_equipment"], "open_checks": r["open_checks"],
                    "proposed_by": p.get("_by") or self.model,
                    **({"second_opinion": so["comparison"]["status"], "models_disagree_on": so["comparison"]["disagree"][:8]}
                       if so.get("comparison") else {})}

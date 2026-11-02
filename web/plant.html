@@ -2263,6 +2263,7 @@ function workResult(log) {
   const files = deliverables.map(item => {
     const url = workFileUrl(item.path);
     return url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(item.title || item.kind || 'Deliverable')}</a>`
+      : item.folder ? `<a href="/wsfiles/${encodeURIComponent(CASE)}/${encodeURIComponent(item.folder)}/decision.pdf" target="_blank" rel="noopener">${esc(item.title || item.kind || 'Decision pack')}</a> <a href="/wsfiles/${encodeURIComponent(CASE)}/${encodeURIComponent(item.folder)}/decision.zip" target="_blank" rel="noopener">ZIP</a>`
       : `<span>${esc(item.title || item.kind || 'Deliverable')}</span>`;
   }).join('');
   const totalTime = log.seconds_total == null ? '—' : log.seconds_total >= 60 ? `${Math.round(log.seconds_total / 60)} min` : `${Math.round(log.seconds_total)}s`;
@@ -2452,8 +2453,9 @@ function renderWorklog(log) {
   const panel = $('worklogPanel');
   if (!log || typeof log !== 'object') { replayPause(); REPLAY.events = []; panel.hidden = true; panel.innerHTML = ''; return; }
   const rounds = Array.isArray(log.rounds) ? log.rounds : [];
-  const openN = (log.result?.open || []).length;
-  const status = ({done: openN ? [`Simulation checks passed · engineering approval: ${openN} open item${openN === 1 ? '' : 's'}`, 'open'] : ['All checks passed · ready for engineer review', 'pass'], unsolved: ['Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
+  const humanN = Array.isArray(log.needs_human) ? new Set(log.needs_human.filter(Boolean)).size : null;
+  const openN = humanN ?? (log.result?.open || []).length;
+  const status = ({done: log.approval_status === 'open' || (log.approval_status == null && openN) ? [`Simulation checks passed · engineering approval: ${openN} item${openN === 1 ? ' needs' : 's need'} a human decision`, 'open'] : ['All checks passed · ready for engineer review', 'pass'], unsolved: ['Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
     budget: ['Stopped at budget limit', 'open'], error: [/no answer after \d+ steps/.test(log.error || '') ? `Step limit, round ${rounds.length + 1}` : 'Stopped with error', 'fail']})[log.status] || ['Running…', 'open'];
   const sample = SAMPLE_WORKLOG || /illustrative/i.test(log.label || '');
   const posthoc = /post-hoc engineering run/i.test(log.label || '');
