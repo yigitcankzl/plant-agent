@@ -177,6 +177,28 @@ class WebSecurityTests(unittest.TestCase):
         self.assertTrue(h._send({"ok": 1}))
         self.assertTrue(h.close_connection)
 
+    def test_no_engine_whatif_is_an_explicit_replay_limitation(self):
+        workspace = mock.Mock()
+        workspace.whatif.side_effect = RuntimeError("DWSIM is not installed and there are no precomputed solutions for this model")
+        result = web.whatif_preview(workspace, [{"path": "units.P1.eff_pct", "value": 80}], 1.2)
+        self.assertEqual(result["unavailable"], True)
+        self.assertIn("Preview unavailable without the simulator", result["error"])
+        workspace.whatif.side_effect = RuntimeError("Failed to create a .NET runtime (coreclr)")
+        self.assertTrue(web.whatif_preview(workspace, [], 1.2)["unavailable"])
+
+    def test_missing_public_source_has_a_png_fallback(self):
+        png = web.missing_source_png("Public drawing", "https://example.test/source")
+        self.assertEqual(png[:8], b"\x89PNG\r\n\x1a\n")
+
+    def test_study_replay_marks_unshipped_drawing_unavailable(self):
+        run = self.root / "runs" / "sample" / "run1"
+        (run / "study.json").write_text(json.dumps({"drawing": {"page": 1}, "analysis": {}}))
+        source = mock.Mock(answer_key={}, question="Question", cfg={}, pdf=self.root / "missing.pdf")
+        with mock.patch.object(web, "Case", return_value=source):
+            detail = web.run_detail("sample", "run1")
+        self.assertFalse(detail["has_drawing"])
+        self.assertIn("not shipped", detail["drawing_note"])
+
 
 class ProjectAndAuditTests(unittest.TestCase):
     def setUp(self):
