@@ -582,6 +582,7 @@
 
   /* Clean layout (chosen by the user): drawing + thin step strip; details in a drawer; what-if floats on the drawing. */
   .process.focused .app { grid-template-columns: 300px minmax(0, 1fr) !important; grid-template-rows: 52px minmax(0, 1fr) !important; }
+  .process.focused.canvas-focus .app { grid-template-columns: minmax(0, 1fr) !important; }  /* focus: the drawing takes the full width */
   .process.focused header { min-height: 52px; gap: 14px; background: var(--ink); border-bottom: 1px solid var(--rule); }
   .process.focused header #proj { background: transparent; border-color: transparent; font-size: 14px; font-weight: 600; color: var(--fg); }
   .process.focused .mode-tabs .btn { font-size: 12px; color: var(--fg-3); padding: 0 10px; }
@@ -651,6 +652,8 @@
 
   /* The strip is an engineering notebook: the question, who did each check, then the decision. */
   .engineering-chat { border-top: 1px solid var(--rule); }
+  body.mode-other #worklogPanel { display: none !important; }
+  .chat-earlier > summary { padding: 10px 18px; color: var(--fg-3, #8fa3a8); font-size: 12px; cursor: pointer; }
   .chat-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 18px 7px; }
   .chat-head h3 { margin: 0; font-size: 13px; }
   .chat-mode { color: var(--fg-3); font: 11px var(--mono); }
@@ -987,6 +990,9 @@ function showMode(mode) {
   $('answers').hidden = mode !== 'capacity';
   $('historyDetails').hidden = mode !== 'capacity';
   $('askDock').hidden = mode !== 'capacity';
+  $('chatThread').hidden = mode !== 'capacity' || !$('chatThread').innerHTML;
+  document.body.classList.toggle('mode-other', mode !== 'capacity');
+  if (mode === 'safety' && !$('relief').innerHTML) reliefScan();  // deterministic, no AI credit: show the result, not a lone button
   if (mode !== 'capacity') openDetails(true);
   document.querySelector('.workspace-tabs').hidden = mode !== 'capacity';
   if (mode === 'troubleshoot') { renderTroubleshootMode(); $('inspectorTitle').textContent = 'Troubleshoot'; }
@@ -1034,7 +1040,12 @@ document.addEventListener('keydown', e => {
 
 async function projects() {
   const ps = await fetch('/api/projects').then(r => r.json());
-  $('proj').innerHTML = ps.filter(p => p.workspace && (p.kind !== 'process' || p.built || p.case === CASE)).map(p => `<option value="${p.kind}:${p.case}" ${p.case === CASE ? 'selected' : ''}>${p.engine === 'watertap' ? '🌊 ' : p.engine === 'pandapower' ? '⚡ ' : p.kind === 'process' ? '⚗ ' : '💧 '}${esc(p.title.replace(/\s*\([^)]*\)?/g, ''))}</option>`).join('');
+  // short names, featured first: the switcher is for moving between plants, not a catalogue (home.html has the library)
+  const FEATURED = ['salt_mvr', 'basf_process_column_k_2750_dexpi_c02_uns', 'shell_norco_c2splitter', 'ucte_2006', 'salt_mvr_vision'];
+  const opt = p => `<option value="${p.kind}:${p.case}" ${p.case === CASE ? 'selected' : ''}>${esc(p.title.replace(/\s*\([^)]*\)?/g, '').split(':')[0])}</option>`;
+  const list = ps.filter(p => p.workspace && (p.kind !== 'process' || p.built || p.case === CASE));
+  const feat = FEATURED.map(c => list.find(p => p.case === c)).filter(Boolean);
+  $('proj').innerHTML = `<optgroup label="Featured">${feat.map(opt).join('')}</optgroup><optgroup label="Library">${list.filter(p => !feat.includes(p)).map(opt).join('')}</optgroup>`;
   $('proj').title = $('proj').selectedOptions[0]?.textContent || 'Project';
   $('proj').onchange = e => { const [k, c] = e.target.value.split(':'); location.href = (k === 'process' ? 'plant.html' : 'workspace.html') + '?case=' + c; };
 }
@@ -2100,7 +2111,14 @@ function renderEngineeringChat() {
   $('qaSugg').hidden = answers.length > 0;
   box.hidden = false;
   box.innerHTML = `<div class="chat-head"><h3>Engineering conversation</h3><span class="chat-mode ${P.allow_runs ? 'live' : ''}">${P.allow_runs ? 'Live calls enabled' : 'Replay only · live disabled'}</span></div>` +
-    (answers.length ? answers.map((answer, index) => chatTurnHtml(answer, index, index === answers.length - 1)).join('') : '<div class="chat-empty">Ask a question to see Muse read the plant, then watch each simulator check.</div>');
+    (answers.length ? chatEarlier(answers) + chatTurnHtml(answers.at(-1), answers.length - 1, true) : '<div class="chat-empty">Ask a question to see Muse read the plant, then watch each simulator check.</div>');
+}
+function chatEarlier(answers) {
+  // older turns fold into one line; a question asked several times shows once (its latest answer)
+  const seen = new Set(), last = plain(answers.at(-1).request || answers.at(-1).question || '');
+  const older = answers.slice(0, -1).map((a, i) => [a, i]).reverse()
+    .filter(([a]) => { const k = plain(a.request || a.question || ''); if (k === last || seen.has(k)) return false; seen.add(k); return true; }).reverse();
+  return older.length ? `<details class="chat-earlier"><summary>Earlier questions (${older.length})</summary>${older.map(([a, i]) => chatTurnHtml(a, i, false)).join('')}</details>` : '';
 }
 function chatScrollTo(element) {
   const box = $('rightScroll'); if (!element || !box) return;

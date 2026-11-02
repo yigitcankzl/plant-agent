@@ -319,9 +319,9 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
   await p.evaluate(() => { P.allow_runs = true; document.querySelector('#q').disabled = false; document.querySelector('#askBtn').disabled = false; document.querySelector('#askBtn').textContent = 'Ask'; });
   await p.fill('#q', 'Check H1007 at 120%'); await p.click('#askBtn');
-  await p.waitForSelector('#chatThread .chat-turn:last-child .chat-answer', {state: 'visible', timeout: 15000});
+  await p.waitForSelector('#chatThread > .chat-turn:last-child .chat-answer', {state: 'visible', timeout: 15000});
   const liveChat = await p.evaluate(() => {
-    const turn = document.querySelector('#chatThread .chat-turn:last-child'), actors = [...turn.querySelectorAll('.chat-actor')].map(x => x.textContent);
+    const turn = document.querySelector('#chatThread > .chat-turn:last-child'), actors = [...turn.querySelectorAll('.chat-actor')].map(x => x.textContent);
     return actors.includes('Muse') && actors.includes('DWSIM') && document.querySelector('#sheet [data-tag="H1007"]').classList.contains('chat-fail') &&
       /Muse Spark.*\$0\.009.*3s/.test(turn.querySelector('.chat-meta').textContent) && /Cooling fix verified/.test(turn.querySelector('.chat-answer').textContent);
   });
