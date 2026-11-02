@@ -44,6 +44,13 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   bad += redlineOk && confirmedEdit ? 0 : 1;
   await p.unroute('**/api/plant/salt_mvr/project'); await p.unroute(redlineRoot);
   await p.unroute('**/api/job/redline-smoke'); await p.unroute(`${redlineRoot}/${redlineId}/confirm`); await p.unroute(`${redlineRoot}/${redlineId}/check`);
+  await p.goto(`${BASE}/redline.html?case=salt_mvr`);
+  await p.waitForSelector('#comparison:not([hidden])', {timeout: 15000}).catch(() => {});
+  const savedRedline = await p.evaluate(() => document.querySelector('#preview').naturalWidth > 0 &&
+    document.querySelectorAll('.reading').length > 0 && !document.querySelector('#comparison').hidden &&
+    /Live reading is off in this demo/.test(document.querySelector('#mode').textContent) && !/WEB_ALLOW_RUNS/.test(document.body.innerText));
+  console.log(savedRedline ? 'ok  ' : 'FAIL', 'redline replay preloads saved image, confirmation and comparison without running engines');
+  bad += savedRedline ? 0 : 1;
   for (const u of ['home.html', 'plant.html?case=chem_c01', 'plant.html?case=dairy_refrig', 'plant.html?case=salt_mvr', 'plant.html?case=swro_monterey', 'plant.html?case=swro_brownsville', 'plant.html?case=freeport_lng_2022', 'plant.html?case=ucte_2006', 'workspace.html?case=roseburg', 'index.html?case=williams_geismar']) {
     await p.goto(`${BASE}/${u}`); await p.waitForTimeout(u.startsWith('home') ? 2500 : 8000);
     const stuck = (await p.content()).includes('Loading case data') || (await p.locator('#verdict').count() && (await p.locator('#verdict').innerText()) === 'Case unavailable');
@@ -109,6 +116,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     replayPause();
     return full && between && advanced && ['replayToggle', 'replayBack', 'replayNext', 'replaySpeed'].every(id => document.getElementById(id));
   });
+  await p.evaluate(() => { P.allow_runs = true; });  // exercise live confirmation with the fixture; no POST is sent
   await p.click('#workRunOpen');
   const workConfirmOk = await p.evaluate(() => !document.querySelector('#workConfirm').hidden && document.querySelector('#workGoal').value === P.question && /\$5.?10/.test(document.querySelector('.work-runner .estimate').textContent));
   await p.click('#workCancel');
@@ -188,7 +196,9 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const signoffOk = await p.evaluate(() => /Draft|Reviewed|Approved|Rejected/.test(document.querySelector('#block .stamp')?.textContent || '') &&
     document.querySelectorAll('#block .cell').length === 3 && document.querySelectorAll('#fails .check').length >= 1 &&
     document.querySelectorAll('#files li').length >= 1 && !!document.querySelector('#pack a[href$="decision.pdf"]') &&
-    !!document.querySelector('#pack a[href$="decision.zip"]') && !/None yet/.test(document.body.textContent));
+    !!document.querySelector('#pack a[href$="decision.zip"]') && !/None yet/.test(document.body.textContent) &&
+    /files frozen for review/.test(document.querySelector('#pack').textContent) && !document.querySelector('.file-list').open &&
+    /The transformer would be overloaded: 133 %/.test(document.querySelector('#fails').textContent));
   await p.screenshot({ path: `${OUT}/review_signoff.png`, fullPage: true });
   console.log(signoffOk ? 'ok  ' : 'FAIL', 'MOC sign-off page: approval block, failed checks with dispositions, package files');
   bad += signoffOk ? 0 : 1;
@@ -198,8 +208,11 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const heroEvidence = await p.evaluate(() => { const line = document.querySelector('#openWeightsHero'), links = [...line.querySelectorAll('a')];
     return /refused the UCTE blackout prompt four times/.test(line.textContent) && /0 violations/.test(line.textContent) &&
       links.some(a => /case=ucte_2006/.test(a.href)) && links.some(a => /evidence\/open-weights-engineering\/README.md/.test(a.href)); });
-  console.log(homeOk && heroEvidence ? 'ok  ' : 'FAIL', 'home: demo opens salt_mvr and first-screen open-weights evidence is linked');
-  bad += homeOk && heroEvidence ? 0 : 1;
+  const homePlain = await p.evaluate(() => !document.querySelector('.hero').contains(document.querySelector('#openWeightsHero')) &&
+    document.querySelector('.hero .lead').textContent.split(/[.!?]+/).filter(s => s.trim()).length === 2 &&
+    /of real engineers' conclusions, blind, model-graded/.test(document.querySelector('#stats').textContent));
+  console.log(homeOk && heroEvidence && homePlain ? 'ok  ' : 'FAIL', 'home: two-sentence lead, clear benchmark denominator and open-weights evidence below hero');
+  bad += homeOk && heroEvidence && homePlain ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForSelector('#asOpen', { timeout: 30000 });
   await p.evaluate(() => document.querySelector('#asOpen').click()); await p.waitForSelector('#asTop10 li', { timeout: 30000 }).catch(() => {});
   const assumptionsScale = await p.evaluate(() => {
@@ -344,6 +357,44 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   console.log(xssSafe ? 'ok  ' : 'FAIL', 'hostile P&ID tags stay data (no script runs)', xssSafe ? '' : JSON.stringify({dialogs, got}));
   bad += xssSafe ? 0 : 1;
   bad += badgeCount && labelsHidden && labelsRestored ? 0 : 1;
+  // Judge-size regressions: every tour target is visible and the popover leaves it unobstructed.
+  for (const viewport of [{width: 1600, height: 1000}, {width: 1920, height: 1080}]) {
+    await p.setViewportSize(viewport);
+    await p.goto(`${BASE}/plant.html?case=salt_mvr&tour=1`); await p.waitForFunction(() => !!P?.built && TOUR.length > 0);
+    let targetsVisible = true;
+    for (let i = 1; i <= 4; i++) {
+      await p.evaluate(i => tourGo(i), i); await p.waitForTimeout(350);
+      targetsVisible &&= await p.evaluate(() => {
+        const pop = document.querySelector('#tour').getBoundingClientRect();
+        return [...document.querySelectorAll('.tour-on')].every(el => {
+          const r = el.getBoundingClientRect();
+          return r.left >= 0 && r.top >= 0 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1 &&
+            (pop.right <= r.left || pop.left >= r.right || pop.bottom <= r.top || pop.top >= r.bottom);
+        });
+      });
+    }
+    const chips = await p.evaluate(() => !tourGateRow.hidden && /Process ✓/.test(tourGateRow.textContent) && /Electrical ✕ TX-1 133 %/.test(tourGateRow.textContent));
+    await p.screenshot({path: `${OUT}/cold_judge_tour_${viewport.width}x${viewport.height}.png`});
+    console.log(targetsVisible && chips ? 'ok  ' : 'FAIL', `guided tour targets and discipline chips at ${viewport.width}x${viewport.height}`);
+    bad += targetsVisible && chips ? 0 : 1;
+  }
+  await p.goto(`${BASE}/plant.html?case=shell_norco_c2splitter`); await p.waitForSelector('.norco-column');
+  const norcoPlain = await p.evaluate(() => {
+    const drawing = document.querySelector('.norco-column');
+    return ['Feed', 'Side reboiler', 'Pasteurization', 'product draw', 'condenser'].every(t => drawing.textContent.toLowerCase().includes(t.toLowerCase())) &&
+      !!document.querySelector('.norco-compare') && !document.querySelector('#note details').open &&
+      document.querySelectorAll('#runStory .run-story-line').length === 3 && !document.querySelector('#chatThread').classList.contains('show-log') &&
+      ![...document.querySelectorAll('#chatThread > .chat-turn, #chatThread > .chat-earlier')].some(el => el.getClientRects().length);
+  });
+  await p.click('.agent-log-toggle');
+  const logOpens = await p.evaluate(() => document.querySelector('#chatThread').classList.contains('show-log'));
+  console.log(norcoPlain && logOpens ? 'ok  ' : 'FAIL', 'Norco sections, comparison, three-line story and opt-in raw agent log');
+  bad += norcoPlain && logOpens ? 0 : 1;
+  await p.goto(`${BASE}/plant.html?case=basf_process_column_k_2750_dexpi_c02_uns`); await p.waitForFunction(() => V.scale > V.fit * 1.2);
+  const basfReadable = await p.evaluate(() => !sheet.classList.contains('has-selection') && getComputedStyle(sheet.querySelector('[data-tag="K 2750"]')).opacity === '1');
+  console.log(basfReadable ? 'ok  ' : 'FAIL', 'BASF opens zoomed to its column and clearing selection restores full contrast');
+  bad += basfReadable ? 0 : 1;
+  await p.setViewportSize({width: 1440, height: 900});
   for (const c of ['salt_mvr', 'chem_c01']) {
     await p.goto(`${BASE}/plant.html?case=${c}&tour=1`); await p.waitForSelector('#tour', { state: 'visible', timeout: 20000 });
     const texts = [];
@@ -399,7 +450,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     await route.fulfill({json: {done: true, offset: id.endsWith('-1') ? 2 : 0, model: answer.model, seconds: 3, cost_usd: .009, events: [], answer}});
   });
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
-  await p.evaluate(() => { P.allow_runs = true; document.querySelector('#q').disabled = false; document.querySelector('#askBtn').disabled = false; document.querySelector('#askBtn').textContent = 'Ask'; });
+  await p.evaluate(() => { P.allow_runs = true; document.querySelector('#askDock').classList.remove('ask-replay-only'); document.querySelector('#q').disabled = false; document.querySelector('#askBtn').disabled = false; document.querySelector('#askBtn').textContent = 'Ask'; });
   await p.fill('#q', 'Check H1007 at 120%'); await p.click('#askBtn');
   await p.waitForSelector('#chatThread > .chat-turn:last-child .chat-answer', {state: 'visible', timeout: 15000});
   const liveChat = await p.evaluate(() => {

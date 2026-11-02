@@ -55,7 +55,7 @@
 <style>
   body.presentation-home { overflow: hidden; font-size: 18px; }
   body.presentation-home .wrap { max-width: none; height: 100vh; padding: 32px 54px; }
-  body.presentation-home .site-top nav, body.presentation-home .method, body.presentation-home .stats,
+  body.presentation-home .site-top nav, body.presentation-home .method, body.presentation-home .proof-note, body.presentation-home .stats,
   body.presentation-home #cases, body.presentation-home #new, body.presentation-home .foot { display: none; }
   body.presentation-home .site-top { min-height: 58px; }
   body.presentation-home .logo { font-size: 22px; }
@@ -82,8 +82,7 @@
       <div class="hero-copy">
         <p class="kicker">Plant-change engineering with the working shown</p>
         <h1 id="hero-title">Muse proposes. Physics checks. Engineers approve.</h1>
-        <p class="lead">PlantAgent is an engineering copilot built on Meta's <b>Muse</b>. Tell it what you want to change. Muse reads the plant's drawings and data sheets, builds the simulation model and proposes the change; <b>engineering solvers</b> (DWSIM, pandapower, WaterTAP, Cantera) re-solve it and run every check: electrical, heat transfer, compressor curves, start-up, uncertainty. Failed checks go back to Muse with their numbers, round after round. A run ends when every check passes, when Muse says why it cannot, or at its round or budget limit, and the checks still open are listed. You get the drawings, the MOC pack and a change-focused HAZOP draft (P&amp;ID tags only) for an engineer to review and approve.</p>
-        <p class="hero-note" id="openWeightsHero">The Meta-hosted endpoint refused the <a href="plant.html?case=ucte_2006">UCTE blackout prompt</a> <span data-attempts>four</span> times (content policy). <a href="https://github.com/yigitcankzl/plant-agent/blob/master/evidence/open-weights-engineering/README.md">Muse Spark Open, the open-weights model on Baseten</a>, ran the same engineering loop: redispatch + open the 220 kV tie, line limits and N-1 pass (<span data-violations>0</span> violations).</p>
+        <p class="lead">PlantAgent turns a plant-change goal into a checked draft design. Muse reads the drawings and proposes the change; DWSIM, pandapower, WaterTAP and Cantera re-solve it, return failed checks with numbers, and stop only when the run passes or records what remains open.</p>
         <div class="hero-actions">
           <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Start the 3-minute demo</a>
           <a class="btn" href="#cases">See the grid and LNG incidents</a>
@@ -103,6 +102,7 @@
       <article><h3>Test the question</h3><p>Run the relevant hydraulic or process model and expose the binding constraints.</p></article>
       <article><h3>Review the change</h3><p>See the proposal, source references, assumptions and simulator result together.</p></article>
     </section>
+    <p class="hero-note proof-note" id="openWeightsHero">Open-weights evidence: the Meta-hosted endpoint refused the <a href="plant.html?case=ucte_2006">UCTE blackout prompt</a> <span data-attempts>four</span> times (content policy). <a href="https://github.com/yigitcankzl/plant-agent/blob/master/evidence/open-weights-engineering/README.md">Muse Spark Open on Baseten</a> ran the same engineering loop; redispatch plus opening the 220 kV tie passed line limits and N-1 (<span data-violations>0</span> violations).</p>
   </main>
   <div class="stats" id="stats"></div>
   <section id="cases" aria-labelledby="cases-title"><div class="library-head"><h2 id="cases-title">Case library</h2><p>Open an interactive workspace where available, or inspect a recorded blind study.</p></div><div id="groups"></div></section>
@@ -157,7 +157,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
   const types = new Set(graded.map(c => c.task_type));
   document.getElementById("stats").innerHTML = [
     [projects.filter(p => p.kind !== "process").length, "documented facilities"], [types.size, "engineering task types"],
-    [graded.length, "blind studies"], [Math.round(mean * 100) + "%", "engineer conclusions matched (model-graded mean)"]]
+    [graded.length, "blind studies"], [Math.round(mean * 100) + "%", "of real engineers' conclusions, blind, model-graded"]]
     .map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join("");
   const card = (id, pitch, label, figure, figNote) => {
       const c = by[id], p = ws[id];
