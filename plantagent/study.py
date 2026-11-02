@@ -183,7 +183,8 @@ def unstring(v):
 
 
 _INVOKE = __import__("re").compile(r"<(?:\w+:)?(?:invoke|function) name=\"([\w.-]+)\">(.*?)(?:</(?:\w+:)?(?:invoke|function)>|\Z)", __import__("re").S)
-TEXT_CALL = __import__("re").compile(r"<(?:\w+:)?(?:invoke|function) name=")
+_BARE = __import__("re").compile(r"<([A-Za-z_][\w.-]*)>\s*(<(?:\w+:)?parameter name=.*?)(?:</\1>|\Z)", __import__("re").S)  # <answer><parameter ..>
+TEXT_CALL = __import__("re").compile(r"<(?:\w+:)?(?:invoke|function) name=|<[A-Za-z_][\w.-]*>\s*<(?:\w+:)?parameter name=")
 _PARAM = __import__("re").compile(r"<(?:\w+:)?parameter name=\"([\w.-]+)\">(.*?)</(?:\w+:)?parameter>", __import__("re").S)
 
 
@@ -191,7 +192,7 @@ def text_tool_calls(content):
     """Some open-weights deployments emit a large tool call as text (<x:invoke name=..><x:parameter name=..>..) instead of
     a structured call; recover those calls so the agent loop does not spin. Parameter values are JSON where they parse."""
     calls = []
-    for k, (name, body) in enumerate(_INVOKE.findall(content or "")):
+    for k, (name, body) in enumerate(_INVOKE.findall(content or "") or _BARE.findall(content or "")):
         args = {}
         for pname, raw in _PARAM.findall(body):
             raw = raw.strip()

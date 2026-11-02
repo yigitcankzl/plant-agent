@@ -34,5 +34,13 @@ class TextCalls(unittest.TestCase):
         self.assertEqual(calls[0]["name"], "answer")
         self.assertEqual(__import__("json").loads(calls[0]["arguments"])["proposals"], [{"title": "x"}])
 
+    def test_bare_tool_tag_form_is_recovered(self):
+        text = '<answer>\n<parameter name="headline">47% more flow</parameter>\n<parameter name="cards">[{"title": "a"}]</parameter>'
+        self.assertTrue(study.TEXT_CALL.search(text))
+        calls = study.text_tool_calls(text)
+        self.assertEqual(calls[0]["name"], "answer")
+        self.assertEqual(__import__("json").loads(calls[0]["arguments"])["cards"], [{"title": "a"}])
+        self.assertFalse(study.TEXT_CALL.search("<b>bold</b> prose"))
+
     def test_invoke_form_still_works(self):
         self.assertEqual(study.text_tool_calls('<x:invoke name="run"><x:parameter name="a">1</x:parameter></x:invoke>')[0]["name"], "run")
