@@ -1,5 +1,53 @@
 # Clean-clone browser proof
 
+## Norco and recording follow-up (2026-11-03)
+
+Branch `codex/norco-presentation`, based on master `6308e24`. No paid calls; no edits to the featured worklog or its answers. The Norco case selects the design from `work/20261103-004958`.
+
+Generated with `.venv/bin/python -m plantagent.plant --precompute-proposed shell_norco_c2splitter`: 71 DWSIM solutions, 0.80–1.50 in 0.01 increments. At 1.25 the proposed PV-1767 flood fraction is **0.744**, against **0.85** allowed (utilisation **0.875**, displayed as 88% of limit). The equipment drawer displays **74.4% flood vs 85.0% allowed** rather than rounding both fractions to one decimal. Capacity is 1.429. The proposed store is 91 KiB; per-tray profiles are omitted from slider stores, but operating points, streams, checks, spec and capacity are preserved. Full profiles remain available from actual simulator runs.
+
+Norco's stored gates depended on `drafts/prefeed.json`, which was absent in a clone. This exact input is now tracked, so the gates' content hash matches without recomputation. The process and robustness gates pass; open engineering inputs are not presented as approved. If `combined` is absent the decision brief uses the matching process gate to report target verification. Missing numeric checks no longer produce “No limits in the model” or an empty successful verdict; the equipment drawer also shows the stored process-gate summary when available.
+
+Other fixes:
+
+- Red team is rendered once, independently of answer history. Harsher 600 mm set retains three stored cards, groups the five missing details into one source-linked explanation, and keeps the aggregate 8/8 result. Titles/rationales wrap; the percentage column stays fixed.
+- Presentation mode hides the agent-log toggle, replay wording and live-input chrome; uses larger gates and red-team text; reserves canvas space above the caption; and hides the what-if overlay. A red-team tab updates the caption from that set's stored summary. Home and review get recording-only chrome/type adjustments.
+- Unmapped redline ink is plain text (“Not mapped — the ink gave no connections/setpoint”), with a disabled selection and no null JSON editor/parser error. Mapped changes remain editable.
+- Tour gate chips are positioned below the actual Existing/Proposed toggle, not at a fixed overlapping offset.
+
+### Container reproduction
+
+Image: `python:3.12-slim`. Fresh local Git clone mounted alone, no source checkout, no `.env`, no `../case-data`, empty `HOME=/tmp/judge-home`; `process.available()` is false. Dependencies were installed inside this container, not taken from the DWSIM host.
+
+```sh
+git clone --no-hardlinks --single-branch --branch codex/norco-presentation \
+  /home/kizil/.codex/worktrees/norco-presentation/plant-agent /tmp/norco-clean-clone
+docker run -d --name plantagent-norco-audit --network host \
+  -e HOME=/tmp/judge-home -e WEB_ALLOW_RUNS=0 \
+  -v /tmp/norco-clean-clone:/workspace/plant-agent python:3.12-slim sleep infinity
+docker exec plantagent-norco-audit sh -lc 'mkdir -p /tmp/judge-home; \
+  apt-get update -qq && apt-get install -y -qq --no-install-recommends git && \
+  cd /workspace/plant-agent && python -m venv .venv && .venv/bin/pip install -r requirements.txt'
+docker exec -d plantagent-norco-audit sh -lc 'cd /workspace/plant-agent && \
+  .venv/bin/python -m plantagent.web --port 8789 > /tmp/server.log 2>&1'
+# Wait for /api/cases to respond before starting the browser.
+node tools/clean_clone_audit.js http://127.0.0.1:8789 \
+  /tmp/norco-clean-audit-final.json /tmp/norco-clean-audit-final
+node tools/ui_smoke.js http://127.0.0.1:8789 /tmp/norco-final-smoke
+docker exec -u 1000:1000 plantagent-norco-audit sh -lc \
+  'cd /workspace/plant-agent && git status --porcelain'
+```
+
+The audit now includes Norco and redline, at 1920×1080. An initial fixed-delay audit caught Dairy before its state finished loading (no API/console errors); browser checks now wait for the state rather than assuming the drawing means the page is ready. The first host smoke similarly caught assertions racing page initialization. Assertions still require the actual values and layout, not just successful navigation.
+
+Screenshots at 1920×1080: `/tmp/norco-presentation-before/` and `/tmp/norco-presentation-after/` (`norco.png`, `redteam.png`, `home.png`, `review.png`, `redline.png`, `salt-tour.png`); after-only recording views: `norco-present.png`, `redteam-present.png`. The final browser audit and smoke also save their own screenshots.
+
+Full Python suite: **336 tests, OK (skipped=21)**. Regression tests cover a compact proposed-state store, exact Norco replay at 1.25 with solver/gate/write calls forbidden, unmapped redline ink, singleton red-team tabs and grouped missing data, wrapping, presentation canvas/chrome, gate-derived target status and tour-toggle separation.
+
+Final Docker browser audit: **31 pass, 0 warnings, 0 failures**, with no console errors, page errors or failing API calls. Per-page results: [norco-audit.json](norco-audit.json). `git status --porcelain` remained empty after all visits; Norco `states.json`, `proposed_states.json` and `gates.json` matched their committed hashes. The three proposed-cache tests also pass inside the no-DWSIM container. The container image digest is `sha256:b18b261e1b4974b4f321451ad5251ded85abb22c2b8b262da527dda1d031ab30`.
+
+Final `tools/ui_smoke.js` against the no-DWSIM Docker server: **all checks passed, exit 0** ([log](norco-smoke.txt)). All fake vision/chat actions were intercepted locally; no paid calls were made. Recording screenshots were visually inspected at 1920×1080. The existing desktop layout remains unchanged outside `?present=1`, apart from the explicit replay/data fixes above.
+
 ## Proposed-design replay follow-up (2026-11-03)
 
 Commit `9b7f0cd` adds a separate `proposed_states.json` replay for Salt MVR, chem C01 and BASF C02. Each file contains the featured verified design solved by DWSIM on the same 71-point, 0.80–1.50 throughput grid as `states.json`. The files are 412, 380 and 346 KiB respectively. They do not replace or alter the existing-plant replay.
