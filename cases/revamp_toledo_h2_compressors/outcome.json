@@ -1,0 +1,19 @@
+{
+ "year": "1998-2000",
+ "engineers": "The refinery increased first-stage displacement rather than replacing the frames. The first-stage liner was bored and the piston changed from 19.5 to 20.5 in.; a restrictive double-deck first-stage suction valve was removed and the valve arrangement revised. The second- and third-stage cylinders, frames and 3,500 hp motors remained. Each compressor then handled 30.9 MMSCFD, 12.4% above the original flow, at about 3,241 bhp. The existing intercoolers were adequate for that increase.",
+ "source": "Gupta, Starling, Svaan and Higgins, 29th Turbomachinery Symposium (2000), modification and performance sections",
+ "file": "outcome.json",
+ "note": "Withheld from the agent. This is a field compressor rerate; a DWSIM duty check cannot replace cylinder, valve, rod-load or pulsation review.",
+ "change_categories": [
+  {"id": "first_stage_bore", "label": "increase first-stage cylinder displacement", "required": true, "keywords": ["first-stage bore", "first stage bore", "20.5 in", "larger first-stage cylinder", "cylinder liner"]},
+  {"id": "first_stage_valves", "label": "remove the restrictive first-stage valve arrangement", "required": true, "keywords": ["double-deck valve", "double deck valve", "suction valve", "valve restriction"]},
+  {"id": "retain_frame_motor", "label": "retain the frames and motors", "required": false, "keywords": ["retain motor", "existing motor", "existing frame", "3500 hp"]}
+ ],
+ "after_data": [
+  {"id": "flow_each", "label": "hydrogen flow per compressor", "expected": 30.9, "unit": "MMSCFD", "source": "field performance table", "reported_by": ["flow", "capacity", "throughput"], "withheld": true},
+  {"id": "capacity_gain", "label": "capacity increase", "expected": 12.4, "unit": "%", "source": "field performance discussion", "reported_by": ["capacity increase", "gain"], "withheld": true},
+  {"id": "driver_power", "label": "compressor brake power", "expected": 3241.0, "unit": "bhp", "source": "field performance table", "reported_by": ["power", "driver", "motor"], "withheld": true},
+  {"id": "first_stage_bore", "label": "first-stage cylinder bore", "expected": 20.5, "unit": "in", "source": "mechanical modification section", "reported_by": ["first stage", "bore", "cylinder"], "rating_field": "first_stage_bore_in", "withheld": true}
+ ],
+ "leak_phrases": ["20.5 in", "double-deck valve", "30.9 MMSCFD", "3,241 bhp"]
+}

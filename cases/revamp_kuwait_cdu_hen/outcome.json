@@ -1,0 +1,20 @@
+{
+ "year": "2021",
+ "engineers": "The selected limited-modification design relocated E1 between E4 and E6 and added one exchanger that recovered 6.15 MW from the C2 stream into crude after E3. That new exchanger heated the crude from 102 to 123.3 C. The combined trains delivered about 269 C to the furnace and reduced furnace duty from 93 to 89 MW. The new exchanger area was 1,236 m2. Reported capital cost was USD 443,763, annual savings USD 783,360 and simple payback 0.57 year.",
+ "source": "Al-Riyami et al., Case Studies in Thermal Engineering 28 (2021) 101030, selected less-modification design and economic tables",
+ "file": "outcome.json",
+ "note": "Withheld from the agent. This is a published engineering retrofit design for a real refinery network, not field commissioning data.",
+ "change_categories": [
+  {"id": "relocate_e1", "label": "relocate E1 between E4 and E6", "required": true, "keywords": ["relocate e1", "e1 between e4 and e6", "move e1"]},
+  {"id": "new_c2_recovery_exchanger", "label": "add a C2-to-crude recovery exchanger", "required": true, "keywords": ["c2 stream", "new heat exchanger", "additional exchanger", "recover 6.15 mw"]}
+ ],
+ "after_data": [
+  {"id": "new_recovery", "label": "new exchanger recovered duty", "expected": 6.15, "unit": "MW", "source": "selected-design table", "reported_by": ["new exchanger", "recovered duty", "heat recovery"], "withheld": true},
+  {"id": "new_crude_outlet", "label": "new exchanger crude outlet", "expected": 123.3, "unit": "C", "source": "selected-design table", "reported_by": ["crude outlet", "temperature"], "withheld": true},
+  {"id": "furnace_inlet", "label": "combined train furnace inlet", "expected": 269.0, "unit": "C", "source": "selected-design heat balance", "reported_by": ["furnace inlet", "preheat"], "withheld": true},
+  {"id": "furnace_duty", "label": "furnace duty after retrofit", "expected": 89.0, "unit": "MW", "source": "selected-design utility table", "reported_by": ["furnace duty", "hot utility"], "withheld": true},
+  {"id": "new_exchanger_area", "label": "new exchanger area", "expected": 1236.0, "unit": "m2", "source": "selected-design sizing table", "reported_by": ["area", "new exchanger"], "rating_field": "area_m2", "withheld": true},
+  {"id": "simple_payback", "label": "simple payback", "expected": 0.57, "unit": "year", "source": "economic table", "reported_by": ["payback", "economics"], "withheld": true}
+ ],
+ "leak_phrases": ["relocated E1", "6.15 MW", "123.3 C", "1,236 m2", "0.57 year"]
+}

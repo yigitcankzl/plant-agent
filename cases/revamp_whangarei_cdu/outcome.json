@@ -1,0 +1,19 @@
+{
+ "year": "2009-2010",
+ "engineers": "NZRC selected an internals retrofit. The three HGO pumparound trays were replaced one-for-one by Shell ConSep trays rated for 33% more capacity than the old Calming Section trays. The stripping section received Shell HiFi trays, the wash section MellapakPlus 252Y packing, and the other sections Shell Calming Section trays. The September 2010 test held 13,077 t/d with required product quality and no hydraulic constraint; the HGO trays ran 10-15% below their design load because the test crude was heavier and preheat was 10-12 C lower.",
+ "source": "Majumder, Mosca and Mahon, PTQ Q1 2013, pp. 75-77, Figures 4-6 and Tables 2-3",
+ "file": "outcome.json",
+ "note": "Withheld from the agent. The article is a field performance report, but the test crude was not identical to the design crude.",
+ "change_categories": [
+  {"id": "hgo_ultra_capacity_trays", "label": "ultra-high-capacity trays in the HGO pumparound", "required": true, "keywords": ["consep", "hgo pumparound", "ultra-high-capacity", "ultra high capacity"]},
+  {"id": "retray_remaining_sections", "label": "retray the remaining column sections", "required": false, "keywords": ["hifi", "calming section tray", "retray"]},
+  {"id": "wash_section_packing", "label": "new wash-section packing", "required": false, "keywords": ["mellapakplus", "252y", "wash section packing"]}
+ ],
+ "after_data": [
+  {"id": "crude_intake", "label": "September 2010 crude intake", "expected": 13077.0, "unit": "t/d", "source": "Table 2", "reported_by": ["feed", "throughput", "process"], "withheld": true},
+  {"id": "hgo_loading", "label": "HGO trays relative to design load", "expected_range": [85.0, 90.0], "unit": "%", "source": "post-revamp performance discussion", "reported_by": ["hgo", "flooding", "capacity"], "agent_scale": 100.0, "withheld": true},
+  {"id": "hgo_capacity_rating", "label": "new HGO tray capacity relative to old trays", "expected": 133.0, "unit": "%", "source": "C-150 modifications section", "reported_by": ["capacity factor", "new rating"], "rating_field": "tray_capacity_factor", "agent_scale": 100.0, "withheld": true},
+  {"id": "announced_target", "label": "announced project intake", "expected": 13000.0, "unit": "t/d", "source": "project premise", "reported_by": ["target"], "withheld": false}
+ ],
+ "leak_phrases": ["ConSep", "MellapakPlus", "HiFi trays", "one-for-one tray replacement", "10-15% lower than design capacity"]
+}

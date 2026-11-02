@@ -1,0 +1,20 @@
+{
+ "year": "2020",
+ "engineers": "The service provider rerated the existing BB5 rather than replacing the pump or barrel. The volute nozzle and lip were cut back to enlarge the flow passage, the impellers were replaced or underfiled for the higher flow, internal bushings were resized, and one stage was removed. The nine-stage rerate met 1,628 gpm at 3,450 ft while retaining the barrel and footprint. The reported simple payback was 35 days.",
+ "source": "Sulzer, Reviving Pump Performance (2020), engineering solution and outcome sections",
+ "file": "outcome.json",
+ "note": "Withheld from the agent. The article reports that the target duty was achieved but does not publish the full certified curve or NPSH test sheet.",
+ "change_categories": [
+  {"id": "flow_passage", "label": "enlarge the casing/volute flow passage", "required": true, "keywords": ["volute cutback", "nozzle cutback", "lip cutback", "enlarge flow passage"]},
+  {"id": "impellers", "label": "rerate or replace the impellers", "required": true, "keywords": ["underfile impeller", "underfiled impeller", "new impeller", "impeller rerate"]},
+  {"id": "remove_stage", "label": "remove one stage for the lower head", "required": true, "keywords": ["remove one stage", "nine-stage", "9-stage", "nine stage"]},
+  {"id": "bushings", "label": "resize internal bushings", "required": false, "keywords": ["resize bushing", "bushing clearance", "internal bushing"]}
+ ],
+ "after_data": [
+  {"id": "achieved_flow", "label": "rerated pump flow", "expected": 1628.0, "unit": "US gpm", "source": "outcome section", "reported_by": ["flow", "capacity", "pump"], "withheld": false},
+  {"id": "achieved_head", "label": "rerated pump head", "expected": 3450.0, "unit": "ft", "source": "outcome section", "reported_by": ["head", "pressure rise"], "withheld": false},
+  {"id": "stage_count", "label": "rerated pump stages", "expected": 9.0, "unit": "stages", "source": "mechanical-scope section", "reported_by": ["stage", "impeller"], "rating_field": "stages", "withheld": true},
+  {"id": "simple_payback", "label": "reported simple payback", "expected": 35.0, "unit": "days", "source": "outcome section", "reported_by": ["payback", "economics"], "withheld": true}
+ ],
+ "leak_phrases": ["nine-stage", "one stage was removed", "volute nozzle", "35 days"]
+}
