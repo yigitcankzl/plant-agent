@@ -75,6 +75,18 @@ class RedlineTests(unittest.TestCase):
         self.assertEqual(result["unreadable"], ["signature"])
         self.assertTrue((redline._folder(self.w, result["id"]) / "image.png").exists())
 
+    def test_vision_boundary_parses_fake_json_with_model_context(self):
+        with mock.patch.object(redline.llm, "complete", return_value={"content": json.dumps(self.raw)}) as complete, \
+                mock.patch.object(redline.llm, "set_tag"):
+            result = redline.read(self.w, png())
+        self.assertEqual(result["model"], "muse-wonder-1.0")
+        model, messages = complete.call_args.args
+        self.assertEqual(model, "muse-wonder-1.0")
+        context = json.loads(messages[1]["content"][0]["text"])
+        self.assertEqual(context["current_spec"], self.w.spec)
+        self.assertEqual(context["equipment_and_stream_tags"], self.w.pid)
+        self.assertTrue(messages[1]["content"][1]["image_url"]["url"].startswith("data:image/png;base64,"))
+
     def test_confirm_validates_edits_rejections_and_hash_chain(self):
         result = self.reading()
         with self.assertRaisesRegex(ValueError, "unknown unit"):

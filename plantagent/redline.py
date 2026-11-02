@@ -101,7 +101,7 @@ def read(w, image_bytes, model="muse-wonder-1.0"):
         raise ValueError("build a model before reading an engineer's redline")
     png = _image(image_bytes)
     spec_hash = _hash(w.spec)
-    rid = _hash([hashlib.sha256(png).hexdigest(), spec_hash, model, PROMPT])
+    rid = _hash([hashlib.sha256(png).hexdigest(), spec_hash, w.pid, model, PROMPT])
     folder = _folder(w, rid)
     if (folder / "read.json").exists():
         return json.loads((folder / "read.json").read_text())
