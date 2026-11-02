@@ -320,10 +320,15 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     console.log(errs.length || !ok ? 'FAIL' : 'ok  ', `guided demo on ${c}: limits on Existing, Muse's fix on Proposed, text from the case data`, errs.join(' | '));
     bad += ok ? 0 : 1;
   }
-  // every discipline gate is visible without a hidden horizontal scroll
-  await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForSelector('.discipline-rail', { timeout: 30000 }).catch(() => {});
-  const railFits = await p.evaluate(() => { const r = document.querySelector('.discipline-rail'); return !!r && r.scrollWidth <= r.clientWidth + 1 && document.querySelectorAll('.discipline-gate').length >= 5; });
-  console.log(railFits ? 'ok  ' : 'FAIL', 'discipline gates on salt_mvr: calculated shown, the rest folded');
+  // Layout uses a fixed check fixture; saved gate caches can legitimately be absent/stale on a clone.
+  await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForFunction(() => !!P?.built);
+  const railFits = await p.evaluate(async () => {
+    $('answers').innerHTML = disciplineImpact({disciplines: GATE_ORDER.map((id, i) => ({id, status: i < 5 ? 'pass' : 'open', summary: 'Smoke fixture', source: 'ILLUSTRATIVE test row'}))});
+    openDetails(true); await new Promise(resolve => requestAnimationFrame(resolve));
+    const r = document.querySelector('.discipline-rail');
+    return !!r && r.scrollWidth <= r.clientWidth + 1 && document.querySelectorAll('.discipline-gate').length === GATE_ORDER.length && !document.querySelector('.gates-open').open;
+  });
+  console.log(railFits ? 'ok  ' : 'FAIL', 'sample discipline gates: calculated shown, the rest folded');
   bad += railFits ? 0 : 1;
   // a blind case with a recorded outcome shows the agent and the engineers side by side
   const bv = await (await fetch(`${BASE}/api/plant/swro_brownsville/project`)).json().catch(() => ({}));
