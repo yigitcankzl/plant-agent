@@ -12,7 +12,7 @@ from pathlib import Path
 
 from . import audit, brine, grid, llm, overlays, pid, process, ro, ro_changes, trapped
 from .docs import DATA, data_path
-from .study import ARR, Study, compact, submit, text_tool_calls, unstring
+from .study import ARR, Study, compact, submit, text_tool_calls, TEXT_CALL, unstring
 
 ROOT = Path(__file__).resolve().parent.parent
 S, N, B = {"type": "string"}, {"type": "number"}, {"type": "boolean"}
@@ -2735,7 +2735,7 @@ class PlantWorkspace(Study):
                 available = [t for t in tools if t["function"]["name"] in (submit_name, "report_gap")]
             msg = llm.complete(self.model, compact(messages), tools=available)
             self.log.write(json.dumps({"phase": phase, "step": step, "assistant": msg}) + "\n")
-            if not msg["tool_calls"] and msg.get("content") and "invoke name=" in msg["content"]:
+            if not msg["tool_calls"] and msg.get("content") and TEXT_CALL.search(msg["content"]):
                 msg = {**msg, "tool_calls": text_tool_calls(msg["content"]), "content": ""}
             if msg.get("content"):
                 self.emit({"kind": "say", "text": msg["content"]})

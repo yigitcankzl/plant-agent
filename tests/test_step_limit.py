@@ -24,3 +24,15 @@ class StepLimit(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TextCalls(unittest.TestCase):
+    def test_function_tag_form_is_recovered(self):
+        text = '<function name="answer">\n<parameter name="headline">12% with valves</parameter>\n<parameter name="proposals">[{"title": "x"}]</parameter>\n</function>'
+        self.assertTrue(study.TEXT_CALL.search(text))
+        calls = study.text_tool_calls(text)
+        self.assertEqual(calls[0]["name"], "answer")
+        self.assertEqual(__import__("json").loads(calls[0]["arguments"])["proposals"], [{"title": "x"}])
+
+    def test_invoke_form_still_works(self):
+        self.assertEqual(study.text_tool_calls('<x:invoke name="run"><x:parameter name="a">1</x:parameter></x:invoke>')[0]["name"], "run")

@@ -182,7 +182,8 @@ def unstring(v):
     return v
 
 
-_INVOKE = __import__("re").compile(r"<(?:\w+:)?invoke name=\"([\w.-]+)\">(.*?)</(?:\w+:)?invoke>", __import__("re").S)
+_INVOKE = __import__("re").compile(r"<(?:\w+:)?(?:invoke|function) name=\"([\w.-]+)\">(.*?)(?:</(?:\w+:)?(?:invoke|function)>|\Z)", __import__("re").S)
+TEXT_CALL = __import__("re").compile(r"<(?:\w+:)?(?:invoke|function) name=")
 _PARAM = __import__("re").compile(r"<(?:\w+:)?parameter name=\"([\w.-]+)\">(.*?)</(?:\w+:)?parameter>", __import__("re").S)
 
 
@@ -454,7 +455,7 @@ class Study:
             final = [t for t in tools if t["function"]["name"] == submit_name] if step >= max_steps - 3 else []
             msg = llm.complete(self.model, compact(messages), tools=final or tools)
             self.log.write(json.dumps({"phase": phase, "step": step, "assistant": msg}) + "\n")
-            if not msg["tool_calls"] and msg.get("content") and "invoke name=" in msg["content"]:
+            if not msg["tool_calls"] and msg.get("content") and TEXT_CALL.search(msg["content"]):
                 msg = {**msg, "tool_calls": text_tool_calls(msg["content"]), "content": ""}
             if msg.get("content"):
                 self.emit({"kind": "say", "text": msg["content"]})
