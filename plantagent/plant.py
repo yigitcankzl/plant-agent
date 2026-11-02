@@ -2025,7 +2025,8 @@ class PlantWorkspace(Study):
             self.built["review_status"] = self.built["review"]["status"]
         self._state = {}
         # pick up the answers of the latest session made on this same model, so a restart keeps the engineer's thread
-        for prev in sorted((ROOT / "runs" / "ws" / case_name).glob("2*/answers.json"), reverse=True):
+        # PLANT_FRESH=1 starts with no earlier answers: a blind run must not read what earlier runs wrote
+        for prev in ([] if os.getenv("PLANT_FRESH") else sorted((ROOT / "runs" / "ws" / case_name).glob("2*/answers.json"), reverse=True)):
             if prev.parent != self.dir and self.built and _made_after(prev.parent.name, self.built.get("at"), prev, self.model_file):
                 self.answers = json.loads(prev.read_text())
                 break

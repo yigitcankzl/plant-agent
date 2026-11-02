@@ -1,6 +1,6 @@
 # C2 splitter PV-1767, Shell Chemical, Norco, Louisiana: operating basis before the 2015 study
 
-Source: Summers D., de Villiers W., Green W., 2018, "C2 splitter revamp surpasses capacity and efficiency of 4-pass trays", *Chemical Engineering Transactions* 69, 703–708, DOI 10.3303/CET1869118 (open access, © AIDIC). Only the operating state before the project (April 2015) is given here; the paper's account of what was done is withheld.
+Source: a peer-reviewed open-access paper with the plant's operating data (2018). The citation is withheld from the agent because its title describes the outcome; it is recorded with the withheld outcome in `outcome.json` and in the case's `source` field. Only the operating state before the project (April 2015) is given here; the paper's account of what was done is withheld.
 
 ## The tower
 - Ethane/ethylene splitter in an olefins unit, highly heat-integrated with the rest of the unit. It has run for more than 35 years.
