@@ -1283,6 +1283,13 @@ class Handler(SimpleHTTPRequestHandler):
                                 "task_type": json.loads((ROOT / "cases" / n / "case.json").read_text())["task_type"], "workspace": True,
                                 "engine": json.loads((ROOT / "cases" / n / "case.json").read_text()).get("engine", "dwsim")}
                                for n in all_cases("process")])
+        if parts == ["api", "voice"] and method == "POST":  # push-to-talk on any page; paid, so gated like other runs
+            _require_runs()
+            from . import llm
+            data = self._body(MAX_UPLOAD)
+            if not data.startswith(b"RIFF") or data[8:12] != b"WAVE":
+                raise ValueError("upload WAV audio")
+            return self._send(llm.transcribe(data))
         if parts[:2] == ["api", "ws"] and len(parts) == 4 and parts[2] in known:
             case, what = parts[2], parts[3]
             if method == "POST" and what in ("ask", "task", "fixall", "photo", "voice", "readsheet"):

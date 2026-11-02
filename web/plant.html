@@ -867,7 +867,7 @@
           <button class="btn go" id="workRunOpen" type="button" aria-expanded="false" aria-controls="workConfirm" data-needs-simulator>Run full engineering</button>
           <div class="estimate">Estimated Muse cost ~$5–10 · simulator runs are local</div>
           <div class="work-confirm" id="workConfirm" hidden>
-            <label for="workGoal">Engineering goal</label>
+            <label for="workGoal">Engineering goal <button class="btn" id="workMic" type="button" title="Speak the goal (Muse Voice Transcribe)" aria-label="Speak the goal">🎤</button></label>
             <textarea id="workGoal"></textarea>
             <div class="actions"><button class="btn" id="workCancel" type="button">Cancel</button><button class="btn go" id="workStart" type="button" data-needs-simulator>Confirm and run</button></div>
             <div class="work-run-error" id="workRunError" role="alert"></div>
@@ -3434,6 +3434,36 @@ load().then(async () => {
   $('qaA').textContent = 'This plant could not be loaded. Check the case files and reload.';
 });
 </script>
-<script src="assumptions.js"></script>
+<script src="assumptions.js">
+// push-to-talk for the engineering goal: record 16 kHz mono WAV, Muse Voice Transcribe writes it into the goal box
+let GOAL_REC = null;
+async function goalMic() {
+  const b = $('workMic'), box = $('workGoal');
+  if (GOAL_REC) {
+    const {ctx, node, src, stream, chunks} = GOAL_REC; GOAL_REC = null;
+    node.disconnect(); src.disconnect(); stream.getTracks().forEach(t => t.stop());
+    const rate = ctx.sampleRate; await ctx.close();
+    const all = new Float32Array(chunks.reduce((n, c) => n + c.length, 0)); let o = 0; for (const c of chunks) { all.set(c, o); o += c.length; }
+    const ratio = rate / 16000, n = Math.floor(all.length / ratio), pcm = new Int16Array(n);
+    for (let i = 0; i < n; i++) pcm[i] = Math.max(-1, Math.min(1, all[Math.floor(i * ratio)])) * 32767;
+    const buf = new ArrayBuffer(44 + n * 2), dv = new DataView(buf), w = (p, str) => [...str].forEach((c, i) => dv.setUint8(p + i, c.charCodeAt(0)));
+    w(0, 'RIFF'); dv.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true);
+    dv.setUint16(22, 1, true); dv.setUint32(24, 16000, true); dv.setUint32(28, 32000, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true);
+    w(36, 'data'); dv.setUint32(40, n * 2, true); new Int16Array(buf, 44).set(pcm);
+    b.textContent = '…'; b.style.background = '';
+    try {
+      const r = await (await fetch('/api/voice', {method: 'POST', body: new Blob([buf], {type: 'audio/wav'})})).json();
+      if (r.transcript) box.value = r.transcript; else if (r.error) $('workRunError').textContent = r.error;
+    } catch (e) { $('workRunError').textContent = e.message; }
+    b.textContent = '🎤'; return;
+  }
+  const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+  const ctx = new AudioContext(), src = ctx.createMediaStreamSource(stream), node = ctx.createScriptProcessor(4096, 1, 1), chunks = [];
+  node.onaudioprocess = e => chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+  src.connect(node); node.connect(ctx.destination);
+  GOAL_REC = {ctx, node, src, stream, chunks}; b.textContent = '⏺'; b.style.background = 'rgba(239,90,79,.3)';
+}
+document.getElementById('workMic')?.addEventListener('click', e => { e.preventDefault(); goalMic().catch(err => { $('workRunError').textContent = err.message; }); });
+</script>
 </body>
 </html>
