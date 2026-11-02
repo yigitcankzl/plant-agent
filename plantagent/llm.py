@@ -133,11 +133,11 @@ def _client_for(model):
         if spent(host) >= budget:
             raise BudgetExceeded(f"{host} budget reached (${spent(host):.2f} of ${budget}).")
         if host not in _open:
-            _open[host] = OpenAI(api_key=os.environ[key], base_url=url, timeout=300, max_retries=2)
+            _open[host] = OpenAI(api_key=os.environ[key], base_url=url, timeout=300, max_retries=6)  # ponytail: SDK exponential backoff; open hosts drop connections mid-loop
         return _open[host], model.split(":", 1)[1]
     if spent() - sum(spent(h) for h in OPEN_HOSTS) >= BUDGET_USD:
         raise BudgetExceeded(f"Muse budget reached (${spent():.2f} of ${BUDGET_USD}). Raise MUSE_BUDGET_USD deliberately.")
-    _client = _client or OpenAI(api_key=os.environ["META_API_KEY"], base_url=os.getenv("META_BASE_URL", "https://api.meta.ai/v1"), timeout=480, max_retries=1)
+    _client = _client or OpenAI(api_key=os.environ["META_API_KEY"], base_url=os.getenv("META_BASE_URL", "https://api.meta.ai/v1"), timeout=480, max_retries=3)
     return _client, model
 
 
