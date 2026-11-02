@@ -3293,6 +3293,10 @@ class PlantWorkspace(Study):
         if spec is None:
             raise ValueError("no featured verified design")
         states = [{"scale": round(x / 100, 2), **self._solve(spec, x / 100)} for x in range(80, 151)]
+        # Slider replay uses operating points/checks, not the full per-tray profile at every scale.
+        for state in states:
+            state["units"] = {k: {f: v for f, v in unit.items() if f != "profile"}
+                              for k, unit in state.get("units", {}).items()}
         data = {"spec": spec, "capacity": self._capacity_of(spec), "engine": _simulator_name(self.cfg), "states": states}
         self.model_file.with_name("proposed_states.json").write_text(json.dumps(data, separators=(",", ":")))
         return len(states)

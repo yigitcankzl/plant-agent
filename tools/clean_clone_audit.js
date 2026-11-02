@@ -13,6 +13,8 @@ const fixed = [
   ['salt', 'plant.html?case=salt_mvr'],
   ['salt-tour', 'plant.html?case=salt_mvr&tour=1'],
   ['basf-c02', 'plant.html?case=basf_process_column_k_2750_dexpi_c02_uns'],
+  ['norco', 'plant.html?case=shell_norco_c2splitter'],
+  ['redline', 'redline.html?case=salt_mvr'],
   ['salt-vision', 'plant.html?case=salt_mvr_vision'],
   ['ucte', 'plant.html?case=ucte_2006'],
   ['freeport', 'plant.html?case=freeport_lng_2022'],

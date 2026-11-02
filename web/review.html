@@ -83,9 +83,16 @@
     .err { color: var(--stop); min-height: 1.2em; font-size: 13px; }
     @media (max-width: 900px) { main { grid-template-columns: 1fr; } .block .cells { grid-template-columns: 1fr; } .block .cell { border-right: 0; border-bottom: 1px solid var(--paper-ink); } }
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+    body.present-mode { font-size: 18px; }
+    body.present-mode main { max-width: 1640px; padding-bottom: 40px; }
+    body.present-mode header h1, body.present-mode h2 { font-size: 20px; }
+    body.present-mode .check .sum, body.present-mode .openlist li, body.present-mode .lede { font-size: 17px; }
+    body.present-mode .small, body.present-mode .block .note, body.present-mode .block .when { font-size: 15px; }
+    body.present-mode .technical, body.present-mode .file-list, body.present-mode .hash, body.present-mode .hist { display: none; }
   </style>
 </head>
 <body>
+<script>if (new URLSearchParams(location.search).get('present') === '1') document.body.classList.add('present-mode');</script>
 <header>
   <h1>MOC sign-off</h1>
   <label class="muted small">Plant <select id="case" aria-label="Plant"></select></label>

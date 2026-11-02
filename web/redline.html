@@ -33,9 +33,12 @@ function renderRead(data){reading=data;$('items').replaceChildren();$('compariso
   const label=document.createElement('label'),tick=document.createElement('input');tick.type='checkbox';tick.checked=data.confirmed?!!saved:!!item.valid;tick.dataset.select='true';
   label.append(tick,document.createTextNode(`${item.tag||'Unattached note'} / ${item.confidence==null?'confidence unknown':Math.round(item.confidence*100)+'% confidence'}`));
   const ink=document.createElement('blockquote');ink.textContent=item.ink||'No readable ink';
-  const detail=document.createElement('textarea');detail.setAttribute('aria-label',`Structured change for ${item.tag||'note '+item.index}`);detail.value=JSON.stringify(item.change,null,2);detail.dataset.change='true';
+  const mapped=item.change&&typeof item.change==='object'&&!Array.isArray(item.change);
+  const detail=document.createElement(mapped?'textarea':'p');
+  if(mapped){detail.setAttribute('aria-label',`Structured change for ${item.tag||'note '+item.index}`);detail.value=JSON.stringify(item.change,null,2);detail.dataset.change='true';}
+  else{detail.textContent='Not mapped — the ink gave no connections/setpoint';tick.checked=false;tick.disabled=true;}
   detail.oninput=()=>{$('check').disabled=true;$('comparison').hidden=true;};tick.onchange=detail.oninput;
-  const issues=document.createElement('p');issues.className='error';issues.textContent=(item.errors||[]).join('\n');
+  const issues=document.createElement('p');issues.className='error';issues.textContent=(mapped?item.errors||[]:[]).join('\n');
   const unclear=document.createElement('p');unclear.className='unreadable';unclear.textContent=(item.unreadable||[]).join('; ');
   row.append(label,ink,detail,issues,unclear);$('items').append(row);
  }$('unreadable').textContent=(data.unreadable||[]).join('; ');$('confirm').disabled=!(data.items||[]).length;$('check').disabled=!data.confirmed||!simulatorAvailable;$('check').title=simulatorAvailable?'':simulatorReason;$('status').textContent=data.confirmed?(simulatorAvailable?'Saved confirmation loaded. Ready for engineering checks.':simulatorReason):'Read complete. Confirm the changes you intend.';}

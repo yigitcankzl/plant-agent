@@ -42,6 +42,12 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.setViewportSize({width: 1440, height: 900});
   console.log(redlineOk && confirmedEdit ? 'ok  ' : 'FAIL', 'engineer redline: fake vision read, invalid item, edited confirmation and both design checks');
   bad += redlineOk && confirmedEdit ? 0 : 1;
+  const unmappedOk = await p.evaluate(() => {
+    renderRead({id: 'unmapped', items: [{index: 0, change: null, ink: 'note', errors: ['change 1 is not an object']}]});
+    return !document.querySelector('#items textarea') && document.querySelector('#items').textContent.includes('Not mapped — the ink gave no connections/setpoint') &&
+      !document.querySelector('#items').textContent.includes('is not an object') && document.querySelector('#items input').disabled;
+  });
+  console.log(unmappedOk ? 'ok  ' : 'FAIL', 'unmapped redline ink is plain text, not null JSON'); bad += unmappedOk ? 0 : 1;
   await p.unroute('**/api/plant/salt_mvr/project'); await p.unroute(redlineRoot);
   await p.unroute('**/api/job/redline-smoke'); await p.unroute(`${redlineRoot}/${redlineId}/confirm`); await p.unroute(`${redlineRoot}/${redlineId}/check`);
   await p.goto(`${BASE}/redline.html?case=salt_mvr`);
@@ -75,14 +81,17 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     const [id, summary, shot] = redteamShots[i];
     redteamOk = redteamOk && await p.evaluate(({id, summary}) => {
       const panel = document.querySelector('#redteamPanel');
-      return panel?.dataset.redteamSet === id && panel.querySelectorAll('.redteam-attack').length === 8 &&
-        panel.textContent.includes(summary) && panel.querySelectorAll('.redteam-attack a[href]').length >= 8;
+      const expected = id === '600-harsh' ? 3 : 8;
+      return document.querySelectorAll('#redteamPanel').length === 1 && panel?.dataset.redteamSet === id && panel.querySelectorAll('.redteam-attack').length === expected &&
+        panel.textContent.includes(summary) && panel.querySelectorAll('.redteam-attack a[href]').length >= expected &&
+        (expected === 8 || /5 more attacks also broke it.*20261102-194930/.test(panel.querySelector('.redteam-missing')?.textContent)) &&
+        [...panel.querySelectorAll('.redteam-attack')].every(card => card.scrollWidth <= card.clientWidth + 1);
     }, {id, summary});
     await p.screenshot({path: `${OUT}/${shot}`});
   }
   redteamOk = redteamOk && await p.evaluate(() => /86\.4%/.test(document.querySelector('#redteamPanel').textContent));
   const redteamErrors = errs.splice(0);
-  console.log(redteamOk && !redteamErrors.length ? 'ok  ' : 'FAIL', 'red team: three stored sets, eight attacks, linked evidence and 700 mm challenge', redteamErrors.join(' | '));
+  console.log(redteamOk && !redteamErrors.length ? 'ok  ' : 'FAIL', 'red team: one panel, three sets, missing details grouped and no overflow', redteamErrors.join(' | '));
   bad += redteamOk && !redteamErrors.length ? 0 : 1;
   await p.setViewportSize({width: 1440, height: 900});
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
@@ -144,11 +153,25 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     const caption = document.querySelector('#presentCaption'), title = document.querySelector('#worklogPanel .work-step-title');
     return document.body.classList.contains('present-mode') && /Muse proposed|DWSIM checked|pandapower checked/.test(document.querySelector('#presentActor').textContent) &&
       parseFloat(getComputedStyle(document.querySelector('#presentText')).fontSize) >= 18 && parseFloat(getComputedStyle(title).fontSize) >= 18 &&
-      getComputedStyle(title).overflow === 'visible' && !document.querySelector('#presentText').textContent.endsWith('…');
+      getComputedStyle(title).overflow === 'visible' && !document.querySelector('#presentText').textContent.endsWith('…') &&
+      getComputedStyle(document.querySelector('.agent-log-toggle')).display === 'none' &&
+      getComputedStyle(document.querySelector('#workbench')).display === 'none' &&
+      document.querySelector('#pidViewport').getBoundingClientRect().bottom <= caption.getBoundingClientRect().top + 1 &&
+      parseFloat(getComputedStyle(document.querySelector('#presentChecks .discipline-gate')).fontSize) >= 15;
   });
   await p.screenshot({ path: `${OUT}/video_present_salt_1920x1080.png` });
   console.log(presentOk ? 'ok  ' : 'FAIL', 'presentation mode: large actor caption and untruncated replay step');
   bad += presentOk ? 0 : 1;
+  await p.goto(`${BASE}/plant.html?case=shell_norco_c2splitter`);
+  await p.waitForFunction(() => document.querySelector('#stateSource')?.textContent.includes('proposed design'), null, {timeout: 30000});
+  const norcoOk = await p.evaluate(() => {
+    const d = designAnswer(), text = decisionBrief(d, P.answers.indexOf(d));
+    return ST.replayed && ST.scale === 1.25 && ST.checks.some(c => c.id === 'PV-1767' && Math.abs(c.value - .744) < .001) &&
+      /PV-1767/.test(document.querySelector('#verdict').textContent) && !/No limits/.test(document.querySelector('#eqlist').textContent) &&
+      !/combined target not yet cleared/.test(text);
+  });
+  await p.screenshot({path: `${OUT}/norco_proposed_1920x1080.png`});
+  console.log(norcoOk ? 'ok  ' : 'FAIL', 'Norco: featured proposed state, flood check and cached gate verdict'); bad += norcoOk ? 0 : 1;
   await p.goto(`${BASE}/scan.html?case=salt_mvr_vision`);
   await p.waitForFunction(() => document.querySelectorAll('[data-read-tag]').length >= 10, null, { timeout: 30000 }).catch(() => {});
   await p.waitForFunction(() => document.querySelector('#scan').naturalWidth > 0 || document.querySelector('.scan-missing'), null, { timeout: 30000 }).catch(() => {});

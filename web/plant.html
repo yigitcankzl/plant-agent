@@ -274,9 +274,10 @@
   .redteam-attack { padding: 9px 10px; border: 1px solid #425a60; border-radius: 5px; background: #18363c; animation: redteam-in .24s ease both; animation-delay: calc(var(--rt-i) * 150ms); }
   .redteam-attack.fail { border-color: #744b4d; background: #3a292c; }
   .redteam-attack-head { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; font-weight: 750; }
-  .redteam-attack-head span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .redteam-attack-head a { flex: 0 0 auto; font: 700 11px var(--mono); color: inherit; }
-  .redteam-rationale { display: block; margin: 3px 0 7px; overflow: hidden; color: #aebfc0; font-size: 10.5px; text-overflow: ellipsis; white-space: nowrap; }
+  .redteam-attack-head span { min-width: 0; overflow-wrap: anywhere; }
+  .redteam-attack-head a { flex: 0 0 70px; text-align: right; white-space: nowrap; font: 700 11px var(--mono); color: inherit; }
+  .redteam-rationale { display: block; margin: 3px 0 7px; color: #aebfc0; font-size: 10.5px; overflow-wrap: anywhere; }
+  .redteam-missing { padding: 10px; border-left: 3px solid var(--fail); color: var(--fg-2); font-size: 12px; line-height: 1.5; }
   .redteam-bar { position: relative; height: 8px; overflow: hidden; border-radius: 5px; background: #0f292e; }
   .redteam-bar::after { content: ""; position: absolute; top: 0; bottom: 0; left: 80%; width: 1px; background: #f2f7f6; opacity: .75; }
   .redteam-fill { display: block; height: 100%; background: var(--ok); }
@@ -739,7 +740,7 @@
   .ask-replay-only { display: block !important; }
   .ask-replay-only #redlineLink { display: block; text-align: center; }
 
-  .tour-gate-row { position: fixed; z-index: 59; top: 62px; left: 324px; right: 18px; display: flex; flex-wrap: wrap; gap: 7px;
+  .tour-gate-row { position: fixed; z-index: 59; top: 110px; left: 324px; right: 18px; display: flex; flex-wrap: wrap; gap: 7px;
     padding: 9px 12px; border: 1px solid #4da3ff; border-radius: 8px; background: rgba(15,46,69,.97); box-shadow: 0 8px 28px rgba(0,0,0,.35); }
   .tour-gate-chip { min-height: 34px; padding: 5px 10px; border: 1px solid #5c7883; border-radius: 17px; background: #183a46; color: #eaf4f5; font: 700 12px var(--sans); cursor: pointer; }
   .tour-gate-chip.pass { border-color: var(--ok); } .tour-gate-chip.fail { border-color: var(--fail); color: #ffb0a8; }
@@ -749,7 +750,7 @@
   /* Recording-only view: the ordinary workspace is unchanged unless ?present=1 is present. */
   .present-caption, .openweights-story { display: none; }
   body.present-mode { overflow: hidden; }
-  body.present-mode .app { grid-template-columns: 420px minmax(0, 1fr) !important; grid-template-rows: 64px minmax(0, 1fr) !important; padding-bottom: 132px; }
+  body.process.present-mode .app { grid-template-columns: 480px minmax(0, 1fr) !important; grid-template-rows: 64px minmax(0, 1fr) !important; padding-bottom: 132px; }
   body.present-mode header { min-height: 64px; padding: 0 24px; }
   body.present-mode header #proj { font-size: 18px; }
   body.present-mode header .logo { font-size: 20px; }
@@ -782,6 +783,21 @@
   body.present-mode .chat-step { padding: 10px 0; }
   body.present-mode .chat-actions .btn { font-size: 16px; }
   body.present-mode .chat-turn > summary { white-space: normal; }
+  body.present-mode .agent-log-toggle, body.present-mode .chat-head, body.present-mode .chat-mode,
+  body.present-mode #askDock, body.present-mode #qaSugg, body.present-mode .replay-label { display: none !important; }
+  body.present-mode .pid-viewport { height: 100% !important; min-height: 0; }
+  body.present-mode main, body.present-mode .stage { min-height: 0; height: 100%; }
+  body.present-mode .discipline-gate { font-size: 15px; padding: 9px 12px; }
+  body.present-mode .discipline-impact-head h3, body.present-mode .redteam-head h3 { font-size: 19px; }
+  body.present-mode .redteam-head { flex-wrap: wrap; }
+  body.present-mode .redteam-model, body.present-mode .redteam-tabs button { font-size: 13px; }
+  body.present-mode .redteam-attack { padding: 12px; }
+  body.present-mode .redteam-attack-head { font-size: 14.5px; }
+  body.present-mode .redteam-attack-head a, body.present-mode .redteam-inputs { font-size: 13px; }
+  body.present-mode .redteam-rationale, body.present-mode .redteam-note { font-size: 13px; }
+  body.present-mode .redteam-summary { flex-wrap: wrap; }
+  body.present-mode .redteam-summary b { font-size: 21px; }
+  body.present-mode #presentChecks { padding-bottom: 20px; }
   body.present-mode .present-caption { display: grid; position: fixed; z-index: 80; left: 0; right: 0; bottom: 0; min-height: 132px;
     grid-template-columns: 260px minmax(0, 1fr); align-items: center; gap: 24px; padding: 22px 42px; color: #f2f4ef;
     background: rgba(10, 24, 28, .96); border-top: 3px solid #78d6c6; box-shadow: 0 -18px 42px rgba(0,0,0,.32); }
@@ -789,7 +805,7 @@
   .present-caption .present-text { font-size: 27px; line-height: 1.25; overflow-wrap: anywhere; }
   .present-caption[data-status="fail"] { border-top-color: #e35b4f; }
   .present-caption[data-status="pass"] { border-top-color: #78c98f; }
-  body.present-mode.openweights-story-mode .app { grid-template-columns: 38vw minmax(0, 1fr) !important; }
+  body.process.present-mode.openweights-story-mode .app { grid-template-columns: 38vw minmax(0, 1fr) !important; }
   body.present-mode.openweights-story-mode #resultPane { display: none; }
   body.present-mode.openweights-story-mode #sheet .badge { display: none; }
   body.present-mode.openweights-story-mode .openweights-story { display: flex; grid-column: 1; grid-row: 2; flex-direction: column; justify-content: center;
@@ -884,6 +900,7 @@
       <section class="engineering-chat" id="chatThread" aria-label="Engineering conversation" aria-live="polite" hidden></section>
       <details class="analysis-log" id="analysisLog" hidden><summary><span id="progressSummary">Analysis log</span></summary><div class="progress" id="progress"></div></details>
       <section class="worklog" id="worklogPanel" aria-label="Engineering run" hidden></section>
+      <section id="presentChecks" aria-label="Design checks" hidden></section>
       <details class="side-details" id="historyDetails"><summary>Model revisions and audit</summary><div id="revs"></div></details>
       <div id="answers"></div>
     </div>
@@ -1528,7 +1545,8 @@ function render(st) {
     return `<div class="eq" data-id="${esc(c.id)}" ${act('select', c.id)} title="${esc(c.id)}"><div class="t">${esc(u ? c.id : nm(c.id))} <span>${Math.round(c.utilisation * 100)}%</span></div>
       <div class="bar"><i style="width:${Math.min(100, c.utilisation / 1.3 * 100)}%;background:var(--${sev(c.utilisation)})"></i></div>
       <div class="why">${esc(name)} · ${esc(c.check)}: ${fmt(c.value)} of ${fmt(c.limit)} ${esc(c.unit)}</div></div>`;
-  }).join('') || '<div class="empty">No limits in the model.</div>';
+  }).join('') || `<div class="empty">${(st.checks || []).some(c => c.error) ? 'Limit calculation unavailable in this stored state.' : 'No numerical limit checks in this state.'}</div>` +
+    gateRows(designAnswer() || {}).filter(g => g.id === 'process').map(g => `<div class="eq"><div class="t">Stored design check</div><div class="why">${esc(g.summary)}</div></div>`).join('');
   // colour the P&ID and badge each tagged equipment item
   const sheet = $('sheet');
   sheet.querySelectorAll('.badge').forEach(b => b.remove());
@@ -1582,11 +1600,16 @@ function render(st) {
     // header and subline name which plant they describe, so 'runs at 120 %' (proposed) and 'maximum 100 %' (today) never read as a contradiction
     const which = st.proposed_unavailable ? "Today's plant (the proposed design needs DWSIM to re-solve)" : VIEW === 'proposed' && !modelBlocked() && (P?.has_changes || latestProposedChanges().length) ? (incident() ? 'With the fix' : 'Proposed design') : (incident() ? (P.engine === 'trapped' ? 'Base model (sound insulation, illustrative)' : 'Base model') : "Today's plant");
     $('verdict').innerHTML = `<span class="verdict-which">${which}</span> ` + (incident() ? (over.length ? `<span style="color:var(--fail)">✗ Limit crossed at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
-      : `<span style="color:var(--ok)">✓ Within limits at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`) : over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
-      : `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top?.id || ''))} ${top ? Math.round(top.utilisation * 100) + '%' : ''}`);
+      : top ? `<span style="color:var(--ok)">✓ Within limits at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top.id))} ${Math.round(top.utilisation * 100)}%`
+      : `<span style="color:var(--warn)">Limit check unavailable at ${Math.round(s * 100)}%</span>`) : over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
+      : top ? `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top.id))} ${Math.round(top.utilisation * 100)}%`
+      : `<span style="color:var(--warn)">Limit check unavailable at ${Math.round(s * 100)}%</span>`);
     $('verdictSub').innerHTML = capLine;
   }
   $('verdictSub').title = $('verdictSub').textContent;
+  if (PRESENT && !$('presentText').textContent) showPresentCaption(`${simulator()} checked:`,
+    top ? `${top.id}: ${top.value} / ${top.limit} ${top.unit || ''} at ${Math.round(s * 100)}% throughput` : 'No numerical limit check stored at this throughput.',
+    top ? (over.length ? 'fail' : 'pass') : 'open');
 }
 // '2026-10-31T01:51:10+03:00' -> '31 Oct 2026, 01:51' for people; raw stamps stay in the audit details
 const when = t => { const d = new Date(t); return isNaN(d) ? String(t ?? '') : d.toLocaleString('en-GB', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'}); };
@@ -2603,7 +2626,7 @@ function renderWorklog(log) {
     ${posthoc ? '<div class="worklog-posthoc">Post-hoc engineering run — the blind incident answer above remains separate and unchanged.</div>' : ''}
     <div class="worklog-head"><h3>Engineering run</h3><span class="work-status ${status[1]}">${esc(status[0])}</span></div>
     <p class="worklog-goal">${esc(log.goal || '')}${reason ? `<br><b>Reason:</b> ${esc(reason)}` : ''}</p>
-    <div class="replay-controls" role="group" aria-label="Replay this engineering run"><button class="btn" type="button" id="replayToggle">▶ Replay this run</button>
+    <div class="replay-controls" role="group" aria-label="Replay this engineering run"><button class="btn" type="button" id="replayToggle">▶ ${PRESENT ? 'Play' : 'Replay this run'}</button>
       <button class="btn" type="button" id="replayBack" aria-label="Previous replay step">←</button><button class="btn" type="button" id="replayNext">Step →</button>
       <button class="btn" type="button" id="replaySpeed" aria-label="Replay speed">1×</button><span class="replay-progress" id="replayProgress">0 / 0</span></div>
     <div class="replay-stage" id="replayStage" aria-live="polite" hidden></div>
@@ -2853,11 +2876,12 @@ function answers() {
   const follow = lead !== last ? `<details class="ans follow-up"><summary>Latest follow-up · ${esc(plain(last.headline || last.question || 'question'))}</summary>${briefAns(last, all.length - 1)}</details>` : '';
   const rest = all.map((a, i) => [a, i]).filter(([a]) => a !== lead && a !== last).reverse();
   const list = all.length ? [lead] : [];
-  $('answers').innerHTML = nrelParityCard() + outcomeCard() + (list.length ? (lead !== last ? `<div class="lead-note">Current verified design · answer ${all.indexOf(lead) + 1} of ${all.length}</div>` : '') + ans(lead, all.indexOf(lead)) + follow +
+  $('answers').innerHTML = nrelParityCard() + outcomeCard() + (PRESENT ? '' : redteamCard()) + (list.length ? (lead !== last ? `<div class="lead-note">Current verified design · answer ${all.indexOf(lead) + 1} of ${all.length}</div>` : '') + ans(lead, all.indexOf(lead)) + follow +
     (rest.length ? `<details class="ans"><summary>History · ${rest.length} earlier question${rest.length === 1 ? '' : 's'}</summary>${rest.map(([a, i]) => briefAns(a, i)).join('')}</details>` : '') :
     NREL_EVIDENCE ? '' : `<div class="empty"><b>What would you like to test?</b><br>${incident() ? 'Ask what happened, which limit was crossed first, and what would have prevented it.' : 'Ask about an equipment limit, or find a path to the target throughput.'}
      <div class="sugg">${suggestions().map(s => `<button class="btn" ${act('ask', s)}>${esc(s)}</button>`).join('')}</div></div>`);
   qaBar(lead);
+  if (PRESENT) { $('presentChecks').hidden = false; $('presentChecks').innerHTML = disciplineImpact(d || lead || {}) + redteamCard(); }
   const ac = P.ai_cost, qs = ac?.questions_usd ?? all.reduce((t, a) => t + (a.cost_usd || 0), 0);
   $('spend').textContent = list.length || ac?.model_build_usd ? `AI cost $${qs.toFixed(2)} questions${ac?.model_build_usd ? ` · $${ac.model_build_usd.toFixed(2)} model build` : ''}` : '';
   $('spend').title = `Estimated Muse API cost: ${ac?.questions ?? all.length} questions answered${ac?.model_build_usd ? ' plus building the simulation model once' : ''}; simulator runs are local and free.`;
@@ -2917,7 +2941,8 @@ function redteamCard() {
   const set = sets[Math.min(REDTEAM_SELECTED, sets.length - 1)], summary = set.summary || {}, src = set.source_url || '#';
   const failed = summary.broke > 0, worst = summary.worst_utilisation;
   const tabs = sets.map((item, i) => `<button type="button" ${act('redteamSet', i)} aria-pressed="${i === REDTEAM_SELECTED}">${esc(item.label)}</button>`).join('');
-  const attacks = (set.attacks || []).map((attack, i) => {
+  const missing = (set.attacks || []).filter(a => /detail not stored/.test(a.name || '') && !a.worst && !(a.changed_inputs || []).length);
+  const attacks = (set.attacks || []).filter(a => !missing.includes(a)).map((attack, i) => {
     const u = attack.worst?.utilisation, known = Number.isFinite(u), pct = known ? Math.round(u * 100) : null;
     const width = known ? Math.max(0, Math.min(100, u / 1.25 * 100)) : 0, source = attack.source_url || src;
     const changes = [`scale ${attack.scale == null ? 'not stored' : attack.scale + '× target'}`,
@@ -2929,13 +2954,14 @@ function redteamCard() {
       <details class="redteam-inputs"><summary>Changed inputs</summary><a class="redteam-source" href="${esc(source)}" target="_blank"><code>${esc(changes)}</code></a></details>
     </article>`;
   }).join('');
+  const unstored = missing.length ? `<div class="redteam-missing"><a href="${esc(src)}" target="_blank">${missing.length} more attacks also broke it — names and numbers were not stored in that run (worklog ${esc(set.run_id || 'not recorded')})</a></div>` : '';
   const cost = set.cost_usd == null ? '' : ` · <a href="${esc(src)}" target="_blank">$${Number(set.cost_usd).toFixed(3)}</a>`;
   const worstText = Number.isFinite(worst) ? ` · worst <a href="${esc(src)}" target="_blank">${Math.round(worst * 100)}%</a>` : '';
   const challenge = set.challenge ? `<p class="redteam-note"><a class="redteam-source" href="${esc(set.challenge.source_url)}" target="_blank">${esc(set.challenge.text)}</a></p>` : '';
   return `<section class="redteam-panel" id="redteamPanel" data-redteam-set="${esc(set.id)}"><div class="redteam-head"><div><div class="redteam-kicker">Independent adversarial check</div><h3>Muse Spark 1.3 tries to break this design</h3></div><div class="redteam-model">${esc(museName(set.attacker_model || 'muse-spark-1.3'))}${cost}</div></div>
     <div class="redteam-tabs" role="group" aria-label="Stored red-team sets">${tabs}</div>
     <div class="redteam-summary ${failed ? 'fail' : 'pass'}"><b><a href="${esc(src)}" target="_blank">${failed ? summary.broke : summary.held} / ${summary.total}</a> ${failed ? 'broke' : 'held'}</b><span>${esc(set.design_label)}${worstText}</span></div>
-    <div class="redteam-attacks">${attacks}</div>${challenge}${set.note ? `<p class="redteam-note">${esc(set.note)}</p>` : ''}</section>`;
+    <div class="redteam-attacks">${attacks}${unstored}</div>${challenge}${set.note ? `<p class="redteam-note">${esc(set.note)}</p>` : ''}</section>`;
 }
 function showGate(index) {
   const row = GATE_VIEWS[index];
@@ -2973,7 +2999,7 @@ function decisionBrief(a, idx) {
   else if (failed.length) { status = `${failed.length} discipline gate${failed.length === 1 ? '' : 's'} failed`; statusClass = 'fail'; }
   else if (open.length) { status = `${simulator()} screening complete · ${open.length} discipline gate${open.length === 1 ? '' : 's'} open`; }
   else if (d.combined?.reaches_target && !gates.length) status = `${simulator()} verified · discipline gates not run yet`;
-  else if (d.combined?.reaches_target) { status = `${simulator()} and all supplied discipline gates pass`; statusClass = 'pass'; }
+  else if (d.combined?.reaches_target || (!d.combined && gates.some(g => g.id === 'process' && gateState(g)[0] === 'pass'))) { status = `${simulator()} and all supplied discipline gates pass`; statusClass = 'pass'; }
   else if (verified.length) status = `${verified.length} change${verified.length === 1 ? '' : 's'} simulated · combined target not yet cleared`;
   if (incident() && !failed.length) {  // the replay of the runs the answer cites decides what may be claimed
     const runs = (d.checks || []).filter(c => /^run /.test(c.item || '')), bad = runs.filter(c => !c.ok);
@@ -2987,7 +3013,7 @@ function decisionBrief(a, idx) {
     <div class="decision-fact status-${statusClass}"><dt>③ What the engines confirmed</dt><dd>${esc(status)}</dd></div>
     <div class="decision-fact decision-provenance"><dt>Who did what</dt><dd>${whoDidWhat(d, gates)}</dd></div>
     ${secondOpinionLink(d)}
-  </dl></section>${disciplineImpact(d)}${redteamCard()}${costConfidence(d)}${issue}`;
+  </dl></section>${disciplineImpact(d)}${costConfidence(d)}${issue}`;
 }
 // ⑤ money and confidence: factored cost (economics.py) and the Monte Carlo of re-solves (uncertainty.py), both deterministic;
 // curves and the start-up screen load on demand from their own endpoints
