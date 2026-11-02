@@ -51,6 +51,33 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     console.log(stuck || errs.length ? 'FAIL' : 'ok  ', u, stuck ? 'stuck loading or case unavailable' : '', errs.splice(0).join(' | '));
     bad += stuck ? 1 : 0;
   }
+  await p.setViewportSize({width: 1920, height: 1080});
+  await p.goto(`${BASE}/plant.html?case=basf_process_column_k_2750_dexpi_c02_uns`);
+  await p.waitForSelector('#redteamPanel', {timeout: 30000}).catch(() => {});
+  await p.evaluate(() => { openDetails(true); setWorkspaceView('engineering'); });
+  const redteamShots = [
+    ['600-envelope', '8 / 8 held', 'redteam_600mm_envelope.png'],
+    ['600-harsh', '8 / 8 broke', 'redteam_600mm_125x.png'],
+    ['700-robust', '8 / 8 held', 'redteam_700mm_holds.png']
+  ];
+  let redteamOk = true;
+  for (let i = 0; i < redteamShots.length; i++) {
+    await p.evaluate(i => { redteamSet(i); openDetails(true); setWorkspaceView('engineering'); document.querySelector('#redteamPanel')?.scrollIntoView({block: 'start'}); }, i);
+    await p.waitForFunction(() => document.querySelector('#detailDrawer').getBoundingClientRect().left < innerWidth, null, {timeout: 10000});
+    await p.waitForTimeout(1350);
+    const [id, summary, shot] = redteamShots[i];
+    redteamOk = redteamOk && await p.evaluate(({id, summary}) => {
+      const panel = document.querySelector('#redteamPanel');
+      return panel?.dataset.redteamSet === id && panel.querySelectorAll('.redteam-attack').length === 8 &&
+        panel.textContent.includes(summary) && panel.querySelectorAll('.redteam-attack a[href]').length >= 8;
+    }, {id, summary});
+    await p.screenshot({path: `${OUT}/${shot}`});
+  }
+  redteamOk = redteamOk && await p.evaluate(() => /86\.4%/.test(document.querySelector('#redteamPanel').textContent));
+  const redteamErrors = errs.splice(0);
+  console.log(redteamOk && !redteamErrors.length ? 'ok  ' : 'FAIL', 'red team: three stored sets, eight attacks, linked evidence and 700 mm challenge', redteamErrors.join(' | '));
+  bad += redteamOk && !redteamErrors.length ? 0 : 1;
+  await p.setViewportSize({width: 1440, height: 900});
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
   const saltStartup = await p.evaluate(() => { const card = document.createElement('div'); card.innerHTML = costConfidence({uncertainty: {p_target: 1, solved: 1}}); return P.has_compressor_curve && !!card.querySelector('#machines button'); });
   const proposedSource = await p.evaluate(() => /Stored DWSIM · proposed design/.test(document.querySelector('#stateSource').textContent));

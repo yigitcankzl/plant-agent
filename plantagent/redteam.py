@@ -1,7 +1,7 @@
 """Red team: a second Muse attacks a verified design with credible operating deviations; the simulator decides.
 
 The attacker only proposes scenarios (HAZOP-style deviations of operating inputs, bounded to +/-30 % of the design
-value and 0.8-1.25x the target throughput). Every scenario is re-solved with the same limit checks as the envelope
+value and 0.8-1.1x the target throughput). Every scenario is re-solved with the same limit checks as the envelope
 (prefeed.run_envelope). A scenario that breaks a limit or does not solve is a failed check that goes back to the
 proposing Muse in the next loop round. The attacker never edits limits, topology or equipment.
 """
@@ -93,6 +93,125 @@ Attack surface (path: design value): {surface}
 
 Think briefly, then reply with the JSON only: {{"scenarios": [{{"name": "...", "guideword": "...", "basis": "...", "scale": 1.0, \
 "changes": [{{"path": "...", "value": 0.0}}]}}]}}"""
+
+
+def _json(path):
+    try:
+        return json.loads(path.read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+
+
+def _raw_set(ident, label, design, raw, source, run_id=None, note=None, challenge=None):
+    attacks = []
+    for scenario in raw.get("scenarios") or []:
+        attacks.append({"name": scenario.get("name") or "Unnamed attack",
+                        "rationale": scenario.get("basis") or "Attacker rationale was not stored.",
+                        "changed_inputs": scenario.get("changes") or [], "scale": scenario.get("scale"),
+                        "pass": bool(scenario.get("pass")), "errors": scenario.get("errors") or [],
+                        "worst": scenario.get("worst"), "source_url": source})
+    known = [a for a in attacks if _numeric((a.get("worst") or {}).get("utilisation"))]
+    worst = max(known, key=lambda a: a["worst"]["utilisation"]) if known else None
+    held = sum(a["pass"] for a in attacks)
+    return {"id": ident, "label": label, "design_label": design, "attacker_model": raw.get("model"),
+            "cost_usd": raw.get("usd"), "seconds": raw.get("seconds"), "target": raw.get("target"),
+            "run_id": run_id, "source_url": source, "note": note, "challenge": challenge, "attacks": attacks,
+            "summary": {"total": len(attacks), "held": held, "broke": len(attacks) - held,
+                        "worst_utilisation": (worst or {}).get("worst", {}).get("utilisation"),
+                        "worst_check": (worst or {}).get("worst", {}).get("check")}}
+
+
+def _redteam_step(log):
+    return next((step for round_ in log.get("rounds") or [] for step in round_.get("steps") or []
+                 if step.get("check") == "redteam"), None)
+
+
+def _harsh_set(log, source):
+    step = _redteam_step(log) or {}
+    attacks = []
+    pattern = r"'([^']+)' \(([\d.]+)x target; ([^)]+)\): (.*?)(?=; '[^']+' \(|$)"
+    for name, scale, changed, result in re.findall(pattern, step.get("title") or ""):
+        changes = []
+        for item in changed.split(", "):
+            path, value = item.rsplit("=", 1)
+            try:
+                value = float(value)
+            except ValueError:
+                pass
+            changes.append({"path": path, "value": value})
+        match = re.match(r"(.+?) (Fair flood fraction vs limit) ([\d.]+) %$", result)
+        worst = ({"id": match.group(1), "check": match.group(2), "utilisation": float(match.group(3)) / 100}
+                 if match else None)
+        attacks.append({"name": name, "rationale": "Attacker rationale was not preserved in this worklog.",
+                        "changed_inputs": changes, "scale": float(scale), "pass": False, "errors": [result],
+                        "worst": worst, "source_url": source})
+    total = int((step.get("numbers") or {}).get("attacks") or len(attacks))
+    for n in range(len(attacks), total):
+        attacks.append({"name": f"Attack {n + 1} — detail not stored",
+                        "rationale": "The worklog preserved the aggregate result, not this attack's name or numbers.",
+                        "changed_inputs": [], "scale": None, "pass": False, "errors": [], "worst": None,
+                        "source_url": source})
+    known = [a for a in attacks if a.get("worst")]
+    worst = max(known, key=lambda a: a["worst"]["utilisation"]) if known else None
+    numbers = step.get("numbers") or {}
+    return {"id": "600-harsh", "label": "600 mm · 1.25× target", "design_label": "600 mm replacement shell",
+            "attacker_model": "muse-spark-1.3", "cost_usd": numbers.get("usd"), "seconds": None,
+            "target": 1.25, "run_id": log.get("id"), "source_url": source,
+            "note": "Only three per-attack results were retained; the worklog records that all eight broke the design.",
+            "challenge": None, "attacks": attacks,
+            "summary": {"total": total, "held": 0, "broke": int(numbers.get("broke") or total),
+                        "worst_utilisation": (worst or {}).get("worst", {}).get("utilisation"),
+                        "worst_check": (worst or {}).get("worst", {}).get("check")}}
+
+
+def source(w, ident):
+    """The exact stored source behind one replay set; ids are allowlisted, never paths from the request."""
+    base = w.model_file.parent
+    paths = {"600-envelope": base / "redteam_600mm.json",
+             "600-harsh": base / "work" / "20261102-194930" / "worklog.json",
+             "700-robust": base / "redteam_700mm.json", "featured": base / "redteam.json"}
+    return _json(paths[ident]) if ident in paths else None
+
+
+def stored(w):
+    """Normalized, replay-only red-team sets available for this case."""
+    case, base = w.name, w.model_file.parent
+    sets = []
+    raw = _json(base / "redteam_600mm.json")
+    if raw:
+        src = f"/api/plant/{case}/redteam?source=600-envelope"
+        sets.append(_raw_set("600-envelope", "600 mm · envelope band", "600 mm replacement shell", raw, src,
+                             note="Attacks stay within the normal +10% envelope band."))
+    log = _json(base / "work" / "20261102-194930" / "worklog.json")
+    if log:
+        sets.append(_harsh_set(log, f"/api/plant/{case}/work/{log['id']}"))
+    raw = _json(base / "redteam_700mm.json")
+    if raw:
+        src = f"/api/plant/{case}/redteam?source=700-robust"
+        challenge = {"scale": 1.25, "utilisation": .864,
+                     "text": "A separate 1.25×-target worst-case DWSIM sizing check reached 86.4% of the flood limit.",
+                     "source_url": f"/api/plant/{case}/work/20261102-194930"}
+        sets.append(_raw_set("700-robust", "700 mm · robust design", "700 mm replacement shell", raw, src,
+                             run_id="20261102-203128", challenge=challenge,
+                             note="The stored eight-attack replay uses the bounded envelope; the sizing check is shown separately."))
+    # Other cases may have the ordinary cache even when they do not have the three BASF demo sets.
+    raw = _json(base / "redteam.json")
+    if raw and not sets:
+        src = f"/api/plant/{case}/redteam?source=featured"
+        sets.append(_raw_set("featured", "Featured design · envelope band", "Featured verified design", raw, src))
+    return {"case": case, "sets": sets}
+
+
+def run_featured(w):
+    """Run the fixed Spark 1.3 attacker against the featured verified design (the simulator remains the judge)."""
+    from .revb import design_answer
+    answer = design_answer(w.answers)
+    if answer is None:
+        raise ValueError("no verified featured design to attack")
+    idx = next(i for i, item in enumerate(w.answers) if item is answer)
+    raw = attack(w, idx, "muse-spark-1.3")
+    return _raw_set("live", "Live attack", "Featured verified design", raw,
+                    f"/api/plant/{w.name}/redteam?source=featured")
 
 
 def _parse(text):
