@@ -668,6 +668,10 @@ def make(w, answer=None):
                if c.get("replace_unit") else
                f"- {c['add_unit']['id'] if c.get('add_unit') else nm(c['path'].split('.')[1])}: {c['rating_source']}" for c in rated] or \
               ["- Existing equipment; no rating is changed."]
+        expected = patch(built, r["changes"])
+        if any(c.get("replace_unit") and any(label in str(c.get("basis") or "") and run.get("spec") != expected
+                                             for label, run in (getattr(w, "runs", {}) or {}).items()) for c in rated):
+            md += ["- Sizing basis cites trial runs with other changes; the server verified the replacement alone."]
         calc = r.get("calculation")
         md += ["", "**Before / Proposed calculation** (this change alone, DWSIM at the target).", ""]
         if calc:

@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from plantagent import decision, hazop
+from plantagent.plant import patch
 from plantagent.proposed import centers_from_svg, overlay
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -215,6 +216,19 @@ class DecisionPackTests(unittest.TestCase):
         self.assertIn("vendor confirmation open", md)
         self.assertTrue(any("Replacement of K-201" in item for item in data["pssr"]))
         self.assertIn('data-replaced="K-201"', svg)
+
+    def test_replacement_pack_flags_basis_from_a_different_trial_spec(self):
+        replacement = proposal(title="Replace K-201 casing", changes=[
+            {"replace_unit": "K-201", "new_rating": {"max_kg_h": 300000},
+             "basis": "trial showed enough capacity", "vendor_confirm": True}], calculation=None, new_equipment=[])
+        answer = {"headline": "Replace compressor", "summary": "Screened.", "proposals": [replacement], "field_checks": []}
+        with tempfile.TemporaryDirectory() as folder:
+            w = _workspace(Path(folder), answer)
+            w.runs = {"trial": {"spec": patch(w.spec, replacement["changes"] + [
+                {"path": "units.K-201.eff_pct", "value": 70}])}}
+            out = decision.make(w, 0)
+            md = (w.model_file.with_name(out["folder"]) / "decision.md").read_text()
+        self.assertIn("Sizing basis cites trial runs with other changes; the server verified the replacement alone.", md)
 
 
 if __name__ == "__main__":
