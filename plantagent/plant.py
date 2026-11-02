@@ -239,6 +239,12 @@ def sandbox_notes(base, trial):
                 notes.append(f"{u['id']}.{f} is a rated limit: in a proposal write it as replace_unit {{\"replace_unit\": "
                              f"\"{u['id']}\", \"new_rating\": {{\"{f}\": {u[f]!r}}}, \"basis\": \"...\", \"vendor_confirm\": true}}, "
                              "not as a path edit")
+    for u in (trial or {}).get("units") or []:
+        old = units.get(u.get("id")) or {}
+        for k in ("bottoms_mol_s", "distillate_mol_s", "vapor_mol_s"):
+            if k in u and k in old and old[k] and u[k] / old[k] > 1.15:
+                notes.append(f"{u['id']}.{k} {old[k]} -> {u[k]}: column flow amounts are scaled with the throughput by the "
+                             "solver, so write them at today's throughput; a pre-scaled rate is scaled twice at the target")
     for fid, feed in ((trial or {}).get("feeds") or {}).items():
         old = (base.get("feeds") or {}).get(fid) or {}
         for k in ("kg_h", "m3_h"):
@@ -2182,7 +2188,7 @@ class PlantWorkspace(Study):
         return shared + [
             f("run_process", "Solve a DWSIM flowsheet and log it under `label`. Returns stream T/P/flows, unit results and every "
                              "limit check (utilisation = value/limit). Spec: " + json.dumps(process.SPEC_HELP),
-              {"label": S, "purpose": S, "spec": {"type": "object"}, "scale": {"type": "number", "description": "multiplies non-utility feeds"}},
+              {"label": S, "purpose": S, "spec": {"type": "object"}, "scale": {"type": "number", "description": "multiplies non-utility feeds and every flow or duty amount in the spec (column product rates, vapour and side draws, heat duty): write those at today's throughput, never pre-scaled"}},
               ["label", "spec"]),
             f("process_capacity", "Throughput multiple of a logged run at which the first stated limit reaches 100 %, and which.",
               {"label": S}, ["label"]),
