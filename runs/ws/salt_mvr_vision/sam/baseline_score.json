@@ -1,0 +1,76 @@
+{
+  "equipment": {
+    "found": 13,
+    "total": 13,
+    "type_correct": 12,
+    "missing": [],
+    "extra": [],
+    "wrong_types": [
+      {
+        "tag": "BP-1",
+        "read": "pump",
+        "confirmed": "heat exchanger"
+      }
+    ]
+  },
+  "connections": {
+    "correct": 16,
+    "total": 20,
+    "missing": 4,
+    "extra": 4,
+    "directed_topology_correct_ignoring_line_ids": 17,
+    "missing_links": [
+      {
+        "from": "BCC-1",
+        "to": "BP-1",
+        "line": "9",
+        "count": 1
+      },
+      {
+        "from": "VRE-1",
+        "to": "BP-1",
+        "line": "21",
+        "count": 1
+      },
+      {
+        "from": "VRE-1",
+        "to": "PE-1",
+        "line": "31",
+        "count": 1
+      },
+      {
+        "from": "VRE-1",
+        "to": "VRC-1",
+        "line": "25",
+        "count": 1
+      }
+    ],
+    "extra_links": [
+      {
+        "from": "BCC-1",
+        "to": "DWF-1",
+        "line": "6",
+        "count": 1
+      },
+      {
+        "from": "BPF-1",
+        "to": "CST-1",
+        "line": "1",
+        "count": 1
+      },
+      {
+        "from": "CGT-1",
+        "to": "VRC-1",
+        "line": "25",
+        "count": 1
+      },
+      {
+        "from": "VRE-1",
+        "to": "VRC-1",
+        "line": "31",
+        "count": 1
+      }
+    ]
+  },
+  "rules": "Equipment: printed label + occurrence, unique one-to-one match; type: exact case/punctuation-normalised class. Connections: directed from/to plus printed line identifier; duplicates count as extra. No semantic LLM grading."
+}
