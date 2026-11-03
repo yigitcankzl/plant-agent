@@ -137,6 +137,10 @@
   .run-row { display:grid; grid-template-columns:116px 1fr auto; gap:16px; padding:18px; align-items:start; }
   .run-row + .run-row { border-top:1px solid #244850; }
   .run-row .actor { color:#8fd4c5; font:750 11px var(--mono); }
+  .run-row .result.fail { color:#f18a7e; }
+  .landing .newproj .library-head h2 { margin:0; }
+  .landing .newproj select { font:14px/1.4 var(--sans); padding:9px 10px; border:1px solid #b6c9c5; border-radius:6px; background:#f3f7f5; color:#17323a; }
+  .slogan { margin:56px 0 28px; font:800 clamp(26px,3vw,40px)/1.15 var(--sans); letter-spacing:-.03em; color:#eef7f5; }
   .run-row b { display:block; color:#eef7f5; font-size:15px; }
   .run-row p { margin:5px 0 0; color:#8fa9ab; font-size:13px; line-height:1.45; }
   .run-row .result { min-width:86px; text-align:right; color:var(--mint); font:750 12px var(--mono); }
@@ -179,7 +183,7 @@
   .landing a.btn.go:hover { color:#082126; background:#a8e5d9; border-color:#a8e5d9; }
   .landing details.library > summary { color:var(--mint); border-color:#477176; }
   .landing .newproj { margin-top:0; padding:42px; color:#eaf4f1; background:#102c33; border:1px solid #315860; border-radius:0; }
-  .landing .newproj .library-head { display:grid; grid-template-columns:.7fr 1.3fr; gap:40px; margin-bottom:26px; }
+  .landing .newproj .library-head { display:grid; grid-template-columns:.7fr 1.3fr; gap:40px; margin-top:0; margin-bottom:26px; align-items:end; }
   .landing .newproj h2 { display:block; margin:0; color:#fff; font:800 32px var(--sans); letter-spacing:-.035em; text-transform:none; }
   .landing .newproj .library-head p { margin:0; color:#9bb3b4; font-size:15px; line-height:1.55; }
   .landing .newproj label { color:#c3d5d3; }
@@ -239,7 +243,7 @@
       <div class="hero-copy">
         <p class="kicker">The engineering desk for plant changes</p>
         <h1 id="hero-title">Change the plant. Prove the change.</h1>
-        <p class="lead">PlantAgent turns a P&amp;ID and an engineering goal into a checked draft change. Meta's Muse models propose and revise; process, electrical and safety engines decide what passes, what fails and what still needs an engineer.</p>
+        <p class="lead">PlantAgent turns a P&amp;ID and an engineering goal into a checked draft change. Meta's Muse models propose and revise; process and electrical engines decide what passes, what fails and what still needs an engineer.</p>
         <div class="hero-actions">
           <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Open the engineering desk</a>
           <a class="btn quiet" href="#evidence">See the evidence</a>
@@ -262,7 +266,8 @@
       </a>
     </section>
 
-    <section class="workflow-strip" id="product" aria-label="How PlantAgent works">
+    <p class="slogan" id="product">Muse proposes. Physics checks. Engineers approve.</p>
+    <section class="workflow-strip" aria-label="How PlantAgent works">
       <article><span>01 · PROPOSE</span><h2>Muse works on the drawing</h2><p>It reads the P&amp;ID and source documents, builds a model, proposes a change and explains what it assumed.</p></article>
       <article><span>02 · CHECK</span><h2>Engines return the numbers</h2><p>DWSIM, pandapower, WaterTAP and discipline checks re-solve the change. The model cannot mark its own work as passed.</p></article>
       <article><span>03 · DECIDE</span><h2>The engineer owns the outcome</h2><p>Failures and open items stay visible. Approval freezes a revision with its evidence, comments and audit trail.</p></article>
@@ -274,10 +279,11 @@
         <a class="text-link" href="plant.html?case=basf_process_column_k_2750_dexpi_c02_uns">Open the BASF workspace →</a></div>
       <div class="run-record" aria-label="BASF engineering run summary">
         <div class="run-record-head"><span>ENGINEERING RUN · BASF K 2750</span><span>OPEN-WEIGHT MUSE</span></div>
-        <div class="run-row"><span class="actor">MUSE SPARK</span><div><b>Replace the column shell with a uniform 600 mm section</b><p>Proposal includes its sizing basis and keeps vendor confirmation open.</p></div><span class="result">PROPOSED</span></div>
-        <div class="run-row"><span class="actor">DWSIM</span><div><b>Process target, purity and assumed envelope pass</b><p>Flooding screen stays below the modelled 80% limit at the verified operating point.</p></div><span class="result">PASS</span></div>
+        <div class="run-row"><span class="actor">MUSE SPARK OPEN</span><div><b>Reflux 1.5 and a larger bottoms draw</b><p>Reaches the target, then the +10 % feed case floods it. The numbers go back to Muse.</p></div><span class="result fail">FAIL</span></div>
+        <div class="run-row"><span class="actor">MUSE SPARK OPEN</span><div><b>Revised: replace the column shell with a uniform 600 mm section</b><p>Proposal includes its sizing basis and keeps vendor confirmation open.</p></div><span class="result">PROPOSED</span></div>
+        <div class="run-row"><span class="actor">DWSIM</span><div><b>Process target, purity and assumed envelope pass</b><p>61 % of flood against the modelled 80 % limit, both envelope cases and 48 of 48 uncertainty samples.</p></div><span class="result">PASS</span></div>
         <div class="run-row"><span class="actor">RED TEAM</span><div><b>8 of 8 bounded process attacks held</b><p>Worst stored flooding result: 89.7% of the allowable limit.</p></div><span class="result">8 / 8</span></div>
-        <div class="run-row"><span class="actor">ENGINEER</span><div><b>Vendor and cross-discipline review still required</b><p>The process screen is verified; the physical modification is not approved.</p></div><span class="result open">OPEN</span></div>
+        <div class="run-row"><span class="actor">ENGINEER</span><div><b>Vendor and cross-discipline review still required</b><p>The process screens pass; the physical modification is not approved.</p></div><span class="result open">OPEN</span></div>
       </div>
     </section>
 
