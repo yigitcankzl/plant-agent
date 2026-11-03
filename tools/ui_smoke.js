@@ -288,7 +288,10 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   });
   await p.screenshot({ path: `${OUT}/decision_workspace.png` });
   const decisionSeparated = await p.evaluate(() => getComputedStyle(document.querySelector('.work-runner')).display === 'none' &&
-    !document.querySelector('.decision-question').open && (P.allow_runs ? getComputedStyle(document.querySelector('#askDock')).display === 'grid' : getComputedStyle(document.querySelector('#askDock')).display === 'none'));
+    !document.querySelector('.decision-question').open && document.querySelectorAll('#runStory .run-story-line').length === 4 &&
+    [...document.querySelectorAll('#runStory .run-story-line b')].map(e => e.textContent).join('|') === 'Target|Bottleneck|Recommendation|Result' &&
+    getComputedStyle(document.querySelector('#qaBadges')).display === 'none' && getComputedStyle(document.querySelector('#spend')).display === 'none' &&
+    (P.allow_runs ? getComputedStyle(document.querySelector('#askDock')).display === 'grid' : getComputedStyle(document.querySelector('#askDock')).display === 'none'));
   await p.click('[data-workspace-page="run"]');
   const runSeparated = await p.evaluate(() => getComputedStyle(document.querySelector('.work-runner')).display !== 'none' && getComputedStyle(document.querySelector('#qa')).display === 'none');
   await p.click('[data-workspace-page="evidence"]');

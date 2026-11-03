@@ -722,9 +722,9 @@
   #sheet [data-tag].chat-fail * { stroke: var(--fail) !important; stroke-width: 2px !important; }
 
   /* The strip tells the engineering story first. Tool traffic remains one click away. */
-  .run-story { margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--rule); }
-  .run-story-line { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 8px; padding: 4px 0; color: var(--fg-2); font-size: 12.5px; line-height: 1.4; }
-  .run-story-line b { color: var(--fg); font-weight: 700; }
+  .run-story { margin-top: 2px; }
+  .run-story-line { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 8px; padding: 10px 0; border-top: 1px solid var(--rule); color: var(--fg-2); font-size: 13px; line-height: 1.45; }
+  .run-story-line b { color: var(--fg); font-size: 10.5px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; }
   .run-story-line.fail b, .run-story-line.fail span { color: #ff9a90; }
   .norco-compare { margin-top: 12px; padding: 9px 10px; border: 1px solid #3a555b; background: #14272d; }
   .norco-compare > summary { color: var(--fg); font-size: 12.5px; font-weight: 700; }
@@ -868,6 +868,7 @@
   .process.focused main { grid-column: 3; }
   .process.focused .workbench { left: calc(100px + var(--workspace-panel)); width: min(640px, calc(100vw - 144px - var(--workspace-panel))); transition: left .28s cubic-bezier(.2,.8,.2,1), width .28s cubic-bezier(.2,.8,.2,1); }
   body.workspace-page-overview:not(.present-mode) #rightScroll { display: none; }  /* presentation mode tells the story from the run panel */
+  body.workspace-page-overview :is(.decision-question, #qaA, #qaBadges, #spend) { display: none; }
   body.workspace-page-overview #resultPane .workspace-tabs,
   body.workspace-page-run #resultPane .workspace-tabs { display: none; }
   .process.focused .workspace-tabs { display: none !important; }  /* the rail owns navigation */
@@ -3061,7 +3062,9 @@ function storyGate(row) {
 }
 function renderRunStory(lead, log = null) {
   const box = $('runStory'); if (!box) return;
-  if (!lead) { box.innerHTML = '<div class="run-story-line"><b>Next</b><span>Ask a plant-change question or replay a saved engineering run.</span></div>'; return; }
+  const target = incident() ? plain(P.question || lead?.request || 'Review the documented incident.')
+    : `Reach ${Math.round(P.target_scale * 100)}% of today's throughput.`;
+  if (!lead) { box.innerHTML = `<div class="run-story-line"><b>Target</b><span>${esc(target)}</span></div><div class="run-story-line"><b>Result</b><span>Not analysed yet. Ask a plant-change question or replay a saved engineering run.</span></div>`; return; }
   const d = (lead.proposals || []).length ? lead : (designAnswer() || lead);
   const first = (d.highlights || []).find(h => ['fail', 'warn'].includes(h.severity));
   const verified = (d.proposals || []).filter(p => p.verified);
@@ -3078,11 +3081,9 @@ function renderRunStory(lead, log = null) {
     remainsFailed = failures.length > 0;
     left = failures.length ? `${failures.length} checks still fail: ${failures.join(', ')}.` : humans.length ? `${humans.length} human decisions remain; first: ${plain(String(humans[0])).split(':')[0]}.` : 'All supplied engineering checks pass.';
   }
-  const score = CASE === 'shell_norco_c2splitter' && P.outcome?.scorecard ? (() => {
-    const counts = P.outcome.scorecard.reduce((m, row) => (m[row.verdict] = (m[row.verdict] || 0) + 1, m), {});
-    return `<button class="decision-evidence-link" type="button" onclick="setWorkspacePage('evidence')">Blind comparison · ${counts.match || 0} match · ${counts.partial || 0} partial · ${counts.miss || 0} miss</button>`;
-  })() : '';
-  box.innerHTML = `<div class="run-story-line"><b>Limit</b><span>${esc(limit)}</span></div><div class="run-story-line"><b>Fix</b><span>${esc(fix)}</span></div><div class="run-story-line ${remainsFailed ? 'fail' : ''}"><b>${remainsFailed ? 'Still fails' : 'Still open'}</b><span>${esc(left)}</span></div>${score}`;
+  const processPass = d.combined?.reaches_target || gates.some(row => row.id === 'process' && gateState(row)[0] === 'pass');
+  const result = remainsFailed ? `Not ready: ${left}` : `${processPass ? `${simulator()} target verified.` : 'Screening complete.'} ${left}`;
+  box.innerHTML = `<div class="run-story-line"><b>Target</b><span>${esc(target)}</span></div><div class="run-story-line"><b>Bottleneck</b><span>${esc(limit)}</span></div><div class="run-story-line"><b>Recommendation</b><span>${esc(fix)}</span></div><div class="run-story-line ${remainsFailed ? 'fail' : ''}"><b>Result</b><span>${esc(result)}</span></div>`;
 }
 function answers() {
   queueMicrotask(() => applyEngineAvailability($('answers')));
