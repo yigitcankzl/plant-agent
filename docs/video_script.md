@@ -12,7 +12,7 @@
 Muse proposes, physics disposes: Meta's Muse builds the simulator and designs the change, engineering engines check every round, failures go back to Muse, and the engineer signs the package.
 
 ## Recording setup
-- 1920×1080, browser at 100 %, presentation mode once it exists (`?present=1`).
+- 1920×1080, browser at 100 %, presentation mode (`?present=1`).
 - Server: `WEB_ALLOW_RUNS=1 .venv/bin/python -m plantagent.web --port 8765`.
 - **Live calls:**
   - The BASF loop runs live on Muse Spark Open, about 5 min, ~$0.60. Record it in full and speed up the waiting parts on screen, labelled "×8".

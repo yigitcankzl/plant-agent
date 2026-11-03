@@ -116,7 +116,6 @@ cp .env.example .env && chmod 600 .env          # then add keys
 .venv/bin/python -m plantagent.web --port 8765  # open http://127.0.0.1:8765/home.html
 .venv/bin/python -m unittest discover -s tests       # the test suite (~5 min; engine-dependent tests skip without DWSIM)
 .venv/bin/python -m plantagent.study --case roseburg   # a full blind study (about 20 min, $0.05–0.64)
-.venv/bin/python -m plantagent.grade                   # grade the latest runs against the engineers
 ```
 
 The `openai` package in `requirements.txt` is only the transport SDK for the OpenAI-compatible Meta, Baseten and Fireworks endpoints; PlantAgent calls no OpenAI model.

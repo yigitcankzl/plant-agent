@@ -135,7 +135,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     return rounds.length === 2 && !rounds[0].open && rounds[1].open && actors.includes('Muse') && actors.includes('DWSIM') && actors.includes('pandapower') &&
       workActor({actor: 'muse'}, 'baseten:meta-models/muse-spark-open-1026') === 'Muse Spark Open' &&
       !!document.querySelector('[data-work-result]') && !!document.querySelector('.worklog-sample') && /ILLUSTRATIVE SAMPLE/.test(document.querySelector('.worklog-sample').textContent) &&
-      /4 items need a human decision/.test(document.querySelector('.work-status').textContent) &&
+      /4 human approval items open/.test(document.querySelector('.work-status').textContent) &&
       [...document.querySelectorAll('.work-deliverables a')].some(a => /decision\.pdf$/.test(a.href)) &&
       [...document.querySelectorAll('.work-deliverables a')].some(a => /decision\.zip$/.test(a.href));
   });
@@ -188,7 +188,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.waitForFunction(() => typeof finishOpenWeightsStory === 'function' && document.querySelector('#storyN1'), null, { timeout: 30000 }).catch(() => {});
   const ucteStoryOk = await p.evaluate(() => {
     finishOpenWeightsStory();
-    return /refused ×4/.test(document.querySelector('#openWeightsStory').textContent) && /N-1:\s*0 violations/.test(document.querySelector('#storyN1').textContent) &&
+    return /refused 4 attempts/.test(document.querySelector('#openWeightsStory').textContent) && /N-1:\s*0 violations/.test(document.querySelector('#storyN1').textContent) &&
       document.querySelector('#sheet [data-tag="BIO-SPX 220"]')?.classList.contains('story-open') && document.body.dataset.storyPhase === 'done';
   });
   await p.screenshot({ path: `${OUT}/video_ucte_openweights_1920x1080.png` });

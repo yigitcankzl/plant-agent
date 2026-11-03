@@ -760,6 +760,9 @@
   body.present-mode .drawer-shade, body.present-mode .pid-tools, body.present-mode #qa,
   body.present-mode .analysis-log, body.present-mode .side-details, body.present-mode #answers,
   body.present-mode .dd-open-btn, body.present-mode .step-card { display: none !important; }
+  /* presentation: the result, the caption, the drawing and the summaries; not every round, attack or tour step */
+  body.present-mode .work-round:not(:last-child), body.present-mode .redteam-attacks, body.present-mode .redteam-missing,
+  body.present-mode #tour, body.present-mode .tour-gate-row { display: none !important; }
   body.present-mode aside.right { grid-row: 2; grid-column: 1; border-right: 1px solid var(--rule); }
   body.present-mode main { grid-row: 2; grid-column: 2; }
   body.present-mode #rightScroll { padding: 8px 20px 24px; }
@@ -815,8 +818,8 @@
   body.present-mode.openweights-story-mode #sheet .badge { display: none; }
   body.present-mode.openweights-story-mode .openweights-story { display: flex; grid-column: 1; grid-row: 2; flex-direction: column; justify-content: center;
     padding: 48px; background: #101d22; border-right: 1px solid #35474c; }
-  .ow-refusal-kicker { color: #e35b4f; font: 700 18px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
-  .ow-refusal-count { margin: 12px 0 20px; color: #f2f4ef; font: 700 78px/1 var(--mono); }
+  .ow-refusal-kicker { color: var(--ok); font: 700 18px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+  .ow-refusal-count { margin: 12px 0 20px; color: #f2f4ef; font: 700 34px/1.15 var(--sans); }
   .ow-refusal-copy { max-width: 560px; color: #c7d2d1; font-size: 24px; line-height: 1.35; }
   .ow-refusal-copy a { color: #e8bd60; }
   .ow-incident-slider { margin-top: 34px; padding-top: 20px; border-top: 1px solid #35474c; }
@@ -1040,6 +1043,7 @@ function toggleWorkbench() {
 function toggleFocus(force) {
   const on = force ?? !document.body.classList.contains('canvas-focus');
   document.body.classList.toggle('canvas-focus', on);
+  if (on) toggleDrawer(false);  // focus means the drawing, not half a screen of drawer
   $('focusBtn').setAttribute('aria-pressed', String(on));
   $('focusBtn').textContent = on ? 'Exit focus' : 'Focus drawing';
   requestAnimationFrame(() => { fitDrawing(); if (ST) render(ST); });
@@ -1604,15 +1608,21 @@ function render(st) {
   } else {
     // header and subline name which plant they describe, so 'runs at 120 %' (proposed) and 'maximum 100 %' (today) never read as a contradiction
     const which = st.proposed_unavailable ? "Today's plant (the proposed design needs DWSIM to re-solve)" : VIEW === 'proposed' && !modelBlocked() && (P?.has_changes || latestProposedChanges().length) ? (incident() ? 'With the fix' : 'Proposed design') : (incident() ? (P.engine === 'trapped' ? 'Base model (sound insulation, illustrative)' : 'Base model') : "Today's plant");
+    // one verdict: on the proposed design a failed discipline gate (salt: TX-1) outranks the process model's pass
+    const gateFails = VIEW === 'proposed' && !incident() ? gateRows(designAnswer() || {}).filter(r => gateState(r)[0] === 'fail')
+      .map(r => GATE_NAMES[r.id] || String(r.id).replaceAll('_', ' ')) : [];
     $('verdict').innerHTML = `<span class="verdict-which">${which}</span> ` + (incident() ? (over.length ? `<span style="color:var(--fail)">✗ Limit crossed at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
       : top ? `<span style="color:var(--ok)">✓ Within limits at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top.id))} ${Math.round(top.utilisation * 100)}% of limit`
       : `<span style="color:var(--warn)">Limit check unavailable at ${Math.round(s * 100)}%</span>`) : over.length ? `<span style="color:var(--fail)">✗ Not at ${Math.round(s * 100)}%</span> — ${esc(nm(over[0].id))} is over its limit`
+      : top && gateFails.length ? `<span style="color:var(--ok)">Process model reaches ${Math.round(s * 100)}%</span> · <span style="color:var(--fail)">engineering approval blocked: ${esc(gateFails.join(', '))} fail${gateFails.length === 1 ? 's' : ''}</span>`
       : top ? `<span style="color:var(--ok)">✓ Runs at ${Math.round(s * 100)}%</span> — closest to its limit: ${esc(nm(top.id))} ${Math.round(top.utilisation * 100)}% of limit`
       : `<span style="color:var(--warn)">Limit check unavailable at ${Math.round(s * 100)}%</span>`);
     $('verdictSub').innerHTML = capLine;
   }
   $('verdictSub').title = $('verdictSub').textContent;
-  if (PRESENT && !$('presentText').textContent) showPresentCaption(`${simulator()} checked:`,
+  // the first frame of a presentation is the engineer's question, not a bare number; the replay takes over from its first step
+  if (PRESENT && !$('presentText').textContent && (P.question || '').trim()) showPresentCaption('Engineer asked:', plain(P.question), 'open');
+  else if (PRESENT && !$('presentText').textContent) showPresentCaption(`${simulator()} checked:`,
     top ? `${top.id}: ${top.value} / ${top.limit} ${top.unit || ''} at ${Math.round(s * 100)}% throughput` : 'No numerical limit check stored at this throughput.',
     top ? (over.length ? 'fail' : 'pass') : 'open');
 }
@@ -2556,8 +2566,8 @@ async function initOpenWeightsStory() {
   const [baseState, incidentState] = await Promise.all([api('state?scale=1'), api(`state?scale=${incidentScale}`)]), overloaded = (incidentState.checks || []).filter(c => c.utilisation > 1);
   const warning = String(log.goal || '').match(/([\d,]+)\s*A warning/i)?.[1];
   const panel = $('openWeightsStory'); panel.hidden = false;
-  panel.innerHTML = `<div class="ow-refusal-kicker">Meta-hosted endpoint</div><div class="ow-refusal-count">refused ×${esc(refusal.count ?? '—')}</div>
-    <div class="ow-refusal-copy">${esc(refusal.status || 'request refused')}. Four stored error records support this summary; this is not a model-quality result.<br><br><a href="/api/evidence/open-weights" target="_blank" rel="noopener">Open evidence summary JSON ↗</a></div>
+  panel.innerHTML = `<div class="ow-refusal-kicker">Open weights · Muse Spark Open</div><div class="ow-refusal-count">completed the engineering loop</div>
+    <div class="ow-refusal-copy">The Meta-hosted endpoint refused ${esc(refusal.count ?? 'four')} attempts (${esc(refusal.status || 'request refused')}); this is an availability result, not a model-quality comparison.<br><br><a href="/api/evidence/open-weights" target="_blank" rel="noopener">Open evidence summary JSON ↗</a></div>
     <div class="ow-incident-slider"><label for="storyScale">Stored grid state <output id="storyScaleOut">100%</output></label><input id="storyScale" type="range" min="100" max="${incidentPct}" value="100" disabled></div>`;
   document.querySelector('.stage').insertAdjacentHTML('beforeend', '<div class="story-readout" id="storyReadout"></div><div class="story-n1" id="storyN1"></div>');
   const readout = $('storyReadout'), stamp = $('storyN1');
@@ -2622,7 +2632,7 @@ function renderWorklog(log) {
   const rounds = Array.isArray(log.rounds) ? log.rounds : [];
   const humanN = Array.isArray(log.needs_human) ? new Set(log.needs_human.filter(Boolean)).size : null;
   const openN = humanN ?? (log.result?.open || []).length;
-  const status = ({done: log.approval_status === 'open' || (log.approval_status == null && openN) ? [`Simulation checks passed · engineering approval: ${openN} item${openN === 1 ? ' needs' : 's need'} a human decision`, 'open'] : ['All checks passed · ready for engineer review', 'pass'], unsolved: [processReached(log) ? 'Process target reached · engineering approval blocked by failed checks' : /^UNSOLVABLE:/i.test(log.result?.headline || '') ? `Stopped for missing data: ${log.result.headline.replace(/^UNSOLVABLE:\s*/i, '')}` : 'Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
+  const status = ({done: log.approval_status === 'open' || (log.approval_status == null && openN) ? [`Final round: simulation checks passed · ${openN} human approval item${openN === 1 ? '' : 's'} open`, 'open'] : ['All checks passed · ready for engineer review', 'pass'], unsolved: [processReached(log) ? 'Process target reached · engineering approval blocked by failed checks' : /^UNSOLVABLE:/i.test(log.result?.headline || '') ? `Stopped for missing data: ${log.result.headline.replace(/^UNSOLVABLE:\s*/i, '')}` : 'Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
     budget: ['Stopped at budget limit', 'open'], error: [/no answer after \d+ steps/.test(log.error || '') ? `Step limit, round ${rounds.length + 1}` : 'Stopped with error', 'fail']})[log.status] || ['Running…', 'open'];
   const sample = SAMPLE_WORKLOG || /illustrative/i.test(log.label || '');
   const posthoc = /post-hoc engineering run/i.test(log.label || '');
@@ -2944,7 +2954,7 @@ function redteamSet(index) {
   const panel = $('redteamPanel'); if (panel) panel.outerHTML = redteamCard();
   if (PRESENT) {
     const set = REDTEAM?.sets?.[REDTEAM_SELECTED], s = set?.summary;
-    if (s) showPresentCaption('DWSIM checked:', `${set.label}: ${s.broke ? s.broke + ' / ' + s.total + ' attacks broke it' : s.held + ' / ' + s.total + ' attacks held'}${Number.isFinite(s.worst_utilisation) ? ' · worst ' + Math.round(s.worst_utilisation * 100) + '% of limit' : ''}`, s.broke ? 'fail' : 'pass');
+    if (s) showPresentCaption('DWSIM checked:', `${set.label}: ${s.broke ? s.broke + ' / ' + s.total + ' attacks broke it' : s.held + ' / ' + s.total + ' attacks held'}${Number.isFinite(s.worst_utilisation) ? ' · worst case ' + Math.round(s.worst_utilisation * 100) + '% of limit' : ''}`, s.broke ? 'fail' : 'pass');
   }
 }
 function redteamCard() {
@@ -2968,7 +2978,7 @@ function redteamCard() {
   }).join('');
   const unstored = missing.length ? `<div class="redteam-missing"><a href="${esc(src)}" target="_blank">${missing.length} more attacks also broke it — names and numbers were not stored in that run (worklog ${esc(set.run_id || 'not recorded')})</a></div>` : '';
   const cost = set.cost_usd == null ? '' : ` · <a href="${esc(src)}" target="_blank">$${Number(set.cost_usd).toFixed(3)}</a>`;
-  const worstText = Number.isFinite(worst) ? ` · worst <a href="${esc(src)}" target="_blank">${Math.round(worst * 100)}%</a>` : '';
+  const worstText = Number.isFinite(worst) ? ` · worst case <a href="${esc(src)}" target="_blank">${Math.round(worst * 100)}% of its limit</a>${summary.worst_check ? ' (' + esc(summary.worst_check) + ')' : ''}` : '';
   const challenge = set.challenge ? `<p class="redteam-note"><a class="redteam-source" href="${esc(set.challenge.source_url)}" target="_blank">${esc(set.challenge.text)}</a></p>` : '';
   return `<section class="redteam-panel" id="redteamPanel" data-redteam-set="${esc(set.id)}"><div class="redteam-head"><div><div class="redteam-kicker">Independent adversarial check</div><h3>Muse Spark 1.3 tries to break this design</h3></div><div class="redteam-model">${esc(museName(set.attacker_model || 'muse-spark-1.3'))}${cost}</div></div>
     <div class="redteam-tabs" role="group" aria-label="Stored red-team sets">${tabs}</div>
