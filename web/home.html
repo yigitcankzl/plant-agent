@@ -128,6 +128,29 @@
   .workflow-strip span { color:var(--mint); font:750 11px var(--mono); letter-spacing:.08em; }
   .workflow-strip h2 { display:block; margin:9px 0 7px; color:#fff; font:780 20px/1.2 var(--sans); letter-spacing:-.025em; text-transform:none; }
   .workflow-strip p { margin:0; color:#93adaf; font-size:14px; line-height:1.5; }
+  .engineering-queue { margin:0 0 72px; border:1px solid #315860; background:#0a2329; }
+  .queue-head { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:30px; padding:24px 28px; align-items:end; border-bottom:1px solid #315860; }
+  .queue-head h2 { display:block; margin:7px 0 0; color:#fff; font:800 28px/1.1 var(--sans); letter-spacing:-.035em; text-transform:none; }
+  .queue-source { max-width:460px; margin:0; color:#88a5a7; font-size:13px; text-align:right; }
+  .queue-counts { display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid #315860; }
+  .queue-count { padding:16px 28px; }
+  .queue-count + .queue-count { border-left:1px solid #315860; }
+  .queue-count b { display:block; color:#fff; font:800 25px var(--mono); }
+  .queue-count span { color:#88a5a7; font-size:12px; }
+  .queue-columns { display:grid; grid-template-columns:1.25fr 1fr 1fr; }
+  .queue-column { min-width:0; padding:22px 28px 26px; }
+  .queue-column + .queue-column { border-left:1px solid #315860; }
+  .queue-column h3 { margin:0 0 12px; color:#91afb0; font:750 11px var(--mono); letter-spacing:.08em; text-transform:uppercase; }
+  .queue-list { display:grid; gap:0; }
+  .queue-item { display:block; padding:12px 0; color:inherit; text-decoration:none; border-top:1px solid #244850; }
+  .queue-item:first-child { border-top:0; padding-top:0; }
+  .queue-item b { display:block; color:#eef7f5; font-size:14px; }
+  .queue-item p { margin:3px 0 0; color:#91aaac; font-size:12.5px; line-height:1.45; }
+  .queue-item .queue-state { display:block; margin-top:5px; color:var(--mint); font:700 10.5px var(--mono); text-transform:uppercase; }
+  .queue-item .queue-state.open { color:var(--amber); }
+  .queue-item .queue-state.fail { color:var(--coral); }
+  .queue-empty { margin:0; color:#78979b; font-size:13px; line-height:1.5; }
+  .queue-more { margin:12px 0 0; color:#78979b; font:700 10.5px var(--mono); }
   .featured-run { display:grid; grid-template-columns:.78fr 1.22fr; gap:52px; padding:92px 0 82px; align-items:start; }
   .landing .featured-run h2 { display:block; margin:12px 0 18px; color:#fff; font:800 clamp(34px,3.6vw,55px)/1.03 var(--sans); letter-spacing:-.045em; text-transform:none; }
   .featured-run .run-copy > p:not(.kicker) { color:#a9c0c1; font-size:17px; line-height:1.65; }
@@ -193,6 +216,8 @@
     .landing .hero.dashboard-hero { grid-template-columns:1fr; min-height:0; }
     .landing .dashboard-hero .hero-copy { max-width:760px; }
     .workflow-strip, .model-rail { grid-template-columns:1fr 1fr; }
+    .queue-columns { grid-template-columns:1fr; }
+    .queue-column + .queue-column { border-left:0; border-top:1px solid #315860; }
     .workflow-strip article:nth-child(3), .model-rail article:nth-child(3) { border-left:0; border-top:1px solid #315860; }
     .model-rail article:nth-child(4) { border-top:1px solid #315860; }
   }
@@ -217,6 +242,10 @@
     .console-verdict { grid-template-columns:1fr; }
     .console-verdict > div + div { border-left:0; border-top:1px solid #315860; }
     .workflow-strip, .featured-run, .model-rail, .proof-rail, .landing .newproj .library-head { grid-template-columns:1fr; }
+    .queue-head { grid-template-columns:1fr; gap:10px; }
+    .queue-source { text-align:left; }
+    .queue-counts { grid-template-columns:1fr; }
+    .queue-count + .queue-count { border-left:0; border-top:1px solid #315860; }
     .workflow-strip article + article, .model-rail article + article, .proof-item + .proof-item { border-left:0; border-top:1px solid #315860; padding-left:0; }
     .featured-run { gap:28px; padding:64px 0; }
     .model-stack-head { display:block; }
@@ -225,7 +254,7 @@
     .run-row .result { grid-column:2; text-align:left; }
     .landing .newproj { padding:28px 20px; }
   }
-  body.presentation-home .workflow-strip, body.presentation-home .featured-run, body.presentation-home .model-stack,
+  body.presentation-home .engineering-queue, body.presentation-home .workflow-strip, body.presentation-home .featured-run, body.presentation-home .model-stack,
   body.presentation-home .proof-rail, body.presentation-home #openWeightsHero, body.presentation-home .case-library-shell { display:none; }
   body.presentation-home .hero.dashboard-hero { min-height:calc(100vh - 90px); max-height:none; padding:24px 0; }
   body.presentation-home .control-room { box-shadow:12px 12px 0 #102f35; }
@@ -264,6 +293,15 @@
         </div>
         <div class="console-verdict"><div><small>Process</small><b>Target met at 120%</b><span>DWSIM · 3 changes re-solved</span></div><div class="blocked"><small>Approval</small><b>Blocked by electrical</b><span>TX-1 · 133%</span></div></div>
       </a>
+    </section>
+
+    <section class="engineering-queue" id="engineeringQueue" aria-labelledby="queue-title">
+      <div class="queue-head"><div><p class="kicker">Saved engineering records</p><h2 id="queue-title">The decisions on this engineering desk</h2></div>
+        <p class="queue-source">Built only from saved case questions, engineering work logs and review records. No invented owners, deadlines or live-plant status.</p></div>
+      <div class="queue-counts" id="queueCounts" aria-label="Engineering queue counts"></div>
+      <div class="queue-columns"><section class="queue-column"><h3>Decisions</h3><div class="queue-list" id="queueDecisions"><p class="queue-empty">Loading saved decisions…</p></div></section>
+        <section class="queue-column"><h3>Needs a human</h3><div class="queue-list" id="queueHumans"><p class="queue-empty">Loading open decisions…</p></div></section>
+        <section class="queue-column"><h3>Approval queue</h3><div class="queue-list" id="queueApprovals"><p class="queue-empty">Loading review records…</p></div></section></div>
     </section>
 
     <p class="slogan" id="product">Muse proposes. Physics checks. Engineers approve.</p>
@@ -347,6 +385,38 @@ const SECTORS = [
   ["Data centers and campus cooling", "❄", ["dc_iitk", "kstate_chw", "lbnl_gsa_dc"]],
   ["Canal pumping stations", "⚙", ["briare", "caen_hill", "greenwin_crissey"]],
 ];
+const json = url => fetch(url).then(r => r.ok ? r.json() : Promise.reject(new Error(`${r.status}`)));
+const workState = (log, humanN) => {
+  if (!log) return ['No full engineering run saved', 'open'];
+  if (log.status === 'done') return humanN ? [`Checks complete · ${humanN} human decision${humanN === 1 ? '' : 's'} open`, 'open'] : ['Automated checks complete', ''];
+  if (log.status === 'unsolved') return [log.reason || log.result?.reason || log.result?.headline || 'Unsolved', 'fail'];
+  return [{max_rounds: 'Stopped at round limit', budget: 'Stopped at budget limit', error: 'Run stopped with an error'}[log.status] || 'Run in progress', log.status === 'error' ? 'fail' : 'open'];
+};
+async function renderEngineeringQueue(projects) {
+  const records = (await Promise.all(FEATURED.map(async ([id]) => {
+    if (!projects.some(p => p.case === id && p.kind === 'process')) return null;
+    try {
+      const [project, runs, review] = await Promise.all([json(`/api/plant/${id}/project`), json(`/api/plant/${id}/work`).catch(() => []), json(`/api/plant/${id}/signoff`).catch(() => null)]);
+      const run = runs.find(r => r.id === project.featured_work) || runs[0];
+      const log = run ? await json(`/api/plant/${id}/work/${run.id}`).catch(() => null) : null;
+      const humans = [...new Set((log?.needs_human || []).filter(Boolean).map(String))];
+      return {id, title: project.title, question: project.question, log, humans, review};
+    } catch (_) { return null; }
+  }))).filter(Boolean);
+  const humans = records.flatMap(row => row.humans.map(text => ({...row, text})));
+  const approvals = records.filter(row => row.review?.pack && row.review.state !== 'approved');
+  document.getElementById('queueCounts').innerHTML = [[records.length, 'tracked case decisions'], [humans.length, 'items needing a human'], [approvals.length, 'packs awaiting approval']]
+    .map(([value, label]) => `<div class="queue-count"><b>${value}</b><span>${label}</span></div>`).join('');
+  document.getElementById('queueDecisions').innerHTML = records.length ? records.map(row => {
+    const state = workState(row.log, row.humans.length);
+    return `<a class="queue-item" href="plant.html?case=${encodeURIComponent(row.id)}"><b>${esc(row.title)}</b><p>${esc(row.question)}</p><span class="queue-state ${state[1]}">${esc(state[0])}</span></a>`;
+  }).join('') : '<p class="queue-empty">No saved case decisions are available.</p>';
+  document.getElementById('queueHumans').innerHTML = humans.length ? humans.slice(0, 5).map(row => `<a class="queue-item" href="plant.html?case=${encodeURIComponent(row.id)}"><b>${esc(row.title)}</b><p>${esc(row.text)}</p></a>`).join('') +
+    (humans.length > 5 ? `<p class="queue-more">${humans.length - 5} more in the case workspaces</p>` : '')
+    : '<p class="queue-empty">No saved work log currently asks for a human decision.</p>';
+  document.getElementById('queueApprovals').innerHTML = approvals.length ? approvals.map(row => `<a class="queue-item" href="review.html?case=${encodeURIComponent(row.id)}"><b>${esc(row.title)}</b><p>${esc(row.review.pack)} · ${esc(row.review.state)}</p><span class="queue-state open">Open review record</span></a>`).join('')
+    : '<p class="queue-empty">No issued package is currently awaiting approval.</p>';
+}
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 (async () => {
   const [cases, projects, openWeights] = await Promise.all([fetch("/api/cases").then(r => r.json()), fetch("/api/projects").then(r => r.json()), fetch("/api/evidence/open-weights").then(r => r.ok ? r.json() : {}).catch(() => ({}))]);
@@ -355,6 +425,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&
   if (Number.isFinite(repeat?.n_1_violations)) document.querySelector('#openWeightsHero [data-violations]').textContent = repeat.n_1_violations;
   const by = Object.fromEntries(cases.map(c => [c.name, c]));
   const ws = Object.fromEntries(projects.map(p => [p.case, p]));
+  renderEngineeringQueue(projects);
   const graded = cases.filter(c => c.benchmark && c.score != null);
   const mean = graded.reduce((t, c) => t + c.score, 0) / (graded.length || 1);
   const types = new Set(graded.map(c => c.task_type));

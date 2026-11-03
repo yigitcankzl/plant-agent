@@ -895,6 +895,22 @@
   .decision-question[open] > summary { margin-bottom: 5px; }
   .decision-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 14px; }
   .decision-actions .btn { min-width: 0; padding-inline: 7px; }
+  .working-revision { margin:0 0 12px; padding:10px 11px; border:1px solid #3c6268; border-left:3px solid var(--act); background:#15343a; }
+  .working-revision-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .working-revision b { color:#e9f3f0; font-size:12px; }
+  .working-revision span { display:block; margin-top:2px; color:var(--fg-2); font-size:11px; line-height:1.4; }
+  .working-revision .btn { flex:0 0 auto; padding:5px 7px; font-size:10.5px; }
+  .change-summary { position:absolute; z-index:7; top:54px; left:30px; width:min(320px,calc(100% - 60px)); max-height:calc(100% - 150px); overflow:auto;
+    border:1px solid #54757a; background:rgba(10,36,42,.96); box-shadow:0 14px 32px rgba(2,13,16,.28); color:var(--fg); }
+  .change-summary-head { position:sticky; top:0; padding:11px 12px 8px; background:#102e35; border-bottom:1px solid #3c5d63; }
+  .change-summary-head small { display:block; color:var(--act); font:700 9.5px var(--mono); letter-spacing:.08em; text-transform:uppercase; }
+  .change-summary-head b { display:block; margin-top:2px; font-size:13px; }
+  .change-summary-list { display:grid; padding:4px 12px 8px; }
+  .change-summary-row { padding:9px 0; border:0; border-top:1px solid #294b52; color:#d7e7e4; background:transparent; text-align:left; font:11px/1.45 var(--sans); cursor:pointer; }
+  .change-summary-row:first-child { border-top:0; }
+  .change-summary-row:hover, .change-summary-row:focus-visible { color:#fff; }
+  .change-summary-row b { color:#fff; }
+  body:not(.workspace-page-drawing) .change-summary, body.present-mode .change-summary, body.present-mode .working-revision { display:none !important; }
   .decision-evidence-link { width: 100%; margin-top: 10px; padding: 8px 0; border: 0; border-top: 1px solid var(--rule);
     color: var(--fg-2); background: transparent; text-align: left; font: 600 11.5px/1.4 var(--sans); cursor: pointer; }
   .decision-evidence-link:hover { color: var(--act); }
@@ -1025,12 +1041,13 @@
 
   <main>
     <div id="note" style="display:none;margin:8px 18px 0;padding:6px 10px;border:1px solid #8a6a2e;border-radius:5px;background:#2b2414;color:#f6d28b;font-size:12px"></div>
-    <div class="stage" style="position:relative"><div class="state-source" id="stateSource" aria-live="polite">State source</div><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Draft design</button><button class="btn" id="adoptProposed" type="button" onclick="adoptProposedDesign()" data-needs-simulator hidden>Continue from this draft</button></div><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing controls"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" class="word" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button><button type="button" class="word" id="toggleLabels" aria-label="Show or hide PlantAgent labels" aria-pressed="true" title="Show or hide PlantAgent load and finding labels">Labels</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
+    <div class="stage" style="position:relative"><div class="state-source" id="stateSource" aria-live="polite">State source</div><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Draft design</button><button class="btn" id="adoptProposed" type="button" onclick="adoptProposedDesign()" data-needs-simulator hidden>Continue from this draft</button></div><aside class="change-summary" id="changeSummary" aria-label="Changes on this drawing" hidden></aside><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing controls"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" class="word" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button><button type="button" class="word" id="toggleLabels" aria-label="Show or hide PlantAgent labels" aria-pressed="true" title="Show or hide PlantAgent load and finding labels">Labels</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
   </main>
 
   <aside class="right workspace-decision" id="resultPane">
     <div class="rhead"><span id="inspectorTitle">Result</span><div class="workspace-tabs" role="group" aria-label="Result detail"><button type="button" id="decisionView" aria-pressed="true">Decision</button><button type="button" id="engineeringView" aria-pressed="false">Engineering</button></div><span id="spend"></span></div>
     <section id="qa" aria-label="Question and answer">
+      <div class="working-revision" id="workingRevision" hidden></div>
       <details class="decision-question"><summary>Original question</summary><div id="qaQ"></div></details>
       <div><span class="qa-k">Answer</span><div id="qaA">Loading the plant…</div><div id="qaBadges"></div><div class="run-story" id="runStory" aria-label="Featured run summary"></div></div>
         <div class="decision-actions"><button class="btn" type="button" data-page-target="drawing">Show on drawing</button><button class="btn" type="button" data-page-target="evidence">Review evidence</button></div>
@@ -1123,7 +1140,7 @@ const act = (name, ...args) => `data-act="${name}" data-args="${esc(JSON.stringi
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   const fn = el && {select, whatIf, troubleshoot, ask, undo, accept, workFocus: (tags, view) => workFocus(tags, view, el),
-    chatFocus, chatShow, chatApply, chatWork, chatFollow, redteamSet, showTourGate,
+    chatFocus, chatShow, chatApply, chatWork, chatFollow, redteamSet, showTourGate, showChangeOnDrawing,
     showParity: () => { setWorkspacePage('evidence'); requestAnimationFrame(() => document.querySelector('[data-nrel-parity]')?.scrollIntoView({block: 'start'})); },
     askAbout: tag => { $('q').value = `Why is ${tag} limiting, and what is the cheapest fix?`; $('q').focus(); }}[el.dataset.act];
   if (fn) fn(...JSON.parse(el.dataset.args || '[]'));
@@ -1139,11 +1156,12 @@ const sev = u => u > 1.0 ? 'fail' : u > 0.9 ? 'warn' : 'ok';
 const simulator = () => ({watertap: 'WaterTAP', pandapower: 'pandapower'})[P?.built?.engine || P?.engine] || 'DWSIM';
 const engineReady = () => P?.simulator_available !== false;
 function applyEngineAvailability(root = document) {
-  const reason = P?.simulator_unavailable_reason || 'The simulator is not installed on this server. Stored results are replay only.';
+  const blocked = modelBlocked(), reason = blocked ? 'The model has a blocking review finding. Correct it before changing or issuing the design.'
+    : P?.simulator_unavailable_reason || 'The simulator is not installed on this server. Stored results are replay only.';
   $('engineUnavailable').hidden = engineReady();
   $('engineUnavailable').textContent = engineReady() ? '' : reason;
   root.querySelectorAll('[data-needs-simulator]').forEach(button => {
-    if (!engineReady()) { button.disabled = true; button.title = reason; }
+    if (!engineReady() || blocked) { button.disabled = true; button.title = reason; }
   });
 }
 const modelBlocked = () => Number(P?.built?.review?.blocking || 0) > 0;
@@ -1217,6 +1235,7 @@ function setWorkspacePage(pageName) {
 
   if (page === 'drawing') {
     openDetails(false); toggleDrawer(false); selectOnDrawing('');
+    renderChangeSummary();
     requestAnimationFrame(() => { fitDrawing(); if (ST) render(ST); });
     return;
   }
@@ -1876,8 +1895,9 @@ function describe(c) {
     return `<span title="reroute"><b>Reroutes ${esc(nm(r.unit))} ${esc(r.field)}</b>: ${esc(from)}${esc(Array.isArray(r.value) ? r.value.join(', ') : r.value)}</span>`;
   }
   const [k, id, f] = String(c.path || '').split('.'); const [label, unit] = FIELDS[f] || [String(f || '').replace(/_/g, ' '), ''];
-  const from = 'from' in c && c.from != null ? `${fmt(c.from)} → ` : '';
-  return `<span title="${esc(c.path)}">${esc(nm(id))} ${esc(label)}: <b>${esc(from)}${esc(fmt(c.value))}</b> ${esc(unit)}</span>`;
+  const value = v => Array.isArray(v) ? v.map(x => typeof x === 'number' ? Number(x.toFixed(3)) : x).join(' / ') : fmt(v);
+  const from = 'from' in c && c.from != null ? `${value(c.from)} → ` : '';
+  return `<span title="${esc(c.path)}">${esc(nm(id))} ${esc(label)}: <b>${esc(from)}${esc(value(c.value))}</b> ${esc(unit)}</span>`;
 }
 
 const ROUTING = new Set(['mixer', 'splitter', 'recycle']);
@@ -2390,6 +2410,38 @@ function proposedDraft() {
     changes: proposals.flatMap(p => p.changes || []), _by: answer.model
   }};
 }
+function workingRevisionData() {
+  const revision = (P?.revisions || []).filter(r => r.kind === 'change').at(-1);
+  if (revision) return {label: `Working revision · Rev ${revision.rev}`, title: revision.title, changes: revision.changes || []};
+  const draft = proposedDraft();
+  return draft ? {label: 'Draft design · not yet applied', title: draft.proposal.title, changes: draft.proposal.changes || []} : null;
+}
+function renderWorkingRevision() {
+  const box = $('workingRevision'), current = workingRevisionData();
+  if (!current) { box.hidden = true; box.innerHTML = ''; return; }
+  const humanN = new Set((LAST_WORK?.needs_human || []).filter(Boolean)).size;
+  box.innerHTML = `<div class="working-revision-head"><div><b>${esc(current.label)}</b><span>${esc(current.title)}${humanN ? ` · ${humanN} human decision${humanN === 1 ? '' : 's'} open` : ''}</span></div><button class="btn" type="button" onclick="setWorkspacePage('drawing')">View changes</button></div>`;
+  box.hidden = false;
+}
+function changeTag(change) {
+  if (change.add_unit) return change.add_unit.id;
+  if (change.replace_unit) return typeof change.replace_unit === 'string' ? change.replace_unit : change.replace_unit.id;
+  if (change.reroute) return change.reroute.unit;
+  return String(change.path || '').split('.')[1] || '';
+}
+function showChangeOnDrawing(tag) {
+  if (!tag) return;
+  selectOnDrawing(tag); focusDrawing(tag, true);
+}
+function renderChangeSummary() {
+  const box = $('changeSummary'), current = workingRevisionData();
+  if (!current?.changes?.length) { box.hidden = true; box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="change-summary-head"><small>What changed</small><b>${esc(current.label)}</b></div><div class="change-summary-list">${current.changes.map(change => {
+    const tag = changeTag(change);
+    return `<button class="change-summary-row" type="button" ${tag ? act('showChangeOnDrawing', tag) : 'disabled'}>${describe(change)}</button>`;
+  }).join('')}</div>`;
+  box.hidden = false;
+}
 async function adoptProposedDesign() {
   const draft = proposedDraft(); if (!draft) return;
   const reason = prompt('Continue from this design as a DRAFT working revision (not an engineering approval). Reason, kept in the audit trail:', draft.proposal.title);
@@ -2411,6 +2463,7 @@ async function stateForView(scale) {
 async function setView(v) {
   VIEW = v; $('vExisting').classList.toggle('on', v === 'existing'); $('vProposed').classList.toggle('on', v === 'proposed');
   $('adoptProposed').hidden = v !== 'proposed' || P?.has_changes || !proposedDraft();
+  renderChangeSummary();
   if (AS_BUILT && P?.drawing === 'svg') await showSheet();
   render(await stateForView($('scale').value / 100));
 }
@@ -2844,6 +2897,7 @@ async function initOpenWeightsStory() {
 }
 function renderWorklog(log) {
   LAST_WORK = log;
+  renderWorkingRevision();
   if (log) renderRunStory(designAnswer() || P.answers?.at(-1), log);
   // one confidence number on the strip: when the engineering run measured it, the saved answer's older number goes
   const runConf = (log?.rounds?.at(-1)?.steps || []).find(st => st.check === 'confidence' && st.numbers?.p_target != null);
@@ -3131,6 +3185,7 @@ function answers() {
     NREL_EVIDENCE ? '' : `<div class="empty"><b>What would you like to test?</b><br>${incident() ? 'Ask what happened, which limit was crossed first, and what would have prevented it.' : 'Ask about an equipment limit, or find a path to the target throughput.'}
      <div class="sugg">${suggestions().map(s => `<button class="btn" ${act('ask', s)}>${esc(s)}</button>`).join('')}</div></div>`);
   qaBar(lead);
+  renderWorkingRevision(); renderChangeSummary();
   if (PRESENT) { $('presentChecks').hidden = false; $('presentChecks').innerHTML = disciplineImpact(d || lead || {}) + redteamCard(); }
   const ac = P.ai_cost, qs = ac?.questions_usd ?? all.reduce((t, a) => t + (a.cost_usd || 0), 0);
   $('spend').textContent = list.length || ac?.model_build_usd ? `AI cost $${qs.toFixed(2)} questions${ac?.model_build_usd ? ` · $${ac.model_build_usd.toFixed(2)} model build` : ''}` : '';
@@ -3479,7 +3534,9 @@ async function prefeedFile() {
 // a package is issued only from a design that passes the process simulation, on a model without blocking findings
 function syncPackageButton() {
   const b = $('packageIssue'); if (!b) return;
-  b.hidden = modelBlocked() || !verifiedDesigns().length;
+  const why = modelBlocked() ? 'Model blocked: resolve the model-review findings first'
+    : !verifiedDesigns().length ? 'No design passes the process simulation yet' : '';
+  b.disabled = !!why; b.title = why;  // shown but disabled, with the reason
 }
 async function issueEngineeringPackage(button) {
   if (modelBlocked() || !verifiedDesigns().length) return;
@@ -3625,6 +3682,7 @@ function showTourGates() {
     return `<button class="tour-gate-chip ${state}" type="button" ${act('showTourGate', row.id)}>${esc(name)} ${marks[state]}${esc(detail)}</button>`;
   }).join('');
   box.hidden = !rows.length;
+  box.style.bottom = 'auto';
   box.style.top = Math.max(80, $('viewTog').getBoundingClientRect().bottom + 12) + 'px';
 }
 function showTourGate(id) {
