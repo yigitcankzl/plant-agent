@@ -72,45 +72,159 @@
   body.presentation-home .hero { max-height: calc(100vh - 108px); }
 </style>
 <style>
-  .landing .hero-shot { margin: 0; }
-  .landing .hero-shot img { display: block; width: 100%; height: auto; border: 1px solid #0c2a2f; border-radius: 12px; box-shadow: 16px 18px 0 #d2ddda; background: #fff; }
-  .landing .hero-shot figcaption { margin-top: 22px; font-size: 14px; line-height: 1.5; color: #476369; max-width: 560px; }
-  .landing .hero-shot figcaption b { color: #19464a; }
-  .landing .section-head { max-width: 760px; margin-bottom: 28px; }
-  .landing .section-head h2 { font: 800 clamp(30px, 3.4vw, 44px)/1.1 var(--sans); letter-spacing: -.035em; text-transform: none; color: #15383e; margin: 0 0 12px; display: block; }
-  .landing .section-head p:not(.kicker) { font-size: 17px; line-height: 1.55; color: #476369; margin: 0; }
-  .landing .loop, .landing .meta, .landing .proof, .landing .wont { padding: 72px 0 8px; }
-  .landing .loop-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; border: 1px solid #0c2a2f; border-radius: 12px; overflow: hidden; background: #15383e; }
-  .landing .loop-steps li { padding: 22px 20px 24px; color: #e5f1ee; border-right: 1px solid #2f565c; position: relative; }
-  .landing .loop-steps li:last-child { border-right: 0; }
-  .landing .loop-steps .step-n { display: block; font: 700 12px var(--mono); color: #86ddce; margin-bottom: 12px; }
-  .landing .loop-steps b { display: block; font-size: 18px; line-height: 1.3; color: #fff; margin-bottom: 8px; }
-  .landing .loop-steps p { margin: 0; font-size: 14px; line-height: 1.5; color: #cfe2df; }
-  .landing .loop-steps li.no { background: #3a2a2a; } .landing .loop-steps li.no .step-n { color: #f18a7e; }
-  .landing .loop-steps li.human { background: #102a2f; } .landing .loop-steps li.human .step-n { color: #f1bd73; }
-  .landing .loop-foot { margin: 14px 0 0; font-size: 14px; color: #476369; } .landing .loop-foot a { color: #126e68; font-weight: 700; }
-  .landing .meta-grid, .landing .proof-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-  .landing .proof-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .landing .meta-grid article, .landing .proof-card { background: #fff; border: 1px solid #c6d3d0; border-radius: 12px; padding: 22px; }
-  .landing .meta-grid span, .landing .proof-card span { display: block; font: 700 12px var(--mono); color: #126e68; margin-bottom: 10px; }
-  .landing .meta-grid b, .landing .proof-card b { display: block; font-size: 19px; color: #15383e; margin-bottom: 8px; }
-  .landing .meta-grid p, .landing .proof-card p { margin: 0; font-size: 14.5px; line-height: 1.55; color: #476369; }
-  .landing .proof-card { text-decoration: none; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
-  .landing .proof-card:hover { border-color: #126e68; transform: translateY(-2px); }
-  .landing .proof-card em { margin-top: 16px; font: 700 13px var(--mono); font-style: normal; color: #126e68; }
-  .landing .proof-card.fail em { color: #b42318; }
-  .landing .proof-note { margin-top: 18px; font-size: 13px; color: #607a7d; max-width: 980px; }
-  .landing .wont { padding-bottom: 40px; }
-  .landing .wont h2 { font: 800 24px var(--sans); text-transform: none; letter-spacing: -.02em; color: #15383e; margin: 0 0 12px; display: block; }
-  .landing .wont ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: 15px; color: #476369; max-width: 900px; }
-  @media (max-width: 1000px) { .landing .loop-steps { grid-template-columns: 1fr; } .landing .loop-steps li { border-right: 0; border-bottom: 1px solid #2f565c; }
-    .landing .meta-grid, .landing .proof-grid { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 640px) { .landing .meta-grid, .landing .proof-grid { grid-template-columns: 1fr; } }
-  .landing .newproj { margin-top: 64px; background: #fff; border: 1px solid #c6d3d0; border-radius: 14px; padding: 32px 34px 30px; }
-  .landing .newproj .library-head { margin-top: 0; }
-  .landing .newproj select { font: 14px/1.4 var(--sans); padding: 9px 10px; border: 1px solid #b6c9c5; border-radius: 6px; background: #fff; color: #17323a; }
-  body.presentation-home .loop, body.presentation-home .meta, body.presentation-home .proof, body.presentation-home .wont { display: none; }
-  body.presentation-home .hero-shot img { max-height: calc(100vh - 230px); width: auto; max-width: 100%; }
+  /* The landing page mirrors the product: one engineering desk, then the evidence. */
+  body.landing { --ink:#eaf4f1; --muted:#9bb3b4; --shell:#071b20; --panel:#0d2930; --panel2:#12353d;
+    --line:#285058; --mint:#8ed4c5; --amber:#efbd72; --coral:#ee7d6e; background:#071b20; color:var(--ink); }
+  .landing .wrap { max-width:1500px; padding:0 40px 70px; }
+  .landing .site-top { min-height:74px; border-bottom:1px solid #1e4148; }
+  .landing .site-top nav { display:flex; align-items:center; gap:28px; }
+  .landing .site-top nav a { color:#a9c0c1; text-decoration:none; font-weight:650; }
+  .landing .site-top nav a:hover { color:#fff; }
+  .landing .logo { color:#fff; font:800 19px var(--sans); letter-spacing:-.04em; text-decoration:none; }
+  .landing .logo span { color:var(--mint); }
+  .landing .logo::before { box-shadow:inset 0 0 0 3px #071b20; }
+  .landing .nav-cta { border:1px solid #4f7b80; padding:9px 14px; }
+  .landing .hero.dashboard-hero { display:grid; grid-template-columns:minmax(410px,.86fr) minmax(620px,1.14fr); gap:clamp(36px,5vw,78px);
+    min-height:calc(100vh - 75px); padding:52px 0 66px; align-items:center; }
+  .landing .dashboard-hero .hero-copy { max-width:630px; }
+  .landing .kicker { color:var(--mint); font:750 12px var(--mono); letter-spacing:.12em; text-transform:uppercase; }
+  .landing .dashboard-hero h1 { margin:16px 0 22px; max-width:650px; color:#fff; font:850 clamp(52px,5.4vw,86px)/.98 var(--sans);
+    letter-spacing:-.058em; }
+  .landing .dashboard-hero .lead { max-width:610px; color:#b8cbcc; font-size:18px; line-height:1.62; }
+  .landing .hero-actions { margin-top:30px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .landing .hero-actions .btn { min-height:48px; display:inline-flex; align-items:center; border-radius:3px; padding:0 18px; font-size:14px; }
+  .landing .hero-actions .go { color:#082126; background:var(--mint); border-color:var(--mint); }
+  .landing .hero-actions .quiet { color:#d8e7e5; background:transparent; border-color:#527077; }
+  .landing .hero-trust { margin-top:18px; color:#78979b; font-size:12.5px; }
+  .control-room { position:relative; overflow:hidden; color:inherit; text-decoration:none; background:#0b252b; border:1px solid #315860; box-shadow:18px 18px 0 #102f35; }
+  .control-room::before { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(115deg,rgba(142,212,197,.07),transparent 35%); }
+  .console-top { min-height:54px; padding:0 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #315860; background:#102e35; }
+  .console-project { min-width:0; display:flex; align-items:center; gap:10px; font-weight:750; }
+  .console-project span { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .console-live { flex:none; color:#b8d9d4; font:700 11px var(--mono); letter-spacing:.06em; }
+  .console-live i { display:inline-block; width:7px; height:7px; margin-right:7px; border-radius:50%; background:var(--mint); }
+  .console-main { display:grid; grid-template-columns:174px minmax(0,1fr); min-height:440px; }
+  .console-steps { padding:18px 14px; border-right:1px solid #315860; background:#0d2930; }
+  .console-target { padding:0 4px 17px; border-bottom:1px solid #244850; }
+  .console-target small, .console-step small, .console-verdict small { display:block; color:#86a3a6; font:700 10px var(--mono); letter-spacing:.06em; text-transform:uppercase; }
+  .console-target b { display:block; margin-top:3px; color:#fff; font:800 30px var(--mono); }
+  .console-step { position:relative; margin-top:13px; padding:0 0 0 18px; color:#bdd0d0; font-size:12px; line-height:1.4; }
+  .console-step::before { content:""; position:absolute; left:1px; top:3px; width:8px; height:8px; border:2px solid #5d7d81; background:#0d2930; }
+  .console-step.ok::before { border-color:var(--mint); background:var(--mint); }
+  .console-step.fail::before { border-color:var(--coral); background:var(--coral); }
+  .console-step b { display:block; margin-top:2px; color:#f5faf8; font-size:12px; }
+  .console-canvas { position:relative; display:flex; align-items:center; justify-content:center; min-width:0; padding:24px; background:#dfe7e4; }
+  .console-canvas img { display:block; width:100%; max-height:440px; object-fit:contain; filter:saturate(.92) contrast(1.03); }
+  .canvas-mode { position:absolute; top:12px; right:12px; padding:7px 9px; color:#d7e8e5; background:#13343bdd; border:1px solid #53767b; font:700 10px var(--mono); }
+  .console-verdict { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid #315860; }
+  .console-verdict > div { padding:15px 18px; }
+  .console-verdict > div + div { border-left:1px solid #315860; }
+  .console-verdict b { display:block; margin-top:4px; color:#fff; font-size:16px; }
+  .console-verdict .blocked b, .console-verdict .blocked span { color:#ff9b8e; }
+  .console-verdict span { display:block; margin-top:3px; color:#a9c0c1; font:700 12px var(--mono); }
+  .workflow-strip { display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid #315860; border-bottom:1px solid #315860; }
+  .workflow-strip article { padding:32px 34px; min-height:160px; }
+  .workflow-strip article + article { border-left:1px solid #315860; }
+  .workflow-strip span { color:var(--mint); font:750 11px var(--mono); letter-spacing:.08em; }
+  .workflow-strip h2 { display:block; margin:9px 0 7px; color:#fff; font:780 20px/1.2 var(--sans); letter-spacing:-.025em; text-transform:none; }
+  .workflow-strip p { margin:0; color:#93adaf; font-size:14px; line-height:1.5; }
+  .featured-run { display:grid; grid-template-columns:.78fr 1.22fr; gap:52px; padding:92px 0 82px; align-items:start; }
+  .landing .featured-run h2 { display:block; margin:12px 0 18px; color:#fff; font:800 clamp(34px,3.6vw,55px)/1.03 var(--sans); letter-spacing:-.045em; text-transform:none; }
+  .featured-run .run-copy > p:not(.kicker) { color:#a9c0c1; font-size:17px; line-height:1.65; }
+  .text-link { display:inline-block; margin-top:16px; color:var(--mint); font-weight:750; text-decoration:none; border-bottom:1px solid #3b6c70; }
+  .run-record { border:1px solid #315860; background:#0c262c; }
+  .run-record-head { padding:14px 18px; display:flex; justify-content:space-between; gap:16px; border-bottom:1px solid #315860; font:700 12px var(--mono); color:#9fb7b8; }
+  .run-row { display:grid; grid-template-columns:116px 1fr auto; gap:16px; padding:18px; align-items:start; }
+  .run-row + .run-row { border-top:1px solid #244850; }
+  .run-row .actor { color:#8fd4c5; font:750 11px var(--mono); }
+  .run-row b { display:block; color:#eef7f5; font-size:15px; }
+  .run-row p { margin:5px 0 0; color:#8fa9ab; font-size:13px; line-height:1.45; }
+  .run-row .result { min-width:86px; text-align:right; color:var(--mint); font:750 12px var(--mono); }
+  .run-row .result.open { color:var(--amber); }
+  .model-stack { padding:0 0 74px; }
+  .model-stack-head { display:flex; justify-content:space-between; gap:30px; align-items:end; margin-bottom:18px; }
+  .model-stack h2 { display:block; margin:8px 0 0; color:#fff; font:800 31px var(--sans); letter-spacing:-.035em; text-transform:none; }
+  .model-stack-head > p { max-width:560px; margin:0; color:#8fa9ab; }
+  .model-rail { display:grid; grid-template-columns:repeat(4,1fr); border:1px solid #315860; }
+  .model-rail article { padding:21px; }
+  .model-rail article + article { border-left:1px solid #315860; }
+  .model-rail span { color:#88a6a8; font:700 10px var(--mono); text-transform:uppercase; letter-spacing:.07em; }
+  .model-rail b { display:block; margin:5px 0 7px; color:#fff; font-size:16px; }
+  .model-rail p { margin:0; color:#8fa9ab; font-size:13px; line-height:1.45; }
+  .landing #openWeightsHero { margin:0 0 74px; padding:18px 20px; color:#a8c0c1; background:#102b31; border-left:3px solid var(--amber); font-size:13px; }
+  .landing #openWeightsHero a { color:#dfeceb; }
+  .proof-rail { display:grid; grid-template-columns:repeat(3,1fr); padding:0 0 80px; }
+  .proof-item { min-height:210px; padding:26px 30px 28px 0; color:inherit; text-decoration:none; border-top:1px solid #315860; border-bottom:1px solid #315860; }
+  .proof-item + .proof-item { padding-left:30px; border-left:1px solid #315860; }
+  .proof-item span { color:var(--mint); font:700 11px var(--mono); }
+  .proof-item b { display:block; margin:12px 0 9px; color:#fff; font:780 20px var(--sans); }
+  .proof-item p { margin:0; color:#91aaac; line-height:1.5; }
+  .proof-item em { display:block; margin-top:18px; color:var(--amber); font:700 12px var(--mono); font-style:normal; }
+  .case-library-shell { margin:0 0 60px; border-top:1px solid #315860; border-bottom:1px solid #315860; }
+  .case-library-shell > summary { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:24px 0; cursor:pointer; color:#fff; list-style:none; }
+  .case-library-shell > summary::-webkit-details-marker { display:none; }
+  .case-library-shell > summary b { font-size:22px; }
+  .case-library-shell > summary span { color:#8fa9ab; }
+  .case-library-shell[open] > summary { border-bottom:1px solid #315860; }
+  .case-library-shell .case-library-body { padding:18px 0 40px; }
+  .landing .stats { margin:16px 0 24px; }
+  .landing .stat, .landing .card { background:#0d2930; border-color:#315860; }
+  .landing .stat b, .landing .card .t { color:#f2f8f6; }
+  .landing .card .fig b { color:var(--mint); }
+  .landing .card .fig span, .landing .card .k, .landing .stat span { color:#89a4a6; }
+  .landing .card .pitch { color:#b6c9ca; }
+  .landing a.btn { color:#dce9e7; background:#14353c; border-color:#456a70; }
+  .landing a.btn.go { color:#082126; background:var(--mint); border-color:var(--mint); }
+  .landing a.btn:hover { color:#fff; background:#1c4650; border-color:#8ed4c5; }
+  .landing a.btn.go:hover { color:#082126; background:#a8e5d9; border-color:#a8e5d9; }
+  .landing details.library > summary { color:var(--mint); border-color:#477176; }
+  .landing .newproj { margin-top:0; padding:42px; color:#eaf4f1; background:#102c33; border:1px solid #315860; border-radius:0; }
+  .landing .newproj .library-head { display:grid; grid-template-columns:.7fr 1.3fr; gap:40px; margin-bottom:26px; }
+  .landing .newproj h2 { display:block; margin:0; color:#fff; font:800 32px var(--sans); letter-spacing:-.035em; text-transform:none; }
+  .landing .newproj .library-head p { margin:0; color:#9bb3b4; font-size:15px; line-height:1.55; }
+  .landing .newproj label { color:#c3d5d3; }
+  .landing .newproj input, .landing .newproj textarea, .landing .newproj select { border-radius:2px; border-color:#5c7b7f; background:#f3f7f5; }
+  .landing .foot { color:#78979b; border-top:0; }
+  @media (max-width:1100px) {
+    .landing .hero.dashboard-hero { grid-template-columns:1fr; min-height:0; }
+    .landing .dashboard-hero .hero-copy { max-width:760px; }
+    .workflow-strip, .model-rail { grid-template-columns:1fr 1fr; }
+    .workflow-strip article:nth-child(3), .model-rail article:nth-child(3) { border-left:0; border-top:1px solid #315860; }
+    .model-rail article:nth-child(4) { border-top:1px solid #315860; }
+  }
+  @media (min-width:1101px) and (max-height:800px) {
+    .landing .hero.dashboard-hero { min-height:0; padding:30px 0 42px; }
+    .landing .dashboard-hero h1 { margin-bottom:16px; font-size:clamp(50px,4.8vw,68px); }
+    .landing .dashboard-hero .lead { font-size:16px; line-height:1.5; }
+    .landing .hero-actions { margin-top:22px; }
+    .console-main { min-height:350px; }
+    .console-canvas img { max-height:350px; }
+    .console-step { margin-top:9px; }
+    .console-verdict > div { padding:11px 16px; }
+  }
+  @media (max-width:760px) {
+    .landing .wrap { padding:0 20px 45px; }
+    .landing .site-top nav a:not(.nav-cta) { display:none; }
+    .landing .hero.dashboard-hero { grid-template-columns:1fr; padding:42px 0; }
+    .landing .dashboard-hero h1 { font-size:48px; }
+    .console-main { grid-template-columns:1fr; }
+    .console-steps { display:none; }
+    .console-canvas { min-height:330px; padding:16px; }
+    .console-verdict { grid-template-columns:1fr; }
+    .console-verdict > div + div { border-left:0; border-top:1px solid #315860; }
+    .workflow-strip, .featured-run, .model-rail, .proof-rail, .landing .newproj .library-head { grid-template-columns:1fr; }
+    .workflow-strip article + article, .model-rail article + article, .proof-item + .proof-item { border-left:0; border-top:1px solid #315860; padding-left:0; }
+    .featured-run { gap:28px; padding:64px 0; }
+    .model-stack-head { display:block; }
+    .model-stack-head > p { margin-top:14px; }
+    .run-row { grid-template-columns:90px 1fr; }
+    .run-row .result { grid-column:2; text-align:left; }
+    .landing .newproj { padding:28px 20px; }
+  }
+  body.presentation-home .workflow-strip, body.presentation-home .featured-run, body.presentation-home .model-stack,
+  body.presentation-home .proof-rail, body.presentation-home #openWeightsHero, body.presentation-home .case-library-shell { display:none; }
+  body.presentation-home .hero.dashboard-hero { min-height:calc(100vh - 90px); max-height:none; padding:24px 0; }
+  body.presentation-home .control-room { box-shadow:12px 12px 0 #102f35; }
 </style>
 </head>
 <body class="landing">
@@ -118,68 +232,77 @@
 <div class="wrap">
   <header class="site-top">
     <a class="logo" href="home.html">Plant<span>Agent</span></a>
-    <nav aria-label="Main navigation"><a href="#cases">Case library</a><a href="index.html?case=roseburg">Study replay</a></nav>
+    <nav aria-label="Main navigation"><a href="#product">Product</a><a href="#evidence">Evidence</a><a href="#cases">Case library</a><a class="nav-cta" href="#new">New project</a></nav>
   </header>
   <main>
-    <section class="hero" aria-labelledby="hero-title">
+    <section class="hero dashboard-hero" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="kicker">For engineers changing an existing plant</p>
-        <h1 id="hero-title">Muse proposes. Physics checks. Engineers approve.</h1>
-        <p class="lead">A debottleneck that crosses process, electrical and safety usually means weeks of hand-offs before anyone knows what really limits it. PlantAgent puts Meta's Muse models on the drawing and DWSIM, pandapower, WaterTAP and Cantera behind every proposal, so you get a checked draft change, the numbers that failed, and the items still waiting for a human.</p>
+        <p class="kicker">The engineering desk for plant changes</p>
+        <h1 id="hero-title">Change the plant. Prove the change.</h1>
+        <p class="lead">PlantAgent turns a P&amp;ID and an engineering goal into a checked draft change. Meta's Muse models propose and revise; process, electrical and safety engines decide what passes, what fails and what still needs an engineer.</p>
         <div class="hero-actions">
-          <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Take the 3-minute tour</a>
-          <a class="btn" href="plant.html?case=basf_process_column_k_2750_dexpi_c02_uns">Watch the loop on a BASF drawing</a>
+          <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Open the engineering desk</a>
+          <a class="btn quiet" href="#evidence">See the evidence</a>
         </div>
-        <p class="hero-note">Open source. Every output is a draft for review by a licensed engineer.</p>
+        <p class="hero-trust">Open source · simulator-checked · every output stays a draft until an engineer approves it</p>
       </div>
-      <figure class="hero-shot">
-        <a href="plant.html?case=salt_mvr"><img src="img/salt_revb.jpg" width="1400" height="1197" alt="PlantAgent's Rev B drawing of the salt plant: three clouded changes, a new parallel compressor K-202, and live utilisation tags K-201 100 %, V-201 98 %, V-301 98 %"></a>
-        <figcaption><b>Rev B, drawn by PlantAgent.</b> Three changes clouded on the sheet, each re-solved in DWSIM at +20 %. The transformer check still fails, so it stays a draft.</figcaption>
-      </figure>
+      <a class="control-room" href="plant.html?case=salt_mvr" aria-label="Open the salt plant engineering workspace">
+        <div class="console-top"><div class="console-project"><span>Vacuum-salt MVR · capacity study</span></div><div class="console-live"><i></i>CHECKED DRAFT</div></div>
+        <div class="console-main">
+          <aside class="console-steps" aria-label="Engineering run summary">
+            <div class="console-target"><small>Throughput target</small><b>+20%</b></div>
+            <div class="console-step ok"><small>Muse proposed</small><b>Clean E-201 + add K-202</b></div>
+            <div class="console-step ok"><small>DWSIM checked</small><b>Process target met</b></div>
+            <div class="console-step fail"><small>pandapower checked</small><b>TX-1 overload</b></div>
+            <div class="console-step"><small>Needs a human</small><b>Vendor curve + approval</b></div>
+          </aside>
+          <div class="console-canvas"><img src="img/salt_revb.jpg" width="1400" height="1197" alt="Rev B salt plant drawing with a new compressor K-202, clouded changes and live utilisation tags"><span class="canvas-mode">PROPOSED · REV B</span></div>
+        </div>
+        <div class="console-verdict"><div><small>Process</small><b>Target met at 120%</b><span>DWSIM · 3 changes re-solved</span></div><div class="blocked"><small>Approval</small><b>Blocked by electrical</b><span>TX-1 · 133%</span></div></div>
+      </a>
     </section>
 
-    <section class="loop" aria-labelledby="loop-title">
-      <div class="section-head"><p class="kicker">The loop, on a drawing it had never seen</p><h2 id="loop-title">The agent is checked, refused, and tries again</h2>
-        <p>BASF's official DEXPI example, uploaded unchanged. Goal: twenty percent more feed. Every number below came from the simulator, not the model.</p></div>
-      <ol class="loop-steps">
-        <li><span class="step-n">01 · Muse reads</span><b>Builds a DWSIM column from the file</b><p>The column floods first, at +13 %. The process duty the drawing does not state is labelled an assumption.</p></li>
-        <li class="no"><span class="step-n">02 · Physics says no</span><b>+10 % feed case fails</b><p>Reflux 1.5 and a larger bottoms draw pass at the target, then fail the envelope check. The numbers go back to Muse.</p></li>
-        <li><span class="step-n">03 · Muse revises</span><b>600 mm shell: 61 % of flood</b><p>Against an 80 % limit; purities, both envelope cases and 48 of 48 uncertainty samples pass. Vendor to confirm.</p></li>
-        <li><span class="step-n">04 · A second Muse attacks</span><b>8 bounded bad days</b><p>Hot feed, low pressure, fouled trays. DWSIM referees: all eight stay inside the modelled limits, worst 90 % of flood.</p></li>
-        <li class="human"><span class="step-n">05 · An engineer decides</span><b>Nothing is approved by AI</b><p>Failed and open items need a disposition, a reviewer and a separate approver before the change freezes.</p></li>
-      </ol>
-      <p class="loop-foot">Three loops, $8.39 of open-weight model calls. <a href="https://github.com/yigitcankzl/plant-agent/blob/master/evidence/generality-c02/README.md">Full record</a></p>
+    <section class="workflow-strip" id="product" aria-label="How PlantAgent works">
+      <article><span>01 · PROPOSE</span><h2>Muse works on the drawing</h2><p>It reads the P&amp;ID and source documents, builds a model, proposes a change and explains what it assumed.</p></article>
+      <article><span>02 · CHECK</span><h2>Engines return the numbers</h2><p>DWSIM, pandapower, WaterTAP and discipline checks re-solve the change. The model cannot mark its own work as passed.</p></article>
+      <article><span>03 · DECIDE</span><h2>The engineer owns the outcome</h2><p>Failures and open items stay visible. Approval freezes a revision with its evidence, comments and audit trail.</p></article>
     </section>
 
-    <section class="meta" aria-labelledby="meta-title">
-      <div class="section-head"><p class="kicker">Built on Meta</p><h2 id="meta-title">Four Muse models, each with a job</h2></div>
-      <div class="meta-grid">
-        <article><span>Muse Wonder</span><b>Reads the plant</b><p>Scanned P&amp;IDs, patent figures and data sheets become the first simulator model, with every assumption listed.</p></article>
-        <article><span>Muse Spark Open</span><b>Runs the engineering loop</b><p>Open weights on Baseten and Fireworks: proposes the change, reads the failed checks, revises.</p></article>
-        <article><span>Muse Spark 1.3</span><b>Attacks the design</b><p>Writes realistic operating deviations to break a passing design; the simulator decides each one.</p></article>
-        <article><span>Muse Voice</span><b>Takes the goal</b><p>The engineer says what they want; the transcript lands in the goal box.</p></article>
-      </div>
-    </section>
-    <p class="hero-note proof-note" id="openWeightsHero">Why open weights matter: the Meta-hosted endpoint refused the <a href="plant.html?case=ucte_2006">UCTE blackout prompt</a> <span data-attempts>four</span> times (content policy). <a href="https://github.com/yigitcankzl/plant-agent/blob/master/evidence/open-weights-engineering/README.md">Muse Spark Open</a> ran the same engineering loop; redispatch plus opening the 220 kV tie passed line limits and N-1 (<span data-violations>0</span> violations). An availability result, not a quality comparison.</p>
-
-    <section class="proof" aria-labelledby="proof-title">
-      <div class="section-head"><p class="kicker">Evidence</p><h2 id="proof-title">Three plants, three different lessons</h2></div>
-      <div class="proof-grid">
-        <a class="proof-card" href="plant.html?case=basf_process_column_k_2750_dexpi_c02_uns"><span>Unseen drawing</span><b>BASF column K 2750</b><p>No hand-written files. Open-weight Muse built the model, was refused, and reached a 600 mm shell that passes the process screens.</p><em>Vendor confirmation open</em></a>
-        <a class="proof-card" href="plant.html?case=shell_norco_c2splitter"><span>Real plant, blind</span><b>Shell Norco C2 splitter</b><p>From Shell's pre-revamp data with the outcome withheld, Muse re-trayed the same shell, as Shell did: 74 % of flood vs Shell's measured 64.7 %.</p><em>5 match · 3 partial · missed the feed-tray move</em></a>
-        <a class="proof-card fail" href="plant.html?case=salt_mvr"><span>Approval blocked</span><b>Vacuum-salt plant</b><p>DWSIM reaches +20 % with cleaning and a parallel compressor. The load flow puts the transformer at 133 %.</p><em>Process passes · electrical fails · not approvable</em></a>
+    <section class="featured-run" id="evidence" aria-labelledby="run-title">
+      <div class="run-copy"><p class="kicker">A complete engineering record</p><h2 id="run-title">Not a chatbot answer. A change that survived checks.</h2>
+        <p>On BASF's official DEXPI example, Muse built the process model from an unseen drawing and proposed a 600 mm replacement shell. The server re-solved the process target, purity, envelope and uncertainty; vendor and cross-discipline confirmation remain open.</p>
+        <a class="text-link" href="plant.html?case=basf_process_column_k_2750_dexpi_c02_uns">Open the BASF workspace →</a></div>
+      <div class="run-record" aria-label="BASF engineering run summary">
+        <div class="run-record-head"><span>ENGINEERING RUN · BASF K 2750</span><span>OPEN-WEIGHT MUSE</span></div>
+        <div class="run-row"><span class="actor">MUSE SPARK</span><div><b>Replace the column shell with a uniform 600 mm section</b><p>Proposal includes its sizing basis and keeps vendor confirmation open.</p></div><span class="result">PROPOSED</span></div>
+        <div class="run-row"><span class="actor">DWSIM</span><div><b>Process target, purity and assumed envelope pass</b><p>Flooding screen stays below the modelled 80% limit at the verified operating point.</p></div><span class="result">PASS</span></div>
+        <div class="run-row"><span class="actor">RED TEAM</span><div><b>8 of 8 bounded process attacks held</b><p>Worst stored flooding result: 89.7% of the allowable limit.</p></div><span class="result">8 / 8</span></div>
+        <div class="run-row"><span class="actor">ENGINEER</span><div><b>Vendor and cross-discipline review still required</b><p>The process screen is verified; the physical modification is not approved.</p></div><span class="result open">OPEN</span></div>
       </div>
     </section>
 
-    <section class="wont" aria-labelledby="wont-title">
-      <h2 id="wont-title">What PlantAgent will not do</h2>
-      <ul><li>Approve a change. It records the engineer's decision; names are workflow records, not e-signatures.</li>
-        <li>Replace the vendor, the HAZOP or relief sizing. Those stay open items with an owner.</li>
-        <li>Hide what it assumed. Missing data, drafted ratings and uncalculated disciplines are shown, not filled in silently.</li></ul>
+    <section class="model-stack" aria-labelledby="models-title">
+      <div class="model-stack-head"><div><p class="kicker">Built on Meta</p><h2 id="models-title">One model stack, distinct jobs</h2></div><p>Reading, designing and challenging are separate steps. Each simulation result comes back from an engine, not from the language model.</p></div>
+      <div class="model-rail">
+        <article><span>Muse Wonder</span><b>Read the plant</b><p>Scanned P&amp;IDs, patent figures and data sheets.</p></article>
+        <article><span>Muse Spark Open</span><b>Design the change</b><p>Open weights propose, read failures and revise.</p></article>
+        <article><span>Muse Spark 1.3</span><b>Attack the design</b><p>Operating deviations test a passing design.</p></article>
+        <article><span>Muse Voice</span><b>Capture the goal</b><p>The engineer's spoken request enters the record.</p></article>
+      </div>
+    </section>
+    <p id="openWeightsHero">Why open weights matter: the Meta-hosted endpoint refused the <a href="plant.html?case=ucte_2006">UCTE blackout prompt</a> <span data-attempts>four</span> times (content policy). <a href="https://github.com/yigitcankzl/plant-agent/blob/master/evidence/open-weights-engineering/README.md">Muse Spark Open</a> ran the same engineering loop; redispatch plus opening the 220 kV tie passed line limits and N-1 (<span data-violations>0</span> violations). An availability result, not a quality comparison.</p>
+
+    <section class="proof-rail" aria-label="Featured evidence">
+      <a class="proof-item" href="plant.html?case=basf_process_column_k_2750_dexpi_c02_uns"><span>UNSEEN DRAWING</span><b>BASF column K 2750</b><p>Open-weight Muse built the model and reached a 600 mm process-screened replacement.</p><em>Vendor confirmation open</em></a>
+      <a class="proof-item" href="plant.html?case=shell_norco_c2splitter"><span>REAL PLANT · BLIND</span><b>Shell Norco C2 splitter</b><p>Muse chose the same core revamp as Shell; it missed the published feed-tray move.</p><em>5 match · 3 partial · 1 miss</em></a>
+      <a class="proof-item" href="plant.html?case=salt_mvr"><span>CROSS-DISCIPLINE BLOCK</span><b>Vacuum-salt plant</b><p>The process reaches +20%. The electrical model blocks approval at the transformer.</p><em>Process passes · TX-1 133%</em></a>
     </section>
   </main>
-  <div class="stats" id="stats"></div>
-  <section id="cases" aria-labelledby="cases-title"><div class="library-head"><h2 id="cases-title">Case library</h2><p>Open an interactive workspace where available, or inspect a recorded blind study.</p></div><div id="groups"></div></section>
+  <section id="cases" aria-labelledby="cases-title">
+    <details class="case-library-shell"><summary><b id="cases-title">Browse the engineering evidence library</b><span>Real plants, blind studies and recorded replays ↓</span></summary>
+      <div class="case-library-body"><div class="stats" id="stats"></div><div id="groups"></div></div>
+    </details>
+  </section>
   <section id="new" aria-labelledby="new-title" class="newproj">
     <div class="library-head"><h2 id="new-title">Start your own project</h2>
       <p>Upload your P&amp;ID (DEXPI XML, or a PDF that Muse reads) and paste the operating data sheet. Building the model spends Muse
