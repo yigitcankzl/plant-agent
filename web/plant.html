@@ -942,6 +942,18 @@
   body.present-mode.process.focused aside.right { grid-column: 1; }
   body.present-mode.process.focused main { grid-column: 2; }
   body.present-mode.process.focused .workbench { left: 496px; }
+  /* the what-if collapses to one line; the Drawing page opens it */
+  .whatif-toggle { display: none; }
+  .process.focused .whatif-toggle { display: inline-flex; align-self: center; margin: 0 4px 0 10px; padding: 6px 10px; border: 1px solid var(--rule); border-radius: 6px;
+    background: transparent; color: var(--fg-2); font: 600 12px var(--sans); white-space: nowrap; cursor: pointer; }
+  .process.focused .workbench #scenario { grid-template-columns: auto 220px minmax(0, 1fr) auto !important; }
+  .process.focused .workbench.whatif-min #scenario { grid-template-columns: auto minmax(0, 1fr) !important; min-height: 0 !important; padding-block: 2px; }
+  .process.focused .workbench.whatif-min, .process.focused .workbench.whatif-min .workbench-body { height: auto !important; min-height: 0 !important; }
+  .process.focused .workbench.whatif-min { width: auto !important; max-width: min(560px, calc(100vw - 160px - var(--workspace-panel))); }
+  .process.focused .workbench.whatif-min .flowctl, .process.focused .workbench.whatif-min #toTarget,
+  .process.focused .workbench.whatif-min #verdictSub { display: none !important; }
+  .process.focused .workbench.whatif-min .verdict { min-width: 0; padding-block: 8px; }
+  .process.focused .workbench.whatif-min #verdict { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   body.present-mode.openweights-story-mode .app { grid-template-columns: 38vw minmax(0, 1fr) !important; }
 
   @media (max-width: 1100px) {
@@ -1089,6 +1101,7 @@
     <div class="workbench-body" id="workbenchBody">
       <div class="engine-unavailable" id="engineUnavailable" hidden></div>
       <footer class="dock-panel" id="scenario" role="tabpanel" aria-labelledby="dockWhatIf">
+        <button type="button" class="whatif-toggle" id="whatIfToggle" aria-expanded="false" aria-controls="scenario" title="Open the throughput what-if">What-if ▸</button>
         <div class="flowctl">
           <label class="flow-label" for="scale">What-if · throughput</label>
           <div class="flowv" id="flowv">–</div>
@@ -1233,6 +1246,8 @@ function setWorkspacePage(pageName) {
   void $('resultPane').offsetWidth;
   $('resultPane').classList.add('panel-enter');
 
+  if (page === 'drawing') { if (localStorage.getItem('whatifOpen') !== '0') setWhatIf(true, false); }
+  else if (localStorage.getItem('whatifOpen') !== '1') setWhatIf(false, false);
   if (page === 'drawing') {
     openDetails(false); toggleDrawer(false); selectOnDrawing('');
     renderChangeSummary();
@@ -1266,6 +1281,16 @@ function setWorkspacePage(pageName) {
 }
 
 document.querySelectorAll('[data-workspace-page]').forEach(button => button.onclick = () => setWorkspacePage(button.dataset.workspacePage));
+// the what-if bar: one line by default, open on the Drawing page or on request; the choice is remembered
+function setWhatIf(open, remember = true) {
+  const wb = $('workbench'), t = $('whatIfToggle'); if (!wb || !t) return;
+  wb.classList.toggle('whatif-min', !open);
+  t.textContent = open ? 'Hide ▾' : 'What-if ▸'; t.setAttribute('aria-expanded', String(open));
+  if (remember) localStorage.setItem('whatifOpen', open ? '1' : '0');
+}
+$('whatIfToggle')?.addEventListener('click', () => setWhatIf($('workbench').classList.contains('whatif-min')));
+setWhatIf(localStorage.getItem('whatifOpen') === '1', false);
+
 document.querySelectorAll('[data-page-target]').forEach(button => button.onclick = () => setWorkspacePage(button.dataset.pageTarget));
 
 function renderTroubleshootMode() {
@@ -1620,7 +1645,8 @@ async function load() {
   $('workStart').disabled = !P.allow_runs || !engineReady(); $('workStart').textContent = P.allow_runs && engineReady() ? 'Confirm and run' : 'Replay only';
   $('toTarget').disabled = !P.built;  // no reliable model yet: nothing to analyse
   $('toTarget').style.display = P.built ? '' : 'none'; document.querySelector('.flowctl').style.visibility = P.built ? '' : 'hidden';
-  $('toTarget').textContent = (P.answers || []).length ? 'Show saved analysis' : 'Analyze target';
+  $('toTarget').textContent = 'Analyze target';
+  $('toTarget').hidden = (P.answers || []).length > 0;  // with saved answers, Review evidence on the left does this
   $('model').value = P.model;
   $('model').onchange = async e => { await api('model', {model: e.target.value}); P.model = e.target.value; };
   $('workGoal').value = P.question || '';
