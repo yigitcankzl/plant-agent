@@ -70,6 +70,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.waitForSelector('#redteamPanel', {timeout: 30000}).catch(() => {});
   await p.evaluate(() => { openDetails(true); setWorkspaceView('engineering'); });
   const redteamShots = [
+    ['trays', '8 / 8 stayed within the modelled process limits', 'redteam_trays_live_design.png'],
     ['600-envelope', '8 / 8 stayed within the modelled process limits', 'redteam_600mm_envelope.png'],
     ['600-harsh', '8 / 8 broke the modelled limits', 'redteam_600mm_125x.png'],
     ['700-robust', '8 / 8 stayed within the modelled process limits', 'redteam_700mm_holds.png']

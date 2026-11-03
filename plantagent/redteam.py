@@ -176,7 +176,7 @@ def _harsh_set(log, source):
 def source(w, ident):
     """The exact stored source behind one replay set; ids are allowlisted, never paths from the request."""
     base = w.model_file.parent
-    paths = {"600-envelope": base / "redteam_600mm.json",
+    paths = {"trays": base / "redteam_trays.json", "600-envelope": base / "redteam_600mm.json",
              "600-harsh": base / "work" / "20261102-194930" / "worklog.json",
              "700-robust": base / "redteam_700mm.json", "featured": base / "redteam.json"}
     return _json(paths[ident]) if ident in paths else None
@@ -186,6 +186,11 @@ def stored(w):
     """Normalized, replay-only red-team sets available for this case."""
     case, base = w.name, w.model_file.parent
     sets = []
+    raw = _json(base / "redteam_trays.json")   # the design the recorded live run ended on
+    if raw:
+        sets.append(_raw_set("trays", "Live-run design · envelope band", "Reflux 1.35 + high-capacity trays (live run)", raw,
+                             f"/api/plant/{case}/redteam?source=trays", run_id=raw.get("run_id"),
+                             note="Attacks the design the live engineering run ended on; tray rating is Muse's assumption, vendor to confirm."))
     raw = _json(base / "redteam_600mm.json")
     if raw:
         src = f"/api/plant/{case}/redteam?source=600-envelope"

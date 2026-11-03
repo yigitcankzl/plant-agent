@@ -1,0 +1,201 @@
+{
+ "key": "6fa2434635ebad06856a460c5cc3c9b6d7c4d15d",
+ "made": "2026-11-04T00:24:41+0300",
+ "model": "muse-spark-1.3",
+ "target": 1.2,
+ "usd": 0.0287,
+ "seconds": 56,
+ "dropped": [],
+ "scenarios": [
+  {
+   "name": "More reflux to hold purity",
+   "basis": "more flow: Analyzer / operator reflux creep +15% to hold ethanol spec after fouling or dilution is routine; at 1.32x today load extra liquid wipes out claimed 0.8 flood margin in 0.5 m column",
+   "scale": 1.1,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "K 2750",
+    "check": "Fair flood fraction vs limit",
+    "value": 0.74,
+    "limit": 0.8,
+    "unit": "fraction of flood",
+    "utilisation": 0.925
+   },
+   "changes": [
+    {
+     "path": "units.K 2750.reflux_ratio",
+     "value": 1.5525
+    }
+   ]
+  },
+  {
+   "name": "Low column pressure - winter PC offset",
+   "basis": "less pressure: Cold cooling water in winter / PC offset -15% lowers overhead pressure; lower vapor density raises Fair velocity and flood ~1/sqrt(rho_v), credible seasonal utility swing",
+   "scale": 1.1,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "K 2750",
+    "check": "Fair flood fraction vs limit",
+    "value": 0.718,
+    "limit": 0.8,
+    "unit": "fraction of flood",
+    "utilisation": 0.897
+   },
+   "changes": [
+    {
+     "path": "units.K 2750.P_bar",
+     "value": 1.275
+    }
+   ]
+  },
+  {
+   "name": "Hot feed - preheat high",
+   "basis": "more temperature: Feed preheater steam hunting / hot upstream +10 C credible; extra flash raises rectifying vapor traffic at fixed reflux and floods",
+   "scale": 1.1,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "K 2750",
+    "check": "Fair flood fraction vs limit",
+    "value": 0.673,
+    "limit": 0.8,
+    "unit": "fraction of flood",
+    "utilisation": 0.841
+   },
+   "changes": [
+    {
+     "path": "feeds.FEED.T_C",
+     "value": 95
+    }
+   ]
+  },
+  {
+   "name": "Low feed pressure - upstream letdown",
+   "basis": "less pressure: Upstream pressure dip / feed filter fouling -20% lets feed flash more before trays; higher inlet vapor fraction increases column vapor load, credible feed swing",
+   "scale": 1.1,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "K 2750",
+    "check": "Fair flood fraction vs limit",
+    "value": 0.682,
+    "limit": 0.8,
+    "unit": "fraction of flood",
+    "utilisation": 0.853
+   },
+   "changes": [
+    {
+     "path": "feeds.FEED.P_bar",
+     "value": 2.4
+    }
+   ]
+  },
+  {
+   "name": "Water-rich feed - upstream dilution",
+   "basis": "composition other than: Wash-water breakthrough / recycle raises water 0.30 to 0.39; higher boil-up and liquid load needed for same recovery, raises Fair flood and foaming",
+   "scale": 1.0,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "K 2750",
+    "check": "Fair flood fraction vs limit",
+    "value": 0.675,
+    "limit": 0.8,
+    "unit": "fraction of flood",
+    "utilisation": 0.844
+   },
+   "changes": [
+    {
+     "path": "feeds.FEED.x.Water",
+     "value": 0.39
+    },
+    {
+     "path": "feeds.FEED.x.Ethanol",
+     "value": 0.61
+    }
+   ]
+  },
+  {
+   "name": "Fouled trays with compensating reflux",
+   "basis": "fouling / degraded efficiency: Fouling between cleanings drops Murphree efficiency 0.70 to 0.56; operator raises reflux +10% to hold spec, combined hydraulic load exceeds 0.8",
+   "scale": 1.0,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "K 2750",
+    "check": "Fair flood fraction vs limit",
+    "value": 0.655,
+    "limit": 0.8,
+    "unit": "fraction of flood",
+    "utilisation": 0.819
+   },
+   "changes": [
+    {
+     "path": "units.K 2750.efficiency",
+     "value": 0.56
+    },
+    {
+     "path": "units.K 2750.reflux_ratio",
+     "value": 1.485
+    }
+   ]
+  },
+  {
+   "name": "Ethanol-rich light feed with low back-pressure",
+   "basis": "composition other than / less pressure drop: Upstream lights push raises ethanol 0.70 to 0.79; open overhead valve / cold overhead gives low dP 0.3409 bar, dropping column pressure and raising vapor velocity",
+   "scale": 1.05,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "K 2750",
+    "check": "Fair flood fraction vs limit",
+    "value": 0.623,
+    "limit": 0.8,
+    "unit": "fraction of flood",
+    "utilisation": 0.779
+   },
+   "changes": [
+    {
+     "path": "feeds.FEED.x.Ethanol",
+     "value": 0.79
+    },
+    {
+     "path": "feeds.FEED.x.Water",
+     "value": 0.21
+    },
+    {
+     "path": "units.*at N3*/*C2*.dP_bar",
+     "value": 0.3409
+    }
+   ]
+  },
+  {
+   "name": "Normal tolerance stack-up at rated margin",
+   "basis": "more flow / more temperature: At claimed limit 1.32x any normal deadband breaks it; +5% reflux plus +2 C feed preheat is within instrument tolerance and credible continuous operation",
+   "scale": 1.1,
+   "pass": true,
+   "errors": [],
+   "worst": {
+    "id": "K 2750",
+    "check": "Fair flood fraction vs limit",
+    "value": 0.698,
+    "limit": 0.8,
+    "unit": "fraction of flood",
+    "utilisation": 0.872
+   },
+   "changes": [
+    {
+     "path": "units.K 2750.reflux_ratio",
+     "value": 1.4175
+    },
+    {
+     "path": "feeds.FEED.T_C",
+     "value": 87
+    }
+   ]
+  }
+ ],
+ "design": "live run 20261103-214753, answer 3: reflux 1.35 + high-capacity trays (capacity factor 1.2, vendor to confirm)",
+ "run_id": "20261103-214753"
+}
