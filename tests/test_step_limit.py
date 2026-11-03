@@ -71,3 +71,12 @@ class AnswerFormsTest(unittest.TestCase):
         self.assertEqual(call["name"], "answer")
         self.assertEqual(json.loads(call["arguments"])["proposals"], [{"title": "t"}])
         self.assertIsNone(TEXT_CALL.search('see <a href="x">the run</a>'))
+
+
+class VendorTagTest(unittest.TestCase):
+    def test_uppercase_vendor_tags(self):
+        from plantagent.study import text_tool_calls, TEXT_CALL
+        c = '<ATEM:FUNCALL name="answer">\n<ATEM:PARAM name="headline">H</ATEM:PARAM>\n<ATEM:PARAM name="status">ok</ATEM:PARAM>\n</ATEM:FUNCALL>'
+        self.assertTrue(TEXT_CALL.search(c))
+        call = text_tool_calls(c)[0]
+        self.assertEqual((call["name"], json.loads(call["arguments"])), ("answer", {"headline": "H", "status": "ok"}))
