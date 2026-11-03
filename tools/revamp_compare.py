@@ -62,11 +62,12 @@ def _text(value):
     return re.sub(r"\s+", " ", json.dumps(value, sort_keys=True, default=str).lower())
 
 
-def _change_score(categories, submission):
+def _change_score(categories, submission, basis=""):
     blob = _text([submission["changes"], submission["text"]])
+    known = basis.lower()  # a keyword the data sheet already contains (e.g. the existing tray type) proves nothing
     rows = []
     for category in categories:
-        hits = [word for word in category.get("keywords") or [] if word.lower() in blob]
+        hits = [word for word in category.get("keywords") or [] if word.lower() in blob and word.lower() not in known]
         rows.append({
             "id": category["id"], "label": category["label"],
             "required": bool(category.get("required")), "matched": bool(hits), "matched_keywords": hits,
@@ -124,7 +125,9 @@ def score(case, submission_path):
     outcome = json.loads((ROOT / "cases" / case / "outcome.json").read_text())
     kind, raw = _load_submission(submission_path)
     submission = _session(raw) if kind == "session" else _worklog(raw)
-    verdict, categories = _change_score(outcome.get("change_categories") or [], submission)
+    basis = ROOT / "cases" / case / "basis.md"
+    verdict, categories = _change_score(outcome.get("change_categories") or [], submission,
+                                        basis.read_text() if basis.exists() else "")
     after = []
     for item in outcome.get("after_data") or []:
         actual, source = _reported_value(item, submission)

@@ -1,6 +1,6 @@
 # Michigan NGL depropanizer: blind operating basis
 
-Source: Golden and Martin, *Oil & Gas Journal*, August 2003, tower history, original packing performance and project guarantee. This sheet stops before the installed tray arrangement and later troubleshooting changes.
+Source: a trade-journal field report. The citation is withheld from the agent because it identifies the outcome; it is recorded with the withheld outcome in `outcome.json` and in the case's `source` field.
 
 ## Existing tower and operation
 

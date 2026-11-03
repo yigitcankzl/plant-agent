@@ -1,6 +1,6 @@
 # Kuwait atmospheric CDU heat-exchanger network: blind operating basis
 
-Source: Al-Riyami et al., *Case Studies in Thermal Engineering* 28 (2021) 101030, existing-network and pinch-analysis sections. This sheet excludes the candidate retrofit layouts.
+Source: a peer-reviewed retrofit study. The citation is withheld from the agent because it identifies the outcome; it is recorded with the withheld outcome in `outcome.json` and in the case's `source` field.
 
 ## Existing crude preheat system
 

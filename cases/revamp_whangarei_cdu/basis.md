@@ -1,6 +1,6 @@
 # NZRC Whangarei CDU-1 main fractionator C-150: blind operating basis
 
-Source: Majumder, Mosca and Mahon, PTQ Q1 2013, pp. 73-75. The source title and the later project description are outside this sheet because they identify the outcome.
+Source: a refining-journal field report. The citation is withheld from the agent because it identifies the outcome; it is recorded with the withheld outcome in `outcome.json` and in the case's `source` field.
 
 ## Existing process
 

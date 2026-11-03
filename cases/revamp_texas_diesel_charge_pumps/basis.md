@@ -1,6 +1,6 @@
 # Texas diesel-hydrotreater charge pumps: blind operating basis
 
-Source: Sulzer, *Reviving Pump Performance* (2020), original duty and project requirements. This sheet does not include the selected rerate or shop results.
+Source: a vendor field report. The citation is withheld from the agent because it identifies the outcome; it is recorded with the withheld outcome in `outcome.json` and in the case's `source` field.
 
 ## Existing pumps
 

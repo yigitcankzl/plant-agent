@@ -1,6 +1,6 @@
 # Toledo hydrocracking hydrogen compressors: blind operating basis
 
-Source: Gupta, Starling, Svaan and Higgins, 29th Turbomachinery Symposium (2000), compressor description and original performance data. This sheet stops before the mechanical selection and performance results.
+Source: a symposium paper. The citation is withheld from the agent because it identifies the outcome; it is recorded with the withheld outcome in `outcome.json` and in the case's `source` field.
 
 ## Existing compression system
 

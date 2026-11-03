@@ -1,6 +1,6 @@
 # BP Lima saturates-gas-plant de-ethanizing stripper: blind operating basis
 
-Source: Deley and Graf, *Oil & Gas Journal*, 1 August 1994, sections "Stripper tower" and "Project scope". This sheet contains the tower state before the project and the production premise only.
+Source: a trade-journal field report. The citation is withheld from the agent because it identifies the outcome; it is recorded with the withheld outcome in `outcome.json` and in the case's `source` field.
 
 ## Existing absorber/stripper system
 

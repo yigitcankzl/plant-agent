@@ -1,6 +1,6 @@
 # T-2103 butyraldehyde purification tower: blind operating basis
 
-Source: Summers, Monaco and Britto, AIChE Spring Meeting paper 112b (2013), pp. 1-5. This sheet stops before the later corrective actions and performance tests.
+Source: a conference paper. The citation is withheld from the agent because it identifies the outcome; it is recorded with the withheld outcome in `outcome.json` and in the case's `source` field.
 
 ## Existing tower
 

@@ -52,3 +52,11 @@ class RevampCompareTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BasisKeywordTest(unittest.TestCase):
+    def test_keyword_already_in_the_basis_does_not_count(self):
+        cats = [{"id": "t", "label": "trays", "required": True, "keywords": ["calming section tray"]}]
+        sub = {"changes": [], "text": "replace the calming section trays", "rows": []}
+        self.assertEqual(revamp_compare._change_score(cats, sub)[0], "match")
+        self.assertEqual(revamp_compare._change_score(cats, sub, "existing Calming Section trays")[0], "miss")
