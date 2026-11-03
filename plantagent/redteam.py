@@ -246,11 +246,11 @@ def attack(w, idx, model):
     prompt = PROMPT.format(target=target, n=MAX_SCENARIOS, lo=SCALE[0], hi=SCALE[1], band=BAND, dt=DT_C,
                            changes=json.dumps(changes)[:4000], limits=json.dumps(design.get("limits") or {})[:3000],
                            surface=json.dumps(surface)[:6000])
-    t0, u0 = time.time(), llm.spent()
+    t0, u0 = time.time(), llm.spent_here()
     msg = llm.complete(model, [{"role": "user", "content": prompt}], max_tokens=20000)
     kept, dropped = validate(design, _parse(msg.get("content")))
     out = {"key": key, "made": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "model": model, "target": target,
-           "usd": round(llm.spent() - u0, 4), "seconds": round(time.time() - t0), "dropped": dropped, "scenarios": []}
+           "usd": round(llm.spent_here() - u0, 4), "seconds": round(time.time() - t0), "dropped": dropped, "scenarios": []}
     if kept:
         env = run_envelope(design, [{**s, "scale": s["scale"] * target} for s in kept], w._solve, patch)
         out["scenarios"] = [{"name": r["name"], "basis": r["basis"], "scale": r["scale"] / target, "pass": r["pass"],

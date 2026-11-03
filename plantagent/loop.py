@@ -137,15 +137,15 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
            "status": "running", "approval_status": None, "started": _now(),
            "usd_total": 0.0, "seconds_total": 0, "rounds": [], "result": None, "deliverables": [], "needs_human": []}
     save = lambda: (out / "worklog.json").write_text(json.dumps(log, indent=1, ensure_ascii=False))  # noqa: E731
-    t0, usd0 = time.time(), llm.spent()
+    t0, usd0 = time.time(), llm.spent_here()
     issues, last, rows, verified_last = [], None, [], False
     try:
         with llm.spend_cap(budget_usd):
             for n in range(1, max_rounds + 1):
-                t, u = time.time(), llm.spent()
+                t, u = time.time(), llm.spent_here()
                 ans = w.ask(goal if n == 1 else _fix_prompt(goal, issues, last))
                 idx = len(w.answers) - 1
-                muse = _muse_step(ans, "propose" if n == 1 else "fix", llm.spent() - u, time.time() - t, model)
+                muse = _muse_step(ans, "propose" if n == 1 else "fix", llm.spent_here() - u, time.time() - t, model)
                 rnd = {"n": n, "answer_index": idx, "steps": [muse]}
                 log["rounds"].append(rnd)
                 for p in ans.get("proposals") or []:
@@ -183,7 +183,7 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
                         save()
                         break
                 save()
-                if llm.spent() - usd0 >= budget_usd:
+                if llm.spent_here() - usd0 >= budget_usd:
                     log["status"] = "budget"
                     break
             else:
@@ -211,7 +211,7 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
             log["result"] = _result(last, rows, log["status"], verified_last, final)
         log["approval_status"] = "not_reached"
     log["finished"] = _now()
-    log["usd_total"] = round(llm.spent() - usd0, 4)
+    log["usd_total"] = round(llm.spent_here() - usd0, 4)
     log["seconds_total"] = round(time.time() - t0)
     save()
     return log

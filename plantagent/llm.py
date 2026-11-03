@@ -159,7 +159,15 @@ def _reserve(model, messages, params):
     return (input_tokens * pin + output_tokens * pout) / 1e6
 
 
+_mine = threading.local()  # spend made by this thread: a loop's budget must not count another job's calls in the shared ledger
+
+
+def spent_here():
+    return getattr(_mine, "usd", 0.0)
+
+
 def _append_usage(row):
+    _mine.usd = spent_here() + float(row.get("usd") or 0)
     LEDGER.parent.mkdir(parents=True, exist_ok=True)
     with LEDGER.open("a") as handle:
         handle.write(json.dumps(row) + "\n")
