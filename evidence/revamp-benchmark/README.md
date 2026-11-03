@@ -66,4 +66,21 @@ The JSON records the exact row or rating used for every extracted value. There i
 | Singapore condensate-pump MAWP rerate | Pressure-rating change is reported, but no before/after flow, head or system curve is published. |
 | Dividing-wall-column revamp brochures | The present process schema has no defensible dividing-wall-column model and the public summaries omit enough internal data that scoring would reward guesswork. |
 
-No benchmark result claims are included here yet. A first set of runs saw each paper's citation in the basis; they were discarded, the citations withheld, and the cases are being re-run blind.
+## Results (3 November 2026, blind re-run)
+
+A first set of runs saw each paper's citation in the basis; they were discarded (`discarded/`). The citations were then withheld, the scorer ignores keywords the basis already contains, and each case ran once with no earlier answers (`PLANT_FRESH=1`), Muse Spark Open on Fireworks, at most $6. Scored by `tools/revamp_compare.py` with keywords frozen before the runs.
+
+| Case | Loop | Spend | Engineers' required categories found | What the agent proposed |
+|---|---|---:|---|---|
+| Toledo H2 compressors | done | $1.68 | miss 0/2 | larger motors (the engineers kept the motors and changed the first-stage cylinder and valves) |
+| BP Lima de-ethanizer | done | $5.65 | partial 1/3 | uprated stripper; feed preheat matched |
+| Whangarei CDU | done | $0.11 | miss 0/1 | high-capacity trays in the existing shell (the keyword is "ultra-high-capacity"/the vendor tray) |
+| Kuwait CDU heat network | done | $0.10 | miss 0/2 | higher network outlet temperatures (the model has one exchanger per network) |
+| Texas charge pumps | done | $0.00 ¹ | partial 1/3 | new impellers in the existing barrel |
+| Michigan depropanizer | error | $2.36 | miss | no answer within the step limit |
+| Butyraldehyde T-2103 | not re-run | | | |
+
+**Reading:** the loop usually finds a design that passes every deterministic check (5 of 6), but that design rarely matches what the engineers built (no full match, 2 partial). Passing the checks and reproducing the engineers' choice are different things; this benchmark measures the second, and on it PlantAgent is weak.
+
+¹ The Texas model replies were cached from the first clean run of the same basis (`20261103-130053`), which ended on an unparsed answer; the loop re-read them after the parser fix.
+
