@@ -94,7 +94,8 @@
 <body>
 <script>if (new URLSearchParams(location.search).get('present') === '1') document.body.classList.add('present-mode');</script>
 <header>
-  <h1>MOC sign-off</h1>
+  <h1>MOC review record</h1>
+  <span class="muted small">Recorded workflow approval: names are not authenticated electronic signatures.</span>
   <label class="muted small">Plant <select id="case" aria-label="Plant"></select></label>
   <span class="sp"></span>
   <a id="plantLink" class="small" href="plant.html">Back to the plant</a>
@@ -157,10 +158,10 @@ function render() {
   const undone = s.undisposed.length, mustFix = s.must_fix.length;
   const reviewForm = s.state === 'draft' && s.pack ? `<input id="rvName" placeholder="Reviewer name" aria-label="Reviewer name"><textarea id="rvNote" placeholder="Review note (optional)" aria-label="Review note"></textarea>
      ${undone ? `<div class="why">Write a disposition for ${esc(s.undisposed.join(', '))} first.</div>` : ''}
-     <div class="acts"><button class="go" id="rvBtn" ${undone ? 'disabled' : ''}>Sign as reviewer</button></div>` : '';
+     <div class="acts"><button class="go" id="rvBtn" ${undone ? 'disabled' : ''}>Record reviewer decision</button></div>` : '';
   const approveForm = s.state === 'reviewed' ? `<input id="apName" placeholder="Approver name (not the reviewer)" aria-label="Approver name"><textarea id="apNote" placeholder="Approval note, or the reason for rejecting" aria-label="Approval note or rejection reason"></textarea>
      ${mustFix ? `<div class="why">${esc(s.must_fix.join(', '))} marked must fix: this pack can be rejected, not approved.</div>` : ''}
-     <div class="acts"><button class="go" id="apBtn" ${mustFix ? 'disabled' : ''}>Approve and freeze</button><button class="stop" id="rjBtn">Reject</button></div>` : '';
+     <div class="acts"><button class="go" id="apBtn" ${mustFix ? 'disabled' : ''}>Record approval and freeze</button><button class="stop" id="rjBtn">Reject</button></div>` : '';
   const approved = s.approver ? signed(s.approver, 'Approved') : s.rejected && s.state === 'rejected'
     ? `<div class="who">${esc(s.rejected.name)}</div><div class="when">Rejected ${esc(when(s.rejected.at))}</div><div class="note">${esc(s.rejected.reason)}</div>
        <input id="roName" placeholder="Your name" aria-label="Name"><div class="acts"><button id="roBtn">Reopen as draft</button></div>` : '';
@@ -203,9 +204,11 @@ async function load() {
 }
 (async () => {
   const ps = (await api('/api/projects')).filter(p => p.kind === 'process' && p.built);
-  $('case').innerHTML = ps.map(p => `<option value="${esc(p.case)}">${esc(p.title.replace(/\s*\([^)]*\)/g, ''))}</option>`).join('');
-  $('case').value = ps.some(p => p.case === q.get('case')) ? q.get('case') : (ps.find(p => p.case === 'salt_mvr') ? 'salt_mvr' : ps[0]?.case);
-  $('case').onchange = () => { history.replaceState(null, '', `?case=${C()}`); load().catch(e => { $('err').textContent = e.message; }); };
+  // an approval screen never picks a plant for the reviewer: nothing loads until one is chosen
+  $('case').innerHTML = '<option value="">Select a plant and review package</option>' + ps.map(p => `<option value="${esc(p.case)}">${esc(p.title.replace(/\s*\([^)]*\)/g, ''))}</option>`).join('');
+  $('case').value = ps.some(p => p.case === q.get('case')) ? q.get('case') : '';
+  $('case').onchange = () => { if (!C()) return; history.replaceState(null, '', `?case=${C()}`); load().catch(e => { $('err').textContent = e.message; }); };
+  if (!C()) { $('lede').textContent = 'Select a plant and review package to see its record.'; return; }
   await load();
 })().catch(e => { $('lede').textContent = 'The sign-off record could not be loaded. Start the PlantAgent server and reload.'; $('err').textContent = e.message; });
 </script>

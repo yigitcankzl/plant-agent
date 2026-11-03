@@ -2684,6 +2684,8 @@ async function startEngineeringWork() {
   if (busy) return;
   const goal = $('workGoal').value.trim();
   if (!goal) { $('workRunError').textContent = 'Enter an engineering goal before starting.'; $('workGoal').focus(); return; }
+  // a paid run on a model with blocking review findings would be built on wrong inputs
+  if (modelBlocked()) { $('workRunError').textContent = 'Model blocked: resolve the model-review findings before running or relying on recommendations.'; return; }
   $('workRunError').textContent = '';
   try {
     const {job} = await api('work', {goal});
@@ -2704,6 +2706,7 @@ async function build() {
 
 async function ask(text, context) {
   if (busy || !text.trim()) return;
+  if (modelBlocked()) { chatBegin(text).insertAdjacentHTML('beforeend', '<div class="chat-answer"><h4>Model blocked</h4><div class="chat-numbers">Resolve the model-review findings before running or relying on recommendations.</div></div>'); return; }
   showMode('capacity');
   const turn = chatBegin(text);
   try {
