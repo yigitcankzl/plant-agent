@@ -26,6 +26,7 @@ This experiment added 208 ledger entries and **$12.26068** of Baseten spend: sal
 
 ## Limits
 
+- The line check uses the 2,100 A Wehrendorf trip setting, not the 1,795 A warning value. The final design leaves about 1,550 A on Landesbergen-Wehrendorf (2,100 A / 1.358 capacity), below both; a design between 1,795 and 2,100 A would also have passed.
 - This is engineering-loop evidence, not a controlled model benchmark. Prompt wording and cache state were not held as experimental variables.
 - A single successful round was sufficient for UCTE and Freeport. Salt exercised feedback across rounds, but did not converge, so there is no successful open-vs-closed salt design comparison.
 - UCTE switching and redispatch are screening results from the saved pandapower model, not an operating instruction.
