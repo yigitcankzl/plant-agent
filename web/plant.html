@@ -3145,7 +3145,7 @@ function storyGate(row) {
   if (envelope) return `${Number(envelope[2]) - Number(envelope[1])} of ${envelope[2]} operating scenarios fails and needs review.`;
   return text.replace(/;.*$/, '') || `${GATE_NAMES[row?.id] || row?.id || 'A check'} still needs a decision.`;
 }
-function renderRunStory(lead, log = null) {
+function renderRunStory(lead, log = LAST_WORK) {  // the saved run, also when the answers re-render after it
   const box = $('runStory'); if (!box) return;
   const target = incident() ? plain(P.question || lead?.request || 'Review the documented incident.')
     : `Reach ${Math.round(P.target_scale * 100)}% of today's throughput.`;
@@ -3154,7 +3154,8 @@ function renderRunStory(lead, log = null) {
   const first = (d.highlights || []).find(h => ['fail', 'warn'].includes(h.severity));
   const verified = (d.proposals || []).filter(p => p.verified);
   const gates = gateRows(d), failed = gates.filter(r => gateState(r)[0] === 'fail'), open = gates.filter(r => gateState(r)[0] === 'open');
-  const limit = first ? `${first.tag ? first.tag + ': ' : ''}${plain(first.text).split(/;|\.\s/)[0]}.` : plain(d.summary || 'The simulator did not report a binding plant limit.');
+  // one plain clause: the first statement only, without the model's parenthetical arithmetic
+  const limit = first ? `${first.tag ? first.tag + ': ' : ''}${plain(first.text).replace(/^limits first:\s*/i, '').split(/;|\.\s| - | — | – /)[0].replace(/\s*\([^)]*\)/g, '').replace(/\.$/, '')}.` : plain(d.summary || 'The simulator did not report a binding plant limit.');
   const proposed = log?.rounds?.at(-1)?.steps?.find(step => step.actor === 'muse' && step.kind === 'propose');
   const fix = proposed && !/^UNSOLVABLE:/i.test(proposed.title || '') ? plain(proposed.title) : verified.length ? verified.map(p => plain(p.title)).join(' + ') : 'No verified physical change is on record yet.';
   let left = failed.length ? `${storyGate(failed.find(r => r.id === 'electrical') || failed[0])}${failed.length > 1 ? ` ${failed.length - 1} more check${failed.length === 2 ? ' fails' : 's fail'}.` : ''}`

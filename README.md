@@ -16,13 +16,13 @@ Hackathon theme: **Push the Frontier** (manufacturing and energy). Built on Muse
 **In one minute**
 - **The agent is checked, and refused.** Muse's first fix on the BASF column (cut reflux) passed the checks of the time; the product-purity check we added next fails it on replay (90.3 vs 90.8 %). With that check in the loop, Muse's next design failed the +10 % feed case, the numbers went back to Muse, and its following design (a 600 mm shell, vendor to confirm) passed every deterministic simulation check. A second Muse then attacked that design with eight realistic bad days (hot feed, fouled trays, low pressure); DWSIM refereed and the design held **8 of 8** (worst case 90 % of the flood limit).
 - **Open weights did what the hosted endpoint would not.** On the 2006 European blackout grid, Meta's hosted endpoint refused the prompt four times; Muse Spark Open ran the same loop and found a switching plan with **0 N-1 violations**.
-- **A real plant, blind.** Given only Shell Norco's pre-revamp operating data (paper title withheld, no earlier answers), Muse re-trayed the same C2 splitter shell, as Shell did: round 1 failed the +10 % feed case, round 2 passed every simulation check, and ethylene rose 25 %, as at Shell. Asked with no documents, all three Muse models say they do not know what Shell did.
-- Honest denominator: About a quarter of recorded loop runs end with every deterministic check passing (14 of 61 on 3 Nov; most "done" runs still carry open vendor or human checks; the live count is `tools/loop_stats.py`). Every caveat is under [Limits and honesty](#limits-and-honesty).
+- **A real plant, blind.** Given only Shell Norco's pre-revamp operating data (paper title withheld, no earlier answers), Muse re-trayed the same C2 splitter shell, as Shell did: round 1 failed the +10 % feed case, round 2 passed every simulation check at the +25 % ethylene target the project was given (Shell measured +25 %). Asked with no documents, all three Muse models say they do not know what Shell did.
+- Honest denominator: Under a third of recorded loop runs end with every deterministic check passing (21 of 69 on 3 Nov, $192 in all; most "done" runs still carry open vendor or human checks; the live count is `tools/loop_stats.py`). Every caveat is under [Limits and honesty](#limits-and-honesty).
 
 ```bash
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m plantagent.web --port 8765     # no API key needed for the stored runs
-# open http://127.0.0.1:8765/home.html and press "Start the 3-minute demo"
+# open http://127.0.0.1:8765/home.html and press "Open the engineering desk"
 ```
 
 ## What it has done
@@ -33,7 +33,7 @@ python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
 - **A real plant, blind.** Shell's Norco C2 splitter before its 2015 revamp, outcome withheld. Muse Spark Open re-trayed the same shell, as Shell did: **round 1 failed** the +10 % feed case, **round 2 passed** every simulation check ($4.30). Against Shell's measurements: 5 match, 3 partial, 1 miss, 1 not predicted. [Below](#a-real-plant-blind-shell-norco-c2-splitter).
 - **Open weights in the loop.** Muse Spark Open on Baseten: on UCTE, where the Meta-hosted endpoint refused the prompt four times (content policy), it found a switching plan that passes line limits and N-1; on Freeport it matched Muse Wonder; on the salt plant neither model finished. [Below](#open-weights-the-2006-european-blackout).
 - **The engineer's red pen** (`web/redline.html`, `plantagent/redline.py`): Muse Wonder reads the red ink on an uploaded drawing into changes, the engineer confirms them, and the same checks run on the engineer's design and Muse's side by side. First live read (salt, typed notes): 3 of 3 transcribed, 1 mapped. [Evidence](evidence/redline/README.md).
-- **The honest denominator.** Across all 61 recorded engineering-loop runs during development (3 Nov, including the discarded first revamp-benchmark runs), 14 (23 %) ended with every deterministic check passing ($182 in total); most of those still carry an open vendor or human check. Each featured run is the last of several attempts, with harness fixes between them in the git log. Table: `PYTHONPATH=. python tools/loop_stats.py`.
+- **The honest denominator.** Across all 69 recorded engineering-loop runs during development (3 Nov, including the discarded first revamp-benchmark runs), 21 (30 %) ended with every deterministic check passing ($192 in total); most of those still carry an open vendor or human check. Each featured run is the last of several attempts, with harness fixes between them in the git log. Table: `PYTHONPATH=. python tools/loop_stats.py`.
 - Blind benchmark: on 13 real projects with the engineers' conclusions withheld, Muse reaches **64 %** of the engineers' conclusions on average (range 33–100 %), graded by Muse Wonder against a fixed answer key, not by a person. [Details](docs/cases.md#evidence-blind-benchmark-against-real-engineers).
 
 The full, unshortened list (including the salt flagship and the two incidents) is in [docs/cases.md](docs/cases.md#full-what-it-has-done-list).
@@ -49,7 +49,7 @@ The full, unshortened list (including the salt flagship and the two incidents) i
 
 ## Try it in three minutes
 
-With the server running (above), open `http://127.0.0.1:8765/home.html` and press **Start the 3-minute demo**. It opens the salt crystalliser (`plant.html?case=salt_mvr&tour=1`) and walks through it in six steps: the source P&ID and the model Muse built from it; the +20 % question; what limits it; the fixes, each re-solved in DWSIM; before and after; the evidence.
+With the server running (above), open `http://127.0.0.1:8765/home.html` and press **Open the engineering desk**. It opens the salt crystalliser (`plant.html?case=salt_mvr&tour=1`) and walks through it in six steps: the source P&ID and the model Muse built from it; the +20 % question; what limits it; the fixes, each re-solved in DWSIM; before and after; the evidence.
 
 Then open the BASF column card (`plant.html?case=basf_process_column_k_2750_dexpi_c02_uns`): a drawing the tool had never seen, with no hand-written case file.
 
@@ -64,7 +64,7 @@ On the salt plant, look at:
 ## BASF C02: the loop, then the red team
 
 `plant.html?case=basf_process_column_k_2750_dexpi_c02_uns`: the official DEXPI example C02 Process Column (BASF), unmodified, run through the upload path with no hand-written case file (`tools/onboard_unseen.py`).
-- **Answer:** the column floods first, at +13 % (Fair flood fraction 0.876 against 0.80 at reflux 1.5).
+- **Answer:** the column floods first: it reaches its 80 % flood allowance at +13 % of today's feed (reflux 1.5).
 - **Loop 1:** cut reflux to 0.8; it passed the checks of the time. The purity check added afterwards fails it on replay (distillate ethanol 90.3 vs 90.8 % minimum). **Loop 2:** reflux 1.5 and a larger bottoms draw; everything passed except the +10 % feed case. **Loop 3:** a 600 mm shell (vendor to confirm): flooding 60.8 vs 80 %, purities pass, envelope 2/2, target held in 100 % of 48 uncertainty re-solves. $8.39 in total, all on Baseten.
 - **Red team:** eight bounded attacks from Muse Spark 1.3, each re-solved by DWSIM; the design held 8 of 8. A harsher, unrealistic stacked set broke it, and the loop answered with a 700 mm shell (see caveats).
 - Record: [docs/cases.md](docs/cases.md#an-unseen-drawing-no-hand-written-files), [`evidence/generality-c02/`](evidence/generality-c02/README.md), [`evidence/redteam/`](evidence/redteam/README.md). The duty is Muse's assumption and the drawing already holds a 600 mm section; see [caveats](#caveats-of-the-headline-results).

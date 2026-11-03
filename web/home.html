@@ -405,7 +405,8 @@ const json = url => fetch(url).then(r => r.ok ? r.json() : Promise.reject(new Er
 const workState = (log, humanN) => {
   if (!log) return ['No full engineering run saved', 'open'];
   if (log.status === 'done') return humanN ? [`Checks complete · ${humanN} human decision${humanN === 1 ? '' : 's'} open`, 'open'] : ['Automated checks complete', ''];
-  if (log.status === 'unsolved') return [log.reason || log.result?.reason || log.result?.headline || 'Unsolved', 'fail'];
+  if (log.status === 'unsolved') { const why = log.reason || log.result?.reason || log.result?.headline || '';
+    return [/^UNSOLVABLE:/i.test(why) ? `Stopped for missing data: ${why.replace(/^UNSOLVABLE:\s*/i, '')}` : why || 'Unsolved', 'fail']; }
   return [{max_rounds: 'Stopped at round limit', budget: 'Stopped at budget limit', error: 'Run stopped with an error'}[log.status] || 'Run in progress', log.status === 'error' ? 'fail' : 'open'];
 };
 async function renderEngineeringQueue(projects) {
