@@ -127,7 +127,8 @@
   .sheet svg .c-ok { stroke: #2f9663 !important; } .sheet svg .c-warn { stroke: #c5871e !important; }
   .sheet svg .c-fail { stroke: #e0392c !important; stroke-width: 1.6 !important; animation: pulse .9s infinite alternate; }
   .viewtog { position: absolute; top: 8px; right: 12px; z-index: 6; display: flex; gap: 0; }
-  .viewtog button { border-radius: 0; } .viewtog button:first-child { border-radius: 5px 0 0 5px; } .viewtog button:last-child { border-radius: 0 5px 5px 0; }
+  .viewtog button { border-radius: 0; } .viewtog #vExisting { border-radius: 5px 0 0 5px; } .viewtog #vProposed { border-radius: 0 5px 5px 0; }
+  .viewtog #adoptProposed { margin-left: 8px; border-radius: 5px; background: #8fd0c2; color: #102a27; font-weight: 700; }
   .viewtog .on { background: #1d4f86; border-color: #2b6cb3; }
   .state-source { position: absolute; z-index: 6; top: 12px; left: 30px; padding: 4px 8px; border: 1px solid #95a9a6; border-radius: 4px; background: rgba(18,46,52,.94); color: #dbe8e6; font: 600 10.5px var(--mono); }
   .engine-unavailable { padding: 5px 10px; border-top: 1px solid #6b5a2e; background: #302917; color: #f0c46c; font-size: 11.5px; }
@@ -1024,7 +1025,7 @@
 
   <main>
     <div id="note" style="display:none;margin:8px 18px 0;padding:6px 10px;border:1px solid #8a6a2e;border-radius:5px;background:#2b2414;color:#f6d28b;font-size:12px"></div>
-    <div class="stage" style="position:relative"><div class="state-source" id="stateSource" aria-live="polite">State source</div><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Proposed</button></div><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing controls"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" class="word" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button><button type="button" class="word" id="toggleLabels" aria-label="Show or hide PlantAgent labels" aria-pressed="true" title="Show or hide PlantAgent load and finding labels">Labels</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
+    <div class="stage" style="position:relative"><div class="state-source" id="stateSource" aria-live="polite">State source</div><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Draft design</button><button class="btn" id="adoptProposed" type="button" onclick="adoptProposedDesign()" data-needs-simulator hidden>Continue from this draft</button></div><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing controls"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" class="word" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button><button type="button" class="word" id="toggleLabels" aria-label="Show or hide PlantAgent labels" aria-pressed="true" title="Show or hide PlantAgent load and finding labels">Labels</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
   </main>
 
   <aside class="right workspace-decision" id="resultPane">
@@ -1798,14 +1799,14 @@ function render(st) {
   const over = rows.filter(c => c.utilisation > 1);
   const blocks = (P.built?.review?.findings || []).filter(f => f.severity === 'block');
   const capLine = cap?.capacity_multiple != null && incident() ? `As documented: the first limit is reached at <b>${Math.round(cap.capacity_multiple * 100)}%</b> of the documented ${esc((P.throughput?.name || 'scenario').toLowerCase())}, at <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? `Recorded ${simulator()} solution.` : `Solved live in ${simulator()}.`}`
-    : cap?.capacity_multiple != null ? `${st.state_source === 'proposed design' ? 'Proposed design' : "Today's plant"}: maximum <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? `Recorded ${simulator()} solution.` : `Solved live in ${simulator()}.`}` : '';
+    : cap?.capacity_multiple != null ? `${st.state_source === 'proposed design' ? 'Draft design' : "Today's plant"}: maximum <b>${Math.round(cap.capacity_multiple * 100)}%</b> of today's throughput, first limit <b>${esc(nm(cap.limited_by?.id))}</b> (${esc(cap.limited_by?.check)}). ${st.replayed ? `Recorded ${simulator()} solution.` : `Solved live in ${simulator()}.`}` : '';
   if (blocks.length) {
     const more = blocks.length > 1 ? ` · ${blocks.length - 1} more blocking finding${blocks.length > 2 ? 's' : ''}.` : '';
     $('verdict').innerHTML = `<span style="color:var(--fail)">Model needs review</span>`;
     $('verdictSub').innerHTML = `${esc(blocks[0].check)}: ${esc(String(blocks[0].evidence).slice(0, 220))}${more} ${capLine}`;
   } else {
     // header and subline name which plant they describe, so 'runs at 120 %' (proposed) and 'maximum 100 %' (today) never read as a contradiction
-    const which = st.proposed_unavailable ? "Today's plant (the proposed design needs DWSIM to re-solve)" : VIEW === 'proposed' && !modelBlocked() && (P?.has_changes || latestProposedChanges().length) ? (incident() ? 'With the fix' : 'Proposed design') : (incident() ? (P.engine === 'trapped' ? 'Base model (sound insulation, illustrative)' : 'Base model') : "Today's plant");
+    const which = st.proposed_unavailable ? "Today's plant (the draft design needs DWSIM to re-solve)" : VIEW === 'proposed' && !modelBlocked() && (P?.has_changes || latestProposedChanges().length) ? (incident() ? 'With the fix' : 'Draft design') : (incident() ? (P.engine === 'trapped' ? 'Base model (sound insulation, illustrative)' : 'Base model') : "Today's plant");
     // one verdict: on the proposed design a failed discipline gate (salt: TX-1) outranks the process model's pass
     const gateFails = VIEW === 'proposed' && !incident() ? gateRows(designAnswer() || {}).filter(r => gateState(r)[0] === 'fail')
       .map(r => GATE_NAMES[r.id] || String(r.id).replaceAll('_', ' ')) : [];
@@ -2018,8 +2019,10 @@ function verifiedDesigns() {
 function syncViewToggle() {
   const verified = !modelBlocked() && (P?.answers || []).some(a => (a.proposals || []).some(p => p.verified));
   $('viewTog').style.display = (P?.has_changes || verified) ? 'flex' : 'none';
+  $('adoptProposed').hidden = VIEW !== 'proposed' || P?.has_changes || !proposedDraft();
   if (incident() && !syncViewToggle.once) {  // an incident opens on what happened, not on the fix
     syncViewToggle.once = true; VIEW = 'existing'; $('vExisting').classList.add('on'); $('vProposed').classList.remove('on');
+    $('adoptProposed').hidden = true;
   }
 }
 function tagCenter(g) {
@@ -2377,6 +2380,23 @@ function latestProposedChanges() {
   const answer = designAnswer();
   return (answer?.proposals || []).filter(p => p.verified).flatMap(p => p.changes || []);
 }
+function proposedDraft() {
+  const answer = designAnswer(), proposals = (answer?.proposals || []).filter(p => p.verified && !p.accepted);
+  if (!proposals.length) return null;
+  return {answer: P.answers.indexOf(answer), proposal: {
+    title: proposals.map(p => plain(p.title)).join(' + '),
+    changes: proposals.flatMap(p => p.changes || []), _by: answer.model
+  }};
+}
+async function adoptProposedDesign() {
+  const draft = proposedDraft(); if (!draft) return;
+  const reason = prompt('Continue from this design as a DRAFT working revision (not an engineering approval). Reason, kept in the audit trail:', draft.proposal.title);
+  if (!reason) return;
+  const button = $('adoptProposed'); button.disabled = true; button.textContent = 'Verifying draft…';
+  const result = await api('accept', {...draft, reason}).catch(e => ({error: e.message}));
+  if (result.error) { alert(result.error); button.disabled = false; button.textContent = 'Continue from this draft'; return; }
+  await reload(); VIEW = 'proposed'; await setView('proposed');
+}
 async function stateForView(scale) {
   if (VIEW === 'proposed') {
     const changes = latestProposedChanges();
@@ -2388,6 +2408,7 @@ async function stateForView(scale) {
 }
 async function setView(v) {
   VIEW = v; $('vExisting').classList.toggle('on', v === 'existing'); $('vProposed').classList.toggle('on', v === 'proposed');
+  $('adoptProposed').hidden = v !== 'proposed' || P?.has_changes || !proposedDraft();
   if (AS_BUILT && P?.drawing === 'svg') await showSheet();
   render(await stateForView($('scale').value / 100));
 }
