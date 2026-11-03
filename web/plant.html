@@ -2915,8 +2915,12 @@ async function startEngineeringWork() {
     const {job} = await api('work', {goal});
     setWorkspacePage('run');  // the live run's progress is on the run page
     showWorkConfirm(false);
-    await follow(job, 'Running the full engineering loop');
+    $('worklogPanel').hidden = true;  // the previous run's result must not read as this run's progress
+    const turn = chatBegin(goal);      // stream Muse and the engines into the agent log while it runs
+    await follow(job, 'Running the full engineering loop', turn);
+    await load();                      // the run added answers: reload them, then show its run and its design
     await loadWorklog(true);
+    if (latestProposedChanges().length) await setView('proposed');
   } catch (error) {
     $('workRunError').textContent = error.message || 'The engineering run could not start.';
   }
