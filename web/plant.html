@@ -2653,7 +2653,7 @@ function renderWorklog(log) {
   panel.hidden = false;
   bindReplay(log);
 }
-async function loadWorklog() {
+async function loadWorklog(newest = false) {
   try {
     let log;
     if (SAMPLE_WORKLOG || REPLAY_ID === 'sample') {
@@ -2665,7 +2665,8 @@ async function loadWorklog() {
     } else {
       const runs = await api('work');
       if (!Array.isArray(runs) || !runs.length) return renderWorklog(null);
-      const pick = runs.find(r => r.id === P?.featured_work) || runs[0];  // the case can pin the run that tells its story; the rest stay in the list
+      // after a live run the newest run is shown; otherwise the case can pin the run that tells its story
+      const pick = (newest ? null : runs.find(r => r.id === P?.featured_work)) || runs[0];  // the case can pin the run that tells its story; the rest stay in the list
       log = await api(`work/${encodeURIComponent(pick.id)}`);
     }
     renderWorklog(log);
@@ -2691,7 +2692,7 @@ async function startEngineeringWork() {
     const {job} = await api('work', {goal});
     showWorkConfirm(false);
     await follow(job, 'Running the full engineering loop');
-    await loadWorklog();
+    await loadWorklog(true);
   } catch (error) {
     $('workRunError').textContent = error.message || 'The engineering run could not start.';
   }
@@ -3487,7 +3488,8 @@ load().then(async () => {
   $('qaA').textContent = 'This plant could not be loaded. Check the case files and reload.';
 });
 </script>
-<script src="assumptions.js">
+<script src="assumptions.js"></script>
+<script>
 // push-to-talk for the engineering goal: record 16 kHz mono WAV, Muse Voice Transcribe writes it into the goal box
 let GOAL_REC = null;
 async function goalMic() {

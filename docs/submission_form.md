@@ -14,7 +14,7 @@ PlantAgent is an engineering workspace for changing an existing plant. An engine
 Muse proposes, physics disposes. The problem: checking a plant change today takes engineers weeks of manual simulation and cross-discipline review, and an AI answer that only looks right is dangerous in a plant. PlantAgent makes the AI's answer checkable.
 
 What it has done:
-- **An unseen BASF drawing.** The official BASF DEXPI drawing went from upload to a DWSIM column with no hand-written files. Over several loops Muse's proposals were failed by the purity and envelope checks. It ended with a 600 mm shell that passes every deterministic simulation check; vendor confirmation remains open.
+- **An unseen BASF drawing.** The official BASF DEXPI drawing went from upload to a DWSIM column with no hand-written files. Its first fix (a reflux cut) fails the purity check we added afterwards; with that check in the loop, its next proposal failed the +10 % feed envelope, and the numbers went back to Muse. It ended with a 600 mm shell that passes every deterministic simulation check; vendor confirmation remains open.
 - **A scanned 1994 patent.** Muse Wonder read the patent drawing and built a calibrated simulator from it.
 - **The UCTE 2006 grid split.** The hosted endpoint refused the prompt. Muse Spark Open, the open-weights model, found a switching plan that passes N-1.
 - **A blind benchmark against real engineers.** Across 13 published engineering studies, with their conclusions withheld, Muse reached 64 % of the engineers' conclusions on average. A second Meta model graded the runs; this is a cross-model check, not a human one.
