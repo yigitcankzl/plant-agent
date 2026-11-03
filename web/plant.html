@@ -2461,7 +2461,7 @@ function showChangeOnDrawing(tag) {
 }
 function renderChangeSummary() {
   const box = $('changeSummary'), current = workingRevisionData();
-  if (!current?.changes?.length || VIEW !== 'proposed') { box.hidden = true; box.innerHTML = ''; return; }  // it describes the draft, so only on the draft view
+  if (!current?.changes?.length) { box.hidden = true; box.innerHTML = ''; return; }
   box.innerHTML = `<div class="change-summary-head"><small>What changed</small><b>${esc(current.label)}</b></div><div class="change-summary-list">${current.changes.map(change => {
     const tag = changeTag(change);
     return `<button class="change-summary-row" type="button" ${tag ? act('showChangeOnDrawing', tag) : 'disabled'}>${describe(change)}</button>`;
