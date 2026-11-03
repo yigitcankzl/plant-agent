@@ -237,12 +237,15 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const homePlain = await p.evaluate(() => !document.querySelector('.hero').contains(document.querySelector('#openWeightsHero')) &&
     document.querySelector('.hero .lead').textContent.split(/[.!?]+/).filter(s => s.trim()).length === 2 &&
     /of real engineers' conclusions, blind, model-graded/.test(document.querySelector('#stats').textContent));
+  const accentSystem = await p.evaluate(() => getComputedStyle(document.querySelector('.hero-actions .go')).backgroundColor === 'rgb(124, 131, 255)' &&
+    getComputedStyle(document.querySelector('.console-step.ok'), '::before').backgroundColor === 'rgb(117, 200, 155)' &&
+    !!document.querySelector('.hero-trace path'));
   const queueOk = await p.evaluate(() => document.querySelectorAll('#queueCounts .queue-count').length === 3 &&
     document.querySelectorAll('#queueDecisions .queue-item').length > 0 && !/owner:|due today|last data|updated .* ago/i.test(document.querySelector('.queue-columns').textContent));
   await p.goto(`${BASE}/home.html?present=1`); await p.waitForTimeout(500);
   const homePresent = await p.evaluate(() => document.body.classList.contains('presentation-home') && getComputedStyle(document.querySelector('#engineeringQueue')).display === 'none');
-  console.log(homeOk && heroEvidence && homePlain && queueOk && homePresent ? 'ok  ' : 'FAIL', 'home: real engineering queue, no invented ownership or recency, and presentation mode stays clean');
-  bad += homeOk && heroEvidence && homePlain && queueOk && homePresent ? 0 : 1;
+  console.log(homeOk && heroEvidence && homePlain && accentSystem && queueOk && homePresent ? 'ok  ' : 'FAIL', 'home: one brand accent, semantic status colours, real queue and clean presentation mode');
+  bad += homeOk && heroEvidence && homePlain && accentSystem && queueOk && homePresent ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForSelector('#asOpen', { timeout: 30000 });
   await p.evaluate(() => document.querySelector('#asOpen').click()); await p.waitForSelector('#asTop10 li', { timeout: 30000 }).catch(() => {});
   const assumptionsScale = await p.evaluate(() => {
@@ -264,7 +267,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
   await p.waitForFunction(() => ST && document.querySelector('[data-workspace-page][aria-current="page"]')?.dataset.workspacePage === 'overview');
   const startsFocused = await p.evaluate(() => !document.querySelector('#infoDrawer').classList.contains('open') &&
-    document.querySelector('#inspectorTitle').textContent === 'Decision' && document.querySelector('#scenario').hidden === false);
+    document.querySelector('#inspectorTitle').textContent === 'Decision' && document.querySelector('#scenario').hidden === false &&
+    getComputedStyle(document.body).getPropertyValue('--act').trim() === '#7c83ff');
   await p.click('[data-workspace-page="sources"]'); const sourcesFocused = await p.evaluate(() =>
     document.body.classList.contains('workspace-page-sources') && getComputedStyle(document.querySelector('#sourcesWorkspace')).display !== 'none' &&
     !document.querySelector('#infoDrawer').classList.contains('open'));
