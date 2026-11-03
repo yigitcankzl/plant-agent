@@ -11,6 +11,7 @@
 - 1920×1080, browser at 100 %. Stored scenes use presentation mode (`&present=1`); the live run is recorded in the normal view (presentation mode hides the goal box and run button).
 - Server for the live run (Spark Open on Fireworks, no earlier answers):
   `PLANT_FRESH=1 COPILOT_MODEL=fireworks:accounts/fireworks/models/muse-spark-open WEB_ALLOW_RUNS=1 .venv/bin/python -m plantagent.web --port 8765`
+- Stored scenes (Rev B, red team, salt, review) use the plain server `WEB_ALLOW_RUNS=1 .venv/bin/python -m plantagent.web --port 8765`; `PLANT_FRESH=1` hides the saved answers, so use it only for the live take.
 - Run nothing else on the machine during the live run (other DWSIM loops slowed the 3 Nov rehearsal to 76 min and it ran out of budget).
 - **Record the live run separately, before the final cut.** Keep it only if it really finishes; if it fails, record another real take. Speed up waits on screen, labelled "×8". If you fall back to the stored run, do not call it live.
 - Use a detailed goal in the box (the voice line is short): "Twenty percent more feed. Pass every engineering check. Keep the existing column if it can be done; if not, replace it with a rated shell, vendor to confirm."
