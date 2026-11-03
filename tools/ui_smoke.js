@@ -68,7 +68,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.setViewportSize({width: 1920, height: 1080});
   await p.goto(`${BASE}/plant.html?case=basf_process_column_k_2750_dexpi_c02_uns`);
   await p.waitForSelector('#redteamPanel', {timeout: 30000}).catch(() => {});
-  await p.evaluate(() => { openDetails(true); setWorkspaceView('engineering'); });
+  await p.evaluate(() => { setWorkspacePage('evidence'); });
   const redteamShots = [
     ['600-envelope', '8 / 8 stayed within the modelled process limits', 'redteam_600mm_envelope.png'],
     ['600-harsh', '8 / 8 broke the modelled limits', 'redteam_600mm_125x.png'],
@@ -76,8 +76,9 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   ];
   let redteamOk = true;
   for (let i = 0; i < redteamShots.length; i++) {
-    await p.evaluate(i => { redteamSet(i); openDetails(true); setWorkspaceView('engineering'); document.querySelector('#redteamPanel')?.scrollIntoView({block: 'start'}); }, i);
-    await p.waitForFunction(() => document.querySelector('#detailDrawer').getBoundingClientRect().left < innerWidth, null, {timeout: 10000});
+    // the red team lives on the Evidence page of the workspace panel
+    await p.evaluate(i => { setWorkspacePage('evidence'); redteamSet(i); document.querySelector('#redteamPanel')?.scrollIntoView({block: 'start'}); }, i);
+    await p.waitForFunction(() => document.querySelector('#redteamPanel')?.getBoundingClientRect().width > 0, null, {timeout: 10000});
     await p.waitForTimeout(1350);
     const [id, summary, shot] = redteamShots[i];
     redteamOk = redteamOk && await p.evaluate(({id, summary}) => {
@@ -197,7 +198,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   console.log(ucteStoryOk && !videoErrors.length ? 'ok  ' : 'FAIL', 'UCTE story: stored refusal count, opened tie and N-1 zero stamp', videoErrors.join(' | '));
   bad += ucteStoryOk && !videoErrors.length ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=ucte_2006`); await p.waitForSelector('[data-open-weights]', { timeout: 30000 }).catch(() => {});
-  await p.evaluate(() => { openDetails(true); setWorkspaceView('engineering'); });
+  await p.evaluate(() => { setWorkspacePage('evidence'); });
   const comparisonOk = await p.evaluate(() => {
     const card = document.querySelector('[data-open-weights]'), rows = card?.querySelectorAll('[data-open-model]') || [];
     return rows.length === 2 && /Muse Wonder/.test(card.textContent) && /Muse Spark Open/.test(card.textContent) &&
@@ -425,6 +426,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
       document.querySelectorAll('#runStory .run-story-line').length === 3 && !document.querySelector('#chatThread').classList.contains('show-log') &&
       ![...document.querySelectorAll('#chatThread > .chat-turn, #chatThread > .chat-earlier')].some(el => el.getClientRects().length);
   });
+  await p.evaluate(() => setWorkspacePage('run'));  // the agent log lives on the Run page
   await p.click('.agent-log-toggle');
   const logOpens = await p.evaluate(() => document.querySelector('#chatThread').classList.contains('show-log'));
   console.log(norcoPlain && logOpens ? 'ok  ' : 'FAIL', 'Norco sections, comparison, three-line story and opt-in raw agent log');
