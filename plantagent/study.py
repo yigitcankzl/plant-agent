@@ -188,6 +188,18 @@ TEXT_CALL = __import__("re").compile(r"<(?:\w+:)?(?:invoke|function) name=|<[A-Z
 _PARAM = __import__("re").compile(r"<(?:\w+:)?parameter name=\"([\w.-]+)\">(.*?)</(?:\w+:)?parameter>", __import__("re").S)
 
 
+def bare_json(text):
+    """A reply that is only a JSON object (optionally fenced) with a headline is an answer."""
+    t = (text or "").strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+    if not t.startswith("{"):
+        return None
+    try:
+        obj = json.loads(t)
+    except json.JSONDecodeError:
+        return None
+    return obj if isinstance(obj, dict) and "headline" in obj else None
+
+
 def text_tool_calls(content):
     """Some open-weights deployments emit a large tool call as text (<x:invoke name=..><x:parameter name=..>..) instead of
     a structured call; recover those calls so the agent loop does not spin. Parameter values are JSON where they parse."""
@@ -458,6 +470,9 @@ class Study:
             self.log.write(json.dumps({"phase": phase, "step": step, "assistant": msg}) + "\n")
             if not msg["tool_calls"] and msg.get("content") and TEXT_CALL.search(msg["content"]):
                 msg = {**msg, "tool_calls": text_tool_calls(msg["content"]), "content": ""}
+            elif not msg["tool_calls"] and (bare := bare_json(msg.get("content"))) is not None:
+                # Spark Open sometimes writes the submit arguments as a plain JSON object
+                msg = {**msg, "tool_calls": [{"id": f"text-{step}", "name": submit_name, "arguments": json.dumps(bare)}], "content": ""}
             if msg.get("content"):
                 self.emit({"kind": "say", "text": msg["content"]})
             if not msg["tool_calls"]:

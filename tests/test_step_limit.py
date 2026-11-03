@@ -44,3 +44,11 @@ class TextCalls(unittest.TestCase):
 
     def test_invoke_form_still_works(self):
         self.assertEqual(study.text_tool_calls('<x:invoke name="run"><x:parameter name="a">1</x:parameter></x:invoke>')[0]["name"], "run")
+
+
+class BareJsonTest(unittest.TestCase):
+    def test_bare_json_answer(self):
+        from plantagent.study import bare_json
+        self.assertEqual(bare_json('```json\n{"headline": "x", "summary": "y"}\n```')["headline"], "x")
+        self.assertIsNone(bare_json('{"label": "run"}'))
+        self.assertIsNone(bare_json("I will now check the flood."))
