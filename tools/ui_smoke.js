@@ -159,6 +159,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
       getComputedStyle(title).overflow === 'visible' && !document.querySelector('#presentText').textContent.endsWith('…') &&
       getComputedStyle(document.querySelector('.agent-log-toggle')).display === 'none' &&
       getComputedStyle(document.querySelector('#workbench')).display === 'none' &&
+      getComputedStyle(document.querySelector('#changeSummary')).display === 'none' && getComputedStyle(document.querySelector('#workingRevision')).display === 'none' &&
       document.querySelector('#pidViewport').getBoundingClientRect().bottom <= caption.getBoundingClientRect().top + 1 &&
       parseFloat(getComputedStyle(document.querySelector('#presentChecks .discipline-gate')).fontSize) >= 15;
   });
@@ -211,7 +212,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.goto(`${BASE}/plant.html?case=nrel_ethanol_a300`); await p.waitForSelector('[data-nrel-parity] img', { timeout: 30000 }).catch(() => {});
   const parityOk = await p.evaluate(() => { const card = document.querySelector('[data-nrel-parity]'), img = card?.querySelector('img');
     return !!card && /33 of 35 checks within 5%/.test(card.textContent) && img?.naturalWidth > 0 && !/Not answered yet/.test(document.querySelector('#qaA').textContent); });
-  await p.evaluate(() => setWorkspacePage('evidence'));  // badges moved off the Decision page; the parity chart is under Evidence
+  await p.click('[data-workspace-page="evidence"]');
   await p.locator('[data-nrel-parity]').scrollIntoViewIfNeeded();
   await p.screenshot({ path: `${OUT}/nrel_a300_parity_1920x1080.png` });
   console.log(parityOk ? 'ok  ' : 'FAIL', 'NREL A300 parity chart and calibration result replace the empty answer');
@@ -229,6 +230,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   console.log(signoffOk ? 'ok  ' : 'FAIL', 'MOC sign-off page: approval block, failed checks with dispositions, package files');
   bad += signoffOk ? 0 : 1;
   await p.goto(`${BASE}/home.html`); await p.waitForTimeout(2000);
+  await p.waitForFunction(() => !/Loading saved decisions/.test(document.querySelector('#queueDecisions')?.textContent || ''), null, {timeout: 30000}).catch(() => {});
   const homeOk = await p.evaluate(() => !document.body.innerHTML.includes('bt_column_debottleneck') &&
     /case=salt_mvr&tour=1/.test(document.querySelector('.hero-actions a').getAttribute('href')));
   const heroEvidence = await p.evaluate(() => { const line = document.querySelector('#openWeightsHero'), links = [...line.querySelectorAll('a')];
@@ -237,8 +239,12 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const homePlain = await p.evaluate(() => !document.querySelector('.hero').contains(document.querySelector('#openWeightsHero')) &&
     document.querySelector('.hero .lead').textContent.split(/[.!?]+/).filter(s => s.trim()).length === 2 &&
     /of real engineers' conclusions, blind, model-graded/.test(document.querySelector('#stats').textContent));
-  console.log(homeOk && heroEvidence && homePlain ? 'ok  ' : 'FAIL', 'home: two-sentence lead, clear benchmark denominator and open-weights evidence below hero');
-  bad += homeOk && heroEvidence && homePlain ? 0 : 1;
+  const queueOk = await p.evaluate(() => document.querySelectorAll('#queueCounts .queue-count').length === 3 &&
+    document.querySelectorAll('#queueDecisions .queue-item').length > 0 && !/owner:|due today|last data|updated .* ago/i.test(document.querySelector('.queue-columns').textContent));
+  await p.goto(`${BASE}/home.html?present=1`); await p.waitForTimeout(500);
+  const homePresent = await p.evaluate(() => document.body.classList.contains('presentation-home') && getComputedStyle(document.querySelector('#engineeringQueue')).display === 'none');
+  console.log(homeOk && heroEvidence && homePlain && queueOk && homePresent ? 'ok  ' : 'FAIL', 'home: real engineering queue, no invented ownership or recency, and presentation mode stays clean');
+  bad += homeOk && heroEvidence && homePlain && queueOk && homePresent ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForSelector('#asOpen', { timeout: 30000 });
   await p.evaluate(() => document.querySelector('#asOpen').click()); await p.waitForSelector('#asTop10 li', { timeout: 30000 }).catch(() => {});
   const assumptionsScale = await p.evaluate(() => {
@@ -276,6 +282,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   bad += startsFocused && sourcesFocused && troubleshootFocused && equipmentFocused ? 0 : 1;
   await p.click('.inspector-back');
   const readableAnswer = await p.evaluate(() => {
+    LAST_WORK = {needs_human: ['Confirm the cooling-water measurement']};
     P.answers = [{ request: 'Reach 120%', headline: 'One verified change is required', summary: 'Test summary', seconds: 1, cost_usd: 0,
       highlights: [{ tag: 'H1007', severity: 'fail', text: 'Cooling duty reaches its limit.' }],
       disciplines: [{ id: 'process', status: 'pass', summary: 'Target solve passes', source: 'DWSIM target solve', checks: [{ check: 'capacity', result: 'pass' }] },
@@ -285,6 +292,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
         changes: [{ path: 'units.H1007.duty_kW', value: 1 }], electrical: { summary: 'TX-47 68 → 70 % loaded; all electrical checks within limits', svg: '/x.svg', over: [] } }], cards: [{ title: 'Duty check', result: 'Within limit', inputs: [] }], checks: [] }];
     answers();
     return !!document.querySelector('.decision-brief') && proposedDraft()?.proposal?.changes?.length === 1 && document.querySelector('#vProposed').textContent === 'Draft design' &&
+      !document.querySelector('#workingRevision').hidden && /Draft design/.test(document.querySelector('#workingRevision').textContent) && /1 human decision open/.test(document.querySelector('#workingRevision').textContent) &&
       !!document.querySelector('#adoptProposed') && getComputedStyle(document.querySelector('.engineering-detail')).display === 'none' &&
       document.querySelectorAll('.discipline-gate').length === GATE_ORDER.length && document.body.textContent.includes('Not checked: needs') && !!document.querySelector('.package-action') &&
       !!document.querySelector('.field-check') && !document.querySelector('.field-checks table') && !!document.querySelector('.prop-actions') && /TX-47/.test(document.querySelector('.electrical-line')?.textContent || '');
@@ -308,7 +316,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.click('[data-workspace-page="overview"]');
   await p.click('[data-workspace-page="drawing"]');
   const focusOn = await p.evaluate(() => document.body.classList.contains('workspace-page-drawing') && getComputedStyle(document.querySelector('aside.right')).display === 'none' &&
-    document.querySelector('main').getBoundingClientRect().left < 100);
+    document.querySelector('main').getBoundingClientRect().left < 100 && !document.querySelector('#changeSummary').hidden &&
+    /What changed/.test(document.querySelector('#changeSummary').textContent) && document.querySelectorAll('#changeSummary .change-summary-row').length === 1);
   await p.screenshot({ path: `${OUT}/drawing_focus.png` });
   await p.click('[data-workspace-page="overview"]');
   const focusOff = await p.evaluate(() => !document.body.classList.contains('workspace-page-drawing') && getComputedStyle(document.querySelector('aside.right')).display !== 'none');
