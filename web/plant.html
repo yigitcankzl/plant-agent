@@ -2578,6 +2578,7 @@ function workRoundState(round) {
   const fail = states.filter(state => state === 'fail').length, open = states.filter(state => state === 'open').length;
   if (fail) return `${WORK_MARK.fail} ${fail} failed`;
   if (open) return `${WORK_MARK.open} ${open} open`;
+  if (!states.includes('pass')) return 'no checks run';  // e.g. Muse answered UNSOLVABLE: nothing was checked, so nothing passed
   return `${WORK_MARK.pass} checks passed`;
 }
 function workFileUrl(path) {
