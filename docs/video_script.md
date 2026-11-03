@@ -8,28 +8,25 @@
 - No hosted URL needed: public GitHub repo with setup instructions, plus the video.
 
 ## Recording setup
-- 1920×1080, browser at 100 %. Stored scenes use presentation mode (`&present=1`); the live run is recorded in the normal view (presentation mode hides the goal box and run button).
-- Server for the live run (Spark Open on Fireworks, no earlier answers):
-  `PLANT_FRESH=1 COPILOT_MODEL=fireworks:accounts/fireworks/models/muse-spark-open WEB_ALLOW_RUNS=1 .venv/bin/python -m plantagent.web --port 8765`
-- Stored scenes (Rev B, red team, salt, review) use the plain server `WEB_ALLOW_RUNS=1 .venv/bin/python -m plantagent.web --port 8765`; `PLANT_FRESH=1` hides the saved answers, so use it only for the live take.
-- Run nothing else on the machine during the live run (other DWSIM loops slowed the 3 Nov rehearsal to 76 min and it ran out of budget).
-- **Record the live run separately, before the final cut.** Keep it only if it really finishes; if it fails, record another real take. Speed up waits on screen, labelled "×8". If you fall back to the stored run, do not call it live.
-- Use a detailed goal in the box (the voice line is short): "Twenty percent more feed. Pass every engineering check. Keep the existing column if it can be done; if not, replace it with a rated shell, vendor to confirm."
+- Everything is scripted in `/home/kizil/Desktop/hackathon/video` (outside the repo): `record.js` films each scene at 1920×1080 with Playwright from the real app; `cut.json` + `cut.py` trim, punch in (1.5–2× crops), add large captions and the speed badge, and concatenate; `voice.wav` (or `voice/v01.wav` … `v08.wav`) is laid over the cut. Re-shoot after any UI change: `node record.js` then `python3 cut.py`.
+- Stored scenes use the plain server `.venv/bin/python -m plantagent.web --port 8765`.
+- The live scene is a real run recorded on 3 Nov: `work/20261103-183706`, Muse Spark Open on Baseten, no earlier answers (`PLANT_FRESH=1`), 246 s, $0.20, every simulation check passed. It is shown sped up with a visible badge "RECORDED LIVE · 246 s shown at ×12 · $0.20". Never call a stored replay live.
+- Run one heavy job at a time (14 GB RAM).
 
-## Script
+## Script (one end-to-end story; the wow moment is the transformer block)
 
-| Time | Screen | Narration |
-|---|---|---|
-| 0:00–0:08 | `home.html` | "Before this event, there was no PlantAgent code. This repository, its agent loop and its engineering integrations were built after kickoff." |
-| 0:08–0:19 | `home.html`, hero | "AI can produce a plausible plant answer. In a plant, plausible is not enough. PlantAgent makes every proposed change face the simulators and the engineers." |
-| 0:19–0:34 | `plant.html?case=basf_process_column_k_2750_dexpi_c02_uns`; click the mic next to *Engineering goal* and say the goal | "We upload BASF's official DEXPI example unchanged. Muse builds a screening model and labels the missing process duty as an assumption." Voice: "Twenty percent more feed. Pass every check." |
-| 0:34–0:57 | `plant.html?case=basf_process_column_k_2750_dexpi_c02_uns&present=1`, replay of the stored run `work/20261101-232245` (Muse Spark Open on Baseten, 284 s, $0.58), stepped | "Muse proposed two changes. The server applied each one and re-solved it in DWSIM. Holding the base split alone was rejected: the column still floods at 110 percent of its limit. The second, a 600-millimetre shell, reaches the target with margin, and the envelope and purity checks pass." |
-| 0:57–1:30 | The recorded live run, ×8 on waits; model, time and cost visible in the worklog | "This is a real Muse Spark Open call. It proposes replacing the column with a uniform 600-millimetre shell. The server, not the model, applies the change and re-solves it. The target, draft purity, the plus-or-minus ten percent feed envelope and all 48 uncertainty samples pass. Vendor sizing and uncalculated disciplines remain open." (Say only what the take shows.) |
-| 1:30–1:45 | `…&present=1`, *Proposed* view, Rev B cloud | "PlantAgent draws the Rev B cloud and records the calculation. This is a draft engineering recommendation, not an approved design." |
-| 1:45–2:08 | Red-team panel, set *600 mm, envelope* | "A second Muse proposes eight bounded bad days: hot feed, low pressure and fouled trays. DWSIM is the referee. All eight stay inside the modelled process limits; the worst uses 90 percent of the flood limit. This is robustness screening, not a HAZOP or a safety approval." |
-| 2:08–2:27 | `plant.html?case=salt_mvr`, Decision page, *Draft design* (target, bottleneck, recommendation, result: TX-1 133 %) | "Process simulation alone is not enough. On the salt plant DWSIM reaches 120 percent, but the illustrative electrical model loads the transformer to 133 percent. Engineering approval stays blocked." |
-| 2:27–2:43 | `review.html?case=salt_mvr` (robustness and electrical failed: each needs a written disposition) | "Every failed and open item needs a disposition, a reviewer and a separate approver. The AI never approves the change. These are workflow records, not authenticated electronic signatures." |
-| 2:43–2:50 | `home.html` | "Muse proposes. Physics disposes. Engineers approve. PlantAgent is open source." |
+| Time | Screen | Big caption | Narration |
+|---|---|---|---|
+| 0:00–0:10 | Salt drawing, full sheet (`plant.html?case=salt_mvr`, Drawing page) | PlantAgent · AI proposes, physics decides | "Before this event there was no PlantAgent code. PlantAgent lets Meta's Muse propose a change to a real plant drawing, and makes the simulators prove it." |
+| 0:10–0:22 | Punch-in 2× on K-201 | **K-201 · 100 %** · goal **+20 %** | "This salt plant should make twenty percent more. DWSIM already shows the first limit: compressor K-201 at one hundred percent." |
+| 0:22–1:00 | Live run on BASF, agent log streaming, then the Draft design | RECORDED LIVE · 246 s at ×12 · $0.20 | "Here is the loop live, on a drawing Muse had never seen: BASF's official DEXPI example. Muse Spark Open, Meta's open-weights model, reads it, runs DWSIM itself and proposes a new 600-millimetre column shell. Then the server, not the model, re-solves the design: the target, purity, the plus-or-minus ten percent envelope and all 48 uncertainty samples pass. Two hundred forty-six seconds, twenty cents." |
+| 1:00–1:15 | Salt: Existing → Draft design, Rev B clouds appear | Rev B · 3 changes · 120 % | "On the salt plant the change is drawn as Rev B: clean the heater, add a parallel compressor K-202, trim the purge. DWSIM re-solves the whole plant at one hundred and twenty percent." |
+| 1:15–1:45 | BASF Evidence page, red team, punch-in on the result | **8 / 8 HELD** · worst 90 % of flood limit | "Then a second Muse model attacks the design with eight bounded bad days: hot feed, low pressure, fouled trays. DWSIM is the referee. All eight stay inside the modelled limits. This is robustness screening, not a safety approval." |
+| 1:45–2:15 | Salt Decision page, punch-in on the result, hold 3 s in silence | **TRANSFORMER 133 % — APPROVAL BLOCKED** | "Back at the salt plant, the process answer is yes. … The electrical answer is no: the new compressor loads transformer TX-1 to one hundred and thirty-three percent. The process simulation passed, and approval stays blocked. A process-only answer would have said yes." |
+| 2:15–2:35 | `review.html?case=salt_mvr`, failed checks with disposition fields | The AI never approves its own change | "Every failed check needs a written disposition, a reviewer and a separate approver. The AI never approves its own change; these are workflow records, not electronic signatures." |
+| 2:35–2:50 | Home page | **+20 % · 246 s · $0.20 · 8/8 · 133 % caught** | "Twenty percent more, found in four minutes for twenty cents, attacked eight times, and an overload caught before approval. Muse proposes. Physics checks. Engineers approve." |
+
+Reading tips for the narrator: about 150 words per minute; pause where "…" is written; numbers as words ("one hundred and thirty-three percent").
 
 ## Do not say
 "Every check passed", "the design is safe", "Muse approved / verified the design", "the patent model was calibrated to 100 %", "the red team proves safety", "Muse reproduced Shell exactly", "the 600 mm shell is vendor-sized".
