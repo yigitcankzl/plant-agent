@@ -211,7 +211,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.goto(`${BASE}/plant.html?case=nrel_ethanol_a300`); await p.waitForSelector('[data-nrel-parity] img', { timeout: 30000 }).catch(() => {});
   const parityOk = await p.evaluate(() => { const card = document.querySelector('[data-nrel-parity]'), img = card?.querySelector('img');
     return !!card && /33 of 35 checks within 5%/.test(card.textContent) && img?.naturalWidth > 0 && !/Not answered yet/.test(document.querySelector('#qaA').textContent); });
-  await p.click('#qaBadges [data-act="showParity"]');
+  await p.evaluate(() => setWorkspacePage('evidence'));  // badges moved off the Decision page; the parity chart is under Evidence
   await p.locator('[data-nrel-parity]').scrollIntoViewIfNeeded();
   await p.screenshot({ path: `${OUT}/nrel_a300_parity_1920x1080.png` });
   console.log(parityOk ? 'ok  ' : 'FAIL', 'NREL A300 parity chart and calibration result replace the empty answer');
@@ -362,7 +362,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
   await p.unroute('**/api/plant/salt_mvr/project');
   const blockedIsReadOnly = await p.evaluate(() => Number(P?.built?.review?.blocking || 0) > 0 &&
-    !document.querySelector('#answers .prop-actions') && ![...document.querySelectorAll('button')].some(b => /decision file|engineering package/i.test(b.textContent)));
+    !document.querySelector('#answers .prop-actions') && ![...document.querySelectorAll('button')].some(b => !b.hidden && /decision file|engineering package/i.test(b.textContent)));
   console.log(blockedIsReadOnly ? 'ok  ' : 'FAIL', 'blocked model cannot apply proposals or issue a pack');
   bad += blockedIsReadOnly ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);

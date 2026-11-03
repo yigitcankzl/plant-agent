@@ -1201,6 +1201,7 @@ function toggleDrawer(open) {
 }
 
 function setWorkspacePage(pageName) {
+  syncPackageButton();
   const page = ['overview', 'drawing', 'run', 'health', 'safety', 'evidence', 'package', 'sources'].includes(pageName) ? pageName : 'overview';
   WORKSPACE_PAGE = page;
   document.querySelectorAll('[data-workspace-page]').forEach(button => {
@@ -1607,6 +1608,7 @@ async function load() {
   applyEngineAvailability();
   showMode(ACTIVE_MODE);
   await loadWorklog();
+  syncPackageButton();
   setWorkspacePage(REPLAY_ID || SAMPLE_WORKLOG ? 'run' : matchMedia('(max-width: 1100px)').matches ? 'drawing' : 'overview');
   if (CASE === 'basf_process_column_k_2750_dexpi_c02_uns') {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
@@ -3470,7 +3472,13 @@ async function prefeedFile() {
   answers();
   return true;
 }
+// a package is issued only from a design that passes the process simulation, on a model without blocking findings
+function syncPackageButton() {
+  const b = $('packageIssue'); if (!b) return;
+  b.hidden = modelBlocked() || !verifiedDesigns().length;
+}
 async function issueEngineeringPackage(button) {
+  if (modelBlocked() || !verifiedDesigns().length) return;
   if (button) { button.disabled = true; button.textContent = 'Building engineering package…'; }
   setWorkspaceView('engineering');
   $('historyDetails').open = true;
