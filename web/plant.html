@@ -1564,7 +1564,7 @@ async function load() {
   applyEngineAvailability();
   showMode(ACTIVE_MODE);
   await loadWorklog();
-  setWorkspacePage(matchMedia('(max-width: 1000px)').matches ? 'drawing' : 'overview');
+  setWorkspacePage(REPLAY_ID || SAMPLE_WORKLOG ? 'run' : matchMedia('(max-width: 1000px)').matches ? 'drawing' : 'overview');
   if (CASE === 'basf_process_column_k_2750_dexpi_c02_uns') {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     focusDrawing('K 2750', true);

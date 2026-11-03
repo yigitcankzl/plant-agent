@@ -127,9 +127,11 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     return full && between && advanced && ['replayToggle', 'replayBack', 'replayNext', 'replaySpeed'].every(id => document.getElementById(id));
   });
   await p.evaluate(() => { P.allow_runs = true; });  // exercise live confirmation with the fixture; no POST is sent
+  await p.evaluate(() => setWorkspacePage('overview'));  // the run button lives on the Decision page
   await p.click('#workRunOpen');
   const workConfirmOk = await p.evaluate(() => !document.querySelector('#workConfirm').hidden && document.querySelector('#workGoal').value === P.question && /\$5.?10/.test(document.querySelector('.work-runner .estimate').textContent));
   await p.click('#workCancel');
+  await p.evaluate(() => setWorkspacePage('run'));
   const worklogOk = await p.evaluate(() => {
     const rounds = [...document.querySelectorAll('.work-round')], actors = [...document.querySelectorAll('.work-actor')].map(x => x.textContent.trim());
     return rounds.length === 2 && !rounds[0].open && rounds[1].open && actors.includes('Muse') && actors.includes('DWSIM') && actors.includes('pandapower') &&
