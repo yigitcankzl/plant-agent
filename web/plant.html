@@ -2622,7 +2622,7 @@ function renderWorklog(log) {
   const rounds = Array.isArray(log.rounds) ? log.rounds : [];
   const humanN = Array.isArray(log.needs_human) ? new Set(log.needs_human.filter(Boolean)).size : null;
   const openN = humanN ?? (log.result?.open || []).length;
-  const status = ({done: log.approval_status === 'open' || (log.approval_status == null && openN) ? [`Simulation checks passed · engineering approval: ${openN} item${openN === 1 ? ' needs' : 's need'} a human decision`, 'open'] : ['All checks passed · ready for engineer review', 'pass'], unsolved: ['Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
+  const status = ({done: log.approval_status === 'open' || (log.approval_status == null && openN) ? [`Simulation checks passed · engineering approval: ${openN} item${openN === 1 ? ' needs' : 's need'} a human decision`, 'open'] : ['All checks passed · ready for engineer review', 'pass'], unsolved: [processReached(log) ? 'Process target reached · engineering approval blocked by failed checks' : /^UNSOLVABLE:/i.test(log.result?.headline || '') ? `Stopped for missing data: ${log.result.headline.replace(/^UNSOLVABLE:\s*/i, '')}` : 'Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
     budget: ['Stopped at budget limit', 'open'], error: [/no answer after \d+ steps/.test(log.error || '') ? `Step limit, round ${rounds.length + 1}` : 'Stopped with error', 'fail']})[log.status] || ['Running…', 'open'];
   const sample = SAMPLE_WORKLOG || /illustrative/i.test(log.label || '');
   const posthoc = /post-hoc engineering run/i.test(log.label || '');
@@ -2741,6 +2741,9 @@ function placeClear(n, sheet) {  // push a note down until it no longer overlaps
 }
 
 const incident = () => /incident/i.test(P?.task_type || '');
+function processReached(log) {  // the process target passed but other checks blocked approval (salt: TX-1, robustness)
+  return (log?.rounds || []).some(r => (r.steps || []).some(st => st.check === 'process' && st.status === 'pass'));
+}
 function worklogSummary(label, ref, log) {
   const last = (log?.rounds || []).at(-1), checked = (last?.steps || []).filter(step => step.actor === 'engine' || step.kind === 'check');
   const result = log?.result || {};
@@ -2748,7 +2751,7 @@ function worklogSummary(label, ref, log) {
   const fails = Array.isArray(result.fails) ? result.fails.length : checked.filter(step => step.status === 'fail').length;
   const status = log?.status || ref?.status || 'unknown';
   const fallback = status === 'budget' ? 'Stopped at budget limit before a completed design'
-    : status === 'unsolved' ? 'Unsolved' : status === 'done' ? 'Checks passed · approval open' : String(status).replaceAll('_', ' ');
+    : status === 'unsolved' ? (processReached(log) ? 'Process target reached · approval blocked by failed checks' : 'Unsolved') : status === 'done' ? 'Checks passed · approval open' : String(status).replaceAll('_', ' ');
   return {label, run: ref?.run, outcome: result.headline || fallback, rounds: log?.rounds?.length ?? ref?.rounds ?? 0,
     passes, fails, usd: log?.usd_total ?? ref?.usd};
 }
