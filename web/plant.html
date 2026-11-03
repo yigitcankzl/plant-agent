@@ -2826,6 +2826,7 @@ async function loadWorklog(newest = false) {
       log = await api(`work/${encodeURIComponent(pick.id)}`);
     }
     renderWorklog(log);
+    if (REPLAY_ID || newest) setWorkspacePage('run');  // a replay link or a finished live run opens on the run itself
     if (REPLAY_ID) replayPlay();
   } catch (_) {
     renderWorklog(null);  // the loop backend may not be installed yet; the run action remains available
@@ -2846,6 +2847,7 @@ async function startEngineeringWork() {
   $('workRunError').textContent = '';
   try {
     const {job} = await api('work', {goal});
+    setWorkspacePage('run');  // the live run's progress is on the run page
     showWorkConfirm(false);
     await follow(job, 'Running the full engineering loop');
     await loadWorklog(true);
