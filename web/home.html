@@ -71,6 +71,47 @@
   body.presentation-home .library, body.presentation-home .hero-note, body.presentation-home .case-board-foot { display: none; }
   body.presentation-home .hero { max-height: calc(100vh - 108px); }
 </style>
+<style>
+  .landing .hero-shot { margin: 0; }
+  .landing .hero-shot img { display: block; width: 100%; height: auto; border: 1px solid #0c2a2f; border-radius: 12px; box-shadow: 16px 18px 0 #d2ddda; background: #fff; }
+  .landing .hero-shot figcaption { margin-top: 22px; font-size: 14px; line-height: 1.5; color: #476369; max-width: 560px; }
+  .landing .hero-shot figcaption b { color: #19464a; }
+  .landing .section-head { max-width: 760px; margin-bottom: 28px; }
+  .landing .section-head h2 { font: 800 clamp(30px, 3.4vw, 44px)/1.1 var(--sans); letter-spacing: -.035em; text-transform: none; color: #15383e; margin: 0 0 12px; display: block; }
+  .landing .section-head p:not(.kicker) { font-size: 17px; line-height: 1.55; color: #476369; margin: 0; }
+  .landing .loop, .landing .meta, .landing .proof, .landing .wont { padding: 72px 0 8px; }
+  .landing .loop-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; border: 1px solid #0c2a2f; border-radius: 12px; overflow: hidden; background: #15383e; }
+  .landing .loop-steps li { padding: 22px 20px 24px; color: #e5f1ee; border-right: 1px solid #2f565c; position: relative; }
+  .landing .loop-steps li:last-child { border-right: 0; }
+  .landing .loop-steps .step-n { display: block; font: 700 12px var(--mono); color: #86ddce; margin-bottom: 12px; }
+  .landing .loop-steps b { display: block; font-size: 18px; line-height: 1.3; color: #fff; margin-bottom: 8px; }
+  .landing .loop-steps p { margin: 0; font-size: 14px; line-height: 1.5; color: #cfe2df; }
+  .landing .loop-steps li.no { background: #3a2a2a; } .landing .loop-steps li.no .step-n { color: #f18a7e; }
+  .landing .loop-steps li.human { background: #102a2f; } .landing .loop-steps li.human .step-n { color: #f1bd73; }
+  .landing .loop-foot { margin: 14px 0 0; font-size: 14px; color: #476369; } .landing .loop-foot a { color: #126e68; font-weight: 700; }
+  .landing .meta-grid, .landing .proof-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .landing .proof-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .landing .meta-grid article, .landing .proof-card { background: #fff; border: 1px solid #c6d3d0; border-radius: 12px; padding: 22px; }
+  .landing .meta-grid span, .landing .proof-card span { display: block; font: 700 12px var(--mono); color: #126e68; margin-bottom: 10px; }
+  .landing .meta-grid b, .landing .proof-card b { display: block; font-size: 19px; color: #15383e; margin-bottom: 8px; }
+  .landing .meta-grid p, .landing .proof-card p { margin: 0; font-size: 14.5px; line-height: 1.55; color: #476369; }
+  .landing .proof-card { text-decoration: none; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
+  .landing .proof-card:hover { border-color: #126e68; transform: translateY(-2px); }
+  .landing .proof-card em { margin-top: 16px; font: 700 13px var(--mono); font-style: normal; color: #126e68; }
+  .landing .proof-card.fail em { color: #b42318; }
+  .landing .proof-note { margin-top: 18px; font-size: 13px; color: #607a7d; max-width: 980px; }
+  .landing .wont { padding-bottom: 40px; }
+  .landing .wont h2 { font: 800 24px var(--sans); text-transform: none; letter-spacing: -.02em; color: #15383e; margin: 0 0 12px; display: block; }
+  .landing .wont ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: 15px; color: #476369; max-width: 900px; }
+  @media (max-width: 1000px) { .landing .loop-steps { grid-template-columns: 1fr; } .landing .loop-steps li { border-right: 0; border-bottom: 1px solid #2f565c; }
+    .landing .meta-grid, .landing .proof-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 640px) { .landing .meta-grid, .landing .proof-grid { grid-template-columns: 1fr; } }
+  .landing .newproj { margin-top: 64px; background: #fff; border: 1px solid #c6d3d0; border-radius: 14px; padding: 32px 34px 30px; }
+  .landing .newproj .library-head { margin-top: 0; }
+  .landing .newproj select { font: 14px/1.4 var(--sans); padding: 9px 10px; border: 1px solid #b6c9c5; border-radius: 6px; background: #fff; color: #17323a; }
+  body.presentation-home .loop, body.presentation-home .meta, body.presentation-home .proof, body.presentation-home .wont { display: none; }
+  body.presentation-home .hero-shot img { max-height: calc(100vh - 230px); width: auto; max-width: 100%; }
+</style>
 </head>
 <body class="landing">
 <script>if (new URLSearchParams(location.search).get('present') === '1') document.body.classList.add('presentation-home');</script>
@@ -82,29 +123,60 @@
   <main>
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="kicker">Plant-change engineering with the working shown</p>
+        <p class="kicker">For engineers changing an existing plant</p>
         <h1 id="hero-title">Muse proposes. Physics checks. Engineers approve.</h1>
-        <p class="lead">PlantAgent turns a plant-change goal into a checked draft design. Meta's Muse models read the drawings and propose the change; DWSIM, pandapower, WaterTAP and Cantera re-solve it, return failed checks with numbers, and stop only when the run passes or records what remains open.</p>
+        <p class="lead">A debottleneck that crosses process, electrical and safety usually means weeks of hand-offs before anyone knows what really limits it. PlantAgent puts Meta's Muse models on the drawing and DWSIM, pandapower, WaterTAP and Cantera behind every proposal, so you get a checked draft change, the numbers that failed, and the items still waiting for a human.</p>
         <div class="hero-actions">
-          <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Start the 3-minute demo</a>
-          <a class="btn" href="#cases">See the grid and LNG incidents</a>
+          <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Take the 3-minute tour</a>
+          <a class="btn" href="plant.html?case=basf_process_column_k_2750_dexpi_c02_uns">Watch the loop on a BASF drawing</a>
         </div>
-        <p class="hero-note">Existing case workspaces. Engineering output is a draft for professional review.</p>
+        <p class="hero-note">Open source. Every output is a draft for review by a licensed engineer.</p>
       </div>
-      <div class="case-board" aria-label="Featured engineering case">
-        <div class="case-board-top"><span>Featured case / Vacuum-salt plant, US Patent 5,366,514</span><span>Chemical process</span></div>
-        <h2>Can this salt plant make 20 % more?</h2>
-        <p class="case-question">Muse built the evaporator model from the patent's flowsheet. It finds the compressor limit; with cleaning and a parallel compressor (the engineer's idea, sized by Muse), DWSIM re-solves the plant at 120 %. Then the same change is checked for the transformer, the exchangers and the boiler, and the transformer check fails.</p>
-        <div class="case-path"><span><b>01 / Read</b>P&amp;ID and data sheet</span><span><b>02 / Solve</b>DWSIM model</span><span><b>03 / Check</b>Electrical, heat transfer, combustion</span></div>
-        <div class="case-board-foot"><a href="plant.html?case=salt_mvr&tour=1">Take the guided tour →</a></div>
+      <figure class="hero-shot">
+        <a href="plant.html?case=salt_mvr"><img src="img/salt_revb.jpg" width="1400" height="1197" alt="PlantAgent's Rev B drawing of the salt plant: three clouded changes, a new parallel compressor K-202, and live utilisation tags K-201 100 %, V-201 98 %, V-301 98 %"></a>
+        <figcaption><b>Rev B, drawn by PlantAgent.</b> Three changes clouded on the sheet, each re-solved in DWSIM at +20 %. The transformer check still fails, so it stays a draft.</figcaption>
+      </figure>
+    </section>
+
+    <section class="loop" aria-labelledby="loop-title">
+      <div class="section-head"><p class="kicker">The loop, on a drawing it had never seen</p><h2 id="loop-title">The agent is checked, refused, and tries again</h2>
+        <p>BASF's official DEXPI example, uploaded unchanged. Goal: twenty percent more feed. Every number below came from the simulator, not the model.</p></div>
+      <ol class="loop-steps">
+        <li><span class="step-n">01 · Muse reads</span><b>Builds a DWSIM column from the file</b><p>The column floods first, at +13 %. The process duty the drawing does not state is labelled an assumption.</p></li>
+        <li class="no"><span class="step-n">02 · Physics says no</span><b>+10 % feed case fails</b><p>Reflux 1.5 and a larger bottoms draw pass at the target, then fail the envelope check. The numbers go back to Muse.</p></li>
+        <li><span class="step-n">03 · Muse revises</span><b>600 mm shell: 61 % of flood</b><p>Against an 80 % limit; purities, both envelope cases and 48 of 48 uncertainty samples pass. Vendor to confirm.</p></li>
+        <li><span class="step-n">04 · A second Muse attacks</span><b>8 bounded bad days</b><p>Hot feed, low pressure, fouled trays. DWSIM referees: all eight stay inside the modelled limits, worst 90 % of flood.</p></li>
+        <li class="human"><span class="step-n">05 · An engineer decides</span><b>Nothing is approved by AI</b><p>Failed and open items need a disposition, a reviewer and a separate approver before the change freezes.</p></li>
+      </ol>
+      <p class="loop-foot">Three loops, $8.39 of open-weight model calls. <a href="https://github.com/yigitcankzl/plant-agent/blob/master/evidence/generality-c02/README.md">Full record</a></p>
+    </section>
+
+    <section class="meta" aria-labelledby="meta-title">
+      <div class="section-head"><p class="kicker">Built on Meta</p><h2 id="meta-title">Four Muse models, each with a job</h2></div>
+      <div class="meta-grid">
+        <article><span>Muse Wonder</span><b>Reads the plant</b><p>Scanned P&amp;IDs, patent figures and data sheets become the first simulator model, with every assumption listed.</p></article>
+        <article><span>Muse Spark Open</span><b>Runs the engineering loop</b><p>Open weights on Baseten and Fireworks: proposes the change, reads the failed checks, revises.</p></article>
+        <article><span>Muse Spark 1.3</span><b>Attacks the design</b><p>Writes realistic operating deviations to break a passing design; the simulator decides each one.</p></article>
+        <article><span>Muse Voice</span><b>Takes the goal</b><p>The engineer says what they want; the transcript lands in the goal box.</p></article>
       </div>
     </section>
-    <section class="method" aria-label="How PlantAgent works">
-      <article><h3>Read the plant</h3><p>Find equipment and limits in drawings, P&amp;IDs, reports and operating data.</p></article>
-      <article><h3>Test the question</h3><p>Run the relevant hydraulic or process model and expose the binding constraints.</p></article>
-      <article><h3>Review the change</h3><p>See the proposal, source references, assumptions and simulator result together.</p></article>
+    <p class="hero-note proof-note" id="openWeightsHero">Why open weights matter: the Meta-hosted endpoint refused the <a href="plant.html?case=ucte_2006">UCTE blackout prompt</a> <span data-attempts>four</span> times (content policy). <a href="https://github.com/yigitcankzl/plant-agent/blob/master/evidence/open-weights-engineering/README.md">Muse Spark Open</a> ran the same engineering loop; redispatch plus opening the 220 kV tie passed line limits and N-1 (<span data-violations>0</span> violations). An availability result, not a quality comparison.</p>
+
+    <section class="proof" aria-labelledby="proof-title">
+      <div class="section-head"><p class="kicker">Evidence</p><h2 id="proof-title">Three plants, three different lessons</h2></div>
+      <div class="proof-grid">
+        <a class="proof-card" href="plant.html?case=basf_process_column_k_2750_dexpi_c02_uns"><span>Unseen drawing</span><b>BASF column K 2750</b><p>No hand-written files. Open-weight Muse built the model, was refused, and reached a 600 mm shell that passes the process screens.</p><em>Vendor confirmation open</em></a>
+        <a class="proof-card" href="plant.html?case=shell_norco_c2splitter"><span>Real plant, blind</span><b>Shell Norco C2 splitter</b><p>From Shell's pre-revamp data with the outcome withheld, Muse re-trayed the same shell, as Shell did: 74 % of flood vs Shell's measured 64.7 %.</p><em>5 match · 3 partial · missed the feed-tray move</em></a>
+        <a class="proof-card fail" href="plant.html?case=salt_mvr"><span>Approval blocked</span><b>Vacuum-salt plant</b><p>DWSIM reaches +20 % with cleaning and a parallel compressor. The load flow puts the transformer at 133 %.</p><em>Process passes · electrical fails · not approvable</em></a>
+      </div>
     </section>
-    <p class="hero-note proof-note" id="openWeightsHero">Open-weights evidence: the Meta-hosted endpoint refused the <a href="plant.html?case=ucte_2006">UCTE blackout prompt</a> <span data-attempts>four</span> times (content policy). <a href="https://github.com/yigitcankzl/plant-agent/blob/master/evidence/open-weights-engineering/README.md">Muse Spark Open on Baseten</a> ran the same engineering loop; redispatch plus opening the 220 kV tie passed line limits and N-1 (<span data-violations>0</span> violations).</p>
+
+    <section class="wont" aria-labelledby="wont-title">
+      <h2 id="wont-title">What PlantAgent will not do</h2>
+      <ul><li>Approve a change. It records the engineer's decision; names are workflow records, not e-signatures.</li>
+        <li>Replace the vendor, the HAZOP or relief sizing. Those stay open items with an owner.</li>
+        <li>Hide what it assumed. Missing data, drafted ratings and uncalculated disciplines are shown, not filled in silently.</li></ul>
+    </section>
   </main>
   <div class="stats" id="stats"></div>
   <section id="cases" aria-labelledby="cases-title"><div class="library-head"><h2 id="cases-title">Case library</h2><p>Open an interactive workspace where available, or inspect a recorded blind study.</p></div><div id="groups"></div></section>
@@ -135,7 +207,7 @@ const FEATURED = [["salt_mvr", "+20 % on a patent salt evaporator: Muse finds th
   ["ucte_2006", "4 November 2006: dispatchers coupled two busbars at Landesbergen to relieve a line. Muse rebuilt the grid from the UCTE report and, blind to the outcome, predicted the coupling would load the line more, not less.", "Incident reconstruction · power grid", "1,779 → 1,831 A", "pandapower: coupling adds current; the grid is not N-1 secure"],
   ["freeport_lng_2022", "June 2022: PHMSA recorded a partially filled 18-inch LNG line rising from 37 to 1,313 psig after it was blocked in with its relief isolated. The model brackets a days-scale rupture under ILLUSTRATIVE fill and heat-leak assumptions; restoring relief holds pressure only at an ideal relief boundary, with relieving capacity unchecked.", "Incident reconstruction · LNG terminal", "37 → 1,313 psig · PHMSA recorded", "DWSIM isochore: illustrative scenarios bracket days-scale rupture"],
   ["basf_process_column_k_2750_dexpi_c02_uns", "Unseen DEXPI, no hand-written files: the official BASF process-column example (DEXPI C02) was uploaded as is. The drawing was rendered from the file, the open-weight Muse Spark Open built a DWSIM column from it, assuming the duty the drawing does not state, and the drafted discipline files carry every assumption.", "Unseen drawing · open-weight model", "floods first at +13 % → process checks passed", "600 mm shell: process and assumed envelope scenarios pass; vendor, piping, controls, safety and civil remain open"],
-  ["shell_norco_c2splitter", "A real plant, blind: Shell's Norco C2 splitter before its 2015 revamp, from the published operating data. Muse Spark Open found the above-feed flooding and proposed re-traying the same shell with high-capacity trays, as Shell did; its predicted flood (61 %) and tray efficiency (85 %) land near Shell's measured 64.7 % and 82.6 %. It missed the feed-tray move, and its reflux cut loses polymer-grade purity, which the scorecard shows.", "Real plant · blind vs the recorded revamp", "5 of 12 findings match", "same fix as Shell; purity miss shown"]];
+  ["shell_norco_c2splitter", "A real plant, blind: Shell's Norco C2 splitter before its 2015 revamp, from the published operating data with the outcome withheld. Muse Spark Open re-trayed the same shell with high-capacity trays, as Shell did; round 1 failed the +10 % feed case, round 2 passed the process screens at 74 % of flood (Shell measured 64.7 %). It missed the feed-tray move, and the tray capacity it assumed is for the vendor to confirm.", "Real plant · blind vs the recorded revamp", "5 match · 3 partial · 1 miss", "same fix as Shell; feed-tray move missed"]];
 const SECTORS = [
   ["Water and wastewater", "💧", ["roseburg", "stpete_swwrf", "west_norriton", "pinole_tm15", "goochland_egps", "edgebrook", "stanislaus_surge", "glwa_120in_break", "ltown"]],
   ["Biorefinery: NREL 2011 cellulosic ethanol, rebuilt area by area", "🌾", ["nrel_ethanol_a300", "nrel_ethanol_a500"]],
@@ -149,8 +221,8 @@ const SECTORS = [
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 (async () => {
   const [cases, projects, openWeights] = await Promise.all([fetch("/api/cases").then(r => r.json()), fetch("/api/projects").then(r => r.json()), fetch("/api/evidence/open-weights").then(r => r.ok ? r.json() : {}).catch(() => ({}))]);
-  const ucte = openWeights.by_case?.ucte_2006, attempts = Number(ucte?.closed_endpoint_attempts?.count), repeat = (ucte?.open_runs || []).find(r => r.independent_repeat);
-  if (attempts) document.querySelector('#openWeightsHero [data-attempts]').textContent = attempts === 4 ? 'four' : attempts;
+  const ucte = openWeights.by_case?.ucte_2006 /* hero evidence line */, attempts = Number(ucte?.closed_endpoint_attempts?.count), repeat = (ucte?.open_runs || []).find(r => r.independent_repeat);
+  if (attempts && document.querySelector('#openWeightsHero [data-attempts]')) document.querySelector('#openWeightsHero [data-attempts]').textContent = attempts === 4 ? 'four' : attempts;
   if (Number.isFinite(repeat?.n_1_violations)) document.querySelector('#openWeightsHero [data-violations]').textContent = repeat.n_1_violations;
   const by = Object.fromEntries(cases.map(c => [c.name, c]));
   const ws = Object.fromEntries(projects.map(p => [p.case, p]));
