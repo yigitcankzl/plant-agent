@@ -195,6 +195,7 @@ _PARAM = __import__("re").compile(r"<(?:\w+:)?(?:parameter|argument) name=\"([\w
 def bare_json(text):
     """A reply that is only a JSON object (optionally fenced) with a headline is an answer."""
     t = (text or "").strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+    t = t.removeprefix("<answer>").removesuffix("</answer>").strip()  # <answer>{...}</answer>
     if not t.startswith("{"):
         return None
     try:

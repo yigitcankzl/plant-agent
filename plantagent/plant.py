@@ -350,7 +350,8 @@ def change_errors(spec, changes, require_evidence=True):
             else:
                 for field, value in rating.items():
                     allowed = (field in _REPLACEMENT_FIELDS or field.startswith(("max_", "min_", "rated_"))) and \
-                              (field in unit or field in limits)
+                              (field in unit or field in limits or
+                               (field == "tray_capacity_factor" and unit.get("type") == "distillation"))  # default 1, so often unwritten
                     if not allowed:
                         errors.append(f"change {i + 1} {uid}.{field} is not an existing rating or geometry field")
                     elif not _finite(value) or isinstance(value, bool) or float(value) <= 0:
@@ -1246,8 +1247,8 @@ def patch(spec, changes):
             for field, value in c["new_rating"].items():
                 if field in units[uid]:
                     units[uid][field] = value
-                if field in (s.get("limits") or {}).get(uid, {}):
-                    s["limits"][uid][field] = value
+                if field in (s.get("limits") or {}).get(uid, {}) or field not in units[uid]:
+                    s.setdefault("limits", {}).setdefault(uid, {})[field] = value  # an unwritten default rating becomes a limit
             continue
         if c.get("reroute"):
             r = c["reroute"]
