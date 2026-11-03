@@ -19,11 +19,21 @@ Hackathon theme: **Push the Frontier** (manufacturing and energy). Built on Muse
 - **A real plant, blind.** Given only Shell Norco's pre-revamp operating data (paper title withheld, no earlier answers), Muse re-trayed the same C2 splitter shell, as Shell did: round 1 failed the +10 % feed case, round 2 passed every simulation check at the +25 % ethylene target the project was given (Shell measured +25 %). Asked with no documents, all three Muse models say they do not know what Shell did.
 - Honest denominator: Under a third of recorded loop runs end with every deterministic check passing (21 of 69 on 3 Nov, $192 in all; most "done" runs still carry open vendor or human checks; the live count is `tools/loop_stats.py`). Every caveat is under [Limits and honesty](#limits-and-honesty).
 
+**Hosted replay (no credentials):** https://plantagent.63-182-151-178.sslip.io
+
 ```bash
-python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m plantagent.web --port 8765     # no API key needed for the stored runs
-# open http://127.0.0.1:8765/home.html and press "Open the engineering desk"
+git clone https://github.com/yigitcankzl/plant-agent.git
+cd plant-agent
+python3.12 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/python -m plantagent.web --port 8765
+# open http://127.0.0.1:8765/home.html — stored runs need no API key or engineering engine
 ```
+
+To make live Meta Model API calls, copy `.env.example` to the gitignored `.env`, set `META_API_KEY`, and change
+`WEB_ALLOW_RUNS=1`. Keep the default `MUSE_BUDGET_USD=5` cap while trying it. Restart the server after changing `.env`.
+The key enables Muse calls; fully re-solving a new process or grid design also needs the corresponding engine listed
+under [Engines](#engines-for-asking-building-and-applying-changes-plus-a-muse-key-in-env). Replay remains available without them.
 
 ## What it has done
 - **The engineering loop** (`plantagent/loop.py`): the engines re-solve Muse's design and run every check (process, robustness, electrical, compressor curves and surge, start-up transient, uncertainty; limits and N-1 for grids). Failed checks go back to Muse with their numbers until everything passes or Muse says why it cannot. Every round is logged with who did what.
@@ -112,7 +122,7 @@ On the salt plant, look at:
 
 ```bash
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
-cp .env.example .env && chmod 600 .env          # then add keys
+cp .env.example .env && chmod 600 .env          # optional: set META_API_KEY and WEB_ALLOW_RUNS=1 for live Muse calls
 .venv/bin/python -m plantagent.web --port 8765  # open http://127.0.0.1:8765/home.html
 .venv/bin/python -m unittest discover -s tests       # the test suite (~5 min; engine-dependent tests skip without DWSIM)
 .venv/bin/python -m plantagent.study --case roseburg   # a full blind study (about 20 min, $0.05–0.64)
