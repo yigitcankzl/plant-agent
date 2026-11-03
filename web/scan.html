@@ -78,7 +78,7 @@ function show(t) {
   document.querySelectorAll('.stream-value').forEach((el, i) => el.classList.toggle('on', elapsed >= 17 + i * .35));
   $('counter').classList.toggle('on', elapsed >= 18.6);
   document.querySelectorAll('.review').forEach((el, i) => { el.classList.toggle('on', elapsed >= 20 + i * .35); el.classList.toggle('fixed', elapsed >= 21 + i * 1.05); });
-  const label = elapsed < 10.4 ? 'Muse reads equipment and topology' : elapsed < 14.2 ? 'Engineer confirms 9 corrections' : elapsed < 18.6 ? 'The confirmed read becomes a DWSIM model' : elapsed < 21 ? 'DWSIM reproduces the Table I stream' : 'Model review closes three blocking errors';
+  const label = elapsed < 10.4 ? 'Muse reads equipment and topology' : elapsed < 14.2 ? 'Engineer confirms 9 corrections' : elapsed < 18.6 ? 'Flagship model: built from the drawn P&ID of the same patent (the model from this scan reached 92 %, not calibrated)' : elapsed < 21 ? 'Flagship model reproduces the Table I stream' : 'Model review closes three blocking errors';
   text($('caption'), label); document.body.dataset.scanPhase = elapsed >= 24 ? 'done' : label;
 }
 function frame(now) {
@@ -118,7 +118,7 @@ Promise.all([
     const item = text(document.createElement('div'), `${label} · ${value} ${unit}`); item.className = 'stream-value'; $('streamValues').append(item);
   });
   const suction = calibrationValue(rows, /K-201 suction flow/i, 't/h');
-  text($('counter'), `${Number.isFinite(suction) ? suction.toFixed(1) : '—'} t/h to K-201 — matches Table I`);
+  text($('counter'), `Flagship model (drawn P&ID): ${Number.isFinite(suction) ? suction.toFixed(1) : '—'} t/h to K-201, matches Table I`);
   (plant.revisions || []).filter(r => r.kind === 'correction').slice(0,3).forEach(rev => { const row = document.createElement('div'); row.className = 'review'; row.append(text(document.createElement('b'), rev.title)); $('reviews').append(row); });
   show(reduced ? 25 : 0); if (!reduced) { started = performance.now(); raf = requestAnimationFrame(frame); }
 }).catch(error => { text($('caption'), `Stored story data unavailable: ${error.message}`); playing = false; });
