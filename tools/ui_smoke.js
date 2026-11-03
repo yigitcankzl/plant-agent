@@ -256,14 +256,14 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     bad += leads ? 0 : 1;
   }
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
-  await p.waitForFunction(() => ST && document.querySelector('#inspectorTitle').textContent === 'Engineering session');
+  await p.waitForFunction(() => ST && document.querySelector('[data-workspace-page][aria-current="page"]')?.dataset.workspacePage === 'overview');
   const startsFocused = await p.evaluate(() => !document.querySelector('#infoDrawer').classList.contains('open') &&
-    document.querySelector('#inspectorTitle').textContent === 'Engineering session' && document.querySelector('#scenario').hidden === false);
-  await p.click('#infoBtn'); const drawerOpened = await p.locator('#infoDrawer').evaluate(e => e.classList.contains('open'));
+    document.querySelector('#inspectorTitle').textContent === 'Decision' && document.querySelector('#scenario').hidden === false);
+  await p.click('[data-workspace-page="sources"]'); const drawerOpened = await p.locator('#infoDrawer').evaluate(e => e.classList.contains('open'));
   await p.click('#infoDrawer .drawer-head button');
-  await p.click('[data-mode="troubleshoot"]');
+  await p.click('[data-workspace-page="health"]');
   const troubleshootFocused = await p.evaluate(() => document.querySelector('#inspectorTitle').textContent === 'Troubleshoot' && document.querySelector('#scenario').hidden);
-  await p.click('[data-mode="capacity"]');
+  await p.click('[data-workspace-page="overview"]');
   await p.locator('#sheet [data-tag="H1007"]').evaluate(e => e.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 })));
   await p.locator('#sheet [data-tag="H1007"]').evaluate(e => e.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0 })));
   await p.waitForFunction(() => document.querySelector('#inspectorTitle').textContent === 'Equipment', null, { timeout: 15000 }).catch(() => {});
@@ -293,11 +293,12 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const gateEvidence = await p.evaluate(() => document.querySelector('#modal').classList.contains('on') && /pandapower/.test(document.querySelector('#modalBox').textContent));
   await p.evaluate(() => document.querySelector('#modal').classList.remove('on'));
   await p.click('#decisionView');
-  await p.click('#focusBtn');
-  const focusOn = await p.evaluate(() => document.body.classList.contains('canvas-focus') && getComputedStyle(document.querySelector('aside.right')).display === 'none');
+  await p.click('[data-workspace-page="drawing"]');
+  const focusOn = await p.evaluate(() => document.body.classList.contains('workspace-page-drawing') && getComputedStyle(document.querySelector('aside.right')).display === 'none' &&
+    document.querySelector('main').getBoundingClientRect().left < 100);
   await p.screenshot({ path: `${OUT}/drawing_focus.png` });
-  await p.keyboard.press('Escape');
-  const focusOff = await p.evaluate(() => !document.body.classList.contains('canvas-focus'));
+  await p.click('[data-workspace-page="overview"]');
+  const focusOff = await p.evaluate(() => !document.body.classList.contains('workspace-page-drawing') && getComputedStyle(document.querySelector('aside.right')).display !== 'none');
   await p.keyboard.press('d');
   const detailShortcut = await p.evaluate(() => document.querySelector('#engineeringView').getAttribute('aria-pressed') === 'true');
   await p.keyboard.press('d');
@@ -305,7 +306,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const labelsShortcut = await p.evaluate(() => document.querySelector('#pidViewport').classList.contains('labels-off'));
   await p.keyboard.press('l');
   const workspaceUi = readableAnswer && engineeringView && gateEvidence && focusOn && focusOff && detailShortcut && labelsShortcut;
-  console.log(workspaceUi ? 'ok  ' : 'FAIL', 'decision/engineering views, calculated discipline rail, package action and focus mode', workspaceUi ? '' : JSON.stringify({readableAnswer, engineeringView, gateEvidence, focusOn, focusOff, detailShortcut, labelsShortcut}));
+  console.log(workspaceUi ? 'ok  ' : 'FAIL', 'decision/engineering views, calculated discipline rail, package action and drawing mode', workspaceUi ? '' : JSON.stringify({readableAnswer, engineeringView, gateEvidence, focusOn, focusOff, detailShortcut, labelsShortcut}));
   bad += workspaceUi ? 0 : 1;
   await p.evaluate(() => openDetails(false));
   await p.keyboard.press('/');  // the ask box lives in the details drawer
@@ -338,7 +339,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   console.log(blockedIsReadOnly ? 'ok  ' : 'FAIL', 'blocked model cannot apply proposals or issue a pack');
   bad += blockedIsReadOnly ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
-  await p.click('[data-mode="troubleshoot"]'); await p.waitForTimeout(800);
+  await p.click('[data-workspace-page="health"]'); await p.waitForTimeout(800);
   const forecastShown = await p.evaluate(() => { const c = document.querySelector('#troublePanel .forecast-card');
     return !!c && /E-201 (passed|reaches) its limit/.test(c.textContent) && /verified in DWSIM/i.test(c.textContent) && !!c.querySelector('img'); });
   await p.screenshot({ path: `${OUT}/salt_forecast_card.png` });
