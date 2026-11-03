@@ -24,14 +24,13 @@ Hackathon theme: **Push the Frontier** (manufacturing and energy). Built on Muse
 ```bash
 git clone https://github.com/yigitcankzl/plant-agent.git
 cd plant-agent
-python3.12 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-.venv/bin/python -m plantagent.web --port 8765
+./start.sh
 # open http://127.0.0.1:8765/home.html — stored runs need no API key or engineering engine
 ```
 
-To make live Meta Model API calls, copy `.env.example` to the gitignored `.env`, set `META_API_KEY`, and change
-`WEB_ALLOW_RUNS=1`. Keep the default `MUSE_BUDGET_USD=5` cap while trying it. Restart the server after changing `.env`.
+For live Meta Model API calls, run `./start.sh --live`: it asks privately for **your own** `META_API_KEY`, does not save it,
+and enables live actions with a $5 spend cap. Alternatively, copy `.env.example` to the gitignored `.env`, set
+`META_API_KEY`, and run the same command. Restart the server after changing `.env`.
 The key enables Muse calls; fully re-solving a new process or grid design also needs the corresponding engine listed
 under [Engines](#engines-for-asking-building-and-applying-changes-plus-a-muse-key-in-env). Replay remains available without them.
 
@@ -121,9 +120,8 @@ On the salt plant, look at:
 ## Run it
 
 ```bash
-python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
-cp .env.example .env && chmod 600 .env          # optional: set META_API_KEY and WEB_ALLOW_RUNS=1 for live Muse calls
-.venv/bin/python -m plantagent.web --port 8765  # open http://127.0.0.1:8765/home.html
+./start.sh                                      # replay, no key
+./start.sh --live                               # privately prompts for your own Meta key
 .venv/bin/python -m unittest discover -s tests       # the test suite (~5 min; engine-dependent tests skip without DWSIM)
 .venv/bin/python -m plantagent.study --case roseburg   # a full blind study (about 20 min, $0.05–0.64)
 ```
