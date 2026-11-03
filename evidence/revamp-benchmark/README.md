@@ -66,27 +66,4 @@ The JSON records the exact row or rating used for every extracted value. There i
 | Singapore condensate-pump MAWP rerate | Pressure-rating change is reported, but no before/after flow, head or system curve is published. |
 | Dividing-wall-column revamp brochures | The present process schema has no defensible dividing-wall-column model and the public summaries omit enough internal data that scoring would reward guesswork. |
 
-## Results (3 November 2026, Muse Spark Open on Fireworks)
-
-One blind loop per case, each with a one-line goal and at most $6. Scored by `tools/revamp_compare.py`, no model call. "Required" counts the engineers' required change categories found in the agent's proposal by the keywords frozen in `outcome.json` before the runs.
-
-| Case | Loop | Spend | Required categories found | What the agent proposed |
-|---|---|---:|---|---|
-| Whangarei CDU | max rounds, not verified | $0.68 | **match** 1/1 | high-capacity trays in the existing C-150 shell |
-| Butyraldehyde T-2103 | **done** | $0.09 | partial 1/3 | high-capacity trays |
-| Texas charge pumps | max rounds | $0.29 | partial 1/3 | rerated BB5 internals in the existing barrel ¹ |
-| Michigan depropanizer | error | $4.08 | partial 1/2 | high-capacity trays + 50/50 feed split ² |
-| BP Lima de-ethanizer | **done** | $2.61 | miss 0/3 | a new 10 ft stripper instead of repacking the 9 ft one |
-| Kuwait CDU heat network | **done** | $2.56 | miss 0/2 | higher network outlet temperatures ³ |
-| Toledo H2 compressors | budget | $5.89 | miss 0/2 | high-flow suction/discharge valves on every stage ⁴ |
-
-Three of seven loops ended `done` (every check passed in DWSIM); one matched the engineers' full scope, three partly. "Done" and "matches the engineers" are different things: BP Lima and Kuwait passed every check with a different design from the one built.
-
-1. Round 2 passed process, envelope, curves and start-up; only the uncertainty check failed (30 of 48 samples, 80 % needed). The agent also cut stages (10 → 8); the engineers removed one (10 → 9), which the frozen keyword `nine-stage` does not catch.
-2. Round 2 flooding passed (60 % of flood, 75 % of the limit); the design reached 116 % of the 122 % target, limited by feed supply. Earlier attempts hit parser and server bugs fixed during the night: answers written as text in new tag forms, a feed split rejected as a new rate, and a tray-capacity rating with no written default.
-3. The model has one exchanger per network, so moving E1 or adding an exchanger cannot be expressed. This is a model-granularity limit.
-4. Same physical idea as the engineers' valve change, but the frozen keyword (`suction valve`) does not match `suction/discharge valve`. Keywords were not edited after the runs.
-
-The "Published after data" tables in each scorecard pick numbers by keyword without unit conversion and are not used for the grade.
-
-The Shell Norco C2 splitter (separate case, `tools/norco_compare.py`) is reported in [evidence/real-plant-norco](../real-plant-norco/README.md): done, 7 match / 3 partial / 1 miss / 1 not predicted against Shell's measured after data.
+No benchmark result claims are included here yet. A first set of runs saw each paper's citation in the basis; they were discarded, the citations withheld, and the cases are being re-run blind.
