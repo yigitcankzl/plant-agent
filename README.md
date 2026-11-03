@@ -29,7 +29,7 @@ cd plant-agent
 ```
 
 For live Meta Model API calls, run `./start.sh --live`: it asks privately for **your own** `META_API_KEY`, does not save it,
-and enables live actions with a $5 spend cap. Alternatively, copy `.env.example` to the gitignored `.env`, set
+and enables live actions. Alternatively, copy `.env.example` to the gitignored `.env`, set
 `META_API_KEY`, and run the same command. Restart the server after changing `.env`.
 The key enables Muse calls; fully re-solving a new process or grid design also needs the corresponding engine listed
 under [Engines](#engines-for-asking-building-and-applying-changes-plus-a-muse-key-in-env). Replay remains available without them.

@@ -17,7 +17,6 @@ case "$mode" in
   "") export WEB_ALLOW_RUNS=0 ;;
   --live)
     export WEB_ALLOW_RUNS=1
-    export MUSE_BUDGET_USD="${MUSE_BUDGET_USD:-5}"
     if [[ -z "${META_API_KEY:-}" ]] && ! grep -Eq '^META_API_KEY=.+$' .env 2>/dev/null; then
       [[ -t 0 ]] || { echo "META_API_KEY is required for --live." >&2; exit 2; }
       read -r -s -p "Your Meta Model API key (not saved): " META_API_KEY
