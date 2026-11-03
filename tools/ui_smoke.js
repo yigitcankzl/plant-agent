@@ -239,7 +239,9 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     /of real engineers' conclusions, blind, model-graded/.test(document.querySelector('#stats').textContent));
   const accentSystem = await p.evaluate(() => getComputedStyle(document.querySelector('.hero-actions .go')).backgroundColor === 'rgb(124, 131, 255)' &&
     getComputedStyle(document.querySelector('.console-step.ok'), '::before').backgroundColor === 'rgb(117, 200, 155)' &&
-    !!document.querySelector('.hero-trace path'));
+    !!document.querySelector('.hero-trace path') && document.querySelectorAll('.console-rail span').length === 5 &&
+    document.querySelector('.console-view .on')?.textContent.trim() === 'Proposed' &&
+    /Process clears 120%/.test(document.querySelector('.console-decision')?.textContent || ''));
   const queueOk = await p.evaluate(() => document.querySelectorAll('#queueCounts .queue-count').length === 3 &&
     document.querySelectorAll('#queueDecisions .queue-item').length > 0 && !/owner:|due today|last data|updated .* ago/i.test(document.querySelector('.queue-columns').textContent));
   await p.goto(`${BASE}/home.html?present=1`); await p.waitForTimeout(500);
