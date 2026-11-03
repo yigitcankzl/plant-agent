@@ -98,6 +98,10 @@
   .landing .hero-trust { margin-top:18px; color:#78979b; font-size:12.5px; }
   .control-room { position:relative; overflow:hidden; color:inherit; text-decoration:none; background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:18px 18px 0 #171d38; }
   .control-room::before { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(115deg,rgba(124,131,255,.09),transparent 35%); }
+  .control-room.product-shot::before { display:none; }
+  .product-shot img { display:block; width:100%; height:auto; aspect-ratio:16/10; object-fit:cover; }
+  .product-shot-note { display:flex; justify-content:space-between; gap:18px; padding:12px 16px; color:#9fb7b8; border-top:1px solid #315860; background:#102e35; font:700 11px var(--mono); }
+  .product-shot-note strong { color:#edf4f1; font-weight:700; }
   .console-top { min-height:54px; padding:0 16px 0 13px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #315860; background:#102e35; }
   .console-project { min-width:0; display:flex; align-items:center; gap:10px; font-weight:750; }
   .console-project::before { content:""; width:10px; height:10px; flex:none; border:2px solid #dce9e6; border-radius:50%; box-shadow:inset 0 0 0 2px #102e35; }
@@ -312,26 +316,9 @@
         </div>
         <p class="hero-trust">Open source · simulator-checked · every output stays a draft until an engineer approves it</p>
       </div>
-      <a class="control-room" href="plant.html?case=salt_mvr" aria-label="Open the salt plant engineering workspace">
-        <div class="console-top"><div class="console-project"><span>Vacuum-salt MVR · capacity study</span></div><div class="console-live"><i></i>CHECKED DRAFT</div></div>
-        <div class="console-main">
-          <div class="console-rail" aria-hidden="true"><span>DEC</span><span>PID</span><span>RUN</span><span>SAFE</span><span>DATA</span></div>
-          <aside class="console-steps" aria-label="Engineering run summary">
-            <div class="console-target"><small>Throughput target</small><b>+20%</b></div>
-            <div class="console-step ok"><small>Muse proposed</small><b>Clean E-201 + add K-202</b></div>
-            <div class="console-step ok"><small>DWSIM checked</small><b>Process target met</b></div>
-            <div class="console-step fail"><small>pandapower checked</small><b>TX-1 overload</b></div>
-            <div class="console-step"><small>Needs a human</small><b>Vendor curve + approval</b></div>
-          </aside>
-          <div class="console-workspace">
-            <div class="console-toolbar"><span>Capacity · drawing</span><span class="console-view"><span>Existing</span><span class="on">Proposed</span></span></div>
-            <div class="console-canvas"><img src="img/salt_revb.jpg" width="1400" height="1197" alt="Rev B salt plant drawing with a new compressor K-202, clouded changes and live utilisation tags">
-              <svg class="hero-trace" viewBox="0 0 100 100" aria-hidden="true"><path pathLength="100" d="M18 61 C35 61 42 48 53 43 S68 26 79 21"/><circle cx="79" cy="21" r="2.1"/><g class="trace-label"><rect x="65" y="9.5" width="30" height="8" rx="1.4"/><text x="67" y="14.7">MUSE TRACE · K-202</text></g></svg>
-              <section class="console-decision" aria-label="Checked decision summary"><small>CHECKED DECISION</small><h3>Process clears 120%. Approval does not.</h3><dl><dt>Limit</dt><dd>K-201 suction capacity</dd><dt>Change</dt><dd>Clean E-201 + add K-202</dd><dt>Proof</dt><dd>DWSIM target met</dd></dl><div class="decision-blocked"><span>Electrical gate</span><span>TX-1 · 133%</span></div></section>
-            </div>
-          </div>
-        </div>
-        <div class="console-verdict"><div><small>Process</small><b>Target met at 120%</b><span>DWSIM · 3 changes re-solved</span></div><div class="blocked"><small>Approval</small><b>Blocked by electrical</b><span>TX-1 · 133%</span></div></div>
+      <a class="control-room product-shot" href="plant.html?case=salt_mvr" aria-label="Open the real salt plant engineering workspace shown here">
+        <img src="img/plantagent-salt-workspace.png" width="1440" height="900" alt="Actual PlantAgent salt workspace showing the Rev B drawing, the checked process target and the electrical approval block">
+        <span class="product-shot-note"><strong>Actual saved workspace</strong><span>Salt MVR · DWSIM + electrical gate</span></span>
       </a>
     </section>
 
