@@ -268,7 +268,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.locator('#sheet [data-tag="H1007"]').evaluate(e => e.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 })));
   await p.locator('#sheet [data-tag="H1007"]').evaluate(e => e.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0 })));
   await p.waitForFunction(() => document.querySelector('#inspectorTitle').textContent === 'Equipment', null, { timeout: 15000 }).catch(() => {});
-  const equipmentFocused = await p.evaluate(() => document.querySelector('#inspectorTitle').textContent === 'Equipment' && !document.querySelector('#answers').hidden);
+  const equipmentFocused = await p.evaluate(() => document.querySelector('#inspectorTitle').textContent === 'Equipment' &&
+    document.body.classList.contains('dd-open') && document.querySelector('#detailTitle').textContent === 'Equipment detail' && !document.querySelector('#answers').hidden);
   console.log(startsFocused && sourcesFocused && troubleshootFocused && equipmentFocused ? 'ok  ' : 'FAIL', 'one left workspace panel for sources and modes; secondary equipment detail still opens separately');
   bad += startsFocused && sourcesFocused && troubleshootFocused && equipmentFocused ? 0 : 1;
   await p.click('.inspector-back');
@@ -314,7 +315,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.click('[data-workspace-page="package"]');
   const packageSeparated = await p.evaluate(() => getComputedStyle(document.querySelector('.package-tools')).display !== 'none' &&
     getComputedStyle(document.querySelector('#redlineLink')).display !== 'none' && document.querySelector('.package-tools').getBoundingClientRect().height > 0 &&
-    document.querySelector('#inspectorTitle').textContent === 'Engineering package' && !document.body.classList.contains('dd-open'));
+    getComputedStyle(document.querySelector('#answers')).display === 'none' && !!document.querySelector('#packageIssue') && !!document.querySelector('#packageReview') &&
+    !document.querySelector('#ddOpen') && document.querySelector('#inspectorTitle').textContent === 'Engineering package' && !document.body.classList.contains('dd-open'));
   await p.click('[data-workspace-page="overview"]');
   const workspaceUi = readableAnswer && decisionSeparated && runSeparated && engineeringView && gateEvidence && packageSeparated && focusOn && focusOff && detailShortcut && labelsShortcut;
   console.log(workspaceUi ? 'ok  ' : 'FAIL', 'decision, run, evidence and package are separate; drawing mode and engineering checks still work', workspaceUi ? '' : JSON.stringify({readableAnswer, decisionSeparated, runSeparated, engineeringView, gateEvidence, packageSeparated, focusOn, focusOff, detailShortcut, labelsShortcut}));
@@ -328,6 +330,15 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     getComputedStyle(document.querySelector('#workbench')).position === 'absolute');
   console.log(askOpen && whatIfFloats ? 'ok  ' : 'FAIL', 'shared ask command stays out of the page content; what-if floats on the drawing');
   bad += askOpen && whatIfFloats ? 0 : 1;
+  const failureClearsStory = await p.evaluate(() => {
+    document.querySelector('#qaBadges').innerHTML = '<span>stale pass</span>';
+    document.querySelector('#runStory').textContent = 'stale recommendation';
+    showLoadFailure(new Error('smoke fixture'));
+    return !document.querySelector('#qaBadges').textContent && !document.querySelector('#runStory').textContent &&
+      document.querySelector('.decision-actions').hidden && document.querySelector('.work-runner').hidden && document.querySelector('#askDock').hidden;
+  });
+  console.log(failureClearsStory ? 'ok  ' : 'FAIL', 'load failure clears stale recommendation and actions');
+  bad += failureClearsStory ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
   const saltReady = await p.evaluate(() => Number(P?.built?.review?.blocking || 0) === 0 &&
     Number(P?.capacity?.capacity_multiple || 0) >= 1);
