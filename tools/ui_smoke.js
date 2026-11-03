@@ -285,14 +285,18 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
       !!document.querySelector('.field-check') && !document.querySelector('.field-checks table') && !!document.querySelector('.prop-actions') && /TX-47/.test(document.querySelector('.electrical-line')?.textContent || '');
   });
   await p.screenshot({ path: `${OUT}/decision_workspace.png` });
-  await p.evaluate(() => openDetails(true));  // the decision lives in the details drawer
-  await p.click('#engineeringView');
-  const engineeringView = await p.evaluate(() => getComputedStyle(document.querySelector('.engineering-detail')).display !== 'none' && document.querySelector('#inspectorTitle').textContent === 'Engineering session');
+  const decisionSeparated = await p.evaluate(() => getComputedStyle(document.querySelector('.work-runner')).display === 'none' &&
+    !document.querySelector('.decision-question').open && (P.allow_runs ? getComputedStyle(document.querySelector('#askDock')).display === 'grid' : getComputedStyle(document.querySelector('#askDock')).display === 'none'));
+  await p.click('[data-workspace-page="run"]');
+  const runSeparated = await p.evaluate(() => getComputedStyle(document.querySelector('.work-runner')).display !== 'none' && getComputedStyle(document.querySelector('#qa')).display === 'none');
+  await p.click('[data-workspace-page="evidence"]');
+  const engineeringView = await p.evaluate(() => getComputedStyle(document.querySelector('.engineering-detail')).display !== 'none' &&
+    document.querySelector('#inspectorTitle').textContent === 'Evidence' && document.body.classList.contains('dd-open'));
   await p.screenshot({ path: `${OUT}/engineering_workspace.png` });
   await p.click('.discipline-gate.fail');
   const gateEvidence = await p.evaluate(() => document.querySelector('#modal').classList.contains('on') && /pandapower/.test(document.querySelector('#modalBox').textContent));
   await p.evaluate(() => document.querySelector('#modal').classList.remove('on'));
-  await p.click('#decisionView');
+  await p.click('[data-workspace-page="overview"]');
   await p.click('[data-workspace-page="drawing"]');
   const focusOn = await p.evaluate(() => document.body.classList.contains('workspace-page-drawing') && getComputedStyle(document.querySelector('aside.right')).display === 'none' &&
     document.querySelector('main').getBoundingClientRect().left < 100);
@@ -305,18 +309,22 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.keyboard.press('l');
   const labelsShortcut = await p.evaluate(() => document.querySelector('#pidViewport').classList.contains('labels-off'));
   await p.keyboard.press('l');
-  const workspaceUi = readableAnswer && engineeringView && gateEvidence && focusOn && focusOff && detailShortcut && labelsShortcut;
-  console.log(workspaceUi ? 'ok  ' : 'FAIL', 'decision/engineering views, calculated discipline rail, package action and drawing mode', workspaceUi ? '' : JSON.stringify({readableAnswer, engineeringView, gateEvidence, focusOn, focusOff, detailShortcut, labelsShortcut}));
+  await p.click('[data-workspace-page="package"]');
+  const packageSeparated = await p.evaluate(() => getComputedStyle(document.querySelector('.package-tools')).display !== 'none' &&
+    getComputedStyle(document.querySelector('#redlineLink')).display !== 'none' && document.querySelector('.package-tools').getBoundingClientRect().height > 0 &&
+    document.querySelector('#inspectorTitle').textContent === 'Engineering package');
+  await p.click('#ddClose');
+  const workspaceUi = readableAnswer && decisionSeparated && runSeparated && engineeringView && gateEvidence && packageSeparated && focusOn && focusOff && detailShortcut && labelsShortcut;
+  console.log(workspaceUi ? 'ok  ' : 'FAIL', 'decision, run, evidence and package are separate; drawing mode and engineering checks still work', workspaceUi ? '' : JSON.stringify({readableAnswer, decisionSeparated, runSeparated, engineeringView, gateEvidence, packageSeparated, focusOn, focusOff, detailShortcut, labelsShortcut}));
   bad += workspaceUi ? 0 : 1;
   await p.evaluate(() => openDetails(false));
-  await p.keyboard.press('/');  // the ask box lives in the details drawer
-  await p.waitForFunction(() => document.activeElement === document.querySelector('#q'), null, { timeout: 5000 }).catch(() => {});
-  const askOpen = await p.evaluate(() => document.body.classList.contains('dd-open') &&
-    (P.allow_runs ? document.activeElement === document.querySelector('#q') : document.querySelector('#q').disabled && document.querySelector('#askBtn').textContent === 'Replay only'));
-  await p.click('#ddClose');
+  await p.keyboard.press('/');  // the shared command line is available without opening another page
+  if (await p.evaluate(() => P.allow_runs)) await p.waitForFunction(() => document.activeElement === document.querySelector('#q'), null, { timeout: 5000 }).catch(() => {});
+  const askOpen = await p.evaluate(() => !document.body.classList.contains('dd-open') &&
+    (P.allow_runs ? document.activeElement === document.querySelector('#q') : getComputedStyle(document.querySelector('#askDock')).display === 'none'));
   const whatIfFloats = await p.evaluate(() => !document.body.classList.contains('dd-open') && !document.querySelector('#scenario').hidden &&
     getComputedStyle(document.querySelector('#workbench')).position === 'absolute');
-  console.log(askOpen && whatIfFloats ? 'ok  ' : 'FAIL', 'ask in the details drawer; what-if floats on the drawing');
+  console.log(askOpen && whatIfFloats ? 'ok  ' : 'FAIL', 'shared ask command stays out of the page content; what-if floats on the drawing');
   bad += askOpen && whatIfFloats ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
   const saltReady = await p.evaluate(() => Number(P?.built?.review?.blocking || 0) === 0 &&
