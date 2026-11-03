@@ -1,3 +1,4 @@
+import json
 import unittest
 from unittest import mock
 from plantagent import study
@@ -52,3 +53,21 @@ class BareJsonTest(unittest.TestCase):
         self.assertEqual(bare_json('```json\n{"headline": "x", "summary": "y"}\n```')["headline"], "x")
         self.assertIsNone(bare_json('{"label": "run"}'))
         self.assertIsNone(bare_json("I will now check the flood."))
+
+
+class AnswerFormsTest(unittest.TestCase):
+    def test_argument_tags(self):
+        from plantagent.study import text_tool_calls, TEXT_CALL
+        c = '<answer>\n<argument name="headline">H</argument>\n<argument name="cards">[{"a": 1}]</argument>\n</answer>'
+        self.assertTrue(TEXT_CALL.search(c))
+        args = json.loads(text_tool_calls(c)[0]["arguments"])
+        self.assertEqual(args, {"headline": "H", "cards": [{"a": 1}]})
+
+    def test_attributes(self):
+        from plantagent.study import text_tool_calls, TEXT_CALL
+        c = '<answer headline="Rerate" summary="x" cost_class="<$100k" proposals=\'[{"title": "t"}]\'></answer>'
+        self.assertTrue(TEXT_CALL.search(c))
+        call = text_tool_calls(c)[0]
+        self.assertEqual(call["name"], "answer")
+        self.assertEqual(json.loads(call["arguments"])["proposals"], [{"title": "t"}])
+        self.assertIsNone(TEXT_CALL.search('see <a href="x">the run</a>'))

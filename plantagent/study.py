@@ -183,9 +183,13 @@ def unstring(v):
 
 
 _INVOKE = __import__("re").compile(r"<(?:\w+:)?(?:invoke|function) name=\"([\w.-]+)\">(.*?)(?:</(?:\w+:)?(?:invoke|function)>|\Z)", __import__("re").S)
-_BARE = __import__("re").compile(r"<([A-Za-z_][\w.-]*)>\s*(<(?:\w+:)?parameter name=.*?)(?:</\1>|\Z)", __import__("re").S)  # <answer><parameter ..>
-TEXT_CALL = __import__("re").compile(r"<(?:\w+:)?(?:invoke|function) name=|<[A-Za-z_][\w.-]*>\s*<(?:\w+:)?parameter name=")
-_PARAM = __import__("re").compile(r"<(?:\w+:)?parameter name=\"([\w.-]+)\">(.*?)</(?:\w+:)?parameter>", __import__("re").S)
+_BARE = __import__("re").compile(r"<([A-Za-z_][\w.-]*)>\s*(<(?:\w+:)?(?:parameter|argument) name=.*?)(?:</\1>|\Z)", __import__("re").S)  # <answer><parameter ..>
+# <answer headline="..." summary='[...]'>: the whole answer written as tag attributes
+_ATTRS = __import__("re").compile(r"<(answer|[A-Za-z_][\w.-]*(?=\s+headline=))((?:\s+[\w.-]+=(?:\"[^\"]*\"|'[^']*'))+)\s*/?>", __import__("re").S)
+_ATTR = __import__("re").compile(r"([\w.-]+)=(?:\"([^\"]*)\"|'([^']*)')", __import__("re").S)
+TEXT_CALL = __import__("re").compile(r"<(?:\w+:)?(?:invoke|function) name=|<[A-Za-z_][\w.-]*>\s*<(?:\w+:)?(?:parameter|argument) name="
+                                     r"|<answer\s+[\w.-]+=|<[A-Za-z_][\w.-]*\s+headline=")
+_PARAM = __import__("re").compile(r"<(?:\w+:)?(?:parameter|argument) name=\"([\w.-]+)\">(.*?)</(?:\w+:)?(?:parameter|argument)>", __import__("re").S)
 
 
 def bare_json(text):
@@ -204,9 +208,11 @@ def text_tool_calls(content):
     """Some open-weights deployments emit a large tool call as text (<x:invoke name=..><x:parameter name=..>..) instead of
     a structured call; recover those calls so the agent loop does not spin. Parameter values are JSON where they parse."""
     calls = []
-    for k, (name, body) in enumerate(_INVOKE.findall(content or "") or _BARE.findall(content or "")):
+    pairs = lambda body: [(n, a or b) for n, a, b in _ATTR.findall(body)] if "=" in body[:200] and "<" not in body[:5] \
+        else _PARAM.findall(body)  # noqa: E731
+    for k, (name, body) in enumerate(_INVOKE.findall(content or "") or _BARE.findall(content or "") or _ATTRS.findall(content or "")):
         args = {}
-        for pname, raw in _PARAM.findall(body):
+        for pname, raw in pairs(body):
             raw = raw.strip()
             try:
                 args[pname] = json.loads(raw)
