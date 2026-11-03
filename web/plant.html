@@ -841,7 +841,7 @@
   @media (prefers-reduced-motion: reduce) { .story-n1.on { transition: none; } .redteam-attack { animation: none; } }
 
   /* Persistent engineering navigation: one place to understand where you are. */
-  .process.focused .app { grid-template-columns: 84px 300px minmax(0, 1fr) !important; transition: grid-template-columns .28s cubic-bezier(.2,.8,.2,1); }
+  .process.focused .app { grid-template-columns: 84px 360px minmax(0, 1fr) !important; transition: grid-template-columns .28s cubic-bezier(.2,.8,.2,1); }
   .workspace-rail { grid-column: 1; grid-row: 1 / 3; z-index: 35; display: flex; min-height: 0; flex-direction: column; align-items: stretch;
     color: var(--fg); background: #0b2025; border-right: 1px solid var(--rule); box-shadow: 8px 0 24px rgba(2,12,15,.12); }
   body.ui-boot:not(.ui-ready) .workspace-rail { opacity:0; transform:translateX(-14px); }
@@ -865,14 +865,19 @@
   .process.focused header #proj { max-width: min(48vw, 560px); }
   .process.focused aside.right { grid-column: 2; }
   .process.focused main { grid-column: 3; }
-  .process.focused .workbench { left: 400px; width: min(640px, calc(100vw - 444px)); transition: left .28s cubic-bezier(.2,.8,.2,1), width .28s cubic-bezier(.2,.8,.2,1); }
+  .process.focused .workbench { left: 460px; width: min(640px, calc(100vw - 504px)); transition: left .28s cubic-bezier(.2,.8,.2,1), width .28s cubic-bezier(.2,.8,.2,1); }
   body.workspace-page-overview:not(.present-mode) #rightScroll { display: none; }  /* presentation mode tells the story from the run panel */
   body.workspace-page-overview #resultPane .workspace-tabs,
   body.workspace-page-run #resultPane .workspace-tabs { display: none; }
   .process.focused .workspace-tabs { display: none !important; }  /* the rail owns navigation */
   body.workspace-page-run #qa { display: none; }
+  body:is(.workspace-page-evidence, .workspace-page-package, .workspace-page-health, .workspace-page-safety, .workspace-page-sources) #qa { display: none; }
   body.workspace-page-run #modePanel, body.workspace-page-run #historyDetails,
   body.workspace-page-run #presentChecks, body.workspace-page-run #answers { display: none !important; }
+  body.workspace-page-evidence #rightScroll > :not(#answers),
+  body.workspace-page-package #rightScroll > :not(.package-tools):not(#answers):not(#historyDetails),
+  body:is(.workspace-page-health, .workspace-page-safety) #rightScroll > :not(#modePanel),
+  body.workspace-page-sources #rightScroll > :not(#sourcesWorkspace) { display: none !important; }
   body:not(.workspace-page-run) .work-runner { display: none; }
   .workspace-command { flex: 0 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; padding: 10px 12px;
     border-top: 1px solid var(--rule); background: #0f252b; }
@@ -893,7 +898,8 @@
   .package-tools .btn { display: block; width: 100%; text-align: center; }
   body:not(.workspace-page-package) .package-tools { display: none; }
   .process.focused #ddBody > #qaSugg { display: none; }
-  body.workspace-page-evidence .detail-drawer { width: min(680px, calc(100vw - 84px)); }
+  .sources-workspace .drawer-head { display: none; }
+  .sources-workspace .sec { padding-inline: 18px; }
   .workspace-empty { padding: 26px 18px; color: var(--fg-3); font-size: 13px; line-height: 1.5; }
   #resultPane.panel-enter { animation: workspacePanelIn .24s cubic-bezier(.2,.8,.2,1) both; }
   @keyframes workspacePanelIn { from { opacity:.3; transform:translateX(-12px); } to { opacity:1; transform:none; } }
@@ -1111,7 +1117,7 @@ document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   const fn = el && {select, whatIf, troubleshoot, ask, undo, accept, workFocus: (tags, view) => workFocus(tags, view, el),
     chatFocus, chatShow, chatApply, chatWork, chatFollow, redteamSet, showTourGate,
-    showParity: () => { openDetails(true); setWorkspaceView('engineering'); requestAnimationFrame(() => document.querySelector('[data-nrel-parity]')?.scrollIntoView({block: 'start'})); },
+    showParity: () => { setWorkspacePage('evidence'); requestAnimationFrame(() => document.querySelector('[data-nrel-parity]')?.scrollIntoView({block: 'start'})); },
     askAbout: tag => { $('q').value = `Why is ${tag} limiting, and what is the cheapest fix?`; $('q').focus(); }}[el.dataset.act];
   if (fn) fn(...JSON.parse(el.dataset.args || '[]'));
 });
@@ -1196,7 +1202,7 @@ function setWorkspacePage(pageName) {
   });
   [...document.body.classList].filter(c => c.startsWith('workspace-page-')).forEach(c => document.body.classList.remove(c));
   document.body.classList.add('workspace-page-' + page);
-  document.body.classList.toggle('mobile-panel-open', matchMedia('(max-width: 1000px)').matches && ['overview', 'run'].includes(page));
+  document.body.classList.toggle('mobile-panel-open', matchMedia('(max-width: 1000px)').matches && page !== 'drawing');
   $('resultPane').classList.remove('panel-enter');
   void $('resultPane').offsetWidth;
   $('resultPane').classList.add('panel-enter');
@@ -1206,7 +1212,10 @@ function setWorkspacePage(pageName) {
     requestAnimationFrame(() => { fitDrawing(); if (ST) render(ST); });
     return;
   }
-  if (page === 'sources') { openDetails(false); toggleDrawer(true); return; }
+  if (page === 'sources') {
+    openDetails(false); toggleDrawer(false); showMode('capacity'); $('inspectorTitle').textContent = 'Sources';
+    requestAnimationFrame(() => $('rightScroll').scrollTo({top: 0, behavior: 'smooth'})); return;
+  }
   toggleDrawer(false);
   if (page === 'health') { showMode('troubleshoot'); return; }
   if (page === 'safety') { showMode('safety'); return; }
@@ -1220,10 +1229,10 @@ function setWorkspacePage(pageName) {
     $('workspaceEmpty').hidden = !empty;
     requestAnimationFrame(() => $('rightScroll').scrollTo({top: 0, behavior: 'smooth'}));
   } else if (page === 'evidence') {
-    setWorkspaceView('engineering'); openDetails(true); $('inspectorTitle').textContent = 'Evidence';
+    setWorkspaceView('engineering'); openDetails(false); $('inspectorTitle').textContent = 'Evidence';
     requestAnimationFrame(() => (document.querySelector('.outcome-compare') || document.querySelector('.evidence-block') || $('answers'))?.scrollIntoView({block: 'start', behavior: 'smooth'}));
   } else if (page === 'package') {
-    setWorkspaceView('decision'); openDetails(true); $('inspectorTitle').textContent = 'Engineering package';
+    setWorkspaceView('decision'); openDetails(false); $('inspectorTitle').textContent = 'Engineering package';
     requestAnimationFrame(() => (document.querySelector('.package-tools') || document.querySelector('.package-action') || $('historyDetails'))?.scrollIntoView({block: 'start', behavior: 'smooth'}));
   }
   requestAnimationFrame(() => { fitDrawing(); if (ST) render(ST); });
@@ -1252,6 +1261,7 @@ async function refreshHealth() {
 
 function showMode(mode) {
   ACTIVE_MODE = mode;
+  openDetails(false);
   toggleDrawer(false);
   selectOnDrawing('');
   document.querySelectorAll('.eq.sel').forEach(e => e.classList.remove('sel'));
@@ -1269,7 +1279,6 @@ function showMode(mode) {
   $('chatThread').hidden = mode !== 'capacity' || !$('chatThread').innerHTML;
   document.body.classList.toggle('mode-other', mode !== 'capacity');
   if (mode === 'safety' && !$('relief').innerHTML) reliefScan();  // deterministic, no AI credit: show the result, not a lone button
-  if (mode !== 'capacity') openDetails(true);
   document.querySelector('.workspace-tabs').hidden = mode !== 'capacity';
   if (mode === 'troubleshoot') { renderTroubleshootMode(); $('inspectorTitle').textContent = 'Troubleshoot'; }
   else if (mode === 'safety') $('inspectorTitle').textContent = 'Safety';
@@ -3036,7 +3045,7 @@ function qaBar(lead) {
   $('qaSugg').innerHTML = suggestions().map(x => `<button class="btn" ${act('ask', x)}>${esc(x)}</button>`).join('');
 }
 function openOutcomeComparison() {
-  openDetails(true); setWorkspaceView('decision');
+  setWorkspacePage('evidence');
   requestAnimationFrame(() => { const card = document.querySelector('.outcome-compare'); if (card) { card.open = true; card.scrollIntoView({block: 'start'}); } });
 }
 function storyGate(row) {
@@ -3603,13 +3612,13 @@ function tourSteps() {
       () => [$('note').style.display === 'none' ? 'stateSource' : 'note'], async () => { await setView('existing'); setScale(100); }],
     ['The question', () => `The engineer asks for +${Math.round((P.target_scale - 1) * 100)} % throughput. At ${Math.round(P.target_scale * 100)} % every item on the P&ID is re-solved in ${simulator()} and coloured by how close it runs to its limit.`,
       () => ['scale', 'verdict'], async () => { await setView('existing'); setScale(Math.round(P.target_scale * 100)); }],
-    ['What limits it today', tourOver, () => ['eqlist'], () => { toggleDrawer(true); $('infoDrawer').scrollTop = 0; }],
+    ['What limits it today', tourOver, () => ['eqlist'], () => setWorkspacePage('sources')],
     ['Muse\'s fix, re-solved', tourResult, () => ['detailDrawer'], async () => { showMode('capacity'); setWorkspaceView('decision'); await setView('proposed'); openDetails(true); $('ddBody').scrollTop = 0; }],
     ['Beyond the process', tourGates, () => ['tourGateRow'], () => { openDetails(false); showTourGates(); }],
     ...(so ? [['Second opinion', () => `${so.model ? museName(so.model) : 'An open-weights model'} answered the same question independently; both answers were re-solved in ${simulator()} and compared without picking a winner.`,
       () => ['detailDrawer'], () => { openDetails(true); setWorkspaceView('engineering'); document.querySelector('.second-opinion')?.scrollIntoView({block: 'center'}); }]] : []),
     ['The evidence', () => 'Every input is labelled as from a document, measured, computed or assumed; every cited run re-solves to the same result; revisions and a hash-chained audit trail are kept. Nothing here is approved for construction: it is a draft for a licensed engineer.',
-      () => ['infoDrawer'], () => toggleDrawer(true)],
+      () => ['sourcesWorkspace'], () => setWorkspacePage('sources')],
   ];
 }
 let TOUR = [];
@@ -3642,26 +3651,28 @@ function tourEnd() { $('tour').style.display = 'none'; $('tourGateRow').hidden =
 $('model').onchange = e => api('model', {model: e.target.value});
 window.onresize = () => { fitDrawing(); if (ST) render(ST); };
 projects().catch(() => { $('proj').innerHTML = '<option>Project list unavailable</option>'; });
-// Clean layout: the strip (left) carries the question, the run and one line per step; the decision, package, ask box and
-// mode panels live in a drawer; a step opens a card on the drawing. Nodes are moved, not rebuilt, so every handler stays.
+// Primary pages share the strip beside the rail; the right drawer is reserved for a selected item's detail.
+// Nodes are moved, not rebuilt, so every existing handler stays attached.
 function openDetails(on) {
   const open = on ?? !document.body.classList.contains('dd-open');
+  if (open && $('answers').parentElement !== $('ddBody')) $('ddBody').appendChild($('answers'));
+  if (!open && $('answers').parentElement === $('ddBody')) $('rightScroll').appendChild($('answers'));
   document.body.classList.toggle('dd-open', open);
   requestAnimationFrame(() => { fitDrawing(); if (ST) render(ST); });
 }
 (() => {
-  const body = $('ddBody');
-  [$('modePanel'), $('analysisLog'), $('historyDetails'), $('answers')].forEach(n => n && body.appendChild(n));
+  const body = $('ddBody'), scroll = $('rightScroll');
+  [$('modePanel'), $('analysisLog'), $('historyDetails'), $('answers')].forEach(n => n && scroll.appendChild(n));
   $('rightScroll').prepend(document.querySelector('.work-runner'));  // running the loop belongs to Run, not the decision note
   $('resultPane').appendChild($('askDock')); $('askDock').classList.add('workspace-command'); $('q').placeholder = 'Ask anything about this plant…';
   body.prepend($('qaSugg'));
-  body.insertAdjacentHTML('afterbegin', '<section class="package-tools"><h3>Engineering package</h3><p>Review the engineer redline, issue the draft package, then collect discipline approvals.</p></section>');
+  scroll.insertAdjacentHTML('afterbegin', '<section class="package-tools"><h3>Engineering package</h3><p>Review the engineer redline, issue the draft package, then collect discipline approvals.</p></section>');
   document.querySelector('.package-tools').appendChild($('redlineLink'));
-  const head = document.querySelector('#detailDrawer .dd-head'), rh = document.querySelector('#resultPane .rhead');
-  head.querySelector('b').replaceWith(rh);  // inspector title, Decision/Engineering and AI cost head the drawer
+  const sources = document.createElement('section'); sources.id = 'sourcesWorkspace'; sources.className = 'sources-workspace';
+  [...$('infoDrawer').querySelectorAll('.sec')].forEach(section => sources.appendChild(section)); scroll.appendChild(sources);
   $('rightScroll').insertAdjacentHTML('beforeend', '<button class="btn dd-open-btn" id="ddOpen" type="button">Decision, package and details</button>');
   $('ddOpen').onclick = () => openDetails(true);
-  $('ddClose').onclick = () => ['evidence', 'package', 'health', 'safety'].includes(WORKSPACE_PAGE) ? setWorkspacePage('overview') : openDetails(false);
+  $('ddClose').onclick = () => { openDetails(false); showMode(ACTIVE_MODE); };
   $('stage-card-host')?.remove();
   document.querySelector('.stage').insertAdjacentHTML('beforeend', '<div class="step-card" id="stepCard" hidden></div>');
 })();

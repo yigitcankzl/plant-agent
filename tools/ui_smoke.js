@@ -260,8 +260,9 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.waitForFunction(() => ST && document.querySelector('[data-workspace-page][aria-current="page"]')?.dataset.workspacePage === 'overview');
   const startsFocused = await p.evaluate(() => !document.querySelector('#infoDrawer').classList.contains('open') &&
     document.querySelector('#inspectorTitle').textContent === 'Decision' && document.querySelector('#scenario').hidden === false);
-  await p.click('[data-workspace-page="sources"]'); const drawerOpened = await p.locator('#infoDrawer').evaluate(e => e.classList.contains('open'));
-  await p.click('#infoDrawer .drawer-head button');
+  await p.click('[data-workspace-page="sources"]'); const sourcesFocused = await p.evaluate(() =>
+    document.body.classList.contains('workspace-page-sources') && getComputedStyle(document.querySelector('#sourcesWorkspace')).display !== 'none' &&
+    !document.querySelector('#infoDrawer').classList.contains('open'));
   await p.click('[data-workspace-page="health"]');
   const troubleshootFocused = await p.evaluate(() => document.querySelector('#inspectorTitle').textContent === 'Troubleshoot' && document.querySelector('#scenario').hidden);
   await p.click('[data-workspace-page="overview"]');
@@ -269,8 +270,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.locator('#sheet [data-tag="H1007"]').evaluate(e => e.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0 })));
   await p.waitForFunction(() => document.querySelector('#inspectorTitle').textContent === 'Equipment', null, { timeout: 15000 }).catch(() => {});
   const equipmentFocused = await p.evaluate(() => document.querySelector('#inspectorTitle').textContent === 'Equipment' && !document.querySelector('#answers').hidden);
-  console.log(startsFocused && drawerOpened && troubleshootFocused && equipmentFocused ? 'ok  ' : 'FAIL', 'focused capacity layout, drawer, modes and equipment inspector');
-  bad += startsFocused && drawerOpened && troubleshootFocused && equipmentFocused ? 0 : 1;
+  console.log(startsFocused && sourcesFocused && troubleshootFocused && equipmentFocused ? 'ok  ' : 'FAIL', 'one left workspace panel for sources and modes; secondary equipment detail still opens separately');
+  bad += startsFocused && sourcesFocused && troubleshootFocused && equipmentFocused ? 0 : 1;
   await p.click('.inspector-back');
   const readableAnswer = await p.evaluate(() => {
     P.answers = [{ request: 'Reach 120%', headline: 'One verified change is required', summary: 'Test summary', seconds: 1, cost_usd: 0,
@@ -292,7 +293,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const runSeparated = await p.evaluate(() => getComputedStyle(document.querySelector('.work-runner')).display !== 'none' && getComputedStyle(document.querySelector('#qa')).display === 'none');
   await p.click('[data-workspace-page="evidence"]');
   const engineeringView = await p.evaluate(() => getComputedStyle(document.querySelector('.engineering-detail')).display !== 'none' &&
-    document.querySelector('#inspectorTitle').textContent === 'Evidence' && document.body.classList.contains('dd-open'));
+    document.querySelector('#inspectorTitle').textContent === 'Evidence' && !document.body.classList.contains('dd-open') &&
+    getComputedStyle(document.querySelector('#resultPane')).display !== 'none');
   await p.screenshot({ path: `${OUT}/engineering_workspace.png` });
   await p.click('.discipline-gate.fail');
   const gateEvidence = await p.evaluate(() => document.querySelector('#modal').classList.contains('on') && /pandapower/.test(document.querySelector('#modalBox').textContent));
@@ -313,8 +315,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.click('[data-workspace-page="package"]');
   const packageSeparated = await p.evaluate(() => getComputedStyle(document.querySelector('.package-tools')).display !== 'none' &&
     getComputedStyle(document.querySelector('#redlineLink')).display !== 'none' && document.querySelector('.package-tools').getBoundingClientRect().height > 0 &&
-    document.querySelector('#inspectorTitle').textContent === 'Engineering package');
-  await p.click('#ddClose');
+    document.querySelector('#inspectorTitle').textContent === 'Engineering package' && !document.body.classList.contains('dd-open'));
+  await p.click('[data-workspace-page="overview"]');
   const workspaceUi = readableAnswer && decisionSeparated && runSeparated && engineeringView && gateEvidence && packageSeparated && focusOn && focusOff && detailShortcut && labelsShortcut;
   console.log(workspaceUi ? 'ok  ' : 'FAIL', 'decision, run, evidence and package are separate; drawing mode and engineering checks still work', workspaceUi ? '' : JSON.stringify({readableAnswer, decisionSeparated, runSeparated, engineeringView, gateEvidence, packageSeparated, focusOn, focusOff, detailShortcut, labelsShortcut}));
   bad += workspaceUi ? 0 : 1;
