@@ -692,6 +692,21 @@ def _blank_calculation(proposal, target, simulator, errors):
             "errors": list(errors or []), "warnings": _fraction_warnings(proposal)}
 
 
+def _redistributes(spec, changes, paths):
+    """True when the changed feed rates keep today's total: the proposal moves feed between nozzles, not more feed."""
+    feeds = spec.get("feeds") or {}
+    old = new = 0.0
+    for c in changes:
+        if c.get("path") in paths:
+            name, field = c["path"].split(".")[1:3]
+            try:
+                old += float((feeds.get(name) or {}).get(field) or 0.0)
+                new += float(c.get("value"))
+            except (TypeError, ValueError):
+                return False
+    return old > 0 and abs(new - old) <= 0.01 * old
+
+
 def _reject_proposal(proposal, target, why, new, simulator, errors=None):
     return {"verified": False, "fixes": proposal.get("tag") if isinstance(proposal, dict) else None, "still_over": [],
             "breaks": [], "capacity_multiple": None, "limited_by": None, "reaches_target": False,
@@ -2830,6 +2845,8 @@ class PlantWorkspace(Study):
         # (Norco: 103,960 kg/h × 1.25 → an infeasible column, reported only as an EOS failure). Say so, so Muse can fix it.
         rerated = [c["path"] for c in changes if re.fullmatch(r"feeds\.[^.]+\.(kg_h|m3_h)", str(c.get("path", "")))
                    and not ((self.spec.get("feeds") or {}).get(c["path"].split(".")[1]) or {}).get("utility")]
+        if rerated and _redistributes(self.spec, changes, rerated):
+            rerated = []  # a feed split at today's total (Michigan 50/50 nozzles) is not a new rate
         if rerated and abs(target - 1.0) > 1e-9:
             return _reject_proposal(p, target, f"sets the process feed rate ({', '.join(rerated)}): the server already solves at "
                                     f"{target:g}× today's feed, so a new rate would be scaled twice. Keep today's feed rate; change "

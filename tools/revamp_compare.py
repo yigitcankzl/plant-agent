@@ -151,7 +151,11 @@ def markdown(result):
     ]
     lines += [f"| {r['label']} | {'yes' if r['required'] else 'no'} | {'yes' if r['matched'] else 'no'} |"
               for r in result["change_categories"]]
-    lines += ["", "## Published after data", "", "| Item | Published | Agent verified design | Error |", "|---|---:|---:|---:|"]
+    lines += ["", "## Published after data", "",
+              "Numbers are taken by keyword from the agent's check rows, without unit conversion. "
+              "A large error here is often a wrong pick by this script, not an engineering error; "
+              "the score uses only the change categories above.", "",
+              "| Item | Published | Agent verified design | Error |", "|---|---:|---:|---:|"]
     for row in result["after_data"]:
         expected = row["expected"]
         expected = "–".join(map(str, expected)) if isinstance(expected, list) else str(expected)
