@@ -17,7 +17,7 @@ Hackathon theme: **Push the Frontier** (manufacturing and energy). Built on Muse
 - **The agent is checked, and refused.** Muse's first fix on the BASF column (cut reflux) was failed by the product-purity check; the numbers went back to Muse, and two loops later its design (a 600 mm shell, vendor to confirm) passed every simulation check. A second Muse then attacked that design with eight realistic bad days (hot feed, fouled trays, low pressure); DWSIM refereed and the design held **8 of 8** (worst case 90 % of the flood limit).
 - **Open weights did what the hosted endpoint would not.** On the 2006 European blackout grid, Meta's hosted endpoint refused the prompt four times; Muse Spark Open ran the same loop and found a switching plan with **0 N-1 violations**.
 - **A real plant, blind.** Given only Shell Norco's pre-revamp operating data (paper title withheld, no earlier answers), Muse re-trayed the same C2 splitter shell, as Shell did: round 1 failed the +10 % feed case, round 2 passed every simulation check, and ethylene rose 25 %, as at Shell. Asked with no documents, all three Muse models say they do not know what Shell did.
-- Honest denominator: About a quarter of recorded loop runs end with every check passing (14 of 61 on 3 Nov; most "done" runs still carry open vendor or human checks; the live count is `tools/loop_stats.py`). Every caveat is under [Limits and honesty](#limits-and-honesty).
+- Honest denominator: About a quarter of recorded loop runs end with every deterministic check passing (14 of 61 on 3 Nov; most "done" runs still carry open vendor or human checks; the live count is `tools/loop_stats.py`). Every caveat is under [Limits and honesty](#limits-and-honesty).
 
 ```bash
 python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
@@ -33,7 +33,7 @@ python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
 - **A real plant, blind.** Shell's Norco C2 splitter before its 2015 revamp, outcome withheld. Muse Spark Open re-trayed the same shell, as Shell did: **round 1 failed** the +10 % feed case, **round 2 passed** every simulation check ($4.30). Against Shell's measurements: 5 match, 3 partial, 1 miss, 1 not predicted. [Below](#a-real-plant-blind-shell-norco-c2-splitter).
 - **Open weights in the loop.** Muse Spark Open on Baseten: on UCTE, where the Meta-hosted endpoint refused the prompt four times (content policy), it found a switching plan that passes line limits and N-1; on Freeport it matched Muse Wonder; on the salt plant neither model finished. [Below](#open-weights-the-2006-european-blackout).
 - **The engineer's red pen** (`web/redline.html`, `plantagent/redline.py`): Muse Wonder reads the red ink on an uploaded drawing into changes, the engineer confirms them, and the same checks run on the engineer's design and Muse's side by side. First live read (salt, typed notes): 3 of 3 transcribed, 1 mapped. [Evidence](evidence/redline/README.md).
-- **The honest denominator.** Across all 48 recorded engineering-loop runs (3 Nov), 12 (25 %) ended with every check passing ($145 in total). Each featured run is the last of several attempts, with harness fixes between them in the git log. Table: `PYTHONPATH=. python tools/loop_stats.py`.
+- **The honest denominator.** Across all 61 recorded engineering-loop runs during development (3 Nov, including the discarded first revamp-benchmark runs), 14 (23 %) ended with every deterministic check passing ($182 in total); most of those still carry an open vendor or human check. Each featured run is the last of several attempts, with harness fixes between them in the git log. Table: `PYTHONPATH=. python tools/loop_stats.py`.
 - Blind benchmark: on 13 real projects with the engineers' conclusions withheld, Muse reaches **64 %** of the engineers' conclusions on average (range 33–100 %), graded by Muse Wonder against a fixed answer key, not by a person. [Details](docs/cases.md#evidence-blind-benchmark-against-real-engineers).
 
 The full, unshortened list (including the salt flagship and the two incidents) is in [docs/cases.md](docs/cases.md#full-what-it-has-done-list).
@@ -118,6 +118,8 @@ cp .env.example .env && chmod 600 .env          # then add keys
 .venv/bin/python -m plantagent.study --case roseburg   # a full blind study (about 20 min, $0.05–0.64)
 .venv/bin/python -m plantagent.grade                   # grade the latest runs against the engineers
 ```
+
+The `openai` package in `requirements.txt` is only the transport SDK for the OpenAI-compatible Meta, Baseten and Fireworks endpoints; PlantAgent calls no OpenAI model.
 
 **From a clean clone, with no API key and no separately installed engines** (tested in `python:3.12-slim` with an empty `$HOME`; the requirements still install numerical Python libraries)
 - Works from the stored results: `home.html`; `plant.html?case=salt_mvr` and its guided tour (`&tour=1`); `ucte_2006`; `freeport_lng_2022`; `nrel_ethanol_a300` and `nrel_ethanol_a500`; `basf_process_column_k_2750_dexpi_c02_uns`; `chem_c01`; `swro_brownsville`; `swro_monterey`; `dairy_refrig`; and the `index.html` blind-study replays. The throughput slider replays precomputed **existing-plant** solutions. Proposed designs without a stored proposed-state file are labelled as unavailable and show today's plant; re-solving them needs the named engine.

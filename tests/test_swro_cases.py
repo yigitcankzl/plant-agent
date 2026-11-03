@@ -31,6 +31,8 @@ class SwroCaseTest(unittest.TestCase):
         self.assertEqual(report["source"], "historian.csv")
 
     def test_drawings_match_the_equipment_lists(self):
+        if not DATA.exists():
+            self.skipTest("drawn P&ID files live outside the repo (case-data/drawn)")
         monterey = pid.overview(DATA / "swro_monterey_pid.xml")
         brownsville = pid.overview(DATA / "swro_brownsville_pid.xml")
         self.assertEqual(len(monterey["equipment"]), 19)

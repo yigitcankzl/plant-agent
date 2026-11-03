@@ -1,6 +1,6 @@
 # Submission form answers (Cerebral Valley)
 
-**Team name:** PlantAgent
+**Team name:** Yigitcan Kizil
 
 **Track:** Indie developer
 
@@ -14,7 +14,7 @@ PlantAgent is an engineering workspace for changing an existing plant. An engine
 Muse proposes, physics disposes. The problem: checking a plant change today takes engineers weeks of manual simulation and cross-discipline review, and an AI answer that only looks right is dangerous in a plant. PlantAgent makes the AI's answer checkable.
 
 What it has done:
-- **An unseen BASF drawing.** The official BASF DEXPI drawing went from upload to a DWSIM column with no hand-written files. Over several loops Muse's proposals were failed by the purity and envelope checks. It ended with a 600 mm shell that passes every check; only the vendor confirmation is left open.
+- **An unseen BASF drawing.** The official BASF DEXPI drawing went from upload to a DWSIM column with no hand-written files. Over several loops Muse's proposals were failed by the purity and envelope checks. It ended with a 600 mm shell that passes every deterministic simulation check; vendor confirmation remains open.
 - **A scanned 1994 patent.** Muse Wonder read the patent drawing and built a calibrated simulator from it.
 - **The UCTE 2006 grid split.** The hosted endpoint refused the prompt. Muse Spark Open, the open-weights model, found a switching plan that passes N-1.
 - **A blind benchmark against real engineers.** Across 13 published engineering studies, with their conclusions withheld, Muse reached 64 % of the engineers' conclusions on average. A second Meta model graded the runs; this is a cross-model check, not a human one.
@@ -28,11 +28,11 @@ https://github.com/yigitcankzl/plant-agent
 ## Use of Meta products
 - **Muse Wonder (Meta Model API):** vision and reasoning. It reads scanned P&IDs, patent figures and equipment datasheets, and builds the first simulator model from them.
 - **Muse Spark 1.3 (Meta Model API):** the tool-calling engineer agent. It runs the simulators, answers engineering questions on the page, and proposes changes. In the blind benchmark it re-grades every run as a cross-check of the primary grader, Muse Wonder (88 % item agreement).
-- **Muse Spark Open (open weights, served on Baseten and Fireworks):** runs the same closed engineering loop with the same tools. It solved the UCTE grid case after the hosted endpoint refused it, ran the BASF loop that ended with every check passing, and the blind Shell Norco loop. An optional "second model" check compares its answer with the hosted model's.
+- **Muse Spark Open (open weights, served on Baseten and Fireworks):** runs the same closed engineering loop with the same tools. It solved the UCTE grid case after the hosted endpoint refused it, ran the BASF loop that ended with every deterministic simulation check passing (vendor confirmation open), and the blind Shell Norco loop. An optional "second model" check compares its answer with the hosted model's.
 - **Muse Spark 1.3 as the red team:** after a design passes, a second model proposes realistic operating deviations to break it; DWSIM re-solves each and decides. The BASF design held 8 of 8.
 - **Muse Voice Transcribe (Meta Model API):** push-to-talk; the engineer speaks the request and it lands in the goal box.
 
-All calls go through one OpenAI-compatible client with a hard budget cap. Every answer in the UI shows its model, cost and time.
+All model calls share one budgeted client layer and usage ledger: chat and tool calls use the OpenAI-compatible endpoints of Meta, Baseten and Fireworks; SAM and Voice use Meta's native endpoints. The `openai` package is only the transport SDK; no OpenAI model is called. Every answer in the UI shows its model, cost and time.
 
 ## Why Meta's models are important
 The loop needs a model that can read engineering drawings, call tools reliably over 20–40 steps, and change its design when a deterministic check fails. Muse does all three in one family: Wonder for vision, Spark for long tool-calling sessions, and Spark Open for the same loop on open weights. Open weights matter in this domain. Plants are reluctant to send their drawings to a hosted API, and the UCTE case showed a hosted content filter blocking legitimate grid-safety work that the open model completed.
