@@ -82,7 +82,7 @@ def spent(tag=None):
 def spend_cap(usd):
     """Hard cap for one task: a call that could cross it is refused before sending."""
     previous = getattr(_SPEND_CAP, "value", None)
-    _SPEND_CAP.value = (spent(), float(usd))
+    _SPEND_CAP.value = (spent_here(), float(usd))  # this thread's spend: parallel tasks do not eat each other's cap
     try:
         yield
     finally:
@@ -194,7 +194,7 @@ def complete(model, messages, **params):
             return _tool_names(json.loads(hit.read_text())["message"], params)
         reserve = _reserve(model, messages, params)
         run_cap = getattr(_SPEND_CAP, "value", None)
-        if run_cap and spent() - run_cap[0] + reserve > run_cap[1]:
+        if run_cap and spent_here() - run_cap[0] + reserve > run_cap[1]:
             raise BudgetExceeded(f"run budget would be exceeded by this call (${run_cap[1]:.2f} cap); no model call made")
         if _provider_spend(model) + reserve > _budget(model):
             raise BudgetExceeded(f"{_host(model) or 'Muse'} budget would be exceeded by this call; no model call made")

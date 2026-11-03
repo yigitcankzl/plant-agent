@@ -113,6 +113,11 @@ class LoopTest(unittest.TestCase):
         _, log = self.run_loop([{"headline": "a", "proposals": [prop("K-202")]}] * 3, [[], [], []])
         self.assertNotEqual(log["status"], "done")
 
+    def test_grid_limits_and_n1_pass_is_done(self):  # grid cases have no 'process' row
+        _, log = self.run_loop([{"headline": "a", "proposals": [prop("redispatch")]}],
+                               [[{"check": "limits", "status": "pass"}, {"check": "N-1", "status": "pass"}]])
+        self.assertEqual(log["status"], "done")
+
     def test_unverified_without_reason_sends_the_limit_back(self):
         p = prop("bottoms 3.6", ok=False) | {"capacity_multiple": 1.131, "over_limits_at_target": [
             {"id": "K 2750", "check": "Fair flood fraction vs limit", "utilisation": 1.09}]}
@@ -123,3 +128,4 @@ class LoopTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

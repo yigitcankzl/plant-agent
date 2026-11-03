@@ -40,7 +40,7 @@ def segment(png_bytes, prompts):
                 outputs.append(json.loads(hit.read_text()))
                 continue
             cap = getattr(llm._SPEND_CAP, "value", None)
-            if cap and llm.spent() - cap[0] + IMAGE_USD > cap[1]:
+            if cap and llm.spent_here() - cap[0] + IMAGE_USD > cap[1]:
                 raise llm.BudgetExceeded("task budget would be exceeded by SAM; no call made")
             if llm._provider_spend(MODEL) + IMAGE_USD > llm._budget(MODEL):
                 raise llm.BudgetExceeded("Muse budget would be exceeded by SAM; no call made")

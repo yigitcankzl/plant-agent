@@ -103,7 +103,8 @@ def main(session=None):
         sec = section(t, feed_tray)
         rows.append({"item": "Bottleneck section today", "agent": f"{sec} (flood {b_worst['flood_frac'] * 100:.0f} % at tray ~{t})",
                      "recorded": "above feed, jet flood 87 % (Table 3; given to the agent as before-data)",
-                     "verdict": "match" if sec == "above feed" else "partial" if sec == "pasteurization" else "miss"})
+                     # the bottleneck was given to the agent as before-data: reported, not scored
+                     "verdict": "given (not scored)" if sec == "above feed" else "partial" if sec == "pasteurization" else "miss"})
 
     # 2. the change itself
     old_cf = float((spec.get("limits") or {}).get(uid, {}).get("tray_capacity_factor") or 1.0)
@@ -175,7 +176,8 @@ def main(session=None):
         if c0 and c1:
             rows.append({"item": "Condenser duty (refrigeration load)", "agent": f"{(c1 / c0 - 1) * 100:+.0f} %",
                          "recorded": "not addressed by the project; condenser and refrigeration now limit",
-                         "verdict": "match" if c1 > c0 else "partial"})
+                         # more feed always means more condenser duty: shown, not scored
+                         "verdict": "shown (not scored)"})
     rows.append({"item": "Column pressure drop", "agent": "not predicted: DWSIM takes column dP as an input",
                  "recorded": f"{m['column_dP_before_kPa']} to {m['column_dP_kPa']} kPa", "verdict": "not predicted"})
 

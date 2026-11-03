@@ -80,3 +80,23 @@ class VendorTagTest(unittest.TestCase):
         self.assertTrue(TEXT_CALL.search(c))
         call = text_tool_calls(c)[0]
         self.assertEqual((call["name"], json.loads(call["arguments"])), ("answer", {"headline": "H", "status": "ok"}))
+
+
+class OfferedToolsTest(unittest.TestCase):
+    def test_text_call_to_a_tool_not_offered_is_not_run(self):
+        tools = [{"type": "function", "function": {"name": n, "parameters": {}}} for n in ("run", "answer")]
+        ran, n = [], [0]
+
+        def complete(model, messages, tools=None):
+            n[0] += 1
+            if len(tools) == 1 and n[0] == 4:  # first forced step: the model still writes a 'run' call as text
+                return {"content": '<invoke name="run"><parameter name="x">1</parameter></invoke>', "tool_calls": []}
+            return {"content": "", "tool_calls": [{"id": str(n[0]), "name": "answer" if len(tools) == 1 else "noop", "arguments": "{}"}]}
+
+        s = study.Study.__new__(study.Study)
+        s.model, s.steps, s._artifacts = "m", 0, []
+        s.log = mock.MagicMock(); s.emit = lambda e: None
+        s.call = lambda name, a: ran.append(name) or {"ok": True}
+        with mock.patch.object(study.llm, "complete", complete):
+            s.loop("ask", "sys", "user", tools, "answer", 6)
+        self.assertNotIn("run", ran)

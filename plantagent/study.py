@@ -475,6 +475,7 @@ class Study:
                 messages.append({"role": "user", "content": f"Step limit near. Call {submit_name} now with what you have."})
             # the last steps offer only the submit tool: a model that keeps exploring still has to answer
             final = [t for t in tools if t["function"]["name"] == submit_name] if step >= max_steps - 3 else []
+            offered = {t["function"]["name"] for t in final or tools}
             msg = llm.complete(self.model, compact(messages), tools=final or tools)
             self.log.write(json.dumps({"phase": phase, "step": step, "assistant": msg}) + "\n")
             if not msg["tool_calls"] and msg.get("content") and TEXT_CALL.search(msg["content"]):
@@ -498,15 +499,18 @@ class Study:
                 except json.JSONDecodeError as e:
                     args, result = {}, {"error": f"arguments are not valid JSON: {e}"}
                 else:
-                    if t["name"] == submit_name:
+                    if t["name"] not in offered:  # a text-recovered call cannot reach a tool this step did not offer
+                        result = {"error": f"{t['name']} is not available at this step; call {submit_name}"}
+                    elif t["name"] == submit_name:
                         self.log.write(json.dumps({"phase": phase, "submit": args}) + "\n")
                         self.log.flush()
                         print(f"  {phase}: submitted after {step + 1} steps")
                         return args
-                    try:
-                        result = self.call(t["name"], args)
-                    except Exception as e:  # tool errors go back to the engineer, as they would in real work
-                        result = {"error": f"{type(e).__name__}: {e}"}
+                    else:
+                        try:
+                            result = self.call(t["name"], args)
+                        except Exception as e:  # tool errors go back to the engineer, as they would in real work
+                            result = {"error": f"{type(e).__name__}: {e}"}
                 if isinstance(result, dict) and "image" in result:
                     images.append(result.pop("image"))
                     result = {"note": f"page {args.get('page')} image attached below"}

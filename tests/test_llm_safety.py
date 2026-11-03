@@ -66,6 +66,10 @@ class LlmSafetyTests(unittest.TestCase):
                 llm.complete("muse-spark-1.3", [{"role": "user", "content": "hello"}], max_tokens=100)
         self.assertEqual(client.calls, 0)
 
+    def test_other_threads_spend_does_not_eat_this_cap(self):
+        with mock.patch.object(llm, "spent", side_effect=[0.0, 0.9]), llm.spend_cap(1.0):
+            self.assertEqual(llm._SPEND_CAP.value[0], llm.spent_here())  # cap starts from this thread's spend
+
     def test_reservation_counts_tool_schemas(self):
         plain = llm._reserve("muse-spark-1.3", [{"role": "user", "content": "hello"}], {})
         with_tools = llm._reserve("muse-spark-1.3", [{"role": "user", "content": "hello"}],
