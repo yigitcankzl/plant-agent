@@ -2632,7 +2632,7 @@ function renderWorklog(log) {
   const rounds = Array.isArray(log.rounds) ? log.rounds : [];
   const humanN = Array.isArray(log.needs_human) ? new Set(log.needs_human.filter(Boolean)).size : null;
   const openN = humanN ?? (log.result?.open || []).length;
-  const status = ({done: log.approval_status === 'open' || (log.approval_status == null && openN) ? [`Final round: simulation checks passed · ${openN} human approval item${openN === 1 ? '' : 's'} open`, 'open'] : ['All checks passed · ready for engineer review', 'pass'], unsolved: [processReached(log) ? 'Process target reached · engineering approval blocked by failed checks' : /^UNSOLVABLE:/i.test(log.result?.headline || '') ? `Stopped for missing data: ${log.result.headline.replace(/^UNSOLVABLE:\s*/i, '')}` : 'Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
+  const status = ({done: log.approval_status === 'open' || (log.approval_status == null && openN) ? [`Final round: simulation checks passed · ${openN} human approval item${openN === 1 ? '' : 's'} open`, 'open'] : ['All automated checks passed · engineering approval still required', 'pass'], unsolved: [processReached(log) ? 'Process target reached · engineering approval blocked by failed checks' : /^UNSOLVABLE:/i.test(log.result?.headline || '') ? `Stopped for missing data: ${log.result.headline.replace(/^UNSOLVABLE:\s*/i, '')}` : 'Unsolved', 'fail'], max_rounds: ['Stopped at round limit', 'open'],
     budget: ['Stopped at budget limit', 'open'], error: [/no answer after \d+ steps/.test(log.error || '') ? `Step limit, round ${rounds.length + 1}` : 'Stopped with error', 'fail']})[log.status] || ['Running…', 'open'];
   const sample = SAMPLE_WORKLOG || /illustrative/i.test(log.label || '');
   const posthoc = /post-hoc engineering run/i.test(log.label || '');
@@ -2894,7 +2894,7 @@ function answers() {
   const follow = lead !== last ? `<details class="ans follow-up"><summary>Latest follow-up · ${esc(plain(last.headline || last.question || 'question'))}</summary>${briefAns(last, all.length - 1)}</details>` : '';
   const rest = all.map((a, i) => [a, i]).filter(([a]) => a !== lead && a !== last).reverse();
   const list = all.length ? [lead] : [];
-  $('answers').innerHTML = nrelParityCard() + outcomeCard() + (PRESENT ? '' : redteamCard()) + (list.length ? (lead !== last ? `<div class="lead-note">Current verified design · answer ${all.indexOf(lead) + 1} of ${all.length}</div>` : '') + ans(lead, all.indexOf(lead)) + follow +
+  $('answers').innerHTML = nrelParityCard() + outcomeCard() + (PRESENT ? '' : redteamCard()) + (list.length ? (lead !== last ? `<div class="lead-note">Current design that passes the process simulation · answer ${all.indexOf(lead) + 1} of ${all.length}</div>` : '') + ans(lead, all.indexOf(lead)) + follow +
     (rest.length ? `<details class="ans"><summary>History · ${rest.length} earlier question${rest.length === 1 ? '' : 's'}</summary>${rest.map(([a, i]) => briefAns(a, i)).join('')}</details>` : '') :
     NREL_EVIDENCE ? '' : `<div class="empty"><b>What would you like to test?</b><br>${incident() ? 'Ask what happened, which limit was crossed first, and what would have prevented it.' : 'Ask about an equipment limit, or find a path to the target throughput.'}
      <div class="sugg">${suggestions().map(s => `<button class="btn" ${act('ask', s)}>${esc(s)}</button>`).join('')}</div></div>`);
@@ -2954,7 +2954,7 @@ function redteamSet(index) {
   const panel = $('redteamPanel'); if (panel) panel.outerHTML = redteamCard();
   if (PRESENT) {
     const set = REDTEAM?.sets?.[REDTEAM_SELECTED], s = set?.summary;
-    if (s) showPresentCaption('DWSIM checked:', `${set.label}: ${s.broke ? s.broke + ' / ' + s.total + ' attacks broke it' : s.held + ' / ' + s.total + ' attacks held'}${Number.isFinite(s.worst_utilisation) ? ' · worst case ' + Math.round(s.worst_utilisation * 100) + '% of limit' : ''}`, s.broke ? 'fail' : 'pass');
+    if (s) showPresentCaption('DWSIM checked:', `${set.label}: ${s.broke ? s.broke + ' / ' + s.total + ' attacks broke it' : s.held + ' / ' + s.total + ' attacks stayed within the modelled process limits'}${Number.isFinite(s.worst_utilisation) ? ' · worst case ' + Math.round(s.worst_utilisation * 100) + '% of limit' : ''}`, s.broke ? 'fail' : 'pass');
   }
 }
 function redteamCard() {
@@ -2982,7 +2982,7 @@ function redteamCard() {
   const challenge = set.challenge ? `<p class="redteam-note"><a class="redteam-source" href="${esc(set.challenge.source_url)}" target="_blank">${esc(set.challenge.text)}</a></p>` : '';
   return `<section class="redteam-panel" id="redteamPanel" data-redteam-set="${esc(set.id)}"><div class="redteam-head"><div><div class="redteam-kicker">Independent adversarial check</div><h3>Muse Spark 1.3 tries to break this design</h3></div><div class="redteam-model">${esc(museName(set.attacker_model || 'muse-spark-1.3'))}${cost}</div></div>
     <div class="redteam-tabs" role="group" aria-label="Stored red-team sets">${tabs}</div>
-    <div class="redteam-summary ${failed ? 'fail' : 'pass'}"><b><a href="${esc(src)}" target="_blank">${failed ? summary.broke : summary.held} / ${summary.total}</a> ${failed ? 'broke' : 'held'}</b><span>${esc(set.design_label)}${worstText}</span></div>
+    <div class="redteam-summary ${failed ? 'fail' : 'pass'}"><b><a href="${esc(src)}" target="_blank">${failed ? summary.broke : summary.held} / ${summary.total}</a> ${failed ? 'broke the modelled limits' : 'stayed within the modelled process limits'}</b><span>${esc(set.design_label)}${worstText} · not a design-safety approval</span></div>
     <div class="redteam-attacks">${attacks}${unstored}</div>${challenge}${set.note ? `<p class="redteam-note">${esc(set.note)}</p>` : ''}</section>`;
 }
 function showGate(index) {
@@ -3016,12 +3016,12 @@ function decisionBrief(a, idx) {
   const failed = gates.filter(row => gateState(row)[0] === 'fail'), open = gates.filter(row => gateState(row)[0] === 'open');
   const targetHolds = d.combined?.reaches_target ?? gates.some(g => g.id === 'process' && gateState(g)[0] === 'pass');
   const recommendation = (verified.length ? verified : d.proposals || []).map(p => p.title).filter(Boolean).join(' + ') ||
-    (incident() ? 'No change proposed: the question was whether the planned action helps, and the answer is above' : 'No verified change yet');
+    (incident() ? 'No change proposed: the question was whether the planned action helps, and the answer is above' : 'No change passes the process simulation yet');
   let status = 'Analysis needs engineering checks', statusClass = 'open';
   if (modelBlocked()) { status = 'Model review blocked — correct the model before issuing a design'; statusClass = 'fail'; }
   else if (failed.length) { status = `${failed.length} discipline gate${failed.length === 1 ? '' : 's'} failed`; statusClass = 'fail'; }
-  else if (open.length) { status = `${simulator()} ${targetHolds ? 'target verified' : 'screening complete'} · ${open.length} discipline gate${open.length === 1 ? '' : 's'} open`; }
-  else if (d.combined?.reaches_target && !gates.length) status = `${simulator()} verified · discipline gates not run yet`;
+  else if (open.length) { status = `${simulator()} ${targetHolds ? 'process target met' : 'screening complete'} · ${open.length} discipline gate${open.length === 1 ? '' : 's'} open`; }
+  else if (d.combined?.reaches_target && !gates.length) status = `Passes the ${simulator()} process simulation · discipline gates not run yet`;
   else if (targetHolds) { status = `${simulator()} and all supplied discipline gates pass`; statusClass = 'pass'; }
   else if (verified.length) status = `${verified.length} change${verified.length === 1 ? '' : 's'} simulated · combined target not yet cleared`;
   if (incident() && !failed.length) {  // the replay of the runs the answer cites decides what may be claimed
@@ -3222,7 +3222,7 @@ async function decisionFile() {
   if (r.error) { $('decOut').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return false; }
   const label = {'decision.pdf': 'MOC file (PDF)', 'memo.pdf': 'Management memo (PDF)', 'rev_b.svg': 'P&ID Rev B (proposed)', 'rev_a.svg': 'P&ID Rev A (existing)', 'rev_b.png': 'Rev B (PNG)', 'redline.svg': 'Redline (same as Rev B)', 'decision.zip': 'Everything (zip)',
                  'decision.md': 'Decision file (md)', 'memo.md': 'Memo (md)', 'decision.json': 'Data (JSON)'};
-  $('decOut').innerHTML = `<div style="font-size:12px;margin:4px 0">${r.over_after ? `⚠ ${r.over_after} limits still over at the target` : '✓ All limits within 100 % at the target'} · ${r.pssr_items} PSSR items · draft, not approved</div>`
+  $('decOut').innerHTML = `<div style="font-size:12px;margin:4px 0">${r.over_after ? `⚠ ${r.over_after} limits still over at the target` : '✓ All modelled process limits within 100 % at the target'} · ${r.pssr_items} PSSR items · draft, not approved</div>`
     + r.files.map(f => `<a class="btn" style="margin:2px;display:inline-block;text-decoration:none" target="_blank" href="${r.base}${f}">${esc(label[f] || f)}</a>`).join('');
   return true;
 }
