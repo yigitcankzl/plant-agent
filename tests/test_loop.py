@@ -45,11 +45,11 @@ class LoopTest(unittest.TestCase):
     def test_fail_then_fix_then_done(self):
         w, log = self.run_loop([{"headline": "a", "proposals": [prop("K-202")]}, {"headline": "b", "proposals": [prop("K-202"), prop("TX-1 3.15 MVA")]}],
                                [[{"check": "electrical", "title": "TX-1 133 %", "status": "fail"}],
-                                [{"check": "electrical", "title": "TX-1 96 %", "status": "pass"}]])
+                                [{"check": "process", "title": "120 %", "status": "pass"}, {"check": "electrical", "title": "TX-1 96 %", "status": "pass"}]])
         self.assertEqual(log["status"], "done")
         self.assertEqual(len(log["rounds"]), 2)
         self.assertIn("TX-1 133 %", w.asked[1])  # the failed check went back to Muse with its numbers
-        self.assertEqual(log["result"]["passes"], ["electrical"])
+        self.assertEqual(log["result"]["passes"], ["process", "electrical"])
         self.assertEqual(log["approval_status"], "ready_for_review")
         self.assertEqual({s["actor"] for s in log["rounds"][0]["steps"]}, {"muse", "engine"})
 
@@ -103,11 +103,15 @@ class LoopTest(unittest.TestCase):
 
     def test_open_check_stops_loop_but_keeps_approval_open(self):
         _, log = self.run_loop([{"headline": "screening passes", "proposals": [prop("K-202")]}],
-                               [[{"check": "vendor confirmation", "title": "curve needed", "status": "open"}]])
+                               [[{"check": "process", "title": "120 %", "status": "pass"}, {"check": "vendor confirmation", "title": "curve needed", "status": "open"}]])
         self.assertEqual(log["status"], "done")
         self.assertEqual(log["approval_status"], "open")
         self.assertEqual(log["result"]["open"], ["vendor confirmation"])
 
+
+    def test_no_checks_is_not_done(self):  # an empty check list (a broken adapter) must never read as a pass
+        _, log = self.run_loop([{"headline": "a", "proposals": [prop("K-202")]}] * 3, [[], [], []])
+        self.assertNotEqual(log["status"], "done")
 
     def test_unverified_without_reason_sends_the_limit_back(self):
         p = prop("bottoms 3.6", ok=False) | {"capacity_multiple": 1.131, "over_limits_at_target": [

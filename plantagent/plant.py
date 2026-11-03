@@ -2026,16 +2026,20 @@ class PlantWorkspace(Study):
         self._state = {}
         # pick up the answers of the latest session made on this same model, so a restart keeps the engineer's thread
         # PLANT_FRESH=1 starts with no earlier answers: a blind run must not read what earlier runs wrote
-        # a case can opt in ("featured_design": true) to take its design from the featured loop run (work/<id>/session); newest wins
+        # a case can pin its page design to its featured run ("featured_design": true): every screen then speaks for that run
         sessions = list((ROOT / "runs" / "ws" / case_name).glob("2*/answers.json"))
         fw = (self.cfg or {}).get("featured_work") if isinstance(getattr(self, "cfg", None), dict) else None
-        featured = ROOT / "runs" / "ws" / case_name / "work" / str(fw) / "session" / "answers.json"
-        if fw and featured.exists() and self.cfg.get("featured_design"):
-            sessions.append(featured)  # the case opts in: its featured loop run supplies the page's design
+        pinned = [f for f in (ROOT / "runs" / "ws" / case_name / "work" / str(fw) / "session" / "answers.json",
+                              ROOT / "runs" / "ws" / case_name / str(fw) / "answers.json") if fw and f.exists()]
+        if pinned and self.cfg.get("featured_design"):
+            sessions = pinned[:1]
         for prev in ([] if os.getenv("PLANT_FRESH") else sorted(sessions, key=lambda f: f.parent.name if f.parent.name != "session" else f.parent.parent.name, reverse=True)):
             sid = prev.parent.parent.name if prev.parent.name == "session" else prev.parent.name
             if prev.parent != self.dir and self.built and _made_after(sid, self.built.get("at"), prev, self.model_file):
-                self.answers = json.loads(prev.read_text())
+                answers = json.loads(prev.read_text())
+                if answers and not (answers[-1] or {}).get("headline"):  # a session still being written is not the page's design
+                    continue
+                self.answers = answers
                 break
 
     @property

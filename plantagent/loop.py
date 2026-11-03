@@ -176,7 +176,9 @@ def run(w, goal, max_rounds=4, budget_usd=12.0, label=None):
                     issues = rejected + [r for r in rows if r.get("status") == "fail"]
                     rnd["open_issues"] = [{"check": r["check"], "detail": r.get("title", "")} for r in issues]
                     # done = the verified design passes every check; a rejected alternative is fed back but does not block it
-                    if not any(r.get("status") == "fail" for r in rows):
+                    # and done needs evidence: a passing process check; an empty or all-open check list is not a pass
+                    passed_process = any(r.get("check") == "process" and r.get("status") == "pass" for r in rows)
+                    if passed_process and not any(r.get("status") == "fail" for r in rows):
                         log["status"] = "done"
                         save()
                         break

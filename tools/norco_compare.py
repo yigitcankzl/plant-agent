@@ -88,6 +88,10 @@ def main(session=None):
                     design_run, design_spec, design_scale = label, d["args"]["spec"], float(d["args"].get("scale") or 1.0)
         if design_spec:
             break
+    # Score one canonical design: the verified changes applied to the model, re-solved at the target. A cited trial run can
+    # differ from the verified change (e.g. factor 1.80 vs 1.85, another feed slate), so it is not the comparison point.
+    if changes:
+        design_run, design_spec, design_scale = "verified changes at the target (canonical)", patch(spec, changes), target
     before = process.run(spec, 1.0)
     after = process.run(design_spec, design_scale) if design_spec else None
     b_worst, b_u = worst(before, uid)
