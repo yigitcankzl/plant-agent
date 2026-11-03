@@ -185,13 +185,13 @@ def unstring(v):
 _re = __import__("re")
 _CALL_TAG = r"(?:\w+:)?(?:invoke|function|funcall|function_call|tool_call|call)"  # Spark Open varies the tag per deployment
 _PARAM_TAG = r"(?:\w+:)?(?:parameter|argument|param|arg)"
-_INVOKE = _re.compile(rf"<{_CALL_TAG} name=\"([\w.-]+)\">(.*?)(?:</{_CALL_TAG}>|\Z)", _re.S | _re.I)
-_BARE = _re.compile(rf"<([A-Za-z_][\w.-]*)>\s*(<{_PARAM_TAG} name=.*?)(?:</\1>|\Z)", _re.S | _re.I)  # <answer><parameter ..>
+_INVOKE = _re.compile(rf"<\s*{_CALL_TAG} name=\"([\w.-]+)\">(.*?)(?:<\s*/\s*{_CALL_TAG}>|\Z)", _re.S | _re.I)
+_BARE = _re.compile(rf"<([A-Za-z_][\w.-]*)>\s*(<\s*{_PARAM_TAG} name=.*?)(?:</\1>|\Z)", _re.S | _re.I)  # <answer><parameter ..>
 # <answer headline="..." summary='[...]'>: the whole answer written as tag attributes
 _ATTRS = _re.compile(r"<(answer|[A-Za-z_][\w.-]*(?=\s+headline=))((?:\s+[\w.-]+=(?:\"[^\"]*\"|'[^']*'))+)\s*/?>", _re.S)
 _ATTR = _re.compile(r"([\w.-]+)=(?:\"([^\"]*)\"|'([^']*)')", _re.S)
-TEXT_CALL = _re.compile(rf"<{_CALL_TAG} name=|<[A-Za-z_][\w.-]*>\s*<{_PARAM_TAG} name=|<answer\s+[\w.-]+=|<[A-Za-z_][\w.-]*\s+headline=", _re.I)
-_PARAM = _re.compile(rf"<{_PARAM_TAG} name=\"([\w.-]+)\">(.*?)</{_PARAM_TAG}>", _re.S | _re.I)
+TEXT_CALL = _re.compile(rf"<\s*{_CALL_TAG} name=|<[A-Za-z_][\w.-]*>\s*<\s*{_PARAM_TAG} name=|<answer\s+[\w.-]+=|<[A-Za-z_][\w.-]*\s+headline=", _re.I)
+_PARAM = _re.compile(rf"<\s*{_PARAM_TAG} name=\"([\w.-]+)\">(.*?)<\s*/\s*{_PARAM_TAG}>", _re.S | _re.I)
 
 
 def bare_json(text):

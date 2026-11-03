@@ -100,3 +100,11 @@ class OfferedToolsTest(unittest.TestCase):
         with mock.patch.object(study.llm, "complete", complete):
             s.loop("ask", "sys", "user", tools, "answer", 6)
         self.assertNotIn("run", ran)
+
+
+class SpacedTagTest(unittest.TestCase):
+    def test_spaces_inside_tags(self):
+        from plantagent.study import text_tool_calls, TEXT_CALL
+        c = '<atel:function_calls>\n< Atem:invoke name="answer">\n< Atem:parameter name="headline">H</ Atem:parameter>\n</ Atem:invoke>'
+        self.assertTrue(TEXT_CALL.search(c))
+        self.assertEqual(json.loads(text_tool_calls(c)[0]["arguments"]), {"headline": "H"})
