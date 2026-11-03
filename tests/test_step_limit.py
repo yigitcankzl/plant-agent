@@ -108,3 +108,11 @@ class SpacedTagTest(unittest.TestCase):
         c = '<atel:function_calls>\n< Atem:invoke name="answer">\n< Atem:parameter name="headline">H</ Atem:parameter>\n</ Atem:invoke>'
         self.assertTrue(TEXT_CALL.search(c))
         self.assertEqual(json.loads(text_tool_calls(c)[0]["arguments"]), {"headline": "H"})
+
+
+class GluedPrefixTest(unittest.TestCase):
+    def test_prefix_without_colon(self):
+        from plantagent.study import text_tool_calls, TEXT_CALL
+        c = '<aten:function_calls>\n<atinvoke name="answer">\n<aten:parameter name="headline">H</aten:parameter>\n</atinvoke>'
+        self.assertTrue(TEXT_CALL.search(c))
+        self.assertEqual(json.loads(text_tool_calls(c)[0]["arguments"]), {"headline": "H"})

@@ -183,8 +183,8 @@ def unstring(v):
 
 
 _re = __import__("re")
-_CALL_TAG = r"(?:\w+:)?(?:invoke|function|funcall|function_call|tool_call|call)"  # Spark Open varies the tag per deployment
-_PARAM_TAG = r"(?:\w+:)?(?:parameter|argument|param|arg)"
+_CALL_TAG = r"[\w:.-]*?(?:invoke|function|funcall|function_call|tool_call|call)"  # Spark Open varies the tag per deployment
+_PARAM_TAG = r"[\w:.-]*?(?:parameter|argument|param|arg)"
 _INVOKE = _re.compile(rf"<\s*{_CALL_TAG} name=\"([\w.-]+)\">(.*?)(?:<\s*/\s*{_CALL_TAG}>|\Z)", _re.S | _re.I)
 _BARE = _re.compile(rf"<([A-Za-z_][\w.-]*)>\s*(<\s*{_PARAM_TAG} name=.*?)(?:</\1>|\Z)", _re.S | _re.I)  # <answer><parameter ..>
 # <answer headline="..." summary='[...]'>: the whole answer written as tag attributes
