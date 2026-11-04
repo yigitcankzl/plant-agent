@@ -27,8 +27,22 @@ body.process .diff .p { color: var(--go); }
 body.process .state-source { color: var(--fg); }
 body.process .engine-unavailable { background: #fbf3e3; color: var(--hold); }
 body.process .decision-fact a { color: var(--green); }
-body.process #tour { background: #f4f8ec; color: var(--fg); }
-body.process #tour .st { color: var(--green); }
+body.process #tour {
+  width: min(430px, calc(100vw - 24px)); max-height: min(320px, calc(100vh - 24px)); padding: 18px;
+  background: #fff; color: var(--fg); border: 1px solid #b9c5b4; border-left: 4px solid var(--green); border-radius: 2px;
+  box-shadow: 0 18px 50px rgba(16, 44, 12, .18);
+}
+body.process #tour .tour-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+body.process #tour .st { color: var(--green); font: 700 11px/1.3 var(--sans); letter-spacing: 0; }
+body.process #tour .tx { max-width: 42ch; margin: 12px 0 18px; color: var(--fg); font: 15px/1.5 var(--sans); }
+body.process #tour .row { align-items: center; }
+body.process #tour .row .btn { min-height: 38px; }
+body.process #tour .tour-exit { margin-right: auto; color: var(--fg-2); background: transparent; border-color: transparent; }
+body.process #tour .tour-progress { display: flex; gap: 5px; padding-top: 3px; }
+body.process #tour .tour-progress span { width: 7px; height: 7px; border-radius: 50%; background: #d7ddd3; }
+body.process #tour .tour-progress span.done { background: #91ad88; }
+body.process #tour .tour-progress span.on { background: var(--green); box-shadow: 0 0 0 3px #e3ede0; }
+body.process .tour-on { outline: 2px solid var(--green) !important; outline-offset: 4px; border-radius: 2px; }
 body.process #qa { background: #f4f8ec; color: var(--fg); }
 body.process #qaQ { color: var(--fg); }
 body.process .qa-badge.ok { color: var(--go); }

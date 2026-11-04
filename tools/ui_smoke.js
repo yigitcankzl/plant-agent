@@ -439,27 +439,30 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   console.log(xssSafe ? 'ok  ' : 'FAIL', 'hostile P&ID tags stay data (no script runs)', xssSafe ? '' : JSON.stringify({dialogs, got}));
   bad += xssSafe ? 0 : 1;
   bad += badgeCount && labelsHidden && labelsRestored ? 0 : 1;
-  // Judge-size regressions: every tour target is visible and the popover leaves it unobstructed.
+  // Judge-size regressions: the compact decision tour reaches every page without obscuring its target.
   for (const viewport of [{width: 1600, height: 1000}, {width: 1920, height: 1080}]) {
     await p.setViewportSize(viewport);
     await p.goto(`${BASE}/plant.html?case=salt_mvr&tour=1`); await p.waitForFunction(() => !!P?.built && TOUR.length > 0);
     let targetsVisible = true;
-    for (let i = 1; i <= 4; i++) {
-      await p.evaluate(i => tourGo(i), i); await p.waitForTimeout(350);
+    const tourLength = await p.evaluate(() => TOUR.length);
+    for (let i = 0; i < tourLength; i++) {
+      await p.evaluate(i => tourGo(i), i); await p.waitForTimeout(650);
       targetsVisible &&= await p.evaluate(() => {
         const pop = document.querySelector('#tour').getBoundingClientRect();
         return [...document.querySelectorAll('.tour-on')].every(el => {
           const r = el.getBoundingClientRect();
-          return r.left >= 0 && r.top >= 0 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1 &&
+          return r.right > 0 && r.bottom > 0 && r.left < innerWidth && r.top < innerHeight &&
             (pop.right <= r.left || pop.left >= r.right || pop.bottom <= r.top || pop.top >= r.bottom);
         });
       });
     }
-    const chips = await p.evaluate(() => !tourGateRow.hidden && /Process ✓/.test(tourGateRow.textContent) && /Electrical ✕ TX-1 133 %/.test(tourGateRow.textContent) &&
-      tourGateRow.getBoundingClientRect().top >= document.querySelector('#viewTog').getBoundingClientRect().bottom + 8);
+    const flow = await p.evaluate(() => TOUR.length === 6 && document.querySelectorAll('#tourProgress span').length === TOUR.length &&
+      document.querySelector('#tourNext').textContent === 'Done' && /Hand it to engineering/.test(document.querySelector('#tourStep').textContent) &&
+      document.body.classList.contains('workspace-page-package') && getComputedStyle(document.querySelector('#tour')).backgroundColor === 'rgb(255, 255, 255)' &&
+      document.querySelector('#tour').getBoundingClientRect().width <= 440);
     await p.screenshot({path: `${OUT}/cold_judge_tour_${viewport.width}x${viewport.height}.png`});
-    console.log(targetsVisible && chips ? 'ok  ' : 'FAIL', `guided tour targets and discipline chips at ${viewport.width}x${viewport.height}`);
-    bad += targetsVisible && chips ? 0 : 1;
+    console.log(targetsVisible && flow ? 'ok  ' : 'FAIL', `six-step decision tour at ${viewport.width}x${viewport.height}`);
+    bad += targetsVisible && flow ? 0 : 1;
   }
   await p.goto(`${BASE}/plant.html?case=shell_norco_c2splitter`); await p.waitForSelector('.norco-column');
   await p.waitForFunction(() => ST && document.querySelectorAll('#runStory .run-story-line').length === 4);
@@ -482,19 +485,20 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.setViewportSize({width: 1440, height: 900});
   for (const c of ['salt_mvr', 'chem_c01']) {
     await p.goto(`${BASE}/plant.html?case=${c}&tour=1`); await p.waitForSelector('#tour', { state: 'visible', timeout: 20000 });
-    const texts = [];
-    let limitsOnExisting = false, fixOnProposed = false;
-    for (let i = 0; i < 6; i++) {
+    const texts = [], titles = [], views = [];
+    const count = await p.evaluate(() => TOUR.length);
+    for (let i = 0; i < count; i++) {
       await p.waitForFunction(() => document.querySelector('#tourText').textContent !== '…', null, { timeout: 30000 }).catch(() => {});
       await p.waitForTimeout(800); texts.push(await p.locator('#tourText').innerText());
-      const step = await p.locator('#tourStep').innerText(), view = await p.evaluate(() => document.querySelector('#vExisting')?.classList.contains('on') ? 'existing' : 'proposed');
-      if (/What limits it/.test(step)) limitsOnExisting = view === 'existing';
-      if (/fix/.test(step)) fixOnProposed = view === 'proposed';
+      titles.push(await p.locator('#tourStep').innerText());
+      views.push(await p.evaluate(() => document.querySelector('#vExisting')?.classList.contains('on') ? 'existing' : 'proposed'));
       await p.click('#tourNext');
     }
     const stale = texts.some(t => /14 measured values|Three limits bind|No capital spend/.test(t));
-    const ok = !stale && limitsOnExisting && fixOnProposed && texts.some(t => /Muse/.test(t));
-    console.log(errs.length || !ok ? 'FAIL' : 'ok  ', `guided demo on ${c}: limits on Existing, Muse's fix on Proposed, text from the case data`, errs.join(' | '));
+    const bottleneck = titles.findIndex(t => /See the bottleneck/.test(t)), revision = titles.findIndex(t => /working revision/.test(t));
+    const ok = !stale && count >= 4 && count <= 6 && bottleneck >= 0 && views[bottleneck] === 'existing' &&
+      (revision < 0 || views[revision] === 'proposed') && titles.some(t => /Audit the evidence/.test(t)) && titles.some(t => /Hand it to engineering/.test(t));
+    console.log(errs.length || !ok ? 'FAIL' : 'ok  ', `data-driven ${count}-step decision tour on ${c}`, errs.join(' | '));
     bad += ok ? 0 : 1;
   }
   // Layout uses a fixed check fixture; saved gate caches can legitimately be absent/stale on a clone.

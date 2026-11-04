@@ -1140,9 +1140,8 @@
 </div>
 <div class="present-caption" id="presentCaption" aria-live="polite" hidden><div class="present-actor" id="presentActor"></div><div class="present-text" id="presentText"></div></div>
 <aside class="detail-drawer workspace-decision" id="detailDrawer" aria-label="Selected engineering detail"><div class="dd-head"><b id="detailTitle">Engineering detail</b><button class="btn" id="ddClose" type="button" aria-label="Close details">✕</button></div><div id="ddBody"></div></aside>
-<div class="tour-gate-row" id="tourGateRow" aria-label="Discipline checks" hidden></div>
-<div id="tour" role="dialog" aria-live="polite"><div class="st" id="tourStep"></div><div class="tx" id="tourText"></div>
-  <div class="row"><button class="btn" onclick="tourEnd()">Close</button><button class="btn go" id="tourNext" onclick="tourGo(TOUR_I + 1)">Next</button></div></div>
+<div id="tour" role="dialog" aria-live="polite" aria-label="PlantAgent guided tour"><div class="tour-head"><div class="st" id="tourStep"></div><div class="tour-progress" id="tourProgress" aria-hidden="true"></div></div><div class="tx" id="tourText"></div>
+  <div class="row"><button class="btn tour-exit" onclick="tourEnd()">Exit tour</button><button class="btn" id="tourBack" onclick="tourGo(TOUR_I - 1)">Back</button><button class="btn go" id="tourNext" onclick="tourGo(TOUR_I + 1)">Next</button></div></div>
 <div class="modal" id="modal" onclick="if(event.target===this)this.classList.remove('on')"><div class="box"><button class="modal-x" type="button" aria-label="Close" onclick="$('modal').classList.remove('on')">✕</button><div id="modalBox"></div></div></div>
 
 <script>
@@ -1164,7 +1163,7 @@ const act = (name, ...args) => `data-act="${name}" data-args="${esc(JSON.stringi
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   const fn = el && {select, whatIf, troubleshoot, ask, undo, accept, workFocus: (tags, view) => workFocus(tags, view, el),
-    chatFocus, chatShow, chatApply, chatWork, chatFollow, redteamSet, showTourGate, showChangeOnDrawing,
+    chatFocus, chatShow, chatApply, chatWork, chatFollow, redteamSet, showChangeOnDrawing,
     showParity: () => { setWorkspacePage('evidence'); requestAnimationFrame(() => document.querySelector('[data-nrel-parity]')?.scrollIntoView({block: 'start'})); },
     askAbout: tag => { $('q').value = `Why is ${tag} limiting, and what is the cheapest fix?`; $('q').focus(); }}[el.dataset.act];
   if (fn) fn(...JSON.parse(el.dataset.args || '[]'));
@@ -1419,6 +1418,13 @@ $('focusBtn').onclick = () => toggleFocus();
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.matches?.('.work-step[data-act]')) { e.target.click(); return; }
   if (['Enter', ' '].includes(e.key) && e.target.matches?.('[data-act][role="button"]')) { e.preventDefault(); e.target.click(); return; }
+  if (getComputedStyle($('tour')).display !== 'none') {
+    if (e.key === 'Escape') tourEnd();
+    else if (e.key === 'ArrowLeft' && TOUR_I > 0) tourGo(TOUR_I - 1);
+    else if (e.key === 'ArrowRight') tourGo(TOUR_I + 1);
+    else return;
+    e.preventDefault(); return;
+  }
   if (e.key === 'Escape') {
     if (document.body.classList.contains('workspace-page-drawing')) setWorkspacePage('overview');
     else if (document.body.classList.contains('canvas-focus')) toggleFocus(false);
@@ -3749,46 +3755,16 @@ $('toTarget').onclick = () => {
   }
   ask(`Get the unit to ${target}% of today's throughput. Find every equipment item that limits it and propose the cheapest change for each, verified in ${simulator()}, within every utility and frame limit on the data sheet.`);
 };
-// ---- guided demo: source -> question -> limits today -> Muse's fix (Rev B) -> discipline impact -> evidence ----
+// ---- guided tour: the same decision flow the workspace uses ----
 let TOUR_I = 0;
-// tour text is built from the loaded case and the state on screen, so it never describes something that is not shown
-function tourOver() {
-  const over = Object.values(worstBy(ST?.checks || [])).filter(c => c.utilisation > 1).sort((a, b) => b.utilisation - a.utilisation);
-  return over.length ? `At ${Math.round(P.target_scale * 100)} % today's plant runs out of room in ${over.length === 1 ? 'one place' : over.length + ' places'}: ` +
-    over.map(c => `${c.id} ${Math.round(c.utilisation * 100)} %`).join(', ') + '. Red marks on the drawing are over their documented limit.'
-    : 'Every item stays within its documented limit at this throughput.';
+function tourLimit() {
+  return Object.values(worstBy(ST?.checks || [])).sort((a, b) => b.utilisation - a.utilisation)[0] || null;
 }
-function tourResult() {
-  const d = designAnswer(), c = d?.combined;
-  if (!d) return 'No verified design is on record yet for this case; ask for one to see the before/after.';
-  const ps = (d.proposals || []).filter(p => p.verified);
-  return `Muse proposed ${ps.length} change${ps.length === 1 ? '' : 's'}: ${ps.map(p => p.title).join('; ')}. ${simulator()} re-solved them together on the server: ${c?.reaches_target ? `the plant reaches ${Math.round(P.target_scale * 100)} %` : 'the target is not yet reached'}. The drawing is now the Rev B sheet with every change clouded.`;
-}
-function tourGates() {
-  const g = designAnswer()?.disciplines || [];
-  if (!g.length) return 'Discipline gates have not been run for this design yet: Issue engineering package runs them.';
-  const mark = {pass: '✓', fail: '✕', open: '○'};
-  return 'The same change, checked beyond the process: ' + g.filter(r => r.status !== 'not affected').map(r => `${GATE_NAMES[r.id] || r.id} ${mark[r.status] || '—'}`).join(' · ') +
-    '. ✕ comes from a calculation (load flow, exchanger correlations, operating envelope); ○ means the input to decide it is still missing. Click a gate to see its checks.';
-}
-function showTourGates() {
-  const rows = gateRows(designAnswer() || {}), box = $('tourGateRow'), marks = {pass: '✓', fail: '✕', open: '○', na: '—'};
-  box.innerHTML = rows.filter(row => gateState(row)[0] !== 'na').map(row => {
-    const [state] = gateState(row), name = GATE_NAMES[row.id] || row.id, summary = plain(row.summary || '');
-    const loaded = summary.match(/([A-Z][A-Z0-9-]+)\s+\d+\s*→\s*(\d+)\s*%\s*loaded/i);
-    const detail = loaded ? ` ${loaded[1]} ${loaded[2]} %` : '';
-    return `<button class="tour-gate-chip ${state}" type="button" ${act('showTourGate', row.id)}>${esc(name)} ${marks[state]}${esc(detail)}</button>`;
-  }).join('');
-  box.hidden = !rows.length;
-  box.style.bottom = 'auto';
-  box.style.top = Math.max(80, $('viewTog').getBoundingClientRect().bottom + 12) + 'px';
-}
-function showTourGate(id) {
-  const row = gateRows(designAnswer() || {}).find(item => item.id === id); if (!row) return;
-  const index = GATE_VIEWS.push(row) - 1; showGate(index);
+function tourTarget(ref) {
+  return typeof ref === 'string' ? ($(ref) || document.querySelector(ref)) : ref;
 }
 function placeTour(ids) {
-  const targets = ids.map(id => $(id)).filter(el => el && !el.hidden && el.getClientRects().length);
+  const targets = ids.map(tourTarget).filter(el => el && !el.hidden && el.getClientRects().length);
   if (!targets.length) return;
   const rects = targets.map(el => el.getBoundingClientRect());
   const target = {left: Math.min(...rects.map(r => r.left)), right: Math.max(...rects.map(r => r.right)), top: Math.min(...rects.map(r => r.top)), bottom: Math.max(...rects.map(r => r.bottom))};
@@ -3803,27 +3779,34 @@ function placeTour(ids) {
   box.style.top = Math.max(pad, Math.min(innerHeight - h - pad, top)) + 'px';
 }
 function tourSteps() {
-  const b = P.built || {}, so = designAnswer()?.second_opinion;
-  return [
-    ['The source', () => `This is the case P&ID (the banner above says where it comes from). ${/muse/i.test(b.model || '') ? `${museName(b.model)} read it with the data sheets and built this ${simulator()} model itself` : `The ${simulator()} model here is a ${b.model || 'template'} built without a language model`} (${(b.spec?.units || b.spec?.stages || []).length} units, ${b.seconds || '?'} s).${(k => k ? ` Checked against the plant's measurements: ${k.reproduced} of ${k.reproduced + k.differs} comparable outputs match within 3 %${(n => n ? ` (${n} reference value${n === 1 ? '' : 's'} could not be compared)` : '')((k.not_in_solve || 0) + (k.no_reference || 0) + (k.no_measurement || 0))}.` : '')(b.calibration_check?.counts)}`,
-      () => [$('note').style.display === 'none' ? 'stateSource' : 'note'], async () => { await setView('existing'); setScale(100); }],
-    ['The question', () => `The engineer asks for +${Math.round((P.target_scale - 1) * 100)} % throughput. At ${Math.round(P.target_scale * 100)} % every item on the P&ID is re-solved in ${simulator()} and coloured by how close it runs to its limit.`,
-      () => ['scale', 'verdict'], async () => { await setView('existing'); setScale(Math.round(P.target_scale * 100)); }],
-    ['What limits it today', tourOver, () => ['eqlist'], () => setWorkspacePage('sources')],
-    ['Muse\'s fix, re-solved', tourResult, () => ['resultPane'], async () => { setWorkspacePage('overview'); await setView('proposed'); }],
-    ['Beyond the process', tourGates, () => ['tourGateRow'], () => { openDetails(false); showTourGates(); }],
-    ...(so ? [['Second opinion', () => `${so.model ? museName(so.model) : 'An open-weights model'} answered the same question independently; both answers were re-solved in ${simulator()} and compared without picking a winner.`,
-      () => ['resultPane'], () => setWorkspacePage('evidence')]] : []),
-    ['The evidence', () => 'Every input is labelled as from a document, measured, computed or assumed; every cited run re-solves to the same result; revisions and a hash-chained audit trail are kept. Nothing here is approved for construction: it is a draft for a licensed engineer.',
-      () => ['sourcesWorkspace'], () => setWorkspacePage('sources')],
+  const target = Math.round(P.target_scale * 100), revision = workingRevisionData();
+  const tags = [...new Set((revision?.changes || []).map(changeTag).filter(Boolean))];
+  const evidence = () => {
+    const design = designAnswer() || {}, rows = gateRows(design), failed = rows.filter(row => gateState(row)[0] === 'fail').length;
+    const assumptions = Array.isArray(P?.built?.assumptions) ? P.built.assumptions.length : Object.keys(P?.built?.assumptions || {}).length;
+    return `${(design.cards || []).length} calculations, ${assumptions} assumptions and ${P?.audit?.verify?.entries || 0} audit entries support this decision. ${failed ? `${failed} discipline check${failed === 1 ? '' : 's'} still fail.` : 'No recorded discipline check fails.'}`;
+  };
+  const steps = [
+    ['Start with the decision', () => `The goal is ${target} % of today's throughput. PlantAgent keeps the recommendation beside the plant drawing; model and source details remain under Model & data.`,
+      () => ['runStory', 'workspaceActions'], async () => { setWorkspacePage('overview'); await setView('existing'); setScale(target); }],
+    ['See the bottleneck', () => { const limit = tourLimit(); return limit ? `At the target rate, ${limit.id} reaches ${Math.round(limit.utilisation * 100)} % of its documented limit. Red means the rating is exceeded.` : 'Every modelled item remains inside its documented limit at the target rate.'; },
+      () => { const id = tourLimit()?.id, node = id && sheet.querySelector(`[data-tag="${CSS.escape(id)}"]`); return [node || 'pidViewport']; }, async () => { setWorkspacePage('drawing'); await setView('existing'); setScale(target); await new Promise(r => setTimeout(r, 180)); const id = tourLimit()?.id; if (id) focusDrawing(id); }],
+    ...(revision ? [['Compare the working revision', () => `${revision.title}. Every physical change is clouded on the drawing, and the existing plant remains one click away.`,
+      () => ['changeSummary', 'viewTog'], async () => { setWorkspacePage('drawing'); await setView('proposed'); if (tags.length) focusDrawingTags(tags); }]] : []),
+    ...(LAST_WORK ? [['Follow the engineering checks', () => { const rounds = LAST_WORK.rounds?.length || 0, headline = plain(LAST_WORK.result?.headline || LAST_WORK.status || 'The saved run is still open'); return `${rounds} engineering round${rounds === 1 ? '' : 's'} recorded. ${headline}. Missing inputs stay open instead of being guessed.`; },
+      () => ['worklogPanel', 'workspaceActions'], () => setWorkspacePage('run')]] : []),
+    ['Audit the evidence', evidence, () => ['evidenceSummary'], () => setWorkspacePage('evidence')],
+    ['Hand it to engineering', () => { const rows = gateRows(designAnswer() || {}), failed = rows.filter(row => gateState(row)[0] === 'fail').length, open = rows.filter(row => gateState(row)[0] === 'open').length; return `The process design is checked, but ${failed} discipline${failed === 1 ? '' : 's'} fail and ${open} discipline check${open === 1 ? '' : 's'} remain open. Any issued package stays a draft until engineers approve it.`; },
+      () => ['packageFlow', 'workspaceActions'], () => setWorkspacePage('package')],
   ];
+  return steps;
 }
 let TOUR = [];
 function setScale(v) { $('scale').value = v; $('scale').oninput(); }
 async function tourGo(i) {
   document.querySelectorAll('.tour-on').forEach(e => e.classList.remove('tour-on'));
-  $('tourGateRow').hidden = true;
   if (!i) TOUR = tourSteps();
+  i = Math.max(0, i);
   if (i >= TOUR.length) return tourEnd();
   TOUR_I = i;
   toggleDrawer(false);
@@ -3831,19 +3814,22 @@ async function tourGo(i) {
   const [t, x, on, act] = TOUR[i];
   $('tour').style.display = 'block';
   $('tourStep').textContent = `Step ${i + 1} of ${TOUR.length} · ${t}`;
+  $('tourProgress').innerHTML = TOUR.map((_, n) => `<span class="${n === i ? 'on' : n < i ? 'done' : ''}"></span>`).join('');
   $('tourText').textContent = '…';
-  $('tourNext').textContent = i === TOUR.length - 1 ? 'Finish' : 'Next';
+  $('tourBack').hidden = i === 0;
+  $('tourNext').textContent = i === TOUR.length - 1 ? 'Done' : 'Next';
   if (act) await act();
   await new Promise(r => setTimeout(r, 400));  // the slider re-solve settles before the text reads the state
   if (TOUR_I !== i || $('tour').style.display === 'none') return;  // the user moved on while this step was solving
   $('tourText').textContent = x();
-  const ids = on();
-  ids.forEach(id => $(id)?.scrollIntoView({block: 'center', inline: 'nearest'}));
+  const ids = on(), targets = ids.map(tourTarget).filter(Boolean);
+  targets.forEach(el => el.scrollIntoView({block: 'center', inline: 'nearest'}));
   await new Promise(r => requestAnimationFrame(r));
-  ids.forEach(id => $(id)?.classList.add('tour-on'));
+  targets.forEach(el => el.classList.add('tour-on'));
   placeTour(ids);
+  $('tourNext').focus({preventScroll: true});
 }
-function tourEnd() { $('tour').style.display = 'none'; $('tourGateRow').hidden = true; toggleDrawer(false); openDetails(false); document.querySelectorAll('.tour-on').forEach(e => e.classList.remove('tour-on')); }
+function tourEnd() { $('tour').style.display = 'none'; toggleDrawer(false); openDetails(false); document.querySelectorAll('.tour-on').forEach(e => e.classList.remove('tour-on')); }
 
 $('model').onchange = e => api('model', {model: e.target.value});
 window.onresize = () => { fitDrawing(); if (ST) render(ST); };
