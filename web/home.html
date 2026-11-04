@@ -53,6 +53,7 @@
 </style>
 <link rel="stylesheet" href="design.css">
 <link rel="stylesheet" href="runlog.css">
+<link rel="stylesheet" href="hero-decision.css">
 <style>
   body.presentation-home { overflow: hidden; font-size: 18px; }
   body.presentation-home .wrap { max-width: none; height: 100vh; padding: 32px 54px; }
@@ -333,31 +334,22 @@
     <nav aria-label="Main navigation"><a href="#product">Product</a><a href="#evidence">Evidence</a><a href="#cases">Case library</a><a class="nav-cta" href="#new">New project</a></nav>
   </header>
   <main>
-    <section class="hero theatre-hero" aria-labelledby="hero-title">
-      <p class="hero-context">ENGINEERING CHANGE ASSURANCE</p>
-      <h1 id="hero-title">The decision platform for process plants</h1>
-      <a class="decision-rig" href="plant.html?case=salt_mvr" aria-label="Open the salt plant change shown in this checked decision">
-        <span class="demo-shell">
-          <span class="demo-bar"><span><i></i> Vacuum-salt MVR · capacity study</span><b>LIVE REPLAY</b></span>
-          <span class="demo-viewport" aria-hidden="true">
-            <img class="demo-frame existing" src="img/plantagent-salt-existing.png" alt="">
-            <img class="demo-frame proposed" src="img/plantagent-salt-draft.png" alt="">
-            <img class="demo-frame approval" src="img/plantagent-salt-approval.png" alt="">
-            <span class="demo-scan"></span>
-          </span>
-          <span class="demo-status">
-            <span class="demo-caption"><small>01 · FIND THE LIMIT</small><b>K-201 reaches capacity before +20%</b></span>
-            <span class="demo-caption"><small>02 · TEST THE CHANGE</small><b>Muse adds K-202 · DWSIM reaches 120%</b></span>
-            <span class="demo-caption"><small>03 · CHECK THE WHOLE PLANT</small><b>Process passes · TX-1 reaches 133% ✕</b></span>
-          </span>
-          <span class="demo-progress" aria-hidden="true"><i></i><i></i><i></i></span>
-        </span>
-      </a>
-      <p class="lead">PlantAgent turns P&amp;IDs and operating data into structured, checked design records. Meta's Muse agents propose changes; engineering engines decide what actually passes.</p>
-      <div class="hero-actions">
-        <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Explore the checked change</a>
+    <section class="hero dashboard-hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="kicker">For process engineers checking a plant change before MOC approval</p>
+        <h1 id="hero-title">Change the plant. Prove the change.</h1>
+        <p class="lead">PlantAgent turns a P&amp;ID and an engineering goal into a checked draft change. Meta's Muse models propose and revise; process and electrical engines decide what passes, what fails and what still needs an engineer.</p>
+        <div class="hero-actions">
+          <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Open the engineering desk</a>
+          <a class="btn quiet" href="#evidence">See the evidence</a>
+        </div>
+        <div class="hd-compare" aria-label="Muse alone compared with PlantAgent">
+          <div><small>Muse alone</small><span class="ok">Process reaches 120 % ✓</span></div>
+          <div><small>PlantAgent</small><span class="no">Approval blocked: the transformer would be overloaded ✕</span></div>
+        </div>
+        <p class="hero-trust">Open source · simulator-checked · every output stays a draft until an engineer approves it</p>
       </div>
-      <p class="hero-trust">Open source · simulator-checked · engineer approval required</p>
+      <a class="hero-decision" id="heroDecision" href="plant.html?case=salt_mvr" aria-label="One real decision: the salt plant at +20 %. Open it in the workspace"></a>
     </section>
 
     <section class="hero-proof" aria-label="From plant data to a checked change">
@@ -568,5 +560,6 @@ document.getElementById("newForm").onsubmit = async e => {
 };
 </script>
 <script src="runlog.js" defer></script>
+<script src="hero-decision.js" defer></script>
 </body>
 </html>
