@@ -337,7 +337,7 @@
     <section class="hero dashboard-hero" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="kicker">For process engineers checking a plant change before MOC approval</p>
-        <h1 id="hero-title">Change the plant. Prove the change.</h1>
+        <h1 id="hero-title"><span>Change the plant.</span><span>Prove the change.</span></h1>
         <p class="lead">PlantAgent turns a P&amp;ID and an engineering goal into a checked draft change. Meta's Muse models propose and revise; process and electrical engines decide what passes, what fails and what still needs an engineer.</p>
         <div class="hero-actions">
           <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Open the engineering desk</a>
@@ -352,21 +352,9 @@
       <a class="hero-decision" id="heroDecision" href="plant.html?case=salt_mvr" aria-label="One real decision: the salt plant at +20 %. Open it in the workspace"></a>
     </section>
 
-    <section class="hero-proof" aria-label="From plant data to a checked change">
+    <section class="hero-proof" id="product" aria-label="From plant data to a checked change">
       <div><span>INPUT</span><b>P&amp;ID + data sheets</b></div><div><span>PROPOSAL</span><b>Meta Muse</b></div>
       <div><span>CHECKS</span><b>Engineering engines</b></div><div><span>OUTPUT</span><b>Rev B + decision pack</b></div>
-    </section>
-
-    <section class="case-story" id="product" aria-labelledby="story-title">
-      <div class="case-story-copy"><p class="story-label">ONE CHANGE · FOUR VERDICTS</p><h2 id="story-title">The process passed. Approval didn't.</h2>
-        <p>Muse found a route to +20% production. The process simulation cleared it, but the added compressor overloaded the transformer. PlantAgent keeps that conflict visible instead of turning a partial result into a green check.</p>
-        <a class="story-link" href="plant.html?case=salt_mvr&amp;tour=1">Walk through this decision →</a></div>
-      <div class="story-gates" aria-label="Salt plant engineering verdicts">
-        <div class="story-row"><span>META MUSE</span><div><b>Clean E-201 + add parallel K-202</b><p>Draft change with provisional equipment rating</p></div><strong>DRAFTED</strong></div>
-        <div class="story-row pass"><span>DWSIM</span><div><b>Process target</b><p>The proposed process reaches the requested throughput</p></div><strong>120% ✓</strong></div>
-        <div class="story-row fail"><span>PANDAPOWER</span><div><b>Transformer TX-1</b><p>The process fix creates an electrical bottleneck</p></div><strong>133% ✕</strong></div>
-        <div class="story-row open"><span>ENGINEER</span><div><b>Vendor curve + electrical modification</b><p>Required before the design can be approved</p></div><strong>OPEN</strong></div>
-      </div>
     </section>
 
     <p class="slogan">Muse proposes. Physics checks. Engineers approve.</p>
@@ -376,28 +364,20 @@
       <article><span>03 · DECIDE</span><h2>The engineer owns the outcome</h2><p>Failures and open items stay visible. Approval freezes a revision with its evidence, comments and audit trail.</p></article>
     </section>
 
-    <section class="featured-run" id="evidence" aria-labelledby="run-title">
-      <div class="run-copy"><p class="kicker">A complete engineering record</p><h2 id="run-title">Not a chatbot answer. A change that survived checks.</h2>
-        <p>On BASF's official DEXPI example, Muse built the process model from an unseen drawing and proposed a 600 mm replacement shell. The server re-solved the process target, purity, envelope and uncertainty; vendor and cross-discipline confirmation remain open.</p>
-        <a class="text-link" href="plant.html?case=basf_process_column_k_2750_dexpi_c02_uns">Open the BASF workspace →</a></div>
-      <div class="run-record" aria-label="BASF engineering run summary">
-        <div class="run-record-head"><span>ENGINEERING RUN · BASF K 2750</span><span>OPEN-WEIGHT MUSE</span></div>
-        <div class="run-row"><span class="actor">MUSE SPARK OPEN</span><div><b>Reflux 1.5 and a larger bottoms draw</b><p>Reaches the target, then the +10 % feed case floods it. The numbers go back to Muse.</p></div><span class="result fail">FAIL</span></div>
-        <div class="run-row"><span class="actor">MUSE SPARK OPEN</span><div><b>Revised: replace the column shell with a uniform 600 mm section</b><p>Proposal includes its sizing basis and keeps vendor confirmation open.</p></div><span class="result">PROPOSED</span></div>
-        <div class="run-row"><span class="actor">DWSIM</span><div><b>Process target, purity and assumed envelope pass</b><p>61 % of flood against the modelled 80 % limit, both envelope cases and 48 of 48 uncertainty samples.</p></div><span class="result">PASS</span></div>
-        <div class="run-row"><span class="actor">RED TEAM</span><div><b>8 of 8 bounded process attacks held</b><p>Worst stored flooding result: 89.7% of the allowable limit.</p></div><span class="result">8 / 8</span></div>
-        <div class="run-row"><span class="actor">ENGINEER</span><div><b>Vendor and cross-discipline review still required</b><p>The process screens pass; the physical modification is not approved.</p></div><span class="result open">OPEN</span></div>
-      </div>
+    <section id="evidence" class="recorded-evidence" aria-label="Recorded BASF engineering run">
+      <section id="liveRun" aria-label="Recorded engineering run"></section>
     </section>
-    <section id="liveRun" aria-label="Recorded engineering run"></section>
 
     <section class="model-stack" aria-labelledby="models-title">
       <div class="model-stack-head"><div><p class="kicker">Built on Meta</p><h2 id="models-title">One model stack, distinct jobs</h2></div><p>Reading, designing and challenging are separate steps. Each simulation result comes back from an engine, not from the language model.</p></div>
-      <div class="model-rail">
-        <article><span>Muse Wonder</span><b>Read the plant</b><p>Scanned P&amp;IDs, patent figures and data sheets.</p></article>
-        <article><span>Muse Spark Open</span><b>Design the change</b><p>Open weights propose, read failures and revise.</p></article>
-        <article><span>Muse Spark 1.3</span><b>Attack the design</b><p>Operating deviations test a passing design.</p></article>
-        <article><span>Muse Voice</span><b>Capture the goal</b><p>The engineer's spoken request enters the record.</p></article>
+      <div class="model-stack-body">
+        <div class="model-brand"><img src="img/meta-mark.svg" alt="Meta"><span>Meta Muse</span></div>
+        <div class="model-rail">
+          <article><span>Muse Wonder</span><b>Read the plant</b><p>Scanned P&amp;IDs, patent figures and data sheets.</p></article>
+          <article><span>Muse Spark Open</span><b>Design the change</b><p>Open weights propose, read failures and revise.</p></article>
+          <article><span>Muse Spark 1.3</span><b>Attack the design</b><p>Operating deviations test a passing design.</p></article>
+          <article><span>Muse Voice</span><b>Capture the goal</b><p>The engineer's spoken request enters the record.</p></article>
+        </div>
       </div>
     </section>
     <p id="openWeightsHero">Why open weights matter: the Meta-hosted endpoint refused the <a href="plant.html?case=ucte_2006">UCTE blackout prompt</a> <span data-attempts>four</span> times (content policy). <a href="https://github.com/yigitcankzl/plant-agent/blob/master/evidence/open-weights-engineering/README.md">Muse Spark Open</a> ran the same engineering loop; redispatch plus opening the 220 kV tie passed line limits and N-1 (<span data-violations>0</span> violations). An availability result, not a quality comparison.</p>

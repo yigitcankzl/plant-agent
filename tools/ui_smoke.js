@@ -230,6 +230,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   bad += signoffOk ? 0 : 1;
   await p.goto(`${BASE}/home.html`); await p.waitForTimeout(2000);
   await p.waitForFunction(() => !/Loading saved decisions/.test(document.querySelector('#queueDecisions')?.textContent || ''), null, {timeout: 30000}).catch(() => {});
+  await p.waitForFunction(() => document.querySelector('#liveRun .runlog-term'), null, {timeout: 10000}).catch(() => {});
   const homeOk = await p.evaluate(() => !document.body.innerHTML.includes('bt_column_debottleneck') &&
     /case=salt_mvr&tour=1/.test(document.querySelector('.hero-actions a').getAttribute('href')));
   const heroEvidence = await p.evaluate(() => { const line = document.querySelector('#openWeightsHero'), links = [...line.querySelectorAll('a')];
@@ -246,8 +247,10 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     document.querySelectorAll('#heroDecision .hd-step.on').length === 5 && document.querySelector('#heroDecision').classList.contains('blocked') &&
     /45 % → 133 %/.test(document.querySelector('#heroDecision').textContent) && /Draft blocked/.test(document.querySelector('#heroDecision').textContent) &&
     /Approval blocked/.test(document.querySelector('.hd-compare')?.textContent || '') &&
-    document.querySelectorAll('#product .story-row').length === 4 && document.querySelector('.queue-shell #engineeringQueue') &&
-    getComputedStyle(document.querySelector('.model-rail'), '::before').backgroundImage.includes('/img/meta-mark.svg'));
+    document.querySelectorAll('#hero-title span').length === 2 && !document.querySelector('.case-story') && !document.querySelector('.featured-run') &&
+    /Muse is wrong twice/.test(document.querySelector('#liveRun')?.textContent || '') &&
+    document.querySelectorAll('.model-stack-body .model-rail article').length === 4 && document.querySelector('.model-brand img')?.naturalWidth > 0 &&
+    document.querySelector('.queue-shell #engineeringQueue'));
   const queueOk = await p.evaluate(() => document.querySelectorAll('#queueCounts .queue-count').length === 3 &&
     document.querySelectorAll('#queueDecisions .queue-item').length > 0 && !/owner:|due today|last data|updated .* ago/i.test(document.querySelector('.queue-columns').textContent));
   await p.goto(`${BASE}/home.html?present=1`); await p.waitForTimeout(500);
