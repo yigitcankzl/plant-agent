@@ -240,8 +240,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     /of real engineers' conclusions, blind, model-graded/.test(document.querySelector('#stats').textContent));
   // the hero tells one real decision story: proposal, process pass, electrical block, human action
   const accentSystem = await p.evaluate(() => getComputedStyle(document.querySelector('.hero-actions .go')).backgroundColor === 'rgb(16, 44, 12)' &&
-    document.querySelectorAll('.decision-rig .decision-chip').length === 3 &&
-    document.querySelector('.plant-core img')?.complete && document.querySelector('.plant-core img')?.naturalWidth > 0 &&
+    document.querySelectorAll('.decision-rig .demo-frame').length === 3 &&
+    [...document.querySelectorAll('.decision-rig .demo-frame')].every(img => img.complete && img.naturalWidth > 0) &&
     /120%/.test(document.querySelector('.decision-rig')?.textContent || '') &&
     /TX-1[\s\S]*133%/.test(document.querySelector('.decision-rig')?.textContent || '') &&
     /DWSIM CHECKED/.test(document.querySelector('.decision-rig')?.textContent || ''));
