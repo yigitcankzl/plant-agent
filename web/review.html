@@ -3,101 +3,118 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>PlantAgent · MOC sign-off</title>
+  <link rel="stylesheet" href="design.css">
   <style>
+    /* same visual language as the workspace: deep teal surfaces, one accent, colour only for state */
     :root {
       color-scheme: dark;
-      --ink: #121b21; --ink-2: #18242c; --rule: #22323b; --fg: #e4eaed; --fg-2: #9aabb4; --fg-3: #6f828c;
-      --go: #6fbf9a; --stop: #e0735d; --hold: #d4b064; --act: #8fd0c2; --paper: #e9ece6; --paper-ink: #1d2a30;
-      --sans: "Inter", "Segoe UI", system-ui, sans-serif; --mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+      --ink: #071a1e; --ink-2: #0f262b; --ink-3: #143239; --rule: #24434a; --fg: #eef5f3; --fg-2: #a9bfc0; --fg-3: #7d9698;
+      --go: #91cfb7; --stop: #ee8d7f; --hold: #f1bd73; --act: #7c83ff; --act-2: #9aa0ff;
+      --sans: "Lato", "Segoe UI", Arial, sans-serif; --mono: "Liberation Mono", "DejaVu Sans Mono", monospace;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--ink); color: var(--fg); font: 14px/1.5 var(--sans); }
-    a { color: var(--act); }
-    header { display: flex; gap: 18px; align-items: center; padding: 14px 28px; border-bottom: 1px solid var(--rule); }
-    header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+    body { margin: 0; background: var(--ink); color: var(--fg); font: 15px/1.55 var(--sans);
+      background-image: radial-gradient(900px 500px at 100% -10%, rgba(124,131,255,.10), transparent 60%); min-height: 100vh; }
+    a { color: var(--act-2); }
+    header { display: flex; gap: 18px; align-items: center; padding: 14px 32px; border-bottom: 1px solid var(--rule); background: rgba(7,26,30,.85); position: sticky; top: 0; z-index: 5; backdrop-filter: blur(6px); }
+    header .brand { font: 800 17px var(--sans); color: var(--fg); text-decoration: none; letter-spacing: -.02em; }
+    header .brand span { color: var(--act-2); }
+    header h1 { font: 700 15px var(--sans); margin: 0; color: var(--fg-2); }
     header .sp { flex: 1; }
-    select, input, textarea, button { font: inherit; color: var(--fg); background: var(--ink-2); border: 1px solid var(--rule); border-radius: 6px; padding: 7px 9px; }
+    .role-pick { display: flex; align-items: center; gap: 8px; padding: 5px 6px 5px 12px; border: 1px solid var(--rule); border-radius: 999px; background: var(--ink-2); }
+    .role-pick b { font: 700 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--fg-3); }
+    .role-pick select { border-radius: 999px; background: var(--act); color: #fff; border-color: var(--act); font-weight: 700; padding: 5px 12px; }
+    .role-note { font-size: 12px; color: var(--fg-3); max-width: 110px; line-height: 1.3; }
+    header #case { max-width: 340px; } header a, header h1 { white-space: nowrap; }
+    select, input, textarea, button { font: inherit; color: var(--fg); background: var(--ink-3); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 11px; }
     textarea { width: 100%; min-height: 58px; resize: vertical; }
-    button { cursor: pointer; }
-    button.go { background: var(--act); color: var(--ink); border-color: var(--act); font-weight: 600; }
-    button.stop { border-color: var(--stop); color: var(--stop); }
-    button:disabled { opacity: .45; cursor: not-allowed; }
-    :focus-visible { outline: 2px solid var(--act); outline-offset: 2px; }
-    main { max-width: 1240px; margin: 0 auto; padding: 26px 28px 60px; display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 34px; }
-    h2 { font-size: 15px; font-weight: 600; margin: 30px 0 10px; }
+    button { cursor: pointer; font-weight: 600; }
+    button.go { background: var(--act); color: #fff; border-color: var(--act); }
+    button.stop { border-color: var(--stop); color: var(--stop); background: transparent; }
+    button:disabled { opacity: .4; cursor: not-allowed; }
+    :focus-visible { outline: 2px solid var(--act-2); outline-offset: 2px; }
+    main { max-width: 1280px; margin: 0 auto; padding: 32px 32px 64px; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 40px; }
+    h2 { font: 800 19px var(--sans); letter-spacing: -.01em; margin: 36px 0 12px; color: var(--fg); }
     h2:first-child { margin-top: 0; }
-    .muted { color: var(--fg-2); } .small { font-size: 12.5px; }
-    .lede { max-width: 72ch; color: var(--fg-2); margin: 0 0 18px; }
-    .lede b { color: var(--fg); font-weight: 500; }
+    aside h2 { font-size: 15px; margin: 0 0 8px; color: var(--fg-2); }
+    .muted { color: var(--fg-2); } .small { font-size: 13px; }
+    .lede { max-width: 74ch; color: var(--fg-2); margin: 0 0 22px; font-size: 15px; }
+    .lede b { color: var(--fg); font-weight: 700; font-size: 17px; line-height: 1.45; display: block; margin-bottom: 6px; }
 
-    /* the approval block, drawn like the revision and approval block of a P&ID sheet */
-    .block { background: var(--paper); color: var(--paper-ink); border: 2px solid var(--paper-ink); }
-    .block .title { display: grid; grid-template-columns: 1fr auto; border-bottom: 2px solid var(--paper-ink); }
-    .block .title > div { padding: 10px 14px; }
-    .block .title .doc { font-weight: 600; }
-    .block .title .doc span { display: block; font-weight: 400; font-size: 12px; color: #4a5a61; }
-    .block .stamp { border-left: 2px solid var(--paper-ink); display: flex; align-items: center; justify-content: center; min-width: 170px;
-                    font-weight: 700; font-size: 15px; letter-spacing: .02em; }
-    .stamp.draft { color: #6b5a1f; } .stamp.reviewed { color: #23566b; } .stamp.approved { color: #1f6b47; } .stamp.rejected { color: #9c2f1f; }
-    .block .cells { display: grid; grid-template-columns: repeat(3, 1fr); }
-    .block .cell { padding: 10px 14px 12px; border-right: 1px solid var(--paper-ink); min-height: 132px; display: flex; flex-direction: column; gap: 6px; }
+    /* the approval block: three steps, Prepared -> Reviewed -> Approved */
+    .block { background: var(--ink-2); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+    .block .title { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--rule); }
+    .block .title .doc { font-weight: 700; }
+    .block .title .doc span { display: block; font: 12px var(--mono); color: var(--fg-3); margin-top: 3px; }
+    .block .stamp { padding: 7px 14px; border-radius: 999px; font: 700 13px var(--sans); letter-spacing: .02em; border: 1px solid; }
+    .stamp.draft { color: var(--hold); border-color: rgba(241,189,115,.5); background: rgba(241,189,115,.08); }
+    .stamp.reviewed { color: var(--act-2); border-color: rgba(124,131,255,.5); background: rgba(124,131,255,.1); }
+    .stamp.approved { color: var(--go); border-color: rgba(145,207,183,.5); background: rgba(145,207,183,.1); }
+    .stamp.rejected { color: var(--stop); border-color: rgba(238,141,127,.5); background: rgba(238,141,127,.1); }
+    .block .cells { display: grid; grid-template-columns: repeat(3, 1fr); counter-reset: step; }
+    .block .cell { padding: 16px 18px 18px; border-right: 1px solid var(--rule); min-height: 150px; display: flex; flex-direction: column; gap: 7px; position: relative; }
     .block .cell:last-child { border-right: 0; }
-    .block .role { font-size: 12px; color: #4a5a61; }
-    .block .who { font-weight: 600; font-size: 15px; }
-    .block .when { font-size: 12px; color: #4a5a61; }
-    .block .note { font-size: 12.5px; }
-    .block input, .block textarea { background: #fff; color: var(--paper-ink); border-color: #9aa6a8; }
-    .block button.go { background: var(--paper-ink); color: var(--paper); border-color: var(--paper-ink); }
-    .block button.stop { background: transparent; color: #9c2f1f; border-color: #9c2f1f; }
-    .block .why { font-size: 12px; color: #6b5a1f; }
+    .block .role { font: 700 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--fg-3); display: flex; align-items: center; gap: 8px; }
+    .block .role::before { counter-increment: step; content: counter(step); width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center;
+      background: var(--ink-3); border: 1px solid var(--rule); color: var(--fg-2); font-size: 11px; letter-spacing: 0; }
+    .block .who { font-weight: 700; font-size: 16px; }
+    .block .when { font-size: 12.5px; color: var(--fg-3); }
+    .block .note { font-size: 13px; color: var(--fg-2); }
+    .block .why { font-size: 12.5px; color: var(--hold); }
+    .block .gate { font-size: 12.5px; color: var(--fg-3); border: 1px dashed var(--rule); border-radius: 8px; padding: 8px 10px; }
     .block .acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; }
 
-    .alert { border-left: 3px solid var(--stop); padding: 8px 12px; background: #2a1d1c; margin: 14px 0 0; }
-    .alert.hold { border-color: var(--hold); background: #2a2618; }
+    .alert { border-left: 3px solid var(--stop); padding: 10px 14px; background: rgba(238,141,127,.08); border-radius: 0 8px 8px 0; margin: 16px 0 0; }
+    .alert.hold { border-color: var(--hold); background: rgba(241,189,115,.08); }
 
-    .check { border-top: 1px solid var(--rule); padding: 14px 0; display: grid; grid-template-columns: 120px 1fr; gap: 6px 16px; }
-    .check .id { font-weight: 600; }
+    .check { border: 1px solid var(--rule); border-left: 3px solid var(--stop); border-radius: 10px; background: var(--ink-2); padding: 14px 16px; margin: 0 0 12px;
+      display: grid; grid-template-columns: 130px 1fr; gap: 8px 16px; }
+    .check .id { font: 700 13px var(--mono); text-transform: uppercase; letter-spacing: .06em; }
     .check .id.fail { color: var(--stop); } .check .id.open { color: var(--hold); }
-    .check .sum { color: var(--fg-2); font-size: 13px; }
+    .check .sum { color: var(--fg); font-size: 15px; }
     .check form { grid-column: 2; display: grid; grid-template-columns: auto auto 1fr; gap: 8px; align-items: start; }
+    .check form label { font-size: 13.5px; color: var(--fg-2); display: flex; gap: 6px; align-items: center; }
     .check form textarea { grid-column: 1 / -1; min-height: 44px; }
     .check form .row { grid-column: 1 / -1; display: flex; gap: 8px; }
     .check form .row input { flex: 1; }
-    .disp { grid-column: 2; font-size: 13px; }
+    .disp { grid-column: 2; font-size: 13.5px; }
     .disp b.accepted_risk { color: var(--hold); } .disp b.must_fix { color: var(--stop); }
-    .openlist { margin: 0; padding: 0; list-style: none; }
-    .openlist li { border-top: 1px solid var(--rule); padding: 8px 0; display: grid; grid-template-columns: 120px 1fr; gap: 16px; font-size: 13px; }
-    .openlist li b { color: var(--hold); font-weight: 600; }
+    .openlist { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+    .openlist li { border: 1px solid var(--rule); border-left: 3px solid var(--hold); border-radius: 10px; background: var(--ink-2); padding: 10px 14px;
+      display: grid; grid-template-columns: 130px 1fr; gap: 16px; font-size: 13.5px; }
+    .openlist li b { color: var(--hold); font: 700 12px var(--mono); text-transform: uppercase; letter-spacing: .06em; }
 
-    aside section { border-top: 1px solid var(--rule); padding-top: 18px; margin-top: 18px; }
-    aside section:first-child { border-top: 0; }
-    .files { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+    aside section { border: 1px solid var(--rule); border-radius: 12px; background: var(--ink-2); padding: 16px 18px; margin-bottom: 14px; }
+    .files { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; }
     .files li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
     .files li span:last-child { color: var(--fg-3); }
-    .file-list > summary { cursor: pointer; color: var(--act); font-size: 12.5px; }
-    .technical { margin-top: 5px; } .technical > summary { cursor: pointer; color: var(--fg-3); font-size: 11.5px; }
+    .file-list > summary { cursor: pointer; color: var(--act-2); font-size: 13px; }
+    .technical { margin-top: 6px; } .technical > summary { cursor: pointer; color: var(--fg-3); font-size: 12px; }
     .hash { font: 11.5px var(--mono); color: var(--fg-2); word-break: break-all; }
-    .hist { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
-    .hist li { padding: 5px 0; border-top: 1px solid var(--rule); }
-    .hist li .muted { display: block; }
+    .hist { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+    .hist li { padding: 6px 0; border-top: 1px solid var(--rule); }
+    .hist li:first-child { border-top: 0; }
+    .hist li .muted { display: block; font-size: 12px; }
     .err { color: var(--stop); min-height: 1.2em; font-size: 13px; }
-    @media (max-width: 900px) { main { grid-template-columns: 1fr; } .block .cells { grid-template-columns: 1fr; } .block .cell { border-right: 0; border-bottom: 1px solid var(--paper-ink); } }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; } .block .cells { grid-template-columns: 1fr; } .block .cell { border-right: 0; border-bottom: 1px solid var(--rule); } header { flex-wrap: wrap; } }
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
     body.present-mode { font-size: 18px; }
     body.present-mode main { max-width: 1640px; padding-bottom: 40px; }
-    body.present-mode header h1, body.present-mode h2 { font-size: 20px; }
+    body.present-mode h2 { font-size: 22px; }
     body.present-mode .check .sum, body.present-mode .openlist li, body.present-mode .lede { font-size: 17px; }
-    body.present-mode .small, body.present-mode .block .note, body.present-mode .block .when { font-size: 15px; }
     body.present-mode .technical, body.present-mode .file-list, body.present-mode .hash, body.present-mode .hist { display: none; }
   </style>
 </head>
 <body>
 <script>if (new URLSearchParams(location.search).get('present') === '1') document.body.classList.add('present-mode');</script>
 <header>
+  <a class="brand" href="home.html">Plant<span>Agent</span></a>
   <h1>MOC review record</h1>
-  <span class="muted small">Recorded workflow approval: names are not authenticated electronic signatures.</span>
   <label class="muted small">Plant <select id="case" aria-label="Plant"></select></label>
   <span class="sp"></span>
+  <span class="role-pick" title="Demo roles, not authentication: names are recorded workflow entries, not electronic signatures">
+    <b>Acting as</b><select id="role" aria-label="Demo role"><option value="engineer">Engineer</option><option value="reviewer">Reviewer</option><option value="approver">Approver</option></select></span>
+  <span class="role-note">demo roles, not authentication</span>
   <a id="plantLink" class="small" href="plant.html">Back to the plant</a>
 </header>
 <main>
@@ -122,6 +139,9 @@
 <script>
 const $ = id => document.getElementById(id), q = new URLSearchParams(location.search);
 let S = null;
+// demo roles (not authentication): each step's form opens only for its role; the server still enforces reviewer ≠ approver
+let ROLE = localStorage.getItem('reviewRole') || 'engineer';
+const gate = (who, what) => `<div class="gate">Switch to <b>${who}</b> to ${what}.</div>`;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
 const when = t => { const d = new Date(String(t || '').replace(/([+-]\d\d)(\d\d)$/, '$1:$2')); return isNaN(d) ? (t || '') : d.toLocaleString('en-GB', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'}); };
 const kb = n => n >= 1024 ? `${Math.round(n / 1024)} kB` : `${n} B`;
@@ -156,10 +176,10 @@ function render() {
   $('lede').innerHTML = s.pack ? `<b>${esc(s.recommendation || 'Decision pack ' + s.pack)}</b><br>Pack <code>${esc(s.pack)}</code>. ${fails.length} failed check${fails.length === 1 ? '' : 's'} and ${opens.length} open item${opens.length === 1 ? '' : 's'} go into this record.`
     : 'No decision pack has been issued for this plant yet. Issue the engineering package from the plant page, then sign it here.';
   const undone = s.undisposed.length, mustFix = s.must_fix.length;
-  const reviewForm = s.state === 'draft' && s.pack ? `<input id="rvName" placeholder="Reviewer name" aria-label="Reviewer name"><textarea id="rvNote" placeholder="Review note (optional)" aria-label="Review note"></textarea>
+  const reviewForm = s.state === 'draft' && s.pack && ROLE !== 'reviewer' ? gate('Reviewer', 'record the review') : s.state === 'draft' && s.pack ? `<input id="rvName" placeholder="Reviewer name" aria-label="Reviewer name"><textarea id="rvNote" placeholder="Review note (optional)" aria-label="Review note"></textarea>
      ${undone ? `<div class="why">Write a disposition for ${esc(s.undisposed.join(', '))} first.</div>` : ''}
      <div class="acts"><button class="go" id="rvBtn" ${undone ? 'disabled' : ''}>Record reviewer decision</button></div>` : '';
-  const approveForm = s.state === 'reviewed' ? `<input id="apName" placeholder="Approver name (not the reviewer)" aria-label="Approver name"><textarea id="apNote" placeholder="Approval note, or the reason for rejecting" aria-label="Approval note or rejection reason"></textarea>
+  const approveForm = s.state === 'reviewed' && ROLE !== 'approver' ? gate('Approver', 'approve or reject') : s.state === 'reviewed' ? `<input id="apName" placeholder="Approver name (not the reviewer)" aria-label="Approver name"><textarea id="apNote" placeholder="Approval note, or the reason for rejecting" aria-label="Approval note or rejection reason"></textarea>
      ${mustFix ? `<div class="why">${esc(s.must_fix.join(', '))} marked must fix: this pack can be rejected, not approved.</div>` : ''}
      <div class="acts"><button class="go" id="apBtn" ${mustFix ? 'disabled' : ''}>Record approval and freeze</button><button class="stop" id="rjBtn">Reject</button></div>` : '';
   const approved = s.approver ? signed(s.approver, 'Approved') : s.rejected && s.state === 'rejected'
@@ -171,7 +191,7 @@ function render() {
     ${cell('Approved', approved || null, approveForm)}</div>`;
   $('changed').innerHTML = s.changed_since_approval?.length ? `<p class="alert">Package changed since approval: ${esc(s.changed_since_approval.join(', '))}. The approval no longer applies; the pack is a draft again.</p>`
     : s.state === 'approved' && s.frozen?.open_items?.length ? `<p class="alert hold">Approved with ${s.frozen.open_items.length} open item${s.frozen.open_items.length === 1 ? '' : 's'} recorded below.</p>` : '';
-  const editable = ['draft', 'reviewed'].includes(s.state);
+  const editable = ['draft', 'reviewed'].includes(s.state) && ROLE !== 'approver';  // the approver decides, it does not write dispositions
   $('fails').innerHTML = fails.length ? fails.map(r => {
     const d = s.dispositions[r.id];
     return `<div class="check"><div class="id fail">${esc(r.id.replaceAll('_', ' '))}</div><div class="sum">${esc(plainFailure(r))}<details class="technical"><summary>Technical result</summary>${esc(r.summary)}</details></div>
@@ -195,6 +215,8 @@ function render() {
   $('rjBtn') && ($('rjBtn').onclick = () => act('reject', {name: $('apName').value, reason: $('apNote').value}));
   $('roBtn') && ($('roBtn').onclick = () => act('reopen', {name: $('roName').value, reason: 'reopened after rejection'}));
 }
+$('role').value = ROLE;
+$('role').onchange = e => { ROLE = e.target.value; localStorage.setItem('reviewRole', ROLE); if (S) render(); };
 async function load() {
   $('err').textContent = '';
   S = await api(`/api/plant/${C()}/signoff`);
