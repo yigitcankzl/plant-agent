@@ -128,8 +128,9 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     return full && between && advanced && ['replayToggle', 'replayBack', 'replayNext', 'replaySpeed'].every(id => document.getElementById(id));
   });
   await p.evaluate(() => { P.allow_runs = true; });  // exercise live confirmation with the fixture; no POST is sent
-  await p.click('#workRunOpen');
-  const workConfirmOk = await p.evaluate(() => !document.querySelector('#workConfirm').hidden && document.querySelector('#workGoal').value === P.question && /\$5.?10/.test(document.querySelector('.work-runner .estimate').textContent));
+  // the page's one primary action starts the run (the old in-panel button is hidden)
+  await p.click('[data-workspace-page="run"]'); await p.click('#workspacePrimary');
+  const workConfirmOk = await p.evaluate(() => !document.querySelector('#workConfirm').hidden && document.querySelector('#workConfirm').offsetParent !== null && document.querySelector('#workGoal').value === P.question && /\$5.?10/.test(document.querySelector('.work-runner .estimate').textContent));
   await p.click('#workCancel');
   const worklogOk = await p.evaluate(() => {
     const rounds = [...document.querySelectorAll('.work-round')], actors = [...document.querySelectorAll('.work-actor')].map(x => x.textContent.trim());
@@ -277,6 +278,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   }
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
   await p.waitForFunction(() => ST && document.querySelector('[data-workspace-page][aria-current="page"]')?.dataset.workspacePage === 'overview');
+  await p.waitForFunction(() => document.querySelector('#inspectorTitle').textContent === 'Decision' && !document.querySelector('#scenario').hidden, null, {timeout: 10000}).catch(() => {});
   const startsFocused = await p.evaluate(() => !document.querySelector('#infoDrawer').classList.contains('open') &&
     document.querySelector('#inspectorTitle').textContent === 'Decision' && document.querySelector('#scenario').hidden === false &&
     getComputedStyle(document.body).getPropertyValue('--act').trim() === '#102c0c');
@@ -402,9 +404,10 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   console.log(forecastShown ? 'ok  ' : 'FAIL', 'salt morning-check fouling forecast card');
   bad += forecastShown ? 0 : 1;
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForSelector('#sheet [data-tag="H1007"]');
+  await p.waitForTimeout(1500);  // let the first fit-to-view settle before zooming
   const viewport = p.locator('#pidViewport'), before = await p.locator('#sheet').evaluate(e => new DOMMatrix(getComputedStyle(e).transform).a);
   const bounds = await viewport.boundingBox();
-  await p.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2); await p.mouse.wheel(0, -200);
+  await p.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2); await p.mouse.wheel(0, -200); await p.waitForTimeout(400);
   const after = await p.locator('#sheet').evaluate(e => new DOMMatrix(getComputedStyle(e).transform).a);
   await p.locator('#zoomFit').click();
   const tag = p.locator('#sheet [data-tag="H1007"]'); const box = await tag.boundingBox();
