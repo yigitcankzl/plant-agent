@@ -9,4 +9,4 @@ Every quantitative evaluation in this repo, with the command that re-scores it. 
 | [Engineers' conclusions](../evidence/results.json) | Agent findings vs documented engineers' conclusions | 13 graded studies, mean 64 %, blind, model-graded | `python -m plantagent.grade` |
 | [Red team](../runs/ws/basf_process_column_k_2750_dexpi_c02_uns/redteam_trays.json) | Bounded operating deviations against the live-run design, each re-solved in DWSIM | 7 / 7 held, worst 96 % of flood | stored; `plantagent/redteam.py` |
 | [Schematic read](../evidence/datasheet-read/README.md) | A drawing read vs an engineer-confirmed read | per-case in the README | `python tools/pid_read_eval.py` |
-| Loop outcomes | Every recorded loop run: done, stopped, cost | 22 of 70 ended with every check passing, $193.50 total | `python tools/loop_stats.py` |
+| Loop outcomes | Every recorded loop run: done, stopped, cost | 23 of 71 ended with every check passing, $194.86 total | `python tools/loop_stats.py` |

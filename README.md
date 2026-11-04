@@ -22,7 +22,7 @@ git clone https://github.com/yigitcankzl/plant-agent.git && cd plant-agent && ./
 | **Cross-discipline** | On a salt plant the process target passed at 120 %, but an illustrative transformer rating reached 133 %, so approval stays blocked. | [salt gates](runs/ws/salt_mvr/gates.json) |
 | **Open weights** | On the 2006 European blackout grid the hosted endpoint was blocked by content policy; Muse Spark Open completed the checked loop with 0 N-1 violations. | [open-weights](evidence/open-weights-engineering/README.md) |
 
-Honest denominator: 22 of 70 recorded loop runs ended with every deterministic check passing ($193.50 in total), and most of those still carry an open vendor or human check (`tools/loop_stats.py`).
+Honest denominator: 23 of 71 recorded loop runs ended with every deterministic check passing ($194.86 in total), and most of those still carry an open vendor or human check (`tools/loop_stats.py`).
 
 ## How it works
 
