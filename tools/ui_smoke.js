@@ -246,7 +246,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     document.querySelectorAll('#heroDecision .hd-step.on').length === 5 && document.querySelector('#heroDecision').classList.contains('blocked') &&
     /45 % → 133 %/.test(document.querySelector('#heroDecision').textContent) && /Draft blocked/.test(document.querySelector('#heroDecision').textContent) &&
     /Approval blocked/.test(document.querySelector('.hd-compare')?.textContent || '') &&
-    document.querySelectorAll('#product .story-row').length === 4 && document.querySelector('.queue-shell #engineeringQueue'));
+    document.querySelectorAll('#product .story-row').length === 4 && document.querySelector('.queue-shell #engineeringQueue') &&
+    getComputedStyle(document.querySelector('.model-rail'), '::before').backgroundImage.includes('/img/meta-mark.svg'));
   const queueOk = await p.evaluate(() => document.querySelectorAll('#queueCounts .queue-count').length === 3 &&
     document.querySelectorAll('#queueDecisions .queue-item').length > 0 && !/owner:|due today|last data|updated .* ago/i.test(document.querySelector('.queue-columns').textContent));
   await p.goto(`${BASE}/home.html?present=1`); await p.waitForTimeout(500);
