@@ -1168,7 +1168,7 @@ const act = (name, ...args) => `data-act="${name}" data-args="${esc(JSON.stringi
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   const fn = el && {select, whatIf, troubleshoot, ask, undo, accept, workFocus: (tags, view) => workFocus(tags, view, el),
-    chatFocus, chatShow, chatApply, chatWork, chatFollow, redteamSet, showChangeOnDrawing,
+    chatFocus, chatShow, chatApply, chatWork, chatFollow, redteamSet, showChangeOnDrawing, showWorkItem,
     showParity: () => { setWorkspacePage('evidence'); requestAnimationFrame(() => document.querySelector('[data-nrel-parity]')?.scrollIntoView({block: 'start'})); },
     askAbout: tag => { $('q').value = `Why is ${tag} limiting, and what is the cheapest fix?`; $('q').focus(); }}[el.dataset.act];
   if (fn) fn(...JSON.parse(el.dataset.args || '[]'));
@@ -1290,10 +1290,14 @@ function renderWorkspaceSummaries() {
   }
   $('evidenceSummary').hidden = false;
   const blockers = rows.filter(row => gateState(row)[0] === 'fail');
-  const blockerList = blockers.length ? `<div class="evidence-blockers"><small>Approval blockers</small>${blockers.map(row =>
-    `<div class="evidence-blocker"><b>${esc(GATE_NAMES[row.id] || row.id)}</b><span>${esc(storyGate(row))}</span></div>`).join('')}</div>`
-    : `<div class="evidence-blockers clear"><small>Approval status</small><div class="evidence-blocker"><b>${open ? 'Human review needed' : 'No recorded blockers'}</b><span>${open ? `${open} engineering input${open === 1 ? '' : 's'} remain open.` : 'All supplied discipline checks pass.'}</span></div></div>`;
-  $('evidenceSummary').innerHTML = `<h3>${blockers.length ? 'Why this design is not ready' : 'Evidence at a glance'}</h3><p>${blockers.length ? 'Resolve these calculated failures before approval.' : 'The decision stays short; the calculations and provenance remain here.'}</p>${blockerList}<div class="evidence-metrics">
+  const openRows = rows.filter(row => gateState(row)[0] === 'open');
+  const workRow = (row, state) => {
+    const full = state === 'fail' ? storyGate(row) : plain(row.summary || 'No engineering check has been supplied.');
+    const short = full.length > 120 ? full.slice(0, 117).trimEnd() + '…' : full;
+    return `<div class="engineering-work ${state}"><span class="engineering-work-state">${state === 'fail' ? '✕' : '○'}</span><div><b>${esc(GATE_NAMES[row.id] || row.id)}</b><span>${esc(short)}</span><small>${esc(state === 'fail' ? 'Next: change the design or record a signed disposition.' : `Needed: ${GATE_NEEDS[row.id] || 'engineering input'}.`)}</small></div>${state === 'fail' ? `<a href="review.html?case=${encodeURIComponent(CASE)}#fails">Record disposition</a>` : `<button type="button" ${act('showWorkItem', row.id)}>Review requirement</button>`}</div>`;
+  };
+  const worklist = `<section class="engineering-worklist" id="evidenceWorklist"><div class="engineering-worklist-head"><b>Engineering worklist</b><span>${blockers.length} failed · ${openRows.length} input${openRows.length === 1 ? '' : 's'} needed</span></div>${blockers.map(row => workRow(row, 'fail')).join('')}${openRows.length ? `<details><summary>${openRows.length} open engineering input${openRows.length === 1 ? '' : 's'}</summary>${openRows.map(row => workRow(row, 'open')).join('')}</details>` : ''}</section>`;
+  $('evidenceSummary').innerHTML = `<h3>${blockers.length ? 'Why this design is not ready' : 'Evidence at a glance'}</h3><p>${blockers.length ? 'Resolve these calculated failures before approval.' : open ? 'No calculated failure remains, but engineering inputs still need review.' : 'All supplied discipline checks pass.'}</p>${worklist}<div class="evidence-metrics">
     <div><strong>${calculations}</strong><span>calculation${calculations === 1 ? '' : 's'}</span></div>
     <div class="${failed ? 'fail' : 'pass'}"><strong>${failed}</strong><span>failed discipline${failed === 1 ? '' : 's'}</span></div>
     <div><strong>${assumptions}</strong><span>assumption${assumptions === 1 ? '' : 's'}</span></div>
@@ -3401,10 +3405,15 @@ function redteamCard() {
     <div class="redteam-summary ${failed ? 'fail' : 'pass'}"><b><a href="${esc(src)}" target="_blank">${failed ? summary.broke : summary.held} / ${summary.total}</a> ${failed ? 'broke the modelled limits' : 'stayed within the modelled process limits'}</b><span>${esc(set.design_label)}${worstText} · not a design-safety approval</span></div>
     <div class="redteam-attacks">${attacks}${unstored}</div>${challenge}${set.note ? `<p class="redteam-note">${esc(set.note)}</p>` : ''}</section>`;
 }
+function showWorkItem(id) {
+  let index = GATE_VIEWS.findIndex(row => row.id === id);
+  if (index < 0) index = GATE_VIEWS.push(gateRows(designAnswer() || {}).find(row => row.id === id)) - 1;
+  showGate(index);
+}
 function showGate(index) {
   const row = GATE_VIEWS[index];
   if (!row) return;
-  const [, mark, status] = gateState(row), name = GATE_NAMES[row.id] || row.id.replaceAll('_', ' ');
+  const [state, mark, status] = gateState(row), name = GATE_NAMES[row.id] || row.id.replaceAll('_', ' ');
   const checks = (row.checks || []).map(check => {
     if (typeof check === 'string') return `<li>${esc(check)}</li>`;
     // the server states each row's kind (min/max), status and a ready result sentence; older rows fall back to the percentage
@@ -3419,7 +3428,9 @@ function showGate(index) {
       (src ? `<small>${esc(src)}</small>` : '') + '</li>';
   }).join('');
   const source = String(row.source || ''), path = row.source_file ? [row.source_file] : source.match(/\(?cases\/[^)\s]+\)?/);
-  $('modalBox').innerHTML = `<h3>${esc(name)} <span style="color:var(--muted)">${mark} ${esc(status)}</span></h3><p>${esc(unitH(row.summary || 'No summary supplied.'))}</p><div class="card"><div class="tt">How this was calculated</div><div class="res">${esc(srcName(source.replace(path?.[0] || '', '').trim()) || 'not supplied')}</div>${path ? `<details><summary>input file</summary><code>${esc(path[0].replace(/[()]/g, ''))}</code></details>` : ''}</div>${checks ? `<h4>Checks</h4><ul class="gate-checks">${checks}</ul>` : '<p style="color:var(--muted)">No calculation covers this discipline yet: it stays open until an engineer supplies the check.</p>'}`;
+  const action = state === 'fail' ? `<a class="btn go" href="review.html?case=${encodeURIComponent(CASE)}#fails">Record disposition</a>`
+    : state === 'open' ? `<button class="btn" type="button" onclick="$('modal').classList.remove('on');setWorkspacePage('sources')">Review input sources</button>` : '';
+  $('modalBox').innerHTML = `<h3>${esc(name)} <span style="color:var(--muted)">${mark} ${esc(status)}</span></h3><p>${esc(unitH(row.summary || 'No summary supplied.'))}</p><div class="card"><div class="tt">How this was calculated</div><div class="res">${esc(srcName(source.replace(path?.[0] || '', '').trim()) || 'not supplied')}</div>${path ? `<details><summary>input file</summary><code>${esc(path[0].replace(/[()]/g, ''))}</code></details>` : ''}</div>${checks ? `<h4>Checks</h4><ul class="gate-checks">${checks}</ul>` : `<p style="color:var(--muted)">No calculation covers this discipline yet. Needed: ${esc(GATE_NEEDS[row.id] || 'engineering input')}.</p>`}${action ? `<div style="margin-top:14px">${action}</div>` : ''}`;
   $('modal').classList.add('on');
 }
 // judge-facing text without internal run and model identifiers; the Engineering view keeps them

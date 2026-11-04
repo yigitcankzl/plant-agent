@@ -324,7 +324,9 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const engineeringView = await p.evaluate(() => getComputedStyle(document.querySelector('.engineering-detail')).display !== 'none' &&
     document.querySelector('#inspectorTitle').textContent === 'Evidence' && !document.body.classList.contains('dd-open') &&
     getComputedStyle(document.querySelector('#resultPane')).display !== 'none' && document.querySelectorAll('#evidenceSummary .evidence-metrics > div').length === 4 &&
-    document.querySelectorAll('#evidenceSummary .evidence-blocker').length === 1 && /Transformer overloads on start/.test(document.querySelector('#evidenceSummary').textContent));
+    /Transformer overloads on start/.test(document.querySelector('#evidenceSummary').textContent) &&
+    document.querySelectorAll('#evidenceWorklist .engineering-work.fail').length === 1 && /Record disposition/.test(document.querySelector('#evidenceWorklist').textContent) &&
+    document.querySelector('#evidenceWorklist details summary')?.textContent.includes('open engineering inputs'));
   await p.screenshot({ path: `${OUT}/engineering_workspace.png` });
   await p.click('.discipline-gate.fail');
   const gateEvidence = await p.evaluate(() => document.querySelector('#modal').classList.contains('on') && /pandapower/.test(document.querySelector('#modalBox').textContent));
