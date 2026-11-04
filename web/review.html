@@ -5,20 +5,20 @@
   <title>PlantAgent · MOC sign-off</title>
   <link rel="stylesheet" href="design.css">
   <style>
-    /* same visual language as the workspace: deep teal surfaces, one accent, colour only for state */
+    /* the landing's paper system: paper ground, plant-green ink, orange for what the engineer writes, colour only for state */
     :root {
-      color-scheme: dark;
-      --ink: #071a1e; --ink-2: #0f262b; --ink-3: #143239; --rule: #24434a; --fg: #eef5f3; --fg-2: #a9bfc0; --fg-3: #7d9698;
-      --go: #91cfb7; --stop: #ee8d7f; --hold: #f1bd73; --act: #7c83ff; --act-2: #9aa0ff;
+      color-scheme: light;
+      --ink: #f4f8ec; --ink-2: #ffffff; --ink-3: #ffffff; --rule: #dfe4db; --fg: #0b1609; --fg-2: #4d5c49; --fg-3: #66735f;
+      --go: #287c45; --stop: #c84935; --hold: #9a650d; --act: #102c0c; --act-2: #1c4117; --orange: #cf753b;
       --sans: "Lato", "Segoe UI", Arial, sans-serif; --mono: "Liberation Mono", "DejaVu Sans Mono", monospace;
     }
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--ink); color: var(--fg); font: 15px/1.55 var(--sans);
-      background-image: radial-gradient(900px 500px at 100% -10%, rgba(124,131,255,.10), transparent 60%); min-height: 100vh; }
+      min-height: 100vh; }
     a { color: var(--act-2); }
-    header { display: flex; gap: 18px; align-items: center; padding: 14px 32px; border-bottom: 1px solid var(--rule); background: rgba(7,26,30,.85); position: sticky; top: 0; z-index: 5; backdrop-filter: blur(6px); }
+    header { display: flex; gap: 18px; align-items: center; padding: 14px 32px; border-bottom: 1px solid var(--rule); background: rgba(255,255,255,.96); position: sticky; top: 0; z-index: 5; backdrop-filter: blur(6px); }
     header .brand { font: 800 17px var(--sans); color: var(--fg); text-decoration: none; letter-spacing: -.02em; }
-    header .brand span { color: var(--act-2); }
+    header .brand span { color: inherit; }
     header h1 { font: 700 15px var(--sans); margin: 0; color: var(--fg-2); }
     header .sp { flex: 1; }
     .role-pick { display: flex; align-items: center; gap: 8px; padding: 5px 6px 5px 12px; border: 1px solid var(--rule); border-radius: 999px; background: var(--ink-2); }
@@ -26,31 +26,36 @@
     .role-pick select { border-radius: 999px; background: var(--act); color: #fff; border-color: var(--act); font-weight: 700; padding: 5px 12px; }
     .role-note { font-size: 12px; color: var(--fg-3); max-width: 110px; line-height: 1.3; }
     header #case { max-width: 340px; } header a, header h1 { white-space: nowrap; }
-    select, input, textarea, button { font: inherit; color: var(--fg); background: var(--ink-3); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 11px; }
+    select, input, textarea, button { font: inherit; color: var(--fg); background: var(--ink-3); border: 1px solid #cfd7c7; border-radius: 8px; padding: 8px 11px; }
+    textarea:focus, input:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(207,117,59,.18); }
     textarea { width: 100%; min-height: 58px; resize: vertical; }
     button { cursor: pointer; font-weight: 600; }
     button.go { background: var(--act); color: #fff; border-color: var(--act); }
     button.stop { border-color: var(--stop); color: var(--stop); background: transparent; }
     button:disabled { opacity: .4; cursor: not-allowed; }
-    :focus-visible { outline: 2px solid var(--act-2); outline-offset: 2px; }
+    :focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
     main { max-width: 1280px; margin: 0 auto; padding: 32px 32px 64px; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 40px; }
     h2 { font: 800 19px var(--sans); letter-spacing: -.01em; margin: 36px 0 12px; color: var(--fg); }
     h2:first-child { margin-top: 0; }
     aside h2 { font-size: 15px; margin: 0 0 8px; color: var(--fg-2); }
     .muted { color: var(--fg-2); } .small { font-size: 13px; }
     .lede { max-width: 74ch; color: var(--fg-2); margin: 0 0 22px; font-size: 15px; }
+    .pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-top: 16px; }
+    .pick a { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border: 1px solid #cfd7c7; border-radius: 10px; background: #fff; color: var(--fg); text-decoration: none; font-weight: 700; font-size: 14px; }
+    .pick a:hover { border-color: var(--act); background: var(--ink); }
+    .pick a i { font: 700 11px var(--mono); font-style: normal; letter-spacing: .06em; color: var(--orange); }
     .lede b { color: var(--fg); font-weight: 700; font-size: 17px; line-height: 1.45; display: block; margin-bottom: 6px; }
 
     /* the approval block: three steps, Prepared -> Reviewed -> Approved */
-    .block { background: var(--ink-2); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+    .block { background: var(--ink-2); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; box-shadow: 0 18px 40px rgba(16,44,12,.07); }
     .block .title { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--rule); }
     .block .title .doc { font-weight: 700; }
     .block .title .doc span { display: block; font: 12px var(--mono); color: var(--fg-3); margin-top: 3px; }
     .block .stamp { padding: 7px 14px; border-radius: 999px; font: 700 13px var(--sans); letter-spacing: .02em; border: 1px solid; }
-    .stamp.draft { color: var(--hold); border-color: rgba(241,189,115,.5); background: rgba(241,189,115,.08); }
-    .stamp.reviewed { color: var(--act-2); border-color: rgba(124,131,255,.5); background: rgba(124,131,255,.1); }
-    .stamp.approved { color: var(--go); border-color: rgba(145,207,183,.5); background: rgba(145,207,183,.1); }
-    .stamp.rejected { color: var(--stop); border-color: rgba(238,141,127,.5); background: rgba(238,141,127,.1); }
+    .stamp.draft { color: var(--hold); border-color: rgba(154,101,13,.4); background: #fbf4e6; }
+    .stamp.reviewed { color: var(--act); border-color: rgba(16,44,12,.35); background: #eef3e6; }
+    .stamp.approved { color: var(--go); border-color: rgba(40,124,69,.4); background: #eef6ef; }
+    .stamp.rejected { color: var(--stop); border-color: rgba(200,73,53,.4); background: #fbefec; }
     .block .cells { display: grid; grid-template-columns: repeat(3, 1fr); counter-reset: step; }
     .block .cell { padding: 16px 18px 18px; border-right: 1px solid var(--rule); min-height: 150px; display: flex; flex-direction: column; gap: 7px; position: relative; }
     .block .cell:last-child { border-right: 0; }
@@ -64,8 +69,8 @@
     .block .gate { font-size: 12.5px; color: var(--fg-3); border: 1px dashed var(--rule); border-radius: 8px; padding: 8px 10px; }
     .block .acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; }
 
-    .alert { border-left: 3px solid var(--stop); padding: 10px 14px; background: rgba(238,141,127,.08); border-radius: 0 8px 8px 0; margin: 16px 0 0; }
-    .alert.hold { border-color: var(--hold); background: rgba(241,189,115,.08); }
+    .alert { border-left: 3px solid var(--stop); padding: 10px 14px; background: #fbefec; border-radius: 0 8px 8px 0; margin: 16px 0 0; }
+    .alert.hold { border-color: var(--hold); background: #fbf4e6; }
 
     .check { border: 1px solid var(--rule); border-left: 3px solid var(--stop); border-radius: 10px; background: var(--ink-2); padding: 14px 16px; margin: 0 0 12px;
       display: grid; grid-template-columns: 130px 1fr; gap: 8px 16px; }
@@ -230,7 +235,11 @@ async function load() {
   $('case').innerHTML = '<option value="">Select a plant and review package</option>' + ps.map(p => `<option value="${esc(p.case)}">${esc(p.title.replace(/\s*\([^)]*\)/g, ''))}</option>`).join('');
   $('case').value = ps.some(p => p.case === q.get('case')) ? q.get('case') : '';
   $('case').onchange = () => { if (!C()) return; history.replaceState(null, '', `?case=${C()}`); load().catch(e => { $('err').textContent = e.message; }); };
-  if (!C()) { $('lede').textContent = 'Select a plant and review package to see its record.'; return; }
+  if (!C()) {
+    $('lede').innerHTML = `<b>Choose a review package</b>Nothing is selected for you: pick the plant change you are reviewing.` +
+      `<span class="pick">${ps.map(p => `<a href="?case=${encodeURIComponent(p.case)}">${esc(p.title.replace(/\s*\([^)]*\)/g, ''))}<i>Open record →</i></a>`).join('')}</span>`;
+    return;
+  }
   await load();
 })().catch(e => { $('lede').textContent = 'The sign-off record could not be loaded. Start the PlantAgent server and reload.'; $('err').textContent = e.message; });
 </script>

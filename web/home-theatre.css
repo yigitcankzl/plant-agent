@@ -177,7 +177,18 @@ body.landing {
 .case-library-shell { border-color: #cfd7c9; }
 .case-library-shell > summary { color: var(--ink); }
 .case-library-shell > summary span { color: #677263; }
-.landing .stat, .landing .card { color: #edf3e8; background: var(--green); border-color: #34532e; }
+/* library: paper cards and a plain number row, the same system as the hero */
+.landing .stats { gap: 0; margin: 8px 0 30px; border-top: 1px solid #cfd7c9; border-bottom: 1px solid #cfd7c9; }
+.landing .stat { min-width: 0; flex: 1; padding: 18px 22px; color: var(--ink); background: transparent; border: 0; border-right: 1px solid #cfd7c9; border-radius: 0; }
+.landing .stat:last-child { border-right: 0; }
+.landing .stat b { display: block; color: var(--green); font: 700 30px/1.1 var(--mono); }
+.landing .stat span { display: block; margin-top: 6px; color: #5c6b58; font-size: 12.5px; }
+.landing .card { color: var(--ink); background: #fff; border: 1px solid #cfd7c9; border-radius: 10px; box-shadow: none; }
+.landing .card:hover { border-color: var(--green); background: var(--paper); }
+.landing .card .t { color: var(--ink); }
+.landing .card .fig b { color: var(--green); }
+.landing .card .fig span, .landing .card .k, .landing .card p, .landing .card .meta { color: #5c6b58; }
+.landing .card .eng, .landing .card .tag { color: var(--green); border-color: #cfd7c9; background: var(--paper); }
 
 .landing .newproj { color: #edf3e8; background: var(--green); border: 0; }
 .landing .newproj h2 { color: #fff; }
@@ -234,3 +245,8 @@ body.presentation-home .recorded-evidence,
 body.presentation-home .queue-shell { display: none; }
 
 body.presentation-home .hero.dashboard-hero { min-height: calc(100vh - 90px); padding-top: 36px; padding-bottom: 30px; }
+.landing .card .pitch { color: #3e4c3a; }
+.landing .card .sim { color: var(--green); border-color: #cfd7c9; background: var(--paper); }
+.landing .card .btn.go { color: #fff; background: var(--green); border-color: var(--green); font: 700 12.5px var(--mono); }
+.landing .card .btn.go:hover { background: var(--green-2); border-color: var(--green-2); }
+.landing .card .btn:not(.go) { color: var(--green); background: #fff; border-color: #cfd7c9; }

@@ -279,7 +279,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.waitForFunction(() => ST && document.querySelector('[data-workspace-page][aria-current="page"]')?.dataset.workspacePage === 'overview');
   const startsFocused = await p.evaluate(() => !document.querySelector('#infoDrawer').classList.contains('open') &&
     document.querySelector('#inspectorTitle').textContent === 'Decision' && document.querySelector('#scenario').hidden === false &&
-    getComputedStyle(document.body).getPropertyValue('--act').trim() === '#7c83ff');
+    getComputedStyle(document.body).getPropertyValue('--act').trim() === '#102c0c');
   await p.click('[data-workspace-page="sources"]'); const sourcesFocused = await p.evaluate(() =>
     document.body.classList.contains('workspace-page-sources') && getComputedStyle(document.querySelector('#sourcesWorkspace')).display !== 'none' &&
     !document.querySelector('#infoDrawer').classList.contains('open'));

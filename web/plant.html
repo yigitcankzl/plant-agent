@@ -7,7 +7,7 @@
 <style>
   :root {
     --bg: #15191f; --panel: #1c2129; --panel2: #232a33; --line: #2e3742; --text: #d9e0e8; --muted: #8592a3;
-    --accent: #7c83ff; --ok: #3fb67a; --warn: #e3a33a; --fail: #ef5a4f; --info: #7c83ff; --paper: #fbfaf6;
+    --accent: #102c0c; --ok: #3fb67a; --warn: #e3a33a; --fail: #ef5a4f; --info: #102c0c; --paper: #fbfaf6;
     --mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace; --sans: "Inter", "Segoe UI", system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
@@ -18,10 +18,10 @@
   select { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 5px; padding: 5px 8px; font: 600 12.5px var(--sans); }
   .cmd { flex: 1; position: relative; max-width: 720px; }
   .cmd input { width: 100%; background: var(--bg); border: 1px solid var(--line); color: var(--text); border-radius: 6px; padding: 8px 12px 8px 30px; font: 13.5px var(--sans); outline: none; }
-  .cmd input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,131,255,.2); }
+  .cmd input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(16,44,12,.2); }
   .cmd .k { position: absolute; left: 11px; top: 7px; color: var(--muted); font: 12px var(--mono); }
   .btn { background: var(--panel2); border: 1px solid var(--line); color: var(--text); padding: 6px 11px; border-radius: 5px; cursor: pointer; font: 12.5px var(--sans); white-space: nowrap; }
-  .btn:hover { border-color: var(--accent); } .btn.go { background: #5f66dc; border-color: var(--accent); color:#fff; font-weight: 600; }
+  .btn:hover { border-color: var(--accent); } .btn.go { background: #102c0c; border-color: var(--accent); color:#fff; font-weight: 600; }
   .btn:disabled { opacity: .45; cursor: default; }
   aside.left { grid-row: 2 / 4; background: var(--panel); border-right: 1px solid var(--line); overflow: auto; }
   .sec { padding: 10px 12px; border-bottom: 1px solid var(--line); }
@@ -38,7 +38,7 @@
   main { grid-row: 2; grid-column: 2; position: relative; overflow: auto; background: #10141a; }
   .progress { position: sticky; top: 0; z-index: 5; display: flex; gap: 6px; flex-wrap: wrap; padding: 6px 12px; background: rgba(16,20,26,.92); min-height: 30px; }
   .chip { font: 11px var(--mono); padding: 2px 7px; border-radius: 10px; background: var(--panel2); border: 1px solid var(--line); color: var(--muted); max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; animation: in .2s; }
-  .chip.sim { color: var(--warn); border-color: #5a4a2a; } .chip.doc { color: var(--accent); border-color: #4b4f8f; } .chip.done { color: var(--ok); border-color: #285a3e; } .chip.err { color: var(--fail); }
+  .chip.sim { color: var(--warn); border-color: #5a4a2a; } .chip.doc { color: var(--accent); border-color: #cfd7c7; } .chip.done { color: var(--ok); border-color: #285a3e; } .chip.err { color: var(--fail); }
   .chip.live::after { content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 6px; border-radius: 50%; background: var(--warn); animation: blink .8s infinite alternate; }
   @keyframes blink { to { opacity: .2; } } @keyframes in { from { opacity: 0; transform: translateY(-3px); } }
   .stage { padding: 10px 18px 24px; }
@@ -129,7 +129,7 @@
   .viewtog { position: absolute; top: 8px; right: 12px; z-index: 6; display: flex; gap: 0; }
   .viewtog button { border-radius: 0; } .viewtog #vExisting { border-radius: 5px 0 0 5px; } .viewtog #vProposed { border-radius: 0 5px 5px 0; }
   .viewtog #adoptProposed { margin-left: 8px; border-radius: 5px; background: var(--accent); border-color:var(--accent); color: #fff; font-weight: 700; }
-  .viewtog .on { background: #5f66dc; border-color: var(--accent); }
+  .viewtog .on { background: #102c0c; border-color: var(--accent); }
   .state-source { position: absolute; z-index: 6; top: 12px; left: 30px; padding: 4px 8px; border: 1px solid #95a9a6; border-radius: 4px; background: rgba(18,46,52,.94); color: #dbe8e6; font: 600 10.5px var(--mono); }
   .engine-unavailable { padding: 5px 10px; border-top: 1px solid #6b5a2e; background: #302917; color: #f0c46c; font-size: 11.5px; }
   .draft-note { position: absolute; transform: translate(6px, 0) scale(var(--inverse-zoom, 1)); transform-origin: left top; max-width: 230px; font: 600 11px/1.35 var(--sans); color: #22265d; background: rgba(242,242,255,.97); border: 1px solid var(--accent); border-radius: 4px; padding: 4px 6px; pointer-events: none; }
@@ -148,7 +148,7 @@
   .outcome-compare > summary { color: var(--text); font-size: 13px; font-weight: 700; } .outcome-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; font-size: 12.5px; }
   .outcome-cols small { display: block; color: var(--muted); margin-top: 4px; }
   .tour-on { outline: 3px solid var(--accent) !important; outline-offset: 2px; border-radius: 6px; }
-  #tour { position: fixed; z-index: 60; background: #171d38; color: #fff; border: 1px solid var(--accent);
+  #tour { position: fixed; z-index: 60; background: #f4f8ec; color: #fff; border: 1px solid var(--accent);
           border-radius: 10px; padding: 12px 16px; width: min(560px, calc(100vw - 24px)); max-height: min(360px, calc(100vh - 24px)); overflow: auto;
           box-shadow: 0 10px 40px rgba(0,0,0,.5); display: none; }
   #tour .st { font: 600 11px var(--mono); color: #9fd0ff; letter-spacing: .5px; }
@@ -557,7 +557,7 @@
      sheet uses). Everything else is quiet: dots instead of pills, plain labels instead of boxes, space instead of rules. */
   .process.focused {
     --ink: #09171a; --ink-2: #111f24; --rule: #2a3e43; --fg: #edf4f1; --fg-2: #9aaeb0; --fg-3: #70868b;
-    --go: #75c89b; --stop: #ed6b63; --hold: #e4b45e; --act: #7c83ff; --accent: var(--act); --paper: #f3f5f2;
+    --go: #75c89b; --stop: #ed6b63; --hold: #e4b45e; --act: #102c0c; --accent: var(--act); --paper: #f3f5f2;
   }
   .process.focused aside.right { background: var(--ink); border-right: 1px solid var(--rule); }
   .process.focused .rhead { background: var(--ink); border-bottom: 1px solid var(--rule); }
@@ -578,7 +578,7 @@
   #qaBadges .qa-badge.fail { color: #f0b3a6; }
   .work-runner { border-top: 0; margin-top: 18px; padding-top: 0; }
   .work-runner > button { background: var(--act); border: 0; color: #fff; font-weight: 650; min-height: 40px; border-radius: 6px; }
-  .work-runner > button:hover { background: #9298ff; }
+  .work-runner > button:hover { background: #1c4117; }
   .work-runner .estimate { text-align: left; color: var(--fg-3); }
 
   .worklog { background: var(--ink); border-bottom: 0; padding: 26px 22px 22px; }
@@ -861,7 +861,7 @@
     transition: transform .16s ease; }
   .rail-button:hover { color: #e5f0ed; background: #122d33; }
   .rail-button:hover svg { transform: translateY(-1px); }
-  .rail-button[aria-current="page"] { color: #e1e3ff; background: #202544; }
+  .rail-button[aria-current="page"] { color: #1c4117; background: #f4f8ec; }
   .rail-button[aria-current="page"]::before { content: ""; position: absolute; left: -7px; top: 10px; bottom: 10px; width: 3px; background: var(--act); }
   .process.focused header { grid-column: 2 / 4; }
   .process.focused header > .logo, .process.focused header .mode-tabs, .process.focused #focusBtn, .process.focused #infoBtn { display: none; }
@@ -895,20 +895,20 @@
   .decision-question[open] > summary { margin-bottom: 5px; }
   .decision-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 14px; }
   .decision-actions .btn { min-width: 0; padding-inline: 7px; }
-  .working-revision { margin:0 0 12px; padding:10px 11px; border:1px solid #454b78; border-left:3px solid var(--act); background:#171d38; }
+  .working-revision { margin:0 0 12px; padding:10px 11px; border:1px solid #cfd7c7; border-left:3px solid var(--act); background:#f4f8ec; }
   .working-revision-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
   .working-revision b { color:#e9f3f0; font-size:12px; }
   .working-revision span { display:block; margin-top:2px; color:var(--fg-2); font-size:11px; line-height:1.4; }
   .working-revision .btn { flex:0 0 auto; padding:5px 7px; font-size:10.5px; }
   .change-summary { position:absolute; z-index:7; top:54px; left:30px; width:min(320px,calc(100% - 60px)); max-height:calc(100% - 150px); overflow:auto;
     border:1px solid #4c527d; background:rgba(9,23,26,.96); box-shadow:0 14px 32px rgba(2,13,16,.28); color:var(--fg); }
-  .change-summary-head { position:sticky; top:0; padding:11px 12px 8px; background:#171d38; border-bottom:1px solid #41466f; }
+  .change-summary-head { position:sticky; top:0; padding:11px 12px 8px; background:#f4f8ec; border-bottom:1px solid #41466f; }
   .change-summary-head small { display:block; color:var(--act); font:700 9.5px var(--mono); letter-spacing:.08em; text-transform:uppercase; }
   .change-summary-head b { display:block; margin-top:2px; font-size:13px; }
   .change-summary-list { display:grid; padding:4px 12px 8px; }
   .change-summary-row { padding:9px 0; border:0; border-top:1px solid #294b52; color:#d7e7e4; background:transparent; text-align:left; font:11px/1.45 var(--sans); cursor:pointer; }
   .change-summary-row:first-child { border-top:0; }
-  .change-summary-row:hover, .change-summary-row:focus-visible { color:#fff; background:rgba(124,131,255,.12); outline:none; }
+  .change-summary-row:hover, .change-summary-row:focus-visible { color:#fff; background:rgba(16,44,12,.12); outline:none; }
   .change-summary-row b { color:#fff; }
   body:not(.workspace-page-drawing) .change-summary, body.present-mode .change-summary, body.present-mode .working-revision { display:none !important; }
   .decision-evidence-link { width: 100%; margin-top: 10px; padding: 8px 0; border: 0; border-top: 1px solid var(--rule);
@@ -982,6 +982,7 @@
     body.ui-boot:not(.ui-ready) main, body.ui-boot:not(.ui-ready) aside.right { opacity:1; transform:none; }
   }
 </style>
+<link rel="stylesheet" href="paper.css">
 </head>
 <body class="process focused ui-boot">
 <script>requestAnimationFrame(() => document.body.classList.add('ui-ready'));</script>
@@ -3196,7 +3197,13 @@ function renderRunStory(lead, log = LAST_WORK) {  // the saved run, also when th
   }
   const processPass = d.combined?.reaches_target || gates.some(row => row.id === 'process' && gateState(row)[0] === 'pass');
   const result = remainsFailed ? `Not ready: ${left}` : `${processPass ? `Process target met in ${simulator()}.` : 'Screening complete.'} ${left}`;
-  box.innerHTML = `<div class="run-story-line"><b>Target</b><span>${esc(target)}</span></div><div class="run-story-line"><b>Bottleneck</b><span>${esc(limit)}</span></div><div class="run-story-line"><b>Recommendation</b><span>${esc(fix)}</span></div><div class="run-story-line ${remainsFailed ? 'fail' : ''}"><b>Result</b><span>${esc(result)}</span></div>`;
+  // the verdict leads: one stamp, one chip per discipline gate (computed rows only), then the plain story
+  const verdict = remainsFailed ? ['fail', 'Approval blocked'] : open.length ? ['open', 'Open for engineer review'] : ['pass', 'Checks pass · ready for review'];
+  const computed = gates.filter(r => ['pass', 'fail'].includes(gateState(r)[0])), uncalc = gates.filter(r => gateState(r)[0] === 'open').length;
+  const chips = computed.map(r => { const [st, mark] = gateState(r); return `<span class="vchip ${st}">${mark} ${esc(GATE_NAMES[r.id] || r.id)}</span>`; }).join('') +
+    (uncalc ? `<span class="vchip">${uncalc} not calculated</span>` : '');
+  const head = `<div class="run-verdict ${verdict[0]}"><small>Rev B draft · decision</small><b>${verdict[1]}</b>${remainsFailed && failed.length ? `<span>${esc(storyGate(failed.find(r => r.id === 'electrical') || failed[0]))}</span>` : ''}${chips ? `<div class="vchips">${chips}</div>` : ''}</div>`;
+  box.innerHTML = head + `<div class="run-story-line"><b>Target</b><span>${esc(target)}</span></div><div class="run-story-line"><b>Bottleneck</b><span>${esc(limit)}</span></div><div class="run-story-line"><b>Recommendation</b><span>${esc(fix)}</span></div><div class="run-story-line ${remainsFailed ? 'fail' : ''}"><b>Result</b><span>${esc(result)}</span></div>`;
 }
 function answers() {
   queueMicrotask(() => applyEngineAvailability($('answers')));
@@ -3220,7 +3227,7 @@ function answers() {
   $('spend').title = `Estimated Muse API cost: ${ac?.questions ?? all.length} questions answered${ac?.model_build_usd ? ' plus building the simulation model once' : ''}; simulator runs are local and free.`;
 }
 
-const BASIS = {documented: ['in document', '#7c83ff'], measured: ['measured', '#3fb67a'], computed: ['computed', '#e3a33a'], assumed: ['assumed', '#ef5a4f']};
+const BASIS = {documented: ['in document', '#102c0c'], measured: ['measured', '#3fb67a'], computed: ['computed', '#e3a33a'], assumed: ['assumed', '#ef5a4f']};
 const basisOf = x => x.basis || (/run|dwsim|simulat|solve/i.test(x.source || '') ? 'computed' : /assum|judg|estimat/i.test(x.source || '') ? 'assumed'
   : /measur|dcs|scada|historian|test|current operation/i.test(x.source || '') ? 'measured' : 'documented');
 const basisChip = b => `<span class="vb" style="border:1px solid ${BASIS[b][1]};color:${BASIS[b][1]}">${BASIS[b][0]}</span>`;
