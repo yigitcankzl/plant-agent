@@ -303,7 +303,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
       field_checks: [{ item: 'Cooling-water flow', where: 'Check the supply header', changes: 'A low reading changes the recommendation.' }],
       proposals: [{ title: 'Restore cooling-water flow', tag: 'H1007', fixes: 'H1007', cost_class: 'no capex', verified: true,
         changes: [{ path: 'units.H1007.duty_kW', value: 1 }, { reroute: { unit: 'H1007', field: 'out', value: 'PRODUCT' } }], electrical: { summary: 'TX-47 68 → 70 % loaded; all electrical checks within limits', svg: '/x.svg', over: [] } }], cards: [{ title: 'Duty check', result: 'Within limit', inputs: [] }], checks: [] }];
-    answers();
+    answers(); renderWorkspaceSummaries();
     return !!document.querySelector('.decision-brief') && proposedDraft()?.proposal?.changes?.length === 2 && designAnswerIndex() === 0 && document.querySelector('#vProposed').textContent === 'Working revision' &&
       !document.querySelector('#workingRevision').hidden && /Draft design/.test(document.querySelector('#workingRevision').textContent) && /1 human decision open/.test(document.querySelector('#workingRevision').textContent) &&
       !!document.querySelector('#adoptProposed') && getComputedStyle(document.querySelector('.engineering-detail')).display === 'none' &&
@@ -323,7 +323,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.click('[data-workspace-page="evidence"]');
   const engineeringView = await p.evaluate(() => getComputedStyle(document.querySelector('.engineering-detail')).display !== 'none' &&
     document.querySelector('#inspectorTitle').textContent === 'Evidence' && !document.body.classList.contains('dd-open') &&
-    getComputedStyle(document.querySelector('#resultPane')).display !== 'none' && document.querySelectorAll('#evidenceSummary .evidence-metrics > div').length === 4);
+    getComputedStyle(document.querySelector('#resultPane')).display !== 'none' && document.querySelectorAll('#evidenceSummary .evidence-metrics > div').length === 4 &&
+    document.querySelectorAll('#evidenceSummary .evidence-blocker').length === 1 && /Transformer overloads on start/.test(document.querySelector('#evidenceSummary').textContent));
   await p.screenshot({ path: `${OUT}/engineering_workspace.png` });
   await p.click('.discipline-gate.fail');
   const gateEvidence = await p.evaluate(() => document.querySelector('#modal').classList.contains('on') && /pandapower/.test(document.querySelector('#modalBox').textContent));

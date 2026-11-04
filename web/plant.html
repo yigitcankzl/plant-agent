@@ -1289,7 +1289,11 @@ function renderWorkspaceSummaries() {
     }).join('')}${openChecks ? `<span class="checks-chip open">○ ${openChecks} open</span>` : ''}</div><p>The replay below shows how Muse and the engineering engines reached this result.</p>`;
   }
   $('evidenceSummary').hidden = false;
-  $('evidenceSummary').innerHTML = `<h3>Evidence at a glance</h3><p>The decision stays short; the calculations and provenance remain here.</p><div class="evidence-metrics">
+  const blockers = rows.filter(row => gateState(row)[0] === 'fail');
+  const blockerList = blockers.length ? `<div class="evidence-blockers"><small>Approval blockers</small>${blockers.map(row =>
+    `<div class="evidence-blocker"><b>${esc(GATE_NAMES[row.id] || row.id)}</b><span>${esc(storyGate(row))}</span></div>`).join('')}</div>`
+    : `<div class="evidence-blockers clear"><small>Approval status</small><div class="evidence-blocker"><b>${open ? 'Human review needed' : 'No recorded blockers'}</b><span>${open ? `${open} engineering input${open === 1 ? '' : 's'} remain open.` : 'All supplied discipline checks pass.'}</span></div></div>`;
+  $('evidenceSummary').innerHTML = `<h3>${blockers.length ? 'Why this design is not ready' : 'Evidence at a glance'}</h3><p>${blockers.length ? 'Resolve these calculated failures before approval.' : 'The decision stays short; the calculations and provenance remain here.'}</p>${blockerList}<div class="evidence-metrics">
     <div><strong>${calculations}</strong><span>calculation${calculations === 1 ? '' : 's'}</span></div>
     <div class="${failed ? 'fail' : 'pass'}"><strong>${failed}</strong><span>failed discipline${failed === 1 ? '' : 's'}</span></div>
     <div><strong>${assumptions}</strong><span>assumption${assumptions === 1 ? '' : 's'}</span></div>
