@@ -4,6 +4,8 @@
 
 ![The PlantAgent workspace: the Rev B drawing of a salt plant, the decision, and an electrical gate that blocks approval](web/img/plantagent-salt-workspace.png)
 
+**Demo video (2:55):** https://youtu.be/x8i93pU-uSo
+
 **Try it:** hosted replay, no credentials: https://plantagent.63-182-151-178.sslip.io · or locally:
 
 ```bash

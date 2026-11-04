@@ -42,7 +42,7 @@ https://github.com/yigitcankzl/plant-agent
 
 ## 3-minute demo video
 
-Add the unlisted YouTube link here.
+https://youtu.be/x8i93pU-uSo
 
 ## Describe your use of Meta products
 
