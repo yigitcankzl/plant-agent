@@ -336,3 +336,6 @@ body.process .replay-stage .replay-text { color: var(--fg); }
 /* a page with one action gives it the full width */
 body.process .workspace-actions > div:has(> #workspaceSecondary[hidden]) { grid-template-columns: 1fr; }
 body.process .replay-progress { color: var(--fg-3); }
+/* the closed info drawer waits off-screen; its shadow must not fall on the rail */
+body.process #infoDrawer:not(.open) { box-shadow: none; visibility: hidden; }
+body.process #infoDrawer.open { box-shadow: 18px 0 50px rgba(16,44,12,.16); }
