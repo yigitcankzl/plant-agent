@@ -623,7 +623,7 @@
   #proj option { background: #0f2a30; color: #eef7f5; font-weight: 500; }  /* the native list opens white otherwise */
   .process.focused .mode-tabs .btn { font-size: 12px; color: var(--fg-3); padding: 0 10px; }
   .process.focused .mode-tabs .btn.active { color: var(--fg); box-shadow: inset 0 -2px var(--act); }
-  .process.focused #focusBtn, .process.focused #infoBtn { background: transparent; border-color: var(--rule); color: var(--fg-2); font-size: 12px; min-height: 30px; padding: 4px 10px; }
+  .process.focused #focusBtn, .process.focused #infoBtn, .process.focused #tourBtn { background: transparent; border-color: var(--rule); color: var(--fg-2); font-size: 12px; min-height: 30px; padding: 4px 10px; }
   .process.focused aside.right { grid-row: 2; grid-column: 1; }
   .process.focused main { grid-row: 2; grid-column: 2; }
   #ddClose { position: absolute; right: 12px; top: 9px; z-index: 3; }
@@ -903,6 +903,8 @@
   .change-summary-row:first-child { border-top:0; }
   .change-summary-row:hover, .change-summary-row:focus-visible { color:#fff; background:rgba(16,44,12,.12); outline:none; }
   .change-summary-row b { color:#fff; }
+  .change-routing { border-top:1px solid var(--rule); margin:0 12px 8px; color:var(--fg-2); font-size:11px; }
+  .change-routing > summary { padding:9px 0; cursor:pointer; }
   body:not(.workspace-page-drawing) .change-summary, body.present-mode .change-summary, body.present-mode .working-revision { display:none !important; }
   .decision-evidence-link { width: 100%; margin-top: 10px; padding: 8px 0; border: 0; border-top: 1px solid var(--rule);
     color: var(--fg-2); background: transparent; text-align: left; font: 600 11.5px/1.4 var(--sans); cursor: pointer; }
@@ -911,7 +913,16 @@
   .package-tools h3 { margin: 0 0 5px; color: var(--fg); font-size: 16px; }
   .package-tools p { margin: 0 0 12px; color: var(--fg-2); font-size: 12px; }
   .package-tools .btn { display: block; width: 100%; margin-top: 7px; text-align: center; text-decoration: none; }
+  .checks-summary { padding:18px; border-bottom:1px solid var(--rule); }
+  .checks-summary h3 { margin:0 0 5px; color:var(--fg); font-size:16px; }
+  .checks-summary p { margin:8px 0 0; color:var(--fg-2); font-size:12px; }
+  .checks-strip { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .checks-chip { padding:5px 8px; border:1px solid var(--rule); border-radius:16px; color:var(--fg-2); font:700 11px var(--sans); }
+  .checks-chip.pass { color:var(--go); border-color:var(--go); }
+  .checks-chip.fail { color:var(--stop); border-color:var(--stop); }
+  .checks-chip.open { color:var(--hold); border-color:var(--hold); }
   body:not(.workspace-page-package) .package-tools { display: none; }
+  body:not(.workspace-page-run) .checks-summary { display:none; }
   body:not(.workspace-page-evidence) #evidenceSummary { display: none; }
   .process.focused #ddBody > #qaSugg { display: none; }
   .sources-workspace .drawer-head { display: none; }
@@ -930,7 +941,7 @@
     transform: translateX(-110%); animation: drawingScan .72s cubic-bezier(.2,.8,.2,1) both; }
   @keyframes drawingScan { to { transform: translateX(110%); opacity:0; } }
 
-  body.present-mode .workspace-rail, body.present-mode #adoptProposed { display: none !important; }
+  body.present-mode .workspace-rail, body.present-mode #adoptProposed, body.present-mode #tourBtn { display: none !important; }
   body.present-mode.process.focused .app { grid-template-columns: 480px minmax(0, 1fr) !important; }
   body.present-mode.process.focused header { grid-column: 1 / 3; }
   body.present-mode.process.focused aside.right { grid-column: 1; }
@@ -1018,6 +1029,7 @@
   <header>
     <a class="logo" href="home.html" style="color:var(--text);text-decoration:none" title="Back to case library">Plant<span>Agent</span></a>
     <select id="proj" title="Project"></select>
+    <button class="btn" id="tourBtn" type="button" onclick="tourGo(0)">Guided tour</button>
     <nav class="mode-tabs" aria-label="Analysis mode">
       <button class="btn active" type="button" data-mode="capacity">Capacity</button>
       <button class="btn" type="button" data-mode="troubleshoot">Troubleshoot</button>
@@ -1156,7 +1168,7 @@ const act = (name, ...args) => `data-act="${name}" data-args="${esc(JSON.stringi
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   const fn = el && {select, whatIf, troubleshoot, ask, undo, accept, workFocus: (tags, view) => workFocus(tags, view, el),
-    chatFocus, chatShow, chatApply, chatWork, chatFollow, redteamSet, showChangeOnDrawing,
+    chatFocus, chatShow, chatApply, chatWork, chatFollow, redteamSet, showChangeOnDrawing, showWorkItem,
     showParity: () => { setWorkspacePage('evidence'); requestAnimationFrame(() => document.querySelector('[data-nrel-parity]')?.scrollIntoView({block: 'start'})); },
     askAbout: tag => { $('q').value = `Why is ${tag} limiting, and what is the cheapest fix?`; $('q').focus(); }}[el.dataset.act];
   if (fn) fn(...JSON.parse(el.dataset.args || '[]'));
@@ -1268,8 +1280,24 @@ function renderWorkspaceSummaries() {
   const open = rows.filter(row => gateState(row)[0] === 'open').length;
   const assumptions = Array.isArray(P?.built?.assumptions) ? P.built.assumptions.length : Object.keys(P?.built?.assumptions || {}).length;
   const audit = P?.audit?.verify || {}, calculations = (design.cards || []).length;
+  const checksSummary = $('checksSummary');
+  if (checksSummary) {
+    const calculated = rows.filter(row => ['pass', 'fail'].includes(gateState(row)[0]));
+    const openChecks = rows.filter(row => gateState(row)[0] === 'open').length;
+    checksSummary.innerHTML = `<h3>Current engineering checks</h3><div class="checks-strip">${calculated.map(row => {
+      const [state, mark] = gateState(row); return `<span class="checks-chip ${state}">${mark} ${esc(GATE_NAMES[row.id] || row.id)}</span>`;
+    }).join('')}${openChecks ? `<span class="checks-chip open">○ ${openChecks} open</span>` : ''}</div><p>The replay below shows how Muse and the engineering engines reached this result.</p>`;
+  }
   $('evidenceSummary').hidden = false;
-  $('evidenceSummary').innerHTML = `<h3>Evidence at a glance</h3><p>The decision stays short; the calculations and provenance remain here.</p><div class="evidence-metrics">
+  const blockers = rows.filter(row => gateState(row)[0] === 'fail');
+  const openRows = rows.filter(row => gateState(row)[0] === 'open');
+  const workRow = (row, state) => {
+    const full = state === 'fail' ? storyGate(row) : plain(row.summary || 'No engineering check has been supplied.');
+    const short = full.length > 120 ? full.slice(0, 117).trimEnd() + '…' : full;
+    return `<div class="engineering-work ${state}"><span class="engineering-work-state">${state === 'fail' ? '✕' : '○'}</span><div><b>${esc(GATE_NAMES[row.id] || row.id)}</b><span>${esc(short)}</span><small>${esc(state === 'fail' ? 'Next: change the design or record a signed disposition.' : `Needed: ${GATE_NEEDS[row.id] || 'engineering input'}.`)}</small></div>${state === 'fail' ? `<a href="review.html?case=${encodeURIComponent(CASE)}#fails">Record disposition</a>` : `<button type="button" ${act('showWorkItem', row.id)}>Review requirement</button>`}</div>`;
+  };
+  const worklist = `<section class="engineering-worklist" id="evidenceWorklist"><div class="engineering-worklist-head"><b>Engineering worklist</b><span>${blockers.length} failed · ${openRows.length} input${openRows.length === 1 ? '' : 's'} needed</span></div>${blockers.map(row => workRow(row, 'fail')).join('')}${openRows.length ? `<details><summary>${openRows.length} open engineering input${openRows.length === 1 ? '' : 's'}</summary>${openRows.map(row => workRow(row, 'open')).join('')}</details>` : ''}</section>`;
+  $('evidenceSummary').innerHTML = `<h3>${blockers.length ? 'Why this design is not ready' : 'Evidence at a glance'}</h3><p>${blockers.length ? 'Resolve these calculated failures before approval.' : open ? 'No calculated failure remains, but engineering inputs still need review.' : 'All supplied discipline checks pass.'}</p>${worklist}<div class="evidence-metrics">
     <div><strong>${calculations}</strong><span>calculation${calculations === 1 ? '' : 's'}</span></div>
     <div class="${failed ? 'fail' : 'pass'}"><strong>${failed}</strong><span>failed discipline${failed === 1 ? '' : 's'}</span></div>
     <div><strong>${assumptions}</strong><span>assumption${assumptions === 1 ? '' : 's'}</span></div>
@@ -2113,6 +2141,10 @@ function designAnswer() {
   const reach = has.filter(a => a.combined?.reaches_target);
   return (reach.length ? reach : has).at(-1);
 }
+function designAnswerIndex() {
+  const i = (P?.answers || []).indexOf(designAnswer());
+  return i >= 0 ? i : Math.max(0, (P?.answers || []).length - 1);
+}
 function verifiedDesigns() {
   const out = [];
   const d = designAnswer();
@@ -2524,10 +2556,14 @@ function showChangeOnDrawing(tag) {
 function renderChangeSummary() {
   const box = $('changeSummary'), current = workingRevisionData();
   if (!current?.changes?.length) { box.hidden = true; box.innerHTML = ''; return; }
-  box.innerHTML = `<div class="change-summary-head"><small>What changed</small><b>${esc(current.label)}</b></div><div class="change-summary-list">${current.changes.map(change => {
+  const routing = change => change.reroute || ['mixer', 'splitter', 'recycle'].includes(change.add_unit?.type);
+  const row = change => {
     const tag = changeTag(change);
     return `<button class="change-summary-row" type="button" ${tag ? act('showChangeOnDrawing', tag) : 'disabled'}>${describe(change)}</button>`;
-  }).join('')}</div>`;
+  };
+  const physical = current.changes.filter(change => !routing(change)), model = current.changes.filter(routing);
+  box.innerHTML = `<div class="change-summary-head"><small>What changed</small><b>${esc(current.label)}</b></div><div class="change-summary-list">${physical.map(row).join('')}</div>` +
+    (model.length ? `<details class="change-routing"><summary>Model routing · ${model.length} implementation change${model.length === 1 ? '' : 's'}</summary><div class="change-summary-list">${model.map(row).join('')}</div></details>` : '');
   box.hidden = false;
 }
 async function adoptProposedDesign() {
@@ -3369,10 +3405,15 @@ function redteamCard() {
     <div class="redteam-summary ${failed ? 'fail' : 'pass'}"><b><a href="${esc(src)}" target="_blank">${failed ? summary.broke : summary.held} / ${summary.total}</a> ${failed ? 'broke the modelled limits' : 'stayed within the modelled process limits'}</b><span>${esc(set.design_label)}${worstText} · not a design-safety approval</span></div>
     <div class="redteam-attacks">${attacks}${unstored}</div>${challenge}${set.note ? `<p class="redteam-note">${esc(set.note)}</p>` : ''}</section>`;
 }
+function showWorkItem(id) {
+  let index = GATE_VIEWS.findIndex(row => row.id === id);
+  if (index < 0) index = GATE_VIEWS.push(gateRows(designAnswer() || {}).find(row => row.id === id)) - 1;
+  showGate(index);
+}
 function showGate(index) {
   const row = GATE_VIEWS[index];
   if (!row) return;
-  const [, mark, status] = gateState(row), name = GATE_NAMES[row.id] || row.id.replaceAll('_', ' ');
+  const [state, mark, status] = gateState(row), name = GATE_NAMES[row.id] || row.id.replaceAll('_', ' ');
   const checks = (row.checks || []).map(check => {
     if (typeof check === 'string') return `<li>${esc(check)}</li>`;
     // the server states each row's kind (min/max), status and a ready result sentence; older rows fall back to the percentage
@@ -3387,7 +3428,9 @@ function showGate(index) {
       (src ? `<small>${esc(src)}</small>` : '') + '</li>';
   }).join('');
   const source = String(row.source || ''), path = row.source_file ? [row.source_file] : source.match(/\(?cases\/[^)\s]+\)?/);
-  $('modalBox').innerHTML = `<h3>${esc(name)} <span style="color:var(--muted)">${mark} ${esc(status)}</span></h3><p>${esc(unitH(row.summary || 'No summary supplied.'))}</p><div class="card"><div class="tt">How this was calculated</div><div class="res">${esc(srcName(source.replace(path?.[0] || '', '').trim()) || 'not supplied')}</div>${path ? `<details><summary>input file</summary><code>${esc(path[0].replace(/[()]/g, ''))}</code></details>` : ''}</div>${checks ? `<h4>Checks</h4><ul class="gate-checks">${checks}</ul>` : '<p style="color:var(--muted)">No calculation covers this discipline yet: it stays open until an engineer supplies the check.</p>'}`;
+  const action = state === 'fail' ? `<a class="btn go" href="review.html?case=${encodeURIComponent(CASE)}#fails">Record disposition</a>`
+    : state === 'open' ? `<button class="btn" type="button" onclick="$('modal').classList.remove('on');setWorkspacePage('sources')">Review input sources</button>` : '';
+  $('modalBox').innerHTML = `<h3>${esc(name)} <span style="color:var(--muted)">${mark} ${esc(status)}</span></h3><p>${esc(unitH(row.summary || 'No summary supplied.'))}</p><div class="card"><div class="tt">How this was calculated</div><div class="res">${esc(srcName(source.replace(path?.[0] || '', '').trim()) || 'not supplied')}</div>${path ? `<details><summary>input file</summary><code>${esc(path[0].replace(/[()]/g, ''))}</code></details>` : ''}</div>${checks ? `<h4>Checks</h4><ul class="gate-checks">${checks}</ul>` : `<p style="color:var(--muted)">No calculation covers this discipline yet. Needed: ${esc(GATE_NEEDS[row.id] || 'engineering input')}.</p>`}${action ? `<div style="margin-top:14px">${action}</div>` : ''}`;
   $('modal').classList.add('on');
 }
 // judge-facing text without internal run and model identifiers; the Engineering view keeps them
@@ -3602,7 +3645,7 @@ async function reload() {
 
 async function decisionFile() {
   $('decOut').textContent = `Re-solving every limit in ${simulator()} and writing the pack…`;
-  const r = await api('decision', {answer: (P.answers || []).length - 1}).catch(e => ({error: e.message}));
+  const r = await api('decision', {answer: designAnswerIndex()}).catch(e => ({error: e.message}));
   if (r.error) { $('decOut').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return false; }
   const label = {'decision.pdf': 'MOC file (PDF)', 'memo.pdf': 'Management memo (PDF)', 'rev_b.svg': 'P&ID Rev B (proposed)', 'rev_a.svg': 'P&ID Rev A (existing)', 'rev_b.png': 'Rev B (PNG)', 'redline.svg': 'Redline (same as Rev B)', 'decision.zip': 'Everything (zip)',
                  'decision.md': 'Decision file (md)', 'memo.md': 'Memo (md)', 'decision.json': 'Data (JSON)'};
@@ -3613,7 +3656,7 @@ async function decisionFile() {
 async function prefeedFile() {
   const out = $('prefeedOut') || $('decOut');
   out.textContent = 'Re-solving the operating envelope and writing the pre-FEED gate…';
-  const r = await api('prefeed', {}).catch(e => ({error: e.message}));
+  const r = await api('prefeed', {answer: designAnswerIndex()}).catch(e => ({error: e.message}));
   if (r.error) { out.innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return false; }
   const assessment = r.assessment || {}, env = assessment.envelope || {};
   P.gateAssessment = assessment;
@@ -3756,6 +3799,14 @@ function tourLimit() {
 function tourTarget(ref) {
   return typeof ref === 'string' ? ($(ref) || document.querySelector(ref)) : ref;
 }
+function tourRevisionSummary(revision) {
+  const tags = [...new Set((revision.changes || [])
+    .filter(change => !change.reroute && !['splitter', 'mixer'].includes(change.add_unit?.type))
+    .map(changeTag).filter(Boolean))];
+  if (!tags.length) return revision.title;
+  const shown = tags.slice(0, 3), more = tags.length - shown.length;
+  return `The working revision changes ${shown.slice(0, -1).join(', ')}${shown.length > 1 ? ' and ' : ''}${shown.at(-1)}${more ? `, plus ${more} other item${more === 1 ? '' : 's'}` : ''}`;
+}
 function placeTour(ids) {
   const targets = ids.map(tourTarget).filter(el => el && !el.hidden && el.getClientRects().length);
   if (!targets.length) return;
@@ -3786,7 +3837,7 @@ function tourSteps() {
       () => ['runStory', 'workspaceActions'], async () => { setWorkspacePage('overview'); await setView('existing'); setScale(target); }],
     ['See the bottleneck', () => { const limit = tourLimit(); return limit ? `At the target rate, ${limit.id} reaches ${Math.round(limit.utilisation * 100)} % of its documented limit. Red means the rating is exceeded.` : 'Every modelled item remains inside its documented limit at the target rate.'; },
       () => { const id = tourLimit()?.id, node = id && sheet.querySelector(`[data-tag="${CSS.escape(id)}"]`); return [node || 'pidViewport']; }, async () => { setWorkspacePage('drawing'); await setView('existing'); setScale(target); await new Promise(r => setTimeout(r, 180)); const id = tourLimit()?.id; if (id) focusDrawing(id); }],
-    ...(revision ? [['Compare the working revision', () => `${revision.title}. Every physical change is clouded on the drawing, and the existing plant remains one click away.`,
+    ...(revision ? [['Compare the working revision', () => `${tourRevisionSummary(revision)}. Every physical change is clouded on the drawing, and the existing plant remains one click away.`,
       () => ['viewTog'], async () => { setWorkspacePage('drawing'); await setView('proposed'); if (tags.length) focusDrawingTags(tags); }]] : []),
     ...(LAST_WORK ? [['Follow the engineering checks', () => { const rounds = LAST_WORK.rounds?.length || 0, headline = plain(LAST_WORK.result?.headline || LAST_WORK.status || 'The saved run is still open').replace(/^UNSOLVABLE:\s*/i, ''); return `${rounds} engineering round${rounds === 1 ? '' : 's'} recorded. ${headline}. Missing inputs stay open instead of being guessed.`; },
       () => ['worklogPanel', 'workspaceActions'], () => setWorkspacePage('run')]] : []),
@@ -3827,7 +3878,10 @@ async function tourGo(i) {
 function tourEnd() { $('tour').style.display = 'none'; toggleDrawer(false); openDetails(false); document.querySelectorAll('.tour-on').forEach(e => e.classList.remove('tour-on')); }
 
 $('model').onchange = e => api('model', {model: e.target.value});
-window.onresize = () => { fitDrawing(); if (ST) render(ST); };
+window.onresize = () => {
+  fitDrawing(); if (ST) render(ST);
+  if (getComputedStyle($('tour')).display !== 'none' && TOUR[TOUR_I]) requestAnimationFrame(() => placeTour(TOUR[TOUR_I][2]()));
+};
 projects().catch(() => { $('proj').innerHTML = '<option>Project list unavailable</option>'; });
 // Primary pages share the strip beside the rail; the right drawer is reserved for a selected item's detail.
 // Nodes are moved, not rebuilt, so every existing handler stays attached.
@@ -3846,6 +3900,7 @@ function openDetails(on) {
   $('resultPane').appendChild($('askDock')); $('askDock').classList.add('workspace-command'); $('q').placeholder = 'Ask anything about this plant…';
   body.prepend($('qaSugg'));
   scroll.insertAdjacentHTML('afterbegin', '<section class="package-tools"><h3>Engineering package</h3><p>Move the checked design through engineering review, then issue a traceable draft.</p><div class="package-flow" id="packageFlow"></div><button class="btn go" id="packageIssue" type="button" onclick="issueEngineeringPackage(this)" data-needs-simulator>Issue engineering package</button><a class="btn" id="packageReview">Review comments and sign-offs</a></section>');
+  scroll.insertAdjacentHTML('afterbegin', '<section class="checks-summary" id="checksSummary" aria-label="Current engineering checks"></section>');
   $('packageReview').href = 'review.html?case=' + encodeURIComponent(CASE);
   document.querySelector('.package-tools').appendChild($('redlineLink'));
   const sources = document.createElement('section'); sources.id = 'sourcesWorkspace'; sources.className = 'sources-workspace';

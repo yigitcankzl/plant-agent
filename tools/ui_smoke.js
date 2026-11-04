@@ -304,9 +304,9 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
         { id: 'electrical', status: 'fail', summary: 'Transformer overloads on start', source: 'pandapower load flow', checks: [{ check: 'starting voltage', value: 0.82, limit: 0.9 }] }],
       field_checks: [{ item: 'Cooling-water flow', where: 'Check the supply header', changes: 'A low reading changes the recommendation.' }],
       proposals: [{ title: 'Restore cooling-water flow', tag: 'H1007', fixes: 'H1007', cost_class: 'no capex', verified: true,
-        changes: [{ path: 'units.H1007.duty_kW', value: 1 }], electrical: { summary: 'TX-47 68 → 70 % loaded; all electrical checks within limits', svg: '/x.svg', over: [] } }], cards: [{ title: 'Duty check', result: 'Within limit', inputs: [] }], checks: [] }];
-    answers();
-    return !!document.querySelector('.decision-brief') && proposedDraft()?.proposal?.changes?.length === 1 && document.querySelector('#vProposed').textContent === 'Working revision' &&
+        changes: [{ path: 'units.H1007.duty_kW', value: 1 }, { reroute: { unit: 'H1007', field: 'out', value: 'PRODUCT' } }], electrical: { summary: 'TX-47 68 → 70 % loaded; all electrical checks within limits', svg: '/x.svg', over: [] } }], cards: [{ title: 'Duty check', result: 'Within limit', inputs: [] }], checks: [] }];
+    answers(); renderWorkspaceSummaries();
+    return !!document.querySelector('.decision-brief') && proposedDraft()?.proposal?.changes?.length === 2 && designAnswerIndex() === 0 && document.querySelector('#vProposed').textContent === 'Working revision' &&
       !document.querySelector('#workingRevision').hidden && /Draft design/.test(document.querySelector('#workingRevision').textContent) && /1 human decision open/.test(document.querySelector('#workingRevision').textContent) &&
       !!document.querySelector('#adoptProposed') && getComputedStyle(document.querySelector('.engineering-detail')).display === 'none' &&
       document.querySelectorAll('.discipline-gate').length === GATE_ORDER.length && document.body.textContent.includes('Not checked: needs') && !!document.querySelector('.package-action') &&
@@ -320,11 +320,15 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     (P.allow_runs ? getComputedStyle(document.querySelector('#askDock')).display === 'grid' : getComputedStyle(document.querySelector('#askDock')).display === 'none'));
   await p.click('[data-workspace-page="run"]');
   const runSeparated = await p.evaluate(() => getComputedStyle(document.querySelector('.work-runner')).display !== 'none' && getComputedStyle(document.querySelector('#qa')).display === 'none' &&
-    getComputedStyle(document.querySelector('#sourcesWorkspace')).display === 'none');
+    getComputedStyle(document.querySelector('#sourcesWorkspace')).display === 'none' && getComputedStyle(document.querySelector('#checksSummary')).display !== 'none' &&
+    document.querySelectorAll('#checksSummary .checks-chip').length > 0 && /Current engineering checks/.test(document.querySelector('#checksSummary').textContent));
   await p.click('[data-workspace-page="evidence"]');
   const engineeringView = await p.evaluate(() => getComputedStyle(document.querySelector('.engineering-detail')).display !== 'none' &&
     document.querySelector('#inspectorTitle').textContent === 'Evidence' && !document.body.classList.contains('dd-open') &&
-    getComputedStyle(document.querySelector('#resultPane')).display !== 'none' && document.querySelectorAll('#evidenceSummary .evidence-metrics > div').length === 4);
+    getComputedStyle(document.querySelector('#resultPane')).display !== 'none' && document.querySelectorAll('#evidenceSummary .evidence-metrics > div').length === 4 &&
+    /Transformer overloads on start/.test(document.querySelector('#evidenceSummary').textContent) &&
+    document.querySelectorAll('#evidenceWorklist .engineering-work.fail').length === 1 && /Record disposition/.test(document.querySelector('#evidenceWorklist').textContent) &&
+    document.querySelector('#evidenceWorklist details summary')?.textContent.includes('open engineering inputs'));
   await p.screenshot({ path: `${OUT}/engineering_workspace.png` });
   await p.click('.discipline-gate.fail');
   const gateEvidence = await p.evaluate(() => document.querySelector('#modal').classList.contains('on') && /pandapower/.test(document.querySelector('#modalBox').textContent));
@@ -333,7 +337,8 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.click('[data-workspace-page="drawing"]');
   const focusOn = await p.evaluate(() => document.body.classList.contains('workspace-page-drawing') && getComputedStyle(document.querySelector('aside.right')).display === 'none' &&
     document.querySelector('main').getBoundingClientRect().left < 100 && !document.querySelector('#changeSummary').hidden &&
-    /What changed/.test(document.querySelector('#changeSummary').textContent) && document.querySelectorAll('#changeSummary .change-summary-row').length === 1);
+    /What changed/.test(document.querySelector('#changeSummary').textContent) && document.querySelectorAll('#changeSummary > .change-summary-list .change-summary-row').length === 1 &&
+    /Model routing · 1 implementation change/.test(document.querySelector('#changeSummary .change-routing').textContent));
   await p.screenshot({ path: `${OUT}/drawing_focus.png` });
   await p.click('[data-workspace-page="overview"]');
   const focusOff = await p.evaluate(() => !document.body.classList.contains('workspace-page-drawing') && getComputedStyle(document.querySelector('aside.right')).display !== 'none');
