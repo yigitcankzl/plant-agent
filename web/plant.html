@@ -1473,9 +1473,13 @@ async function projects() {
   const opt = p => `<option value="${p.kind}:${p.case}" ${p.case === CASE ? 'selected' : ''}>${esc(p.title.replace(/\s*\([^)]*\)?/g, '').split(':')[0])}</option>`;
   const list = ps.filter(p => p.workspace && (p.kind !== 'process' || p.built || p.case === CASE));
   const feat = FEATURED.map(c => list.find(p => p.case === c)).filter(Boolean);
-  // the five featured plants, the current one if it is not among them, and one way into the full library
   const here = list.find(p => p.case === CASE && !feat.includes(p));
-  $('proj').innerHTML = feat.map(opt).join('') + (here ? opt(here) : '') + '<option value="library:">All plants — case library →</option>';
+  if (here) feat.push(here);
+  const groups = [['needs_attention', 'Needs attention'], ['review', 'Ready for review'], ['draft', 'Draft / replay']];
+  $('proj').innerHTML = groups.map(([status, label]) => {
+    const items = feat.filter(p => (p.status || 'draft') === status);
+    return items.length ? `<optgroup label="${label}">${items.map(opt).join('')}</optgroup>` : '';
+  }).join('') + '<option value="library:">All plants — case library →</option>';
   $('proj').title = $('proj').selectedOptions[0]?.textContent || 'Project';
   $('proj').onchange = e => { const [k, c] = e.target.value.split(':'); if (k === 'library') { location.href = 'home.html#cases'; return; } location.href = (k === 'process' ? 'plant.html' : 'workspace.html') + '?case=' + c; };
 }

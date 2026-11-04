@@ -531,6 +531,30 @@ def plant_project(case):
             "capacity": w.capacity() if w.built else None, "at_target": st}
 
 
+def signoff_status(case):
+    """Join the frozen pack record to the design that currently leads the workspace."""
+    from . import signoff
+    from .revb import design_answer
+    w, state = plant(case), signoff.status(case)
+    answer = design_answer(w.answers)
+    index = next((i for i, item in enumerate(w.answers) if item is answer), None)
+    state["active_design"] = {"answer_index": index, "headline": (answer or {}).get("headline")}
+    packed_index = state.get("pack_design", {}).get("answer_index")
+    state["stale_design"] = packed_index is not None and packed_index != index
+    return state
+
+
+def project_status(case):
+    gates = RUNS / "ws" / case / "gates.json"
+    rows = json.loads(gates.read_text()).get("disciplines", []) if gates.is_file() else []
+    states = {str(row.get("status", "")).lower() for row in rows}
+    if "fail" in states:
+        return "needs_attention"
+    if "open" in states:
+        return "review"
+    return "draft"
+
+
 MAX_UPLOAD = 20 * 1024 * 1024
 MAX_POST = 28 * 1024 * 1024
 
@@ -978,14 +1002,18 @@ class Handler(SimpleHTTPRequestHandler):
             from . import signoff  # MOC sign-off: no model call, no solver
             case, action, body = parts[2], parts[4], (self._json_body() if method == "POST" else {})
             fn = {"dispose": lambda: signoff.dispose(case, body.get("check"), body.get("kind"), body.get("reason"), body.get("name")),
+                  "evidence": lambda: signoff.evidence(case, body.get("check"), body.get("note"), body.get("name")),
                   "review": lambda: signoff.review(case, body.get("name"), body.get("note")),
                   "approve": lambda: signoff.approve(case, body.get("name"), body.get("note")),
                   "reject": lambda: signoff.reject(case, body.get("name"), body.get("reason")),
                   "reopen": lambda: signoff.reopen(case, body.get("name"), body.get("reason"))}.get(action)
             if method != "POST" or not fn:
                 return self._send({"error": "not found"}, code=404)
+            if action in ("review", "approve") and signoff_status(case)["stale_design"]:
+                return self._send({"error": "the decision pack does not match the active design; issue a new pack first"}, code=409)
             try:
-                return self._send(_case_call(case, fn))
+                _case_call(case, fn)
+                return self._send(signoff_status(case))
             except ValueError as e:
                 return self._send({"error": str(e)}, code=409)
         if parts[:2] == ["api", "plant"] and len(parts) == 5 and parts[2] in set(all_cases("process")) and parts[3] == "approval":
@@ -1189,8 +1217,7 @@ class Handler(SimpleHTTPRequestHandler):
                 from . import approval
                 return self._send(approval.status(w))
             if what == "signoff":
-                from . import signoff
-                return self._send(signoff.status(case))
+                return self._send(signoff_status(case))
             if what == "gates":  # discipline gates of the design answer: DWSIM/pandapower/ht/Cantera, no model call; cached
                 from . import prefeed
                 try:
@@ -1278,7 +1305,7 @@ class Handler(SimpleHTTPRequestHandler):
         if parts[:2] == ["api", "projects"]:
             return self._send([{"case": n, "kind": "study", "title": Case(n).cfg["title"], "task_type": Case(n).cfg["task_type"],
                                 "workspace": "workspace" in Case(n).cfg} for n in all_cases()] +
-                              [{"case": n, "kind": "process", "built": (RUNS / "ws" / n / "model.json").exists(),
+                              [{"case": n, "kind": "process", "built": (RUNS / "ws" / n / "model.json").exists(), "status": project_status(n),
                                 "title": json.loads((ROOT / "cases" / n / "case.json").read_text())["title"],
                                 "task_type": json.loads((ROOT / "cases" / n / "case.json").read_text())["task_type"], "workspace": True,
                                 "engine": json.loads((ROOT / "cases" / n / "case.json").read_text()).get("engine", "dwsim")}

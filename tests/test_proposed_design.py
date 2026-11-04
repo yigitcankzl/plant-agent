@@ -140,6 +140,7 @@ class DecisionPackTests(unittest.TestCase):
                                                   "model": "fixture", "field_checks": []})
         self.assertIn("decision.md", out["files"])
         self.assertIn("redline.svg", out["files"])
+        self.assertEqual(data["design"], {"answer_index": 0, "headline": "Add a compressor", "revisions": 1})
         calc_json = json.dumps(data["calculation"])
         for value in ("45.4", "1.88", "226.8", "9.4", "7,719", "95.5", "120.1"):
             self.assertIn(value, md)

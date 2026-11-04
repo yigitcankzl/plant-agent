@@ -826,7 +826,10 @@ def make(w, answer=None):
             (out / "rev_b.png").write_bytes(png)
             files.append("rev_b.png")
         drawings.append(("5.2 P&ID Rev B - proposed (DRAFT - NOT APPROVED)", rev_b["svg"]))
-    data = {"case": w.name, "made": stamp, "target_scale": target, "revisions": revs, "new_equipment": new_equipment,
+    answer_index = w.answers.index(ans) if ans in w.answers else None
+    data = {"case": w.name, "made": stamp, "target_scale": target,
+            "design": {"answer_index": answer_index, "headline": (ans or {}).get("headline"), "revisions": len(revs)},
+            "revisions": revs, "new_equipment": new_equipment,
             "replaced_equipment": replacements,
             "topology": topology(built, changes), "calculation": calculations, "capacity": {"before": cap_before, "after": cap_after},
             "limits": rows, "pssr": checklist, "drawing": {k: v for k, v in (rev_b or {}).items() if k != "svg"},
@@ -847,7 +850,7 @@ def make(w, answer=None):
         for f in files:
             z.write(out / f, f)
     files.append("decision.zip")
-    audit.append(w.name, "decision_file", None, "decision file generated (draft)", {"folder": out.name, "revisions": len(revs),
+    audit.append(w.name, "decision_file", None, "decision file generated (draft)", {"folder": out.name, "answer_index": answer_index, "revisions": len(revs),
                                                                                        "limits_over_after": len(over_after),
                                                                                        "model_review": reviewed.get("status"),
                                                                                        "blocking_findings": reviewed.get("blocking")})

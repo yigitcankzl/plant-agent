@@ -82,12 +82,21 @@
     .check form textarea { grid-column: 1 / -1; min-height: 44px; }
     .check form .row { grid-column: 1 / -1; display: flex; gap: 8px; }
     .check form .row input { flex: 1; }
+    .decision-form { grid-column: 2; margin-top: 2px; }
+    .decision-form > summary { color: var(--act-2); font-size: 13px; font-weight: 700; cursor: pointer; }
+    .decision-form form { margin-top: 10px; }
     .disp { grid-column: 2; font-size: 13.5px; }
     .disp b.accepted_risk { color: var(--hold); } .disp b.must_fix { color: var(--stop); }
     .openlist { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
     .openlist li { border: 1px solid var(--rule); border-left: 3px solid var(--hold); border-radius: 10px; background: var(--ink-2); padding: 10px 14px;
       display: grid; grid-template-columns: 130px 1fr; gap: 16px; font-size: 13.5px; }
     .openlist li b { color: var(--hold); font: 700 12px var(--mono); text-transform: uppercase; letter-spacing: .06em; }
+    .openlist li > div > span { display: block; }
+    .evidence-note { margin-top: 7px; padding: 7px 9px; border-left: 2px solid var(--go); background: #f5faf3; font-size: 12.5px; }
+    .evidence-form { margin-top: 8px; }
+    .evidence-form > summary { color: var(--act-2); font-size: 12.5px; font-weight: 700; cursor: pointer; }
+    .evidence-form form { display: grid; grid-template-columns: 1fr auto; gap: 7px; margin-top: 8px; }
+    .evidence-form textarea { grid-column: 1 / -1; }
 
     aside section { border: 1px solid var(--rule); border-radius: 12px; background: var(--ink-2); padding: 16px 18px; margin-bottom: 14px; }
     .files { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; }
@@ -178,35 +187,38 @@ function plainFailure(row) {
 function render() {
   const s = S, fails = s.checks.fail, opens = s.checks.open;
   $('plantLink').href = `plant.html?case=${C()}`;
-  $('lede').innerHTML = s.pack ? `<b>${esc(s.recommendation || 'Decision pack ' + s.pack)}</b><br>Pack <code>${esc(s.pack)}</code>. ${fails.length} failed check${fails.length === 1 ? '' : 's'} and ${opens.length} open item${opens.length === 1 ? '' : 's'} go into this record.`
+  const answer = s.pack_design?.answer_index, active = s.active_design?.answer_index;
+  const identity = answer == null ? '' : ` · design answer ${answer + 1} · Rev B (${s.pack_design.revisions || 0} changes)`;
+  $('lede').innerHTML = s.pack ? `<b>${esc(s.recommendation || 'Decision pack ' + s.pack)}</b><br>Pack <code>${esc(s.pack)}</code>${esc(identity)}. ${fails.length} failed check${fails.length === 1 ? '' : 's'} and ${opens.length} open item${opens.length === 1 ? '' : 's'} go into this record.`
     : 'No decision pack has been issued for this plant yet. Issue the engineering package from the plant page, then sign it here.';
   const undone = s.undisposed.length, mustFix = s.must_fix.length;
-  const reviewForm = s.state === 'draft' && s.pack && ROLE !== 'reviewer' ? gate('Reviewer', 'record the review') : s.state === 'draft' && s.pack ? `<input id="rvName" placeholder="Reviewer name" aria-label="Reviewer name"><textarea id="rvNote" placeholder="Review note (optional)" aria-label="Review note"></textarea>
+  const reviewForm = s.stale_design ? gate('Plant page', 'issue a new pack for the active design') : s.state === 'draft' && s.pack && ROLE !== 'reviewer' ? gate('Reviewer', 'record the review') : s.state === 'draft' && s.pack ? `<input id="rvName" placeholder="Reviewer name" aria-label="Reviewer name"><textarea id="rvNote" placeholder="Review note (optional)" aria-label="Review note"></textarea>
      ${undone ? `<div class="why">Write a disposition for ${esc(s.undisposed.join(', '))} first.</div>` : ''}
      <div class="acts"><button class="go" id="rvBtn" ${undone ? 'disabled' : ''}>Record reviewer decision</button></div>` : '';
-  const approveForm = s.state === 'reviewed' && ROLE !== 'approver' ? gate('Approver', 'approve or reject') : s.state === 'reviewed' ? `<input id="apName" placeholder="Approver name (not the reviewer)" aria-label="Approver name"><textarea id="apNote" placeholder="Approval note, or the reason for rejecting" aria-label="Approval note or rejection reason"></textarea>
+  const approveForm = s.stale_design ? gate('Plant page', 'issue a new pack for the active design') : s.state === 'reviewed' && ROLE !== 'approver' ? gate('Approver', 'approve or reject') : s.state === 'reviewed' ? `<input id="apName" placeholder="Approver name (not the reviewer)" aria-label="Approver name"><textarea id="apNote" placeholder="Approval note, or the reason for rejecting" aria-label="Approval note or rejection reason"></textarea>
      ${mustFix ? `<div class="why">${esc(s.must_fix.join(', '))} marked must fix: this pack can be rejected, not approved.</div>` : ''}
      <div class="acts"><button class="go" id="apBtn" ${mustFix ? 'disabled' : ''}>Record approval and freeze</button><button class="stop" id="rjBtn">Reject</button></div>` : '';
   const approved = s.approver ? signed(s.approver, 'Approved') : s.rejected && s.state === 'rejected'
     ? `<div class="who">${esc(s.rejected.name)}</div><div class="when">Rejected ${esc(when(s.rejected.at))}</div><div class="note">${esc(s.rejected.reason)}</div>
        <input id="roName" placeholder="Your name" aria-label="Name"><div class="acts"><button id="roBtn">Reopen as draft</button></div>` : '';
-  $('block').innerHTML = `<div class="title"><div class="doc">Management of change: ${esc(s.case)}<span>${esc(s.pack || 'no pack issued')}</span></div><div class="stamp ${s.state}">${s.state === 'draft' ? 'Draft, not approved' : s.state === 'reviewed' ? 'Reviewed' : s.state === 'approved' ? 'Approved' : 'Rejected'}</div></div>
+  $('block').innerHTML = `<div class="title"><div class="doc">Management of change: ${esc(s.case)}<span>${esc(s.pack || 'no pack issued')}${answer == null ? '' : ` · answer ${answer + 1}`}</span></div><div class="stamp ${s.state}">${s.state === 'draft' ? 'Draft, not approved' : s.state === 'reviewed' ? 'Reviewed' : s.state === 'approved' ? 'Approved' : 'Rejected'}</div></div>
     <div class="cells">${cell('Prepared', `<div class="who">${esc(s.preparer)}</div><div class="when">Decision pack ${esc(s.pack || '—')}</div><div class="note">Every number re-solved by the engines; text by Muse.</div>`)}
     ${cell('Reviewed', s.reviewer ? signed(s.reviewer, 'Signed') : null, reviewForm)}
     ${cell('Approved', approved || null, approveForm)}</div>`;
-  $('changed').innerHTML = s.changed_since_approval?.length ? `<p class="alert">Package changed since approval: ${esc(s.changed_since_approval.join(', '))}. The approval no longer applies; the pack is a draft again.</p>`
+  $('changed').innerHTML = s.stale_design ? `<p class="alert">This package is stale: it records ${answer == null ? 'an unidentified older design' : `answer ${answer + 1}`}, while ${active == null ? 'no design answer is active' : `answer ${active + 1} is now active`}. Issue a new package before review.</p>`
+    : s.changed_since_approval?.length ? `<p class="alert">Package changed since approval: ${esc(s.changed_since_approval.join(', '))}. The approval no longer applies; the pack is a draft again.</p>`
     : s.state === 'approved' && s.frozen?.open_items?.length ? `<p class="alert hold">Approved with ${s.frozen.open_items.length} open item${s.frozen.open_items.length === 1 ? '' : 's'} recorded below.</p>` : '';
   const editable = ['draft', 'reviewed'].includes(s.state) && ROLE !== 'approver';  // the approver decides, it does not write dispositions
   $('fails').innerHTML = fails.length ? fails.map(r => {
     const d = s.dispositions[r.id];
     return `<div class="check"><div class="id fail">${esc(r.id.replaceAll('_', ' '))}</div><div class="sum">${esc(plainFailure(r))}<details class="technical"><summary>Technical result</summary>${esc(r.summary)}</details></div>
       ${d ? `<div class="disp"><b class="${d.kind}">${esc(s.kinds[d.kind])}</b>: ${esc(d.reason)} <span class="muted">(${esc(d.by)}, ${esc(when(d.at))})</span></div>` : ''}
-      ${editable ? `<form data-check="${esc(r.id)}"><label><input type="radio" name="k-${esc(r.id)}" value="accepted_risk" ${d?.kind === 'accepted_risk' ? 'checked' : ''}> Accepted risk</label>
+      ${editable ? `<details class="decision-form"><summary>${d ? 'Change disposition' : 'Record disposition'}</summary><form data-check="${esc(r.id)}"><label><input type="radio" name="k-${esc(r.id)}" value="accepted_risk" ${d?.kind === 'accepted_risk' ? 'checked' : ''}> Accepted risk</label>
         <label><input type="radio" name="k-${esc(r.id)}" value="must_fix" ${d?.kind === 'must_fix' ? 'checked' : ''}> Must fix</label><span></span>
         <textarea name="reason" placeholder="Reason (required): what makes this acceptable, or what has to change" aria-label="Disposition reason for ${esc(r.id)}"></textarea>
-        <div class="row"><input name="name" placeholder="Your name" aria-label="Name"><button>${d ? 'Change disposition' : 'Record disposition'}</button></div></form>` : ''}</div>`;
+        <div class="row"><input name="name" placeholder="Your name" aria-label="Name"><button>${d ? 'Change disposition' : 'Record disposition'}</button></div></form></details>` : ''}</div>`;
   }).join('') : '<p class="muted">No failed checks in this design.</p>';
-  $('open').innerHTML = opens.map(r => `<li><b>${esc(r.id.replaceAll('_', ' '))}</b><span class="muted">${esc(r.summary)}</span></li>`).join('') || '<li class="muted">None.</li>';
+  $('open').innerHTML = opens.map(r => { const notes = s.evidence?.[r.id] || []; return `<li><b>${esc(r.id.replaceAll('_', ' '))}</b><div><span class="muted">${esc(r.summary)}</span>${notes.map(n => `<div class="evidence-note"><b>Evidence recorded</b>: ${esc(n.note)} <span class="muted">${esc(n.by)}, ${esc(when(n.at))}</span></div>`).join('')}${editable ? `<details class="evidence-form"><summary>Record supplied evidence</summary><form data-evidence="${esc(r.id)}"><textarea name="note" placeholder="What was supplied, where it came from, and what must be recalculated" aria-label="Evidence note for ${esc(r.id)}"></textarea><input name="name" placeholder="Your name" aria-label="Name"><button>Record evidence</button></form><span class="muted small">The gate stays open until its engineering check is recalculated.</span></details>` : ''}</div></li>`; }).join('') || '<li class="muted">None.</li>';
   $('pack').innerHTML = s.pack ? `${s.files.length} files frozen for review · <a href="/wsfiles/${C()}/${encodeURIComponent(s.pack)}/decision.pdf" target="_blank" rel="noopener">PDF</a> · <a href="/wsfiles/${C()}/${encodeURIComponent(s.pack)}/decision.zip" target="_blank" rel="noopener">ZIP</a>` : '';
   $('files').innerHTML = s.files.map(f => `<li><a href="/wsfiles/${C()}/${f.path.split('/').map(encodeURIComponent).join('/')}" target="_blank" rel="noopener">${esc(f.path)}</a><span>${kb(f.bytes)}</span></li>`).join('');
   $('fileSummary').textContent = `Show ${s.files.length} package files`;
@@ -215,6 +227,8 @@ function render() {
   $('hist').innerHTML = (s.history || []).slice().reverse().map(h => `<li>${esc(h.event.replaceAll('_', ' '))}${h.name ? `, ${esc(h.name)}` : ''}${h.reason ? `: ${esc(h.reason)}` : ''}<span class="muted">${esc(when(h.at))}</span></li>`).join('') || '<li class="muted">Nothing signed yet.</li>';
   document.querySelectorAll('#fails form').forEach(f => f.onsubmit = e => { e.preventDefault();
     act('dispose', {check: f.dataset.check, kind: f.querySelector('input[type=radio]:checked')?.value, reason: f.elements.namedItem('reason').value, name: f.elements.namedItem('name').value}); });
+  document.querySelectorAll('#open form[data-evidence]').forEach(f => f.onsubmit = e => { e.preventDefault();
+    act('evidence', {check: f.dataset.evidence, note: f.elements.namedItem('note').value, name: f.elements.namedItem('name').value}); });
   $('rvBtn') && ($('rvBtn').onclick = () => act('review', {name: $('rvName').value, note: $('rvNote').value}));
   $('apBtn') && ($('apBtn').onclick = () => act('approve', {name: $('apName').value, note: $('apNote').value}));
   $('rjBtn') && ($('rjBtn').onclick = () => act('reject', {name: $('apName').value, reason: $('apNote').value}));

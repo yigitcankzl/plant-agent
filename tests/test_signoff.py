@@ -17,7 +17,7 @@ class SignoffTest(unittest.TestCase):
             self.addCleanup(p.stop)
         ws = self.root / "runs" / "ws" / "c1"
         (ws / "decision-1").mkdir(parents=True)
-        (ws / "decision-1" / "decision.json").write_text("{}")
+        (ws / "decision-1" / "decision.json").write_text(json.dumps({"design": {"answer_index": 2, "headline": "Checked design", "revisions": 1}}))
         (ws / "decision-1" / "rev_b.svg").write_text("<svg/>")
         (ws / "gates.json").write_text(json.dumps({"disciplines": [
             {"id": "process", "status": "pass"}, {"id": "electrical", "status": "fail", "summary": "TX-1 133 %"},
@@ -67,6 +67,15 @@ class SignoffTest(unittest.TestCase):
         self.assertEqual(signoff.dispose("c1", "electrical", "must_fix", "changed my mind", "Ada")["state"], "draft")
         with self.assertRaisesRegex(ValueError, "not a failed check"):
             signoff.dispose("c1", "controls", "accepted_risk", "r", "Ada")
+
+    def test_open_item_evidence_is_audited_but_does_not_close_the_gate(self):
+        s = signoff.evidence("c1", "controls", "Vendor datasheet received", "Ada")
+        self.assertEqual(s["pack_design"]["answer_index"], 2)
+        self.assertEqual(s["evidence"]["controls"][0]["note"], "Vendor datasheet received")
+        self.assertEqual([r["id"] for r in s["checks"]["open"]], ["controls"])
+        self.assertTrue(audit.verify("c1")["ok"])
+        with self.assertRaisesRegex(ValueError, "not a failed or open check"):
+            signoff.evidence("c1", "missing", "x", "Ada")
 
 
 if __name__ == "__main__":

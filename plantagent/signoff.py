@@ -79,7 +79,7 @@ def checks(case):
 
 def _fresh(case, pack):
     return {"version": 1, "case": case, "pack": pack, "state": "draft", "preparer": PREPARER,
-            "reviewer": None, "approver": None, "rejected": None, "dispositions": {}, "frozen": None, "history": []}
+            "reviewer": None, "approver": None, "rejected": None, "dispositions": {}, "evidence": {}, "frozen": None, "history": []}
 
 
 def _load(case):
@@ -115,6 +115,7 @@ def _check_frozen(case, state):
 
 def status(case):
     state = _load(case)
+    state.setdefault("evidence", {})
     if _check_frozen(case, state):
         _write(case, state)
     c = checks(case)
@@ -124,8 +125,28 @@ def status(case):
     memo = ws / (state["pack"] or "-") / "memo.md"
     rec = next((ln.split(":**", 1)[1].strip() for ln in (memo.read_text().splitlines() if memo.is_file() else [])
                 if ln.startswith("**Recommendation:**")), None)
-    return {**state, "checks": c, "undisposed": undisposed, "files": files, "kinds": KINDS, "recommendation": rec,
+    decision = ws / (state.get("pack") or "-") / "decision.json"
+    pack_design = (json.loads(decision.read_text()).get("design") or {}) if decision.is_file() else {}
+    return {**state, "checks": c, "undisposed": undisposed, "files": files, "kinds": KINDS, "recommendation": rec, "pack_design": pack_design,
             "must_fix": [k for k, v in state["dispositions"].items() if v.get("kind") == "must_fix"]}
+
+
+def evidence(case, check_id, note, name):
+    """Record supplied evidence without pretending that it closes or recalculates the gate."""
+    s = _load(case)
+    _need(s, "draft", "reviewed")
+    valid = {r["id"] for rows in checks(case).values() for r in rows}
+    if check_id not in valid:
+        raise ValueError(f"{check_id} is not a failed or open check of this design")
+    if not str(note or "").strip():
+        raise ValueError("evidence needs a written note")
+    row = {"note": str(note).strip(), "by": _name(name), "at": _now()}
+    s.setdefault("evidence", {}).setdefault(check_id, []).append(row)
+    if s["state"] == "reviewed":
+        s.update(state="draft", reviewer=None)
+    _event(s, case, "evidence_recorded", name, note, {"check": check_id})
+    _write(case, s)
+    return status(case)
 
 
 def _need(s, *allowed):

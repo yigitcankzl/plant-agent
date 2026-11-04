@@ -97,12 +97,17 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   bad += redteamOk && !redteamErrors.length ? 0 : 1;
   await p.setViewportSize({width: 1440, height: 900});
   await p.goto(`${BASE}/plant.html?case=salt_mvr`); await p.waitForTimeout(5000);
+  const projectStatusOk = await p.evaluate(() => { const groups = [...document.querySelectorAll('#proj optgroup')].map(x => x.label);
+    return groups.includes('Needs attention') && groups.includes('Ready for review') &&
+      document.querySelector('#proj option:checked')?.closest('optgroup')?.label === 'Needs attention'; });
   const saltStartup = await p.evaluate(() => { const card = document.createElement('div'); card.innerHTML = costConfidence({uncertainty: {p_target: 1, solved: 1}}); return P.has_compressor_curve && !!card.querySelector('#machines button'); });
   const proposedSource = await p.evaluate(() => /Stored DWSIM · proposed design/.test(document.querySelector('#stateSource').textContent));
   await p.goto(`${BASE}/plant.html?case=chem_c01`); await p.waitForTimeout(5000);
   const chemStartup = await p.evaluate(() => { const card = document.createElement('div'); card.innerHTML = costConfidence({uncertainty: {p_target: 1, solved: 1}}); return !P.has_compressor_curve && !card.querySelector('#machines button'); });
   console.log(saltStartup && chemStartup ? 'ok  ' : 'FAIL', 'compressor start-up action only appears with a compressor curve');
+  console.log(projectStatusOk ? 'ok  ' : 'FAIL', 'project switcher groups plants by engineering status');
   console.log(proposedSource ? 'ok  ' : 'FAIL', 'proposed view labels its stored proposed-design DWSIM state');
+  bad += projectStatusOk ? 0 : 1;
   bad += proposedSource ? 0 : 1;
   const noEngineActions = await p.evaluate(() => {
     P.simulator_available = false; P.simulator_unavailable_reason = 'Simulator unavailable in smoke fixture';
@@ -222,6 +227,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.goto(`${BASE}/review.html?case=salt_mvr`); await p.waitForSelector('#block .stamp', { timeout: 15000 }).catch(() => {});
   const signoffOk = await p.evaluate(() => /Draft|Reviewed|Approved|Rejected/.test(document.querySelector('#block .stamp')?.textContent || '') &&
     document.querySelectorAll('#block .cell').length === 3 && document.querySelectorAll('#fails .check').length >= 1 &&
+    /design answer \d+ · Rev B \(\d+ changes\)/.test(document.querySelector('#lede').textContent) && !document.querySelector('#changed .alert') &&
     document.querySelectorAll('#files li').length >= 1 && !!document.querySelector('#pack a[href$="decision.pdf"]') &&
     !!document.querySelector('#pack a[href$="decision.zip"]') && !/None yet/.test(document.body.textContent) &&
     /files frozen for review/.test(document.querySelector('#pack').textContent) && !document.querySelector('.file-list').open &&
