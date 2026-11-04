@@ -1,0 +1,223 @@
+{
+ "case": "basf_process_column_k_2750_dexpi_c02_uns",
+ "run": "20261103-214753",
+ "goal": "Twenty percent more feed. Pass every engineering check.",
+ "model": "baseten:meta-models/muse-spark-open-1026",
+ "started": "2026-11-03T21:47:53+0300",
+ "seconds": 919,
+ "usd": 1.4069,
+ "status": "done",
+ "open": [
+  "vendor confirmation of K 2750 new rating",
+  "piping_utilities",
+  "controls",
+  "process_safety",
+  "civil_structural"
+ ],
+ "rounds": [
+  {
+   "n": 1,
+   "proposal": "Passes at 1.2×",
+   "seconds": 109,
+   "usd": 0.1211,
+   "tools": [
+    "read_pid",
+    "read_data_sheet",
+    "get_spec 'K2750_submitted'",
+    "check_coverage 'K2750_submitted'",
+    "run_process 'K2750_submitted'",
+    "run_process 'K2750_1.2x'",
+    "process_capacity 'K2750_submitted'",
+    "relief_scan"
+   ],
+   "checks": []
+  },
+  {
+   "n": 2,
+   "proposal": "Turn reflux down to 1.2 for 1.2× feed",
+   "seconds": 96,
+   "usd": 0.3473,
+   "tools": [
+    "read_pid",
+    "read_data_sheet",
+    "get_spec 'K2750_submitted'",
+    "check_coverage 'K2750_submitted'",
+    "get_spec 'K2750_submitted'",
+    "run_process 'K2750_base'",
+    "run_process 'K2750_1.2x'",
+    "process_capacity 'K2750_1.2x'",
+    "run_process 'K2750_check_1p2'",
+    "run_process 'K2750_R1p3_1p2x'",
+    "run_process 'K2750_R1p2_1p2x'",
+    "relief_scan",
+    "run_process 'K2750_R1p2_capacity'"
+   ],
+   "checks": [
+    {
+     "name": "Process target",
+     "status": "pass",
+     "detail": "design reaches 120 % (max 138 %, re-solved now)"
+    },
+    {
+     "name": "Operating envelope (±10 % feed)",
+     "status": "pass",
+     "detail": "draft (assumed values): operating envelope 2/2 scenarios pass"
+    },
+    {
+     "name": "Column flooding",
+     "status": "pass",
+     "detail": "K 2750: column flooding 69.7 % of flood vs 80 % allowed (87 % of the limit)"
+    },
+    {
+     "name": "Distillate purity",
+     "status": "pass",
+     "detail": "draft (assumed values): K 2750 distillate Ethanol 90.9 vs 90.8 mass-% minimum"
+    },
+    {
+     "name": "Bottoms purity",
+     "status": "fail",
+     "detail": "draft (assumed values): K 2750 bottoms Water 23.6 vs 23.8 mass-% minimum"
+    },
+    {
+     "name": "Minimum reflux",
+     "status": "fail",
+     "detail": "draft (assumed values): K 2750 reflux 1.2 vs 1.29 minimum to hold the purity spec at 120 %"
+    },
+    {
+     "name": "Uncertainty (48 samples)",
+     "status": "pass",
+     "detail": "draft (assumed values): target met in 48 of 48 samples with uncertain inputs varied (100 %); most often limited by K 2750: Fair flood fracti"
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "proposal": "Raise reflux to 1.35 for 1.2× feed",
+   "seconds": 210,
+   "usd": 0.5222,
+   "tools": [
+    "get_spec 'K2750_submitted'",
+    "read_pid",
+    "read_data_sheet",
+    "run_process 'K2750_1p2x_R1p5_baseline'",
+    "sweep 'K2750_submitted'",
+    "run_process 'K2750_R1p29_1p2x_detail'",
+    "run_process 'K2750_R1p2_1p2x_detail'",
+    "run_process 'K2750_R1p35_1p2x_detail'",
+    "run_process 'K2750_R1p32_1p2x_detail'",
+    "run_process 'K2750_R1p40_1p2x_detail'",
+    "run_process 'K2750_stages18_R1p2'",
+    "run_process 'K2750_stages20_R1p2'",
+    "run_process 'K2750_eff085_R1p2'",
+    "run_process 'K2750_stages19_R1p2'",
+    "run_process 'K2750_eff095_R1p2'",
+    "run_process 'K2750_stages16_R1p2_optFeed'",
+    "run_process 'K2750_final_R1p35_1p2x'"
+   ],
+   "checks": [
+    {
+     "name": "Process target",
+     "status": "pass",
+     "detail": "design reaches 120 % (max 129 %, re-solved now)"
+    },
+    {
+     "name": "Operating envelope (±10 % feed)",
+     "status": "fail",
+     "detail": "draft (assumed values): operating envelope 1/2 scenarios pass (fails: Target, feed +10 %)"
+    },
+    {
+     "name": "Column flooding",
+     "status": "pass",
+     "detail": "K 2750: column flooding 74.4 % of flood vs 80 % allowed (93 % of the limit)"
+    },
+    {
+     "name": "Distillate purity",
+     "status": "pass",
+     "detail": "draft (assumed values): K 2750 distillate Ethanol 91.1 vs 90.8 mass-% minimum"
+    },
+    {
+     "name": "Bottoms purity",
+     "status": "pass",
+     "detail": "draft (assumed values): K 2750 bottoms Water 24.0 vs 23.8 mass-% minimum"
+    },
+    {
+     "name": "Minimum reflux",
+     "status": "pass",
+     "detail": "draft (assumed values): K 2750 reflux 1.35 vs 1.29 minimum to hold the purity spec at 120 %"
+    },
+    {
+     "name": "Uncertainty (48 samples)",
+     "status": "pass",
+     "detail": "draft (assumed values): target met in 48 of 48 samples with uncertain inputs varied (100 %); most often limited by K 2750: Fair flood fracti"
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "proposal": "Raise reflux to 1.35 for 1.2× feed + Retrofit K 2750 with high-capacity trays",
+   "seconds": 161,
+   "usd": 0.4163,
+   "tools": [
+    "read_pid",
+    "read_data_sheet",
+    "get_spec 'K2750_submitted'",
+    "get_spec 'K2750_final_R1p35_1p2x'",
+    "check_coverage 'K2750_submitted'",
+    "run_process 'K2750_R1p35_1p2_check'",
+    "sweep 'K2750_R1p35_1p2_check'",
+    "sweep 'K2750_R1p35_1p2_check'",
+    "process_capacity 'K2750_R1p35_1p2_check'",
+    "run_process 'K2750_R135_target'",
+    "run_process 'K2750_R135_feedplus10'",
+    "run_process 'K2750_R135_base'",
+    "run_process 'K2750_D055_R135_132'",
+    "run_process 'K2750_D060_R135_132'",
+    "run_process 'K2750_D052_R135_132'",
+    "run_process 'K2750_R130_132'",
+    "run_process 'K2750_R129_132'",
+    "run_process 'K2750_R120_132'",
+    "run_process 'K2750_R135_12_highcap'",
+    "run_process 'K2750_R135_132_highcap'",
+    "run_process 'K2750_capfactor_sweep'",
+    "run_process 'K2750_D055_R135_12check'"
+   ],
+   "checks": [
+    {
+     "name": "Process target",
+     "status": "pass",
+     "detail": "design reaches 120 % (max 155 %, re-solved now)"
+    },
+    {
+     "name": "Operating envelope (±10 % feed)",
+     "status": "pass",
+     "detail": "draft (assumed values): operating envelope 2/2 scenarios pass"
+    },
+    {
+     "name": "Column flooding",
+     "status": "pass",
+     "detail": "K 2750: column flooding 62.0 % of flood vs 80 % allowed (77 % of the limit)"
+    },
+    {
+     "name": "Distillate purity",
+     "status": "pass",
+     "detail": "draft (assumed values): K 2750 distillate Ethanol 91.1 vs 90.8 mass-% minimum"
+    },
+    {
+     "name": "Bottoms purity",
+     "status": "pass",
+     "detail": "draft (assumed values): K 2750 bottoms Water 24.0 vs 23.8 mass-% minimum"
+    },
+    {
+     "name": "Minimum reflux",
+     "status": "pass",
+     "detail": "draft (assumed values): K 2750 reflux 1.35 vs 1.29 minimum to hold the purity spec at 120 %"
+    },
+    {
+     "name": "Uncertainty (48 samples)",
+     "status": "pass",
+     "detail": "draft (assumed values): target met in 48 of 48 samples with uncertain inputs varied (100 %); most often limited by K 2750: Fair flood fracti"
+    }
+   ]
+  }
+ ]
+}
