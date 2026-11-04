@@ -99,9 +99,24 @@
   .control-room { position:relative; overflow:hidden; color:inherit; text-decoration:none; background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:18px 18px 0 #171d38; }
   .control-room::before { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(115deg,rgba(124,131,255,.09),transparent 35%); }
   .control-room.product-shot::before { display:none; }
-  .product-shot img { display:block; width:100%; height:auto; aspect-ratio:16/10; object-fit:cover; }
-  .product-shot-note { display:flex; justify-content:space-between; gap:18px; padding:12px 16px; color:#9fb7b8; border-top:1px solid #315860; background:#102e35; font:700 11px var(--mono); }
-  .product-shot-note strong { color:#edf4f1; font-weight:700; }
+  .product-story { position:relative; display:block; aspect-ratio:16/10; overflow:hidden; background:#09171a; }
+  .product-frame { position:absolute; inset:0; margin:0; opacity:0; animation:product-frame 12s infinite ease-in-out; }
+  .product-frame:nth-child(2) { animation-delay:4s; }
+  .product-frame:nth-child(3) { animation-delay:8s; }
+  .product-frame img { display:block; width:100%; height:100%; object-fit:cover; }
+  .product-shot-note { position:relative; display:block; min-height:54px; border-top:1px solid #315860; background:#102e35; }
+  .product-caption { position:absolute; inset:0; display:flex; justify-content:space-between; align-items:center; gap:18px; padding:11px 16px;
+    color:#9fb7b8; font:700 11px/1.35 var(--mono); opacity:0; animation:product-caption 12s infinite ease-in-out; }
+  .product-caption:nth-child(2) { animation-delay:4s; }
+  .product-caption:nth-child(3) { animation-delay:8s; }
+  .product-caption strong { color:#edf4f1; font:750 12px var(--sans); }
+  .product-caption span:last-child { text-align:right; }
+  @keyframes product-frame {
+    0%,29% { opacity:1; transform:scale(1); }
+    33%,96% { opacity:0; transform:scale(1.012); }
+    100% { opacity:1; transform:scale(1); }
+  }
+  @keyframes product-caption { 0%,29% { opacity:1; } 33%,96% { opacity:0; } 100% { opacity:1; } }
   .console-top { min-height:54px; padding:0 16px 0 13px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #315860; background:#102e35; }
   .console-project { min-width:0; display:flex; align-items:center; gap:10px; font-weight:750; }
   .console-project::before { content:""; width:10px; height:10px; flex:none; border:2px solid #dce9e6; border-radius:50%; box-shadow:inset 0 0 0 2px #102e35; }
@@ -267,6 +282,13 @@
     .landing .site-top nav a:not(.nav-cta) { display:none; }
     .landing .hero.dashboard-hero { grid-template-columns:1fr; padding:42px 0; }
     .landing .dashboard-hero h1 { font-size:48px; }
+    .product-story { aspect-ratio:4/5; }
+    .product-frame { display:none; animation:none; }
+    .product-frame:nth-child(3) { display:block; opacity:1; }
+    .product-frame:nth-child(3) img { object-position:10% center; }
+    .product-caption { display:none; animation:none; }
+    .product-caption:nth-child(3) { display:flex; opacity:1; }
+    .product-caption span:last-child { max-width:58%; }
     .console-main { grid-template-columns:1fr; }
     .console-rail, .console-steps { display:none; }
     .console-canvas { min-height:330px; padding:16px; }
@@ -294,6 +316,9 @@
     .hero-trace path { stroke-dashoffset:0; animation:none; }
     .hero-trace circle, .hero-trace .trace-label { opacity:1; animation:none; }
     .console-decision { opacity:1; transform:none; animation:none; }
+    .product-frame, .product-caption { display:none; animation:none; }
+    .product-frame:nth-child(3), .product-caption:nth-child(3) { display:flex; opacity:1; transform:none; }
+    .product-frame:nth-child(3) { display:block; }
   }
 </style>
 </head>
@@ -317,8 +342,16 @@
         <p class="hero-trust">Open source · simulator-checked · every output stays a draft until an engineer approves it</p>
       </div>
       <a class="control-room product-shot" href="plant.html?case=salt_mvr" aria-label="Open the real salt plant engineering workspace shown here">
-        <img src="img/plantagent-salt-workspace.png" width="1440" height="900" alt="Actual PlantAgent salt workspace showing the Rev B drawing, the checked process target and the electrical approval block">
-        <span class="product-shot-note"><strong>Actual saved workspace</strong><span>Salt MVR · DWSIM + electrical gate</span></span>
+        <span class="product-story" aria-hidden="true">
+          <figure class="product-frame"><img src="img/plantagent-salt-existing.png" width="1440" height="900" alt=""></figure>
+          <figure class="product-frame"><img src="img/plantagent-salt-draft.png" width="1440" height="900" alt=""></figure>
+          <figure class="product-frame"><img src="img/plantagent-salt-approval.png" width="1440" height="900" alt=""></figure>
+        </span>
+        <span class="product-shot-note">
+          <span class="product-caption"><strong>1 · Find the bottleneck</strong><span>K-201 reaches its limit before +20%</span></span>
+          <span class="product-caption"><strong>2 · Test the draft</strong><span>Clean E-201 + parallel K-202 reaches the process target</span></span>
+          <span class="product-caption"><strong>3 · Check the whole change</strong><span>Process passes. Electrical approval stops at TX-1 · 133%</span></span>
+        </span>
       </a>
     </section>
 
@@ -446,6 +479,16 @@ async function renderEngineeringQueue(projects) {
     : '<p class="queue-empty">No issued package is currently awaiting approval.</p>';
 }
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+json('/api/plant/salt_mvr/project').then(project => {
+  if (project.allow_runs) return;
+  const nav = document.querySelector('.nav-cta');
+  nav.textContent = 'Run locally';
+  nav.href = 'https://github.com/yigitcankzl/plant-agent';
+  const section = document.getElementById('new');
+  section.innerHTML = `<div class="library-head"><h2>Run PlantAgent on your own project</h2>
+    <p>This public demo replays saved, checked work. Clone the repository to upload a drawing and use your own Meta API key.</p></div>
+    <a class="btn go" href="https://github.com/yigitcankzl/plant-agent">Open the one-command setup</a>`;
+}).catch(() => {});
 (async () => {
   const [cases, projects, openWeights] = await Promise.all([fetch("/api/cases").then(r => r.json()), fetch("/api/projects").then(r => r.json()), fetch("/api/evidence/open-weights").then(r => r.ok ? r.json() : {}).catch(() => ({}))]);
   const ucte = openWeights.by_case?.ucte_2006 /* hero evidence line */, attempts = Number(ucte?.closed_endpoint_attempts?.count), repeat = (ucte?.open_runs || []).find(r => r.independent_repeat);
