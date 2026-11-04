@@ -876,9 +876,9 @@
   .process.focused .workspace-tabs { display: none !important; }  /* the rail owns navigation */
   body.workspace-page-run #qa { display: none; }
   body:is(.workspace-page-evidence, .workspace-page-package, .workspace-page-health, .workspace-page-safety, .workspace-page-sources) #qa { display: none; }
-  body.workspace-page-run #modePanel, body.workspace-page-run #historyDetails,
+  body.workspace-page-run #modePanel, body.workspace-page-run #historyDetails, body.workspace-page-run #sourcesWorkspace,
   body.workspace-page-run #presentChecks, body.workspace-page-run #answers { display: none !important; }
-  body.workspace-page-evidence #rightScroll > :not(#answers),
+  body.workspace-page-evidence #rightScroll > :not(#evidenceSummary):not(#answers),
   body.workspace-page-package #rightScroll > :not(.package-tools):not(#historyDetails),
   body:is(.workspace-page-health, .workspace-page-safety) #rightScroll > :not(#modePanel),
   body.workspace-page-sources #rightScroll > :not(#sourcesWorkspace) { display: none !important; }
@@ -919,6 +919,7 @@
   .package-tools p { margin: 0 0 12px; color: var(--fg-2); font-size: 12px; }
   .package-tools .btn { display: block; width: 100%; margin-top: 7px; text-align: center; text-decoration: none; }
   body:not(.workspace-page-package) .package-tools { display: none; }
+  body:not(.workspace-page-evidence) #evidenceSummary { display: none; }
   .process.focused #ddBody > #qaSugg { display: none; }
   .sources-workspace .drawer-head { display: none; }
   .sources-workspace .sec { padding-inline: 18px; }
@@ -1080,6 +1081,7 @@
     </section>
     <div id="rightScroll">
       <div class="workspace-empty" id="workspaceEmpty" hidden>No saved engineering run yet. Start one here, then its steps will appear in this timeline.</div>
+      <section class="evidence-summary" id="evidenceSummary" aria-label="Evidence summary" hidden></section>
       <div id="modePanel" hidden>
         <section id="troublePanel" hidden></section>
         <section id="safetySec" hidden><h3>Relief protection</h3><p>Check every equipment side in the smart P&amp;ID without spending AI credit.</p>
@@ -1266,6 +1268,29 @@ function syncWorkspaceActions() {
       'Issue draft package', () => $('packageIssue').click());
     primary.disabled = $('packageIssue').disabled; primary.title = $('packageIssue').title;
   } else box.hidden = true;
+}
+
+function renderWorkspaceSummaries() {
+  const design = designAnswer() || {}, rows = gateRows(design);
+  const failed = rows.filter(row => gateState(row)[0] === 'fail').length;
+  const open = rows.filter(row => gateState(row)[0] === 'open').length;
+  const assumptions = Array.isArray(P?.built?.assumptions) ? P.built.assumptions.length : Object.keys(P?.built?.assumptions || {}).length;
+  const audit = P?.audit?.verify || {}, calculations = (design.cards || []).length;
+  $('evidenceSummary').hidden = false;
+  $('evidenceSummary').innerHTML = `<h3>Evidence at a glance</h3><p>The decision stays short; the calculations and provenance remain here.</p><div class="evidence-metrics">
+    <div><strong>${calculations}</strong><span>calculation${calculations === 1 ? '' : 's'}</span></div>
+    <div class="${failed ? 'fail' : 'pass'}"><strong>${failed}</strong><span>failed discipline${failed === 1 ? '' : 's'}</span></div>
+    <div><strong>${assumptions}</strong><span>assumption${assumptions === 1 ? '' : 's'}</span></div>
+    <div class="${audit.ok ? 'pass' : 'fail'}"><strong>${audit.entries || 0}</strong><span>audit entries · ${audit.ok ? 'chain intact' : 'check failed'}</span></div>
+  </div>`;
+
+  const checked = !!design.combined?.reaches_target || (design.proposals || []).some(p => p.verified);
+  const packs = (P?.audit?.entries || []).filter(entry => entry.action === 'decision_file');
+  const packageFlow = $('packageFlow'); if (!packageFlow) return;
+  const step = (state, title, text) => `<div class="package-step ${state}"><span>${state === 'pass' ? '✓' : '○'}</span><div><b>${title}</b><small>${text}</small></div></div>`;
+  packageFlow.innerHTML = step(checked ? 'pass' : 'open', 'Design checked', checked ? `${simulator()} reaches the process target.` : 'No verified design reaches the target yet.') +
+    step(failed || open ? 'open' : 'pass', 'Engineering review', failed || open ? `${failed} failed · ${open} open discipline checks.` : 'All recorded discipline checks pass.') +
+    step(packs.length ? 'pass' : 'open', 'Draft package', packs.length ? `${packs.length} package${packs.length === 1 ? '' : 's'} frozen for review.` : 'No draft package has been issued.');
 }
 
 function setWorkspacePage(pageName) {
@@ -1668,7 +1693,7 @@ async function load() {
   await loadGateAssessment();
   await loadDemoEvidence();
   REDTEAM = await api('redteam').catch(() => null);
-  model(); answers(); revs(); renderEngineeringChat();
+  model(); answers(); revs(); renderEngineeringChat(); renderWorkspaceSummaries();
   if (P.built) render(await stateForView(P.target_scale)); else noModel();
   $('q').disabled = !P.allow_runs;
   $('askBtn').disabled = !P.allow_runs;
@@ -3062,7 +3087,7 @@ async function ask(text, context) {
     const j = await follow(job, text, turn);
     if (j.answer) {
       if (!j.answer.chat_steps?.length) j.answer.chat_steps = j.chat_steps;
-      P.answers.push(j.answer); answers(); renderEngineeringChat();
+      P.answers.push(j.answer); answers(); renderEngineeringChat(); renderWorkspaceSummaries();
       requestAnimationFrame(() => chatScrollTo($('chatThread').querySelector('.chat-turn:last-child .chat-answer')));
     } else if (j.error) {
       turn.insertAdjacentHTML('beforeend', `<div class="chat-answer"><h4>Analysis could not finish</h4><div class="chat-numbers">${esc(j.error)}</div></div>`);
@@ -3570,7 +3595,7 @@ async function reload() {
   const keep = P.answers;
   P = await api('project'); P.answers = keep;
   syncViewToggle();
-  model(); answers(); revs(); renderEngineeringChat(); renderTroubleshootMode();
+  model(); answers(); revs(); renderEngineeringChat(); renderWorkspaceSummaries(); renderTroubleshootMode();
   if (AS_BUILT && P.drawing === 'svg') await showSheet();
   render(await stateForView($('scale').value / 100));
   showMode(ACTIVE_MODE);
@@ -3839,7 +3864,7 @@ function openDetails(on) {
   $('rightScroll').prepend(document.querySelector('.work-runner'));  // running the loop belongs to Run, not the decision note
   $('resultPane').appendChild($('askDock')); $('askDock').classList.add('workspace-command'); $('q').placeholder = 'Ask anything about this plant…';
   body.prepend($('qaSugg'));
-  scroll.insertAdjacentHTML('afterbegin', '<section class="package-tools"><h3>Engineering package</h3><p>Issue the draft package, review the engineer redline, then collect discipline approvals.</p><button class="btn go" id="packageIssue" type="button" onclick="issueEngineeringPackage(this)" data-needs-simulator>Issue engineering package</button><a class="btn" id="packageReview">Review comments and sign-offs</a></section>');
+  scroll.insertAdjacentHTML('afterbegin', '<section class="package-tools"><h3>Engineering package</h3><p>Move the checked design through engineering review, then issue a traceable draft.</p><div class="package-flow" id="packageFlow"></div><button class="btn go" id="packageIssue" type="button" onclick="issueEngineeringPackage(this)" data-needs-simulator>Issue engineering package</button><a class="btn" id="packageReview">Review comments and sign-offs</a></section>');
   $('packageReview').href = 'review.html?case=' + encodeURIComponent(CASE);
   document.querySelector('.package-tools').appendChild($('redlineLink'));
   const sources = document.createElement('section'); sources.id = 'sourcesWorkspace'; sources.className = 'sources-workspace';

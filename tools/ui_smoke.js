@@ -317,11 +317,12 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     getComputedStyle(document.querySelector('#qaBadges')).display === 'none' && getComputedStyle(document.querySelector('#spend')).display === 'none' &&
     (P.allow_runs ? getComputedStyle(document.querySelector('#askDock')).display === 'grid' : getComputedStyle(document.querySelector('#askDock')).display === 'none'));
   await p.click('[data-workspace-page="run"]');
-  const runSeparated = await p.evaluate(() => getComputedStyle(document.querySelector('.work-runner')).display !== 'none' && getComputedStyle(document.querySelector('#qa')).display === 'none');
+  const runSeparated = await p.evaluate(() => getComputedStyle(document.querySelector('.work-runner')).display !== 'none' && getComputedStyle(document.querySelector('#qa')).display === 'none' &&
+    getComputedStyle(document.querySelector('#sourcesWorkspace')).display === 'none');
   await p.click('[data-workspace-page="evidence"]');
   const engineeringView = await p.evaluate(() => getComputedStyle(document.querySelector('.engineering-detail')).display !== 'none' &&
     document.querySelector('#inspectorTitle').textContent === 'Evidence' && !document.body.classList.contains('dd-open') &&
-    getComputedStyle(document.querySelector('#resultPane')).display !== 'none');
+    getComputedStyle(document.querySelector('#resultPane')).display !== 'none' && document.querySelectorAll('#evidenceSummary .evidence-metrics > div').length === 4);
   await p.screenshot({ path: `${OUT}/engineering_workspace.png` });
   await p.click('.discipline-gate.fail');
   const gateEvidence = await p.evaluate(() => document.querySelector('#modal').classList.contains('on') && /pandapower/.test(document.querySelector('#modalBox').textContent));
@@ -344,7 +345,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const packageSeparated = await p.evaluate(() => getComputedStyle(document.querySelector('.package-tools')).display !== 'none' &&
     getComputedStyle(document.querySelector('#redlineLink')).display !== 'none' && document.querySelector('.package-tools').getBoundingClientRect().height > 0 &&
     getComputedStyle(document.querySelector('#answers')).display === 'none' && !!document.querySelector('#packageIssue') && !!document.querySelector('#packageReview') &&
-    !document.querySelector('#ddOpen') && document.querySelector('#inspectorTitle').textContent === 'Engineering package' && !document.body.classList.contains('dd-open'));
+    document.querySelectorAll('#packageFlow .package-step').length === 3 && !document.querySelector('#ddOpen') && document.querySelector('#inspectorTitle').textContent === 'Engineering package' && !document.body.classList.contains('dd-open'));
   await p.click('[data-workspace-page="overview"]');
   const actionHierarchy = await p.evaluate(() => [...document.querySelectorAll('.rail-group-label')].map(e => e.textContent).join('|') === 'Change|Operate|Data' &&
     [...document.querySelectorAll('[data-workspace-page="run"] span')].some(e => e.textContent === 'Checks') && !document.querySelector('#workspaceActions').hidden &&
