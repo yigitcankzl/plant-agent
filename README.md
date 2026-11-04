@@ -9,6 +9,7 @@
 ```bash
 git clone https://github.com/yigitcankzl/plant-agent.git && cd plant-agent && ./start.sh
 # open http://127.0.0.1:8765/home.html  (stored runs need no API key and no engineering engine)
+# or: docker build -t plantagent . && docker run --rm -p 127.0.0.1:8765:8765 plantagent
 ```
 
 ## What it showed
@@ -21,7 +22,7 @@ git clone https://github.com/yigitcankzl/plant-agent.git && cd plant-agent && ./
 | **Cross-discipline** | On a salt plant the process target passed at 120 %, but an illustrative transformer rating reached 133 %, so approval stays blocked. | [salt gates](runs/ws/salt_mvr/gates.json) |
 | **Open weights** | On the 2006 European blackout grid the hosted endpoint was blocked by content policy; Muse Spark Open completed the checked loop with 0 N-1 violations. | [open-weights](evidence/open-weights-engineering/README.md) |
 
-Honest denominator: 21 of 69 recorded loop runs ended with every deterministic check passing ($192 in total), and most of those still carry an open vendor or human check (`tools/loop_stats.py`).
+Honest denominator: 22 of 70 recorded loop runs ended with every deterministic check passing ($193.50 in total), and most of those still carry an open vendor or human check (`tools/loop_stats.py`).
 
 ## How it works
 
@@ -54,6 +55,7 @@ The language model never decides pass or fail: the engines' check rows do, and o
 
 - Every case in full: [docs/highlights.md](docs/highlights.md) and [docs/cases.md](docs/cases.md)
 - Running live calls, the engines, clean-clone behaviour and access control: [docs/running.md](docs/running.md). `./start.sh --live` asks privately for your own `META_API_KEY`.
+- Benchmarks and how to re-score them: [benchmarks/README.md](benchmarks/README.md)
 - Tests: `.venv/bin/python -m unittest discover -s tests` (about 5 min; engine-dependent tests skip without DWSIM)
 - Timeline: kickoff Oct 26, 2026, 12:00 PM ET; first stored run Oct 27, 01:53 Istanbul time; no PlantAgent code existed before the kickoff. The git history shows the order of the work.
 - Data sources and credits: [docs/credits.md](docs/credits.md)
