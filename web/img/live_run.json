@@ -1,11 +1,11 @@
 {
  "case": "basf_process_column_k_2750_dexpi_c02_uns",
- "run": "20261103-214753",
+ "run": "20261104-163619",
  "goal": "Twenty percent more feed. Pass every engineering check.",
  "model": "baseten:meta-models/muse-spark-open-1026",
- "started": "2026-11-03T21:47:53+0300",
- "seconds": 919,
- "usd": 1.4069,
+ "started": "2026-11-04T16:36:19+0300",
+ "seconds": 774,
+ "usd": 1.3569,
  "status": "done",
  "open": [
   "vendor confirmation of K 2750 new rating",
@@ -18,8 +18,8 @@
   {
    "n": 1,
    "proposal": "Passes at 1.2×",
-   "seconds": 109,
-   "usd": 0.1211,
+   "seconds": 25,
+   "usd": 0.0,
    "tools": [
     "read_pid",
     "read_data_sheet",
@@ -35,8 +35,8 @@
   {
    "n": 2,
    "proposal": "Turn reflux down to 1.2 for 1.2× feed",
-   "seconds": 96,
-   "usd": 0.3473,
+   "seconds": 16,
+   "usd": 0.0,
    "tools": [
     "read_pid",
     "read_data_sheet",
@@ -92,27 +92,31 @@
   },
   {
    "n": 3,
-   "proposal": "Raise reflux to 1.35 for 1.2× feed",
-   "seconds": 210,
-   "usd": 0.5222,
+   "proposal": "Set reflux to 1.35 for 1.2× feed",
+   "seconds": 195,
+   "usd": 0.6214,
    "tools": [
     "get_spec 'K2750_submitted'",
     "read_pid",
     "read_data_sheet",
     "run_process 'K2750_1p2x_R1p5_baseline'",
     "sweep 'K2750_submitted'",
-    "run_process 'K2750_R1p29_1p2x_detail'",
-    "run_process 'K2750_R1p2_1p2x_detail'",
-    "run_process 'K2750_R1p35_1p2x_detail'",
-    "run_process 'K2750_R1p32_1p2x_detail'",
-    "run_process 'K2750_R1p40_1p2x_detail'",
-    "run_process 'K2750_stages18_R1p2'",
-    "run_process 'K2750_stages20_R1p2'",
-    "run_process 'K2750_eff085_R1p2'",
-    "run_process 'K2750_stages19_R1p2'",
-    "run_process 'K2750_eff095_R1p2'",
-    "run_process 'K2750_stages16_R1p2_optFeed'",
-    "run_process 'K2750_final_R1p35_1p2x'"
+    "run_process 'K2750_R1p20_1p2x_test'",
+    "run_process 'K2750_R1p29_1p2x_test'",
+    "run_process 'K2750_R1p32_1p2x_test'",
+    "run_process 'K2750_R1p40_1p2x_test'",
+    "run_process 'K2750_stages18_R1p2_1p2x'",
+    "run_process 'K2750_stages20_R1p2_1p2x'",
+    "run_process 'K2750_stages25_R1p2_1p2x'",
+    "run_process 'K2750_eff0p85_R1p2_1p2x'",
+    "run_process 'K2750_R1p35_1p2x_test'",
+    "run_process 'K2750_stages19_R1p2_1p2x'",
+    "get_spec 'K2750_R1p35_1p2x_test'",
+    "run_process 'K2750_R1p5_1p2x_floodcheck'",
+    "run_process 'K2750_final_R1p35_1p2x_verify'",
+    "run_process 'K2750_feedstage6_R1p2_1p2x'",
+    "run_process 'K2750_feedstage10_R1p2_1p2x'",
+    "run_process 'K2750_R1p32_1p2x_verify_floodpurity'"
    ],
    "checks": [
     {
@@ -154,38 +158,37 @@
   },
   {
    "n": 4,
-   "proposal": "Raise reflux to 1.35 for 1.2× feed + Retrofit K 2750 with high-capacity trays",
-   "seconds": 161,
-   "usd": 0.4163,
+   "proposal": "Set reflux to 1.35 for 1.2× feed + Retrofit K 2750 with high-capacity trays",
+   "seconds": 201,
+   "usd": 0.7355,
    "tools": [
+    "get_spec 'K2750_submitted'",
     "read_pid",
     "read_data_sheet",
-    "get_spec 'K2750_submitted'",
-    "get_spec 'K2750_final_R1p35_1p2x'",
     "check_coverage 'K2750_submitted'",
-    "run_process 'K2750_R1p35_1p2_check'",
-    "sweep 'K2750_R1p35_1p2_check'",
-    "sweep 'K2750_R1p35_1p2_check'",
-    "process_capacity 'K2750_R1p35_1p2_check'",
-    "run_process 'K2750_R135_target'",
-    "run_process 'K2750_R135_feedplus10'",
-    "run_process 'K2750_R135_base'",
-    "run_process 'K2750_D055_R135_132'",
-    "run_process 'K2750_D060_R135_132'",
-    "run_process 'K2750_D052_R135_132'",
-    "run_process 'K2750_R130_132'",
-    "run_process 'K2750_R129_132'",
-    "run_process 'K2750_R120_132'",
-    "run_process 'K2750_R135_12_highcap'",
-    "run_process 'K2750_R135_132_highcap'",
-    "run_process 'K2750_capfactor_sweep'",
-    "run_process 'K2750_D055_R135_12check'"
+    "run_process 'K2750_R1p35_1p2x_nominal'",
+    "run_process 'K2750_R1p35_1p32x_feed10'",
+    "run_process 'K2750_R1p2_1p32x_test'",
+    "sweep 'K2750_submitted'",
+    "run_process 'K2750_D0p6_R1p35_1p32x'",
+    "run_process 'K2750_HCTray_1p2_1p32x'",
+    "run_process 'K2750_spacing06_R1p35_1p32x'",
+    "run_process 'K2750_R1p1_1p32x_purity'",
+    "run_process 'K2750_D0p6_R1p35_1p2x'",
+    "run_process 'K2750_HCTray_1p2_1p2x'",
+    "run_process 'K2750_R1p29_1p32x'",
+    "run_process 'K2750_FINAL_R1p35_HC1p25_1p2x'",
+    "run_process 'K2750_FINAL_R1p35_HC1p25_1p32x'",
+    "run_process 'K2750_R1p35_1p2x_check'",
+    "process_capacity 'K2750_R1p35_1p2x_check'",
+    "get_spec 'K2750_FINAL_R1p35_HC1p25_1p32x'",
+    "run_process 'K2750_VERIFY_R1p35_nominal_vs_plus10'"
    ],
    "checks": [
     {
      "name": "Process target",
      "status": "pass",
-     "detail": "design reaches 120 % (max 155 %, re-solved now)"
+     "detail": "design reaches 120 % (max 161 %, re-solved now)"
     },
     {
      "name": "Operating envelope (±10 % feed)",
@@ -195,7 +198,7 @@
     {
      "name": "Column flooding",
      "status": "pass",
-     "detail": "K 2750: column flooding 62.0 % of flood vs 80 % allowed (77 % of the limit)"
+     "detail": "K 2750: column flooding 59.5 % of flood vs 80 % allowed (74 % of the limit)"
     },
     {
      "name": "Distillate purity",

@@ -43,7 +43,7 @@ On the salt plant, look at:
 `plant.html?case=basf_process_column_k_2750_dexpi_c02_uns`: the official DEXPI example C02 Process Column (BASF), unmodified, run through the upload path with no hand-written case file (`tools/onboard_unseen.py`).
 - **Answer:** the column floods first: it reaches its 80 % flood allowance at +13 % of today's feed (reflux 1.5).
 - **Loop 1:** cut reflux to 0.8; it passed the checks of the time. The purity check added afterwards fails it on replay (distillate ethanol 90.3 vs 90.8 % minimum). **Loop 2:** reflux 1.5 and a larger bottoms draw; everything passed except the +10 % feed case. **Loop 3:** a 600 mm shell (vendor to confirm): flooding 60.8 vs 80 %, purities pass, envelope 2/2, target held in 100 % of 48 uncertainty re-solves. $8.39 in total, all on Baseten.
-- **Red team:** eight bounded attacks from Muse Spark 1.3, each re-solved by DWSIM; the design held 8 of 8. A harsher, unrealistic stacked set broke it, and the loop answered with a 700 mm shell (see caveats).
+- **Red team:** seven bounded attacks from Muse Spark 1.3 on the live-run design, each re-solved by DWSIM; the design held 7 of 7 (worst 96 % of the flood limit). A harsher, unrealistic stacked set broke it, and the loop answered with a 700 mm shell (see caveats).
 - Record: [docs/cases.md](cases.md#an-unseen-drawing-no-hand-written-files), [`evidence/generality-c02/`](../evidence/generality-c02/README.md), [`evidence/redteam/`](../evidence/redteam/README.md). The duty is Muse's assumption and the drawing already holds a 600 mm section; see [caveats](limits.md#caveats-of-the-headline-results).
 
 ## A real plant, blind: Shell Norco C2 splitter

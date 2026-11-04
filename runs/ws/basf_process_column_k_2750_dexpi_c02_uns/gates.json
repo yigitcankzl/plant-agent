@@ -1,31 +1,32 @@
 {
  "key": {
-  "headline": "Flood limits first - 600 mm shell needed for envelope",
-  "request": "+20 % feed: what limits it first and what does it cost? Make the design pass every engineering check that has data, including product purity and the +10 % operating envelope. If the existing column cannot pass, replace it with replace_unit and a new rating (vendor to confirm).",
+  "headline": "Passes envelope with high-capacity trays at R=1.35",
+  "request": "Engineering loop, next round. Goal: Twenty percent more feed. Pass every engineering check.\nThe current design (verified changes: Set reflux to 1.35 for 1.2\u00d7 feed - meets minimum reflux and purity, no capex) was re-solved and checked by the engines. These checks FAIL:\n- robustness: draft (assumed values): operating envelope 1/2 scenarios pass (fails: Target, feed +10 %)\nPropose physical changes that fix each failed check (equipment, ratings with a real item behind them, operating settings within documented limits), cheapest first. Return the FULL design as proposals: every earlier verified change you keep plus the new ones, so the design answer stands on its own. Do not edit a limit to pass a check. If a failure cannot be fixed with the information available, start the headline with 'UNSOLVABLE:' and say why and what data would settle it.",
   "titles": [
-   "Replace column with 600 mm ID rated shell (vendor to confirm)"
+   "Set reflux to 1.35 for 1.2\u00d7 feed - meets minimum reflux and purity, no capex",
+   "Retrofit K 2750 with high-capacity trays - factor 1.25 for +10% robustness"
   ],
   "revisions": 0,
-  "content": "9e44796b1ab1ae4a346adcff59bc50bcfb63ddf1"
+  "content": "b0b159f27e35cecb6cc67376e6d0309b953145c3"
  },
- "made": "2026-11-03T00:23:45+0300",
+ "made": "2026-11-04T16:47:10+0300",
  "disciplines": [
   {
    "id": "process",
    "status": "pass",
-   "summary": "design reaches 120 % (max 175 %, re-solved now)",
+   "summary": "design reaches 120 % (max 161 %, re-solved now)",
    "source": "DWSIM re-solve of the combined design on the current model",
    "checks": [
     {
      "id": "plant",
      "check": "maximum throughput with all verified changes vs target",
-     "value": "175",
+     "value": "161.4",
      "limit": "120",
      "unit": "%",
      "kind": "max",
      "status": "ok",
-     "result": "69 %",
-     "source": "DWSIM re-solve of all 1 verified change(s) together on the current model"
+     "result": "74 %",
+     "source": "DWSIM re-solve of all 2 verified change(s) together on the current model"
     }
    ]
   },
@@ -38,23 +39,23 @@
     {
      "id": "K 2750",
      "check": "scenario 'Target, feed +10 %': Fair flood fraction vs limit",
-     "value": "0.604",
+     "value": "0.654",
      "limit": "0.8",
      "unit": "fraction of flood",
      "kind": "max",
      "status": "ok",
-     "result": "76 %",
+     "result": "82 %",
      "source": "DWSIM solve; scenario basis: draft (assumed values): feed swing above the target"
     },
     {
      "id": "K 2750",
      "check": "scenario 'Target, feed -10 %': Fair flood fraction vs limit",
-     "value": "0.494",
+     "value": "0.535",
      "limit": "0.8",
      "unit": "fraction of flood",
      "kind": "max",
      "status": "ok",
-     "result": "62 %",
+     "result": "67 %",
      "source": "DWSIM solve; scenario basis: draft (assumed values): turndown below the target (minimum flows)"
     }
    ]

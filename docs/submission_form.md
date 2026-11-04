@@ -16,8 +16,8 @@ PlantAgent is an engineering workspace for changing an existing plant. An engine
 Muse proposes, physics disposes. The problem: checking a plant change today takes engineers weeks of manual simulation and cross-discipline review, and an AI answer that only looks right is dangerous in a plant. PlantAgent makes the AI's answer checkable.
 
 What it showed (every item links to its record in the repository):
-- **A live loop that is wrong twice.** On BASF's official DEXPI example, Muse Spark Open ran four rounds from a neutral goal: the simulator rejected two designs (product quality, then flooding on a high-feed day), and high-capacity trays then passed every modelled check. 15 minutes, $1.41; the tray rating stays open for a vendor.
-- **A second model attacks the design.** Muse Spark 1.3 attacked that design with eight bounded operating deviations; DWSIM re-solved each and all eight held (worst 93 % of the flood limit).
+- **A live loop that is wrong twice.** On BASF's official DEXPI example, Muse Spark Open ran four rounds from a neutral goal: the simulator rejected two designs (product quality, then flooding on a high-feed day), and high-capacity trays then passed every modelled check. 13 minutes, $1.36; the tray rating stays open for a vendor.
+- **A second model attacks the design.** Muse Spark 1.3 attacked that design with seven bounded operating deviations; DWSIM re-solved each and all seven held (worst 96 % of the flood limit).
 - **A real plant, blind.** From Shell Norco's pre-revamp data only, Muse chose the same revamp type Shell built (high-capacity trays in the existing column). Against Shell's measured after-data: 5 match, 3 partial, 1 miss, 1 not predicted.
 - **Process passing is not enough.** On a salt plant the process target passed at 120 %, but an illustrative transformer rating reached 133 %, so approval stays blocked.
 - **Open weights.** On the 2006 European blackout grid the hosted endpoint was blocked by content policy; Muse Spark Open completed the checked loop with 0 N-1 violations.

@@ -70,7 +70,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   await p.waitForSelector('#redteamPanel', {timeout: 30000}).catch(() => {});
   await p.evaluate(() => { openDetails(true); setWorkspaceView('engineering'); });
   const redteamShots = [
-    ['trays', '8 / 8 stayed within the modelled process limits', 'redteam_trays_live_design.png'],
+    ['trays', '7 / 7 stayed within the modelled process limits', 'redteam_trays_live_design.png'],
     ['600-envelope', '8 / 8 stayed within the modelled process limits', 'redteam_600mm_envelope.png'],
     ['600-harsh', '8 / 8 broke the modelled limits', 'redteam_600mm_125x.png'],
     ['700-robust', '8 / 8 stayed within the modelled process limits', 'redteam_700mm_holds.png']
@@ -83,10 +83,10 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     const [id, summary, shot] = redteamShots[i];
     redteamOk = redteamOk && await p.evaluate(({id, summary}) => {
       const panel = document.querySelector('#redteamPanel');
-      const expected = id === '600-harsh' ? 3 : 8;
+      const expected = id === '600-harsh' ? 3 : id === 'trays' ? 7 : 8;  // the 4 Nov live-run design drew seven attacks
       return document.querySelectorAll('#redteamPanel').length === 1 && panel?.dataset.redteamSet === id && panel.querySelectorAll('.redteam-attack').length === expected &&
         panel.textContent.includes(summary) && panel.querySelectorAll('.redteam-attack a[href]').length >= expected &&
-        (expected === 8 || /5 more attacks also broke it.*20261102-194930/.test(panel.querySelector('.redteam-missing')?.textContent)) &&
+        (id !== '600-harsh' || /5 more attacks also broke it.*20261102-194930/.test(panel.querySelector('.redteam-missing')?.textContent)) &&
         [...panel.querySelectorAll('.redteam-attack')].every(card => card.scrollWidth <= card.clientWidth + 1);
     }, {id, summary});
     await p.screenshot({path: `${OUT}/${shot}`});

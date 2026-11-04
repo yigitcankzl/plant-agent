@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CASE, RUN, SESSION = "basf_process_column_k_2750_dexpi_c02_uns", "20261103-214753", "20261103-214738"
+CASE, RUN, SESSION = "basf_process_column_k_2750_dexpi_c02_uns", "20261104-163619", "20261104-163602"
 NAMES = {"process": "Process target", "robustness": "Operating envelope (±10 % feed)", "confidence": "Uncertainty (48 samples)"}
 
 

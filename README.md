@@ -16,8 +16,8 @@ git clone https://github.com/yigitcankzl/plant-agent.git && cd plant-agent && ./
 
 | | Result | Evidence |
 |---|---|---|
-| **Live loop** | On BASF's official DEXPI example, Muse Spark Open ran 4 rounds from a neutral goal: the simulator rejected 2 designs (product quality, then flooding on a high-feed day); high-capacity trays then passed every modelled check. 15 min, $1.41. Tray rating: vendor to confirm. | [worklog](runs/ws/basf_process_column_k_2750_dexpi_c02_uns/work/20261103-214753/worklog.json) |
-| **Red team** | A second model, Muse Spark 1.3, attacked that design with 8 bounded operating deviations; DWSIM re-solved each: 8 / 8 held, worst 93 % of the flood limit. | [redteam_trays.json](runs/ws/basf_process_column_k_2750_dexpi_c02_uns/redteam_trays.json) |
+| **Live loop** | On BASF's official DEXPI example, Muse Spark Open ran 4 rounds from a neutral goal: the simulator rejected 2 designs (product quality, then flooding on a high-feed day); high-capacity trays then passed every modelled check. 13 min, $1.36. Tray rating: vendor to confirm. | [worklog](runs/ws/basf_process_column_k_2750_dexpi_c02_uns/work/20261104-163619/worklog.json) |
+| **Red team** | A second model, Muse Spark 1.3, attacked that design with 7 bounded operating deviations; DWSIM re-solved each: 7 / 7 held, worst 96 % of the flood limit. | [redteam_trays.json](runs/ws/basf_process_column_k_2750_dexpi_c02_uns/redteam_trays.json) |
 | **Real plant, blind** | From Shell Norco's pre-revamp data only, Muse chose the same revamp type Shell built: high-capacity trays in the existing column. Against Shell's measured after-data: 5 match, 3 partial, 1 miss, 1 not predicted. | [real-plant-norco](evidence/real-plant-norco/README.md) |
 | **Cross-discipline** | On a salt plant the process target passed at 120 %, but an illustrative transformer rating reached 133 %, so approval stays blocked. | [salt gates](runs/ws/salt_mvr/gates.json) |
 | **Open weights** | On the 2006 European blackout grid the hosted endpoint was blocked by content policy; Muse Spark Open completed the checked loop with 0 N-1 violations. | [open-weights](evidence/open-weights-engineering/README.md) |
