@@ -903,6 +903,8 @@
   .change-summary-row:first-child { border-top:0; }
   .change-summary-row:hover, .change-summary-row:focus-visible { color:#fff; background:rgba(16,44,12,.12); outline:none; }
   .change-summary-row b { color:#fff; }
+  .change-routing { border-top:1px solid var(--rule); margin:0 12px 8px; color:var(--fg-2); font-size:11px; }
+  .change-routing > summary { padding:9px 0; cursor:pointer; }
   body:not(.workspace-page-drawing) .change-summary, body.present-mode .change-summary, body.present-mode .working-revision { display:none !important; }
   .decision-evidence-link { width: 100%; margin-top: 10px; padding: 8px 0; border: 0; border-top: 1px solid var(--rule);
     color: var(--fg-2); background: transparent; text-align: left; font: 600 11.5px/1.4 var(--sans); cursor: pointer; }
@@ -911,7 +913,16 @@
   .package-tools h3 { margin: 0 0 5px; color: var(--fg); font-size: 16px; }
   .package-tools p { margin: 0 0 12px; color: var(--fg-2); font-size: 12px; }
   .package-tools .btn { display: block; width: 100%; margin-top: 7px; text-align: center; text-decoration: none; }
+  .checks-summary { padding:18px; border-bottom:1px solid var(--rule); }
+  .checks-summary h3 { margin:0 0 5px; color:var(--fg); font-size:16px; }
+  .checks-summary p { margin:8px 0 0; color:var(--fg-2); font-size:12px; }
+  .checks-strip { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .checks-chip { padding:5px 8px; border:1px solid var(--rule); border-radius:16px; color:var(--fg-2); font:700 11px var(--sans); }
+  .checks-chip.pass { color:var(--go); border-color:var(--go); }
+  .checks-chip.fail { color:var(--stop); border-color:var(--stop); }
+  .checks-chip.open { color:var(--hold); border-color:var(--hold); }
   body:not(.workspace-page-package) .package-tools { display: none; }
+  body:not(.workspace-page-run) .checks-summary { display:none; }
   body:not(.workspace-page-evidence) #evidenceSummary { display: none; }
   .process.focused #ddBody > #qaSugg { display: none; }
   .sources-workspace .drawer-head { display: none; }
@@ -1269,6 +1280,14 @@ function renderWorkspaceSummaries() {
   const open = rows.filter(row => gateState(row)[0] === 'open').length;
   const assumptions = Array.isArray(P?.built?.assumptions) ? P.built.assumptions.length : Object.keys(P?.built?.assumptions || {}).length;
   const audit = P?.audit?.verify || {}, calculations = (design.cards || []).length;
+  const checksSummary = $('checksSummary');
+  if (checksSummary) {
+    const calculated = rows.filter(row => ['pass', 'fail'].includes(gateState(row)[0]));
+    const openChecks = rows.filter(row => gateState(row)[0] === 'open').length;
+    checksSummary.innerHTML = `<h3>Current engineering checks</h3><div class="checks-strip">${calculated.map(row => {
+      const [state, mark] = gateState(row); return `<span class="checks-chip ${state}">${mark} ${esc(GATE_NAMES[row.id] || row.id)}</span>`;
+    }).join('')}${openChecks ? `<span class="checks-chip open">○ ${openChecks} open</span>` : ''}</div><p>The replay below shows how Muse and the engineering engines reached this result.</p>`;
+  }
   $('evidenceSummary').hidden = false;
   $('evidenceSummary').innerHTML = `<h3>Evidence at a glance</h3><p>The decision stays short; the calculations and provenance remain here.</p><div class="evidence-metrics">
     <div><strong>${calculations}</strong><span>calculation${calculations === 1 ? '' : 's'}</span></div>
@@ -2114,6 +2133,10 @@ function designAnswer() {
   const reach = has.filter(a => a.combined?.reaches_target);
   return (reach.length ? reach : has).at(-1);
 }
+function designAnswerIndex() {
+  const i = (P?.answers || []).indexOf(designAnswer());
+  return i >= 0 ? i : Math.max(0, (P?.answers || []).length - 1);
+}
 function verifiedDesigns() {
   const out = [];
   const d = designAnswer();
@@ -2525,10 +2548,14 @@ function showChangeOnDrawing(tag) {
 function renderChangeSummary() {
   const box = $('changeSummary'), current = workingRevisionData();
   if (!current?.changes?.length) { box.hidden = true; box.innerHTML = ''; return; }
-  box.innerHTML = `<div class="change-summary-head"><small>What changed</small><b>${esc(current.label)}</b></div><div class="change-summary-list">${current.changes.map(change => {
+  const routing = change => change.reroute || ['mixer', 'splitter', 'recycle'].includes(change.add_unit?.type);
+  const row = change => {
     const tag = changeTag(change);
     return `<button class="change-summary-row" type="button" ${tag ? act('showChangeOnDrawing', tag) : 'disabled'}>${describe(change)}</button>`;
-  }).join('')}</div>`;
+  };
+  const physical = current.changes.filter(change => !routing(change)), model = current.changes.filter(routing);
+  box.innerHTML = `<div class="change-summary-head"><small>What changed</small><b>${esc(current.label)}</b></div><div class="change-summary-list">${physical.map(row).join('')}</div>` +
+    (model.length ? `<details class="change-routing"><summary>Model routing · ${model.length} implementation change${model.length === 1 ? '' : 's'}</summary><div class="change-summary-list">${model.map(row).join('')}</div></details>` : '');
   box.hidden = false;
 }
 async function adoptProposedDesign() {
@@ -3603,7 +3630,7 @@ async function reload() {
 
 async function decisionFile() {
   $('decOut').textContent = `Re-solving every limit in ${simulator()} and writing the pack…`;
-  const r = await api('decision', {answer: (P.answers || []).length - 1}).catch(e => ({error: e.message}));
+  const r = await api('decision', {answer: designAnswerIndex()}).catch(e => ({error: e.message}));
   if (r.error) { $('decOut').innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return false; }
   const label = {'decision.pdf': 'MOC file (PDF)', 'memo.pdf': 'Management memo (PDF)', 'rev_b.svg': 'P&ID Rev B (proposed)', 'rev_a.svg': 'P&ID Rev A (existing)', 'rev_b.png': 'Rev B (PNG)', 'redline.svg': 'Redline (same as Rev B)', 'decision.zip': 'Everything (zip)',
                  'decision.md': 'Decision file (md)', 'memo.md': 'Memo (md)', 'decision.json': 'Data (JSON)'};
@@ -3614,7 +3641,7 @@ async function decisionFile() {
 async function prefeedFile() {
   const out = $('prefeedOut') || $('decOut');
   out.textContent = 'Re-solving the operating envelope and writing the pre-FEED gate…';
-  const r = await api('prefeed', {}).catch(e => ({error: e.message}));
+  const r = await api('prefeed', {answer: designAnswerIndex()}).catch(e => ({error: e.message}));
   if (r.error) { out.innerHTML = `<span style="color:var(--fail)">${esc(r.error)}</span>`; return false; }
   const assessment = r.assessment || {}, env = assessment.envelope || {};
   P.gateAssessment = assessment;
@@ -3858,6 +3885,7 @@ function openDetails(on) {
   $('resultPane').appendChild($('askDock')); $('askDock').classList.add('workspace-command'); $('q').placeholder = 'Ask anything about this plant…';
   body.prepend($('qaSugg'));
   scroll.insertAdjacentHTML('afterbegin', '<section class="package-tools"><h3>Engineering package</h3><p>Move the checked design through engineering review, then issue a traceable draft.</p><div class="package-flow" id="packageFlow"></div><button class="btn go" id="packageIssue" type="button" onclick="issueEngineeringPackage(this)" data-needs-simulator>Issue engineering package</button><a class="btn" id="packageReview">Review comments and sign-offs</a></section>');
+  scroll.insertAdjacentHTML('afterbegin', '<section class="checks-summary" id="checksSummary" aria-label="Current engineering checks"></section>');
   $('packageReview').href = 'review.html?case=' + encodeURIComponent(CASE);
   document.querySelector('.package-tools').appendChild($('redlineLink'));
   const sources = document.createElement('section'); sources.id = 'sourcesWorkspace'; sources.className = 'sources-workspace';
