@@ -241,8 +241,9 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     /of real engineers' conclusions, blind, model-graded/.test(document.querySelector('#stats').textContent));
   // the hero tells one stored decision in five steps over the real Rev A / Rev B sheets, ending blocked
   await p.waitForFunction(() => document.querySelectorAll('#heroDecision .hd-svg svg').length === 2, null, {timeout: 10000}).catch(() => {});
-  const accentSystem = await p.evaluate(() => getComputedStyle(document.querySelector('.hero-actions .go')).backgroundColor === 'rgb(124, 131, 255)' &&
+  const accentSystem = await p.evaluate(() => getComputedStyle(document.querySelector('.hero-actions .go')).backgroundColor === 'rgb(16, 44, 12)' &&
     document.querySelectorAll('#heroDecision .hd-step').length === 5 && document.querySelectorAll('#heroDecision .hd-svg svg').length === 2 &&
+    document.querySelectorAll('#heroDecision .hd-step.on').length === 5 && document.querySelector('#heroDecision').classList.contains('blocked') &&
     /45 % → 133 %/.test(document.querySelector('#heroDecision').textContent) && /Draft blocked/.test(document.querySelector('#heroDecision').textContent) &&
     /Approval blocked/.test(document.querySelector('.hd-compare')?.textContent || '') &&
     document.querySelectorAll('#product .story-row').length === 4 && document.querySelector('.queue-shell #engineeringQueue'));

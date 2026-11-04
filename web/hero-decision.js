@@ -42,8 +42,18 @@
   }
   function start() {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) { show(STEPS.length - 1); return; }
-    let i = 0, timer = null, visible = true;
+    host.classList.add('hd-first');
+    show(STEPS.length - 1); // Let a quick visitor read the outcome before replaying how the engines reached it.
+    setTimeout(() => host.classList.remove('hd-first'), 1000);
+    let i = 0, timer = null, visible = true, first = true;
     const tick = () => { show(i); const hold = i === STEPS.length - 1 ? 4200 : 2200; i = (i + 1) % STEPS.length; timer = setTimeout(() => visible && tick(), hold); };
-    new IntersectionObserver(es => { visible = es.some(e => e.isIntersecting); if (visible && !timer) tick(); if (!visible) { clearTimeout(timer); timer = null; } }).observe(host);
+    new IntersectionObserver(es => {
+      visible = es.some(e => e.isIntersecting);
+      if (visible && !timer) {
+        if (first) { first = false; timer = setTimeout(tick, 3200); }
+        else tick();
+      }
+      if (!visible) { clearTimeout(timer); timer = null; }
+    }).observe(host);
   }
 })();
