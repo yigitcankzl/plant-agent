@@ -3264,7 +3264,7 @@ function renderRunStory(lead, log = LAST_WORK) {  // the saved run, also when th
   const computed = gates.filter(r => ['pass', 'fail'].includes(gateState(r)[0])), uncalc = gates.filter(r => gateState(r)[0] === 'open').length;
   const chips = computed.map(r => { const [st, mark] = gateState(r); return `<span class="vchip ${st}">${mark} ${esc(GATE_NAMES[r.id] || r.id)}</span>`; }).join('') +
     (uncalc ? `<span class="vchip">${uncalc} not calculated</span>` : '');
-  const head = `<div class="run-verdict ${verdict[0]}"><small>Rev B draft · decision</small><b>${verdict[1]}</b>${remainsFailed && failed.length ? `<span>${esc(storyGate(failed.find(r => r.id === 'electrical') || failed[0]))}</span>` : ''}${chips ? `<div class="vchips">${chips}</div>` : ''}</div>`;
+  const head = `<div class="run-verdict ${verdict[0]}"><small>${incident() ? 'Incident review' : verified.length ? 'Rev B draft' : 'Current plant'} · decision</small><b>${verdict[1]}</b>${remainsFailed && failed.length ? `<span>${esc(storyGate(failed.find(r => r.id === 'electrical') || failed[0]))}</span>` : ''}${chips ? `<div class="vchips">${chips}</div>` : ''}</div>`;
   box.innerHTML = head + `<div class="run-story-line"><b>Target</b><span>${esc(target)}</span></div><div class="run-story-line"><b>Bottleneck</b><span>${esc(limit)}</span></div><div class="run-story-line"><b>Recommendation</b><span>${esc(fix)}</span></div><div class="run-story-line ${remainsFailed ? 'fail' : ''}"><b>Result</b><span>${esc(result)}</span></div>`;
 }
 function answers() {

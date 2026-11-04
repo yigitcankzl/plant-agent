@@ -1,0 +1,572 @@
+{
+ "id": "20261103-214753",
+ "case": "basf_process_column_k_2750_dexpi_c02_uns",
+ "goal": "Twenty percent more feed. Pass every engineering check.",
+ "label": null,
+ "model": "baseten:meta-models/muse-spark-open-1026",
+ "provider": "baseten",
+ "max_rounds": 4,
+ "budget_usd": 12.0,
+ "status": "done",
+ "approval_status": "open",
+ "started": "2026-11-03T21:47:53+0300",
+ "usd_total": 1.4069,
+ "seconds_total": 919,
+ "rounds": [
+  {
+   "n": 1,
+   "answer_index": 0,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "baseten:meta-models/muse-spark-open-1026",
+     "kind": "propose",
+     "status": "info",
+     "usd": 0.1211,
+     "seconds": 109,
+     "title": "Passes at 1.2× - flood 98.8% - thin margin",
+     "detail": "Passes at 1.2× - flood 98.8% - thin margin",
+     "changes": []
+    }
+   ],
+   "open_issues": [
+    {
+     "check": "process",
+     "title": "no proposal verified on the server: no proposal made"
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "answer_index": 1,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "baseten:meta-models/muse-spark-open-1026",
+     "kind": "fix",
+     "status": "info",
+     "usd": 0.3473,
+     "seconds": 96,
+     "title": "Turn reflux down to 1.2 for 1.2× feed - no capex, restores flood margin",
+     "detail": "Pass at 1.2× with lower reflux - no new hardware",
+     "changes": [
+      {
+       "path": "units.K 2750.reflux_ratio",
+       "value": 1.2,
+       "from": 1.5
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Turn reflux down to 1.2 for 1.2× feed - no capex, restores flood margin",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 137.8
+     }
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process",
+     "engine": "DWSIM",
+     "title": "design reaches 120 % (max 138 %, re-solved now)",
+     "status": "pass",
+     "numbers": {},
+     "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "robustness",
+     "engine": "DWSIM",
+     "title": "draft (assumed values): operating envelope 2/2 scenarios pass",
+     "status": "pass",
+     "numbers": {},
+     "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.flooding",
+     "engine": "Fair/Souders-Brown",
+     "title": "K 2750: column flooding 69.7 % of flood vs 80 % allowed (87 % of the limit)",
+     "status": "pass",
+     "numbers": {
+      "value": 0.697,
+      "limit": 0.8,
+      "unit": "fraction of flood",
+      "utilisation": 0.871
+     },
+     "source": "DWSIM tray traffic with Fair capacity-factor correlation"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.purity_distillate",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "draft (assumed values): K 2750 distillate Ethanol 90.9 vs 90.8 mass-% minimum",
+     "numbers": {
+      "value": 0.909446,
+      "limit": 0.9079,
+      "unit": "mass fraction",
+      "utilisation": 0.998
+     },
+     "source": "drafted purity spec (runs/ws/<case>/drafts/purity.json) on the DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.purity_bottoms",
+     "engine": "DWSIM",
+     "status": "fail",
+     "title": "draft (assumed values): K 2750 bottoms Water 23.6 vs 23.8 mass-% minimum",
+     "numbers": {
+      "value": 0.236225,
+      "limit": 0.2384,
+      "unit": "mass fraction",
+      "utilisation": 1.009
+     },
+     "source": "drafted purity spec (runs/ws/<case>/drafts/purity.json) on the DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.min_reflux",
+     "engine": "DWSIM",
+     "status": "fail",
+     "title": "draft (assumed values): K 2750 reflux 1.2 vs 1.29 minimum to hold the purity spec at 120 %",
+     "numbers": {
+      "value": 1.2,
+      "limit": 1.289,
+      "unit": "reflux ratio",
+      "utilisation": 1.074
+     },
+     "source": "DWSIM bisection on reflux, 15 stages as built; drafted purity spec (runs/ws/<case>/drafts/purity.json)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "confidence",
+     "engine": "uncertainty",
+     "title": "draft (assumed values): target met in 48 of 48 samples with uncertain inputs varied (100 %); most often limited by K 2750: Fair flood fraction vs limit",
+     "status": "pass",
+     "numbers": {
+      "p_target": 1.0,
+      "p10": 1.3557,
+      "p50": 1.378,
+      "p90": 1.3943,
+      "n": 48,
+      "solved": 48
+     },
+     "source": "Latin hypercube, 48 samples (seed 20261101), uniform ± band per input kind; each sample re-solved (DWSIM): capacity bisection plus the solve at the target (pass at P(target) ≥ 80%)"
+    }
+   ],
+   "open_issues": [
+    {
+     "check": "separation.K 2750.purity_bottoms",
+     "detail": "draft (assumed values): K 2750 bottoms Water 23.6 vs 23.8 mass-% minimum"
+    },
+    {
+     "check": "separation.K 2750.min_reflux",
+     "detail": "draft (assumed values): K 2750 reflux 1.2 vs 1.29 minimum to hold the purity spec at 120 %"
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "answer_index": 2,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "baseten:meta-models/muse-spark-open-1026",
+     "kind": "fix",
+     "status": "info",
+     "usd": 0.5222,
+     "seconds": 210,
+     "title": "Raise reflux to 1.35 for 1.2× feed – meets bottoms water ≥23.84% and min reflux 1.289 – no capex, retains flood headroom",
+     "detail": "Pass at 1.2× with reflux 1.35 – no hardware",
+     "changes": [
+      {
+       "path": "units.K 2750.reflux_ratio",
+       "value": 1.35,
+       "from": 1.5
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Raise reflux to 1.35 for 1.2× feed – meets bottoms water ≥23.84% and min reflux 1.289 – no capex, retains flood headroom",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 129.2
+     }
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process",
+     "engine": "DWSIM",
+     "title": "design reaches 120 % (max 129 %, re-solved now)",
+     "status": "pass",
+     "numbers": {},
+     "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "robustness",
+     "engine": "DWSIM",
+     "title": "draft (assumed values): operating envelope 1/2 scenarios pass (fails: Target, feed +10 %)",
+     "status": "fail",
+     "numbers": {},
+     "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.flooding",
+     "engine": "Fair/Souders-Brown",
+     "title": "K 2750: column flooding 74.4 % of flood vs 80 % allowed (93 % of the limit)",
+     "status": "pass",
+     "numbers": {
+      "value": 0.744,
+      "limit": 0.8,
+      "unit": "fraction of flood",
+      "utilisation": 0.93
+     },
+     "source": "DWSIM tray traffic with Fair capacity-factor correlation"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.purity_distillate",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "draft (assumed values): K 2750 distillate Ethanol 91.1 vs 90.8 mass-% minimum",
+     "numbers": {
+      "value": 0.911279,
+      "limit": 0.9079,
+      "unit": "mass fraction",
+      "utilisation": 0.996
+     },
+     "source": "drafted purity spec (runs/ws/<case>/drafts/purity.json) on the DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.purity_bottoms",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "draft (assumed values): K 2750 bottoms Water 24.0 vs 23.8 mass-% minimum",
+     "numbers": {
+      "value": 0.240099,
+      "limit": 0.2384,
+      "unit": "mass fraction",
+      "utilisation": 0.993
+     },
+     "source": "drafted purity spec (runs/ws/<case>/drafts/purity.json) on the DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.min_reflux",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "draft (assumed values): K 2750 reflux 1.35 vs 1.29 minimum to hold the purity spec at 120 %",
+     "numbers": {
+      "value": 1.35,
+      "limit": 1.289,
+      "unit": "reflux ratio",
+      "utilisation": 0.955
+     },
+     "source": "DWSIM bisection on reflux, 15 stages as built; drafted purity spec (runs/ws/<case>/drafts/purity.json)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "confidence",
+     "engine": "uncertainty",
+     "title": "draft (assumed values): target met in 48 of 48 samples with uncertain inputs varied (100 %); most often limited by K 2750: Fair flood fraction vs limit",
+     "status": "pass",
+     "numbers": {
+      "p_target": 1.0,
+      "p10": 1.2717,
+      "p50": 1.292,
+      "p90": 1.306,
+      "n": 48,
+      "solved": 48
+     },
+     "source": "Latin hypercube, 48 samples (seed 20261101), uniform ± band per input kind; each sample re-solved (DWSIM): capacity bisection plus the solve at the target (pass at P(target) ≥ 80%)"
+    }
+   ],
+   "open_issues": [
+    {
+     "check": "robustness",
+     "detail": "draft (assumed values): operating envelope 1/2 scenarios pass (fails: Target, feed +10 %)"
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "answer_index": 3,
+   "steps": [
+    {
+     "actor": "muse",
+     "model": "baseten:meta-models/muse-spark-open-1026",
+     "kind": "fix",
+     "status": "info",
+     "usd": 0.4163,
+     "seconds": 161,
+     "title": "Raise reflux to 1.35 for 1.2× feed – meets bottoms water ≥23.84% and min reflux 1.289 – no capex, retains flood headroom; Retrofit K 2750 with high-capacity trays – capacity factor 1.2 to pass Target and feed+10% envelope – cheapest hardware",
+     "detail": "Fix with reflux 1.35 and high-capacity trays for 1.32× envelope",
+     "changes": [
+      {
+       "path": "units.K 2750.reflux_ratio",
+       "value": 1.35,
+       "from": 1.5
+      },
+      {
+       "replace_unit": "K 2750",
+       "new_rating": {
+        "tray_capacity_factor": 1.2
+       },
+       "basis": "Fair flood ≤0.8 at 1.32× feed (Target+10% over 1.2×) at reflux 1.35 – hydraulic rating from DWSIM Fair correlation; alternative shell upsizing to 550 mm ID gives 0.676/0.80 at same duty",
+       "vendor_confirm": true,
+       "physical_change": "replace sieve trays with high-capacity trays e.g. Sulzer MVG, Koch-Glitsch Superfrac",
+       "rating_source": "vendor quote to confirm capacity factor ≥1.2 – standard 15-25% uplift vs sieve, to be confirmed by vendor hydraulic rating"
+      }
+     ]
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Raise reflux to 1.35 for 1.2× feed – meets bottoms water ≥23.84% and min reflux 1.289 – no capex, retains flood headroom",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 129.2
+     }
+    },
+    {
+     "actor": "engine",
+     "engine": "server verify",
+     "kind": "solve",
+     "title": "Retrofit K 2750 with high-capacity trays – capacity factor 1.2 to pass Target and feed+10% envelope – cheapest hardware",
+     "status": "pass",
+     "detail": "",
+     "numbers": {
+      "capacity_pct": 145.8
+     }
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "vendor confirmation of K 2750 new rating",
+     "engine": "vendor",
+     "status": "open",
+     "title": "K 2750 new rating: Fair flood ≤0.8 at 1.32× feed (Target+10% over 1.2×) at reflux 1.35 – hydraulic rating from DWSIM Fair correlation; alternative shell upsizing to 550 mm ID gives 0.676/0.80 at same duty; vendor to confirm",
+     "numbers": {
+      "tray_capacity_factor": 1.2
+     },
+     "source": "replacement sizing basis"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process",
+     "engine": "DWSIM",
+     "title": "design reaches 120 % (max 155 %, re-solved now)",
+     "status": "pass",
+     "numbers": {},
+     "source": "DWSIM re-solve of the combined design on the current model"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "robustness",
+     "engine": "DWSIM",
+     "title": "draft (assumed values): operating envelope 2/2 scenarios pass",
+     "status": "pass",
+     "numbers": {},
+     "source": "DWSIM solves of the pre-FEED operating envelope"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "piping_utilities",
+     "engine": "none",
+     "title": "no calculation adapter: tie-ins, line sizing, supports and utility headers remain open for K 2750",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "controls",
+     "engine": "none",
+     "title": "no calculation adapter: control narrative, split/load-sharing control, cause & effect and permissives remain open for K 2750",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "process_safety",
+     "engine": "none",
+     "title": "no calculation adapter: change-focused HAZOP, relief case and isolation for the changed equipment remain open for K 2750",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "civil_structural",
+     "engine": "none",
+     "title": "no calculation adapter: plot, access, lifting and foundations remain open for K 2750",
+     "status": "open",
+     "numbers": {},
+     "source": "proposal topology (no engine for this discipline)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.flooding",
+     "engine": "Fair/Souders-Brown",
+     "title": "K 2750: column flooding 62.0 % of flood vs 80 % allowed (77 % of the limit)",
+     "status": "pass",
+     "numbers": {
+      "value": 0.62,
+      "limit": 0.8,
+      "unit": "fraction of flood",
+      "utilisation": 0.775
+     },
+     "source": "DWSIM tray traffic with Fair capacity-factor correlation"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.purity_distillate",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "draft (assumed values): K 2750 distillate Ethanol 91.1 vs 90.8 mass-% minimum",
+     "numbers": {
+      "value": 0.911279,
+      "limit": 0.9079,
+      "unit": "mass fraction",
+      "utilisation": 0.996
+     },
+     "source": "drafted purity spec (runs/ws/<case>/drafts/purity.json) on the DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.purity_bottoms",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "draft (assumed values): K 2750 bottoms Water 24.0 vs 23.8 mass-% minimum",
+     "numbers": {
+      "value": 0.240099,
+      "limit": 0.2384,
+      "unit": "mass fraction",
+      "utilisation": 0.993
+     },
+     "source": "drafted purity spec (runs/ws/<case>/drafts/purity.json) on the DWSIM solve"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "separation.K 2750.min_reflux",
+     "engine": "DWSIM",
+     "status": "pass",
+     "title": "draft (assumed values): K 2750 reflux 1.35 vs 1.29 minimum to hold the purity spec at 120 %",
+     "numbers": {
+      "value": 1.35,
+      "limit": 1.289,
+      "unit": "reflux ratio",
+      "utilisation": 0.955
+     },
+     "source": "DWSIM bisection on reflux, 15 stages as built; drafted purity spec (runs/ws/<case>/drafts/purity.json)"
+    },
+    {
+     "actor": "engine",
+     "kind": "check",
+     "check": "confidence",
+     "engine": "uncertainty",
+     "title": "draft (assumed values): target met in 48 of 48 samples with uncertain inputs varied (100 %); most often limited by K 2750: Fair flood fraction vs limit",
+     "status": "pass",
+     "numbers": {
+      "p_target": 1.0,
+      "p10": 1.5264,
+      "p50": 1.55,
+      "p90": 1.567,
+      "n": 48,
+      "solved": 48
+     },
+     "source": "Latin hypercube, 48 samples (seed 20261101), uniform ± band per input kind; each sample re-solved (DWSIM): capacity bisection plus the solve at the target (pass at P(target) ≥ 80%)"
+    }
+   ],
+   "open_issues": []
+  }
+ ],
+ "result": {
+  "answer_index": 3,
+  "headline": "Fix with reflux 1.35 and high-capacity trays for 1.32× envelope",
+  "passes": [
+   "process",
+   "robustness",
+   "separation.K 2750.flooding",
+   "separation.K 2750.purity_distillate",
+   "separation.K 2750.purity_bottoms",
+   "separation.K 2750.min_reflux",
+   "confidence"
+  ],
+  "fails": [],
+  "open": [
+   "vendor confirmation of K 2750 new rating",
+   "piping_utilities",
+   "controls",
+   "process_safety",
+   "civil_structural"
+  ]
+ },
+ "deliverables": [
+  {
+   "kind": "moc",
+   "title": "MOC decision pack (draft)",
+   "folder": "decision-20261103-220312"
+  },
+  {
+   "kind": "chart",
+   "title": "feed rate envelope at R=1.35",
+   "artifact": "20261103-215832-feed-rate-envelope-at-r-1-35"
+  },
+  {
+   "kind": "chart",
+   "title": "water fraction sensitivity",
+   "artifact": "20261103-215833-water-fraction-sensitivity"
+  }
+ ],
+ "needs_human": [
+  "vendor confirmation of K 2750 new rating: K 2750 new rating: Fair flood ≤0.8 at 1.32× feed (Target+10% over 1.2×) at reflux 1.35 – hydraulic rating from DWSIM Fair correlation; alternative shell upsizing to 550 mm ID gives 0.676/0.80 at same duty; vendor to confirm",
+  "piping_utilities: no calculation adapter: tie-ins, line sizing, supports and utility headers remain open for K 2750",
+  "controls: no calculation adapter: control narrative, split/load-sharing control, cause & effect and permissives remain open for K 2750",
+  "process_safety: no calculation adapter: change-focused HAZOP, relief case and isolation for the changed equipment remain open for K 2750",
+  "civil_structural: no calculation adapter: plot, access, lifting and foundations remain open for K 2750",
+  "Actual feed rate, composition, T/P for streams 2750.001.6 and *at N3*: If water fraction higher or feed hotter, required reflux and flood increase – could push flood above 0.8 or bottoms off-spec",
+  "Column internals type and current flood correlation: If existing trays already high-capacity, factor 1.2 overstates gain – would need shell enlargement to 550-600 mm instead",
+  "Reboiler/condenser heat duty and utility limits: If duty limited <530 kW, 1.32× cannot be sustained even if hydraulically ok"
+ ],
+ "finished": "2026-11-03T22:03:13+0300"
+}

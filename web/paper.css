@@ -311,3 +311,13 @@ body.process .rail-group-label { padding-top: 10px; font-size: 9.5px; text-align
   body.process .drawing-actions { right: 12px; bottom: 84px; max-width: calc(100vw - 24px); }
   body.process .drawing-actions .btn { padding-inline: 10px; }
 }
+
+/* replay stage (skipped by the generator): a white card, state on the left rule */
+body.process .replay-stage { background: #fff; border: 1px solid #cfd7c7; border-left: 3px solid var(--green); }
+body.process .replay-stage[data-status="fail"] { border-left-color: var(--stop); }
+body.process .replay-stage[data-status="pass"] { border-left-color: var(--go); }
+body.process .replay-stage .replay-who { color: var(--green); }
+body.process .replay-stage .replay-text { color: var(--fg); }
+/* a page with one action gives it the full width */
+body.process .workspace-actions > div:has(> #workspaceSecondary[hidden]) { grid-template-columns: 1fr; }
+body.process .replay-progress { color: var(--fg-3); }
