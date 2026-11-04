@@ -1,6 +1,6 @@
 # PlantAgent: Muse proposes, physics checks, engineers approve
 
-**An engineering workspace for changing an existing plant.** Meta's Muse reads the drawing and proposes the change; deterministic engines (DWSIM, pandapower and others) re-solve it; failed checks go back to Muse with their numbers; a human approves. Built from zero during the Meta Global AI Developer Hackathon (theme: Push the Frontier).
+**An engineering workspace for changing an existing plant.** Meta's Muse reads the drawing and proposes the change; deterministic engines (DWSIM, pandapower and others) re-solve it; failed checks go back to Muse with their numbers; a human approves. Built from zero during the Meta Global AI Developer Hackathon, Oct 26 – Nov 4, 2026 · Indie developer · Push the Frontier · targeting Best Agentic Use-Case and Best Build on Meta Open Weight Models (Muse Spark Open runs the engineering loop, on Baseten and Fireworks).
 
 ![The PlantAgent workspace: the Rev B drawing of a salt plant, the decision, and an electrical gate that blocks approval](web/img/plantagent-salt-workspace.png)
 

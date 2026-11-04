@@ -19,7 +19,7 @@ On screen there are no subtitles: short labels sit next to the highlighted item,
 
 | Time | Screen | Caption | Narration |
 |---|---|---|---|
-| 0:00–0:08 | Salt drawing, full sheet | BUILT FROM ZERO DURING THE EVENT · For process engineers · Meta's Muse proposes plant changes, simulators check them | "PlantAgent did not exist before this event. Muse proposes plant changes; simulators check them." |
+| 0:00–0:08 | Salt drawing, full sheet | BUILT FROM ZERO DURING THE EVENT · For process engineers · Meta's Muse proposes plant changes, simulators check them | "Plant changes fail when one discipline solves its problem and creates another. PlantAgent, built from zero during this event, lets Meta's Muse propose the change and makes real engineering software prove whether it works." |
 | 0:08–0:15 | Model & data (built by Muse Wonder in 1096 s) | Muse Wonder drafted the first DWSIM model from US Patent 5,366,514 · 1,096 s · $4.03 | "Muse Wonder turned this patent flowsheet into a first draft simulation, in eighteen minutes, for four dollars." |
 | 0:15–0:25 | K-201 on the drawing | Today's plant at +20 %: K-201 at 120 % of its limit | "The goal is twenty percent more output. At that rate, the main compressor would run twenty percent beyond its rating." |
 | 0:25–0:37 | Existing → Draft design, K-202 and the What-changed list | Rev B, drafted with an engineer · 3 changes · DWSIM re-solves at 120 % | "With an engineer, Muse drafts three changes: clean the heater, add a second compressor, and trim a steam flow. The plant model recalculates, and the target is met." |

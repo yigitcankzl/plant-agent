@@ -4,6 +4,8 @@
 
 **Track:** Indie developer
 
+**Bonus categories we target:** Best Agentic Use-Case; Best Build on Meta Open Weight Models
+
 **Problem statement:** Push the Frontier
 
 **Most Viral X post:** (only if posted)
@@ -13,11 +15,13 @@ PlantAgent is an engineering workspace for changing an existing plant. An engine
 
 Muse proposes, physics disposes. The problem: checking a plant change today takes engineers weeks of manual simulation and cross-discipline review, and an AI answer that only looks right is dangerous in a plant. PlantAgent makes the AI's answer checkable.
 
-What it has done:
-- **An unseen BASF drawing.** The official BASF DEXPI drawing went from upload to a DWSIM column with no hand-written files. Its first fix (a reflux cut) fails the purity check we added afterwards; with that check in the loop, its next proposal failed the +10 % feed envelope, and the numbers went back to Muse. It ended with a 600 mm shell that passes every deterministic simulation check; vendor confirmation remains open.
-- **A scanned 1994 patent.** Muse Wonder read the patent drawing and built a calibrated simulator from it.
-- **The UCTE 2006 grid split.** The hosted endpoint refused the prompt. Muse Spark Open, the open-weights model, found a switching plan that passes N-1.
-- **A blind benchmark against real engineers.** Across 13 published engineering studies, with their conclusions withheld, Muse reached 64 % of the engineers' conclusions on average. A second Meta model graded the runs; this is a cross-model check, not a human one.
+What it showed (every item links to its record in the repository):
+- **A live loop that is wrong twice.** On BASF's official DEXPI example, Muse Spark Open ran four rounds from a neutral goal: the simulator rejected two designs (product quality, then flooding on a high-feed day), and high-capacity trays then passed every modelled check. 15 minutes, $1.41; the tray rating stays open for a vendor.
+- **A second model attacks the design.** Muse Spark 1.3 attacked that design with eight bounded operating deviations; DWSIM re-solved each and all eight held (worst 93 % of the flood limit).
+- **A real plant, blind.** From Shell Norco's pre-revamp data only, Muse chose the same revamp type Shell built (high-capacity trays in the existing column). Against Shell's measured after-data: 5 match, 3 partial, 1 miss, 1 not predicted.
+- **Process passing is not enough.** On a salt plant the process target passed at 120 %, but an illustrative transformer rating reached 133 %, so approval stays blocked.
+- **Open weights.** On the 2006 European blackout grid the hosted endpoint was blocked by content policy; Muse Spark Open completed the checked loop with 0 N-1 violations.
+- **Honest denominator.** 21 of 69 recorded loop runs ended with every deterministic check passing; most of those still carry an open vendor or human check.
 
 ## Public GitHub repository
 https://github.com/yigitcankzl/plant-agent
@@ -26,11 +30,11 @@ https://github.com/yigitcankzl/plant-agent
 (YouTube link)
 
 ## Use of Meta products
-- **Muse Wonder (Meta Model API):** vision and reasoning. It reads scanned P&IDs, patent figures and equipment datasheets, and builds the first simulator model from them.
-- **Muse Spark 1.3 (Meta Model API):** the tool-calling engineer agent. It runs the simulators, answers engineering questions on the page, and proposes changes. In the blind benchmark it re-grades every run as a cross-check of the primary grader, Muse Wonder (88 % item agreement).
-- **Muse Spark Open (open weights, served on Baseten and Fireworks):** runs the same closed engineering loop with the same tools. It solved the UCTE grid case after the hosted endpoint refused it, ran the BASF loop that ended with every deterministic simulation check passing (vendor confirmation open), and the blind Shell Norco loop. An optional "second model" check compares its answer with the hosted model's.
-- **Muse Spark 1.3 as the red team:** after a design passes, a second model proposes realistic operating deviations to break it; DWSIM re-solves each and decides. The BASF design held 8 of 8.
-- **Muse Voice Transcribe (Meta Model API):** push-to-talk; the engineer speaks the request and it lands in the goal box.
+Each Meta model has a separate job; the deterministic engines (DWSIM, pandapower and others), not the language model, decide pass or fail, and only an engineer approves.
+- **Muse Wonder** reads engineering drawings (DEXPI, scanned PDF, patent figure) and drafts the first simulator model, listing every assumption.
+- **Muse Spark Open** (open weights, on Baseten and Fireworks) runs the iterative design loop: it proposes a physical change, reads the failed checks with their numbers, and revises. It is load-bearing: the recorded live BASF run and the UCTE grid run used it.
+- **Muse Spark 1.3** red-teams a passing design with bounded operating deviations, and answers engineering questions on the page.
+- **Muse Voice Transcribe** turns the engineer's spoken goal into the goal text.
 
 All model calls share one budgeted client layer and usage ledger: chat and tool calls use the OpenAI-compatible endpoints of Meta, Baseten and Fireworks; SAM and Voice use Meta's native endpoints. The `openai` package is only the transport SDK; no OpenAI model is called. Every answer in the UI shows its model, cost and time.
 
