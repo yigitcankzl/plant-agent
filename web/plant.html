@@ -743,13 +743,6 @@
   .ask-replay-only { display: block !important; }
   .ask-replay-only #redlineLink { display: block; text-align: center; }
 
-  .tour-gate-row { position: fixed; z-index: 59; left: calc(100px + var(--workspace-panel, 360px)); right: 18px; bottom: 120px; display: flex; flex-wrap: wrap; gap: 7px;
-    padding: 9px 12px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(23,29,56,.97); box-shadow: 0 8px 28px rgba(0,0,0,.35); }
-  .tour-gate-chip { min-height: 34px; padding: 5px 10px; border: 1px solid #5c7883; border-radius: 17px; background: #183a46; color: #eaf4f5; font: 700 12px var(--sans); cursor: pointer; }
-  .tour-gate-chip.pass { border-color: var(--ok); } .tour-gate-chip.fail { border-color: var(--fail); color: #ffb0a8; }
-  .tour-gate-chip.open { border-color: var(--warn); color: #f2d18c; }
-  @media (max-width: 820px) { .tour-gate-row { left: 12px; right: 12px; bottom: 78px; } }
-
   /* Recording-only view: the ordinary workspace is unchanged unless ?present=1 is present. */
   .present-caption, .openweights-story { display: none; }
   body.present-mode { overflow: hidden; }
@@ -764,7 +757,7 @@
   body.present-mode .dd-open-btn, body.present-mode .step-card { display: none !important; }
   /* presentation: the result, the caption, the drawing and the summaries; not every round, attack or tour step */
   body.present-mode .work-round:not(:last-child), body.present-mode .redteam-attacks, body.present-mode .redteam-missing,
-  body.present-mode #tour, body.present-mode .tour-gate-row { display: none !important; }
+  body.present-mode #tour { display: none !important; }
   body.present-mode aside.right { grid-row: 2; grid-column: 1; border-right: 1px solid var(--rule); }
   body.present-mode main { grid-row: 2; grid-column: 2; }
   body.present-mode #rightScroll { padding: 8px 20px 24px; }
@@ -3768,15 +3761,17 @@ function placeTour(ids) {
   if (!targets.length) return;
   const rects = targets.map(el => el.getBoundingClientRect());
   const target = {left: Math.min(...rects.map(r => r.left)), right: Math.max(...rects.map(r => r.right)), top: Math.min(...rects.map(r => r.top)), bottom: Math.max(...rects.map(r => r.bottom))};
-  const box = $('tour'), pad = 14; box.style.left = pad + 'px'; box.style.top = pad + 'px'; box.style.bottom = 'auto'; box.style.transform = 'none';
+  const box = $('tour'), pad = 14, rail = document.querySelector('.workspace-rail')?.getBoundingClientRect();
+  const bottomPad = rail?.top > innerHeight / 2 ? innerHeight - rail.top + pad : pad;
+  box.style.left = pad + 'px'; box.style.top = pad + 'px'; box.style.bottom = 'auto'; box.style.transform = 'none';
   const w = box.offsetWidth, h = box.offsetHeight; let left, top;
   if (innerWidth - target.right >= w + pad) { left = target.right + pad; top = target.top; }
   else if (target.left >= w + pad) { left = target.left - w - pad; top = target.top; }
   else if (innerHeight - target.bottom >= h + pad) { left = (target.left + target.right - w) / 2; top = target.bottom + pad; }
   else if (target.top >= h + pad) { left = (target.left + target.right - w) / 2; top = target.top - h - pad; }
-  else { left = (innerWidth - w) / 2; top = innerHeight - h - pad; }
+  else { left = (innerWidth - w) / 2; top = innerHeight - h - bottomPad; }
   box.style.left = Math.max(pad, Math.min(innerWidth - w - pad, left)) + 'px';
-  box.style.top = Math.max(pad, Math.min(innerHeight - h - pad, top)) + 'px';
+  box.style.top = Math.max(pad, Math.min(innerHeight - h - bottomPad, top)) + 'px';
 }
 function tourSteps() {
   const target = Math.round(P.target_scale * 100), revision = workingRevisionData();
@@ -3792,8 +3787,8 @@ function tourSteps() {
     ['See the bottleneck', () => { const limit = tourLimit(); return limit ? `At the target rate, ${limit.id} reaches ${Math.round(limit.utilisation * 100)} % of its documented limit. Red means the rating is exceeded.` : 'Every modelled item remains inside its documented limit at the target rate.'; },
       () => { const id = tourLimit()?.id, node = id && sheet.querySelector(`[data-tag="${CSS.escape(id)}"]`); return [node || 'pidViewport']; }, async () => { setWorkspacePage('drawing'); await setView('existing'); setScale(target); await new Promise(r => setTimeout(r, 180)); const id = tourLimit()?.id; if (id) focusDrawing(id); }],
     ...(revision ? [['Compare the working revision', () => `${revision.title}. Every physical change is clouded on the drawing, and the existing plant remains one click away.`,
-      () => ['changeSummary', 'viewTog'], async () => { setWorkspacePage('drawing'); await setView('proposed'); if (tags.length) focusDrawingTags(tags); }]] : []),
-    ...(LAST_WORK ? [['Follow the engineering checks', () => { const rounds = LAST_WORK.rounds?.length || 0, headline = plain(LAST_WORK.result?.headline || LAST_WORK.status || 'The saved run is still open'); return `${rounds} engineering round${rounds === 1 ? '' : 's'} recorded. ${headline}. Missing inputs stay open instead of being guessed.`; },
+      () => ['viewTog'], async () => { setWorkspacePage('drawing'); await setView('proposed'); if (tags.length) focusDrawingTags(tags); }]] : []),
+    ...(LAST_WORK ? [['Follow the engineering checks', () => { const rounds = LAST_WORK.rounds?.length || 0, headline = plain(LAST_WORK.result?.headline || LAST_WORK.status || 'The saved run is still open').replace(/^UNSOLVABLE:\s*/i, ''); return `${rounds} engineering round${rounds === 1 ? '' : 's'} recorded. ${headline}. Missing inputs stay open instead of being guessed.`; },
       () => ['worklogPanel', 'workspaceActions'], () => setWorkspacePage('run')]] : []),
     ['Audit the evidence', evidence, () => ['evidenceSummary'], () => setWorkspacePage('evidence')],
     ['Hand it to engineering', () => { const rows = gateRows(designAnswer() || {}), failed = rows.filter(row => gateState(row)[0] === 'fail').length, open = rows.filter(row => gateState(row)[0] === 'open').length; return `The process design is checked, but ${failed} discipline${failed === 1 ? '' : 's'} fail and ${open} discipline check${open === 1 ? '' : 's'} remain open. Any issued package stays a draft until engineers approve it.`; },
