@@ -304,7 +304,7 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
       proposals: [{ title: 'Restore cooling-water flow', tag: 'H1007', fixes: 'H1007', cost_class: 'no capex', verified: true,
         changes: [{ path: 'units.H1007.duty_kW', value: 1 }], electrical: { summary: 'TX-47 68 → 70 % loaded; all electrical checks within limits', svg: '/x.svg', over: [] } }], cards: [{ title: 'Duty check', result: 'Within limit', inputs: [] }], checks: [] }];
     answers();
-    return !!document.querySelector('.decision-brief') && proposedDraft()?.proposal?.changes?.length === 1 && document.querySelector('#vProposed').textContent === 'Draft design' &&
+    return !!document.querySelector('.decision-brief') && proposedDraft()?.proposal?.changes?.length === 1 && document.querySelector('#vProposed').textContent === 'Working revision' &&
       !document.querySelector('#workingRevision').hidden && /Draft design/.test(document.querySelector('#workingRevision').textContent) && /1 human decision open/.test(document.querySelector('#workingRevision').textContent) &&
       !!document.querySelector('#adoptProposed') && getComputedStyle(document.querySelector('.engineering-detail')).display === 'none' &&
       document.querySelectorAll('.discipline-gate').length === GATE_ORDER.length && document.body.textContent.includes('Not checked: needs') && !!document.querySelector('.package-action') &&
@@ -346,8 +346,11 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
     getComputedStyle(document.querySelector('#answers')).display === 'none' && !!document.querySelector('#packageIssue') && !!document.querySelector('#packageReview') &&
     !document.querySelector('#ddOpen') && document.querySelector('#inspectorTitle').textContent === 'Engineering package' && !document.body.classList.contains('dd-open'));
   await p.click('[data-workspace-page="overview"]');
-  const workspaceUi = readableAnswer && decisionSeparated && runSeparated && engineeringView && gateEvidence && packageSeparated && focusOn && focusOff && detailShortcut && labelsShortcut;
-  console.log(workspaceUi ? 'ok  ' : 'FAIL', 'decision, run, evidence and package are separate; drawing mode and engineering checks still work', workspaceUi ? '' : JSON.stringify({readableAnswer, decisionSeparated, runSeparated, engineeringView, gateEvidence, packageSeparated, focusOn, focusOff, detailShortcut, labelsShortcut}));
+  const actionHierarchy = await p.evaluate(() => [...document.querySelectorAll('.rail-group-label')].map(e => e.textContent).join('|') === 'Change|Operate|Data' &&
+    [...document.querySelectorAll('[data-workspace-page="run"] span')].some(e => e.textContent === 'Checks') && !document.querySelector('#workspaceActions').hidden &&
+    getComputedStyle(document.querySelector('.decision-actions')).display === 'none' && /Show on drawing/.test(document.querySelector('#workspaceActions').textContent) && /Review/.test(document.querySelector('#workspacePrimary').textContent));
+  const workspaceUi = readableAnswer && decisionSeparated && runSeparated && engineeringView && gateEvidence && packageSeparated && focusOn && focusOff && detailShortcut && labelsShortcut && actionHierarchy;
+  console.log(workspaceUi ? 'ok  ' : 'FAIL', 'decision, checks, evidence and package use one page-level action hierarchy', workspaceUi ? '' : JSON.stringify({readableAnswer, decisionSeparated, runSeparated, engineeringView, gateEvidence, packageSeparated, focusOn, focusOff, detailShortcut, labelsShortcut, actionHierarchy}));
   bad += workspaceUi ? 0 : 1;
   await p.evaluate(() => openDetails(false));
   await p.keyboard.press('/');  // the shared command line is available without opening another page

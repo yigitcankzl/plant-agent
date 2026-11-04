@@ -990,6 +990,7 @@
   <nav class="workspace-rail" aria-label="Engineering workspace">
     <a class="rail-brand" href="home.html" aria-label="PlantAgent home" title="PlantAgent home"></a>
     <div class="rail-primary">
+      <span class="rail-group-label">Change</span>
       <button class="rail-button" type="button" data-workspace-page="overview" aria-current="page" title="Decision overview">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg><span>Decision</span>
       </button>
@@ -997,13 +998,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM8 9h3v3H8zM11 10.5h5M16 10.5v5M11 15.5h5"/></svg><span>Drawing</span>
       </button>
       <button class="rail-button" type="button" data-workspace-page="run" title="Engineering run">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m10 8.5 5.5 3.5-5.5 3.5z"/></svg><span>Run</span>
-      </button>
-      <button class="rail-button" id="railHealth" type="button" data-workspace-page="health" title="Historian and troubleshooting">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12h4l2-5 3.2 10 2.1-5h5.7"/></svg><span>Health</span>
-      </button>
-      <button class="rail-button" id="railSafety" type="button" data-workspace-page="safety" title="Relief and safety screening">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5.2c0 4.3-2.8 7.4-7 9.3-4.2-1.9-7-5-7-9.3V6zM9 12l2 2 4-4"/></svg><span>Safety</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m10 8.5 5.5 3.5-5.5 3.5z"/></svg><span>Checks</span>
       </button>
       <button class="rail-button" type="button" data-workspace-page="evidence" title="Calculations and blind comparison">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9M10 19V5M15 19v-7M20 19V3M3 19h19"/></svg><span>Evidence</span>
@@ -1011,8 +1006,16 @@
       <button class="rail-button" type="button" data-workspace-page="package" title="Engineering package and approvals">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8l4 4V20H6zM14 3.5V8h4M9 12h6M9 15.5h6"/></svg><span>Package</span>
       </button>
+      <span class="rail-group-label">Operate</span>
+      <button class="rail-button" id="railHealth" type="button" data-workspace-page="health" title="Historian and troubleshooting">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12h4l2-5 3.2 10 2.1-5h5.7"/></svg><span>Health</span>
+      </button>
+      <button class="rail-button" id="railSafety" type="button" data-workspace-page="safety" title="Relief and safety screening">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5.2c0 4.3-2.8 7.4-7 9.3-4.2-1.9-7-5-7-9.3V6zM9 12l2 2 4-4"/></svg><span>Safety</span>
+      </button>
     </div>
     <div class="rail-secondary">
+      <span class="rail-group-label">Data</span>
       <button class="rail-button" type="button" data-workspace-page="sources" title="Model, data and source documents">
         <svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg><span>Model &amp; data</span>
       </button>
@@ -1054,7 +1057,7 @@
 
   <main>
     <div id="note" style="display:none;margin:8px 18px 0;padding:6px 10px;border:1px solid #8a6a2e;border-radius:5px;background:#2b2414;color:#f6d28b;font-size:12px"></div>
-    <div class="stage" style="position:relative"><div class="state-source" id="stateSource" aria-live="polite">State source</div><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Draft design</button><button class="btn" id="adoptProposed" type="button" onclick="adoptProposedDesign()" data-needs-simulator hidden>Continue from this draft</button></div><aside class="change-summary" id="changeSummary" aria-label="Changes on this drawing" hidden></aside><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing controls"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" class="word" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button><button type="button" class="word" id="toggleLabels" aria-label="Show or hide PlantAgent labels" aria-pressed="true" title="Show or hide PlantAgent load and finding labels">Labels</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
+    <div class="stage" style="position:relative"><div class="state-source" id="stateSource" aria-live="polite">State source</div><div class="viewtog" id="viewTog" style="display:none"><button class="btn" id="vExisting" onclick="setView('existing')">Existing</button><button class="btn on" id="vProposed" onclick="setView('proposed')">Working revision</button></div><aside class="change-summary" id="changeSummary" aria-label="Changes on this drawing" hidden></aside><div class="drawing-actions" id="drawingActions"><button class="btn" id="drawingCompare" type="button" onclick="setView(VIEW === 'proposed' ? 'existing' : 'proposed')">Compare with existing</button><button class="btn go" id="adoptProposed" type="button" onclick="adoptProposedDesign()" data-needs-simulator hidden>Use this working revision</button></div><div class="pid-viewport" id="pidViewport" tabindex="0" aria-label="Interactive P and ID drawing; wheel to zoom, drag to pan"><div class="sheet" id="sheet"></div><div class="pid-tools" role="group" aria-label="Drawing controls"><button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button><button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button><button type="button" class="word" id="zoomFit" aria-label="Fit drawing" title="Fit drawing">Fit</button><button type="button" class="word" id="toggleLabels" aria-label="Show or hide PlantAgent labels" aria-pressed="true" title="Show or hide PlantAgent load and finding labels">Labels</button></div><div class="pid-tooltip" id="pidTooltip" role="tooltip"></div></div></div>
   </main>
 
   <aside class="right workspace-decision" id="resultPane">
@@ -1090,6 +1093,11 @@
       <details class="side-details" id="historyDetails"><summary>Model revisions and audit</summary><div id="revs"></div></details>
       <div id="answers"></div>
     </div>
+
+    <section class="workspace-actions" id="workspaceActions" aria-label="Page actions" hidden>
+      <p id="workspaceActionReason"></p>
+      <div><button class="btn" id="workspaceSecondary" type="button"></button><button class="btn go" id="workspacePrimary" type="button"></button></div>
+    </section>
 
   </aside>
   <section class="workbench" id="workbench" aria-label="Engineering workbench">
@@ -1232,6 +1240,34 @@ function toggleDrawer(open) {
   $('infoBtn').setAttribute('aria-expanded', String(open));
 }
 
+function syncWorkspaceActions() {
+  const box = $('workspaceActions'), primary = $('workspacePrimary'), secondary = $('workspaceSecondary');
+  if (!box) return;
+  const set = (reason, secondaryText, secondaryAction, primaryText, primaryAction) => {
+    box.hidden = false; $('workspaceActionReason').textContent = reason;
+    secondary.hidden = !secondaryText; secondary.textContent = secondaryText || ''; secondary.onclick = secondaryAction || null;
+    primary.textContent = primaryText; primary.onclick = primaryAction; primary.disabled = false; primary.title = '';
+  };
+  if (WORKSPACE_PAGE === 'overview') {
+    const rows = gateRows(designAnswer() || {}), failed = rows.filter(row => gateState(row)[0] === 'fail').length;
+    const open = rows.filter(row => gateState(row)[0] === 'open').length;
+    set(failed ? `${failed} discipline check${failed === 1 ? '' : 's'} block approval.` : open ? `${open} engineering input${open === 1 ? '' : 's'} still need a person.` : 'The checked design is ready for engineering review.',
+      'Show on drawing', () => setWorkspacePage('drawing'), failed ? `Review ${failed} blocker${failed === 1 ? '' : 's'}` : 'Review engineering checks', () => setWorkspacePage('evidence'));
+  } else if (WORKSPACE_PAGE === 'run') {
+    set(P?.allow_runs === false ? 'Live calls are off on this server; the saved engineering run remains available.' : 'The engineering loop proposes a change, runs the engines, and returns failed checks to Muse.', '', null,
+      P?.allow_runs === false ? 'Replay saved engineering run' : 'Run engineering checks', () => $('workRunOpen').click());
+    primary.disabled = $('workRunOpen').disabled; primary.title = $('workRunOpen').title;
+  } else if (WORKSPACE_PAGE === 'evidence') {
+    set('Calculations and sources stay separate from the decision summary.', 'Model & data', () => setWorkspacePage('sources'),
+      'Open review record', () => { location.href = 'review.html?case=' + encodeURIComponent(CASE); });
+  } else if (WORKSPACE_PAGE === 'package') {
+    syncPackageButton();
+    set('Issue a draft only after the process design passes its server checks.', 'Review sign-offs', () => { location.href = $('packageReview').href; },
+      'Issue draft package', () => $('packageIssue').click());
+    primary.disabled = $('packageIssue').disabled; primary.title = $('packageIssue').title;
+  } else box.hidden = true;
+}
+
 function setWorkspacePage(pageName) {
   syncPackageButton();
   const page = ['overview', 'drawing', 'run', 'health', 'safety', 'evidence', 'package', 'sources'].includes(pageName) ? pageName : 'overview';
@@ -1242,6 +1278,7 @@ function setWorkspacePage(pageName) {
   });
   [...document.body.classList].filter(c => c.startsWith('workspace-page-')).forEach(c => document.body.classList.remove(c));
   document.body.classList.add('workspace-page-' + page);
+  syncWorkspaceActions();
   document.body.classList.toggle('mobile-panel-open', matchMedia('(max-width: 1100px)').matches && page !== 'drawing');
   $('resultPane').classList.remove('panel-enter');
   void $('resultPane').offsetWidth;
@@ -2489,6 +2526,7 @@ async function stateForView(scale) {
 }
 async function setView(v) {
   VIEW = v; $('vExisting').classList.toggle('on', v === 'existing'); $('vProposed').classList.toggle('on', v === 'proposed');
+  $('drawingCompare').textContent = v === 'proposed' ? 'Compare with existing' : 'Return to working revision';
   $('adoptProposed').hidden = v !== 'proposed' || P?.has_changes || !proposedDraft();
   renderChangeSummary();
   if (AS_BUILT && P?.drawing === 'svg') await showSheet();
