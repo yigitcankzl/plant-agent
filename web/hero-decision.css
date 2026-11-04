@@ -1,0 +1,30 @@
+/* Landing hero: one decision in five steps (web/hero-decision.js). Colour is the state language:
+   violet = Muse, mint = passed, coral = blocked, amber = the engineer's question. */
+.hero-decision { display: grid; grid-template-rows: auto auto auto; background: #0a1c20; border: 1px solid #24434a; border-radius: 14px;
+  overflow: hidden; box-shadow: 0 28px 70px rgba(0,0,0,.4); text-decoration: none; color: #eef5f3; }
+.hd-sheet { position: relative; aspect-ratio: 16 / 9; background: #f4f3ee; overflow: hidden; }
+.hd-svg { position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease; }
+.hd-svg.on { opacity: 1; }
+.hd-svg svg { width: 100%; height: 100%; display: block; }
+.hd-ring { fill: rgba(124,131,255,.12); stroke: #7c83ff; stroke-width: 1.4; animation: hd-pulse 1.6s ease-in-out infinite; }
+@keyframes hd-pulse { 50% { stroke-width: 2.4; } }
+.hd-steps { list-style: none; margin: 0; padding: 14px 18px 6px; display: grid; gap: 7px; }
+.hd-step { display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: baseline; opacity: .22; transform: translateY(3px);
+  transition: opacity .45s ease, transform .45s ease; font-size: 14.5px; line-height: 1.4; }
+.hd-step.on { opacity: .62; transform: none; }
+.hd-step.now { opacity: 1; }
+.hd-who { font: 700 11px "Liberation Mono", monospace; letter-spacing: .1em; text-transform: uppercase; }
+.hd-step.ask .hd-who { color: #f1bd73; } .hd-step.muse .hd-who { color: #9aa0ff; }
+.hd-step.pass .hd-who, .hd-step.pass b { color: #91cfb7; } .hd-step.fail .hd-who, .hd-step.fail b { color: #ee8d7f; }
+.hd-step.muse b { color: #b9bdff; }
+.hd-verdict { margin: 8px 18px 16px; padding: 10px 14px; border-radius: 10px; border: 1px solid #24434a; display: flex; gap: 12px; align-items: baseline;
+  opacity: .25; transition: opacity .45s, border-color .45s, background .45s; }
+.hd-verdict b { font-size: 15px; color: #ee8d7f; white-space: nowrap; }
+.hd-verdict span { font-size: 12.5px; color: #a9bfc0; }
+.hero-decision.blocked .hd-verdict, .hero-decision.hd-static .hd-verdict { opacity: 1; border-color: rgba(238,141,127,.55); background: rgba(238,141,127,.08); }
+.hd-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; font-size: 13.5px; }
+.hd-compare div { border: 1px solid #24434a; border-radius: 10px; padding: 10px 12px; background: rgba(255,255,255,.03); }
+.hd-compare small { display: block; font: 700 10.5px "Liberation Mono", monospace; letter-spacing: .1em; text-transform: uppercase; color: #8fa9ab; margin-bottom: 4px; }
+.hd-compare .ok { color: #91cfb7; } .hd-compare .no { color: #ee8d7f; }
+@media (prefers-reduced-motion: reduce) { .hd-svg, .hd-step, .hd-verdict { transition: none; } .hd-ring { animation: none; } }
+@media (max-width: 760px) { .hd-step { grid-template-columns: 1fr; gap: 2px; } .hd-compare { grid-template-columns: 1fr; } }

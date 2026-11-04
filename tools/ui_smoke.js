@@ -235,14 +235,16 @@ const BASE = process.argv[2] || 'http://127.0.0.1:8765', OUT = process.argv[3] |
   const heroEvidence = await p.evaluate(() => { const line = document.querySelector('#openWeightsHero'), links = [...line.querySelectorAll('a')];
     return /refused the UCTE blackout prompt four times/.test(line.textContent) && /0 violations/.test(line.textContent) &&
       links.some(a => /case=ucte_2006/.test(a.href)) && links.some(a => /evidence\/open-weights-engineering\/README.md/.test(a.href)); });
+  await p.waitForFunction(() => /model-graded/.test(document.querySelector('#stats')?.textContent || ''), null, {timeout: 20000}).catch(() => {});
   const homePlain = await p.evaluate(() => !document.querySelector('.hero').contains(document.querySelector('#openWeightsHero')) &&
     document.querySelector('.hero .lead').textContent.split(/[.!?]+/).filter(s => s.trim()).length === 2 &&
     /of real engineers' conclusions, blind, model-graded/.test(document.querySelector('#stats').textContent));
-  // the hero is three real workspace screenshots (existing, draft, approval) with one caption each
+  // the hero tells one stored decision in five steps over the real Rev A / Rev B sheets, ending blocked
+  await p.waitForFunction(() => document.querySelectorAll('#heroDecision .hd-svg svg').length === 2, null, {timeout: 10000}).catch(() => {});
   const accentSystem = await p.evaluate(() => getComputedStyle(document.querySelector('.hero-actions .go')).backgroundColor === 'rgb(124, 131, 255)' &&
-    document.querySelectorAll('.product-story .product-frame img').length === 3 &&
-    [...document.querySelectorAll('.product-story img')].every(img => img.complete && img.naturalWidth > 0) &&
-    /TX-1 · 133%/.test(document.querySelector('.product-shot-note')?.textContent || ''));
+    document.querySelectorAll('#heroDecision .hd-step').length === 5 && document.querySelectorAll('#heroDecision .hd-svg svg').length === 2 &&
+    /45 % → 133 %/.test(document.querySelector('#heroDecision').textContent) && /Draft blocked/.test(document.querySelector('#heroDecision').textContent) &&
+    /Approval blocked/.test(document.querySelector('.hd-compare')?.textContent || ''));
   const queueOk = await p.evaluate(() => document.querySelectorAll('#queueCounts .queue-count').length === 3 &&
     document.querySelectorAll('#queueDecisions .queue-item').length > 0 && !/owner:|due today|last data|updated .* ago/i.test(document.querySelector('.queue-columns').textContent));
   await p.goto(`${BASE}/home.html?present=1`); await p.waitForTimeout(500);

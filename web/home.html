@@ -53,6 +53,7 @@
 </style>
 <link rel="stylesheet" href="design.css">
 <link rel="stylesheet" href="runlog.css">
+<link rel="stylesheet" href="hero-decision.css">
 <style>
   body.presentation-home { overflow: hidden; font-size: 18px; }
   body.presentation-home .wrap { max-width: none; height: 100vh; padding: 32px 54px; }
@@ -333,27 +334,20 @@
   <main>
     <section class="hero dashboard-hero" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="kicker">The engineering desk for plant changes</p>
+        <p class="kicker">For process engineers checking a plant change before MOC approval</p>
         <h1 id="hero-title">Change the plant. Prove the change.</h1>
         <p class="lead">PlantAgent turns a P&amp;ID and an engineering goal into a checked draft change. Meta's Muse models propose and revise; process and electrical engines decide what passes, what fails and what still needs an engineer.</p>
         <div class="hero-actions">
           <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Open the engineering desk</a>
           <a class="btn quiet" href="#evidence">See the evidence</a>
         </div>
+        <div class="hd-compare" aria-label="Muse alone compared with PlantAgent">
+          <div><small>Muse alone</small><span class="ok">Process reaches 120 % ✓</span></div>
+          <div><small>PlantAgent</small><span class="no">Approval blocked: the transformer would be overloaded ✕</span></div>
+        </div>
         <p class="hero-trust">Open source · simulator-checked · every output stays a draft until an engineer approves it</p>
       </div>
-      <a class="control-room product-shot" href="plant.html?case=salt_mvr" aria-label="Open the real salt plant engineering workspace shown here">
-        <span class="product-story" aria-hidden="true">
-          <figure class="product-frame"><img src="img/plantagent-salt-existing.png" width="1440" height="900" alt=""></figure>
-          <figure class="product-frame"><img src="img/plantagent-salt-draft.png" width="1440" height="900" alt=""></figure>
-          <figure class="product-frame"><img src="img/plantagent-salt-approval.png" width="1440" height="900" alt=""></figure>
-        </span>
-        <span class="product-shot-note">
-          <span class="product-caption"><strong>1 · Find the bottleneck</strong><span>K-201 reaches its limit before +20%</span></span>
-          <span class="product-caption"><strong>2 · Test the draft</strong><span>Clean E-201 + parallel K-202 reaches the process target</span></span>
-          <span class="product-caption"><strong>3 · Check the whole change</strong><span>Process passes. Electrical approval stops at TX-1 · 133%</span></span>
-        </span>
-      </a>
+      <a class="hero-decision" id="heroDecision" href="plant.html?case=salt_mvr" aria-label="One real decision: the salt plant at +20 %. Open it in the workspace"></a>
     </section>
 
     <section class="engineering-queue" id="engineeringQueue" aria-labelledby="queue-title">
@@ -546,5 +540,6 @@ document.getElementById("newForm").onsubmit = async e => {
 };
 </script>
 <script src="runlog.js" defer></script>
+<script src="hero-decision.js" defer></script>
 </body>
 </html>
