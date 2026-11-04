@@ -53,7 +53,6 @@
 </style>
 <link rel="stylesheet" href="design.css">
 <link rel="stylesheet" href="runlog.css">
-<link rel="stylesheet" href="hero-decision.css">
 <style>
   body.presentation-home { overflow: hidden; font-size: 18px; }
   body.presentation-home .wrap { max-width: none; height: 100vh; padding: 32px 54px; }
@@ -323,6 +322,7 @@
     .product-frame:nth-child(3) { display:block; }
   }
 </style>
+<link rel="stylesheet" href="home-theatre.css">
 </head>
 <body class="landing">
 <script>if (new URLSearchParams(location.search).get('present') === '1') document.body.classList.add('presentation-home');</script>
@@ -332,34 +332,56 @@
     <nav aria-label="Main navigation"><a href="#product">Product</a><a href="#evidence">Evidence</a><a href="#cases">Case library</a><a class="nav-cta" href="#new">New project</a></nav>
   </header>
   <main>
-    <section class="hero dashboard-hero" aria-labelledby="hero-title">
+    <section class="hero theatre-hero" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="kicker">For process engineers checking a plant change before MOC approval</p>
-        <h1 id="hero-title">Change the plant. Prove the change.</h1>
-        <p class="lead">PlantAgent turns a P&amp;ID and an engineering goal into a checked draft change. Meta's Muse models propose and revise; process and electrical engines decide what passes, what fails and what still needs an engineer.</p>
+        <p class="hero-context">Engineering change assurance for process plants</p>
+        <h1 id="hero-title">Change the plant. Catch what the change breaks.</h1>
+        <p class="lead">PlantAgent turns a P&amp;ID and an engineering goal into a checked draft change. Meta's Muse models propose and revise; independent engineering engines decide what passes and what still needs a human.</p>
         <div class="hero-actions">
-          <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Open the engineering desk</a>
-          <a class="btn quiet" href="#evidence">See the evidence</a>
-        </div>
-        <div class="hd-compare" aria-label="Muse alone compared with PlantAgent">
-          <div><small>Muse alone</small><span class="ok">Process reaches 120 % ✓</span></div>
-          <div><small>PlantAgent</small><span class="no">Approval blocked: the transformer would be overloaded ✕</span></div>
+          <a class="btn go" href="plant.html?case=salt_mvr&tour=1">Watch the checked change</a>
+          <a class="btn quiet" href="plant.html?case=salt_mvr">Open the workspace</a>
         </div>
         <p class="hero-trust">Open source · simulator-checked · every output stays a draft until an engineer approves it</p>
       </div>
-      <a class="hero-decision" id="heroDecision" href="plant.html?case=salt_mvr" aria-label="One real decision: the salt plant at +20 %. Open it in the workspace"></a>
+      <a class="decision-rig" href="plant.html?case=salt_mvr" aria-label="Open the salt plant change shown in this checked decision">
+        <span class="rig-head"><span class="rig-brand"><i></i><span>Vacuum-salt MVR · +20% capacity study</span></span><span class="rig-state">CHECKED DRAFT</span></span>
+        <span class="rig-body">
+          <span class="rig-steps" aria-hidden="true">
+            <span class="rig-step muse"><i class="rig-dot"></i><small>META MUSE</small><b>Clean E-201 + add K-202</b></span>
+            <span class="rig-step pass"><i class="rig-dot"></i><small>DWSIM</small><b>Process target met</b></span>
+            <span class="rig-step fail"><i class="rig-dot"></i><small>PANDAPOWER</small><b>TX-1 overloaded</b></span>
+            <span class="rig-step open"><i class="rig-dot"></i><small>ENGINEER</small><b>Vendor curve + approval</b></span>
+          </span>
+          <span class="rig-stage">
+            <span class="rig-question">Can this plant make 20% more salt?</span>
+            <span class="rig-pid"><img src="/api/plant/salt_mvr/svg" alt="Salt evaporator P&amp;ID with the proposed compressor change"></span>
+            <svg class="rig-trace" viewBox="0 0 100 60" aria-hidden="true"><path d="M8 51 C 26 54, 34 34, 47 34 S 60 16, 79 18"></path><circle cx="79" cy="18" r="2.7"></circle></svg>
+            <span class="rig-change"><b>NEW K-202</b>Parallel vapour compressor · rating to confirm</span>
+            <span class="rig-gates"><span class="rig-gate process"><span>Process target</span><strong>120% ✓</strong></span><span class="rig-gate electrical"><span>Transformer TX-1</span><strong>133% ✕</strong></span></span>
+          </span>
+        </span>
+        <span class="rig-foot"><span><span>PROCESS</span><strong>Target met at 120%</strong></span><span class="blocked"><span>APPROVAL</span><strong>Blocked by electrical</strong></span></span>
+      </a>
     </section>
 
-    <section class="engineering-queue" id="engineeringQueue" aria-labelledby="queue-title">
-      <div class="queue-head"><div><p class="kicker">Saved engineering records</p><h2 id="queue-title">The decisions on this engineering desk</h2></div>
-        <p class="queue-source">Built only from saved case questions, engineering work logs and review records. No invented owners, deadlines or live-plant status.</p></div>
-      <div class="queue-counts" id="queueCounts" aria-label="Engineering queue counts"></div>
-      <div class="queue-columns"><section class="queue-column"><h3>Decisions</h3><div class="queue-list" id="queueDecisions"><p class="queue-empty">Loading saved decisions…</p></div></section>
-        <section class="queue-column"><h3>Needs a human</h3><div class="queue-list" id="queueHumans"><p class="queue-empty">Loading open decisions…</p></div></section>
-        <section class="queue-column"><h3>Approval queue</h3><div class="queue-list" id="queueApprovals"><p class="queue-empty">Loading review records…</p></div></section></div>
+    <section class="hero-proof" aria-label="From plant data to a checked change">
+      <div><span>INPUT</span><b>P&amp;ID + data sheets</b></div><div><span>PROPOSAL</span><b>Meta Muse</b></div>
+      <div><span>CHECKS</span><b>Engineering engines</b></div><div><span>OUTPUT</span><b>Rev B + decision pack</b></div>
     </section>
 
-    <p class="slogan" id="product">Muse proposes. Physics checks. Engineers approve.</p>
+    <section class="case-story" id="product" aria-labelledby="story-title">
+      <div class="case-story-copy"><p class="story-label">ONE CHANGE · FOUR VERDICTS</p><h2 id="story-title">The process passed. Approval didn't.</h2>
+        <p>Muse found a route to +20% production. The process simulation cleared it, but the added compressor overloaded the transformer. PlantAgent keeps that conflict visible instead of turning a partial result into a green check.</p>
+        <a class="story-link" href="plant.html?case=salt_mvr&amp;tour=1">Walk through this decision →</a></div>
+      <div class="story-gates" aria-label="Salt plant engineering verdicts">
+        <div class="story-row"><span>META MUSE</span><div><b>Clean E-201 + add parallel K-202</b><p>Draft change with provisional equipment rating</p></div><strong>DRAFTED</strong></div>
+        <div class="story-row pass"><span>DWSIM</span><div><b>Process target</b><p>The proposed process reaches the requested throughput</p></div><strong>120% ✓</strong></div>
+        <div class="story-row fail"><span>PANDAPOWER</span><div><b>Transformer TX-1</b><p>The process fix creates an electrical bottleneck</p></div><strong>133% ✕</strong></div>
+        <div class="story-row open"><span>ENGINEER</span><div><b>Vendor curve + electrical modification</b><p>Required before the design can be approved</p></div><strong>OPEN</strong></div>
+      </div>
+    </section>
+
+    <p class="slogan">Muse proposes. Physics checks. Engineers approve.</p>
     <section class="workflow-strip" aria-label="How PlantAgent works">
       <article><span>01 · PROPOSE</span><h2>Muse works on the drawing</h2><p>It reads the P&amp;ID and source documents, builds a model, proposes a change and explains what it assumed.</p></article>
       <article><span>02 · CHECK</span><h2>Engines return the numbers</h2><p>DWSIM, pandapower, WaterTAP and discipline checks re-solve the change. The model cannot mark its own work as passed.</p></article>
@@ -397,6 +419,16 @@
       <a class="proof-item" href="plant.html?case=shell_norco_c2splitter"><span>REAL PLANT · BLIND</span><b>Shell Norco C2 splitter</b><p>Muse chose the same core revamp as Shell; it missed the published feed-tray move.</p><em>5 match · 3 partial · 1 miss</em></a>
       <a class="proof-item" href="plant.html?case=salt_mvr"><span>CROSS-DISCIPLINE BLOCK</span><b>Vacuum-salt plant</b><p>The process reaches +20%. The electrical model blocks approval at the transformer.</p><em>Process passes · TX-1 133%</em></a>
     </section>
+    <details class="queue-shell"><summary><b>Saved engineering records</b><span>Decisions, human actions and approval records</span></summary>
+      <section class="engineering-queue" id="engineeringQueue" aria-labelledby="queue-title">
+        <div class="queue-head"><div><p class="kicker">Saved engineering records</p><h2 id="queue-title">The decisions on this engineering desk</h2></div>
+          <p class="queue-source">Built only from saved case questions, engineering work logs and review records. No invented owners, deadlines or live-plant status.</p></div>
+        <div class="queue-counts" id="queueCounts" aria-label="Engineering queue counts"></div>
+        <div class="queue-columns"><section class="queue-column"><h3>Decisions</h3><div class="queue-list" id="queueDecisions"><p class="queue-empty">Loading saved decisions…</p></div></section>
+          <section class="queue-column"><h3>Needs a human</h3><div class="queue-list" id="queueHumans"><p class="queue-empty">Loading open decisions…</p></div></section>
+          <section class="queue-column"><h3>Approval queue</h3><div class="queue-list" id="queueApprovals"><p class="queue-empty">Loading review records…</p></div></section></div>
+      </section>
+    </details>
   </main>
   <section id="cases" aria-labelledby="cases-title">
     <details class="case-library-shell"><summary><b id="cases-title">Browse the engineering evidence library</b><span>Real plants, blind studies and recorded replays ↓</span></summary>
@@ -540,6 +572,5 @@ document.getElementById("newForm").onsubmit = async e => {
 };
 </script>
 <script src="runlog.js" defer></script>
-<script src="hero-decision.js" defer></script>
 </body>
 </html>
