@@ -854,6 +854,15 @@ def start_run(case):
 FORM_TYPES = {"application/x-www-form-urlencoded", "multipart/form-data", "text/plain"}
 
 
+
+def _sources_ok(name):
+    """Whether the source file a case's workspace must read (its main PDF or drawing) is on this machine. Public PDFs are
+    not redistributed, so a clean clone or the hosted replay lists the case and its stored study but offers no workspace
+    that cannot load. Supporting documents are optional and not checked."""
+    cfg = json.loads((ROOT / "cases" / name / "case.json").read_text())
+    return all(data_path(f).exists() for f in (cfg.get("pdf"), cfg.get("pid")) if isinstance(f, str) and not f.startswith("http"))
+
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *a, **kw):
         a[0].settimeout(15)
@@ -1304,10 +1313,10 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send({"error": str(e)}, code=400)
         if parts[:2] == ["api", "projects"]:
             return self._send([{"case": n, "kind": "study", "title": Case(n).cfg["title"], "task_type": Case(n).cfg["task_type"],
-                                "workspace": "workspace" in Case(n).cfg} for n in all_cases()] +
+                                "workspace": "workspace" in Case(n).cfg and _sources_ok(n)} for n in all_cases()] +
                               [{"case": n, "kind": "process", "built": (RUNS / "ws" / n / "model.json").exists(), "status": project_status(n),
                                 "title": json.loads((ROOT / "cases" / n / "case.json").read_text())["title"],
-                                "task_type": json.loads((ROOT / "cases" / n / "case.json").read_text())["task_type"], "workspace": True,
+                                "task_type": json.loads((ROOT / "cases" / n / "case.json").read_text())["task_type"], "workspace": _sources_ok(n),
                                 "engine": json.loads((ROOT / "cases" / n / "case.json").read_text()).get("engine", "dwsim")}
                                for n in all_cases("process")])
         if parts == ["api", "voice"] and method == "POST":  # push-to-talk on any page; paid, so gated like other runs
